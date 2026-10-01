@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<effect id="com.tanryu.effects.card_dance" name="TanRyu Card Dance (AE Style)" desc="Advanced 3D grid card splitting and displacement effect">
+    <section text="Grid Settings">
+        <param id="rows" name="Rows" type="slider" default="10.0" min="1.0" max="50.0" />
+        <param id="cols" name="Columns" type="slider" default="10.0" min="1.0" max="50.0" />
+    </section>
+    <section text="Displacement">
+        <param id="multiplier" name="Multiplier" type="slider" default="100.0" min="-500.0" max="500.0" />
+        <param id="rotation" name="3D Rotation" type="slider" default="0.0" min="-360.0" max="360.0" />
+        <param id="random" name="Random Seed" type="slider" default="1.0" min="0.0" max="100.0" />
+    </section>
+    <shader type="fragment" version="300es">
+        <![CDATA[
+        precision highp float;
+        in vec2 fragCoord;
+        out vec4 fragColor;
+        uniform sampler2D uTexture;
+        uniform float rows;
+        uniform float cols;
+        uniform float multiplier;
+        uniform float rotation;
+        uniform float random;
+
+        void main() {
+            vec2 st = fragCoord;
+            vec2 grid = vec2(cols, rows);
+            vec2 ipos = floor(st * grid);
+            vec2 fpos = fract(st * grid);
+            
+            // Calculate pseudo-random offset per card
+            float randID = fract(sin(dot(ipos, vec2(12.9898, 78.233) + random)) * 43758.5453);
+            
+            vec2 offset = (randID - 0.5) * (multiplier * 0.001);
+            vec2 uv = st + offset;
+            
+            vec4 color = texture(uTexture, uv);
+            fragColor = color;
+        }
+        ]]>
+    </shader>
+</effect>

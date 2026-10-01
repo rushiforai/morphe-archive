@@ -59,7 +59,153 @@ object AiUiHelper {
 
     @JvmStatic
     fun onDetailImageBound(viewHolder: Any?, illust: Any?) {
-        // No-op: AI warning banner is anchored once at the top level in onDetailBottomBarBound
+        try {
+            if (viewHolder == null || illust == null) return
+            
+            var currentClass: Class<*>? = viewHolder.javaClass
+            var itemView: ViewGroup? = null
+            while (currentClass != null) {
+                try {
+                    val field = currentClass.getDeclaredField("itemView")
+                    field.isAccessible = true
+                    itemView = field.get(viewHolder) as? ViewGroup
+                    if (itemView != null) break
+                } catch (_: Exception) {
+                }
+                currentClass = currentClass.superclass
+            }
+            if (itemView == null) return
+
+            val context = itemView.context
+            val actualIllust = AiDetectionHelper.unwrapIllust(illust) ?: illust
+            val isAi = AiDetectionHelper.isAi(actualIllust)
+
+            var position = -1
+            try {
+                val getAdapterPos = viewHolder.javaClass.getMethod("getAbsoluteAdapterPosition")
+                position = getAdapterPos.invoke(viewHolder) as Int
+            } catch (_: Exception) {
+                try {
+                    val getLayoutPos = viewHolder.javaClass.getMethod("getLayoutPosition")
+                    position = getLayoutPos.invoke(viewHolder) as Int
+                } catch (_: Exception) {}
+            }
+
+            var banner = itemView.findViewWithTag<View>(TAG_DETAIL_AI_BANNER)
+            val imgResId = context.resources.getIdentifier("image_view", "id", context.packageName)
+            val imageView = if (imgResId != 0) itemView.findViewById<View>(imgResId) else null
+
+            if (!isAi || position != 0) {
+                banner?.visibility = View.GONE
+                itemView.setPadding(0, 0, 0, 0)
+                return
+            }
+
+            // Dedicated header area above the image:
+            // Toolbar (56dp) + status bar (~32dp) + banner (~34dp) + breathing margins
+            val headerSpace = dpToPx(context, 102f).toInt()
+            itemView.setPadding(0, headerSpace, 0, 0)
+            itemView.clipToPadding = false
+
+            // Position banner within the header gap, safely below the toolbar icons
+            val bannerOffsetFromTop = -headerSpace + dpToPx(context, 58f).toInt()
+
+            if (banner == null) {
+                banner = createInlineWarningBanner(context)
+                val lp = android.widget.FrameLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                    topMargin = bannerOffsetFromTop
+                }
+                itemView.addView(banner, lp)
+            } else {
+                val lp = banner.layoutParams as? android.widget.FrameLayout.LayoutParams
+                if (lp != null && lp.topMargin != bannerOffsetFromTop) {
+                    lp.topMargin = bannerOffsetFromTop
+                    banner.layoutParams = lp
+                }
+            }
+
+            banner.visibility = View.VISIBLE
+            banner.bringToFront()
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun createInlineWarningBanner(context: Context): View {
+        val banner = LinearLayout(context).apply {
+            tag = TAG_DETAIL_AI_BANNER
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            
+            val padH = dpToPx(context, 14f).toInt()
+            val padV = dpToPx(context, 6f).toInt()
+            setPadding(padH, padV, padH + dpToPx(context, 2f).toInt(), padV)
+
+            // Deep obsidian-crimson frosted glass gradient
+            val bg = GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                intArrayOf(
+                    0xF22B090E.toInt(),
+                    0xF2450C16.toInt(),
+                    0xF22B090E.toInt()
+                )
+            ).apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dpToPx(context, 24f)
+                setStroke(dpToPx(context, 1.2f).toInt(), 0x99FB7185.toInt()) // luminous rose accent border
+            }
+            background = bg
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                elevation = dpToPx(context, 6f)
+            }
+        }
+
+        // Circular luminous icon badge
+        val iconBadge = TextView(context).apply {
+            text = "✦"
+            textSize = 10.5f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(0xFFFF758F.toInt())
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+
+            val badgeSize = dpToPx(context, 19f).toInt()
+            val lp = LinearLayout.LayoutParams(badgeSize, badgeSize).apply {
+                marginEnd = dpToPx(context, 7f).toInt()
+                rightMargin = dpToPx(context, 7f).toInt()
+            }
+            layoutParams = lp
+
+            val iconBg = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(0x59FF4D6D.toInt()) // 35% translucent vibrant coral
+                setStroke(dpToPx(context, 0.8f).toInt(), 0x80FF758F.toInt())
+            }
+            background = iconBg
+        }
+        banner.addView(iconBadge)
+
+        // Main typography with clean styling
+        val textView = TextView(context).apply {
+            text = "AI-Generated Work"
+            textSize = 11.5f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(0xFFFFF1F2.toInt())
+            gravity = Gravity.CENTER_VERTICAL
+            includeFontPadding = false
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                letterSpacing = 0.03f
+            }
+            setShadowLayer(dpToPx(context, 2f), 0f, dpToPx(context, 1f), 0x99000000.toInt())
+        }
+        banner.addView(textView)
+
+        return banner
     }
 
     @JvmStatic
@@ -104,55 +250,68 @@ object AiUiHelper {
             if (titleView != null) {
                 val parentLayout = titleView.parent as? ViewGroup
                 if (parentLayout != null) {
-                    var pill = parentLayout.findViewWithTag<TextView>(TAG_DETAIL_AI_PILL)
+                    val rowTag = "morphe_title_row"
+                    var titleRow = parentLayout.findViewWithTag<LinearLayout>(rowTag)
+
+                    if (titleRow == null) {
+                        if (parentLayout is LinearLayout && parentLayout.orientation == LinearLayout.VERTICAL) {
+                            val titleIdx = parentLayout.indexOfChild(titleView)
+                            if (titleIdx >= 0) {
+                                parentLayout.removeView(titleView)
+                                titleRow = LinearLayout(context).apply {
+                                    tag = rowTag
+                                    orientation = LinearLayout.HORIZONTAL
+                                    gravity = Gravity.CENTER_VERTICAL
+                                    layoutParams = LinearLayout.LayoutParams(
+                                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                                        ViewGroup.LayoutParams.WRAP_CONTENT
+                                    )
+                                }
+                                titleView.layoutParams = LinearLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                                )
+                                titleRow.addView(titleView)
+                                parentLayout.addView(titleRow, titleIdx)
+                            }
+                        }
+                    }
+
+                    val containerForPill = titleRow ?: parentLayout
+                    var pill = containerForPill.findViewWithTag<TextView>(TAG_DETAIL_AI_PILL)
+
                     if (isAi) {
                         if (pill == null) {
                             pill = TextView(context).apply {
                                 tag = TAG_DETAIL_AI_PILL
                                 text = "AI"
-                                textSize = 10f
+                                textSize = 9.5f
                                 typeface = Typeface.DEFAULT_BOLD
                                 setTextColor(Color.WHITE)
 
-                                val radius = dpToPx(context, 3f)
+                                val radius = dpToPx(context, 3.5f)
                                 val bg = GradientDrawable().apply {
                                     shape = GradientDrawable.RECTANGLE
-                                    setColor(0xFFDC2626.toInt()) // Red-600
+                                    setColor(0xFFE11D48.toInt()) // Rose-600
                                     cornerRadius = radius
                                 }
                                 background = bg
 
-                                val pxH = dpToPx(context, 5f).toInt()
+                                val pxH = dpToPx(context, 4.5f).toInt()
                                 val pxV = dpToPx(context, 1f).toInt()
                                 setPadding(pxH, pxV, pxH, pxV)
 
-                                val margin = dpToPx(context, 4f).toInt()
-                                val lp = if (parentLayout is android.widget.LinearLayout) {
-                                    android.widget.LinearLayout.LayoutParams(
-                                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                                        ViewGroup.LayoutParams.WRAP_CONTENT
-                                    ).apply {
-                                        gravity = Gravity.CENTER_VERTICAL
-                                        leftMargin = margin
-                                        marginStart = margin
-                                    }
-                                } else {
-                                    ViewGroup.MarginLayoutParams(
-                                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                                        ViewGroup.LayoutParams.WRAP_CONTENT
-                                    ).apply {
-                                        leftMargin = margin
-                                        marginStart = margin
-                                    }
+                                val margin = dpToPx(context, 6f).toInt()
+                                layoutParams = LinearLayout.LayoutParams(
+                                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                                ).apply {
+                                    gravity = Gravity.CENTER_VERTICAL
+                                    leftMargin = margin
+                                    marginStart = margin
                                 }
-                                layoutParams = lp
                             }
-                            val titleIndex = parentLayout.indexOfChild(titleView)
-                            if (titleIndex >= 0) {
-                                parentLayout.addView(pill, titleIndex + 1)
-                            } else {
-                                parentLayout.addView(pill)
-                            }
+                            containerForPill.addView(pill)
                         }
                         pill.visibility = View.VISIBLE
                     } else {
@@ -162,7 +321,7 @@ object AiUiHelper {
             }
 
             // 2. Display prominent full-width warning banner below toolbar
-            showDetailAiBanner(view, actualIllust, isAi)
+            // showDetailAiBanner(view, actualIllust, isAi) // Replaced by inline banner above page 0
         } catch (_: Throwable) {
         }
     }

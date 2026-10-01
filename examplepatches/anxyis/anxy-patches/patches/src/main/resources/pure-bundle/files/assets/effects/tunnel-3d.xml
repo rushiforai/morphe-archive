@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.tunnel-3d" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/tunnel-3d.webp" tags="3d,tunnel,depth,wrap,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Tunnel</string>
+            <string name="desc">Wraps the layer around an infinite 3D tunnel flying toward the camera.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="speed" default="0.5" min="0.0" max="3.0" label="Speed" />
+        <slider id="twist" default="0.0" min="-2.0" max="2.0" label="Twist" ticks="0" />
+        <slider id="fade" default="0.7" min="0.0" max="1.0" label="Depth Fade" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        const float PI = 3.14159265;
+        void main(){
+            vec2 p=acScreenNorm-0.5; float asp=acScreenSize.x/acScreenSize.y; p.x*=asp;
+            float r=length(p)+0.001;
+            float ang=atan(p.y,p.x);
+            float u=ang/(2.0*PI)+0.5 + twist*r;
+            float v=0.25/r + acTime*speed;
+            vec4 col=texture2DCv(inputImg.texture, fract(vec2(u,v)));
+            col.rgb *= mix(1.0, clamp(r*2.2,0.0,1.0), fade);
+            gl_FragColor=vec4(col.rgb, 1.0);
+        }
+    ]]></shader>
+
+</effect>

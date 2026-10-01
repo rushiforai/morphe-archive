@@ -4,16 +4,20 @@
  */
 package app.morphe.extension.facebook.settings;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.preference.Preference;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import app.morphe.extension.shared.SettingsContextRule;
 
@@ -43,6 +47,7 @@ public class SettingsEntryTest {
     @After public void stopWatching() {
         RuntimeEnvironment.getApplication().unregisterActivityLifecycleCallbacks(watcher);
         HushfacebookPreferenceFragment.failNextInitialization = null;
+        PatchFamily.inBuildForTests = null;
     }
 
     /**
@@ -273,6 +278,55 @@ public class SettingsEntryTest {
         ActivityController<Activity> loggedOut = replace(login);
 
         assertNull("the screen came back after the person closed it with the arrow", dialogOver(loggedOut.get()));
+    }
+
+    /**
+     * A note's button opens the screen at the setting it names: after a save WhatsApp may refuse,
+     * Save videos other apps can open on the Downloads page. Asked once, it isn't asked again.
+     */
+    @Test public void aRequestForASettingOpensTheScreenAtItsRow() {
+        PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
+        Intent asked = SettingsEntry.settingIntent(RuntimeEnvironment.getApplication(), Settings.DOWNLOAD_COMPATIBLE.key);
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class, asked).create();
+        SettingsEntry.onActivityCreate(activity.get());
+        activity.start().resume();
+        ShadowLooper.idleMainLooper();
+        List<String> titles = titles(pageOver(activity.get()));
+        assertTrue(titles.toString(), titles.contains("Save videos other apps can open"));
+        assertFalse(titles.toString(), titles.contains("Browse settings"));
+        assertNull("the request was kept for the next screen", SettingsEntry.takeRequestedSetting());
+    }
+
+    /** A screen that's already up goes to the row too, rather than staying where it was. */
+    @Test public void aRequestForASettingMovesAScreenAlreadyOpen() {
+        PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
+        ActivityController<Activity> activity = openedOverNewActivity();
+        assertTrue(titles(pageOver(activity.get())).contains("Browse settings"));
+        SettingsEntry.onNewIntent(activity.get(),
+                SettingsEntry.settingIntent(RuntimeEnvironment.getApplication(), Settings.DOWNLOAD_COMPATIBLE.key));
+        activity.pause().resume();
+        ShadowLooper.idleMainLooper();
+        List<String> titles = titles(pageOver(activity.get()));
+        assertTrue(titles.toString(), titles.contains("Save videos other apps can open"));
+    }
+
+    /** The launcher entry is open to every app: a request that isn't a key's shape opens the overview. */
+    @Test public void aRequestThatIsNoKeyOpensTheOverview() {
+        Intent odd = SettingsEntry.settingIntent(RuntimeEnvironment.getApplication(), "Save videos\nFAKE LINE");
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class, odd).create();
+        SettingsEntry.onActivityCreate(activity.get());
+        activity.start().resume();
+        ShadowLooper.idleMainLooper();
+        assertTrue(titles(pageOver(activity.get())).contains("Browse settings"));
+        String report = app.morphe.extension.shared.settings.preference.LogBufferManager.buildExportText();
+        assertFalse(report, report.contains("FAKE LINE"));
+    }
+
+    private static List<String> titles(HushfacebookPreferenceFragment page) {
+        ListView list = page.getView().findViewById(android.R.id.list);
+        List<String> titles = new ArrayList<>();
+        for (int i = 0; i < list.getCount(); i++) titles.add(String.valueOf(((Preference) list.getItemAtPosition(i)).getTitle()));
+        return titles;
     }
 
     @SuppressWarnings("deprecation")

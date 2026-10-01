@@ -172,6 +172,13 @@ public final class SessionLockOverlay {
                 detach();
                 return;
             }
+            // The last video is playing out and the feed's swipe is off meanwhile. The panel and
+            // its pause follow the video's end, which calls this again; the countdown's own tick
+            // catches a wait that ran out at its limit instead.
+            if (FinishLastVideo.pending()) {
+                detach();
+                return;
+            }
             Activity activity = Utils.getActivity();
             if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
                 // Mid teardown, so there is nothing to attach to yet. The hold is still on and

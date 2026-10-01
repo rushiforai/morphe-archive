@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **Archived:** Jam queue sharing was successfully merged upstream into [`MorpheApp/morphe-patches` via PR #3014](https://github.com/MorpheApp/morphe-patches/pull/3014). This custom patch source is no longer maintained and is retained only for historical reference; use the official Morphe patch source for current builds.
+
 # Jam Patch Source
 
 Optional prerelease patch source for [Jam Layer](https://github.com/AgentKosticka/Jam-Layer), providing Jam queue sharing for YouTube Music **9.15.51 ARM64**, with experimental support for **9.35.54, 9.36.50 and 9.37.54 ARM64**.

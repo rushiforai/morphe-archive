@@ -1,11 +1,13 @@
 package app.hushmessenger.patches.controls
 
+import app.hushmessenger.patches.MessengerTarget
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertSame
@@ -16,18 +18,39 @@ class ControlProfileTest {
     }
 
     @Test fun eachBuildListsTheSameControlsWithTheSameNumberOfHooks() {
-        assertEquals(BASE_PROFILE.hooks.keys, PROFILE_346013370.hooks.keys)
-        for (key in BASE_PROFILE.hooks.keys) {
-            assertEquals(BASE_PROFILE.hooks.getValue(key).size, PROFILE_346013370.hooks.getValue(key).size, key)
+        for (profile in controlProfiles.values) {
+            assertEquals(BASE_PROFILE.hooks.keys, profile.hooks.keys)
+            for (key in BASE_PROFILE.hooks.keys) {
+                assertEquals(BASE_PROFILE.hooks.getValue(key).size, profile.hooks.getValue(key).size, key)
+            }
         }
-        assertEquals(79, PROFILE_346013370.hooks.values.sumOf { it.size })
+        assertEquals(89, PROFILE_346013370.hooks.values.sumOf { it.size })
+        assertEquals(89, PROFILE_346013423.hooks.values.sumOf { it.size })
     }
 
     @Test fun theVersionCodePicksTheProfile() {
+        assertEquals(MessengerTarget.VERSION_CODES.toSet(), controlProfiles.keys)
         assertSame(PROFILE_346013370, controlProfileFor("346013370"))
-        for (code in listOf("346013387", "346013440", "346013442", "346013354", null)) {
+        assertSame(PROFILE_346013423, controlProfileFor("346013423"))
+        for (code in listOf("346013387", "346013440", "346013442", "346013354", "346013394", null)) {
             assertSame(BASE_PROFILE, controlProfileFor(code))
         }
+    }
+
+    @Test fun aSecondVersionNameUsesItsOwnBuildsProfile() {
+        val versions = MessengerTarget.VERSIONS + ("581.0.0.1.91" to listOf(347000001))
+        val profiles = controlProfiles + (347000001 to PROFILE_346013370)
+        assertSame(PROFILE_346013370, controlProfileFor("347000001", profiles))
+        assertSame(BASE_PROFILE, controlProfileFor("346013387", profiles))
+        val found = mapOf("people" to PROFILE_346013370.hooks.getValue("people").map { id ->
+            fixtureMethod(id, "const/4 v0, 0x0\nreturn v0")
+        })
+        activeProfile = controlProfileFor("347000001", profiles)
+        validateControls(found, setOf("people"), versions)
+        activeProfile = controlProfileFor("346013387", profiles)
+        val failure = assertFailsWith<PatchException> { validateControls(found, setOf("people"), versions) }
+        assertContains(failure.message.orEmpty(), "Use an unmodified arm64 Messenger 580.0.0.49.91 APK (version code " +
+            "${app.hushmessenger.patches.coexist.CODES_580}) or 581.0.0.1.91 APK (version code 347000001).")
     }
 
     @Test fun validationFollowsTheActiveBuild() {

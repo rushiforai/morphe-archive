@@ -1,0 +1,2 @@
+# The key that signs each release's SHA256SUMS.txt, in ssh-keygen allowed_signers format.
+SysAdminDoc namespaces="hushmessenger-release" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIlpOBjH25t0vPjCMBVBmz+ElPT4oiCIL6eLMVGY08Mo

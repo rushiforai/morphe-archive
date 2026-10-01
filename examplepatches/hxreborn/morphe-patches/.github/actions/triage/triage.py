@@ -8,10 +8,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from fields import CONTEST, SIGN_OFF, field, has_any, normalize, normalize_version, parse_fields
+from fields import CONTEST, field, has_any, normalize, normalize_version, parse_fields
 
 MIN_CHARS = 60
-MIN_WORDS = 10
 
 REPO = os.environ.get("GITHUB_REPOSITORY", "")
 NEW_ISSUE = f"https://github.com/{REPO}/issues/new/choose" if REPO else ""
@@ -19,8 +18,7 @@ NEW_ISSUE = f"https://github.com/{REPO}/issues/new/choose" if REPO else ""
 APP_NAME_FIELDS = ("App and version", "App name", "App", "Target app", "App version patched")
 APP_VERSION_FIELDS = ("Other version", "App version", "Broken app version", "App version patched",
                       "App and version")
-DESCRIPTION_FIELDS = ("Bug description", "What happens", "What happened?", "Describe the bug",
-                      "Summary")
+DESCRIPTION_FIELDS = ("Bug description", "What happens", "Describe the bug", "Summary")
 LOG_FIELDS = ("Debug log", "Error logs", "Morphe logs", "Logs")
 SOURCE_FIELDS = ("APK source", "APK source and type", "APK source and architecture")
 
@@ -30,7 +28,9 @@ REPACKAGERS = ("softonic", "happymod", "apkmody", "modyolo", "moddroid", "an1.co
 MARKER = "<!-- triage-bot -->"
 NO_RESPONSE = "_no response_"
 
-REPORT_MARKERS = ("PatchException", "Manager:", "manager=", "Failed to match")
+REPORT = re.compile(
+    r"Exception|Error|INSTALL_FAILED|Failed to match|Manager:|manager=|\(API \d+\)|^\s+at \S", re.I | re.M
+)
 
 OPTION_PATCHING_FAILED = "patchingfailed"
 OPTION_STOCK_FAILS_TOO = "theunpatchedappfailsthesameway"
@@ -65,13 +65,24 @@ app_version = " ".join(filter(None, (field(fields, n) for n in APP_VERSION_FIELD
 another_version = "another version" in app_name.lower() and not field(fields, "Other version")
 reported = " ".join(dict.fromkeys(filter(None, (app_name, app_version))))
 app_haystack = reported or "\n".join(fields.values())
-version_tokens = {normalize_version(t) for t in re.split(r"[\s(),`]+", app_version) if t.strip()}
+version_words = [t for t in re.split(r"[\s(),`]+", app_version) if t.strip()]
+version_tokens = {normalize_version(t) for t in version_words} | {
+    normalize(a) + normalize(b) for a, b in zip(version_words, version_words[1:])
+}
 version_haystack = normalize(app_haystack)
 what_happened = field(fields, "What happened")
 apk_source = field(fields, *SOURCE_FIELDS)
-source_text = (apk_source + "\n" + "\n".join(fields.values())).lower()
-repackager = next((h for h in REPACKAGERS if h in source_text), "")
+repackager = next(
+    (h for h in REPACKAGERS if re.search(rf"(?:^|[/.@\s]){re.escape(h)}(?![a-z0-9])", apk_source.lower())), ""
+)
 debug_log = field(fields, *LOG_FIELDS)
+report_attached = bool(REPORT.search(debug_log))
+
+
+def target_forms(version):
+    numbered = [w for w in version.split() if any(c.isdigit() for c in w)]
+    return {normalize_version(version)} | {normalize_version(w) for w in numbered}
+
 
 blockers = []
 flags = []
@@ -83,12 +94,12 @@ if not fields:
         + (f"Open [a new issue]({NEW_ISSUE}) and pick the matching form." if NEW_ISSUE else "Open a new issue and pick the matching form.")
     )
 
-words = len(description.split())
-if fields and (len(description) < MIN_CHARS or words < MIN_WORDS):
-    blockers.append(
-        f"**The description is short** ({words} word{'s' if words != 1 else ''}, {MIN_WORDS} needed). Add "
+if fields and not report_attached and len(description) < MIN_CHARS:
+    flags.append(
+        f"**The description is short** ({len(description)} characters, {MIN_CHARS} needed). Add "
         "what you did, what you expected and what happened instead."
     )
+    labels.append("needs info")
 
 matched = None
 best = 0
@@ -115,10 +126,11 @@ elif not matched:
         if reported
         else "**The report doesn't name an app this bundle patches.**"
     )
-    blockers.append(
+    flags.append(
         f"{lead} Supported apps in {data['version']}: {supported}. "
         "To get another app added, open an app request."
     )
+    labels.append("needs info")
 elif another_version:
     flags.append(
         "**\"Another version\" is picked but the version is missing.** Fill in the Other version "
@@ -126,8 +138,8 @@ elif another_version:
     )
     labels.append("needs info")
 elif matched[1] and not (
-    any(normalize_version(v) in version_tokens for v in matched[1]) if version_tokens
-    else any(normalize_version(v) in version_haystack for v in matched[1])
+    any(form in version_tokens for v in matched[1] for form in target_forms(v)) if version_tokens
+    else any(form in version_haystack for v in matched[1] for form in target_forms(v))
 ):
     name, versions = matched
     flags.append(
@@ -136,9 +148,7 @@ elif matched[1] and not (
     )
     labels.append("untargeted version")
 
-if normalize(what_happened).startswith(OPTION_PATCHING_FAILED) and not any(
-    marker in debug_log for marker in REPORT_MARKERS
-):
+if normalize(what_happened).startswith(OPTION_PATCHING_FAILED) and not report_attached:
     flags.append(
         "**Patching failed but no error report is attached.** In Morphe Manager, tap **Copy** on the "
         "error dialog and paste it here. With morphe-cli, add `-r report.json` and attach the "
@@ -150,10 +160,11 @@ stock = normalize(field(fields, "Does the unpatched app do the same thing"))
 single_patch = normalize(field(fields, "Does it still happen with only one patch selected"))
 
 if stock.startswith(OPTION_STOCK_FAILS_TOO):
-    blockers.append(
+    flags.append(
         "**The unpatched app fails the same way**, so the app is the likely cause rather than a "
         "patch. If the patched build behaves differently, change that answer and describe the difference."
     )
+    labels.append("needs info")
 elif stock.startswith(OPTION_NOT_TRIED):
     flags.append(
         "**The unpatched app hasn't been tried.** Install the stock APK, repeat the same steps and "
@@ -186,11 +197,11 @@ else:
     lines = []
 
 if lines:
-    lines += ["", CONTEST, "", SIGN_OFF]
+    lines += ["", CONTEST]
 
 print(json.dumps({
     "verdict": verdict,
-    "labels": labels,
+    "labels": list(dict.fromkeys(labels)),
     "app": matched[0] if matched else "",
     "comment": MARKER + "\n" + "\n".join(lines) if lines else "",
 }))

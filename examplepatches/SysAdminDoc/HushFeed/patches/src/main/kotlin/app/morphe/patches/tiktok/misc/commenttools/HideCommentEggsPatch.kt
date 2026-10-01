@@ -7,6 +7,7 @@
 package app.morphe.patches.tiktok.misc.commenttools
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.util.addInstruction
 import app.morphe.util.addInstructions
 import app.morphe.patcher.patch.PatchException
@@ -85,8 +86,11 @@ private fun MethodReference.isPlayCall() =
     parameterTypes.map { it.toString() } == listOf(COMMENT_SURPRISE_STRUCT, "I", "Ljava/lang/String;") && returnType == "V"
 
 /** The comment-page loader: builds the struct from the page's surprise and hands it, with the scene, to the play method. */
-private object CommentPageSurpriseFingerprint : Fingerprint(
+internal object CommentPageSurpriseFingerprint : Fingerprint(
     returnType = "V",
+    // The filter repeats a reference the custom block requires, so the patcher reads only the
+    // classes that make it (#54).
+    filters = listOf(fieldAccess(definingClass = COMMENT_ITEM_LIST, name = "commentSurprise")),
     custom = { method, _ ->
         val references = method.references()
         references.constructTheStruct() && references.readField(COMMENT_ITEM_LIST, "commentSurprise") &&

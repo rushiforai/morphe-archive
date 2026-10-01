@@ -1,0 +1,222 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e64726f776e6564" deprecated="true">
+
+    <params>
+        <texture id="noisexx" srcType="image" src="textures/iChannel3.png" />
+        <switch id="autop" default="true" label="Auto Progress" />
+        <spinner id="SPEED" label="Flow Speed" default="2.0" min="0.0" max="5.0" step="0.01" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <xyz id="xxx" default="0, 0, 0" label="Orientation" step="0.01" />
+        <point id="rrr" default="0.0,0.0" label="Reflection" step="0.01" />
+        <spinner id="scale" default="1.15" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="PROGRESS" label="Manual Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="bgalpha" default="1.0" min="0.0" max="1.0" step="0.01" label="BG Alpha" type="percent" />
+        <spinner id="salpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Water Alpha" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Comp Alpha" type="percent" />
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        #define PI 		3.14159265359
+        #define FOV 		60.0
+        #define EPSILON		0.001
+        #define MAX_STEPS	1000
+        #define MAX_DIST	1000.0
+        #define PLANE		vec4 (0.0, 1.0, 0.0, 1.0)
+        #define BOTTOM		vec4 (0.0, 1.0, 0.0, 4.0)
+        
+        vec4 texture3D (sampler2D tex, vec3 pt, vec3 pn, float scale) {
+        	return 
+        		texture2DCv (tex, pt.xy/scale) * abs (pn.z) +
+        		texture2DCv (tex, pt.xz/scale) * abs (pn.y) +
+        		texture2DCv (tex, pt.zy/scale) * abs (pn.x);
+        }
+        
+        mat3 rotate_x (float fi) {
+        	float cfi = cos (fi);
+        	float sfi = sin (fi);
+        	return mat3 (
+        		1.0, 0.0, 0.0,
+        		0.0, cfi, -sfi,
+        		0.0, sfi, cfi);
+        }
+        
+        mat3 rotate_y (float fi) {
+        	float cfi = cos (fi);
+        	float sfi = sin (fi);
+        	return mat3 (
+        		cfi, 0.0, sfi,
+        		0.0, 1.0, 0.0,
+        		-sfi, 0.0, cfi);
+        }
+        
+        mat3 rotate_z (float fi) {
+        	float cfi = cos (fi);
+        	float sfi = sin (fi);
+        	return mat3 (
+        		cfi, -sfi, 0.0,
+        		sfi, cfi, 0.0,
+        		0.0, 0.0, 1.0);
+        }
+        
+        vec4 noise3v (vec2 p) {
+        	return texture2DCv (noisexx.texture, p);
+        }
+        
+        vec4 fbm3v (vec2 p) {
+        	vec4 f = vec4 (0.0);
+        	f += (vec4 (0.5000) * noise3v (p)); p *= vec2 (2.01);
+        	f += (vec4 (0.2500) * noise3v (p)); p *= vec2 (2.02);
+        	f += (vec4 (0.1250) * noise3v (p)); p *= vec2 (2.03);
+        	f += (vec4 (0.0625) * noise3v (p)); p *= vec2 (2.04);
+        	f /= vec4 (0.9375);
+        	return f;
+        }
+        
+        float dplane (vec3 pt, vec4 pl) {
+        	return dot (pl.xyz, pt) + pl.w;
+        }	
+        
+        float map (vec3 pt) {
+        	return dplane (pt, PLANE);
+        }
+        
+        float map2 (vec3 pt) {
+        	return dplane (pt, BOTTOM);
+        }
+        
+        float march (vec3 ro, vec3 rd) {
+        	float t = 0.0;
+        	float d = 0.0;
+        	vec3 pt = vec3 (0.0);
+        	for (int i = 0; i < MAX_STEPS; ++i) {
+        		pt = ro + rd * t;
+        		d = map (pt); 
+        		if (d < EPSILON || t + d >= MAX_DIST) {			
+        			break;
+        		}
+        		t += d;
+        	}
+        	
+        	return d <= EPSILON ? t : MAX_DIST;
+        }
+        
+        float march2 (vec3 ro, vec3 rd) {
+        	float t = 0.0;
+        	float d = 0.0;
+        	vec3 pt = vec3 (0.0);
+        	for (int i = 0; i < MAX_STEPS; ++i) {
+        		pt = ro + rd * t;
+        		d = map2 (pt); 
+        		if (d < EPSILON || t + d >= MAX_DIST) {			
+        			break;
+        		}
+        		t += d;
+        	}
+        	
+        	return d <= EPSILON ? t : MAX_DIST;
+        }
+        
+        float fresnel_step (vec3 I, vec3 N, vec3 f) {
+        	return clamp (f.x + f.y * pow (1.0 + dot (I, N), f.z), 0.0, 1.0);
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        float iTime = acTime;
+        
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        
+        TanRyu /= scale;
+        TanRyu *= rot2m((-180.0+angle)*0.0174533);
+        TanRyu += vec2((0.0-position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+                vec2 UVX = acScreenNorm;
+        	vec2 uv = TanRyu
+        	            * tan (radians (FOV)/2.0)
+        	            ;
+        	vec2 mo = PI * iMouse.xy / iResolution.xy;
+        	
+        	mat3 rt = rotate_y (mo.x * PI);
+        	
+        	vec3 up = vec3 (0.0, (xxx.y*0.01)+2.8, 0.0) ;			// up 
+        	vec3 fw = vec3 (0.65, (xxx.z*0.01)+0.1, (xxx.x*0.01)+0.4) *rt;			// forward
+        	vec3 lf = cross (up, fw); 					// left
+        	
+        	vec3 ro = -fw * 5.0 + vec3 (0.0, 5.0, 0.0); // ray origin
+        	vec3 rd = normalize (uv.x * lf + uv.y * up + fw) ; 		// ray direction
+        	
+        	float t = march (ro, rd);
+        	vec4 cm = texture2DCv (inputImg.texture, UVX)*bgalpha;
+        	vec3 pt = rd*t + ro;
+        	
+        	vec3 pn = vec3(rrr.x+0.45, 0.6, rrr.y);
+        	// vec3 pn = vec3(zzz.x*0.01,zzz.y*0.01,zzz.z*0.01);
+        	
+        	float EVO = autop? (PROGRESS*3.5)+(iTime*SPEED) : PROGRESS*3.5;
+        	vec3 dv = fbm3v (pt.xz/512.0+EVO/512.0).xyz-0.5;
+        	// vec3 dv = fbm3v (pt.xz/512.0+iTime/512.0).xyz-0.5;
+        	pn = normalize (pn + dv*0.2);
+        	
+        	vec3 rfl = reflect (rd, pn);
+        	// if(MIRROR) { 
+        	rfl.y = 1.-rfl.y; 
+        	// }
+        	
+        	float fs = fresnel_step (rd, pn, vec3 (0.0, 3.0, 6.0));
+        	vec4 c0 = texture2DCv (inputImg.texture, rfl.zx);
+        	vec4 c1 = texture2DCv (inputImg.texture, UVX)*bgalpha;
+        
+        	fragColor = mix (mix (c0, c1, 1.0 - fs), cm, smoothstep (80.0, 160.0, t));
+        
+    	vec4 factor = mix(texColor, fragColor, salpha);
+            
+    	gl_FragColor = (factor*alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import app.morphe.extension.facebook.settings.Settings;
+import app.morphe.extension.facebook.settings.SettingsEntry;
 import app.morphe.extension.shared.L10n;
 
 /**
@@ -34,7 +36,8 @@ import app.morphe.extension.shared.L10n;
  *
  * <p>A save used to say "Saving..." when it started and nothing more until it ended, so a large
  * video looked stuck and nothing could stop one. The notification goes when the save ends, and the
- * toast that says how it ended stays as it was.
+ * toast that says how it ended stays as it was. A video WhatsApp may refuse leaves one note of its
+ * own behind, with a button to the switch that avoids it ({@link #showRefused}).
  *
  * <p>Cancel is a broadcast to a receiver registered in Facebook's process, not a component added to
  * its manifest, since a patch that adds one changes what other apps can reach. From Android 13 the
@@ -56,6 +59,13 @@ public final class SaveControl {
     static final String CHANNEL = "hushfacebook_saves";
     /** Every notification here is posted under this tag, so its id can't replace one of Facebook's. */
     static final String TAG = "hushfacebook-save";
+    /**
+     * The tag of the note a finished save leaves ({@link #showRefused}). Not {@link #TAG}: a save
+     * ending takes its own number down there, and {@link #removeStale} everything that isn't running.
+     */
+    static final String SAVED_TAG = "hushfacebook-saved";
+    /** One note at a time: the next save's replaces it rather than stacking up. */
+    static final int SAVED_ID = 1;
 
     /** Unguessable, and new in every process. */
     private static final String TOKEN = UUID.randomUUID().toString();
@@ -188,6 +198,38 @@ public final class SaveControl {
             .setPackage(application.getPackageName())
             .putExtra(EXTRA_ID, id)
             .putExtra(EXTRA_TOKEN, TOKEN);
+    }
+
+    /**
+     * After a save WhatsApp and some editors may refuse, with Save videos other apps can open off:
+     * a note that says so under [saved], the usual end-of-save text, with a button that opens the
+     * settings at that switch. A toast can't carry a button (#11, #14). Answers whether it's up.
+     */
+    static boolean showRefused(Context application, String saved) {
+        NotificationManager manager = notifications(application);
+        if (manager == null) return false;
+        try {
+            Intent open = SettingsEntry.settingIntent(application, Settings.DOWNLOAD_COMPATIBLE.key);
+            PendingIntent button = PendingIntent.getActivity(application, SAVED_ID, open,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+            String text = saved + "\n" + L10n.f(application, "Turn on %1$s to save videos they all play.",
+                L10n.isolate(L10n.t(application, "Save videos other apps can open")));
+            Notification note = new Notification.Builder(application, CHANNEL)
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setContentTitle(L10n.t(application, "WhatsApp and some editors may refuse this video"))
+                .setContentText(text)
+                .setStyle(new Notification.BigTextStyle().bigText(text))
+                .setContentIntent(button)
+                .setAutoCancel(true)
+                .addAction(new Notification.Action.Builder((Icon) null,
+                    L10n.t(application, "Open the setting"), button).build())
+                .build();
+            manager.notify(SAVED_TAG, SAVED_ID, note);
+            return true;
+        } catch (Throwable t) {
+            MediaDownload.failure(() -> "could not show the note about the saved format", t);
+            return false;
+        }
     }
 
     /** Facebook's notification service, when this channel may post, else {@code null}. */

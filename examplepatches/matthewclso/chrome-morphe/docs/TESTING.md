@@ -1,8 +1,35 @@
 # Device acceptance
 
+The [user-visible behavior contract](BEHAVIOR_CONTRACT.md) defines the authoritative current requirements. This file records dated evidence, including superseded prototypes and limitations; historical results do not override that contract or prove a later build still works.
+
 Target: Chrome 153.0.8010.53 (801005304), unrooted Galaxy S26 SM-S942U1, Android 16/API 36,
 ARM64, 4096-byte pages, Gboard. Test package: `app.matthew.chrome.test`.
 Stock Chrome and the Samsung Internet default-browser role are not fixtures.
+
+## Sharing, alignment and favicon fixes, September 30, 2026
+
+Source 0.5.1, final candidate v75, was installed on the same S26 with the existing
+signing key. APK signature and 4 KB alignment pass.
+
+- Reproduced the released build's page-sharing crash on a disposable local page. Android rejected `gb0.a` because an `Icon` receiver was passed to the Black mode `Drawable` helper. Both `Icon.setTint` and `Icon.setTintList` now retain their original calls and result consumers.
+- `tests/TintHookRegression.java` compares the original and patched APKs. It rejects the released v61 artifact and passes the corrected build. Compile/run it with Morphe Desktop's bundled dexlib on the Java classpath; pass the original merged APK and candidate APK as its two arguments.
+- In final v75, both page **Share…** and long-press **Share link** open Android's chooser without restarting Chrome. The long-press menu screenshot also has no divider between the picker and address bar. No share was sent to a real recipient.
+- The original X is retained at 24sp; visible pixels on this S26 measure 22 × 22. Its ink is centered without changing the 48dp hit area. Tab names retain 13sp text and ellipsis behavior. Candidate v68 screenshot measurements put title ink at y=2127.5 and X ink at y=2127, centered in the row at y=2127 (the half-pixel difference comes from the 25px and 22px glyph heights). The same alignment implementation is retained in v75.
+- Final v75 passes icon-only changes, same-title navigation between differently colored icons, a page without an icon, delayed icon delivery and history navigation. A separate cold-start check begins with a cached blue icon and confirms a live change to green without changing the page title or URL. This caught an earlier candidate that skipped live observer attachment when a cached bitmap already existed.
+- During development, v68 also passed background icons after restart without selecting those tabs, and a delayed response after leaving the page did not replace the new page's icon. The native URL guard and same-profile local favicon DB request are retained; the extension does not download icons.
+- The selected tab is brought into view after address entry recreates the row; horizontal manual scrolling remains available.
+- A long-press link menu reproduced a full-width, three-pixel gray divider. The final implementation fills the reserved divider slot with the picker background, preserving native capture geometry. Picker changes also invalidate Chrome's cached toolbar snapshot so the first scrolling texture after restart contains the row.
+- The final scrolling implementation was tested after a cold start on a long fixture page. The first downward swipe after the native tab transition hides both bars. Three screenshots taken during a four-second upward gesture show the picker, #000000 toolbar and address-field backgrounds, and no gray divider. This passes in v74 and v75. The user independently confirmed that both bars hide/return together and that the address bar remains black throughout the motion.
+
+Use `tests/tab_picker_server.py` with ADB reverse on port 8766. `/favicon-case/blue`,
+`red`, `none`, and `late` share a page title, while **Change icon only** leaves both the
+title and page URL unchanged. The delayed icon response takes four seconds. Only
+disposable page data is needed; do not share to real contacts during acceptance.
+
+Tested patch bundle SHA-256:
+`5a71e88249562533bf8c17b8cb9eaad9670628ec49001af98c3a290a2d88b6bc`.
+Device APK SHA-256:
+`6b68ef36caa6a45eda94f570dcdec205028afe960561165e2072a82735f2d946`.
 
 ## Tab picker, September 29, 2026
 

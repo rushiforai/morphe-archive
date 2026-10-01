@@ -1,3 +1,53 @@
+## [1.9.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.8.1...v1.9.0) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* **X:** Keep Enable Undo Posts from failing verification ([73be101](https://github.com/ahmedyarub/morphe-patches/commit/73be10157f6c003a4470f96b6ca26bc7c3f5a38e))
+* **X:** Offer Download Video on every video in the video player ([19cd545](https://github.com/ahmedyarub/morphe-patches/commit/19cd5451192b34a0f1109f2df908a2cd4a45af88))
+* **X:** Show the post menu's dialogs on the activity ([2f00bd6](https://github.com/ahmedyarub/morphe-patches/commit/2f00bd613ee3cbff9887441d801212f61bc1ec6b))
+
+### ✨ New Features
+
+* **X:** Add Custom download folder ([46726c4](https://github.com/ahmedyarub/morphe-patches/commit/46726c4f07386cfba546fde21e134d4a09b6edde))
+* **X:** Add Enable Undo Posts, a settings screen, and login and database tools ([4a6a91a](https://github.com/ahmedyarub/morphe-patches/commit/4a6a91a58ac6c819a0746b71f1393e4577858c8f))
+* **X:** Add link patches for the rewritten 12.30 client ([a3665c7](https://github.com/ahmedyarub/morphe-patches/commit/a3665c7faec6028323d07dc345c14173f57c5bf5))
+* **X:** Add Native downloader, Unlock Premium checks and the hiding patches ([2550789](https://github.com/ahmedyarub/morphe-patches/commit/2550789a1377bcffd51353b1d7362f05fbeb7f6e))
+* **X:** Add Remove Ads, Hook feature flag and the Customize patches ([aa7917c](https://github.com/ahmedyarub/morphe-patches/commit/aa7917c2bf887da4811c6d4d6bb5a8dcd4905797))
+* **X:** Add sensitive media, poll results, force HD, translate and Add tab patches ([d2bd235](https://github.com/ahmedyarub/morphe-patches/commit/d2bd2358583fa4901ed738607bd97c2fe0c6c60c))
+* **X:** Add Share Tweet as Image and Disable auto timeline scroll on launch ([c4e5ebd](https://github.com/ahmedyarub/morphe-patches/commit/c4e5ebd7c414659cd229f45070e163a719820cc8))
+* **X:** Add the post menu actions and Filter posts by keyword ([43864b2](https://github.com/ahmedyarub/morphe-patches/commit/43864b292666eea67f6eb73d992367625c8f9b0f))
+
+## [1.9.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.8.1...v1.9.0-dev.1) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* **X:** Keep Enable Undo Posts from failing verification ([73be101](https://github.com/ahmedyarub/morphe-patches/commit/73be10157f6c003a4470f96b6ca26bc7c3f5a38e))
+* **X:** Offer Download Video on every video in the video player ([19cd545](https://github.com/ahmedyarub/morphe-patches/commit/19cd5451192b34a0f1109f2df908a2cd4a45af88))
+* **X:** Show the post menu's dialogs on the activity ([2f00bd6](https://github.com/ahmedyarub/morphe-patches/commit/2f00bd613ee3cbff9887441d801212f61bc1ec6b))
+
+### ✨ New Features
+
+* **X:** Add Custom download folder ([46726c4](https://github.com/ahmedyarub/morphe-patches/commit/46726c4f07386cfba546fde21e134d4a09b6edde))
+* **X:** Add Enable Undo Posts, a settings screen, and login and database tools ([4a6a91a](https://github.com/ahmedyarub/morphe-patches/commit/4a6a91a58ac6c819a0746b71f1393e4577858c8f))
+* **X:** Add link patches for the rewritten 12.30 client ([a3665c7](https://github.com/ahmedyarub/morphe-patches/commit/a3665c7faec6028323d07dc345c14173f57c5bf5))
+* **X:** Add Native downloader, Unlock Premium checks and the hiding patches ([2550789](https://github.com/ahmedyarub/morphe-patches/commit/2550789a1377bcffd51353b1d7362f05fbeb7f6e))
+* **X:** Add Remove Ads, Hook feature flag and the Customize patches ([aa7917c](https://github.com/ahmedyarub/morphe-patches/commit/aa7917c2bf887da4811c6d4d6bb5a8dcd4905797))
+* **X:** Add sensitive media, poll results, force HD, translate and Add tab patches ([d2bd235](https://github.com/ahmedyarub/morphe-patches/commit/d2bd2358583fa4901ed738607bd97c2fe0c6c60c))
+* **X:** Add Share Tweet as Image and Disable auto timeline scroll on launch ([c4e5ebd](https://github.com/ahmedyarub/morphe-patches/commit/c4e5ebd7c414659cd229f45070e163a719820cc8))
+* **X:** Add the post menu actions and Filter posts by keyword ([43864b2](https://github.com/ahmedyarub/morphe-patches/commit/43864b292666eea67f6eb73d992367625c8f9b0f))
+
+## [1.8.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.8.0...v1.8.1) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Show Download once in the feed and reel menus ([0c7a3fe](https://github.com/ahmedyarub/morphe-patches/commit/0c7a3fe086a658fc66244d2cf1bf648d32ca5edf))
+
+## [1.8.1-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.8.0...v1.8.1-dev.1) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Show Download once in the feed and reel menus ([0c7a3fe](https://github.com/ahmedyarub/morphe-patches/commit/0c7a3fe086a658fc66244d2cf1bf648d32ca5edf))
+
 ## [1.8.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.7.1...v1.8.0) (2026-09-29)
 
 ### 🐛 Bug Fixes

@@ -1,0 +1,151 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.glinty"
+    name="Star Glint"
+    desc="Amazing New Extra FX from the Modder"
+    category="drawing" 
+    tags="drawing"
+    thumb="thumb/TANRYU/starg.png"
+    experimental="false">
+
+    <params>
+        <selector id="type" style="radio" default="0" label="Type">
+            <choice label="CROSS" value="0" />
+            <choice label="PLUS" value="1" />
+            <choice label="STAR" value="2" />
+        </selector>
+        <spinner id="threshold" default="0.1" min="0.0" max="1.0" label="Spreading" step="0.005" />
+        <spinner id="strength" default="0.75" min="0.0" max="1.0" label="Strength" step="0.005" />
+        <spinner id="alpha" default="1.0" min="0.0" max="3.0" step="0.01" label="Alpha" type="percent" />
+        <!-- <switch id="autob" default="true" label="Auto Blink" /> -->
+        <!-- <spinner id="speed" default="1" min="0.0" max="10.0" label="Blink Speed" step="0.01" /> -->
+        <!-- <spinner id="bmag" default="0.0" min="0.0" max="50.0" step="0.1" label="Blink" type="percent" /> -->
+        <switch id="gradColor" default="false" label="Gradient Color" />
+        <color id="color1" default="#FFF4B446" label="Base Color" alpha="true" />
+        <color id="color2" default="#FFFF0000" label="Gradient Color" alpha="true" />
+        <spinner id="scale" default="1.0" min="0.1" max="10.0" label="Radius Gradient" step="0.01" ticks="1.0" />
+        <slider id="iter" default="1" min="1" max="3" label="Iterations" type="integer" step="0.01" />
+      
+        <texture id="inputImg" srcType="content" />
+        <texture id="xdist" srcType="buffer" />
+
+    </params>
+    
+    <iterations param="iter" />
+    
+    <passes>
+        <pass target="xdist" effect="com.alightcreative.effects.glintx"/>
+        <pass />
+    </passes>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+   
+   
+   /////////////////////////
+    void main ()
+    {
+            vec2 texelSize = 1.0 / getTexSize(xdist.size);
+            float rad = 45.0 * 0.0174533;
+            vec2 velocity = vec2(cos(rad)*(strength),-sin(rad)*(strength));
+            velocity.x *= acScreenSize.y / acScreenSize.x;
+            float speed = length(velocity / texelSize);
+            int nSamples = int(clamp(speed, 1.01, 100.01));
+            vec4 outColor = texture2DCv(xdist.texture,acScreenNorm.st);
+            for(int i=1; i<nSamples; i++ ) {
+                vec2 offset = velocity * (float(i) / float(nSamples - 1) - 0.5);
+                vec2 sampleCoord = acScreenNorm.st-offset;
+                float insideTexture = step(0.0,sampleCoord.x) * step(sampleCoord.x,1.0) * step(0.0,sampleCoord.y) * step(sampleCoord.y,1.0);
+                outColor += texture2DCv(xdist.texture, sampleCoord) * insideTexture;
+            }
+            vec4 d1 = outColor/float(nSamples);
+            //////////////////////////
+            vec2 texelSizeb = 1.0 / getTexSize(xdist.size);
+            float radb = 135.0 * 0.0174533;
+            vec2 velocityb = vec2(cos(radb)*(strength),-sin(radb)*(strength));
+            velocityb.x *= acScreenSize.y / acScreenSize.x;
+            float speedb = length(velocityb / texelSizeb);
+            int nSamplesb = int(clamp(speedb, 1.01, 100.01));
+            vec4 outColorb = texture2DCv(xdist.texture,acScreenNorm.st);
+            for(int ib=1; ib<nSamplesb; ib++ ) {
+                vec2 offsetb = velocityb * (float(ib) / float(nSamplesb - 1) - 0.5);
+                vec2 sampleCoordb = acScreenNorm.st-offsetb;
+                float insideTextureb = step(0.0,sampleCoordb.x) * step(sampleCoordb.x,1.0) * step(0.0,sampleCoordb.y) * step(sampleCoordb.y,1.0);
+                outColorb += texture2DCv(xdist.texture, sampleCoordb) * insideTextureb;
+            }
+            vec4 d2 = outColorb/float(nSamplesb);
+            //////////////////////////
+            vec2 texelSizec = 1.0 / getTexSize(xdist.size);
+            float radc = 0.0 * 0.0174533;
+            vec2 velocityc = vec2(cos(radc)*(strength),-sin(radc)*(strength));
+            velocityc.x *= acScreenSize.y / acScreenSize.x;
+            float speedc = length(velocityc / texelSizec);
+            int nSamplesc = int(clamp(speedc, 1.01, 100.01));
+            vec4 outColorc = texture2DCv(xdist.texture,acScreenNorm.st);
+            for(int ic=1; ic<nSamplesc; ic++ ) {
+                vec2 offsetc = velocityc * (float(ic) / float(nSamplesc - 1) - 0.5);
+                vec2 sampleCoordc = acScreenNorm.st-offsetc;
+                float insideTexturec = step(0.0,sampleCoordc.x) * step(sampleCoordc.x,1.0) * step(0.0,sampleCoordc.y) * step(sampleCoordc.y,1.0);
+                outColorc += texture2DCv(xdist.texture, sampleCoordc) * insideTexturec;
+            }
+            vec4 d4 = outColorc/float(nSamplesc);
+            //////////////////////////
+            vec2 texelSized = 1.0 / getTexSize(xdist.size);
+            float radd = 90.0 * 0.0174533;
+            vec2 velocityd = vec2(cos(radd)*(strength),-sin(radd)*(strength));
+            velocityd.x *= acScreenSize.y / acScreenSize.x;
+            float speedd = length(velocityd / texelSized);
+            int nSamplesd = int(clamp(speedd, 1.01, 100.01));
+            vec4 outColord = texture2DCv(xdist.texture,acScreenNorm.st);
+            for(int id=1; id<nSamplesd; id++ ) {
+                vec2 offsetd = velocityd * (float(id) / float(nSamplesd - 1) - 0.5);
+                vec2 sampleCoordd = acScreenNorm.st-offsetd;
+                float insideTextured = step(0.0,sampleCoordd.x) * step(sampleCoordd.x,1.0) * step(0.0,sampleCoordd.y) * step(sampleCoordd.y,1.0);
+                outColord += texture2DCv(xdist.texture, sampleCoordd) * insideTextured;
+            }
+            vec4 d5 = outColord/float(nSamplesd);
+            
+            // float balpha = autob ? clamp(alpha, 1.0, 0.0) * speed : alpha;
+            
+            // vec4 d3 = max(d1,d2) * balpha;
+            // vec4 d6 = max(d4,d5) * balpha;
+            // vec4 d7 = max(d3,d6) * balpha;
+            
+            vec4 d3 = max(d1,d2) * alpha;
+            vec4 d6 = max(d4,d5) * alpha;
+            vec4 d7 = max(d3,d6) * alpha;
+            
+            vec4 d8;
+            if(type==0) {d8 = d3;}
+            else if(type==1) {d8 = d6;}
+            else if(type==2) {d8 = d7;}
+            
+            vec4 oricol = texture2DCv(inputImg.texture,acScreenNorm);
+            // gl_FragColor = strength > 0.0011 ? (oricol+d3) * oricol.a : oricol;
+            gl_FragColor = strength > 0.0011 ? (oricol+d8) * oricol.a : oricol;
+    }
+
+
+    ]]></shader>
+
+</effect>

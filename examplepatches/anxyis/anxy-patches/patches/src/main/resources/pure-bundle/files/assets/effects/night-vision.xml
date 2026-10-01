@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.night-vision" name="@string/name" desc="@string/desc" category="color" thumb="thumb/night-vision.webp" tags="color,green,scifi,noise,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Night Vision</string>
+            <string name="desc">Green-phosphor night-vision goggles look with glow, animated noise and a soft vignette.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="gain" default="1.4" min="0.5" max="3.0" label="Gain" />
+        <slider id="noiseAmt" default="0.25" min="0.0" max="1.0" label="Noise" />
+        <slider id="vignette" default="0.6" min="0.0" max="1.0" label="Vignette" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            float l = dot(c, vec3(0.3,0.59,0.11));
+            l = pow(clamp(l,0.0,1.0), 0.7)*gain;
+            float n = (rand(acScreenNorm*acScreenSize + fract(acTime))-0.5)*noiseAmt;
+            vec3 outc = vec3(0.05, l+n, 0.08) * vec3(0.4,1.0,0.4);
+            float d = length(acScreenNorm-0.5);
+            outc *= 1.0 - d*d*vignette*2.2;
+            gl_FragColor = vec4(clamp(outc,0.0,1.0),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

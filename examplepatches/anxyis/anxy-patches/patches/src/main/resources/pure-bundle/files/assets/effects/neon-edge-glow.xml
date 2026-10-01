@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.neon-edge-glow" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/neon-edge-glow.webp" tags="edge,neon,glow,raster,stylize">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Neon Edge Glow</string>
+            <string name="desc">Detects the edges of the layer and lights them up with a glowing neon color. Great for cyberpunk and synthwave looks.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color" default="#FF00E5FF" label="Neon Color" alpha="false" />
+        <slider id="thickness" default="1.5" min="0.5" max="4.0" label="Thickness" />
+        <slider id="intensity" default="2.5" min="0.0" max="6.0" label="Glow Intensity" />
+        <slider id="keepImage" default="0.4" min="0.0" max="1.0" label="Keep Original" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 px = thickness / acScreenSize;
+            float a0 = texture2DCv(inputImg.texture, acScreenNorm).a;
+            float ax = texture2DCv(inputImg.texture, acScreenNorm + vec2(px.x,0.0)).a;
+            float ay = texture2DCv(inputImg.texture, acScreenNorm + vec2(0.0,px.y)).a;
+            float axn= texture2DCv(inputImg.texture, acScreenNorm - vec2(px.x,0.0)).a;
+            float ayn= texture2DCv(inputImg.texture, acScreenNorm - vec2(0.0,px.y)).a;
+            float edge = abs(ax-axn) + abs(ay-ayn) + abs(ax-a0) + abs(ay-a0);
+            edge = clamp(edge*intensity, 0.0, 1.0);
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec4 glow = vec4(color.rgb, 1.0) * edge;
+            vec4 base = src * keepImage;
+            gl_FragColor = base + glow - base*glow.a;
+        }
+    ]]></shader>
+
+</effect>

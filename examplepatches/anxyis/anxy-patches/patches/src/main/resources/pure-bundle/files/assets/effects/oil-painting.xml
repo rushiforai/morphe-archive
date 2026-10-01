@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.oil-painting" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/oil-painting.webp" tags="paint,artistic,smooth,stylize,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Oil Painting</string>
+            <string name="desc">Stylizes the layer into smooth painterly strokes using a Kuwahara-style filter that flattens color regions.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="radius" default="3.0" min="1.0" max="6.0" label="Brush Size" />
+        <slider id="strength" default="1.0" min="0.0" max="1.0" label="Strength" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 px = 1.0/acScreenSize;
+            int r = int(radius);
+            vec3 mean[4];
+            float varsum[4];
+            for(int k=0;k<4;k++){ mean[k]=vec3(0.0); varsum[k]=0.0; }
+            for(int q=0;q<4;q++){
+                vec2 dir = vec2(q==0||q==3?-1.0:1.0, q<2?-1.0:1.0);
+                vec3 m = vec3(0.0); vec3 m2 = vec3(0.0); float c=0.0;
+                for(int i=0;i<=6;i++){
+                    for(int j=0;j<=6;j++){
+                        if(i>r||j>r) continue;
+                        vec2 o = vec2(float(i),float(j))*dir*px;
+                        vec3 col = texture2DCv(inputImg.texture, acScreenNorm+o).rgb;
+                        m += col; m2 += col*col; c+=1.0;
+                    }
+                }
+                m/=c; m2/=c;
+                mean[q]=m;
+                vec3 v = m2-m*m;
+                varsum[q]=v.r+v.g+v.b;
+            }
+            float minv = varsum[0]; vec3 res = mean[0];
+            for(int k=1;k<4;k++){ if(varsum[k]<minv){ minv=varsum[k]; res=mean[k]; } }
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 orig = src.a>0.0? src.rgb/src.a : src.rgb;
+            gl_FragColor = vec4(mix(orig,res,strength),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

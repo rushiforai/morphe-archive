@@ -1,0 +1,29 @@
+id: chefkoch
+package: de.pixelhouse
+display_name: Chefkoch
+apk_file_type: XAPK
+apkpure_slug: chefkoch/de.pixelhouse
+analysis_dir: analysis/chefkoch
+
+# Base APK is ~54 MB, target SDK 37. Give jadx headroom.
+decompile:
+  jadx_max_heap: 4g
+  jadx_threads: 4
+  jadx_no_res: true
+
+# Smoke-test assertions after verify_patch.sh applies the .mpp.
+verify:
+  apk: analysis/chefkoch/extract/de.pixelhouse.apk
+  smali_assertions:
+    - file: de/pixelhouse/chefkoch/app/redux/shop/PurchasesEntitlementSelectorsKt.smali
+      method: selectIsAdfree
+      pattern: 'const/4 v0, 0x1'
+      label: Remove ads (selectIsAdfree)
+    - file: de/chefkoch/foundation/analytics/firebase/FirebaseAnalyticsTracker.smali
+      method: logAndTrack
+      pattern: 'return-void'
+      label: Remove analytics (logAndTrack)
+    - file: de/pixelhouse/chefkoch/app/redux/tracking/AppTrackingMiddleware.smali
+      method: all$lambda$0
+      pattern: 'return-object v6'
+      label: Remove tracking (all$lambda$0)

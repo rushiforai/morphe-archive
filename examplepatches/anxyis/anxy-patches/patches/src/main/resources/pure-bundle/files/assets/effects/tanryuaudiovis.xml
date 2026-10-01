@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.audiovis"
+    name="Audio Visualisation+"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="other"
+    thumb="thumb/TANRYU/audio.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color1" default="#FF00FF00" label="Color 1" alpha="true" />
+        <color id="color2" default="#FFFF4444" label="Color 2" alpha="true" />
+        <spinner id="progressa" label="Evolution" default="1.0" min="-1000.0" max="1000.0" step="0.01" type="percent" />
+        <spinner id="progressc" label="Tolerance" default="1.0" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="amp" label="Amplitude" default="1.0" min="0" max="10.0" step="0.01" type="percent" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="scale" default="0.75" min="0.1" max="5.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <switch id="adaptive" default="true" label="Adaptive to Layer" />
+
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+   vec3 lerp(vec3 x, vec3 y, float value)
+    {
+    	return (x + value*(y-x));
+    }
+    
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        if (adaptive) { TanRyu = acScreenNorm; }
+        else { 
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        }
+
+        TanRyu /= scale;
+        TanRyu *= rot2m(angle*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+
+    	vec4 result;
+    	
+    	vec2 uv = TanRyu;
+        
+        //I prefer y flipped for this shader, so its same as in Unreal Engine
+        uv.y = 1. - uv.y;
+        
+        //cell size here
+        vec2 uvModulo = mod(uv, vec2(.04, .05)); 
+        vec2 griddedUV = uv - uvModulo;
+        
+        // 2 sine waves combined into vec2
+        vec2 heightOfBar = vec2(progressa * 8.0) / vec2(-2.5, 5.);
+        heightOfBar += vec2(5., 2.) * vec2(griddedUV.r * 5.);
+        heightOfBar = sin(heightOfBar);
+        //
+        
+        //central gradient creation
+        float centralGradient = griddedUV.r * (1. - griddedUV.r) * 1.8;
+        //
+        
+        float wavesWithGradient = heightOfBar.g * centralGradient;
+        
+        float bothWaysWave = wavesWithGradient + heightOfBar.r * griddedUV.r * 0.3 + 0.4;
+        
+        //displacement over beat
+        float displacementOverBeat = abs(progressc) + sin(4.0 * amp) + 1.8;
+        // float displacementOverBeat = sin(progressc) + sin(7. * progressd) + 1.8;
+        displacementOverBeat /= 4.;
+        displacementOverBeat = 1. - displacementOverBeat;
+        //
+        
+        //patern and grid masks
+        vec2 gridMask = vec2(griddedUV.g + .01, min(uvModulo.r, uvModulo.g));
+        vec2 patternMask = vec2(bothWaysWave + displacementOverBeat, 0.01);
+        
+        vec2 masksCombined = gridMask - patternMask;
+        //
+        
+        //getting rid of midtones, I want just bit mask
+        masksCombined *= 999999.0; 
+        masksCombined = clamp(masksCombined, 0., 1.);
+        //
+        
+        //coloring
+        vec3 bottomColor = vec3(color1.rgb);
+        vec3 topColor = vec3(color2.rgb);
+        // vec3 bottomColor = vec3(0.035601, 1., 0.141263);
+        // vec3 topColor = vec3(0.520996, 0.01033, 0.028426);
+        
+        vec3 color = lerp(topColor, bottomColor, griddedUV.g);
+        //
+    
+        // Output to screen
+        result = vec4(color * masksCombined.g * masksCombined.r, 1.);
+        
+            vec4 targetLuma = result;
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            float luma = dot(targetLuma.rgb, luminanceWeighting);
+            float lowThresholdB = (0.5*(1.0+1.0))-0.001;
+            float lowThresholdA = lowThresholdB-max(1.0, 0.00001);
+            float highThresholdA = (1.0*(1.0+1.0)-1.0)+0.001;
+            float highThresholdB = highThresholdA+max(1.0, 0.00001);
+            float lowBlend = smoothstep( lowThresholdA, lowThresholdB, luma );
+            float highBlend = 1. - smoothstep( highThresholdA, highThresholdB, luma );
+            float lumafx = min(lowBlend,highBlend);
+            vec4 fxLuma = targetLuma*lumafx;
+        
+    	vec4 factor = mix(texColorX,fxLuma,alpha);
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor,resultfinal,alpha) * texColor.a;
+    }
+
+
+    ]]></shader>
+
+</effect>

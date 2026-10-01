@@ -40,11 +40,24 @@ public final class FeedFilter {
     private static final String PROMOTION = "PROMOTION";
 
     /**
-     * The category of Facebook's own engagement cards, server-drawn CustomizedStory templates. The
-     * suggested groups row comes as one now ("Suggested for you", Join, "Discover more groups"),
-     * no longer as a GroupsYouShouldJoinFeedUnit, so the promos switch and the groups switch each hide it.
+     * The category of Facebook's own engagement cards, its quick promotions. The suggested groups
+     * row comes as one now ("Suggested for you", Join, "Discover more groups"), no longer as a
+     * GroupsYouShouldJoinFeedUnit. The promos switch hides every card; the groups switch hides the
+     * one {@link #GROUPS_PROMOTION_ID} names.
      */
     static final String ENGAGEMENT_PROMO = "ENGAGEMENT_QP";
+
+    /**
+     * The quick promotion Facebook serves the suggested groups row as: a CustomizedStory drawn by a
+     * Bloks hscroll template. The category's other cards are other promotions, People you may know
+     * and a Meta AI discover unit (emulator, 580, 2026-09-30), and every card's {@code tracking}
+     * JSON names its own. The id is Facebook's server data, not the app's: if the row moves to a new
+     * promotion, the groups switch alone keeps it until this names the new id, and the promos switch
+     * still hides it. The feed-edge log names each card's id.
+     */
+    static final String GROUPS_PROMOTION_ID = "625620278343662";
+    private static final int TRACKING_KEY = "tracking".hashCode();
+    private static final String PROMOTION_ID_FIELD = "\"quick_promotion_id\":\"";
 
     /**
      * The GraphQL type the "People you may know" row answers {@code getTypeName()} with. Its class
@@ -297,7 +310,8 @@ public final class FeedFilter {
                         + (suggestedPatched && DISCOVER_UNIT_TYPE.equals(type)
                                 ? " stories=" + unconnectedStories(feedUnit) : "")
                         + (aiPatched ? " genai=" + flagValue(GenAiLabel.FLAG, feedUnit, aiAccessor)
-                                + " ailabel=" + flagValue(GenAiLabel.SELF_LABEL, feedUnit, aiLabelAccessor) : "");
+                                + " ailabel=" + flagValue(GenAiLabel.SELF_LABEL, feedUnit, aiLabelAccessor) : "")
+                        + (ENGAGEMENT_PROMO.equals(categoryName) ? " qp=" + promotionId(feedUnit) : "");
             });
             // An edge a prefetch adds before the settings are ready stays: no switch can be read yet.
             if (!Utils.settingsReady()) return false;
@@ -311,9 +325,13 @@ public final class FeedFilter {
             }
             if (reason == null && suggestedPatched) {
                 if (Settings.HIDE_SUGGESTED_POSTS.get()) reason = suggestedUnitName(feedUnit);
-                if (reason == null && ENGAGEMENT_PROMO.equals(categoryName)
-                        && (Settings.HIDE_SUGGESTED_POSTS.get() || Settings.HIDE_SUGGESTED_GROUPS.get())) {
-                    reason = ENGAGEMENT_PROMO;
+                if (reason == null && ENGAGEMENT_PROMO.equals(categoryName)) {
+                    if (Settings.HIDE_SUGGESTED_POSTS.get()) {
+                        reason = ENGAGEMENT_PROMO;
+                    } else if (Settings.HIDE_SUGGESTED_GROUPS.get()
+                            && GROUPS_PROMOTION_ID.equals(promotionId(feedUnit))) {
+                        reason = ENGAGEMENT_PROMO + ":" + GROUPS_PROMOTION_ID;
+                    }
                 }
                 if (reason == null && Settings.HIDE_SUGGESTED_FOR_YOU.get()) {
                     reason = flagReason(RecommendationLabel.FLAG, RECOMMENDATION_ROUTE, feedUnit, recommendationAccessor);
@@ -421,6 +439,34 @@ public final class FeedFilter {
         } catch (ReflectiveOperationException | RuntimeException failure) {
             HookStatus.threw(FamilyNames.SUGGESTED_POSTS, "Stories you might like flag reader", failure);
             return "read failed";
+        }
+    }
+
+    /**
+     * The quick promotion an engagement card's {@code tracking} JSON names, or null when it names
+     * none or can't be read. It goes through {@code BaseModelWithTree.getCachedString}, the reader
+     * Facebook's own code reads a model's tracking with in 577 and 580, which checks the native
+     * tree is still there first. Never throws.
+     */
+    static String promotionId(Object feedUnit) {
+        PostText.Members found = PostText.members();
+        if (found.treeModel == null || found.cachedString == null) return null;
+        if (!found.treeModel.isInstance(feedUnit)) return null;
+        try {
+            Object tracking = found.cachedString.invoke(feedUnit, TRACKING_KEY);
+            if (!(tracking instanceof String)) return null;
+            String json = (String) tracking;
+            int start = json.indexOf(PROMOTION_ID_FIELD);
+            if (start < 0) return null;
+            start += PROMOTION_ID_FIELD.length();
+            int end = json.indexOf('"', start);
+            return end > start ? json.substring(start, end) : null;
+        } catch (InvocationTargetException failure) {
+            HookStatus.threw(FamilyNames.SUGGESTED_POSTS, "promotion id reader", failure.getCause());
+            return null;
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            HookStatus.threw(FamilyNames.SUGGESTED_POSTS, "promotion id reader", failure);
+            return null;
         }
     }
 

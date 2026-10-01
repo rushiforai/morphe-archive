@@ -3,6 +3,7 @@ package app.idm.patches.ads
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation
 import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
@@ -160,5 +161,62 @@ object BannerViewSetAdFingerprint : Fingerprint(
             parameters = listOf("Landroid/view/View\$OnClickListener;"),
             returnType = "V"
         )
+    )
+)
+
+/**
+ * `Lidm/internet/download/manager/d;->ۦۜۡ()Li/ru;` is the single source of the "install
+ * 1DM+" banner ad, and it is a static factory that builds the `Li/ru;` ad object from
+ * literals: a base64 PNG icon, the copy "Install <b>1DM+</b> for an Ad free experience
+ * and support developement of the app", the label "Install", the Play Store package
+ * `idm.internet.download.manager.plus`, a `utm_` campaign tag, the accent colour
+ * `#43A047`, and a 30 000 ms click-through delay.
+ *
+ * It is worth being precise about what this is not, because the first attempt at this
+ * patched the wrong class and did nothing. 1DM has four app-owned banner classes, and
+ * the one on the home screen is `manager/NewBannerView`, not
+ * `Lacr/browser/lightning/view/BannerView` and not
+ * `Lidm/internet/download/manager/BannerView`. All of them end up drawing whatever
+ * `Li/ru;` they are handed, and this factory is what hands it over.
+ *
+ * Suppressing the factory rather than any one renderer is what makes this complete: the
+ * promo reaches the screen through four separate call sites --
+ * `BannerManager.load(Z)V` and `BannerManager.getNewBannerInfo(...)`, which feed the ad
+ * rotation, and `Li/s82;->ۦۖۢ(...)V` and `Li/s82;->ۦۖۦ(...)Z`, which reach
+ * `manager.NewBannerView` directly. Redirecting `BannerManager.load()` to `disable()`
+ * leaves the other three, which is why the prompt survived it.
+ *
+ * All four call sites null-check the result and skip the banner when it is null, so
+ * returning null here is the behaviour the app already has a path for. The method is
+ * `static` with `.registers 3`, so `v0` is the return slot and the replacement is
+ * `const/4 v0, 0` followed by `return-object v0` -- `return-void` is not legal on a
+ * method that returns a reference.
+ *
+ * The chain identifies the method by its own literals: the `PlayStore` package name is
+ * unique to this factory, and the copy, the label and the click-through delay sit either
+ * side of it. None of the obfuscated member names are used.
+ */
+object IdmPlusBannerFingerprint : Fingerprint(
+    definingClass = "Lidm/internet/download/manager/d;",
+    name = "ۦۜۡ",
+    returnType = "Li/ru;",
+    parameters = listOf(),
+    filters = listOf(
+        // The cached singleton this factory fills in and hands back.
+        fieldAccess(
+            definingClass = "Lidm/internet/download/manager/d;",
+            name = "ۦۗۥ",
+            type = "Li/ru;",
+            opcode = Opcode.SGET_OBJECT
+        ),
+        string("Install <b>1DM+</b> for an Ad free experience and support developement of the app"),
+        string("Install"),
+        // The 30 s click-through delay. It is written *before* the Play Store id in the
+        // method body, so the chain has to visit it here; filters match in increasing
+        // instruction order, and putting it last would leave it unreachable.
+        literal(30000, listOf(Opcode.CONST_16)),
+        // The Play Store id of the paid edition. Unique to this method in the app.
+        string("idm.internet.download.manager.plus"),
+        string("utm_source=1DM&utm_medium=App&utm_campaign=DefaultBanner")
     )
 )

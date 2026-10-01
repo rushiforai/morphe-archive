@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.tanryu.effects.beast_camera"
+    name="TanRyu Beast 3D Camera"
+    desc="True 3D Space Perspective Camera for Groups and Layers with Cinematic Depth"
+    category="3d" 
+    tags="other,tanryu,camera,3d"
+    thumb="thumb/TANRYU/camera3d.png"
+    experimental="false">
+
+    <params>
+        <section text="3D Camera Rotation" />
+        <switch id="SPLITXYZ" default="true" label="Enabled" />
+        <spinner id="ROT2" label="X Camera" default="0" min="-360.0" max="360.0" step="1.0" />
+        <spinner id="ROT3" label="Y Camera" default="0" min="-360.0" max="360.0" step="1.0" />
+        <spinner id="ROT4" label="Z Camera" default="0" min="-360.0" max="360.0" step="1.0" />
+
+        <section text="Perspective and Depth" />
+        <spinner id="fFOV" label="FOV / Depth" default="1.5" min="0.5" max="5.0" step="0.1" />
+        <spinner id="scale" label="Scale" default="1.0" min="0.1" max="10.0" step="0.01" type="percent" />
+        <point id="position" label="Center Offset" />
+
+        <texture id="inputImg" srcType="content" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        precision highp float;
+
+        #define PI 3.14159265359
+
+        mat3 rotX(float a) { float s = sin(a); float c = cos(a); return mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c); }
+        mat3 rotY(float a) { float s = sin(a); float c = cos(a); return mat3(c, 0.0, s, 0.0, 1.0, 0.0, -s, 0.0, c); }
+        mat3 rotZ(float a) { float s = sin(a); float c = cos(a); return mat3(c, -s, 0.0, s, c, 0.0, 0.0, 0.0, 1.0); }
+
+        void main() {
+            vec2 uv = acLayerNorm - 0.5;
+            uv *= scale;
+
+            float rx = (SPLITXYZ ? ROT2 : 0.0) * PI / 180.0;
+            float ry = (SPLITXYZ ? ROT3 : 0.0) * PI / 180.0;
+            float rz = (SPLITXYZ ? ROT4 : 0.0) * PI / 180.0;
+            mat3 camMatrix = rotZ(rz) * rotY(ry) * rotX(rx);
+
+            vec3 p3d = vec3(uv, 0.0);
+            p3d = camMatrix * p3d;
+
+            float persp = 1.0 / (p3d.z + fFOV);
+            vec2 projUV = p3d.xy * persp + 0.5;
+
+            vec4 col = vec4(0.0);
+            
+            // Avoid logical AND operators to prevent XML entity parsing bugs in KXmlParser
+            float validX = step(0.0, projUV.x) * step(projUV.x, 1.0);
+            float validY = step(0.0, projUV.y) * step(projUV.y, 1.0);
+            float valid = validX * validY;
+
+            if (valid > 0.5) {
+                col = texture2D(inputImg.texture, projUV);
+            }
+
+            gl_FragColor = col;
+        }
+    ]]></shader>
+</effect>

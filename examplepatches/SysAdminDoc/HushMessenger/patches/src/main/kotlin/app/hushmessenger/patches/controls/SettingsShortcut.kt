@@ -5,6 +5,44 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 internal const val SHORTCUT_LABEL_PATH = "res/values/strings.xml"
+internal const val APP_COMPONENT_FACTORY = "com.facebook.common.appcomponentfactory.m4a.M4aAppComponentFactory"
+internal const val SCREEN_HOST = "com.facebook.messaging.about.preference.NeueAboutPreferenceActivity"
+internal const val SHORTCUT_HOST = "com.facebook.zero.upsell.activity.ZeroUpsellBuyConfirmInterstitialActivity"
+internal const val SCREEN_EXTRA = "app.hushmessenger.screen"
+
+/**
+ * A Root Mount install keeps the stock manifest in PackageManager, so settings and restart run inside two stock
+ * activities there (HostScreens). Each must still look the way it was tested: attributes not listed here, a task
+ * affinity, launch mode or process of its own, or any intent filter would change how the screens open.
+ */
+private val hostAttributes = mapOf(
+    SCREEN_HOST to mapOf<String, (String) -> Boolean>(
+        "android:exported" to { it == "false" },
+        "android:parentActivityName" to { it == "com.facebook.messenger.neue.MainActivity" },
+    ),
+    SHORTCUT_HOST to mapOf<String, (String) -> Boolean>(
+        "android:exported" to { it == "false" },
+        // No affinity: the task Android clears for a static shortcut is never Messenger's own.
+        "android:taskAffinity" to { it.isEmpty() },
+        "android:theme" to { it.endsWith("Theme.Translucent.NoTitleBar") || it.endsWith("01030010") },
+        "android:configChanges" to { true },
+    ),
+)
+
+internal fun Element.validateScreenHosts() {
+    fun invalid(detail: String): Nothing = throw PatchException(
+        "Messenger controls: $detail. Settings couldn't open on a Root Mount install. Start with an unmodified supported APK.",
+    )
+    if (getAttribute("android:appComponentFactory") != APP_COMPONENT_FACTORY) invalid("the app component factory differs")
+    for ((host, expected) in hostAttributes) {
+        val entry = (children("activity") + children("activity-alias")).filter { it.getAttribute("android:name") == host }
+            .singleOrNull() ?: invalid("${host.substringAfterLast('.')} is missing")
+        val attributes = (0 until entry.attributes.length).associate { entry.attributes.item(it).nodeName to entry.attributes.item(it).nodeValue }
+        val changed = attributes.filter { (name, value) -> name != "android:name" && expected[name]?.invoke(value) != true }
+        if (entry.tagName != "activity" || changed.isNotEmpty() || expected.keys.any { it != "android:configChanges" && it !in attributes } ||
+            entry.children("intent-filter").isNotEmpty()) invalid("${host.substringAfterLast('.')} changed ($changed)")
+    }
+}
 internal val shortcutLabels = mapOf("hushmessenger_patch_controls" to "Patch controls", "hushmessenger_restart" to "Restart Messenger")
 
 internal fun resolveShortcutsPath(apkEntries: List<String>, readDocument: (String) -> Document): String {
@@ -76,6 +114,7 @@ internal fun Document.addSettingsAccess(shortcuts: Document) {
         }) invalid()
 
     // Validate both documents before changing either, including the existing-settings guard.
+    app.validateScreenHosts()
     addSettingsEntry()
     for (launcher in launchers.filter { it.shortcutMetadata().isEmpty() }) {
         launcher.appendChild(createElement("meta-data").apply {
@@ -84,9 +123,10 @@ internal fun Document.addSettingsAccess(shortcuts: Document) {
         })
     }
     val first = root.firstChild
-    for ((id, label, activity, icon) in listOf(
-        listOf("hushmessenger_controls", "hushmessenger_patch_controls", "SettingsActivity", "ic_menu_preferences"),
-        listOf("hushmessenger_restart", "hushmessenger_restart", "RestartActivity", "ic_popup_sync"),
+    // Shortcuts start the stock host, which opens the real screen or, on a Root Mount install, the hosted one.
+    for ((id, label, screen, icon) in listOf(
+        listOf("hushmessenger_controls", "hushmessenger_patch_controls", "settings", "ic_menu_preferences"),
+        listOf("hushmessenger_restart", "hushmessenger_restart", "restart", "ic_popup_sync"),
     )) {
         val shortcut = shortcuts.createElement("shortcut").apply {
             setAttribute("android:shortcutId", id)
@@ -97,7 +137,11 @@ internal fun Document.addSettingsAccess(shortcuts: Document) {
             appendChild(shortcuts.createElement("intent").apply {
                 setAttribute("android:action", "android.intent.action.VIEW")
                 setAttribute("android:targetPackage", "com.facebook.orca")
-                setAttribute("android:targetClass", "app.hushmessenger.extension.$activity")
+                setAttribute("android:targetClass", SHORTCUT_HOST)
+                appendChild(shortcuts.createElement("extra").apply {
+                    setAttribute("android:name", SCREEN_EXTRA)
+                    setAttribute("android:value", screen)
+                })
             })
         }
         root.insertBefore(shortcut, first)

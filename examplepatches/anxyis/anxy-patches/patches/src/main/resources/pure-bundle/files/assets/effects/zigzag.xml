@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.zigzag" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/zigzag.webp" tags="distort,ripple,zigzag,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Zig Zag</string>
+            <string name="desc">Sends rippling zig-zag waves outward from a center point, like ripples with sharp crests.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Center" />
+        <slider id="amount" default="0.5" min="0.0" max="1.0" label="Amplitude" />
+        <slider id="freq" default="12.0" min="2.0" max="40.0" label="Ridges" />
+        <slider id="speed" default="1.5" min="0.0" max="6.0" label="Speed" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 ctr = center/1000.0 + 0.5;
+            vec2 d = acScreenNorm - ctr;
+            float r = length(d);
+            float z = abs(fract(r*freq - acTime*speed)*2.0 - 1.0) - 0.5;
+            vec2 uv = acScreenNorm + normalize(d+0.0001)*z*amount*0.08;
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

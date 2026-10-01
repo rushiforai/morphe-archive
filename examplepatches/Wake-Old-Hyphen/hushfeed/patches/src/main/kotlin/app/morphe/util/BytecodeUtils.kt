@@ -1043,8 +1043,7 @@ fun MutableMethod.returnEarly() {
  * Overrides the first instruction of a method with a constant `Boolean` return value.
  * None of the original method code will execute.
  *
- * For methods that return an object or any array type, calling this method with `false`
- * will force the method to return a `null` value.
+ * The method must return a boolean. For an object or array, `returnEarly(null)` returns null.
  *
  * @see returnLate
  */

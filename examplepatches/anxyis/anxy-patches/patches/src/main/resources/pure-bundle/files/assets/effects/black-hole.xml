@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.black-hole" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/black-hole.webp" tags="distort,gravity,swirl,scifi,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Black Hole</string>
+            <string name="desc">Bends and swirls everything toward a gravity point like a black hole pulling in light.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Center" />
+        <slider id="mass" default="0.5" min="0.0" max="1.0" label="Pull" />
+        <slider id="spin" default="0.5" min="-1.0" max="1.0" label="Spin" ticks="0" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 ctr = center/1000.0 + 0.5;
+            vec2 d = acScreenNorm - ctr;
+            d.x *= acScreenSize.x/acScreenSize.y;
+            float r = length(d) + 0.001;
+            float pull = mass*0.08 / r;
+            float a = spin*pull*4.0;
+            float s=sin(a), co=cos(a);
+            vec2 dir = mat2(co,-s,s,co)*normalize(d);
+            vec2 nd = dir*max(r - pull, 0.0);
+            nd.x /= acScreenSize.x/acScreenSize.y;
+            gl_FragColor = texture2DCv(inputImg.texture, ctr+nd);
+        }
+    ]]></shader>
+
+</effect>

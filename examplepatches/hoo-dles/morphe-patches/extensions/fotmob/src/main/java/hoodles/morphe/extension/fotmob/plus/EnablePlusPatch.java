@@ -5,26 +5,50 @@
 
 package hoodles.morphe.extension.fotmob.plus;
 
+import static hoodles.morphe.extension.shared.Utils.smaliClassToJava;
+
 import java.lang.reflect.Constructor;
+import java.util.Date;
+import java.util.Map;
 
 import app.morphe.extension.shared.Logger;
-import hoodles.morphe.extension.shared.Utils;
 
 @SuppressWarnings("unused")
 public final class EnablePlusPatch {
-    public static Object createEntitlement(String entitlementClass) {
+    private static final String ENTITLEMENT_INFO_CLASS = "com.revenuecat.purchases.EntitlementInfo";
+    public static String PERIOD_TYPE_CLASS = "";
+    public static String STORE_TYPE_CLASS = "";
+    public static String OWNERSHIP_TYPE_CLASS = "";
+    public static String VERIFIED_TYPE_CLASS = "";
+
+    private static final long YEAR_IN_MS = 31536000000L;
+    private static final Date now;
+    private static final Date expiry;
+
+    static {
+        now = new Date();
+        expiry = new Date(now.getTime() + YEAR_IN_MS);
+    }
+
+    public static void addEntitlement(Map infoMap) {
         try {
-            String className = Utils.smaliClassToJava(entitlementClass);
-            Class clazz = Class.forName(className);
+            Class<?> infoClass = Class.forName(ENTITLEMENT_INFO_CLASS);
+            Class<?> periodClass = Class.forName(smaliClassToJava(PERIOD_TYPE_CLASS));
+            Class<?> storeClass = Class.forName(smaliClassToJava(STORE_TYPE_CLASS));
+            Class<?> ownershipClass = Class.forName(smaliClassToJava(OWNERSHIP_TYPE_CLASS));
+            Class<?> verifiedClass = Class.forName(smaliClassToJava(VERIFIED_TYPE_CLASS));
 
-            // Get first, parameterized constructor
-            Constructor ctor = clazz.getConstructors()[0];
-            Object obj = ctor.newInstance("FotMob+", "Lifetime", false, null, null, true, false, false, false, false, false);
+            Object period = periodClass.getField("NORMAL").get(null);
+            Object store = storeClass.getField("PLAY_STORE").get(null);
+            Object ownership = ownershipClass.getField("PURCHASED").get(null);
+            Object verified = verifiedClass.getField("VERIFIED").get(null);
 
-            return obj;
+            Constructor<?> ctor = infoClass.getConstructors()[0];
+
+            Object info = ctor.newInstance("FotMob+", true, false, period, now, now, expiry, store, "fotmob_membership", null, false, null, null, ownership, null, verified);
+            infoMap.put("FotMob+", info);
         } catch (Exception ex) {
             Logger.printException(() -> "Failed creating Entitlement", ex);
-            return null;
         }
     }
 }

@@ -5,6 +5,7 @@
 package app.morphe.patches.tiktok.promobanners
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.util.addInstruction
 import app.morphe.util.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -54,13 +55,19 @@ internal fun isProfileRewardsIconBinder(method: com.android.tools.smali.dexlib2.
             it.getReference<TypeReference>()?.type == TUX_ICON_VIEW_DESCRIPTOR
     }
     val assignsViewId = instructions.any {
-        it.getReference<MethodReference>()?.toString() == "Landroid/view/View;->setId(I)V"
+        it.getReference<MethodReference>()?.let { call ->
+            call.name == "setId" && call.definingClass == "Landroid/view/View;" && call.returnType == "V" &&
+                call.parameterTypes.singleOrNull() == "I"
+        } == true
     }
     return method.returnType == "Ljava/lang/Object;" && hasProfileModel && hasIconView && assignsViewId
 }
 
-private object ProfileRewardsIconBinderFingerprint : Fingerprint(
+internal object ProfileRewardsIconBinderFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
+    // The filter repeats a reference the custom block requires, so the patcher reads only the
+    // classes that make it (#54).
+    filters = listOf(fieldAccess(definingClass = PROFILE_ACTIVITY_ICON_DESCRIPTOR)),
     custom = { method, _ -> isProfileRewardsIconBinder(method) },
 )
 

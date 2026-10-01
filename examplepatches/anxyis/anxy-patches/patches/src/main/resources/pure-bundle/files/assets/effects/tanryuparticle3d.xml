@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.particle3d"
+    name="3D Particles (Beta)"
+    desc="Amazing New Extra FX from the Modder"
+    category="3d" 
+    tags="other"
+    thumb="thumb/TANRYU/particle3d.png"
+    experimental="false">
+
+    <params>
+        <section text="Base Option" />
+        <switch id="autop" default="true" label="Auto Progress" />
+        <slider id="AMOUNT" label="Amount" default="3" min="0" max="5" step="1.0" type="integer" />
+        <xyz id="ROT" default="0, 0, 0" label="Rotation" />
+        <spinner id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="SPEED" label="Speed AutoProg" default="0.1" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Angle UV" step="0.5" type="angle" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <color id="color1" default="#00000000" label="Color BG" alpha="true" />
+        <color id="color2" default="#FFFFFFFF" label="Color FG" alpha="true" />
+        <section text="Split Rotation Params" />
+        <switch id="SPLITXYZ" default="false" label="Enabled" />
+        <spinner id="ROT2" label="X Cam" default="0" min="-1000.0" max="1000.0" step="0.01" />
+        <spinner id="ROT3" label="Y Cam" default="0" min="-1000.0" max="1000.0" step="0.01" />
+        <spinner id="ROT4" label="Z Cam" default="0" min="-1000.0" max="1000.0" step="0.01" />
+        <section text="Advance Option" />
+        <spinner id="fParticleSize" label="Size" default="0.015" min="0.0" max="1.0" step="0.0005" />
+        <spinner id="fLength" label="Length" default="0.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="FSEED" label="Seeds" default="0.0" min="0.0" max="200.0" step="0.01" type="percent" />
+        <spinner id="fMinDist" label="Min Dist" default="0.75" min="0.1" max="100.0" step="0.01" type="percent" />
+        <spinner id="fMaxDist" label="Max Dist" default="5.0" min="0.1" max="100.0" step="0.01" type="percent" />
+        <spinner id="fRepeatMin" label="Repeat Min" default="10.0" min="1.0" max="200.0" step="0.01" type="percent" />
+        <spinner id="fRepeatMax" label="Repeat Max" default="2.0" min="1.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="fDepthFade" label="Depth Fade" default="0.8" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="fBrightness" label="Brightness" default="10.0" min="0.0" max="100.0" step="0.1" type="percent" />
+        <section text="Comp Option" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+        <selector id="blendMode" style="radio" default="3">
+            <choice label="NORMAL" value="0" />
+            <choice label="LAYER" value="3" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+     
+        <texture id="inputImg" srcType="content" />
+        <texture id="xcipher" srcType="buffer" />
+
+    </params>
+    
+    <iterations param="iter" /> <passes> <pass target="xcipher" effect="636f6d2e616c6967687463726561746976652e656666656374732e7061727469636c653364"/> <pass /> </passes> <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+    void main ()
+    {
+            const vec3 luminance = vec3(0.2126, 0.7152, 0.0722); float phiQuarter = 90.0 * 0.0174533; float enchantDecryption = 8.0;/*
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(inputImg.texture,sampleLow);
+            vec4 colorHigh = texture2DCv(inputImg.texture,sampleHigh);
+            vec4 colorMid = texture2DCv(inputImg.texture,acScreenNorm);
+            vec4 outColor;
+            
+                vec4 r = vec4(outColor.r, 0.0, 0.0, outColor.r);
+                vec4 g = vec4(0.0, outColor.g, 0.0, outColor.g);
+                vec4 b = vec4(0.0, 0.0, outColor.b, outColor.b);
+                vec4 m = (r + g + b) / 3.;
+                vec4 c = vec4(0.0,0.0,0.0,0.0);
+                vec4 l = vec4(dot(luminanceWeighting * colorMid.rgb, vec3(1.0)));
+                c = m + (c*(1.0-m.a));
+                c = l + (c*(1.0-l.a));
+                
+            highp mat3 rgb2yuv = mat3(
+                 0.299,     0.587,    0.114,
+                -0.14713,  -0.28886,  0.436,
+                 0.615,    -0.51499, -0.10001
+            );
+            highp mat3 yuv2rgb = mat3(
+                1.0,  0.0,      1.13983,
+                1.0, -0.39465, -0.58060,
+                1.0,  2.03211,  0.0
+            );
+            float adjStrength = strength / 8.0;
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            float rad = angle * 0.0174533;
+            float adjStrength = strength / 8.0;
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(inputImg.texture,sampleLow); vec4 colorHigh = texture2DCv(inputImg.texture,sampleHigh); vec4 colorMid = texture2DCv(inputImg.texture,acScreenNorm);*/
+            float keyDecryptTanRyu = 0.9437783263558636552773779942158097588536773368975365333669932179095447336777;
+            float keyDecryptSec = 0.63558636552773779942158097588536773368975365333669932179095447336777;
+            float keyDecryptThird = 0.73779942158097588536773368975365333669932179095447336777;
+            keyDecryptTanRyu = 1.0;
+            vec4 DecodingFX = texture2DCv(xcipher.texture,acScreenNorm)*keyDecryptTanRyu;
+            gl_FragColor = DecodingFX;
+            
+         }
+
+
+    ]]></shader>
+
+</effect>

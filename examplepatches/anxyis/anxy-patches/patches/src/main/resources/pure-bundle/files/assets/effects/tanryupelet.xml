@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.freepalette" name="Free Palette Color" desc="Copy some unique color combinations" tags="drawing" category="drawing" thumb="thumb/TANRYU/pelet.png" deprecated="false">
+<params>
+ <!-- <tip text="Choose the color and click + on the top right of the color list"/> -->
+ <section text="Choose The Color And Click +" />
+   <color id="color35" default="#FF1E2239" label="Color 1" alpha="true" />
+   <color id="color36" default="#FF00FFA8" label="Color 2" alpha="true" />
+ <section text="" />
+   <color id="colora" default="#FF684C41" label="Color 1" alpha="true" />
+   <color id="colorb" default="#FF4FA3A5" label="Color 2" alpha="true" />
+   <color id="colorc" default="#FFFDAE38" label="Color 3" alpha="true" />
+   <color id="colord" default="#FFF75435" label="Color 4" alpha="true" />
+ <section text="" />
+   <color id="colore" default="#FFFFE3B3" label="Color 1" alpha="true" />
+   <color id="colorf" default="#FFFFC973" label="Color 2" alpha="true" />
+   <color id="colorg" default="#FF30A0E0" label="Color 3" alpha="true" />
+   <color id="colorh" default="#FF006BB9" label="Color 4" alpha="true" />
+ <section text="" />
+   <color id="colori" default="#FFED6B5B" label="Color 1" alpha="true" />
+   <color id="colorj" default="#FF3A3E59" label="Color 2" alpha="true" />
+   <color id="colork" default="#FFF9AC66" label="Color 3" alpha="true" />
+   <color id="colorl" default="#FFECE6CE" label="Color 4" alpha="true" />
+ <section text="" />
+   <color id="colorm" default="#FFFB948F" label="Color 1" alpha="true" />
+   <color id="colorn" default="#FFF2CAC8" label="Color 2" alpha="true" />
+   <color id="coloro" default="#FFC36B84" label="Color 3" alpha="true" />
+   <color id="colorp" default="#FFFEBB75" label="Color 4" alpha="true" />
+ <section text="" />
+   <color id="color12" default="#FFFFF8E8" label="Color 1" alpha="true" />
+   <color id="color13" default="#FFFBD580" label="Color 2" alpha="true" />
+   <color id="color14" default="#FFD52941" label="Color 3" alpha="true" />
+   <color id="color15" default="#FF9A0C34" label="Color 4" alpha="true" />
+ <section text="" />
+   <color id="color16" default="#FF272F42" label="Color 1" alpha="true" />
+   <color id="color6" default="#FF979CB3" label="Color 2" alpha="true" />
+   <color id="color7" default="#FFF12E3C" label="Color 3" alpha="true" />
+ <section text="" />
+   <color id="color8" default="#FF246A72" label="Color 1" alpha="true" />
+   <color id="color9" default="#FF368F8B" label="Color 2" alpha="true" />
+   <color id="color10" default="#FFF4DFC4" label="Color 3" alpha="true" />
+   <color id="color11" default="#FFDEBEA9" label="Color 4" alpha="true" />
+ <section text="" />
+   <color id="color17" default="#FF1FBF55" label="Color 1" alpha="true" />
+   <color id="color18" default="#FF0C4F6C" label="Color 2" alpha="true" />
+   <color id="color19" default="#FF01BAF0" label="Color 3" alpha="true" />
+   <color id="color20" default="#FF757575" label="Color 4" alpha="true" />
+ <section text="" />
+   <color id="color21" default="#FF462737" label="Color 1" alpha="true" />
+   <color id="color22" default="#FFF7B924" label="Color 2" alpha="true" />
+   <color id="color23" default="#FFE78627" label="Color 3" alpha="true" />
+ <section text="" />
+   <color id="color24" default="#FF494675" label="Color 1" alpha="true" />
+   <color id="color27" default="#FF79799D" label="Color 2" alpha="true" />
+   <color id="color25" default="#FFFFC114" label="Color 3" alpha="true" />
+   <color id="color26" default="#FFFFD454" label="Color 4" alpha="true" />
+ <section text="" />
+   <color id="color28" default="#FFFFB6A3" label="Color 1" alpha="true" />
+   <color id="color29" default="#FFF5D7CC" label="Color 2" alpha="true" />
+   <color id="color30" default="#FF4E4E4A" label="Color 3" alpha="true" />
+ <section text="" />
+   <color id="color31" default="#FFFA6A80" label="Color 1" alpha="true" />
+   <color id="color32" default="#FFFF304F" label="Color 2" alpha="true" />
+   <color id="color33" default="#FF518CE7" label="Color 3" alpha="true" />
+   <color id="color34" default="#FF00FFFF" label="Color 4" alpha="true" />
+   <section text="𝐌o𝐝 𝐁𝐲 𝐒𝐲a𝐦𝐣a𝐢 𝐃𝐭𝐳" />
+</params>
+</effect>

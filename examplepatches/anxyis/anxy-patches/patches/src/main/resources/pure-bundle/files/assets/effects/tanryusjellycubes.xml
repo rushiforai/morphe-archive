@@ -1,0 +1,192 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e6a656c6c796375626573" deprecated="true">
+
+    <params>
+    <slider id="AMOUNT" label="RayMarching" default="200" min="1" max="250" step="1.0" type="integer" />
+    <slider id="ITER" label="Iterations" default="2" min="0" max="5" step="1.0" type="integer" />
+        <spinner id="xxa" label="Progress" default="0" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxp" label="X Camera" default="0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxq" label="Y Camera" default="2" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxr" label="Z Camera" default="6" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxs" label="T Camera" default="0.2" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxe" label="Cubeness" default="0.1" min="0.0" max="0.5" step="0.01" type="percent" />
+        <spinner id="xxf" label="Bevel" default="0.3" min="0.0" max="5.0" step="0.01" type="percent" />
+        <spinner id="xxg" label="Shadow" default="0" min="0.0" max="10.0" step="0.01" type="percent" />
+        <spinner id="xxm" label="Intensity" default="0" min="0.0" max="10.0" step="0.01" type="percent" />
+        <spinner id="scale" default="0.75" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <section text="Shading ColorKey" />
+        <color id="color1" default="#FF000000" label="Color" alpha="true" />
+        <color id="color2" default="#FFFF00FF" label="Color" alpha="true" />
+        <color id="color3" default="#FFFF00FF" label="Color" alpha="true" />
+        <color id="color4" default="#FFFF00FF" label="Color" alpha="true" />
+        <color id="color5" default="#FFFF00FF" label="Color" alpha="true" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.0,1.0)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        mat2 rot(float a)
+        {
+            float c = cos(a);
+            float s = sin(a);
+            return mat2(c, s, -s, c);
+        }
+        
+        float field(vec3 p)
+        {
+            p.x -= 2.0;
+            p.y += sin(p.z*0.2+xxa)*2.;
+            p.y += cos(p.x*0.2-xxa)*2.;
+            p.z += xxa;
+            p.xz = mod(p.xz+vec2(2.0), 4.0)-vec2(2.0);
+            vec3 bp = abs(p) - 1.;
+            return min(max(max(bp.x, bp.y), bp.z), p.y+.9);
+        }
+        
+        float march(vec3 ro, vec3 rd)
+        {
+            float t = 0.0;
+            for(int i=0; i<int(AMOUNT); ++i) {
+            // for(int i=0; i<228; ++i) {
+            	float d = field(ro+rd*t);
+                if(d < 0.0001 || d > 200.0) break;
+                t += d*1.0;
+                // t += d*0.5;
+            }
+            return t;
+        }
+        
+        vec3 getNormal(vec3 p)
+        {
+            vec2 eps = vec2(xxe*pow(length(p), xxf), xxg);
+            // vec2 eps = vec2(3.0*pow(length(p), 0.001), 0.0);
+            return normalize(vec3(
+            	field(p+eps.xyy) - field(p-eps.xyy),
+                field(p+eps.yxy) - field(p-eps.yxy),
+                field(p+eps.yyx) - field(p-eps.yyx)
+            ));
+        }
+        
+        float getSss(vec3 ro, vec3 rd)
+        {
+            float t = 0.0;
+            // float t = 0.0;
+            for(float i=0.0; i<ITER; i+= 0.1) {
+            	t += field(ro+rd*i);
+            }
+            return clamp(exp(t*0.1), 0.0, xxm);
+            // return clamp(exp(t*0.1), 0.0, 1.0);
+        }
+        
+        float getAo(vec3 ro, vec3 rd)
+        {
+            float t = 0.0;
+            ro += rd*0.002;
+            int i;
+            for(i=0; i<64; ++i) {
+            	float d = field(ro+rd*t);
+                if(d < 0.001 || d > 100.0) break;
+                t += d;
+            }
+            return float(i);
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        TanRyu /= scale;
+        TanRyu *= rot2m((-180.0+angle)*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.0,1.0)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            vec2 uv = TanRyu;
+        
+            vec3 cam = vec3(xxp, xxq, xxr);
+            // vec3 cam = vec3(0.0, 2.0, 6.0);
+            vec3 dir = normalize(vec3(uv, -1));
+            dir.yz *= rot(xxs);
+            cam.z -= xxa*5.0;
+            dir.xz *= rot(xxa*0.1);
+            float d = march(cam, dir);
+            vec3 col = vec3(0.0);
+            if(abs(uv.y) < 0.85) {
+                col = vec3(color1.rgb) * uv.y+0.25;
+                // col = vec3(0.2, 0.06, 0.1) * uv.y+0.25;
+        
+                if(d < 100.0) {
+                    vec3 p = cam+dir*d;
+                    vec3 normal = getNormal(p);
+                    col += vec3(color2.rgb) * (pow(1.0-max(0.0, dot(normal, -dir)), 0.6));
+                    // col += vec3(0.5, 0.2, 0.2) * (pow(1.0-max(0.0, dot(normal, -dir)), 0.6));
+                    col = vec3(1.0)-pow(col, vec3(0.1));
+                    float ss = getSss(p, dir);
+                    col += 0.2*vec3(pow(ss, 0.5));
+                    float ao = getAo(p, normal);
+                    col *= vec3(1.0-ao/428.0);
+                    col += 0.5*vec3(color3.rgb) * (pow(max(0.0, dot(normal, normalize(vec3(-2.0, 2.0, 2.0)))), 2.0));
+                    col += 0.5*vec3(color4.rgb) * (pow(max(0.0, dot(normal, normalize(vec3(-2.0, 2.0, -2.0)))), 2.0));
+                    col = mix(col, vec3(color5.rgb), d/100.0);
+                    // col += 0.5*vec3(0.3, 0.2, 0.4) * (pow(max(0.0, dot(normal, normalize(vec3(-2.0, 2.0, 2.0)))), 2.0));
+                    // col += 0.5*vec3(1.0, 0.1, 0.3) * (pow(max(0.0, dot(normal, normalize(vec3(-2.0, 2.0, -2.0)))), 2.0));
+                    // col = mix(col, vec3(0.27, 0.24, 0.25), d/100.0);
+                }
+                col = pow(col, vec3(2));
+            }
+        
+            // Output to screen
+            col *= 1.0-length(uv)*0.4;
+            fragColor = vec4(pow(col, vec3(1.0/2.2)),1.0);
+        
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+    	
+    	gl_FragColor = mix(texColor, factor, alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

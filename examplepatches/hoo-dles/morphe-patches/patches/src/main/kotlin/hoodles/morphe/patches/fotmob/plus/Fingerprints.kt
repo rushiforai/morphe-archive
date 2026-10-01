@@ -6,38 +6,39 @@
 package hoodles.morphe.patches.fotmob.plus
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 
-object SubscriptionUtilClassFingerprint : Fingerprint(
-    strings = listOf("Error getting active offerings")
+object EntitlementInfosCtorFingerprint : Fingerprint(
+    definingClass = "Lcom/revenuecat/purchases/EntitlementInfos;",
+    name = "<init>",
+    parameters = listOf("Ljava/util/Map;", "L")
 )
 
-object IsValidSubFingerprint : Fingerprint(
-    returnType = "Z",
-    filters = listOf(
-        fieldAccess(type = "Ljava/lang/Boolean;"),
-        methodCall(
-            name = "get",
-            definingClass = "Lcom/fotmob/storage/sharedpreference/SharedPreferencesRepository;"
-        )
-    )
+object PeriodTypeClassFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("NORMAL", "INTRO", "TRIAL", "PREPAID")
 )
 
-object HasActiveSubFingerprint : Fingerprint(
-    strings = listOf("call to 'resume' before 'invoke' with coroutine"),
-    filters = listOf(
-        methodCall(
-            name = "getActiveSubscriptions",
-            definingClass = "Lcom/revenuecat/purchases/CustomerInfo;"
-        )
-    )
+object StoreTypeClassFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("APP_STORE", "MAC_APP_STORE", "PLAY_STORE", "STRIPE")
 )
 
-object LifetimeEntitlementFingerprint : Fingerprint(
-    strings = listOf("LifeTimeEntitlement(entitlement=")
+object OwnershipTypeClassFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("PURCHASED", "FAMILY_SHARED", "UNKNOWN")
 )
 
-object EntitlementFingerprint : Fingerprint(
-    strings = listOf("Entitlement(identifier=", ", localizedName=")
+object VerifiedTypeClassFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("NOT_REQUESTED", "VERIFIED", "FAILED", "VERIFIED_ON_DEVICE")
+)
+
+object SetLogoFingerprint : Fingerprint(
+    name = "setLogo",
+    definingClass = "Landroidx/appcompat/widget/Toolbar;",
+    parameters = listOf("I")
 )

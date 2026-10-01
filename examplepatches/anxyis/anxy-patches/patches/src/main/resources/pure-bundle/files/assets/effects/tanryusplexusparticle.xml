@@ -1,0 +1,201 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e706c657875737061727469636c65" deprecated="true">
+
+    <params>
+        <slider id="ITER" label="Iteration" default="8" min="0" max="20" step="1.0" type="integer" snap="2,4,6,8,10,12,14,16,18" />
+        <switch id="autop" default="true" label="Auto Progress" />
+        <switch id="autob" default="true" label="Auto Blink" />
+        <spinner id="progressb" label="Progress" default="2.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="progressc" label="Blink" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
+        <switch id="autor" default="false" label="Auto Rotation" />
+        <switch id="autos" default="false" label="Auto Zoom" />
+        <spinner id="progressa" label="Evolution" default="4.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="scale" default="0.5" min="0.2" max="10.0" step="0.01" label="Scale" type="percent" ticks="0,1" snap="0,1"/>
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="position" label="Offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <color id="color1" default="#FF000000" label="Color BG" alpha="true" />
+        <color id="color2" default="#FFFFFFFF" label="Color FG" alpha="true" />
+        <selector id="blendMode" style="radio" default="2" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+   #define S(a,b,t) smoothstep(a,b,t)
+    
+    float DistLine(vec2 p, vec2 a, vec2 b) {
+        vec2 pa = p-a;
+        vec2 ba = b-a;
+        float t = clamp(dot(pa, ba)/dot(ba, ba), 0., 1.);
+        return length(pa-ba*t);
+    }
+    
+    float N21(vec2 p) {
+        p = fract(p*vec2(233.34, 851.73));
+        p += dot(p, p+23.45);
+        return fract(p.x*p.y);
+    }
+    
+    vec2 N22(vec2 p) {
+        float n = N21(p);
+        return vec2(n, N21(p+n));
+    }
+    
+    vec2 GetPos (vec2 id, vec2 offs) {
+        float xnxx = autop? progressb + (acTime*2.0) : progressb;
+        vec2 n = N22(id+offs) * xnxx;
+        // vec2 n = N22(id+offs)* progressb;
+        
+        return offs+sin(n)*.4;
+    }
+    
+    float Line(vec2 p, vec2 a, vec2 b) {
+        float d = DistLine(p,a,b); // distance to the line segment
+        float m = S(.03,.01,d); // cut out the line
+        float d2 = length(a-b);
+        m *= S(1.2, .8, d2)*.5+S(.05,.03, abs(d2-.75)); // make them not all visible
+        return m;
+    }
+    
+    float Layer (vec2 uv) {
+        float m = 0.0;
+        vec2 gv = fract(uv)-.5;
+        vec2 id = floor(uv);
+        
+        vec2 p[9];
+        int i = 0;
+        
+    
+        
+        for (float y=-1.0; y<=1.0;y++) {
+            for (float x=-1.0;x<=1.0;x++) {
+                p[i++] = GetPos(id, vec2(x,y));
+            }
+        }
+        
+        float t = autob? (progressc+(acTime*0.5))*10.0 : progressc*10.0;
+        // float t = progressc*20.0;
+        for(int i=0; i<9; i++) {
+            m += Line(gv, p[4], p[i]);
+            
+            vec2 j = (p[i]-gv)*15.0;
+            float sparkle = 1./dot(j, j);
+            
+            m += sparkle*(sin(t+fract(p[i].x)*10.)*.5+.5);
+        }
+        m += Line(gv, p[1], p[3]);
+        m += Line(gv, p[1], p[5]);
+        m += Line(gv, p[5], p[7]);
+        m += Line(gv, p[7], p[3]);
+        
+        return m;
+    }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+       
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+
+        TanRyu /= (2.0*scale);
+        TanRyu *= rot2m((autor? angle+(acTime*1.25) : angle)*0.0174533);
+        TanRyu += position*vec2(-1.,1.)/500.0;
+        
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+
+    	vec4 result;
+    	
+    	vec2 uv = TanRyu;
+        vec2 mouse = (vec2(0,0)/uv)-.5;
+        float m = 0.0;
+        float t = autos? (progressa+(acTime*0.5))*0.1 : progressa*0.1;
+        
+        float s = sin(t);
+        float c = cos(t);
+        mat2 rot = mat2(c,-s,s,c);
+        
+        if(autor) { uv *= rot; }
+        
+        for (float i=0.0; i<1.0;i+= (21.0 - ITER) ){
+            float z = fract(i+t);
+            float size = mix(10.,.5,z);
+            float fade = S(0.,.5,z)*S(1.,.8,z);
+            m += Layer(uv*size+i*20.-mouse)*fade;
+        }
+        
+        vec3 col = vec3(m);
+            
+        result = vec4(col,1.0);
+        
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            vec4 gradmap;
+            float luminance = dot(result.rgb, luminanceWeighting);
+            gradmap = mix(color1,color2,luminance)*result.a;
+        
+    	// vec4 factor = gradmap * alpha;
+    	vec4 factor = mix(texColorX,gradmap,1.0);
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

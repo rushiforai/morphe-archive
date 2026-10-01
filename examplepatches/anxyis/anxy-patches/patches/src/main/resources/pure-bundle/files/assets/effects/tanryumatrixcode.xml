@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.matrixcode"
+    name="Matrix Code"
+    desc="Amazing New Extra FX from the Modder"
+    category="procedural" 
+    tags="other"
+    thumb="thumb/TANRYU/matrix.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="codex" srcType="image" src="textures/code.png" />
+        <texture id="codex2" srcType="image" src="textures/code2.png" />
+        <!-- <color id="color" default="#FFC53A1B" label="@am:string/effect_param_color" alpha="true" /> -->
+         <selector id="typeC" style="radio" default="0" label="Type Char">
+            <choice label="RANDOM" value="0" />
+            <choice label="BINARY" value="1" />
+        </selector>
+        <tip text="Small bug on preview, everything will be ok if you render" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <spinner id="progressa" label="Evolution" default="100.0" min="-500.0" max="500.0" step="0.01" type="percent" />
+        <spinner id="scale" default="1.0" min="0.1" max="20.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <!-- <switch id="adaptive" default="false" label="Adaptive to Layer" /> -->
+        <color id="color1" default="#FF000000" label="Color BG" alpha="true" />
+        <color id="color2" default="#FF00DD00" label="Color FG" alpha="true" />
+
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+        <!-- <tip text="A" /> -->
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+    #define CELLS vec2(64.0,30.0)
+    #define FALLERS 14.0
+    #define FALLERHEIGHT 12.0
+    
+    vec2 rand(vec2 uv) {
+        return floor(abs(mod(cos(
+            uv * 652.6345 + uv.yx * 534.375 +
+            0.5 * 0.0000005 * dot(uv, vec2(0.364, 0.934))),
+         0.001)) * 16000.0);
+    }
+    
+    float fallerSpeed(float col, float faller) {
+        return mod(cos(col * 363.435  + faller * 234.323), 0.1) * 1.0 + 0.3;
+    }
+    
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        // if (adaptive) { TanRyu = acScreenNorm; }
+        // else { 
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        // }
+
+        TanRyu /= scale;
+        TanRyu *= rot2m((180.0+angle)*0.0174533);
+        TanRyu += position*vec2(-1.,1.)/500.;
+        
+        /////////////////////////
+
+    	vec4 result;
+    	
+    	vec2 uv = TanRyu;
+    	uv.y = 1.-uv.y;
+        
+        vec2 pix = mod(uv, 1.0/CELLS);
+        vec2 cell = (uv - pix) * CELLS;
+        pix *= CELLS * vec2(0.8, 1.0) + vec2(0.1, 0.0);
+       
+        float c;
+        if (typeC==0) { c = texture2DCv(codex.texture, (rand(cell) + pix) / 16.0).x; }
+        else if (typeC==1) { c = texture2DCv(codex2.texture, (rand(cell) + pix) / 16.0).x; }
+        
+        float b = 0.0;
+        for (float i = 0.0; i < FALLERS; ++i) {
+            float f = 3.0 - cell.y * 0.05 -
+                mod((progressa + i * 3534.34) * fallerSpeed(cell.x, i), FALLERHEIGHT);
+            if (f > 0.0 && f < 1.0)
+                b += f;
+        }
+        
+        result = vec4(0.0, c * b, 0.0, 1.0);
+        
+    	const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            vec4 gradmap;
+            float luminance = dot(result.rgb, luminanceWeighting);
+            gradmap = mix(color1,color2,luminance)*result.a;
+        
+    	vec4 factor = mix(texColorX,gradmap,alpha);
+    	// vec4 factor = mix(texColorX,result,alpha);
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = resultfinal;
+    }
+
+
+    ]]></shader>
+
+</effect>

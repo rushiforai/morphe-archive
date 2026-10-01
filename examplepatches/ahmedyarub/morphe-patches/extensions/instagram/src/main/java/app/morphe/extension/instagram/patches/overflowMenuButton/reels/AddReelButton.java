@@ -64,24 +64,28 @@ public class AddReelButton {
     }
 
     /**
-     * One sheet's worth of added rows, keyed on the sheet builder the app hands us.
+     * The sheet builder that last got a download row, so each sheet gets one.
      *
-     * The reel menu calls its per-option method once for every row it is about to draw, so the
-     * download row is added on the first of those calls and skipped for the rest. A new sheet
-     * brings a new builder instance, which is what makes it appear again next time.
+     * Two hooks can reach the same sheet: the reel menu calls its per-row method once for every
+     * row it is about to draw, and on 449 a reel's sheet also goes through the feed sheet hook.
+     * A new sheet brings a new builder instance, which is what makes the row appear next time.
      */
     // Weak: only compared against, and it would otherwise keep the last sheet alive.
-    private static java.lang.ref.WeakReference<Object> lastSheetHelper = new java.lang.ref.WeakReference<>(null);
+    private static java.lang.ref.WeakReference<Object> lastSheet = new java.lang.ref.WeakReference<>(null);
+
+    /** True the first time a sheet builder is seen: the caller adds the row, and no one else does. */
+    public static boolean claimSheet(Object sheet) {
+        if (sheet == null || sheet == lastSheet.get()) return false;
+        lastSheet = new java.lang.ref.WeakReference<>(sheet);
+        return true;
+    }
 
     /** Field on the reel menu helper holding the media. Rewritten by the patch. */
     private static String reelMediaFieldName() { return "fieldName"; }
 
     public static void addReelMenuDownloadRow(Object moreOptionsHelper, Context context, Object sheetHelper) {
         try {
-            if (sheetHelper == null || sheetHelper == lastSheetHelper.get()) return;
-            lastSheetHelper = new java.lang.ref.WeakReference<>(sheetHelper);
-
-            if (!Pref.enableDownload()) return;
+            if (!Pref.enableDownload() || !claimSheet(sheetHelper)) return;
 
             Object media = new Entity().getField(moreOptionsHelper, reelMediaFieldName());
             if (media == null) return;

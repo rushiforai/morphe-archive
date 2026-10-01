@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Disposable tab titles, icons and viewport targets; no accounts or persistent data."""
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, parse_qs
 import struct
 import zlib
+import time
 
 
 def icon(index):
@@ -21,7 +22,28 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlsplit(self.path)
-        if parsed.path.startswith("/icon/"):
+        if parsed.path == "/favicon.ico" or parsed.path == "/missing-icon":
+            self.send_error(404)
+            return
+        if parsed.path == "/delayed-icon":
+            time.sleep(4)
+            body, mime = icon(3), "image/png"
+        elif parsed.path.startswith("/favicon-case/"):
+            case = parsed.path.rsplit("/", 1)[1]
+            icons = {"blue": "/icon/1", "red": "/icon/2", "none": "data:,", "late": "/delayed-icon"}
+            if case not in icons:
+                self.send_error(404)
+                return
+            links = "".join(f'<p><a href="/favicon-case/{name}">Navigate {name}</a></p>' for name in icons)
+            body = f"""<!doctype html><html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Morphe Icon Fixture</title><link rel="icon" href="{icons[case]}">
+<style>body{{font:20px sans-serif;padding:20px}}button{{font:inherit;padding:12px}}</style></head>
+<body><h1>Morphe icon case: {case}</h1><p>The title stays the same across these pages.</p>
+<button onclick="document.querySelector('link').href='/icon/3?change='+Date.now()">Change icon only</button>
+{links}</body></html>""".encode()
+            mime = "text/html; charset=utf-8"
+        elif parsed.path.startswith("/icon/"):
             try:
                 body = icon(int(parsed.path.rsplit("/", 1)[1]))
             except ValueError:
@@ -57,4 +79,4 @@ button,input{{font:inherit;padding:12px}}footer{{padding:20px;background:#def}}<
 
 
 if __name__ == "__main__":
-    HTTPServer(("127.0.0.1", 8766), Handler).serve_forever()
+    ThreadingHTTPServer(("127.0.0.1", 8766), Handler).serve_forever()

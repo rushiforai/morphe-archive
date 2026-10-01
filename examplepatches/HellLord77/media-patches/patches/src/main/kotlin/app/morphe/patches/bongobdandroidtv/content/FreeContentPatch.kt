@@ -1,16 +1,17 @@
 package app.morphe.patches.bongobdandroidtv.content
 
-import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.bongobdandroidtv.extension.sharedExtensionPatch
 import app.morphe.patches.bongobdandroidtv.shared.Constants.COMPATIBILITY_BONGOANDROIDTV
-import app.morphe.patches.shared.getRegisterName
+import app.morphe.util.getReference
 import app.morphe.util.matchAllMethodIndicesForEach
-import app.morphe.util.matchSingle
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/bongo/patches/FreeContentPatch;"
 
@@ -25,16 +26,27 @@ val freeContentPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch)
 
     execute {
-        Fingerprint(filters = listOf(methodCall(GetVideoDetailsDataFingerprint.matchSingle().originalMethod))).matchAllMethodIndicesForEach {
+        GetVideoDetailsDataInvokerFingerprint.matchAllMethodIndicesForEach {
             if (definingClass == EXTENSION_CLASS) return@matchAllMethodIndicesForEach
-
             val instruction = getInstruction<FiveRegisterInstruction>(it)
-            val registerCName = getRegisterName(instruction.registerC)
-            val registerDName = getRegisterName(instruction.registerD)
+            val reference = instruction.getReference<MethodReference>()!!
 
             replaceInstruction(
-                it,
-                "invoke-static {$registerCName, $registerDName}, $EXTENSION_CLASS->getVideoDetailsData(Lsaas/ott/smarttv/ui/details/data/DetailsEndPoint;Ljava/lang/String;)Lretrofit2/Call;",
+                it, BuilderInstruction35c(
+                    Opcode.INVOKE_STATIC,
+                    instruction.registerCount,
+                    instruction.registerC,
+                    instruction.registerD,
+                    instruction.registerE,
+                    instruction.registerF,
+                    instruction.registerG,
+                    ImmutableMethodReference(
+                        EXTENSION_CLASS,
+                        reference.name,
+                        listOf(reference.definingClass) + reference.parameterTypes,
+                        reference.returnType
+                    )
+                )
             )
         }
     }

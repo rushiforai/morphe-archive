@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.newswirl" name="Swirl+" desc="@am:string/effect_swirl_desc" category="distort" tags="distort,fun,raster" thumb="thumb/TANRYU/nswirl.png">
+
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="centerPoint" label="@am:string/effect_param_center" />
+        <spinner id="strength" default="0.1" min="-0.5" max="0.5" label="Strength" step="0.001" />
+        <spinner id="radius" default="0.3" min="0.0" max="10.0" label="Radius" step="0.01" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+
+        void main() {
+
+            // -- layer coordinates boilerplate --
+            // This get 0.0~1.0 coordinates inside layer (if layer is not square, one axis will be 1.0 and one will be larger)
+            //vec2 st = (acScreenNorm.xy*acScreenSize-acLayerCenter)/acLayerSize;
+            //vec2 ctr = acLayerCenter/acScreenSize;
+            //vec2 st = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+            //st.y*=acLayerSize.y/acLayerSize.x;
+            // -- end boilerplate --
+
+            float Radius = radius;
+            float T = strength;
+
+            vec2 UV = acScreenNorm; //-acLayerCenterNorm; //acScreenNorm.xy;
+
+            vec2 CENTER = centerPoint*vec2(-1,1);
+
+            //UV /= 2.0;
+
+            vec2 diff1 = acLayerCenter-CENTER;
+            diff1.y = acScreenSize.y - diff1.y;
+            vec2 diff = diff1 /acScreenSize;
+
+            UV -= diff;
+            vec2 convRate = vec2(1,1);
+            if(acScreenSize.y > acScreenSize.x)
+                convRate.y=(acScreenSize.y/acScreenSize.x);
+            else
+                convRate.x=(acScreenSize.x/acScreenSize.y);
+            UV *= convRate;
+
+            float Dist = length(UV);
+
+            if ( Dist < Radius )
+            {
+                float Percent = (Radius - Dist) / Radius;
+                float A = ( T <= 0.5 ) ? mix( 0.0, 1.0, T/0.5 ) : mix( 1.0, 0.0, (T-0.5)/0.5 );
+                float Theta = Percent * Percent * A * 8.0 * 3.14159;
+                float S = sin( Theta );
+                float C = cos( Theta );
+                UV = vec2( dot(UV, vec2(C, -S)), dot(UV, vec2(S, C)) );
+            }
+
+            UV /= convRate;
+            UV += diff;
+
+            gl_FragColor = texture2DCv(inputImg.texture,UV);
+
+        }
+
+    ]]></shader>
+
+</effect>

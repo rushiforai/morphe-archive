@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.1 — 2026-09-30
+
+- Fix the page-sharing crash by preserving Android Icon tint calls; Black mode only redirects compatible Drawable methods.
+- Keep the original close glyph and font sizes, centering both the X and tab title within the active-tab outline.
+- Refresh favicons after icon-only changes and navigation, and retrieve restored-tab icons from Chrome’s local favicon database.
+- Reveal the selected tab after the picker is laid out again following address entry.
+- Keep the divider hidden during long-press menus and toolbar captures without overriding Chrome’s native visibility changes.
+- Keep the composited toolbar and address-field backgrounds black while scrolling in Black mode.
+
 ## 0.5.0 — 2026-09-29
 
 - Add an optional tab picker above the True bottom address bar, with native favicons, titles, tab switching and close controls.

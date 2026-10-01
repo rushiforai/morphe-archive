@@ -107,6 +107,12 @@ public final class SettingsDialog extends DialogFragment {
         return dialog;
     }
 
+    /** Takes the page, already showing, to the row a notification's button asked for. */
+    void showRequestedSetting() {
+        HushfacebookPreferenceFragment page = page();
+        if (page != null) page.showRequestedSetting();
+    }
+
     /** The settings page this dialog holds, or null before it's attached. */
     @Nullable
     private HushfacebookPreferenceFragment page() {

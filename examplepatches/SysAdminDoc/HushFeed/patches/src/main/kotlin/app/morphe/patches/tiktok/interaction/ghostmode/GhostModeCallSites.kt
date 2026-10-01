@@ -15,10 +15,12 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.RegisterLiveness
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classesCalling
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.ReferenceType
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -298,13 +300,21 @@ internal fun BytecodePatchContext.skipReportsAtEveryCallSite(reporters: List<Met
         reference.definingClass in acceptedOwners &&
             (reference.name to reference.parameterTypes.map(CharSequence::toString)) in signatures
 
+    // Only classes the patcher's index says call something on an accepted owner (#54).
+    val callingClasses = classesCalling(acceptedOwners)
+
     // Collected first, mutated after: the walk is over the immutable classes.
     val callers = mutableListOf<Triple<ClassDef, Method, List<Int>>>()
     classDefForEach { classDef ->
-        if (classDef.type in wrapperTypes) return@classDefForEach
+        if (classDef.type !in callingClasses || classDef.type in wrapperTypes) return@classDefForEach
         classDef.methods.forEach { method ->
+            // A call is an invoke; checking that first spares reading a reference off every
+            // other instruction of TikTok (#54).
             val indexes = method.implementation?.instructions?.withIndex()
-                ?.filter { (_, instruction) -> instruction.getReference<MethodReference>()?.let(::matches) == true }
+                ?.filter { (_, instruction) ->
+                    instruction.opcode.referenceType == ReferenceType.METHOD &&
+                        instruction.getReference<MethodReference>()?.let(::matches) == true
+                }
                 ?.map { it.index }
                 .orEmpty()
             if (indexes.isNotEmpty()) callers += Triple(classDef, method, indexes)

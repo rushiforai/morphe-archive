@@ -256,6 +256,41 @@ public class VideoMenuItemTest {
     }
 
     /**
+     * While links are sent (#41), the item is Send to app, and a tap hands the video's watch link
+     * to another app instead of saving it. A video naming no id says it has no link.
+     */
+    @Test
+    public void whileLinksAreSentTheItemSendsTheVideosLink() throws Exception {
+        Settings.DOWNLOAD_ACTION.save(SendLink.Action.SEND);
+        try {
+            Menu menu = filled(VideoMenuItemForTests.videoPost());
+            assertEquals(3, menu.size());
+            MenuItem item = menu.getItem(2);
+            assertEquals("Send to app", String.valueOf(item.getTitle()));
+            assertTrue(menu.performIdentifierAction(item.getItemId(), 0));
+
+            android.content.Intent chooser = Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
+            assertEquals(android.content.Intent.ACTION_CHOOSER, chooser.getAction());
+            android.content.Intent send = chooser.getParcelableExtra(android.content.Intent.EXTRA_INTENT);
+            assertEquals("https://www.facebook.com/watch/?v=1234567890123456",
+                    send.getStringExtra(android.content.Intent.EXTRA_TEXT));
+            assertEquals("a sent video started a save", 0, MediaDownload.savesInFlight());
+            String report = report();
+            assertTrue(report, report.contains("Send to app tapped"));
+            assertFalse(report, report.contains("Download to phone tapped"));
+
+            GraphQLMedia noId = new GraphQLMedia("Video");
+            noId.with("playable_url", CLIP);
+            Menu without = filled(post(noId));
+            assertTrue(without.performIdentifierAction(without.getItem(without.size() - 1).getItemId(), 0));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("Couldn't find this video's link", ShadowToast.getTextOfLatestToast());
+        } finally {
+            Settings.DOWNLOAD_ACTION.resetToDefault();
+        }
+    }
+
+    /**
      * The player of the same video recorded its manifest, which lists a better track than the
      * post's single file: the save takes the manifest, through the same policy every save uses,
      * which refuses it here. It falls back to the single file, refused the same way. Neither an

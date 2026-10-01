@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.rgbsepnew" name="[X] RGB Split+" desc="@am:string/effect_channelshift_desc" category="color" tags="color,pop,channel,retro,raster" thumb="thumb/SKEXNXX/rgb.png">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="vblur" srcType="buffer" />
+        <spinner id="strengthh" default="0.15" min="-8.0" max="8.0" step="0.01" label="@am:string/effect_param_strength" ticks="0" />
+        <spinner id="strength" default="0.0" min="0.0" max="2.0" label="Smoothest" step="0.005" />
+        <spinner id="angle" default="0.0" min="0.0" max="3600.0" label="@am:string/effect_param_angle" type="angle" step="0.5" ticks="0,45,90,135,180,225,270,315,360" snap="45,90,135" />
+        <selector id="centerChannel" default="1" style="radio" label="@am:string/effect_param_center" >
+            <choice label="R" value="0" />
+            <choice label="G" value="1" />
+            <choice label="B" value="2" />
+        </selector>
+        <selector id="mode" default="2" style="radio" label="@am:string/effect_param_mode" >
+            <choice label="@am:string/effect_param_mode_light" value="2" />
+            <choice label="@am:string/effect_param_mode_dark" value="3" />
+            <choice label="@am:string/effect_param_mode_mask" value="0" />
+            <choice label="@am:string/effect_param_mode_luma" value="1" />
+        </selector>
+    </params>
+    
+       <passes>
+        <pass target="vblur" effect="com.alightcreative.effects.gaussianblur"/>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high" ><![CDATA[
+
+        const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+
+        void main() {
+            float rad = angle * 0.0174533;
+            float adjStrength = strengthh / 8.0;
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(vblur.texture,sampleLow);
+            vec4 colorHigh = texture2DCv(vblur.texture,sampleHigh);
+            vec4 colorMid = texture2DCv(inputImg.texture,acScreenNorm);
+            vec4 outColor;
+            if( centerChannel==0 ) {
+                outColor = vec4(colorMid.r,colorLow.g,colorHigh.b,1.0);
+            } else if( centerChannel==1 ) {
+                outColor = vec4(colorLow.r,colorMid.g,colorHigh.b,1.0);
+            } else {
+                outColor = vec4(colorLow.r,colorHigh.g,colorMid.b,1.0);
+            }
+            if( mode==0 ) {
+                gl_FragColor = outColor * colorMid.a;
+            } else if( mode==1 ) {
+                vec4 r = vec4(outColor.r, 0.0, 0.0, outColor.r);
+                vec4 g = vec4(0.0, outColor.g, 0.0, outColor.g);
+                vec4 b = vec4(0.0, 0.0, outColor.b, outColor.b);
+                vec4 m = (r + g + b) / 3.;
+                vec4 c = vec4(0.0,0.0,0.0,0.0);
+                vec4 l = vec4(dot(luminanceWeighting * colorMid.rgb, vec3(1.0)));
+                //c = colorMid + (c*(1.0-colorMid.a));
+                c = m + (c*(1.0-m.a));
+                c = l + (c*(1.0-l.a));
+                //c = (colorMid + m)/2.;
+                //c = r + (c*(1.0-r.a));
+                //c = g + (c*(1.0-g.a));
+                //c = b + (c*(1.0-b.a));
+                gl_FragColor = c;
+            } else if( mode==2 ) {
+                gl_FragColor = vec4(outColor.rgb,colorMid.a);
+            } else {
+                gl_FragColor = outColor*((colorLow.a + colorMid.a + colorHigh.a)/3.);
+            }
+
+        }
+
+    ]]></shader>
+
+</effect>

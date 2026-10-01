@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.spotlight" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/spotlight.webp" tags="drawing,light,spotlight,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Spotlight</string>
+            <string name="desc">Casts a bright circular spotlight on a chosen point and dims the surrounding area.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Position" />
+        <slider id="radius" default="0.35" min="0.05" max="1.0" label="Radius" />
+        <slider id="softness" default="0.4" min="0.05" max="1.0" label="Softness" />
+        <slider id="dim" default="0.75" min="0.0" max="1.0" label="Dim Outside" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            vec2 ctr = center/1000.0 + 0.5;
+            vec2 d = acScreenNorm - ctr;
+            d.x *= acScreenSize.x/acScreenSize.y;
+            float r = length(d);
+            float m = smoothstep(radius, radius+softness, r);
+            gl_FragColor = vec4(c*mix(1.0, 1.0-dim, m),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

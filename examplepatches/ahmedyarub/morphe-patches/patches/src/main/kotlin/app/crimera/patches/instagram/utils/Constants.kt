@@ -8,7 +8,6 @@ package app.crimera.patches.instagram.utils
 
 object Constants {
     // Instagram classes.
-    const val FRAGMENT_ACTIVITY = "Landroidx/fragment/app/FragmentActivity;"
     const val EDIT_MEDIA_INFO_FRAGMENT_CLASS = "Linstagram/features/creation/fragment/EditMediaInfoFragment;"
     const val EXTENDED_IMAGE_URL_CLASS = "Lcom/instagram/model/mediasize/ExtendedImageUrl;"
     const val MEDIA_OPTIONS_CLASS = "Lcom/instagram/feed/media/mediaoption/MediaOption\$Option;"

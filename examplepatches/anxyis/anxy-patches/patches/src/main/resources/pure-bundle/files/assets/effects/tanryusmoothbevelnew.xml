@@ -1,0 +1,169 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.internal.smoothbevelnew" name="[X] Smooth Bevel+" desc="@am:string/effect_smoothbevel_desc" thumb="thumb/TANRYU/bevel.png" category="drawing" tags="edge,drawing,raster,membersOnly">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="xDistBuf" srcType="buffer" />
+        <spinner id="radius" default="10.0" min="0.0" max="200.0" step="1.0" label="@am:string/effect_param_radius" logscale="2.5" />
+        <spinner id="angle_d" default="45.0" min="0.0" max="360.0" label="@am:string/effect_param_diffuseAngle" type="angle" ticks="0,45,90,135,180,225,270,315" snap="0,45,90,135,180,225,270,315" />
+        <spinner id="angle_s" default="45.0" min="0.0" max="360.0" label="@am:string/effect_param_specularAngle" type="angle" ticks="0,45,90,135,180,225,270,315" snap="0,45,90,135,180,225,270,315" />
+        <section text="X = Diffuse Y = Specular" />
+        <!-- <point id="angle" default="45.0,45.0" min="0,0" max="360.0,360.0" label="Angle" step="1.0" ticks="0,45,90,135,180,225,270,315" snap="0,45,90,135,180,225,270,315" /> -->
+        <point id="intensity" default="0.5,1.0" min="0,0" max="1,1" label="Intensity" step="0.01" />
+        <point id="elevation" default="0.0,2.2" min="0,0" max="5,5" label="Elevation" step="0.01" />
+        <spinner id="spec" default="35.0" step="0.5" min="1.0" max="50.0" label="@am:string/effect_param_specularCoefficient" />
+        <color id="color_d" default="#FFFFFFFF" label="@am:string/effect_param_diffuseColor" alpha="false" />
+        <color id="color_s" default="#FFFFFFFF" label="@am:string/effect_param_specularColor" alpha="false" />
+        <slider id="iter" default="1" min="1" max="3" label="Quality" type="integer" step="1" />
+        <!-- <slider id="intensity_d" default="0.5" min="0.0" max="1.0" label="@am:string/effect_param_diffuseIntensity" /> -->
+        <!-- <slider id="intensity_s" default="1.0" min="0.0" max="1.0" label="@am:string/effect_param_specularIntensity" /> -->
+        <!-- <slider id="elevation_d" default="0.0" min="0.0" max="5.0" label="@am:string/effect_param_diffuseElevation" /> -->
+        <!-- <slider id="elevation_s" default="2.2" min="0.0" max="5.0" label="@am:string/effect_param_specularElevation" /> -->
+    </params>
+    
+    <iterations param="iter" />
+
+    <passes>x
+        <pass target="xDistBuf" />
+        <pass />
+    </passes>
+
+    <shader type="fragment"><![CDATA[
+
+        #define MULTISAMPLE 1.0
+        #define MAX_RADIUS 16383.0
+
+        vec2 encodeFloat(float v) {
+            highp vec2 enc = fract(vec2(1.0, 255.0)*v);
+            enc.x -= enc.y/255.0;
+            return enc;
+        }
+
+        float decodeFloat(vec2 v) {
+            return dot(v,vec2(1.0,1.0/255.0));
+        }
+
+        void main() {
+
+            vec2 imgSize = getTexSize(inputImg.size);
+            float radius2 = radius * length(imgSize) / length(vec2(1024, 1024));
+            //float radius=max(max(innerBorderSize,outerBorderSize),centerBorderSize)*MULTISAMPLE;
+
+            int from = -max(1,int(radius2));
+            int to = max(1,int(radius2));
+
+            // Size of a pixel
+
+            float px = (1.0/imgSize.x);
+            float py = (1.0/imgSize.y);
+
+            if( acPass==0 ) {
+
+                // Calculate distance on X-axis and encode in a texture
+
+                float nearestLeft = MAX_RADIUS;
+                float nearestRight = MAX_RADIUS;
+
+                for(int i=from; i<0; i++ ) {
+                    float x = float(i);
+                    vec4 sample = texture2DCv(inputImg.texture,vec2(acScreenNorm.s + x*(px/MULTISAMPLE),acScreenNorm.t));
+                    float dist = sample.a < 0.003 ? abs(x) : radius2*2.0;
+                    nearestLeft = min(nearestLeft,dist);
+                }
+
+                for(int i=0; i<to; i++ ) {
+                    float x = float(i);
+                    vec4 sample = texture2DCv(inputImg.texture,vec2(acScreenNorm.s + x*(px/MULTISAMPLE),acScreenNorm.t));
+                    float dist = sample.a < 0.003 ? abs(x) : radius2*2.0;
+                    nearestRight = min(nearestRight,dist);
+                }
+
+                gl_FragColor = vec4(encodeFloat(nearestLeft/MAX_RADIUS),encodeFloat(nearestRight/MAX_RADIUS));
+
+            } else {
+
+                float as = angle_s * 0.0174533;
+                float ad = angle_d * 0.0174533;
+                // float as = angle.y * 0.0174533;
+                // float ad = angle.x * 0.0174533;
+                vec3 light_s = vec3( cos(as), -sin(as), -elevation.y );
+                vec3 light_d = vec3( cos(ad), -sin(ad), -elevation.x );
+
+                // Final pass
+
+                float nearestTopLeft        = MAX_RADIUS;
+                float nearestTopRight       = MAX_RADIUS;
+                float nearestBottomLeft     = MAX_RADIUS;
+                float nearestBottomRight    = MAX_RADIUS;
+
+                for(int i=from; i<0; i++ ) {
+
+                    float y = float(i);
+
+                    vec4 sample = texture2DCv(xDistBuf.texture,vec2(acScreenNorm.s,acScreenNorm.t + y*(py/MULTISAMPLE)));
+
+                    float nearestLeft = decodeFloat(sample.rg) * MAX_RADIUS;
+                    float nearestRight = decodeFloat(sample.ba) * MAX_RADIUS;
+                    float ydist = abs(y);
+                    float ldist = length(vec2(nearestLeft,ydist));
+                    float rdist = length(vec2(nearestRight,ydist));
+
+                    nearestBottomLeft = min(nearestBottomLeft,ldist);
+                    nearestBottomRight = min(nearestBottomRight,rdist);
+                }
+
+                for(int i=0; i<to; i++ ) {
+
+                    float y = float(i);
+
+                    vec4 sample = texture2DCv(xDistBuf.texture,vec2(acScreenNorm.s,acScreenNorm.t + y*(py/MULTISAMPLE)));
+
+                    float nearestLeft = decodeFloat(sample.rg) * MAX_RADIUS;
+                    float nearestRight = decodeFloat(sample.ba) * MAX_RADIUS;
+                    float ydist = abs(y);
+                    float ldist = length(vec2(nearestLeft,ydist));
+                    float rdist = length(vec2(nearestRight,ydist));
+
+                    nearestTopLeft = min(nearestTopLeft,ldist);
+                    nearestTopRight = min(nearestTopRight,rdist);
+                }
+
+                float nearestInside = nearestTopRight;
+
+                vec4 original = texture2DCv(inputImg.texture,acScreenNorm.st);
+
+                nearestTopLeft = smoothstep(0.0,1.0, nearestTopLeft/(radius2/MULTISAMPLE));
+                nearestTopRight = smoothstep(0.0,1.0, nearestTopRight/(radius2/MULTISAMPLE));
+                nearestBottomLeft = smoothstep(0.0,1.0, nearestBottomLeft/(radius2/MULTISAMPLE));
+                nearestBottomRight = smoothstep(0.0,1.0, nearestBottomRight/(radius2/MULTISAMPLE));
+
+                vec3 bl = vec3(-1.0,-1.0,-1.0)*nearestBottomLeft;
+                vec3 br = vec3(1.0,-1.0,-1.0)*nearestBottomRight;
+                vec3 tl = vec3(-1.0,1.0,-1.0)*nearestTopLeft;
+                vec3 tr = vec3(1.0,1.0,-1.0)*nearestTopRight;
+
+                vec3 v = (bl + br + tl + tr) / 4.0; // / (radius2/MULTISAMPLE);
+
+                //vec4 innerBorderColor = vec4(1.0,0.5,0.0,1.0);
+
+                //vec4 inColor = radius2<0.003 ? vec4(0.0)  : mix(innerBorderColor,  vec4(0.0), smoothstep(1.0-1.5/radius2,1.0,nearestInside/(radius2/MULTISAMPLE))) * original.a;
+                //vec4 inColor = vec4(nearestTopLeft/(radius2/MULTISAMPLE), nearestTopRight/(radius2/MULTISAMPLE), nearestBottomLeft/(radius2/MULTISAMPLE), 1.0 );
+
+                //vec4 inColor = vec4(vec2(0.5,0.5)+v, 0.5, 1.0 )*original.a;
+
+                float lum_s = pow(dot(normalize(v),normalize(light_s)),spec);
+                float lum_d = dot(normalize(v),normalize(light_d));
+
+                vec4 lit_color_s = color_s * lum_s * intensity.y * original.a;
+                vec4 lit_color_d = color_d * lum_d * intensity.x * original.a;
+
+                vec4 result = original;
+                result = lit_color_d + result*(1.0-lit_color_d.a);
+                result = lit_color_s + result*(1.0-lit_color_s.a);
+                gl_FragColor = result;
+            }
+        }
+
+    ]]></shader>
+
+</effect>

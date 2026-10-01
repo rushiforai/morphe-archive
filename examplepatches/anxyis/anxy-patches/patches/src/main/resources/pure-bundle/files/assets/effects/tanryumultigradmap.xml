@@ -1,0 +1,258 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.multigradmap"
+    name="MultiGradient Map+"
+    desc="Amazing New Extra FX from the Modder"
+    category="color" 
+    tags="other"
+    thumb="thumb/TANRYU/gradmap.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color1" default="#FF444444" label="Color 1" alpha="true" />
+        <color id="color2" default="#FFFFC114" label="Color 2" alpha="true" />
+        <color id="color3" default="#FFFFFFFF" label="Color 3" alpha="true" />
+        <color id="color4" default="#FFFFC114" label="Color 4" alpha="true" />
+        <spinner id="progressa" label="Gamma" default="-1.0" min="-1.0" max="1.0" step="0.01" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <selector id="blendMode" style="dropdown" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+            <choice label="OVERLAY" value="3" />
+            <choice label="COLOR" value="4" />
+            <choice label="LIGHTEN" value="5" />
+            <choice label="LIGHTEN COLOR" value="13" />
+            <choice label="COLOR DODGE" value="6" />
+            <choice label="COLOR BURN" value="7" />
+            <choice label="LINEAR DODGE" value="8" />
+            <choice label="LINEAR BURN" value="9" />
+            <choice label="LINEAR LIGHT" value="10" />
+            <choice label="DARKEN" value="11" />
+            <choice label="DARKEN COLOR" value="12" />
+            <choice label="SOFT LIGHT" value="14" />
+            <choice label="SOFT OVERLAY" value="15" />
+            <choice label="HARD LIGHT" value="16" />
+            <choice label="VIVID LIGHT" value="21" />
+            <choice label="PIN LIGHT" value="22" />
+            <choice label="HUE" value="17" />
+            <choice label="DIFFERENT" value="18" />
+            <choice label="LUMINANCE" value="19" />
+            <choice label="SATURATION" value="20" />
+            <choice label="DIVIDE" value="23" />
+            <choice label="SUBSTRACT" value="24" />
+        </selector>
+        <spinner id="alphab" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha Blend" type="percent" />
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord
+    
+   /////////////////////////
+   
+        const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+   
+        vec3 hsv2rgb(vec3 c)
+        {
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+        }
+
+        vec3 rgb2hsv(vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        
+            highp mat3 rgb2yuv = mat3(
+                 0.299,     0.587,    0.114,
+                -0.14713,  -0.28886,  0.436,
+                 0.615,    -0.51499, -0.10001
+            );
+            highp mat3 yuv2rgb = mat3(
+                1.0,  0.0,      1.13983,
+                1.0, -0.39465, -0.58060,
+                1.0,  2.03211,  0.0
+            );
+
+   
+   /////////////////////////
+    void main ()
+    {
+            
+    vec4 dst;
+
+    vec4 col = texture2DCv(inputImg.texture, acScreenNorm);
+    vec4 texColor = col;
+	
+    float weight1;
+    float weight2;
+    float weight3;
+    float weight4;
+    float value1 = sign(max(-progressa,0.0));
+    float value2 = step(0.0,progressa);
+         
+    float lum = 0.299*col.r + 0.587*col.g + 0.114*col.b;
+
+    lum = pow(lum,1.0 - progressa)*value1 + pow(lum,1.0/(1.0 + progressa))*value2;
+    lum = lum*3.0;
+ 	
+ 	value1 = smoothstep(2.0,3.0,lum);
+  	value2 = smoothstep(1.0,2.0,lum);
+ 	
+      weight4 = value1;
+	weight3 = value2 - value1;
+  	value1 = smoothstep(0.0,1.0,lum);
+ 
+    weight2 = value1 - value2;
+    weight1 = 1.0 - value1;
+      
+    dst = col;
+    
+    dst = color1*weight1 + color2*weight2 + color3*weight3 + color4*weight4;
+	
+    vec4 fragColor = mix(col,dst,alpha) * col.a;
+    
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        } else if(blendMode==3 ) {
+            factor *= bright;
+            vec3 t = smoothstep(0.5,0.5,texColor.rgb);
+            vec3 result =
+                    t * (1. - (1.-2.*(texColor.rgb-0.5)) * (1.-factor.rgb)) +
+                    (1.-t) * ((2.*texColor.rgb) * factor.rgb);
+            resultfinal = vec4(result, texColor.a) * texColor.a;
+        } else if(blendMode==4 ) {
+            vec3 colorBlend = vec3( (texColor.rgb * rgb2yuv).r, (factor.rgb * rgb2yuv).gb) * yuv2rgb;
+            resultfinal = vec4(colorBlend,texColor.a) * texColor.a;
+        } else if(blendMode==5 ) {
+            factor *=bright;
+            resultfinal = max(factor,texColor) * texColor.a;
+        } else if(blendMode==6 ) {
+            factor *=bright;
+            resultfinal = texColor / (1.0-factor) * texColor.a;
+        } else if(blendMode==7 ) {
+            factor *=bright;
+            resultfinal = (1. - (1.-texColor) / factor) * texColor.a;
+        } else if(blendMode==8 ) {
+            factor *=bright;
+            resultfinal = (texColor + factor) * texColor.a;
+        } else if(blendMode==9 ) {
+            factor *=bright;
+            resultfinal = (texColor + factor - 1.0) * texColor.a;
+        } else if(blendMode==10 ) {
+            vec3 t = smoothstep(0.5,0.5,factor.rgb);
+            vec3 linearLight =
+                    t * (texColor.rgb + 2.*(factor.rgb-0.5)) +
+                    (1.-t) * (texColor.rgb + 2.*factor.rgb - 1.);
+            resultfinal = vec4(linearLight,texColor.a) * texColor.a;
+        } else if(blendMode==11 ) {
+            factor *=bright;
+            resultfinal = min(factor,texColor) * texColor.a;
+        } else if(blendMode==12 ) {
+            factor *=bright;
+            vec3 darkenColor = length(luminanceWeighting * factor.rgb) > length(luminanceWeighting * texColor.rgb) ? texColor.rgb : factor.rgb;
+            resultfinal = vec4(darkenColor,texColor.a) * texColor.a;
+        } else if(blendMode==13 ) {
+            factor *=bright;
+            vec3 lightenColor = length(luminanceWeighting * factor.rgb) > length(luminanceWeighting * texColor.rgb) ? factor.rgb : texColor.rgb;
+            resultfinal = vec4(lightenColor,texColor.a) * texColor.a;
+        } else if(blendMode==14 ) {
+            factor *=bright;
+            vec3 t = smoothstep(0.5,0.5,factor.rgb);
+            vec3 softLight =
+                    t * (1. - (1.-texColor.rgb) * (1.-(factor.rgb-0.5))) +
+                    (1.-t) * (texColor.rgb * (factor.rgb+0.5));
+            resultfinal = vec4(softLight,texColor.a) * texColor.a;
+        } else if(blendMode==15 ) {
+            factor *=bright;
+            vec3 t = smoothstep(0.5,0.5,texColor.rgb);
+            vec3 softOver =
+                    t * (1. - (1.-texColor.rgb) * (1.-(factor.rgb-0.5))) +
+                    (1.-t) * (texColor.rgb * (factor.rgb+0.5));
+            resultfinal = vec4(softOver,texColor.a) * texColor.a;
+        } else if(blendMode==16 ) {
+            factor *=bright;
+            vec3 t = smoothstep(0.5,0.5,factor.rgb);
+            vec3 hardLight =
+                    t * (1. - (1.-texColor.rgb) * (1.-2.*(factor.rgb-0.5))) +
+                    (1.-t) * (texColor.rgb * (2.*factor.rgb));
+            resultfinal = vec4(hardLight,texColor.a) * texColor.a;
+        } else if(blendMode==17 ) {
+            factor *=bright;
+            vec3 hueB = hsv2rgb(vec3(rgb2hsv(factor.rgb).r, rgb2hsv(texColor.rgb).gb));
+            resultfinal = vec4(hueB,texColor.a) * texColor.a;
+        } else if(blendMode==18 ) {
+            factor *=bright;
+            resultfinal = vec4(abs(texColor.rgb*texColor.a - factor.rgb),texColor.a);
+        } else if(blendMode==19 ) {
+            factor *=bright;
+            vec3 lumin = vec3( (factor.rgb * rgb2yuv).r, (texColor.rgb * rgb2yuv).gb) * yuv2rgb;
+            resultfinal = vec4(lumin,texColor.a) * texColor.a;
+        } else if(blendMode==20 ) {
+            factor *=bright;
+            vec3 bot_hsv = rgb2hsv(texColor.rgb);
+            vec3 satBlend = hsv2rgb(vec3(bot_hsv.r, rgb2hsv(factor.rgb).g, bot_hsv.b));
+            resultfinal = vec4(satBlend,texColor.a) * texColor.a;
+        } else if(blendMode==21 ) {
+            factor *=bright;
+            vec3 t = smoothstep(0.5,0.5,factor.rgb);
+            vec3 vividLight =
+                    t * (1. - (1.-texColor.rgb) * (2.*(factor.rgb-0.5))) +
+                    (1.-t) * (texColor.rgb * (1.-2.*factor.rgb));
+            resultfinal = vec4(vividLight,texColor.a) * texColor.a;
+        } else if(blendMode==22 ) {
+            factor *=bright;
+            vec3 t = smoothstep(0.5,0.5,factor.rgb);
+            vec3 pinLight =
+                    t * (max(texColor.rgb,2.*(factor.rgb-0.5))) +
+                    (1.-t) * (min(texColor.rgb,2.*factor.rgb));
+            resultfinal = vec4(pinLight,texColor.a) * texColor.a;
+        } else if(blendMode==23 ) {
+            factor *=bright;
+            resultfinal = (texColor / factor) * texColor.a;
+        } else if(blendMode==24 ) {
+            factor *=bright;
+            resultfinal = (texColor - factor) * texColor.a;
+        }
+
+    	gl_FragColor = mix(fragColor, resultfinal, alphab) * texColor.a;
+
+    }
+
+    ]]></shader>
+
+</effect>

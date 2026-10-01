@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.epxec.patches.elmwood.Fingerprints.ElmwoodPurchaseCheckFingerprint
 import app.epxec.patches.elmwood.Fingerprints.ElmwoodPurchaseConversionFingerprint
 import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
+import app.epxec.patches.shared.hoodles.microG
 
 @Suppress("unused")
 val enableVipPatch = bytecodePatch(
@@ -15,7 +16,7 @@ val enableVipPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_Elmwood)
 
-    dependsOn(changePackageInstallerPatch())
+    dependsOn(changePackageInstallerPatch(), microG)
 
     execute {
 

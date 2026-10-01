@@ -177,3 +177,21 @@ internal val jniGuardsPatch = rawResourcePatch {
         editLibraries(NativeEdits.JNI_GUARDS)
     }
 }
+
+/**
+ * Passes the argument `CFileMgr_Android::resDLEvent()` leaves out when it asks the Java side for
+ * a string. `ResDLNativeCallback.resdlStringEvent(int, int, byte[])` gets only two of its three
+ * arguments, so the byte array lands in the int slot and the `byte[]` slot is stale stack. ART
+ * decodes that word as a reference before Java runs; on Android 16 it was 1, which decodes to a
+ * null entry, and the game died while loading. Java reads neither the int nor the array, so each
+ * copy of the function only needs the array moved to the `byte[]` slot: `str rX, [sp]` becomes
+ * `str rX, [sp, #4]`, and the int slot keeps a stale word that nothing reads. The compiler kept
+ * two copies of the function, so there are two words per ABI.
+ */
+internal val jniArgumentsPatch = rawResourcePatch {
+    dependsOn(nativeLibraryCheckPatch)
+
+    execute {
+        editLibraries(NativeEdits.JNI_ARGUMENTS)
+    }
+}

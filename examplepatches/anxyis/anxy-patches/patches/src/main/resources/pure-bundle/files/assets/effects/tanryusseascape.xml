@@ -1,0 +1,401 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e7365617363617065" deprecated="true">
+
+    <params>
+        <switch id="nmode" default="false" label="Night Mode" />
+        <spinner id="camprog" label="Cam Progress" default="1.0" min="-1000.0" max="1000.0" step="0.01" type="percent" />
+        <spinner id="camx" label="Cam Landscape" default="0" min="-1000.0" max="1000.0" step="1.0" type="integer" />
+        <spinner id="camy" label="Cam Potrait" default="0" min="-1000.0" max="1000.0" step="1.0" type="integer" />
+        <spinner id="progressa" label="Wave Evolution" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="SEA_HEIGHT" label="Wave Height" default="0.5" min="0.1" max="1" step="0.01" type="percent" />
+        <spinner id="SEA_CHOPPY" label="Wave Choppy" default="0.5" min="0.1" max="2" step="0.01" type="percent" />
+        <spinner id="SEA_FREQ" label="Wave Freq" default="0.5" min="0.1" max="0.75" step="0.01" type="percent" />
+        
+        <color id="SEA_BASE" default="#FF1C3038" label="Base Color" alpha="true" />
+        <color id="SEA_WATER_COLOR" default="#FF8CE5B3" label="Diffuse WaveColor" alpha="true" />
+        <color id="CSKY" default="#FFFFFFFF" label="Wave BlendColor" alpha="true" />
+        <color id="SKYCOLOR" default="#FFFFFFFF" label="Sky BlendColor" alpha="true" />
+        <tip text="Setting FFFFFF to turnoff blend color" />
+        
+        <section text="Quality Settings" />
+        <slider id="NUM_STEPS" label="Octave" default="4" min="1" max="8" step="1.0" type="integer" snap="2,3,4,5,6,7" />
+        <!-- <slider id="ITER_GEOMETRY" label="Wave Detail" default="2" min="1" max="5" step="1.0" type="integer" snap="2,3,4" /> -->
+        <slider id="ITER_FRAGMENT" label="Map Detail" default="3" min="1" max="5" step="1.0" type="integer" snap="2,3,4" />
+        
+        <spinner id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="progressc" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Angle" step="0.01" type="angle" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <switch id="adaptive" default="true" label="Adaptive to Layer" />
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        // A documented, altered, recolored version of "Seascape".
+        // The famous original at:
+        // https://www.shadertoy.com/view/Ms2SD1
+        
+        // "Seascape" by Alexander Alekseev aka TDM - 2014
+        
+        const float PI	 	= 3.14159265358;
+        const float EPSILON	= 1e-3;
+        #define  EPSILON_NRM	(0.5 / acScreenSize.x)
+        
+        // const int NUM_STEPS = 6;
+        // const int ITER_GEOMETRY = 2;
+        // const int ITER_FRAGMENT =5;
+        
+        // const float SEA_HEIGHT = 0.5;
+        // const float SEA_CHOPPY = 3.0;
+        // const float SEA_FREQ = 0.24;
+        
+        // const vec3 SEA_BASE = vec3(0.11,0.19,0.22);
+        // const vec3 SEA_WATER_COLOR = vec3(0.55,0.9,0.7);
+        
+        #define SEA_TIME (progressa * 2.0)
+        const float KEY_SP    = 32.5/256.0;
+        
+        mat2 octave_m = mat2(1.7,1.2,-1.2,1.4);
+        
+        vec3 rgb2hsv(vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+        
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        
+        vec3 hsv2rgb(vec3 c)
+        {
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+        }
+        
+        mat3 fromEuler(vec3 ang) {
+        	vec2 a1 = vec2(sin(ang.x),cos(ang.x));
+            vec2 a2 = vec2(sin(ang.y),cos(ang.y));
+            vec2 a3 = vec2(sin(ang.z),cos(ang.z));
+            mat3 m;
+            m[0] = vec3(a1.y*a3.y+a1.x*a2.x*a3.x,a1.y*a2.x*a3.x+a3.y*a1.x,-a2.y*a3.x);
+        	m[1] = vec3(-a2.y*a1.x,a1.y*a2.y,a2.x);
+        	m[2] = vec3(a3.y*a1.x*a2.x+a1.y*a3.x,a1.x*a3.x-a1.y*a3.y*a2.x,a2.y*a3.y);
+        	return m;
+        }
+        
+        float hash( vec2 p ) {
+            float h = dot(p,vec2(127.1,311.7));	
+            return fract(sin(h)*83758.5453123);
+        }
+        
+        float noise( in vec2 p ) {
+            vec2 i = floor( p );
+            vec2 f = fract( p );	
+        
+            vec2 u = f*f*(3.0-2.0*f);
+        
+            return -1.0+2.0*mix( 
+                        mix( hash( i + vec2(0.0,0.0) ), 
+                             hash( i + vec2(1.0,0.0) ), 
+                                u.x),
+                        mix( hash( i + vec2(0.0,1.0) ), 
+                             hash( i + vec2(1.0,1.0) ), 
+                                u.x), 
+                        u.y);
+        }
+        
+        float diffuse(vec3 n,vec3 l,float p) {
+            return pow(dot(n,l) * 0.4 + 0.6,p);
+        }
+        
+        float specular(vec3 n,vec3 l,vec3 e,float s) {    
+            float nrm = (s + 8.0) / (3.1415 * 8.0);
+            return pow(max(dot(reflect(e,n),l),0.0),s) * nrm;
+        }
+        
+        vec3 getSkyColor(vec3 e) {
+            e.y = max(e.y,0.0);
+            vec3 ret;
+            ret.x = pow(1.0-e.y,2.0);
+            ret.y = 1.0-e.y;
+            ret.z = 0.6+(1.0-e.y)*0.4;
+            ret *= SKYCOLOR.rgb;
+            return ret;
+        }
+        
+        float sea_octave(vec2 uv, float choppy) {
+            uv += noise(uv);
+            vec2 wv = 1.0-abs(sin(uv)); 
+            vec2 swv = abs(cos(uv));  
+            wv = mix(wv,swv,wv);
+            return pow(1.0-pow(wv.x * wv.y,0.65),choppy);
+        }
+        
+        float map(vec3 p) {
+            float freq = SEA_FREQ;
+            float amp = SEA_HEIGHT;
+            float choppy = SEA_CHOPPY;
+            vec2 uv = p.xz; uv.x *= 0.75;
+            
+            float d, h = 0.0;    
+            for(int i = 0; i < 2; i++) {
+            // for(int i = 0; i < int(ITER_GEOMETRY); i++) {
+            	d = sea_octave((uv+SEA_TIME)*freq,choppy);
+                h += d * amp; 
+            	uv *=  octave_m;
+                
+                freq *= 1.9; 
+                amp *= 0.22;
+                choppy = mix(choppy,1.0,0.2);
+            }
+            return p.y - h;
+        }
+        
+        float map_detailed(vec3 p) {
+            float freq = SEA_FREQ;
+            float amp = SEA_HEIGHT;
+            float choppy = SEA_CHOPPY;
+            vec2 uv = p.xz; uv.x *= 0.75;
+            
+            float d, h = 0.0;    
+            for(int i = 0; i < int(ITER_FRAGMENT); i++) {
+            	d = sea_octave((uv+SEA_TIME)*freq,choppy);
+            	d += sea_octave((uv-SEA_TIME)*freq,choppy);
+                
+                h += d * amp;
+                
+            	uv *= octave_m/1.2;
+                
+                freq *= 1.9; 
+                amp *= 0.22; 
+                choppy = mix(choppy,1.0,0.2);
+            }
+            return p.y - h;
+        }
+        vec3 getSeaColor(vec3 p, vec3 n, vec3 l, vec3 eye, vec3 dist) {  
+            float fresnel = 1.0 - max(dot(n,-eye),0.0);
+            fresnel = pow(fresnel,3.0) * 0.45;
+                
+            vec3 reflected = getSkyColor(reflect(eye,n))*0.99;
+                  reflected *= CSKY.rgb;
+            
+            vec3 refracted = SEA_BASE.rgb + diffuse(n,l,80.0) * SEA_WATER_COLOR.rgb * 0.27; 
+            
+            vec3 color = mix(refracted,reflected,fresnel);
+            
+            float atten = max(1.0 - dot(dist,dist) * 0.001, 0.0);
+            color += SEA_WATER_COLOR.rgb * (p.y - SEA_HEIGHT) * 0.15 * atten;
+            
+            color += vec3(specular(n,l,eye,90.0))*0.5;
+            
+            return color;
+        }
+        
+        vec3 getNormal(vec3 p, float eps) {
+            vec3 n;
+            n.y = map_detailed(p); // bteitler: Detailed height relative to surface, temporarily here to save a variable?
+            n.x = map_detailed(vec3(p.x+eps,p.y,p.z)) - n.y; // bteitler approximate X gradient as change in height along X axis delta
+            n.z = map_detailed(vec3(p.x,p.y,p.z+eps)) - n.y; // bteitler approximate Z gradient as change in height along Z axis delta
+            n.y = eps; 
+            return normalize(n);
+        
+        }
+        
+        
+        float isKeyPressed(float key)
+        {
+        	return texture2DCv( inputImg.texture, vec2(key, 1.0) ).x;
+        }
+        
+        float heightMapTracing(vec3 ori, vec3 dir, out vec3 p) {  
+            float tm = 0.0;
+            float tx = 500.0; // bteitler: a really far distance, this could likely be tweaked a bit as desired
+        
+            float hx = map(ori + dir * tx);
+            
+            if(hx > 0.0) return tx;   
+        
+            float hm = map(ori + dir * tm); 
+           
+            float tmid = 0.0;
+            for(int i = 0; i < int(NUM_STEPS); i++) { // bteitler: Constant number of ray marches per ray that hits the water
+                tmid = mix(tm,tx, hm/(hm-hx));
+                p = ori + dir * tmid; 
+                          
+            	float hmid = map(p); // bteitler: Re-evaluate height relative to ocean surface in Y axis
+        
+                if(hmid < 0.0) { // bteitler: We went through the ocean surface if we are negative relative to surface now
+                    tx = tmid;
+                    hx = hmid;
+                } else {
+                    tm = tmid;
+                    hm = hmid;
+                }
+            }
+        
+            return tmid;
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec2 TanRyu;
+        if (adaptive) { 
+        TanRyu = acScreenNorm; 
+        }
+        else { 
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        }
+
+        TanRyu /= scale;
+        TanRyu *= rot2m((0.0)*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            vec2 uv = TanRyu;
+        
+            uv = uv * 2.0 - 1.0; //  bteitler: Shift pixel coordinates from 0 to 1 to between -1 and 1
+            uv.x *= acScreenSize.x / acScreenSize.y; // bteitler: Aspect ratio correction - if you don't do this your rays will be distorted
+            float time = camprog * 2.7; // bteitler: Animation is based on time, but allows you to scrub the animation based on mouse movement
+                
+            float roll = PI + progressc ;
+            // float roll = PI + sin(progressc)/14.0 + cos(progressc/2.0)/14.0 ;
+            float pitch = PI*1.021 + (sin(1.0/2.0)+ cos(1.0))/40.0 
+                + ((200.+camy)/acScreenSize.y - .8)*PI/3.0  ;
+            float yaw = camx/acScreenSize.x * PI * 4.0;
+            vec3 ang = vec3(roll,pitch,yaw);
+            
+            vec3 ori = vec3(0.0,3.5,time*3.0);
+           
+            vec3 dir = normalize(vec3(uv.xy,-1.6)); 
+        
+            dir = normalize(dir) * fromEuler(ang);
+            
+            vec3 p;
+            heightMapTracing(ori,dir,p);
+        
+            vec3 dist = p - ori; // bteitler: distance vector to ocean surface for this pixel's ray
+        
+            vec3 n = getNormal(p, 
+                     dot(dist,dist)   // bteitler: Think of this as inverse resolution, so far distances get bigger at an expnential rate
+                        * EPSILON_NRM // bteitler: Just a resolution constant.. could easily be tweaked to artistic content
+                   );
+        
+            vec3 light = normalize(vec3(0.0,1.0,0.8)); 
+                     
+        	vec3 skyColor = getSkyColor(dir);
+            vec3 seaColor = getSeaColor(p,n,light,dir,dist);
+            
+            seaColor /= sqrt(sqrt(length(dist))) ;
+            
+            
+            bool night; 	 
+            if( nmode )    //night mode!
+            // if( isKeyPressed(KEY_SP) > 0.0 )    //night mode!
+            {
+            	seaColor *= seaColor * 8.5;
+                
+            	skyColor /= 1.69;
+                
+                night = true;
+            }
+            else  //day mode!
+            {
+            	seaColor *= sqrt(sqrt(seaColor)) * 4.0;
+                skyColor *= 1.05;
+                skyColor -= 0.03;
+                night = false;
+            }
+        
+            
+            skyColor *= skyColor;
+            
+            
+            vec3 seaHsv = rgb2hsv(seaColor);
+            if (seaHsv.z > .75 && length(dist) < 50.0)
+               seaHsv.z -= (0.9 - seaHsv.z) * 1.3;
+            seaColor = hsv2rgb(seaHsv);
+            
+            vec3 color = mix(
+                skyColor,
+                seaColor,
+            	pow(smoothstep(0.0,-0.05,dir.y), 0.3) // bteitler: Can be thought of as "fog" that gets thicker in the distance
+            );
+                
+            fragColor = vec4(pow(color,vec3(0.75)), 1.0);
+            
+            vec3 hsv = rgb2hsv(fragColor.xyz);    
+            hsv.y += 0.131;
+            hsv.z *= sqrt(hsv.z) * 1.1; 
+            
+            if (night)    
+            {
+                hsv.z -= 0.045;
+                hsv*=0.8;
+                hsv.x += 0.12 + hsv.z/100.0;
+                hsv.y *= 2.87;
+            }
+            else
+            {
+                hsv.z *= 0.9;
+                
+                hsv.x -= hsv.z/10.0;
+                hsv.x += 0.02 + hsv.z/50.0;
+                hsv.z *= 1.01;
+                hsv.y += 0.07;
+            }
+            
+            fragColor.xyz = hsv2rgb(hsv);
+                    
+    	gl_FragColor = mix(texColor, fragColor, alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

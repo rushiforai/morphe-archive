@@ -183,6 +183,7 @@ class Elf32Test {
             "GSERVE_STALL" to NativeEdits.GSERVE_STALL,
             "DEAD_SERVERS" to NativeEdits.DEAD_SERVERS,
             "JNI_GUARDS" to NativeEdits.JNI_GUARDS,
+            "JNI_ARGUMENTS" to NativeEdits.JNI_ARGUMENTS,
             "CURRENCY" to NativeEdits.CURRENCY.mapValues { (_, plan) -> plan.edits },
         )
         for ((name, table) in tables) {
@@ -230,6 +231,20 @@ class Elf32Test {
             val menu = edits.single { it.old and 0xFFFFFF00L == 0xE2853000L }
             assertEquals(0xE2853000L or 8L + 4 * 0x14, menu.old, "$abi: the table end covers four entries")
             assertEquals(0xE2853000L or 8L + 2 * 0x14, menu.new, "$abi: and then two")
+        }
+    }
+
+    @Test
+    fun `the JNI argument edits move the byte array one slot up and change nothing else`() {
+        for (abi in ABIS) {
+            val edits = NativeEdits.JNI_ARGUMENTS.getValue(abi)
+            assertEquals(2, edits.size, "$abi: one word in each copy of resDLEvent")
+            for (edit in edits) {
+                val at = "$abi at 0x%X".format(edit.vaddr)
+                // str rX, [sp, #0] becomes str rX, [sp, #4]: same register, same form, offset 4.
+                assertEquals(0xE58D0000L, edit.old and 0xFFFF0FFFL, "$at: a str to [sp]")
+                assertEquals(edit.old or 4L, edit.new, "$at: the same register, 4 bytes up")
+            }
         }
     }
 }

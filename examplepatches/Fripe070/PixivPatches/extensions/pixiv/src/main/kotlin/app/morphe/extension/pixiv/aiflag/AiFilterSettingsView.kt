@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import app.morphe.extension.pixiv.premium.MuteHelper
 
 object AiFilterSettingsView {
 
@@ -260,6 +261,81 @@ object AiFilterSettingsView {
             whiteCard.addView(whiteFlow)
             refreshWhiteChips()
             content.addView(whiteCard)
+
+            // Section 6: Mute Settings Backup
+            content.addView(createSectionHeader(activity, "MUTE SETTINGS (IMPORT / EXPORT)", accentColor))
+            val muteCard = createCard(activity, cardBgColor)
+            val muteContent = LinearLayout(activity).apply {
+                orientation = LinearLayout.VERTICAL
+                val p = dpToPx(activity, 16f).toInt()
+                setPadding(p, p, p, p)
+            }
+            val muteTitle = TextView(activity).apply {
+                text = "Backup & Restore Mute Settings"
+                textSize = 15f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(textPrimaryColor)
+            }
+            muteContent.addView(muteTitle)
+
+            val muteSummary = TextView(activity).apply {
+                textSize = 12f
+                setTextColor(textSecondaryColor)
+                val topP = dpToPx(activity, 4f).toInt()
+                setPadding(0, topP, 0, 0)
+            }
+            fun updateMuteSummary() {
+                val tagsCount = MuteHelper.getLocalMutedTags().size
+                val usersCount = MuteHelper.getLocalMutedUsers().size
+                muteSummary.text = "Saved client-side mutes: $tagsCount tag(s), $usersCount user(s)"
+            }
+            updateMuteSummary()
+            muteContent.addView(muteSummary)
+
+            val muteButtonsRow = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                val topP = dpToPx(activity, 12f).toInt()
+                setPadding(0, topP, 0, 0)
+            }
+
+            fun createMuteActionBtn(btnText: String, bg: Int, fg: Int, stroke: Int? = null, onClick: () -> Unit): TextView {
+                return TextView(activity).apply {
+                    text = btnText
+                    textSize = 13f
+                    typeface = Typeface.DEFAULT_BOLD
+                    setTextColor(fg)
+                    val hp = dpToPx(activity, 14f).toInt()
+                    val vp = dpToPx(activity, 8f).toInt()
+                    setPadding(hp, vp, hp, vp)
+                    background = GradientDrawable().apply {
+                        shape = GradientDrawable.RECTANGLE
+                        cornerRadius = dpToPx(activity, 6f)
+                        setColor(bg)
+                        if (stroke != null) {
+                            setStroke(dpToPx(activity, 1f).toInt(), stroke)
+                        }
+                    }
+                    setOnClickListener { onClick() }
+                }
+            }
+
+            val exportBtn = createMuteActionBtn("📤 Export Mutes", accentColor, Color.WHITE) {
+                MuteHelper.exportMuteSettingsDialog(activity)
+            }
+            val importBtn = createMuteActionBtn("📥 Import Mutes", cardBgColor, textPrimaryColor, stroke = dividerColor) {
+                MuteHelper.importMuteSettingsDialog(activity) {
+                    updateMuteSummary()
+                }
+            }
+            muteButtonsRow.addView(exportBtn)
+            val muteSpacer = View(activity).apply {
+                layoutParams = LinearLayout.LayoutParams(dpToPx(activity, 10f).toInt(), 1)
+            }
+            muteButtonsRow.addView(muteSpacer)
+            muteButtonsRow.addView(importBtn)
+            muteContent.addView(muteButtonsRow)
+            muteCard.addView(muteContent)
+            content.addView(muteCard)
 
             // Reset Defaults Button
             val resetRow = LinearLayout(activity).apply {

@@ -1,0 +1,299 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.s3d-sphere" name="@string/name" desc="@string/desc" category="3d" tags="3d,shape,geometric,lighting,raster" thumb="thumb/s3d-sphere.webp" overdraw="true" max-overdraw="0.2" experimental="false" deprecated="false">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Sphere</string>
+            <string name="desc">A perfectly rounding 3D sphere mapped with the layer.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <orient id="orient" default="0.4871745, 0, 0, -0.8733046" label="@am:string/effect_param_orientation" invert="true" />
+        <xyz id="rotate" label="@am:string/effect_param_rotation" type="rotate" />
+        <spinner id="size" default="2.0" min="0.01" max="10" label="@am:string/effect_param_size" step="0.001" ticks="1" multiplier="100" />
+        <spinner id="height" default="2.0" min="0.01" max="10" label="@am:string/effect_param_height" step="0.001" ticks="1" multiplier="100" />
+        <spinner id="rounding" default="0.3" min="0.0" max="1.0" label="@am:string/effect_param_smoothing" step="0.001" ticks="0.3" />
+        <xyz id="position" default="0.,100.,550." label="@am:string/effect_param_position" step="0.01" ticks="1.0" />
+        <spinner id="scale" default="1.0" min="0" max="10.0" label="@am:string/effect_param_scale" step="0.01" ticks="1.0" />
+
+        <section text="@am:string/effect_section_lightsource" />
+        <selector id="shadingType" default="1" style="dropdown" label="@am:string/effect_param_shading" >
+            <choice label="@am:string/effect_param_shading_flat" value="0" />
+            <choice label="@am:string/effect_param_shading_pointlight" value="1" />
+            <choice label="@am:string/effect_param_shading_dirlight" value="2" />
+            <choice label="@am:string/effect_param_shading_depth" value="3" />
+            <choice label="@am:string/effect_param_shading_normal" value="4" />
+            <choice label="@am:string/effect_param_shading_normal_with_depth" value="5" />
+        </selector>
+        <spinner id="lightIntensity" default="1.0" min="0" max="2" step="0.001" label="@am:string/effect_param_intensity" type="percent" />
+        <spinner id="shine" default="0.8" min="0.0" max="1.0" label="@am:string/effect_param_shine" step="0.01" ticks="0.5" />
+        <spinner id="spec" default="30.0" min="1.0" max="150.0" label="@am:string/effect_param_specularity" step="0.5" ticks="30.0" />
+        <spinner id="ambient" default="0.1" min="0.0" max="1.0" label="@am:string/effect_param_ambient" step="0.01" />
+        <color id="lightColor" default="#FFFFFFFF" label="@am:string/effect_param_color" alpha="false" />
+        <point id="lightDir" default="75,-75" label="@am:string/effect_param_direction" />
+        <spinner id="lightDepth" default="100" min="-100" max="800" label="@am:string/effect_param_elevation" step="0.5" ticks="1,100" />
+
+        <section text="@am:string/effect_section_texturemap" />
+        <switch id="mirror" default="false" label="@am:string/effect_param_mirror" />
+        <spinner id="texRepeatX" default="1" min="0.01" max="20.0" step="0.01" label="@am:string/effect_param_repeat_x" />
+        <spinner id="texRepeatY" default="1" min="0.01" max="20.0" step="0.01" label="@am:string/effect_param_repeat_y" />
+        <spinner id="texAngle" default="0.0" min="-3600" max="3600" label="@am:string/effect_param_angle" step="0.1" ticks="0" type="angle" />
+        <spinner id="texCrop" default="1" min="0.01" max="2.0" label="@am:string/effect_param_crop" step="0.001" ticks="1.0" />
+        <spinner id="texTwirl" default="0.0" min="-3600" max="3600" label="@am:string/effect_param_twirl" step="0.1" ticks="0" type="angle" />
+        <point id="texOffset" label="@am:string/effect_param_offset" />
+
+        <section text="@am:string/effect_section_raymarch" />
+        <tip text="@am:string/effect_raymarch_iter_tip" />
+        <slider id="MAX_ITER" default="60" min="10" max="200" label="@am:string/effect_param_raymarch_iter" type="integer" step="1" ticks="30,60,100" snap="30,60,100" />
+
+    </params>
+
+    <shader type="vertex" precision="high"><![CDATA[
+
+        varying mat4 invOrient;
+
+        mat4 inverse( in mat4 m )
+        {
+            return mat4(
+                m[0][0], m[1][0], m[2][0], 0.0,
+                m[0][1], m[1][1], m[2][1], 0.0,
+                m[0][2], m[1][2], m[2][2], 0.0,
+                -dot(m[0].xyz,m[3].xyz),
+                -dot(m[1].xyz,m[3].xyz),
+                -dot(m[2].xyz,m[3].xyz),
+                1.0 );
+        }
+
+        mat4 rotationAxisAngle( vec3 v, float angle )
+        {
+            float s = sin( angle );
+            float c = cos( angle );
+            float ic = 1.0 - c;
+
+            return mat4( v.x*v.x*ic + c,     v.y*v.x*ic - s*v.z, v.z*v.x*ic + s*v.y, 0.0,
+                         v.x*v.y*ic + s*v.z, v.y*v.y*ic + c,     v.z*v.y*ic - s*v.x, 0.0,
+                         v.x*v.z*ic - s*v.y, v.y*v.z*ic + s*v.x, v.z*v.z*ic + c,     0.0,
+                         0.0,                0.0,                0.0,                1.0 );
+        }
+
+        void main() {
+            vertShaderInit();
+            vec3 r = rotate * 0.0174533;
+            mat4 rx = rotationAxisAngle(vec3(1.,0.,0.),r.x);
+            mat4 ry = rotationAxisAngle(vec3(0.,1.,0.),r.y);
+            mat4 rz = rotationAxisAngle(vec3(0.,0.,1.),r.z);
+            invOrient = orient * rz * rx * ry;
+        }
+
+    ]]></shader>
+
+    <shader type="fragment" precision="high"><![CDATA[
+
+        #define OBJECT_CENTER (position/100.)
+        //vec3(0.,1.,zdist)
+        //#define MAX_ITER 35
+
+        varying mat4 invOrient;
+
+        float opSU(float a,float b,float k){ float h=clamp(0.5+0.5*(b-a)/k,0.0,1.0); return mix(b,a,h)-k*h*(1.0-h); }
+        float opSS(float a,float b,float k){ float h=clamp(0.5-0.5*(b+a)/k,0.0,1.0); return mix(b,-a,h)+k*h*(1.0-h); }
+        float opSI(float a,float b,float k){ float h=clamp(0.5-0.5*(b-a)/k,0.0,1.0); return mix(b,a,h)+k*h*(1.0-h); }
+        float sdSphere(vec3 p,float r){ return length(p)-r; }
+        float sdBox(vec3 p,vec3 b){ vec3 q=abs(p)-b; return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0); }
+        float sdRoundBox(vec3 p,vec3 b,float r){ vec3 q=abs(p)-b; return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0)-r; }
+        float sdCapsule(vec3 p,vec3 a,float h,float r){ p-=a; p.y-=clamp(p.y,-h,h); return length(p)-r; }
+        float sdCappedCone(vec3 p,float h,float r1,float r2){
+            vec2 q=vec2(length(p.xz),p.y);
+            vec2 k1=vec2(r2,h); vec2 k2=vec2(r2-r1,2.0*h);
+            vec2 ca=vec2(q.x-min(q.x,(q.y<0.0)?r1:r2),abs(q.y)-h);
+            vec2 cb=q-k1+k2*clamp(dot(k1-q,k2)/dot(k2,k2),0.0,1.0);
+            float s=(cb.x<0.0&&ca.y<0.0)?-1.0:1.0;
+            return s*sqrt(min(dot(ca,ca),dot(cb,cb)));
+        }
+        float sdRoundCone(vec3 p,float r1,float r2,float h){
+            vec2 q=vec2(length(p.xz),p.y);
+            float b=(r1-r2)/h; float a=sqrt(max(1.0-b*b,0.0));
+            float k=dot(q,vec2(-b,a));
+            if(k<0.0) return length(q)-r1;
+            if(k>a*h) return length(q-vec2(0.0,h))-r2;
+            return dot(q,vec2(a,b))-r1;
+        }
+        float sdCappedCyl(vec3 p,float r,float h){ vec2 d=abs(vec2(length(p.xz),p.y))-vec2(r,h); return min(max(d.x,d.y),0.0)+length(max(d,0.0)); }
+        float sdRoundedCyl(vec3 p,float r,float rb,float h){ vec2 d=vec2(length(p.xz)-(r-rb), abs(p.y)-(h-rb)); return min(max(d.x,d.y),0.0)+length(max(d,0.0))-rb; }
+        float sdNgon(vec3 p,float r,float h,float n){
+            float ang=atan(p.z,p.x); float seg=6.2831853/n;
+            float a=mod(ang,seg)-seg*0.5; float rr=length(p.xz);
+            float poly=rr*cos(a)-r; vec2 d=vec2(poly,abs(p.y)-h);
+            return min(max(d.x,d.y),0.0)+length(max(d,0.0));
+        }
+        float sdOcta(vec3 p,float s){ p=abs(p); float m=p.x+p.y+p.z-s;
+            vec3 q; if(3.0*p.x<m)q=p.xyz; else if(3.0*p.y<m)q=p.yzx; else if(3.0*p.z<m)q=p.zxy; else return m*0.57735027;
+            float k=clamp(0.5*(q.z-q.y+s),0.0,s); return length(vec3(q.x,q.y-s+k,q.z-k)); }
+        float sdTetra(vec3 p,float s){ return (max(abs(p.x+p.y)-p.z, abs(p.x-p.y)+p.z)-s)/1.7320508; }
+        float sdCutSphere(vec3 p,float r,float h){
+            float w=sqrt(max(r*r-h*h,0.0)); vec2 q=vec2(length(p.xz),p.y);
+            float s=max((h-r)*q.x*q.x+w*w*(h+r-2.0*q.y), h*q.x-w*q.y);
+            return (s<0.0)?length(q)-r:(q.x<w)?h-q.y:length(q-vec2(w,h));
+        }
+        float sdCappedTorus(vec3 p,vec2 sc,float ra,float rb){
+            p.x=abs(p.x);
+            float k=(sc.y*p.x>sc.x*p.y)?dot(p.xy,sc):length(p.xy);
+            return sqrt(max(dot(p,p)+ra*ra-2.0*ra*k,0.0))-rb;
+        }
+        float sdLink(vec3 p,float le,float r1,float r2){
+            vec3 q=vec3(p.x, max(abs(p.y)-le,0.0), p.z);
+            return length(vec2(length(q.xy)-r1,q.z))-r2;
+        }
+        float sdEllipsoid(vec3 p,vec3 r){ float k0=length(p/r); float k1=length(p/(r*r)); return k0*(k0-1.0)/max(k1,1e-6); }
+        vec3 rotY3(vec3 p,float a){ float s=sin(a),c=cos(a); return vec3(p.x*c-p.z*s, p.y, p.x*s+p.z*c); }
+
+        float dist(vec3 p) {
+            float d = 100000000.0;
+            p = p-OBJECT_CENTER;
+            p = (vec4(p,1.) * invOrient).xyz;
+            d=min(d, sdSphere(p,size));
+            return d;
+        }
+
+        float march(vec3 ro, vec3 rd) {
+            float d = 0.0;
+            for( int i=0; i<int(MAX_ITER); i++ ) {
+                vec3 p = ro + rd*d;
+                float dd = dist(p);
+                d += dd;
+                if( dd < 0.00001 || d > 1000.0 ) break;
+            }
+            return d;
+        }
+
+        vec3 calcNormal(vec3 p) {
+            float d = dist(p);
+            vec2 e = vec2(.01,0.);
+            return normalize(d - vec3(
+                dist(p-e.xyy),
+                dist(p-e.yxy),
+                dist(p-e.yyx)));
+        }
+
+        float lighting(vec3 p, vec3 n) {
+            vec3 lightPos = vec3(lightDir.x/2.0, -lightDir.y/2.0, -lightDepth*2.0);
+            vec3 l = normalize(lightPos-p);
+            return dot(n,l);
+        }
+
+        float directionalLighting(vec3 p, vec3 n) {
+            vec3 lightPos = vec3(lightDir.x/2.0, -lightDir.y/2.0, -lightDepth*2.0);
+            vec3 l = normalize(lightPos);
+            return dot(n,l);
+        }
+
+        vec4 applyShading(vec4 texColor, vec3 p, vec3 n, float d ) {
+            vec4 result = vec4(0.);
+            float a = smoothstep(30.0,9.,d);
+            a *= smoothstep(0.3,0.2,n.z);
+            if( shadingType == 0 ) {                // Flat
+                result = texColor * a;
+            } else if( shadingType == 1 ) {         // Point Light
+            	float l = lighting(p,n);
+            	vec3 tc = texColor.rgb;
+            	vec3 surface = tc * ambient + tc * lightColor.rgb * l * (1.-ambient);
+            	surface *= lightIntensity;
+            	float s = pow(l,spec);
+            	surface = mix(surface*(1.-shine*0.1),vec3(1.),shine*s);
+                result = vec4(surface, texColor.a) * a;
+            } else if( shadingType == 2 ) {         // Directonal Light
+            	float l = directionalLighting(p,n);
+            	vec3 tc = texColor.rgb;
+            	vec3 surface = tc * ambient + tc * lightColor.rgb * l * (1.-ambient);
+            	surface *= lightIntensity;
+            	float s = pow(l,spec);
+            	surface = mix(surface*(1.-shine*0.1),vec3(1.),shine*s);
+                result = vec4(surface, texColor.a) * a;
+            } else if( shadingType == 3 ) {         // Depth Map
+                //float dd = clamp(1.-d/10.,0.,1.)*2.;
+                float dd = 1. - ((d - (position.z/100.) + size + size)/((size*4.)));
+                result = vec4( dd,dd,dd, 1. ) * a;
+            } else if( shadingType == 4 ) {         // Normal Map
+                result = vec4( (n/2.)+0.5, 1. ) * a;
+            } else if( shadingType == 5 ) {         // Normal * Depth
+                float dd = 1. - ((d - (position.z/100.) + size + size)/((size*4.)));
+                result = vec4( ((n/2.)+0.5)*dd, 1. ) * a;
+            }
+
+            return result;
+        }
+
+        vec2 mapTexture( vec2 texCoord ) {
+            float texRad = texAngle * 0.0174533;
+            float texCos = cos(texRad);
+            float texSin = sin(texRad);
+            mat2 texRot = mat2( texCos, -texSin, texSin, texCos );
+
+            float texTwirlRad = texTwirl * 0.0174533;
+            float texTwirlCos = cos(texTwirlRad);
+            float texTwirlSin = sin(texTwirlRad);
+            mat2 texTwirlRot = mat2( texTwirlCos, -texTwirlSin, texTwirlSin, texTwirlCos );
+
+            vec2 texScaleVec = vec2(1./texRepeatX,1./texRepeatY);
+
+            texCoord *= texRot;
+
+            texCoord += texOffset / 1000.0;
+            texCoord /= texScaleVec;
+            if( mirror ) {
+                texCoord = abs(mod(texCoord,2.0)-1.0);
+            } else {
+                texCoord = mod(texCoord, 1.);
+            }
+
+            texCoord -= 0.5;
+            texCoord = texCoord * (1.-5./acScreenSize);
+            texCoord *= texCrop;
+            texCoord *= texTwirlRot;
+            texCoord += 0.5;
+            return texCoord;
+        }
+
+        void main() {
+
+            vec2 st = acLayerNorm;
+            st -= 0.5;
+            st.x *= acLayerSize.x/acLayerSize.y;
+
+            st /= scale;
+
+            vec3 ro = vec3(0., 1., -1.);
+            vec3 rd = normalize(vec3(st, 1.));
+
+            float d = march(ro,rd);
+            vec3 p = ro + rd * d;
+
+            vec3 n = calcNormal(p);
+            vec3 nn = n;
+        	float l = lighting(p,n);
+
+            vec4 localCoord = vec4(p-OBJECT_CENTER, 1.);
+            n = (vec4(n,1.) * invOrient).xyz;
+            localCoord *= invOrient;
+            vec4 pp = localCoord;
+
+            vec3 lp = pp.xyz / size;
+            vec3 an = abs(n);
+            vec2 texCoord;
+            if( an.x>=an.y && an.x>=an.z ) texCoord = vec2(-lp.z, lp.y);
+            else if( an.y>=an.z ) texCoord = vec2(lp.x, -lp.z);
+            else texCoord = vec2(lp.x, lp.y);
+            texCoord = texCoord*0.5 + 0.5;
+            texCoord = mapTexture(texCoord);
+
+        	vec4 texColor = texture2DCv( inputImg.texture, (vec4(texCoord,0.0,1.0)*acLayerToScreen).xy );
+
+            gl_FragColor = applyShading(texColor, p, nn, d);
+
+        }
+
+    ]]></shader>
+
+</effect>

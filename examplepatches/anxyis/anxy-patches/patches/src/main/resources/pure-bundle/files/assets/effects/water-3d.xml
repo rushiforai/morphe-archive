@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.water-3d" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/water-3d.webp" tags="3d,water,reflection,ripple,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Water</string>
+            <string name="desc">Reflects the layer in a rippling 3D water surface across the lower half of the frame.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="level" default="0.5" min="0.2" max="0.8" label="Water Level" />
+        <slider id="ripple" default="0.5" min="0.0" max="1.0" label="Ripple" />
+        <slider id="speed" default="1.0" min="0.0" max="4.0" label="Speed" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 uv=acScreenNorm;
+            if(uv.y > level){
+                gl_FragColor=texture2DCv(inputImg.texture, uv);
+                return;
+            }
+            float depth=(level-uv.y)/max(level,0.001);
+            float wob=sin((uv.x*30.0)+(acTime*speed)+depth*10.0)*0.01*ripple*depth;
+            wob+=sin((uv.x*12.0)-(acTime*speed*0.7))*0.012*ripple*depth;
+            vec2 ruv=vec2(uv.x+wob, level + (level-uv.y));
+            vec4 col=texture2DCv(inputImg.texture, clamp(ruv,0.0,1.0));
+            vec3 tint=mix(col.rgb, vec3(0.2,0.45,0.6), 0.35*depth);
+            float fres=pow(depth,0.5)*0.3;
+            gl_FragColor=vec4(tint+fres, 1.0);
+        }
+    ]]></shader>
+
+</effect>

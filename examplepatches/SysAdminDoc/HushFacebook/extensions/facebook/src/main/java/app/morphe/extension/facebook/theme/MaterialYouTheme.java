@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeSet;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.SettingsStatus;
@@ -38,8 +39,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * or a colour resource only when it is one of the dark surfaces no light screen uses
  * ({@link #SURFACES}). The Video tab is the exception that takes the rest: it stays dark in light
  * mode, built from the same dark style, so every route also asks Facebook's own answer for dark
- * mode ({@link DarkMode}). The system bars ask Facebook's dark check for the window
- * ({@link #statusBar}, {@link #navigationBar}).
+ * mode ({@link DarkMode}). Facebook's buttons, badges and story rings are the same blue in both
+ * themes, so for those ({@link #FDS_SHARED}) that answer is all there is, and they wait for it. The
+ * system bars ask Facebook's dark check for the window ({@link #statusBar}, {@link #navigationBar}).
  *
  * <p>With the AMOLED black theme in the same build, AMOLED goes first. Its black backgrounds and
  * near-black cards reach this class in colours no dark-theme token has, so they stay as AMOLED made
@@ -53,32 +55,53 @@ public final class MaterialYouTheme {
      * FDS colour tokens and the colours Facebook's dark theme gives them, read from the dark and
      * darker FDS styles of Facebook 580.0.0.51.74 and 577.0.0.50.72, where they are the same. Only
      * tokens whose dark colour differs from their light one are here, and only neutral greys and
-     * Facebook's blues. Reactions, charts, code and anything drawn on media or on a colour keep
-     * Facebook's colours. MaterialYouTokenFixtureTest holds this list to both fixtures.
+     * Facebook's blues. Eight hex digits are a translucent colour, such as a selected chip's tint or
+     * an unread notification's. The Like button's own blue after you like is here (issue #37), while
+     * the other reactions, charts, code and anything drawn on media or on a colour keep Facebook's
+     * colours. MaterialYouTokenFixtureTest holds this list to both fixtures.
      */
-    static final String FDS_DARK = "ACCENT=1D85FC;ACTIVE_DOT=E2E5E9;ATTACHMENT_FOOTER_BACKGROUND=F2F4F7;"
-            + "BLUE_LINK=5AA7FF,3E93F8;BOTTOM_SHEET_BACKGROUND_DEEMPHASIZED=252728;BOTTOM_SHEET_HANDLE=6F7276;"
+    static final String FDS_DARK = "ACCENT=1D85FC;ACCENT_DEEMPHASIZED=331D85FC,192D88FF;ACTIVE_DOT=E2E5E9;"
+            + "ATTACHMENT_FOOTER_BACKGROUND=F2F4F7;BLUE_LINK=5AA7FF,3E93F8;"
+            + "BOTTOM_SHEET_BACKGROUND_DEEMPHASIZED=252728;BOTTOM_SHEET_HANDLE=6F7276;"
             + "BOTTOM_SHEET_INSET_BACKGROUND=333334;CARD_BACKGROUND=333334;CARD_BACKGROUND_FLAT=333334;"
             + "CARD_BACKGROUND_LEGACY_WEB=252728;CARD_BORDER=333334;CLIENT_BOTTOM_SHEET_PRESSED=3B3C3E;"
             + "COMMENT_BACKGROUND=333334;COMMENT_THREADING_LINES=46484B;DISABLED_BUTTON_BACKGROUND=333334;"
             + "DISABLED_ICON=6F7276;DISABLED_TEXT=6F7276,505255;DIVIDER=65686C,505255;DOT_BADGE_BLUE=1D85FC;"
             + "ENTITY_HEADER_BACKGROUND=252728;FBLITE_ACCENT_ON_BACKGROUND=1D85FC;FBLITE_STRONG_SECONDARY=D0D3D7;"
             + "FBLITE_TEXT_INPUT_INACTIVE_INNER_BORDER=6F7276;FBLITE_WASH=080809;FEED_GAP_VERTICAL=101011;"
-            + "INACTIVE_DOT=84878B;LIST_CELL_BACKGROUND=252728;META_ICON=B0B3B8;META_TEXT=B0B3B8;"
-            + "NAV_BAR_BACKGROUND=252728;NAV_BAR_ICON=E8EAEE;NAV_BAR_TEXT=E8EAEE;PLACEHOLDER_ICON=B0B3B8,84878B;"
-            + "PLACEHOLDER_TEXT=B0B3B8,84878B;POPOVER_BACKGROUND=3B3C3E,3E4042;PRIMARY_BUTTON_TEXT=252728;"
-            + "PRIMARY_DEEMPHASIZED_BUTTON_ICON=75B6FF;PRIMARY_DEEMPHASIZED_BUTTON_TEXT=75B6FF,0866FF;"
-            + "PRIMARY_ICON=F2F4F7;PRIMARY_TEXT=F2F4F7;PROGRESS_RING_DISABLED_FOREGROUND=6F7276;"
-            + "SECONDARY_BUTTON_BACKGROUND=333334;SECONDARY_BUTTON_BACKGROUND_FLOATING=46484B;"
-            + "SECONDARY_BUTTON_BACKGROUND_OPAQUE=46484B;SECONDARY_BUTTON_ICON=F2F4F7;SECONDARY_BUTTON_TEXT=F2F4F7;"
-            + "SECONDARY_ICON=B0B3B8,A1A4A9;SECONDARY_TEXT=B0B3B8,A1A4A9;SURFACE_BACKGROUND=252728;"
+            + "HOSTED_VIEW_SELECTED_STATE=191D85FC;INACTIVE_DOT=84878B;LIST_CELL_BACKGROUND=252728;"
+            + "META_ICON=B0B3B8;META_TEXT=B0B3B8;NAV_BAR_BACKGROUND=252728;NAV_BAR_ICON=E8EAEE;NAV_BAR_TEXT=E8EAEE;"
+            + "NEW_NOTIFICATION_BACKGROUND=192D88FF;PLACEHOLDER_ICON=B0B3B8,84878B;PLACEHOLDER_TEXT=B0B3B8,84878B;"
+            + "POPOVER_BACKGROUND=3B3C3E,3E4042;PRIMARY_BUTTON_TEXT=252728;"
+            + "PRIMARY_DEEMPHASIZED_BUTTON_BACKGROUND=331D85FC,262D88FF;PRIMARY_DEEMPHASIZED_BUTTON_ICON=75B6FF;"
+            + "PRIMARY_DEEMPHASIZED_BUTTON_TEXT=75B6FF,0866FF;PRIMARY_ICON=F2F4F7;PRIMARY_TEXT=F2F4F7;"
+            + "PROGRESS_RING_DISABLED_FOREGROUND=6F7276;REACTION_LIKE=3E93F8;SECONDARY_BUTTON_BACKGROUND=333334;"
+            + "SECONDARY_BUTTON_BACKGROUND_FLOATING=46484B;SECONDARY_BUTTON_BACKGROUND_OPAQUE=46484B;"
+            + "SECONDARY_BUTTON_ICON=F2F4F7;SECONDARY_BUTTON_TEXT=F2F4F7;SECONDARY_ICON=B0B3B8,A1A4A9;"
+            + "SECONDARY_TEXT=B0B3B8,A1A4A9;SURFACE_BACKGROUND=252728;"
             + "SWITCH_CHECKED_BACKGROUND_COLOR_ANDROID=ADD5FF;SWITCH_CHECKED_HANDLE_FILL_COLOR_ANDROID=0866FF;"
             + "SWITCH_DISABLED_HANDLE_FILL_COLOR=6F7276;SWITCH_UNCHECKED_BACKGROUND_COLOR=6F7276;"
             + "TAB_BAR_ACTIVE_ICON=F2F4F7;TAB_BAR_BACKGROUND=252728;TAB_BAR_INACTIVE_ICON=F2F4F7;"
-            + "TEXT_INPUT_ACTIVE_INNER_BORDER=1D85FC;TEXT_INPUT_ACTIVE_TEXT=3E93F8;TEXT_INPUT_BAR_BACKGROUND=333334;"
-            + "TEXT_INPUT_BAR_BACKGROUND_ON_DEEMPHASIZED=333334;TEXT_INPUT_INACTIVE_INNER_BORDER=5C5E62;"
-            + "TOGGLE_ACTIVE_BACKGROUND=1D85FC,0866FF;TOOLTIP_TEXT=080809;UFI_TRAY_ICON_BUTTON_BACKGROUND=46484B;"
-            + "VOICE_SWITCHER_BACKGROUND=46484B;WASH=101011,1C1C1D;WEB_WASH=1C1C1D";
+            + "TEXT_HIGHLIGHT=721D85FC;TEXT_INPUT_ACTIVE_INNER_BORDER=1D85FC;"
+            + "TEXT_INPUT_ACTIVE_OUTER_BORDER=331D85FC;TEXT_INPUT_ACTIVE_TEXT=3E93F8;"
+            + "TEXT_INPUT_BAR_BACKGROUND=333334;TEXT_INPUT_BAR_BACKGROUND_ON_DEEMPHASIZED=333334;"
+            + "TEXT_INPUT_INACTIVE_INNER_BORDER=5C5E62;TOGGLE_ACTIVE_BACKGROUND=1D85FC,0866FF;TOOLTIP_TEXT=080809;"
+            + "UFI_TRAY_ICON_BUTTON_BACKGROUND=46484B;VOICE_SWITCHER_BACKGROUND=46484B;WASH=101011,1C1C1D;"
+            + "WEB_WASH=1C1C1D";
+
+    /**
+     * FDS colour tokens Facebook gives the same blue in its light and dark themes, read from the
+     * same styles: the blue buttons (Add friend, Confirm, Add to story), story rings, the verified
+     * and notification badges, progress rings and the cursor (issue #37). The colour can't say which
+     * theme is on, so these take the palette only once Facebook has said its dark mode is on
+     * ({@link DarkMode#saidOn}). The logo, maps, charts and app icons keep Facebook's blue.
+     * MaterialYouTokenFixtureTest holds this list to both fixtures too.
+     */
+    static final String FDS_SHARED = "ACCENT=0866FF;BLUE_BADGE=0866FF;CURSOR=0866FF;DECORATIVE_ICON_BLUE=0064D1;"
+            + "DISABLED_BUTTON_BACKGROUND_GROWTH=5AA7FF;NOTIFICATION_CIRCLE_BLUE=1D85FC;"
+            + "PRIMARY_BUTTON_BACKGROUND=0866FF;PRIMARY_BUTTON_PRESSED_BACKGROUND=3E93F8;"
+            + "PROGRESS_RING_BLUE_BACKGROUND=330866FF;PROGRESS_RING_BLUE_FOREGROUND=0866FF;STEPPER_ACTIVE=0866FF;"
+            + "STORY_UNSEEN=0866FF;SWITCH_CHECKED_BACKGROUND_COLOR_IOS=0866FF;VERIFIED_BADGE=0866FF";
 
     /**
      * The dark surfaces Facebook also writes into its code (route three) and sends as text (route
@@ -87,8 +110,25 @@ public final class MaterialYouTheme {
      */
     static final String SURFACES = "101011 18191A 1C1C1D 242526 252728 3E4042";
 
+    /**
+     * Facebook's own blues as its server templates and colour resources carry them, with no token
+     * (routes two and four): the profile's Add to story button and Marketplace's chips come as
+     * "#0866FF" text, and some icons read a #3E93F8 resource (issue #37). Each is a colour both
+     * themes use, so like {@link #FDS_SHARED} they take the palette only once Facebook has said its
+     * dark mode is on. They match at any alpha, and only these exact colours, so a colour someone
+     * picked for a post, a page or a chart keeps its own. MaterialYouTokenFixtureTest holds each to
+     * a colour Facebook's FDS styles give some token.
+     */
+    static final String SERVER_BLUES = "00488C 0064D1 0866FF 1D85FC 2D88FF 3E93F8 5AA7FF 75B6FF ADD5FF";
+
     private static final Map<String, int[]> FDS = Collections.unmodifiableMap(parseTokens(FDS_DARK));
+    private static final Map<String, int[]> SHARED = Collections.unmodifiableMap(parseTokens(FDS_SHARED));
     private static final int[] SURFACE_VALUES = parseSurfaces(SURFACES);
+
+    /** Every grey {@link #FDS_DARK} lists, for any token, sorted. */
+    private static final int[] DARK_GREYS = darkGreys(FDS);
+    /** {@link #SERVER_BLUES} without alpha, sorted. */
+    private static final int[] SERVER_BLUE_VALUES = parseRgb(SERVER_BLUES);
 
     // Route three: the patch replaces "const vX, 0xFF252728" with a read of DARK_252728, and so on.
     // In Facebook's dark mode they hold the palette's colours, and in light mode Facebook's own, for
@@ -125,13 +165,20 @@ public final class MaterialYouTheme {
      */
     public static int fds(int color, Object token) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
-        if ((color >>> 24) != 0xFF || !(token instanceof Enum) || !DarkMode.on()) return color;
-        int[] dark = FDS.get(((Enum<?>) token).name());
-        if (dark == null) return color;
-        for (int value : dark) {
-            if (value == color) return recolour(palette(), color);
+        if (!(token instanceof Enum) || !DarkMode.on()) return color;
+        String name = ((Enum<?>) token).name();
+        if (listed(FDS.get(name), color) || (listed(SHARED.get(name), color) && DarkMode.saidOn())) {
+            return recolour(palette(), color);
         }
         return color;
+    }
+
+    private static boolean listed(@Nullable int[] colours, int color) {
+        if (colours == null) return false;
+        for (int value : colours) {
+            if (value == color) return true;
+        }
+        return false;
     }
 
     /**
@@ -146,12 +193,12 @@ public final class MaterialYouTheme {
     /**
      * Route four: a colour the server sends as text. The patch sends every call to
      * {@link Color#parseColor} here, including the ones AMOLED already sent to its own, and AMOLED
-     * goes first. A colour this class doesn't know as a dark surface is returned as parsed, and a
-     * text that is no colour throws as it did before.
+     * goes first. A colour this class doesn't know as a dark surface or one of Facebook's blues is
+     * returned as parsed, and a text that is no colour throws as it did before.
      */
     public static int parseColor(String text) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
-        return darkSurface(SettingsStatus.amoledTheme() ? AmoledTheme.parseColor(text) : Color.parseColor(text));
+        return withoutToken(SettingsStatus.amoledTheme() ? AmoledTheme.parseColor(text) : Color.parseColor(text));
     }
 
     /**
@@ -172,7 +219,7 @@ public final class MaterialYouTheme {
     }
 
     static int getColor(Context context, int id, boolean amoled) {
-        return darkSurface(amoled ? AmoledTheme.getColor(context, id) : context.getColor(id));
+        return withoutToken(amoled ? AmoledTheme.getColor(context, id) : context.getColor(id));
     }
 
     /** The same for {@code Resources.getColor(int)}. */
@@ -182,7 +229,7 @@ public final class MaterialYouTheme {
 
     @SuppressWarnings("deprecation")
     static int getColor(Resources resources, int id, boolean amoled) {
-        return darkSurface(amoled ? AmoledTheme.getColor(resources, id) : resources.getColor(id));
+        return withoutToken(amoled ? AmoledTheme.getColor(resources, id) : resources.getColor(id));
     }
 
     /** The same for {@code Resources.getColor(int, Theme)}. */
@@ -191,12 +238,46 @@ public final class MaterialYouTheme {
     }
 
     static int getColor(Resources resources, int id, @Nullable Resources.Theme theme, boolean amoled) {
-        return darkSurface(amoled ? AmoledTheme.getColor(resources, id, theme) : resources.getColor(id, theme));
+        return withoutToken(amoled ? AmoledTheme.getColor(resources, id, theme) : resources.getColor(id, theme));
     }
 
-    /** The palette's neutral at the same lightness for one of the {@link #SURFACES}, in dark mode. */
-    private static int darkSurface(int color) {
-        return isSurface(color) && DarkMode.on() ? palette().sameLightness(TonePalette.NEUTRAL, color) : color;
+    /**
+     * A colour a React Native screen sets on a view, a text or an image (ReactColours), after
+     * AMOLED's rule for a background. It comes with no token, so the dark surfaces and Facebook's
+     * blues take the palette as a colour from the server does: Marketplace home's selected chip is
+     * #331D85FC over its strip, its location text #5AA7FF and its pin #75B6FF. Anything else, and
+     * light mode, keeps the colour as it came.
+     */
+    static int react(int color) {
+        HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
+        return withoutToken(color);
+    }
+
+    /**
+     * A background a React Native screen sets: as {@link #react}, and once Facebook has said dark
+     * mode is on, a grey {@link #FDS_DARK} lists for any token takes the palette's neutral at the
+     * same lightness too, as that token would. React's own dark theme paints its cards with them:
+     * Marketplace's Message seller card on a listing is #333334 (CARD_BACKGROUND) on the #252728
+     * page. The table's lighter greys, like #F2F4F7, are light mode's colours as well, so before
+     * Facebook answers they stay, as {@link #FDS_SHARED}'s do. Text keeps {@link #react}, where a
+     * grey stays as it came.
+     */
+    static int reactBackground(int color) {
+        HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
+        int themed = withoutToken(color);
+        if (themed != color || !DarkMode.saidOn() || Arrays.binarySearch(DARK_GREYS, color) < 0) return themed;
+        return palette().sameLightness(TonePalette.NEUTRAL, color);
+    }
+
+    /**
+     * A colour that came with no token: the palette's neutral at the same lightness for one of the
+     * {@link #SURFACES} in dark mode, and its accent for one of the {@link #SERVER_BLUES} once
+     * Facebook has said dark mode is on.
+     */
+    private static int withoutToken(int color) {
+        if (isSurface(color) && DarkMode.on()) return palette().sameLightness(TonePalette.NEUTRAL, color);
+        if (isServerBlue(color) && DarkMode.saidOn()) return palette().sameLightness(TonePalette.ACCENT, color);
+        return color;
     }
 
     /**
@@ -280,6 +361,11 @@ public final class MaterialYouTheme {
         return Arrays.binarySearch(SURFACE_VALUES, color) >= 0;
     }
 
+    /** One of {@link #SERVER_BLUES}, at any alpha. */
+    static boolean isServerBlue(int color) {
+        return Arrays.binarySearch(SERVER_BLUE_VALUES, color & 0x00FFFFFF) >= 0;
+    }
+
     /** The palette in use, binding it to the phone's once the context is there. */
     static TonePalette palette() {
         if (!bound) bind();
@@ -347,13 +433,17 @@ public final class MaterialYouTheme {
         return p == null ? 0xFF000000 | rgb : p.sameLightness(TonePalette.NEUTRAL, 0xFF000000 | rgb);
     }
 
-    private static Map<String, int[]> parseTokens(String table) {
+    /** A token table: six hex digits are an opaque colour, eight a colour with its alpha first. */
+    static Map<String, int[]> parseTokens(String table) {
         Map<String, int[]> tokens = new HashMap<>();
         for (String entry : table.split(";")) {
             int equals = entry.indexOf('=');
             String[] hex = entry.substring(equals + 1).split(",");
             int[] values = new int[hex.length];
-            for (int i = 0; i < hex.length; i++) values[i] = 0xFF000000 | Integer.parseInt(hex[i], 16);
+            for (int i = 0; i < hex.length; i++) {
+                int rgb = Integer.parseUnsignedInt(hex[i], 16);
+                values[i] = hex[i].length() == 8 ? rgb : 0xFF000000 | rgb;
+            }
             if (tokens.put(entry.substring(0, equals), values) != null) {
                 throw new IllegalStateException("token listed twice: " + entry);
             }
@@ -365,6 +455,27 @@ public final class MaterialYouTheme {
         String[] hex = list.split(" ");
         int[] values = new int[hex.length];
         for (int i = 0; i < hex.length; i++) values[i] = 0xFF000000 | Integer.parseInt(hex[i], 16);
+        Arrays.sort(values);
+        return values;
+    }
+
+    private static int[] darkGreys(Map<String, int[]> tokens) {
+        TreeSet<Integer> greys = new TreeSet<>();
+        for (int[] colours : tokens.values()) {
+            for (int colour : colours) {
+                if (isNeutral(colour)) greys.add(colour);
+            }
+        }
+        int[] values = new int[greys.size()];
+        int i = 0;
+        for (int grey : greys) values[i++] = grey;
+        return values;
+    }
+
+    private static int[] parseRgb(String list) {
+        String[] hex = list.split(" ");
+        int[] values = new int[hex.length];
+        for (int i = 0; i < hex.length; i++) values[i] = Integer.parseInt(hex[i], 16);
         Arrays.sort(values);
         return values;
     }

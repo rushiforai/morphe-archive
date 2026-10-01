@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.old-film" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/old-film.webp" tags="stylize,vintage,film,grain,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Old Film</string>
+            <string name="desc">Aged film look combining sepia, animated grain, flicker, vertical scratches and a vignette.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="age" default="0.7" min="0.0" max="1.0" label="Age" />
+        <slider id="flicker" default="0.4" min="0.0" max="1.0" label="Flicker" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            vec3 sep = vec3(dot(c,vec3(0.393,0.769,0.189)), dot(c,vec3(0.349,0.686,0.168)), dot(c,vec3(0.272,0.534,0.131)));
+            c = mix(c, sep, age);
+            float n = (rand(acScreenNorm*acScreenSize + fract(acTime)*53.0)-0.5)*age*0.4;
+            c += n;
+            float fl = 1.0 - flicker*0.3*rand(vec2(floor(acTime*16.0),0.0));
+            c *= fl;
+            float sc = step(0.997, rand(vec2(floor(acScreenNorm.x*120.0), floor(acTime*8.0))));
+            c += sc*age*0.4;
+            float d = length(acScreenNorm-0.5);
+            c *= 1.0 - d*d*age*1.6;
+            gl_FragColor = vec4(clamp(c,0.0,1.0),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

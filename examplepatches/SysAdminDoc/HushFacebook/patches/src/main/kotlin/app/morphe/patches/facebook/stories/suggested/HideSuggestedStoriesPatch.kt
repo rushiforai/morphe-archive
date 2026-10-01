@@ -33,6 +33,7 @@ internal const val KEPT_BUCKETS = "$SUGGESTED_STORIES->keptBuckets(Ljava/util/Li
 internal const val IS_BUCKET_STUB = "isBucket"
 internal const val SUGGESTED_STUB = "suggested"
 internal const val LABEL_STUB = "label"
+internal const val TYPE_STUB = "bucketType"
 internal const val COPY_STUB = "immutableCopy"
 
 /** What the patch found. See SuggestedStoryAnchors.kt for what each is on 577 and 580. */
@@ -43,6 +44,9 @@ internal class TrayBuckets(
     /** The bucket interface, and its method answering the suggested flag. */
     val bucket: String,
     val flag: String,
+    /** The interface's method answering the bucket's type, and the type enum it answers. */
+    val type: String,
+    val typeEnum: String,
     /** Facebook's static helper answering a bucket's first label, and the label enum. */
     val labelHelper: Method,
     val label: String,
@@ -53,14 +57,18 @@ internal class TrayBuckets(
  * constructor of the tray data, which every answer of the tray's fetch goes through, and hands the
  * bucket list to the extension. What comes back is the same list, or an ImmutableList without the
  * buckets Facebook marks as suggested, the way the tray's own card decides to say "Suggested":
- * the bucket's is_story_bucket_suggested flag, or SUGGESTED as its first label. Everything else in
- * the list stays, and so does everything else the tray draws.
+ * the bucket's is_story_bucket_suggested flag, or SUGGESTED as its first label. The tray's cards go
+ * by their bucket type, each behind its own switch: the People you may know cards and the Find
+ * friends from contacts card. Everything else in the list stays, and so does everything else the
+ * tray draws.
  */
 @Suppress("unused")
 val hideSuggestedStoriesPatch = bytecodePatch(
     name = "Hide suggested stories",
     description = "Removes the stories Facebook suggests from people and Pages you don't follow, the ones " +
-        "marked Suggested in the Stories tray. Your friends' stories, the Pages you follow and Create story stay.",
+        "marked Suggested in the Stories tray, and the tray's Find friends from contacts card. With Hide " +
+        "suggested and promoted posts in the build too, the tray's People you may know cards go as well. Your " +
+        "friends' stories, the Pages you follow and Create story stay.",
     default = true,
 ) {
     category("Feed")
@@ -84,8 +92,9 @@ val hideSuggestedStoriesPatch = bytecodePatch(
  * tray data through its one constructor, which keeps its one ImmutableList in a field; the classic
  * tray's receiver takes the tray data and reads that field; of the flags it asks each bucket, one
  * is answered by the interface's tree class with is_story_bucket_suggested; one enum names the
- * labels and one static helper answers it for that interface. Each has to be public for the
- * extension's stubs to reach it.
+ * labels and one static helper answers it for that interface; one method of the interface answers
+ * the bucket type enum naming the tray's cards, and the tree class answers it with story_bucket_type.
+ * Each has to be public for the extension's stubs to reach it.
  */
 internal fun BytecodePatchContext.trayBuckets(): TrayBuckets {
     val posts = classDefByStrings(POST_PROCESS_RESULT, StringComparisonType.EQUALS)
@@ -123,6 +132,7 @@ internal fun BytecodePatchContext.trayBuckets(): TrayBuckets {
     val label = labels.singleOrPatchException("$PATCH: the bucket label enum naming ${LABEL_NAMES.joinToString()}")
 
     val flagged = mutableSetOf<String>()
+    val typed = mutableSetOf<String>()
     val helpers = mutableListOf<Method>()
     classDefForEach { classDef ->
         for (call in calls) {
@@ -132,12 +142,25 @@ internal fun BytecodePatchContext.trayBuckets(): TrayBuckets {
                 flagged += "${call.definingClass}->${call.name}"
             }
         }
+        for (bucket in interfaces.filter { it in classDef.interfaces }) {
+            classDef.methods.filter { isTreeEnumReader(it, BUCKET_TYPE_FIELD) }.mapTo(typed) { "$bucket->${it.name}()${it.returnType}" }
+        }
         classDef.methods.filterTo(helpers) { isLabelHelper(it, interfaces, label.type) }
     }
     val flag: MethodReference = calls.filter { "${it.definingClass}->${it.name}" in flagged }
         .singleOrPatchException("$PATCH: the flag the tray receiver asks a bucket that a tree class answers with $SUGGESTED_FLAG_FIELD")
     val helper = helpers.filter { it.parameterTypes.single().toString() == flag.definingClass }
         .singleOrPatchException("$PATCH: the static helper answering ${label.type} for a ${flag.definingClass}")
+
+    val typeEnums = classDefByStrings(BUCKET_TYPE_NAMES.first(), StringComparisonType.EQUALS)
+        .filter { isEnumNaming(it, BUCKET_TYPE_NAMES) }
+        .map { it.type }.toSet()
+    val type = classDefBy(flag.definingClass).methods
+        .filter { it.parameterTypes.isEmpty() && it.returnType in typeEnums }
+        .singleOrPatchException("$PATCH: the method of ${flag.definingClass} answering an enum naming ${BUCKET_TYPE_NAMES.joinToString()}")
+    if ("${flag.definingClass}->${type.name}()${type.returnType}" !in typed) {
+        throw PatchException("$PATCH: no tree class answers ${flag.definingClass}->${type.name} with $BUCKET_TYPE_FIELD")
+    }
 
     requirePublic(classDefBy(flag.definingClass), "the bucket interface")
     requirePublic(classDefBy(helper.definingClass), "the class of the label helper")
@@ -150,7 +173,7 @@ internal fun BytecodePatchContext.trayBuckets(): TrayBuckets {
     }
     if (!copy) throw PatchException("$PATCH: ImmutableList has no public static copyOf(Collection) to rebuild a tray with")
 
-    return TrayBuckets(constructor, list, flag.definingClass, flag.name, helper, label.type)
+    return TrayBuckets(constructor, list, flag.definingClass, flag.name, type.name, type.returnType, helper, label.type)
 }
 
 private fun requirePublic(classDef: ClassDef, what: String) {
@@ -160,8 +183,8 @@ private fun requirePublic(classDef: ClassDef, what: String) {
 }
 
 /**
- * Fills the extension's four stubs: whether an item is a bucket, its suggested flag, its first
- * label, and an ImmutableList of what's kept. Each uses only its parameter register, so the stub's
+ * Fills the extension's five stubs: whether an item is a bucket, its type, its suggested flag, its
+ * first label, and an ImmutableList of what's kept. Each uses only its parameter register, so the stub's
  * own register count doesn't matter.
  */
 internal fun BytecodePatchContext.fillBucketStubs(tray: TrayBuckets) {
@@ -177,6 +200,15 @@ internal fun BytecodePatchContext.fillBucketStubs(tray: TrayBuckets) {
         """
             instance-of p0, p0, ${tray.bucket}
             return p0
+        """,
+    )
+    stub(TYPE_STUB, "Ljava/lang/Object;", "Ljava/lang/Object;").addInstructions(
+        0,
+        """
+            check-cast p0, ${tray.bucket}
+            invoke-interface { p0 }, ${tray.bucket}->${tray.type}()${tray.typeEnum}
+            move-result-object p0
+            return-object p0
         """,
     )
     stub(SUGGESTED_STUB, "Ljava/lang/Object;", "Ljava/lang/Object;").addInstructions(

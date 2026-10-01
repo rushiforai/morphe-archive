@@ -337,6 +337,9 @@ public final class ProgrammableNgController {
         if ("zzabv".equals(name)) {
             return new ResponseData(response, "n", "h", "o", "g", "p", "j");
         }
+        if ("KeJ11".equals(name)) {
+            return new ResponseData(response, "o", "g", "n", "j", "p", "h");
+        }
         throw new IllegalArgumentException("未対応のレス型: " + name);
     }
 

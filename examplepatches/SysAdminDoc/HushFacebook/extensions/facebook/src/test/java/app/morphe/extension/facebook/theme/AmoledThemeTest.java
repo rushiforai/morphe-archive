@@ -150,6 +150,23 @@ public class AmoledThemeTest {
         assertEquals("light mode, a server background", 0xFF252728, AmoledTheme.parseColor("#FF252728"));
     }
 
+    /**
+     * Marketplace home, a React Native screen, sets its backgrounds from its JavaScript with no token
+     * (ReactColours): the strip behind its chips is #252728, which goes black like a server
+     * background. The selected chip's see-through blue, a scrim and light mode keep theirs.
+     */
+    @Test
+    public void aReactBackgroundIsJudgedByItsValue() {
+        assertEquals("the strip behind Marketplace's chips", BLACK, AmoledTheme.react(0xFF252728));
+        assertEquals("a card", 0xFF121213, AmoledTheme.react(0xFF333334));
+        assertEquals("the selected chip", 0x331D85FC, AmoledTheme.react(0x331D85FC));
+        assertEquals("a translucent scrim stays", 0x80252728, AmoledTheme.react(0x80252728));
+        assertEquals("white", 0xFFFFFFFF, AmoledTheme.react(0xFFFFFFFF));
+
+        DarkMode.answer(false);
+        assertEquals("light mode", 0xFF252728, AmoledTheme.react(0xFF252728));
+    }
+
     /** {@code top}, a colour with alpha, drawn over the opaque {@code under}, rounded as a screen does. */
     private static int over(int top, int under) {
         int alpha = top >>> 24;
@@ -228,6 +245,7 @@ public class AmoledThemeTest {
     public void darkModeAsBefore() {
         DarkMode.answer(true);
         AmoledTheme.useRouteTwo(null);
+        AmoledTheme.useBackground(BLACK);
     }
 
     /** Route two's black over the Video tab's #252728, as the patched resource table gives it. */
@@ -303,5 +321,89 @@ public class AmoledThemeTest {
 
         AmoledTheme.useRouteTwo(null);
         assertEquals("no table from the patch", BLACK, AmoledTheme.getColor(context, 0x7f0601f4));
+    }
+
+    /** A dark navy with a hue, as the patch's Background colour option can ask for (issue #34). */
+    private static final int NAVY = 0xFF0D1117;
+
+    /**
+     * Issue #34: every background AMOLED turned black takes the Background colour, on each route and
+     * both bars, and a card, a popover and an input's fill sit the same step above it that they sat
+     * above black.
+     */
+    @Test
+    public void aBackgroundColourTakesBlacksPlace() {
+        AmoledTheme.useBackground(NAVY);
+
+        assertEquals("a page", NAVY, AmoledTheme.apply(0xFF101011, Token.WASH));
+        assertEquals("a surface", NAVY, AmoledTheme.apply(0xFF252728, Token.CARD_BACKGROUND));
+        assertEquals("a card, #121213 above it", 0xFF1F232A, AmoledTheme.apply(0xFF333334, Token.CARD_BACKGROUND));
+        assertEquals("a popover, #1A1B1D above it", 0xFF272C34, AmoledTheme.apply(0xFF3B3C3E, Token.POPOVER_BACKGROUND));
+        assertEquals("an input's fill, #262627 above it", 0xFF33373E, AmoledTheme.apply(0xFF333334, Token.PRIMARY_UI));
+        assertEquals("a server background", NAVY, AmoledTheme.parseColor("#FF252728"));
+        assertEquals("a server card", 0xFF1F232A, AmoledTheme.parseColor("#FF333334"));
+        assertEquals("the status bar", NAVY, AmoledTheme.statusBar(0xFF333334, true));
+        assertEquals("the navigation bar", NAVY, AmoledTheme.navigationBar(0xFF252728, true));
+    }
+
+    /** The mutation controls for #34: Facebook's black, light mode and what AMOLED never touched keep theirs. */
+    @Test
+    public void aBackgroundColourLeavesTheRestAlone() {
+        AmoledTheme.useBackground(NAVY);
+
+        assertEquals("a resolver's black", BLACK, AmoledTheme.apply(BLACK, Token.WASH));
+        assertEquals("a server's black", BLACK, AmoledTheme.parseColor("#FF000000"));
+        assertEquals("a black status bar", BLACK, AmoledTheme.statusBar(BLACK, true));
+        assertEquals("a black navigation bar", BLACK, AmoledTheme.navigationBar(BLACK, true));
+        assertEquals("a divider token", 0xFF252728, AmoledTheme.apply(0xFF252728, Token.DIVIDER));
+        assertEquals("above the raised band", 0xFF46484B, AmoledTheme.apply(0xFF46484B, Token.CARD_BACKGROUND));
+        assertEquals("a light status bar", 0xFF333334, AmoledTheme.statusBar(0xFF333334, false));
+
+        DarkMode.answer(false);
+        assertEquals("light mode", 0xFF252728, AmoledTheme.apply(0xFF252728, Token.CARD_BACKGROUND));
+        assertEquals("light mode's server colour", 0xFF252728, AmoledTheme.parseColor("#FF252728"));
+    }
+
+    /**
+     * Route two writes the Background colour into Facebook's resources, and a resolver or a server
+     * can hand it back. It comes back as it is: a grey in the raised band isn't raised a second time,
+     * while a card still steps up from it.
+     */
+    @Test
+    public void theBackgroundColourComesBackAsItIs() {
+        int grey = 0xFF303030;
+        AmoledTheme.useBackground(grey);
+
+        assertEquals("a resolver", grey, AmoledTheme.apply(grey, Token.CARD_BACKGROUND));
+        assertEquals("a server", grey, AmoledTheme.parseColor("#FF303030"));
+        assertEquals("the status bar", grey, AmoledTheme.statusBar(grey, true));
+        assertEquals("a card still steps up", 0xFF424243, AmoledTheme.apply(0xFF333334, Token.CARD_BACKGROUND));
+    }
+
+    /** Light mode reads the Background colour route two wrote as Facebook's colour, as it reads black. */
+    @Test
+    public void lightModeRestoresTheBackgroundColourRouteTwoWrote() {
+        AmoledTheme.useBackground(NAVY);
+        AmoledTheme.useRouteTwo(Integer.toHexString(ColourResources.VIDEO_BAR) + "=ff252728");
+        Map<Integer, Integer> colours = new HashMap<>();
+        colours.put(ColourResources.VIDEO_BAR, NAVY);
+        colours.put(0x7f060150, BLACK);
+        Context context = ColourResources.context(colours);
+
+        DarkMode.answer(false);
+        assertEquals("Facebook's colour", 0xFF252728, AmoledTheme.getColor(context, ColourResources.VIDEO_BAR));
+        assertEquals("a black route two didn't write", BLACK, AmoledTheme.getColor(context, 0x7f060150));
+
+        DarkMode.answer(true);
+        assertEquals("dark mode keeps it", NAVY, AmoledTheme.getColor(context, ColourResources.VIDEO_BAR));
+    }
+
+    /** Black is the default, until the patch fills the option's colour in. */
+    @Test
+    public void theBackgroundIsBlackByDefault() {
+        assertEquals(BLACK, AmoledTheme.backgroundColour());
+        assertEquals(BLACK, AmoledTheme.apply(0xFF252728, Token.CARD_BACKGROUND));
+        assertEquals("the step above black", 0xFF121213, AmoledTheme.raise(BLACK, 0xFF121213));
+        assertEquals("as far as white", 0xFFFFFFFF, AmoledTheme.raise(0xFFF0F0F0, 0xFF353535));
     }
 }

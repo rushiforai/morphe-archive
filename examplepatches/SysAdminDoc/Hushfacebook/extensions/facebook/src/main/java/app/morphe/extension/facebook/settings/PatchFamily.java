@@ -51,10 +51,12 @@ public enum PatchFamily {
             Settings.HIDE_AI_DETECTED_POSTS, Settings.HIDE_AI_LABELLED_POSTS, Settings.HIDE_AI_DETECTED_REELS),
     POST_WORDS(FamilyNames.POST_WORDS, "postWords", null,
             Settings.HIDE_POSTS_WITH_WORDS),
+    POST_PROMPTS(FamilyNames.POST_PROMPTS, "postPrompts", null,
+            Settings.HIDE_POST_PROMPTS),
     SPONSORED_STORIES(FamilyNames.SPONSORED_STORIES, "sponsoredStories", null,
             Settings.HIDE_SPONSORED_STORIES),
     SUGGESTED_STORIES(FamilyNames.SUGGESTED_STORIES, "suggestedStories", null,
-            Settings.HIDE_SUGGESTED_STORIES),
+            Settings.HIDE_SUGGESTED_STORIES, Settings.HIDE_CONTACT_IMPORT_CARD),
     STORY_AUTO_ADVANCE(FamilyNames.STORY_AUTO_ADVANCE, "storyAutoAdvance", null,
             Settings.BLOCK_STORY_AUTO_ADVANCE),
     STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null,
@@ -68,8 +70,12 @@ public enum PatchFamily {
             Settings.HIDE_SPONSORED_PROFILE_POSTS),
     SPONSORED_MARKETPLACE(FamilyNames.SPONSORED_MARKETPLACE, "sponsoredMarketplace", null,
             Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS),
+    AFFILIATE_LINKS(FamilyNames.AFFILIATE_LINKS, "affiliateLinks", null,
+            Settings.HIDE_AFFILIATE_LINKS),
     REEL_DECLUTTER(FamilyNames.REEL_DECLUTTER, "reelDeclutter", null,
             Settings.HIDE_REEL_CHIPS, Settings.HIDE_REEL_FOLLOW_BUTTON, Settings.HIDE_REEL_SOCIAL_FOOTER),
+    REEL_PROMPTS(FamilyNames.REEL_PROMPTS, "reelPrompts", null,
+            Settings.HIDE_REEL_PROMPTS),
     REEL_WATCH_HISTORY(FamilyNames.REEL_WATCH_HISTORY, "reelWatchHistory", null,
             Settings.DONT_SEND_REEL_WATCH_HISTORY),
     DOUBLE_TAP_LIKE(FamilyNames.DOUBLE_TAP_LIKE, "doubleTapLike", null,
@@ -130,6 +136,8 @@ public enum PatchFamily {
     AMOLED_THEME(FamilyNames.AMOLED_THEME, "amoledTheme", "the black background in dark mode"),
     MATERIAL_YOU_THEME(FamilyNames.MATERIAL_YOU_THEME, "materialYouTheme", "the recoloured dark mode"),
     RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix"),
+    // Runs while the application is built, before a switch can be read, and keeps Facebook starting.
+    TRANSLATED_START(FamilyNames.TRANSLATED_START, "translatedStart", "the start-up fix for x86 devices"),
     // A manifest can't be switched at run time: the permissions are renamed in the APK, and Facebook's
     // code has to keep using the names this install holds whether or not Hushfacebook is paused.
     INSTALL_BESIDE_META_APPS(FamilyNames.INSTALL_BESIDE_META_APPS, "installBesideMetaApps",
@@ -178,6 +186,22 @@ public enum PatchFamily {
     static final Set<PatchFamily> DOWNLOADS = Collections.unmodifiableSet(
             EnumSet.of(STORY_DOWNLOAD, REEL_DOWNLOAD, VIDEO_DOWNLOAD));
 
+    /**
+     * The patches Morphe Manager selects by default. One of them left out is the usual answer to a
+     * report of ads or suggestions that still show (#29, #35), so the overview and the report name
+     * the ones a build lacks. PatchFamilyTest holds this to the "use" flags in patches-list.json, so
+     * a new default patch fails it until it's listed here.
+     */
+    static final Set<PatchFamily> DEFAULT_SELECTION = Collections.unmodifiableSet(EnumSet.of(
+            SPONSORED_POSTS, SUGGESTED_POSTS, AI_DETECTED_POSTS, POST_WORDS, POST_PROMPTS, SPONSORED_STORIES,
+            SUGGESTED_STORIES, REEL_PROMPTS,
+            SPONSORED_REELS, SPONSORED_SEARCH, SPONSORED_PROFILE_POSTS, SPONSORED_MARKETPLACE, AFFILIATE_LINKS,
+            KEEP_REEL_SPEED,
+            RESUME_LONG_VIDEOS, EXTERNAL_BROWSER, SANITIZE_SHARING_LINKS, UPDATE_PROMPTS, STORY_DOWNLOAD,
+            REEL_DOWNLOAD, MARKETPLACE_ONLY, REELS_TAB_DOT, MESSENGER_CARD, MESSENGER_ICON, MENU_PROMOTIONS,
+            META_AI_SEARCH, PROMO_NOTIFICATIONS, AD_PREFETCH, AD_TELEMETRY, AUDIENCE_NETWORK, RESTORE_TRUST,
+            TRANSLATED_START, INSTALL_BESIDE_META_APPS, MENU_SETTINGS_ROW));
+
     /** The families a test says this build carries, instead of asking {@link SettingsStatus}. */
     @Nullable
     static volatile Set<PatchFamily> inBuildForTests;
@@ -211,6 +235,15 @@ public enum PatchFamily {
         return found;
     }
 
+    /** The names of the default patches this build doesn't carry, in declaration order. */
+    static List<String> missingDefaults(Set<PatchFamily> inBuild) {
+        List<String> names = new ArrayList<>();
+        for (PatchFamily family : values()) {
+            if (DEFAULT_SELECTION.contains(family) && !inBuild.contains(family)) names.add(family.patchName);
+        }
+        return names;
+    }
+
     /**
      * What of these families stays in while Hushfacebook is paused, as a sentence in the phone's
      * language, or null when a pause turns every one of them off. The list leads the sentence, so
@@ -240,7 +273,8 @@ public enum PatchFamily {
     /**
      * One line per family in this build, saying whether a switch runs it, what the switch is set
      * to and what stays in while paused, then the switches every download shares when a download
-     * patch is in, then the families this build doesn't carry.
+     * patch is in, then the families this build doesn't carry, and which of those Morphe Manager
+     * selects by default.
      */
     static List<String> reportLines(Set<PatchFamily> inBuild, boolean paused) {
         List<String> lines = new ArrayList<>();
@@ -251,6 +285,8 @@ public enum PatchFamily {
         }
         if (!Collections.disjoint(inBuild, DOWNLOADS)) lines.add(downloadSwitchesLine(paused));
         if (!absent.isEmpty()) lines.add("not in this build: " + String.join(", ", absent));
+        List<String> defaults = missingDefaults(inBuild);
+        if (!defaults.isEmpty()) lines.add("left out of Manager's default selection: " + String.join(", ", defaults));
         return lines;
     }
 

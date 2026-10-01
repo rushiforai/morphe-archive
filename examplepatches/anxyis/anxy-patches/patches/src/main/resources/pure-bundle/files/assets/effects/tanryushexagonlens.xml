@@ -1,0 +1,283 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e68657861676f6e6c656e73" deprecated="true">
+
+    <params>
+        <texture id="noisexx" srcType="image" src="textures/snoise.png" />
+        <!-- <xyz id="ROTATE" label="Camera" type="rotate" /> -->
+        <point id="position" label="Position" />
+        <point id="orient" label="Orientation" step="0.01" />
+        <!-- <point id="orient" label="Orientation" default="0.0,0.0" min="-100,-100" max="100, 100" step="0.01" /> -->
+        <slider id="MAX_ITERATIONS" label="Octave" default="5" min="0" max="10" step="1.0" type="integer"/>
+        <color id="bgColor" default="#00000000" label="BG Color" alpha="true" />
+        <color id="lightColor" default="#FFFFFFFF" label="Flare Color" alpha="true" />
+        <section text="Advance Option" />
+        <spinner id="XXK" label="Flare Interval" default="2.5" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXH" label="Hexagon Size" default="2.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXI" label="Hexagon Alpha" default="0.25" min="0.0" max="1.0" step="0.01" type="percent" />
+        <spinner id="lensFlareScale" label="FlareScale" default="0.175" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXA" label="Small Circle" default="0.04" min="0.0" max="1.0" step="0.001" type="percent" />
+        <spinner id="XXB" label="Big Circle" default="0.01" min="0.0" max="1.0" step="0.001" type="percent" />
+        <spinner id="XXC" label="Alpha Circle" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXD" label="Intensity" default="0.075" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXE" label="BigCircle Size" default="0.2" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <spinner id="lensFlareExposure" label="Exposure" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="lensFlareBrightness" label="Brightness" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <spinner id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="stretch" default="1.0,0.65" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+        <selector id="blendMode" style="radio" default="3">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+            <choice label="LAYER" value="3" />
+        </selector>
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.0,1.0)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        float rnd(float w){
+            //Use bluenoise texture for fast lds random values in range [0,1]
+            return texture2D(noisexx.texture, vec2(w)).r;
+        }
+        
+        float regularPolygon(vec2 p, int N){// Produces a regular polygon defined by N points on the unit circle.
+            float a=atan(p.x,p.y)+0.2;
+            float b=6.28319/float(N);
+            return smoothstep(0.5,0.51, cos(floor(0.5+a/b)*b-a)*length(p.xy));        
+        }
+        
+        float renderSmallCircle(vec2 pos, vec2 ltpos, float dist, vec2 offsetFromCenter, float size)
+        {
+        	vec2 coord = pos - ltpos * dist/2.0 + offsetFromCenter;
+        	float radiusVal =  XXA / length(coord)*size;
+        	radiusVal = max(radiusVal, 0.0);//filter negative vals.
+        	return radiusVal;
+        }
+        
+        float renderBigCircle(vec2 pos, vec2 ltpos, float dist, vec2 offsetFromCenter, float size)
+        {
+        	vec2 coord = pos + ltpos*dist + offsetFromCenter;
+        	float radiusVal =  XXB - pow(length(coord), size * 1.4);
+        	radiusVal = max(radiusVal, 0.0);//filter negative vals.
+        	return radiusVal;	
+        }
+        
+        float renderRing(float r, float offsetFromCenter, float fade)
+        {
+        	float radiusVal = 0.001 - pow(r - offsetFromCenter, 1.0/fade) + sin(r * 30.0);
+        	radiusVal = max(radiusVal, 0.0);//filter negative vals.
+        	return radiusVal * XXC;
+        }
+        
+        float renderHexagon(vec2 uv, vec2 lightPos, vec2 offsetFromCenter, 
+        	float hexagonIntervalDist, float size)
+        {
+        	const int hexagonPoints = 6;
+        	vec2 hexagonCoord = uv*size + lightPos*hexagonIntervalDist*size + offsetFromCenter;
+        	float hexValue = 0.01 - regularPolygon(hexagonCoord, hexagonPoints);
+           	hexValue = max(hexValue, 0.0);//filter negative vals.
+        	return hexValue;
+        }
+        
+        vec3 chromaticAberration(vec3 color, vec2 pos, vec2 ltpos, int iter)
+        {   // NOTE: This function still needs some work.
+        
+        	float intensity = XXD;//adjust as needed.
+        	float amount = intensity * length(pos-ltpos) * 
+        		rnd(float(iter)*0.713) * float(iter);	
+        
+        	// Rotate which channels are being offset per iteration (i).
+        	vec3 cyclic_amt = (vec3(-0.95,-0.98,-1.0) + amount * 
+        		vec3(iter/3,(iter+1)/3,(iter+2)/3));//vec3 of ints ranged [-1,1]
+        
+            vec3 col = color + cyclic_amt;
+        	return col * (1.0 - amount * 0.5);
+        }
+        
+        vec3 LensHighlight(vec2 pos, vec2 lightPos, vec3 color, float size, float dist, int i)
+        {   
+            // Create a big circle, ring, small circle, and hexagon and control blending with a vec4.
+        	const vec4 blend_val = 0.01 * vec4(2500.0, 20.0, 1.50, 2000.0);//adjust as necessary per-object.
+        	
+            float bigCircle_size = size * XXE * float(i);
+            vec2 bigCircle_offset = -lightPos * vec2(2.0);
+            float bigCircle = renderBigCircle(pos,lightPos,dist,bigCircle_offset, bigCircle_size) * blend_val.x;    
+            
+            float ring_fade = 7.0 * float(i);
+        	vec2 ring_offset = 
+                //vec2(0.0);//<== rings around light source.
+                -lightPos * vec2(2.5) * float(i);//<== ring halos in light ray.
+            float ring_size = size * 5.0 * float(i);
+            float lt_coord = length(pos - lightPos - ring_offset);
+            float ring_radius  = lt_coord + ring_size; 
+        	float ring = renderRing(ring_radius, ring_size, ring_fade) * blend_val.y;   
+        
+        	vec2 smallCircle_offset = lightPos * vec2(0.0159);
+            float smallCircle_size = 84.0;
+        	float smallCircle = renderSmallCircle(pos,lightPos,dist,smallCircle_offset, smallCircle_size) * blend_val.z;
+            
+            // Draws hexagons in order closest to light to farthest.
+        	vec2 hexagon_offset = -lightPos * vec2(1.5) * float(i) + lightPos * 0.32;
+        	float hexagon_size = 11.0 - XXH * float(i);
+                float hexagon_fade = XXI * pow(float(i), 2.5);
+        	float hexagon  = renderHexagon(pos,lightPos,hexagon_offset,dist,hexagon_size)*hexagon_fade*blend_val.w;
+            
+        	// Slightly offset colors to simulate chromatic abberration.
+        	color = chromaticAberration(color, pos, lightPos, i);
+         	return (smallCircle + bigCircle + ring + hexagon) * color;
+        }
+        
+        vec3 Lensflare(vec2 currPos, vec2 lightPos, float distToLight)
+        {
+        
+        	vec3 flareColor = vec3(0.0);
+        	float lt_dist = distToLight+1.0;//prevent division by val < 1.
+        	float proximity_divisor = length(currPos-lightPos);
+        	float loopVal = 1.0;
+        	int i = 1;
+        
+        	const float epsiln = 0.0001;
+        	while(loopVal > epsiln && i < int(MAX_ITERATIONS))
+        	{
+        		float xnxx = float(i);
+        		vec2 pos = currPos;//square value to produce appropriate warping effect
+        		vec2 lpos = lightPos;
+        		vec3 color_rand = 2.0 * xnxx * vec3(rnd(xnxx * 3.0913));
+        		vec3 col = lightColor.rgb + clamp(color_rand, 0.0, 1.0);
+        		float flareSize = 
+        			 xnxx*xnxx*pow(rnd(xnxx * 21.773) * 1.8, 1.0) + 0.5;
+        		float flareInterval = 
+        			((lensFlareScale+0.01)/lt_dist) * pow(rnd(xnxx * 7.11) * 3.0, XXK) + 0.05;
+        					
+        		vec3 passColor = LensHighlight(pos,lpos,col,flareSize,flareInterval,i); 
+        
+        		passColor *= lensFlareBrightness / (xnxx * 1.15);
+        		flareColor += passColor;
+        		loopVal /= proximity_divisor;
+        		i++;
+        	}
+        
+        	return flareColor;
+        }
+        float scaleDepth(float depth)
+        {// Intended to map values in range d = (0,1] to range (1,0] to rolloff values by distance.
+        	return exp(-abs(depth * 1.0 * 0.01));
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        TanRyu /= scale;
+        TanRyu *= rot2m((0.0+angle)*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0-position.y))*vec2(-1.0,1.0)/500.0;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+        	vec3 uv = vec3(TanRyu,0.0);
+        	// vec3 uv = vec3(fragCoord/iResolution.xy,0)-0.5;
+        	uv.x *= acScreenSize.x/acScreenSize.y; // aspect correct
+            
+        	// Get screen space light position.
+            vec3 lightPosition = 0.25*(vec3(vec2(orient.x+1.45,orient.y-0.85),-0.1) - 0.5);//hardcoded for shader
+            // vec3 lightPosition = 0.25*(vec3(orient,-0.1) - 0.5);//hardcoded for shader
+        	vec3 lightPos = lightPosition;
+            //vec3 lightPos = modelToScreen(lightPosition3D)-0.5; <== implementation for world space light pos	
+            lightPos.x *= acScreenSize.x/acScreenSize.y; // aspect correct
+        
+        	// float distToLight = length(lightPosition - (ROTATE/100.0));
+        	// float distToLight = length(lightPosition - cameraPosition);
+        	float distToLight = length(lightPosition - vec3(0.0));
+        
+        	// Bail early conditions.
+        	if((lensFlareScale+0.01) <= 0.000001 || distToLight <= 0.00001)
+        		return;
+        
+        	// Calculate lens flare effect.
+        	float depthFade = scaleDepth(distToLight);
+        	vec3 color = Lensflare(uv.xy, lightPos.xy, distToLight);
+        	
+        	// Post-process, scaling strength by distance of observer to light source.
+        	color *= depthFade;//Adjust lens flare for camera distance to light.
+        	color = vec3(1.0) - exp(-color.rgb * lensFlareExposure * depthFade);// exposure tone mapping
+        	color = max(color, 0.0);//remove negative values
+        
+            // Add faked light source.
+            float uvDistToLight = length(uv.xy - lightPos.xy);
+            float lightsrc = clamp(1.0-uvDistToLight*7.0, 0.0, 1.0);
+            
+            // Add rays from light source -- a rough approximation of volumetric light rays.
+            float ray_factor = 1.00;
+            float a = ray_factor * atan(uv.y-lightPos.y, uv.x-lightPos.x);
+            lightsrc += max(0.1/pow(length(uvDistToLight)*5.0, 5.0), 0.0)*abs(sin(a*5.0+cos(a*9.0)))/20.0;
+            lightsrc += max(0.1/pow(length(uvDistToLight)*10.0, 1.0/20.0), 0.0)+abs(sin(a*3.0+cos(a*9.0)))/8.0*(abs(sin(a*9.0)))/1.0;
+            float lightsrc_attenuation = depthFade * (1.0-uvDistToLight*uvDistToLight) * 1.0;
+            color += lightsrc * lightsrc_attenuation;
+        
+            // Output final color.
+        	float alphax = depthFade*(color.r + color.g + color.b) / 3.0; //optional alpha blending.
+        	fragColor = vec4(color.rgb, alphax);
+        
+    	vec4 factorx = mix(texColorX,fragColor,1.0);
+    	vec4 factor = newLayer(bgColor, factorx);
+    	
+        vec4 resultfinal;
+          if( blendMode==0 ) {
+            resultfinal = (factor * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.0)*(1.0-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.0-((1.0-(texColor.rgb/texColor.a))*(1.0-factor.rgb)),1.0) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; 
+            resultfinal = newLayer(texColor, factor) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

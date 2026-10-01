@@ -16,6 +16,7 @@ import app.morphe.patches.facebook.misc.extension.requireParameterIntact
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.colorOption
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -51,6 +52,21 @@ private const val CONTEXT = "Landroid/content/Context;"
 
 /** Opaque black, as the signed int that a colour holds. */
 private const val BLACK = -0x1000000
+
+/**
+ * Facebook's text in dark mode, its PRIMARY_TEXT token on 577 and 580. A background colour has to
+ * leave it readable on every surface AMOLED makes from that colour.
+ */
+private const val DARK_MODE_TEXT = 0xFFF2F4F7.toInt()
+
+/** WCAG 2.2's AA contrast for text. */
+private const val TEXT_CONTRAST = 4.5
+
+/**
+ * How far above the background colour the lightest surface AMOLED makes sits: an input's fill from
+ * the lightest raised grey, AmoledTheme's MAX_RAISED_CHANNEL (0x42) less its FILL_SHIFT (0x0D).
+ */
+internal const val LIGHTEST_STEP = 0x42 - 0x0D
 
 /** Gets the resolved colour and its token. Gives the colour to draw. */
 internal const val APPLY = "Lapp/morphe/extension/facebook/theme/AmoledTheme;->apply(ILjava/lang/Object;)I"
@@ -115,6 +131,51 @@ internal val AMOLED_COLOUR_CALLS: Map<String, String> =
 internal var routeTwoRestores = ""
 
 /**
+ * The colour the Background colour option asks for (issue #34): black when it's blank, or the
+ * `#RRGGBB` given, `#FFRRGGBB` too, as a colour picker writes it. Null for anything else: a colour
+ * that isn't opaque, or one so light that Facebook's dark-mode text would fall under 4.5:1 on the
+ * lightest surface AMOLED makes from it.
+ */
+internal fun backgroundColour(value: String?): Int? {
+    val hex = value?.trim()?.removePrefix("#").orEmpty()
+    if (hex.isEmpty()) return BLACK
+    if (hex.length != 6 && !(hex.length == 8 && hex.startsWith("ff", ignoreCase = true))) return null
+    if (!hex.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }) return null
+    val colour = (0xFF000000L or hex.takeLast(6).toLong(16)).toInt()
+    return colour.takeIf { contrast(DARK_MODE_TEXT, raised(colour, LIGHTEST_STEP)) >= TEXT_CONTRAST }
+}
+
+/** [colour] with [step] added to each channel, as far as white. The extension raises a card the same way. */
+internal fun raised(colour: Int, step: Int): Int {
+    fun channel(shift: Int) = minOf(0xFF, (colour shr shift and 0xFF) + step) shl shift
+    return BLACK or channel(16) or channel(8) or channel(0)
+}
+
+/** WCAG 2.2's contrast ratio between two opaque colours. */
+internal fun contrast(first: Int, second: Int): Double {
+    val (light, dark) = listOf(luminance(first), luminance(second)).sortedDescending()
+    return (light + 0.05) / (dark + 0.05)
+}
+
+private fun luminance(colour: Int): Double {
+    fun linear(shift: Int): Double {
+        val channel = (colour shr shift and 0xFF) / 255.0
+        return if (channel <= 0.04045) channel / 12.92 else Math.pow((channel + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * linear(16) + 0.7152 * linear(8) + 0.0722 * linear(0)
+}
+
+/**
+ * Route two's new text for one colour resource: [written] (the background colour) over a dark grey,
+ * or null to leave it. Facebook's own black stays black, as route three leaves a black literal.
+ */
+internal fun routeTwoValue(value: String, written: String): String? = when {
+    !isDarkBackground(value) -> null
+    argb(value) == BLACK -> value
+    else -> written
+}
+
+/**
  * True for a dark grey, which is what a background uses. False for a dark colour with a hue, which
  * is a banner and keeps its colour. The extension holds the same rule for the colours it gets.
  */
@@ -147,8 +208,9 @@ private const val NIGHT_COLORS = "res/values-night/colors.xml"
  * Facebook strips resource names and renames its classes about every two weeks, so a name is not an
  * anchor here. A value of this exact shape is a colour and nothing else.
  */
-private val amoledThemeResourcePatch = resourcePatch {
+private fun amoledThemeResourcePatch(background: () -> Int) = resourcePatch {
     execute {
+        val written = "#%08x".format(background())
         var changed = 0
         val rewritten = mutableMapOf<String, Int>()
         val rewrittenAtNight = mutableSetOf<String>()
@@ -164,9 +226,9 @@ private val amoledThemeResourcePatch = resourcePatch {
                         val name = color.getAttribute("name")
                         val value = color.textContent.trim()
                         if (path == DEFAULT_COLORS && value.startsWith("@color/")) references[name] = value.removePrefix("@color/")
-                        if (!isDarkBackground(value)) continue
+                        val text = routeTwoValue(value, written) ?: continue
                         if (path == DEFAULT_COLORS) rewritten[name] = checkNotNull(argb(value)) else rewrittenAtNight += name
-                        color.textContent = "#ff000000"
+                        color.textContent = text
                         changed++
                     }
                 }
@@ -220,7 +282,7 @@ internal fun decodedColourId(name: String): Long? =
  * A resource colour's value as an int, for `#rgb`, `#argb`, `#rrggbb` and `#aarrggbb`, or null for
  * anything else, a reference such as `@color/foo` included.
  */
-private fun argb(value: String): Int? {
+internal fun argb(value: String): Int? {
     val hex = value.trim().removePrefix("#")
     if (hex.length !in setOf(3, 4, 6, 8)) return null
     if (!hex.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }) return null
@@ -243,15 +305,30 @@ private fun isDarkBackground(value: String): Boolean {
 @Suppress("unused")
 val amoledThemePatch = bytecodePatch(
     name = "AMOLED black theme",
-    description = "Makes Facebook's dark mode black instead of dark grey. Turn on dark mode in " +
-        "Facebook first.",
+    description = "Makes Facebook's dark mode black, or a dark colour you pick, instead of dark grey. " +
+        "Turn on dark mode in Facebook first.",
     default = false,
 ) {
     category("Interface")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
-    dependsOn(amoledThemeResourcePatch)
+    // Issue #34. Routes two and three write the colour into resources and code, so it's chosen
+    // when patching, not in Hushfacebook's settings.
+    val backgroundOption by colorOption(
+        key = "backgroundColour",
+        default = "#000000",
+        title = "Background colour",
+        description = "The colour dark mode's backgrounds take, as #RRGGBB. Cards and inputs take a lighter " +
+            "step of it. Leave it blank for black. A colour too light for Facebook's white text is refused.",
+        required = false,
+    ) { backgroundColour(it) != null }
+    val background = {
+        backgroundColour(backgroundOption)
+            ?: throw PatchException("Background colour $backgroundOption is not a dark #RRGGBB colour")
+    }
+
+    dependsOn(amoledThemeResourcePatch(background))
 
     dependsOn(facebookExtensionPatch)
 
@@ -263,6 +340,7 @@ val amoledThemePatch = bytecodePatch(
         // Route one. Four methods and six returns. Each hook keeps the body of the method and
         // sends the value through the extension before the method returns it.
         hookColourResolvers(mig = APPLY, fds = APPLY)
+        fillBackgroundColour(background())
 
         // The system bars. A tab's bar colour can come from a resolver route one doesn't reach, or
         // be written in code for both themes, so the methods that paint the bars ask the extension
@@ -274,7 +352,7 @@ val amoledThemePatch = bytecodePatch(
         // Route three. The palette tables, the top bar of the feed and each Litho component that
         // draws its own chrome all write a colour instead of asking for one, so no resolver and no
         // resource reaches them.
-        check(blackenColourLiterals() > 0) { "No dark colour written in code, so the chrome would stay grey" }
+        check(blackenColourLiterals(background()) > 0) { "No dark colour written in code, so the chrome would stay grey" }
 
         // Route four. The server sends some colours as strings, and the app parses them with
         // Color.parseColor. Each of those calls goes to the extension instead, and so does each
@@ -286,6 +364,10 @@ val amoledThemePatch = bytecodePatch(
         }
         check(routeTwoRestores.isNotEmpty()) { "Route two's table is empty, so light mode's Video tab would stay black" }
         fillRouteTwoTable(routeTwoRestores)
+
+        // React Native screens such as Marketplace home, whose colours come from their JavaScript
+        // as ints on props, past every route.
+        hookReactColours()
 
         enableStatus("amoledTheme")
     }
@@ -514,18 +596,19 @@ internal fun BytecodePatchContext.hookFdsColorsResolvers(target: String) {
 }
 
 /**
- * Route three over the whole app: each dark grey written in code turns black, except in the
- * [systemBarColourMethods]. The sweep reads every class and rewrites only the classes that hold one,
- * which takes about 30 seconds. Answers how many it rewrote.
+ * Route three over the whole app: each dark grey written in code turns black, or the [background]
+ * colour the option asks for, except in the [systemBarColourMethods]. The sweep reads every class
+ * and rewrites only the classes that hold one, which takes about 30 seconds. Answers how many it
+ * rewrote.
  */
-internal fun BytecodePatchContext.blackenColourLiterals(): Int {
+internal fun BytecodePatchContext.blackenColourLiterals(background: Int = BLACK): Int {
     val handsToBar = systemBarColourMethods()
     val owners = mutableSetOf<String>()
     classDefForEach { classDef ->
         if (classDef.methods.any { it.hasDarkColor() }) owners += classDef.type
     }
     return owners.sumOf { type ->
-        mutableClassDefByOrNull(type)?.methods?.sumOf { if (handsToBar(it)) 0 else it.blackenDarkColors() } ?: 0
+        mutableClassDefByOrNull(type)?.methods?.sumOf { if (handsToBar(it)) 0 else it.blackenDarkColors(background) } ?: 0
     }
 }
 
@@ -601,6 +684,14 @@ internal fun MutableMethod.rerouteColourCalls(calls: Map<String, String>, counts
     }
 }
 
+/** Puts the Background colour option's [colour] in AmoledTheme.backgroundColour, for routes one and four and the bars. */
+internal fun BytecodePatchContext.fillBackgroundColour(colour: Int) {
+    val stub = mutableClassDefBy(AMOLED).methods.singleOrNull {
+        it.name == "backgroundColour" && it.parameterTypes.isEmpty() && it.returnType == "I"
+    } ?: throw PatchException("AmoledTheme has no backgroundColour() for the Background colour option")
+    stub.returnEarly(colour)
+}
+
 /** Puts route two's [table] in AmoledTheme.routeTwoColours, for light mode to read colours back. */
 internal fun BytecodePatchContext.fillRouteTwoTable(table: String) {
     val stub = mutableClassDefBy(AMOLED).methods.singleOrNull {
@@ -628,22 +719,23 @@ private fun Method.hasDarkColor(): Boolean =
     implementation?.instructions?.any { it.isDarkColor() } == true
 
 /**
- * Replaces each dark grey that this method writes with black. Answers how many it replaced.
+ * Replaces each dark grey that this method writes with black, or with [background]. Answers how
+ * many it replaced.
  *
  * A `const-wide/32` carries its value as a narrow literal too, so a colour kept in a long matches.
  * It stays a `const-wide/32`: a narrow `const` in its place leaves the long's upper register
  * unset, and ART rejects the whole class ("register v0 has type IntegerConstant but expected
  * Long (Low Half)", a static initializer on 580 with every patch on).
  */
-internal fun MutableMethod.blackenDarkColors(): Int {
+internal fun MutableMethod.blackenDarkColors(background: Int = BLACK): Int {
     val sites = (implementation ?: return 0).instructions.withIndex()
         .filter { it.value.isDarkColor() }
         .map { Triple(it.index, (it.value as OneRegisterInstruction).registerA, it.value.opcode) }
 
     sites.asReversed().forEach { (index, register, opcode) ->
         val black = when (opcode) {
-            Opcode.CONST_WIDE_16, Opcode.CONST_WIDE_32 -> "const-wide/32 v$register, $BLACK"
-            else -> "const v$register, $BLACK"
+            Opcode.CONST_WIDE_16, Opcode.CONST_WIDE_32 -> "const-wide/32 v$register, $background"
+            else -> "const v$register, $background"
         }
         replaceInstruction(index, black)
     }

@@ -10,8 +10,9 @@ import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Utils;
 
 /**
- * The folder a save lands in: one name, under Movies for a video and under Pictures for a photo,
- * so the two kinds sit side by side the way they always have.
+ * The folder a save lands in: one name, for videos and photos alike, under the top folder
+ * {@link SaveTo} picks (Movies for a video and Pictures for a photo, unless the person chose DCIM
+ * or Download for both).
  *
  * <p>The name is typed by a person or read from a settings file, and MediaStore makes every folder
  * a relative path names. A slash in it would build folders nobody chose, a dot segment would climb

@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.flip-3d" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/flip-3d.webp" tags="3d,flip,card,rotate,transform,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Flip</string>
+            <string name="desc">Flips the layer like a card spinning in 3D, revealing a shaded mirrored back face.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="angle" default="45.0" min="-720.0" max="720.0" label="Angle" type="angle" step="1" />
+        <selector id="axis" style="dropdown" default="0" label="Axis">
+            <choice label="Horizontal" value="0" />
+            <choice label="Vertical" value="1" />
+        </selector>
+        <slider id="backDark" default="0.6" min="0.0" max="1.0" label="Back Shade" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        const float PI = 3.14159265;
+        mat3 mrotX(float a){ float s=sin(a),c=cos(a); return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c); }
+        mat3 mrotY(float a){ float s=sin(a),c=cos(a); return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c); }
+        mat3 mrotZ(float a){ float s=sin(a),c=cos(a); return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0); }
+        void main(){
+            float a=radians(angle);
+            mat3 R = axis==0 ? mrotY(a) : mrotX(a);
+            vec2 ndc=acScreenNorm*2.0-1.0; float asp=acScreenSize.x/acScreenSize.y; ndc.x*=asp;
+            vec3 ro=vec3(0.0,0.0,-2.8), rd=normalize(vec3(ndc,2.8));
+            vec3 N=R*vec3(0.0,0.0,1.0), RU=R*vec3(1.0,0.0,0.0), UP=R*vec3(0.0,1.0,0.0);
+            float dn=dot(rd,N);
+            if(abs(dn)<0.001){gl_FragColor=vec4(0.0);return;}
+            float t=dot(-ro,N)/dn; vec3 hit=ro+rd*t;
+            vec2 uv=vec2(dot(hit,RU)/asp, dot(hit,UP))*0.5+0.5;
+            bool back = cos(a) < 0.0;
+            if(back) uv.x = 1.0-uv.x;
+            if(t<0.0||uv.x<0.0||uv.x>1.0||uv.y<0.0||uv.y>1.0){gl_FragColor=vec4(0.0);return;}
+            vec4 col=texture2DCv(inputImg.texture, uv);
+            if(back) col.rgb *= 1.0-backDark;
+            gl_FragColor=col;
+        }
+    ]]></shader>
+
+</effect>

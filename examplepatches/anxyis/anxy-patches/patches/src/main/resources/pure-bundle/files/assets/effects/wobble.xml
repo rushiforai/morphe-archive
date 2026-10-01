@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.wobble" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/wobble.webp" tags="distort,wobble,jelly,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Wobble</string>
+            <string name="desc">Animated jelly wobble that gently pulses the whole layer in and out over time.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="0.5" min="0.0" max="1.0" label="Amount" />
+        <slider id="speed" default="2.0" min="0.0" max="8.0" label="Speed" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 d = acScreenNorm - 0.5;
+            float r = length(d);
+            float w = sin(acTime*speed - r*8.0) * amount * 0.06;
+            vec2 uv = 0.5 + d*(1.0 + w);
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

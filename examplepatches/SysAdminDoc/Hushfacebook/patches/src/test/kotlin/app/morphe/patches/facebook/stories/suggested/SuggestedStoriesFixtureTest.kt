@@ -31,14 +31,21 @@ import org.junit.Test
  * finds them: one post-processing method building the tray data through its one constructor, one
  * bucket list in it, one classic tray receiver reading that list, one bucket flag a tree class
  * answers with is_story_bucket_suggested, one label enum naming SUGGESTED and one static helper
- * answering it. Then the hook goes first in the constructor, in the list's own register, and the
- * four stubs of the extension the patch merges are filled in.
+ * answering it, and one bucket method answering the type enum that names the tray's cards. Then
+ * the hook goes first in the constructor, in the list's own register, and the five stubs of the
+ * extension the patch merges are filled in.
  */
 class SuggestedStoriesFixtureTest {
     /** The tray data constructor's registers and the register of its bucket list, per build. */
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to (7 to 4),
         AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to (7 to 4),
+    )
+
+    /** The bucket interface's type accessor and the enum it answers, per build. */
+    private val expectedType = mapOf(
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to ("C9d" to "LX/2LX;"),
+        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to ("CAm" to "LX/24X;"),
     )
 
     private fun reference(instruction: Instruction): String {
@@ -70,6 +77,8 @@ class SuggestedStoriesFixtureTest {
                 val labels = FixtureDex.classesHolding(bundle, LABEL_NAMES.first()).filter { isEnumNaming(it, LABEL_NAMES) }
                 assertEquals("${bundle.name}: label enums naming ${LABEL_NAMES.joinToString()}", 1, labels.size)
                 val label = labels.single().type
+                val typeEnums = FixtureDex.classesHolding(bundle, BUCKET_TYPE_NAMES.first())
+                    .filter { isEnumNaming(it, BUCKET_TYPE_NAMES) }
 
                 // One pass for the tree classes answering one of the receiver's flags with the
                 // suggested key, and for the static helpers answering a label for a bucket.
@@ -97,12 +106,15 @@ class SuggestedStoriesFixtureTest {
 
                 val extension = ExtensionDex.classDef(SUGGESTED_STORIES)
                 val context = PatchContexts.of(
-                    postClasses + receiverClasses + labels + readers + helperClasses + support.values + extension,
+                    postClasses + receiverClasses + labels + typeEnums + readers + helperClasses + support.values + extension,
                 )
                 val tray = with(context) { trayBuckets() }
                 assertEquals("${bundle.name}: the tray data", data, tray.constructor.definingClass)
                 assertEquals("${bundle.name}: the bucket list is the constructor's fourth parameter", 3, tray.list)
                 assertEquals("${bundle.name}: the label enum", label, tray.label)
+                assertEquals("${bundle.name}: the bucket type accessor", expectedType.getValue(version), tray.type to tray.typeEnum)
+                assertTrue("${bundle.name}: ${tray.typeEnum} isn't among the enums naming the cards",
+                    tray.typeEnum in typeEnums.map { it.type })
                 assertTrue("${bundle.name}: ${tray.bucket} isn't among the receiver's flags", tray.bucket in interfaces)
                 assertTrue("${bundle.name}: ${tray.bucket} isn't public",
                     AccessFlags.PUBLIC.isSet(support.getValue(tray.bucket).accessFlags))
@@ -130,6 +142,7 @@ class SuggestedStoriesFixtureTest {
                 fun first(name: String) = body(stubs.single { it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) })
                 assertEquals(tray.bucket, ((first(IS_BUCKET_STUB)[0] as ReferenceInstruction).reference as TypeReference).type)
                 assertEquals("${tray.bucket}->${tray.flag}()Z", reference(first(SUGGESTED_STUB)[1]))
+                assertEquals("${tray.bucket}->${tray.type}()${tray.typeEnum}", reference(first(TYPE_STUB)[1]))
                 assertEquals(
                     "${tray.labelHelper.definingClass}->${tray.labelHelper.name}(${tray.bucket})$label",
                     reference(first(LABEL_STUB)[1]),

@@ -174,6 +174,8 @@ final class CrashGuard {
 
     static void resetForTests() {
         STARTED.set(false);
+        HostScreens.started = false;
+        HostScreens.failed = false;
         CRASH_MARKED.set(false);
         safeModeActive = false;
         filesDir = null;

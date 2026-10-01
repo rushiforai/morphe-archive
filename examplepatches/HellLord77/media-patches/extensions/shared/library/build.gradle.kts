@@ -1,6 +1,4 @@
 dependencies {
-    compileOnly(project(":extensions:shared:stub"))
-
     api(libs.morphe.extensions.library)
 }
 

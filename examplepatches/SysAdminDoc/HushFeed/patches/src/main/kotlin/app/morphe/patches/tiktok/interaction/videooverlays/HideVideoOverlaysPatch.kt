@@ -48,7 +48,8 @@ val hideVideoOverlaysPatch = bytecodePatch(
         "entrance in the top left corner, caption and music text, selected action buttons or " +
         "their counts in the right column, survey cards and the status bar, which can also be hidden " +
         "only while a LIVE room is open. Separate switches hide the Full screen " +
-        "button, location labels and the Report button some regions get above the creator's picture, without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen.",
+        "button, location labels, the effect, template and CapCut tags above descriptions, and the Report " +
+        "button some regions get above the creator's picture, without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
     category("Feed")

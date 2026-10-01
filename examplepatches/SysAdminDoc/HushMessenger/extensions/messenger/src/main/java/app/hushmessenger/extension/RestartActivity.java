@@ -15,6 +15,8 @@ import android.widget.Toast;
 /** Reopen the real launcher in a fresh process after pending settings writes finish. */
 public class RestartActivity extends Activity {
     @Override @SuppressWarnings("deprecation") public void onCreate(Bundle state) {
+        // On a Root Mount install this screen can be the first thing in the process, before any hook.
+        HostScreens.start(this);
         Settings.initialize(this);
         boolean light = Settings.preferences.getBoolean("light", false);
         setTheme(light ? android.R.style.Theme_Material_Light_NoActionBar : android.R.style.Theme_Material_NoActionBar);

@@ -11,6 +11,9 @@ public class VerifyHissiMenu {
         String url = "http://hissi.org/read.php/{$bbs}/{$date[yyyyMMdd]}/{$id[base64_]}.html";
         String original = url + "{$host[match:[25]ch.net$]}";
         String fixed = HissiMenuCompatibility.rewriteTemplate(original);
+        String modern = url + "{$host[match:(?:2ch\\.net|5ch\\.(?:net|io))$]}";
+        check(fixed.equals(HissiMenuCompatibility.rewriteTemplate(modern)),
+                "242 stock provider filter must expand to the same supported boards");
         check(fixed.startsWith("haiagaru-hissi://hissi.org/read.php/{$bbs}/{$date[yyyyMMdd]}/{$id[base64_]}.html"),
                 "Destination and ID/date expansion must stay intact");
         check(fixed.contains("?haiagaru_host={$host}&haiagaru_key={$key}"),

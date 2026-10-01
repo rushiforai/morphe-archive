@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.ripple-water" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/ripple-water.webp" tags="water,ripple,distort,wave,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Ripple Water</string>
+            <string name="desc">Animated concentric water ripples emitting from a point, distorting the layer like a drop hitting a pond.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Center" />
+        <slider id="amplitude" default="0.5" min="0.0" max="1.0" label="Amplitude" />
+        <slider id="frequency" default="20.0" min="2.0" max="60.0" label="Frequency" />
+        <slider id="speed" default="2.0" min="0.0" max="8.0" label="Speed" />
+        <slider id="decay" default="3.0" min="0.0" max="10.0" label="Falloff" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 c = center/1000.0 + 0.5;
+            vec2 d = acScreenNorm - c;
+            d.x *= acScreenSize.x/acScreenSize.y;
+            float dist = length(d);
+            float wave = sin(dist*frequency - acTime*speed) * amplitude * 0.03;
+            wave *= exp(-dist*decay);
+            vec2 uv = acScreenNorm + normalize(d+0.0001)*wave;
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

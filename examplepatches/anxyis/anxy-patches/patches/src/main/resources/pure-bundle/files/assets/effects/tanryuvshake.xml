@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.vshake" name="Manual Shake" desc="@am:string/effect_shake_desc" tags="other" category="other" thumb="thumb/TANRYU/efek.png">
+    <params>
+       <spinner id="mag" default="4" min="0" max="20" step="0.01" label="Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <spinner id="freq" default="2" min="0" max="10" step="0.01" label="Frequency" snap="0,2,4,7" ticks="0,2,4,7" originValue="0" />
+        <slider id="zdist" default="1" min="0.001" max="5" label="Z Dist" snap="0.25,0.5,0.75,1,1.25,1.5,2,3,4,5" ticks="0.250,0.5,0.75,1,1.25,1.5,2,3,4,5" originValue="1" />
+        <slider id="rot" default="0" min="-180" max="180" label="Rotate" snap="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" originValue="0" />
+        <section text="Shake Settings" />
+        <tip text="Here you can create own shake" />
+
+        <section text="X Shake" />
+        <spinner id="xmag" default="15" min="0" max="100" step="0.05" label="X Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <spinner id="xfreq" default="12" min="0" max="100" step="0.05" label="X Frequency" snap="0,2,4,7,10,15" ticks="0,2,4,7,10,15" originValue="0" />
+        <spinner id="xoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="X Offset" />
+        <selector id="xtype" style="radio" default="1" label="X Type">
+            <choice label="cos" value="0" />
+            <choice label="sin" value="1" />
+            <choice label="trian" value="2" />
+            <choice label="noise" value="3" />
+        </selector>
+
+        <section text="Y Shake" />
+        <spinner id="ymag" default="40" min="0" step="0.05" max="100" label="Y Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <spinner id="yfreq" default="18" min="0" step="0.05" max="100" label="Y Frequency" snap="0,2,4,7,10,15" ticks="0,2,4,7,10,15" originValue="0" />
+        <spinner id="yoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Y Offset" />
+        <selector id="ytype" style="radio" default="1" label="Y Type">
+            <choice label="cos" value="0" />
+            <choice label="sin" value="1" />
+            <choice label="trian" value="2" />
+            <choice label="noise" value="3" />
+        </selector>
+
+        <section text="Z shake" />
+        <spinner id="zmag" default="1" min="0" max="100" step="0.05" label="Z Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <spinner id="zfreq" default="10" min="0" max="100" step="0.05" label="Z Frequency" snap="0,2,4,7,10,15" ticks="0,2,4,7,10,15" originValue="0" />
+        <spinner id="zoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Z Offset" />
+        <selector id="ztype" style="radio" default="1" label="Z Type">
+            <choice label="cos" value="0" />
+            <choice label="sin" value="1" />
+            <choice label="trian" value="2" />
+            <choice label="noise" value="3" />
+        </selector>
+
+        <section text="Tilt shake" />
+        <spinner id="tmag" default="10" min="0" max="100" step="0.05" label="Tilt Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <spinner id="tfreq" default="40" min="0" max="100" step="0.05" label="Tilt Frequency" snap="0,2,4,7,10,15" ticks="0,2,4,7,10,15" originValue="0" />
+        <spinner id="toffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Tilt Offset" />
+        <selector id="ttype" style="radio" default="1" label="Tilt Type">
+            <choice label="cos" value="0" />
+            <choice label="sin" value="1" />
+            <choice label="trian" value="2" />
+            <choice label="noise" value="3" />
+        </selector>
+    </params>
+
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let t = env.time;
+            var zd = p.zdist;
+            var dx = p.xmag/10;
+            var dy = p.ymag/10;
+            var dt = p.tmag/10;
+            var dz = p.zmag/50;
+            var dzz;
+            let m;
+
+            let absTimeSeconds = env.frame/env.fps;
+            let evolution = (absTimeSeconds * 1.0) - 1.0;
+            
+            //m = Math.sin(t * env.duration * p.freq * 3.14159);
+
+            if (p.xtype == 0) {
+            mx = Math.cos(t * env.duration * p.freq * (p.xfreq/10) * 3.14159 + p.xoffset);
+            } else if (p.xtype == 1) {
+            mx = Math.sin(t * env.duration * p.freq * (p.xfreq/10) * 3.14159 + p.xoffset);
+            } else if (p.xtype == 2) {
+            mx = AM.triangle(t * env.duration * p.freq * (p.xfreq/10) / 2.0 + p.xoffset);
+            } else {
+            mx = AM.simplexNoise(el.transform.location.x * (p.freq * (p.xfreq/10)), el.transform.location.y * (p.freq * (p.xfreq/10)), evolution + 49235.319798 + p.xoffset);
+            };
+
+            if (p.ytype == 0) {
+            my = Math.cos(t * env.duration * p.freq * (p.yfreq/10) * 3.14159 + p.yoffset);
+            } else if (p.ytype == 1) {
+            my = Math.sin(t * env.duration * p.freq * (p.yfreq/10) * 3.14159 + p.yoffset);
+            } else if (p.ytype == 2) {
+            my = AM.triangle(t * env.duration * p.freq * (p.yfreq/10) / 2.0 + p.yoffset);
+            } else {
+            my = AM.simplexNoise(el.transform.location.x * (p.freq * (p.yfreq/10)), el.transform.location.y * (p.freq * (p.yfreq/10)), evolution + 17337.940385 + p.yoffset);
+            };
+
+            if (p.ztype == 0) {
+            mz = Math.cos(t * env.duration * p.freq * (p.zfreq/10) * 3.14159 + p.zoffset);
+            } else if (p.ztype == 1) {
+            mz = Math.sin(t * env.duration * p.freq * (p.zfreq/10) * 3.14159 + p.zoffset);
+            } else if (p.ztype == 2) {
+            mz = AM.triangle(t * env.duration * p.freq * (p.zfreq/10) / 2.0 + p.zoffset);
+            } else {
+            mz = AM.simplexNoise(el.transform.location.x * (p.freq * (p.zfreq/10)), el.transform.location.y * (p.freq * (p.zfreq/10)), evolution + 21576.940385 + p.zoffset);
+            };
+
+            if (p.ttype == 0) {
+            mt = Math.cos(t * env.duration * p.freq * (p.tfreq/10) * 3.14159 + p.toffset);
+            } else if (p.ttype == 1) {
+            mt = Math.sin(t * env.duration * p.freq * (p.tfreq/10) * 3.14159 + p.toffset);
+            } else if (p.ttype == 2) {
+            mt = AM.triangle(t * env.duration * p.freq * (p.tfreq/10) / 2.0 + p.toffset);
+            } else {
+            mt = AM.simplexNoise(el.transform.location.x * (p.freq * (p.tfreq/10)), el.transform.location.y * (p.freq * (p.tfreq/10)), evolution + 35321.940385 + p.toffset);
+            };
+
+            dx *= dx * mx * p.mag;
+            dy *= dy * my * p.mag;
+            dt *= dt * mt * p.mag;
+            dz *= dz * mz * p.mag;
+            dzz = zd + dz - 1;
+            el.transform.location.x += dx;
+            el.transform.location.y += dy;
+            el.transform.angle += p.rot + dt;
+            el.transform.scale.x += dzz;
+            el.transform.scale.y += dzz;
+            return el;
+        }
+
+    ]]></script>
+</effect>

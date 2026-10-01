@@ -97,7 +97,7 @@ internal val expectedDexSites = mapOf(
     "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@507" to APP_COMMUNICATION_FORMAT,
 )
 
-/** The same six loads in build 346013370, under that build's names. */
+/** The same six loads in build 346013370, under that build's names. Generated from its record. */
 internal val expectedDexSites346013370 = mapOf(
     "LX/0iY;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
     "LX/15l;->A03()V@25" to APP_COMMUNICATION,
@@ -107,20 +107,75 @@ internal val expectedDexSites346013370 = mapOf(
     "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@894" to APP_COMMUNICATION_FORMAT,
 )
 
-internal fun expectedDexSitesFor(versionCode: String?): Map<String, String> =
-    if (versionCode == "346013370") expectedDexSites346013370 else expectedDexSites
+/** The same six loads in build 346013423, under that build's names. Generated from its record. */
+internal val expectedDexSites346013423 = mapOf(
+    "LX/0Vx;->A03()V@25" to APP_COMMUNICATION,
+    "LX/0iV;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/1fv;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1fv;Ljava/lang/String;Ljava/lang/String;)V@36" to APP_COMMUNICATION,
+    "LX/2S3;->A01(Landroid/content/Intent;LX/2S3;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/34l;->A05(Ljava/lang/Object;IILX/5aO;)Ljava/lang/Object;@816" to APP_COMMUNICATION_FORMAT,
+    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@772" to APP_COMMUNICATION_FORMAT,
+)
+
+/** The same six loads in builds 346013357, 346013358, 346013359, 346013391, 346013443, 346013444 and 346013445. Generated from 346013357's record. */
+internal val expectedDexSites346013357 = mapOf(
+    "LX/0iX;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/15l;->A03()V@25" to APP_COMMUNICATION,
+    "LX/1f4;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f4;Ljava/lang/String;Ljava/lang/String;)V@36" to APP_COMMUNICATION,
+    "LX/2Qr;->A01(Landroid/content/Intent;LX/2Qr;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/33K;->A04(LX/5Ww;Ljava/lang/Object;II)Ljava/lang/Object;@1433" to APP_COMMUNICATION_FORMAT,
+    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@507" to APP_COMMUNICATION_FORMAT,
+)
+
+/** The same six loads in builds 346013374 and 346013375. Generated from 346013374's record. */
+internal val expectedDexSites346013374 = mapOf(
+    "LX/0iY;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/15l;->A03()V@25" to APP_COMMUNICATION,
+    "LX/1f3;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f3;Ljava/lang/String;Ljava/lang/String;)V@36" to APP_COMMUNICATION,
+    "LX/2Qq;->A01(Landroid/content/Intent;LX/2Qq;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/33J;->A03(Ljava/lang/Object;LX/5Yu;II)Ljava/lang/Object;@1514" to APP_COMMUNICATION_FORMAT,
+    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@821" to APP_COMMUNICATION_FORMAT,
+)
+
+/** Each supported build's permission loads, by version code, as scripts/profiles records them. */
+internal val expectedDexSitesByBuild: Map<Int, Map<String, String>> = mapOf(
+    346013387 to expectedDexSites,
+    346013440 to expectedDexSites,
+    346013442 to expectedDexSites,
+    346013354 to expectedDexSites,
+    346013370 to expectedDexSites346013370,
+    346013394 to expectedDexSites,
+    346013423 to expectedDexSites346013423,
+    346013355 to expectedDexSites,
+    346013356 to expectedDexSites,
+    346013357 to expectedDexSites346013357,
+    346013358 to expectedDexSites346013357,
+    346013359 to expectedDexSites346013357,
+    346013372 to expectedDexSites346013370,
+    346013374 to expectedDexSites346013374,
+    346013375 to expectedDexSites346013374,
+    346013391 to expectedDexSites346013357,
+    346013427 to expectedDexSites346013423,
+    346013441 to expectedDexSites,
+    346013443 to expectedDexSites346013357,
+    346013444 to expectedDexSites346013357,
+    346013445 to expectedDexSites346013357,
+)
+
+internal fun expectedDexSitesFor(
+    versionCode: String?,
+    sites: Map<Int, Map<String, String>> = expectedDexSitesByBuild,
+): Map<String, String> = versionCode?.toIntOrNull()?.let(sites::get) ?: expectedDexSites
 
 private fun renamed(name: String): String =
     SHARED_PREFIX + name.removePrefix(META_PREFIX)
 
-private fun unsupportedApk(reason: String): PatchException = PatchException(
-    "$PATCH_NAME: $reason. Use an unmodified arm64 Messenger ${MessengerTarget.VERSION} " +
-        "APK (version code ${MessengerTarget.VERSION_CODES.joinToString(" or ")}).",
-)
+private fun unsupportedApk(reason: String, versions: Map<String, List<Int>> = MessengerTarget.VERSIONS) =
+    PatchException("$PATCH_NAME: $reason. Use an unmodified arm64 Messenger ${MessengerTarget.supportedApks(versions)}.")
 
-internal fun validateVersionCode(versionCode: String) {
-    if (versionCode.toIntOrNull() !in MessengerTarget.VERSION_CODES) {
-        throw unsupportedApk("version code $versionCode is not supported")
+internal fun validateVersionCode(versionCode: String, versions: Map<String, List<Int>> = MessengerTarget.VERSIONS) {
+    if (versions.values.none { versionCode.toIntOrNull() in it }) {
+        throw unsupportedApk("version code $versionCode is not supported", versions)
     }
 }
 
@@ -211,12 +266,16 @@ private fun Method.hasSharedName(): Boolean =
 private fun Method.siteId(index: Int): String =
     "$definingClass->$name(${parameterTypes.joinToString("")})$returnType@$index"
 
-internal fun validateDexSites(sites: List<Pair<String, String>>, expected: Map<String, String> = expectedDexSites) {
+internal fun validateDexSites(
+    sites: List<Pair<String, String>>,
+    expected: Map<String, String> = expectedDexSites,
+    versions: Map<String, List<Int>> = MessengerTarget.VERSIONS,
+) {
     if (sites.size != expected.size) {
-        throw unsupportedApk("expected ${expected.size} permission loads, found ${sites.size}")
+        throw unsupportedApk("expected ${expected.size} permission loads, found ${sites.size}", versions)
     }
     if (sites.toMap() != expected) {
-        throw unsupportedApk("permission instruction sites differ from the tested build")
+        throw unsupportedApk("permission instruction sites differ from the tested build", versions)
     }
 }
 

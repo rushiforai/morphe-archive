@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.lens-flare" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/lens-flare.webp" tags="drawing,light,flare,lens,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Lens Flare</string>
+            <string name="desc">Procedural anamorphic lens flare with a glowing halo and a chain of lens ghosts.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="position" default="-300,-200" label="Light Source" />
+        <color id="color" default="#FFFFE7B0" label="Flare Color" alpha="false" />
+        <slider id="intensity" default="1.0" min="0.0" max="3.0" label="Intensity" />
+        <slider id="size" default="0.5" min="0.1" max="2.0" label="Size" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec2 srcp = position/1000.0 + 0.5;
+            vec2 p = acScreenNorm;
+            p.x *= acScreenSize.x/acScreenSize.y;
+            srcp.x *= acScreenSize.x/acScreenSize.y;
+            vec2 dir = (vec2(0.5*acScreenSize.x/acScreenSize.y,0.5) - srcp);
+            vec3 flare = vec3(0.0);
+            float dd = length(p - srcp);
+            flare += color.rgb * (0.02*size)/(dd+0.02) ;
+            flare += color.rgb * smoothstep(0.02, 0.0, abs(dd - 0.3*size))*0.5;
+            for(int i=1;i<=5;i++){
+                vec2 gp = srcp + dir*(float(i)*0.35);
+                float g = length(p - gp);
+                flare += color.rgb * smoothstep(0.08*size, 0.0, g) / float(i);
+            }
+            vec3 outc = 1.0 - (1.0-src.rgb)*(1.0-flare*intensity);
+            gl_FragColor = vec4(outc, src.a) + vec4(flare*intensity,0.0)*(1.0-src.a);
+        }
+    ]]></shader>
+
+</effect>

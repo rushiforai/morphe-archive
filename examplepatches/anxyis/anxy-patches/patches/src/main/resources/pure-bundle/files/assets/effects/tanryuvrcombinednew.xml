@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.vrcombinednew" name="@am:string/effect_vrcombined_name" desc="Amazing New Extra FX from the Modder" category="other" thumb="thumb/TANRYU/vr.png" overdraw="false" experimental="false" deprecated="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <orient id="orient" label="@am:string/effect_param_orientation" invert="true" />
+        <xyz id="rotate" label="@am:string/effect_param_rotation" type="rotate" />
+        <switch id="flatten" default="true" label="@am:string/effect_param_flatten" />
+        <spinner id="dist" default="2.0" min="0.2" max="5.0" step="0.01" label="@am:string/effect_param_distance" />
+        <section text="Aspect Ratio" />
+        <spinner id="w" default="16.0" min="1.0" max="32.0" step="1.0" label="@am:string/effect_param_width" />
+        <spinner id="h" default="9.0" min="1.0" max="32.0" step="1.0" label="@am:string/effect_param_height" />
+       
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+
+        mat4 rotationAxisAngle( vec3 v, float angle )
+        {
+            float s = sin( angle );
+            float c = cos( angle );
+            float ic = 1.0 - c;
+
+            return mat4( v.x*v.x*ic + c,     v.y*v.x*ic - s*v.z, v.z*v.x*ic + s*v.y, 0.0,
+                         v.x*v.y*ic + s*v.z, v.y*v.y*ic + c,     v.z*v.y*ic - s*v.x, 0.0,
+                         v.x*v.z*ic - s*v.y, v.y*v.z*ic + s*v.x, v.z*v.z*ic + c,     0.0,
+                         0.0,                0.0,                0.0,                1.0 );
+        }
+
+        vec2 l2s( vec2 v ) {
+            return (vec4(v,0.,1.)*acLayerToScreen).xy;
+        }
+
+        #define M_PI 3.14159265358979323846
+
+        #define DEG2RAD 0.01745329251994329576923690768489
+
+        float hfovDegrees = 120.0;
+        float vfovDegrees = 60.0;
+
+        void main() {
+
+            vec2 st = acLayerNorm;
+            if(flatten == false)
+            {
+                float lon = st.x * M_PI * 2.0;
+                float lat = asin((st.y - 0.5) * 2.0);
+                vec3 xyz = vec3(cos(lon)*cos(lat), sin(lon)*cos(lat), sin(lat));
+
+                vec3 r = rotate * 0.0174533;
+                mat4 rx = rotationAxisAngle(vec3(1.,0.,0.),r.x);
+                mat4 ry = rotationAxisAngle(vec3(0.,1.,0.),r.y);
+                mat4 rz = rotationAxisAngle(vec3(0.,0.,1.),r.z);
+
+                xyz = (vec4(xyz,0.) * orient * rz * rx * ry).xyz;
+                lat = asin(xyz.z);
+                lon = atan(xyz.y, xyz.x);
+                if(lon < 0.0)
+                    lon += (2.0 * M_PI);
+
+                vec2 conv_uv = vec2(lon/(M_PI*2.0), sin(lat)/2.0 + 0.5);
+                float inside = step(0.,st.x) * step(st.x,1.) * step(0.,st.y) * step(st.y,1.);
+                gl_FragColor = texture2DCv(inputImg.texture,l2s(conv_uv)) * inside;
+            }
+            else
+            {
+                vec2 uv = st.xy * 2.0 - 1.0;
+
+                //to spherical
+                vec3 camDir = normalize(vec3(uv.xy * vec2(tan(0.5 * hfovDegrees * DEG2RAD), tan(0.5 * vfovDegrees * DEG2RAD)), 1.0 / dist));
+
+                vec3 r = rotate * 0.0174533;
+                mat4 rx = rotationAxisAngle(vec3(1.,0.,0.),r.x);
+                mat4 ry = rotationAxisAngle(vec3(0.,1.,0.),r.y);
+                mat4 rz = rotationAxisAngle(vec3(0.,0.,1.),r.z);
+
+                vec3 rd = (vec4(camDir,0.) * orient * rz * rx * ry).xyz;
+
+                vec2 cutting = vec2(0.0, 0.0);
+                vec2 imgSize = getTexSize(inputImg.size);
+                float asp_i = imgSize.y / imgSize.x;
+                float asp_o = h / w;
+
+                if(asp_i > asp_o)
+                {
+                    cutting.x = 0.0;
+                    cutting.y = 0.5 * (1.0 -  asp_o / asp_i);
+                }
+                else
+                {
+                    cutting.y = 0.0;
+                    cutting.x = 0.5 * (1.0 - (asp_i / asp_o));
+                }
+
+                //radial azmuth polar
+                vec2 conv_uv = vec2(atan(rd.z, rd.x) + M_PI, acos(-rd.y)) / vec2(2.0 * M_PI, M_PI);
+                float inside = step(cutting.x,st.x) * step(st.x,1.0 - cutting.x) * step(cutting.y,st.y) * step(st.y,1.0 - cutting.y);
+                gl_FragColor = texture2DCv(inputImg.texture,l2s(conv_uv)) * inside;
+            }
+        }
+
+    ]]></shader>
+
+</effect>

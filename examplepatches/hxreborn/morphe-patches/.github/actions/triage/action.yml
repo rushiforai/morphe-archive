@@ -46,7 +46,6 @@ runs:
         if [ "$close" = "true" ]; then
           printf '\n_Think this is wrong? Comment below and a maintainer will take a look._\n' >> "$RUNNER_TEMP/comment.md"
         fi
-        printf '\nYour **triage** bot 🤖\n' >> "$RUNNER_TEMP/comment.md"
         gh issue comment "$ISSUE" --repo "$REPO" --body-file "$RUNNER_TEMP/comment.md"
         labels=$(jq -r --arg l "$LABEL" '.[$l].labels // [] | join(",")' "$RESPONSES")
         [ -n "$labels" ] && gh issue edit "$ISSUE" --repo "$REPO" --add-label "$labels"
@@ -117,7 +116,7 @@ runs:
             fi
           elif [ "$verdict" = pass ] && [ -n "$existing" ] && [ ! -s comment.md ]; then
             gh issue edit "$n" --repo "$REPO" --remove-label "needs info" || true
-            printf '<!-- app-request-bot -->\n✅ **All checks pass now.**\n\nYour **triage** bot 🤖\n' > comment.md
+            printf '<!-- app-request-bot -->\n✅ **All checks pass now.**\n' > comment.md
             gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@comment.md >/dev/null
           fi
         done
@@ -150,6 +149,12 @@ runs:
         verdict=$(jq -r .verdict verdict.json)
         jq -r .comment verdict.json > comment.md
 
+        if [ "$WAS_CLOSED_BY_BOT" = "true" ]; then
+          closer=$(gh api "repos/$REPO/issues/$ISSUE/timeline" --paginate \
+            --jq '.[] | select(.event == "closed") | .actor.login' | tail -1)
+          [ "$closer" = "github-actions[bot]" ] || WAS_CLOSED_BY_BOT=false
+        fi
+
         app=$(jq -r .app verdict.json)
         if [ -n "$app" ] && [ "$verdict" != "pass" ] && [ "$ACTION" = "opened" ]; then
           dupes=$(gh search issues "$app" --repo "$REPO" --limit 4 --json number,title --jq \
@@ -180,18 +185,24 @@ runs:
             upsert_comment
             labels=$(jq -r '.labels | join(",")' verdict.json)
             [ -n "$labels" ] && gh issue edit "$ISSUE" --repo "$REPO" --add-label "$labels"
-            ;;
-          pass)
-            gh issue edit "$ISSUE" --repo "$REPO" \
-              --remove-label incomplete \
-              --remove-label "needs info" \
-              --remove-label "untargeted version" || true
             if [ "$WAS_CLOSED_BY_BOT" = "true" ]; then
               gh issue reopen "$ISSUE" --repo "$REPO"
-              printf '<!-- triage-bot -->\n🔓 **Reopened.** The report passes the checks now.\n\nYour **triage** bot 🤖\n' > comment.md
+              gh issue edit "$ISSUE" --repo "$REPO" --remove-label incomplete
+            fi
+            ;;
+          pass)
+            if [ "$WAS_CLOSED_BY_BOT" = "true" ] || [ -n "$existing" ]; then
+              gh issue edit "$ISSUE" --repo "$REPO" \
+                --remove-label incomplete \
+                --remove-label "needs info" \
+                --remove-label "untargeted version" || true
+            fi
+            if [ "$WAS_CLOSED_BY_BOT" = "true" ]; then
+              gh issue reopen "$ISSUE" --repo "$REPO"
+              printf '<!-- triage-bot -->\n🔓 **Reopened.** The report passes the checks now.\n' > comment.md
               upsert_comment
             elif [ -n "$existing" ]; then
-              printf '<!-- triage-bot -->\n✅ **All checks pass now.**\n\nYour **triage** bot 🤖\n' > comment.md
+              printf '<!-- triage-bot -->\n✅ **All checks pass now.**\n' > comment.md
               upsert_comment
             fi
             ;;

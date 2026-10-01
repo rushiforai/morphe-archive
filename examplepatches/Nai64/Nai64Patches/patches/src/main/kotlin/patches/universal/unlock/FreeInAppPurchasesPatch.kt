@@ -6,10 +6,11 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.booleanOption
-import patches.universal.ads.util.cloneMutable
-import java.util.logging.Logger
 import patches.universal.ads.util.DiscordPromo
+import patches.universal.ads.util.cloneMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import java.util.logging.Logger
+
 
 @Suppress("unused")
 val freeInAppPurchasesPatch = bytecodePatch(
@@ -23,6 +24,12 @@ val freeInAppPurchasesPatch = bytecodePatch(
         default = false,
         key = "fakeStartupPurchases",
         description = "Deliver a fake owned purchase on every inventory query. Helps games that only grant at boot, but can stall strict Unity titles. Leave off if a game hangs on loading.",
+    )
+    val fakeBillingConnection by booleanOption(
+        title = "Fake billing connection",
+        default = false,
+        key = "fakeBillingConnection",
+        description = "Report the billing client as connected before the real connection finishes, then let the real one run. Helps devices with no working Play Store, but the early callback can make purchases vanish silently in Unity titles that route IAP through Unity Gaming Services. Leave off unless purchases do not start at all.",
     )
     execute {
         val logger = Logger.getLogger(this::class.java.name)
@@ -42,6 +49,18 @@ val freeInAppPurchasesPatch = bytecodePatch(
                 for (p in m.parameterTypes) slots += if (p == "J" || p == "D") 2 else 1
                 slots
             } catch (_: Exception) { 0 }
+        }
+        // True when the app ships any class under [packagePrefix]. Used to name
+        // the store layer when no billing surface was found, so the log says
+        // *why* the patch did nothing instead of leaving a silent no-op.
+        fun hasAnyClassWithPrefix(packagePrefix: String): Boolean {
+            return try {
+                var found = false
+                classDefForEach { classDef ->
+                    if (!found && classDef.type.startsWith("L$packagePrefix")) found = true
+                }
+                found
+            } catch (_: Exception) { false }
         }
         // Frame expansion for injections needing more regs than the frame
         // holds: clone with extra registers and swap the clone in. The
@@ -83,7 +102,7 @@ val freeInAppPurchasesPatch = bytecodePatch(
                 true
             } catch (_: Exception) { false }
         }
-        fun patchAll(fp: Fingerprint, label: String, needRegs: Int = 1, injector: (app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) -> Unit) {
+        fun patchAll(fp: Fingerprint, label: String, needRegs: Int = 1, tinyBlock: String? = null, injector: (app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) -> Unit) {
             // try multi-match first via context receiver
             try {
                 val matches: List<app.morphe.patcher.Match> = try {
@@ -97,6 +116,11 @@ val freeInAppPurchasesPatch = bytecodePatch(
                             val method = m.method
                             if (method.implementation == null) continue
                             if (minRegs(method) < needRegs) {
+                                if (tinyBlock != null && expandSwap(method, tinyBlock, wipeBody = true)) {
+                                    patched++
+                                    patchedMethods.add(label)
+                                    continue
+                                }
                                 logger.info("FreeIAP skipped tiny frame: ${method.definingClass}->${method.name} regs=${minRegs(method)} need=$needRegs label=$label")
                                 continue
                             }
@@ -495,38 +519,48 @@ val freeInAppPurchasesPatch = bytecodePatch(
             it.addInstructions(0, "return-void")
         }
 
-        // startConnection(BillingClientStateListener) -> fire
-        // onBillingSetupFinished(OK) on the listener, then FALL THROUGH to
-        // the real body (no return): the real connection still runs, so the
-        // untouched product catalog below keeps working on devices with
-        // Play, while no-Play devices boot on the early OK instead of
-        // waiting for setup forever. Any other overload (e.g. the native
-        // (J) bridge used by Unity IL2CPP games) is left completely
-        // untouched: voiding it strands native setup with no callback and
-        // freezes the app on its loading screen.
+        // startConnection(BillingClientStateListener) -> optionally fire
+        // onBillingSetupFinished(OK) on the listener, then FALL THROUGH to the
+        // real body (no return) so the real connection still runs and the
+        // untouched product catalog keeps working on devices with Play.
+        // OFF by default (fakeBillingConnection). The early OK is delivered
+        // before the client is really connected, and the real body then
+        // delivers a second setup-finished callback. Unity titles that route
+        // purchases through Unity Gaming Services can react to that duplicate
+        // by not dispatching the purchase at all, leaving the game waiting on
+        // its purchase spinner with no success and no failure callback. Those
+        // titles are better served by leaving the connection alone: the
+        // synthetic catalog and the buy-time grant are what deliver the
+        // reward. Any other overload (e.g. the native (J) bridge used by Unity
+        // IL2CPP games) is left completely untouched: voiding it strands native
+        // setup with no callback and freezes the app on its loading screen.
         // VERIFIER RULE: fall-through injections MUST go through
         // cloneMutable (expandSwap): direct prepending retypes v0/v1 for
         // the original body below and ART rejects the whole class
         // (seen on Nice Dice 3D). If the frame cannot grow, skip rather
         // than inject unsafely.
-        patchAll(Fingerprint(name = "startConnection", custom = { _, c -> c.type.contains("BillingClient")         }), "BillingClient.startConnection", 2) {
-            if (it.parameterTypes == listOf("Lcom/android/billingclient/api/BillingClientStateListener;") && it.returnType == "V") {
-                val block = """
-                    invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult${'$'}Builder;
-                    move-result-object v0
-                    const/4 v1, 0x0
-                    invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
-                    move-result-object v0
-                    invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
-                    move-result-object v0
-                    move-object/from16 v1, p1
-                    invoke-interface {v1, v0}, Lcom/android/billingclient/api/BillingClientStateListener;->onBillingSetupFinished(Lcom/android/billingclient/api/BillingResult;)V
-                """.trimIndent()
-                if (!expandSwap(it, block)) {
-                    logger.warning("FreeIAP startConnection left stock (frame too small to clone safely)")
+        if (fakeBillingConnection == true) {
+            patchAll(Fingerprint(name = "startConnection", custom = { _, c -> c.type.contains("BillingClient") }), "BillingClient.startConnection", 2) {
+                if (it.parameterTypes == listOf("Lcom/android/billingclient/api/BillingClientStateListener;") && it.returnType == "V") {
+                    val block = """
+                        invoke-static {}, Lcom/android/billingclient/api/BillingResult;->newBuilder()Lcom/android/billingclient/api/BillingResult${'$'}Builder;
+                        move-result-object v0
+                        const/4 v1, 0x0
+                        invoke-virtual {v0, v1}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->setResponseCode(I)Lcom/android/billingclient/api/BillingResult${'$'}Builder;
+                        move-result-object v0
+                        invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
+                        move-result-object v0
+                        move-object/from16 v1, p1
+                        invoke-interface {v1, v0}, Lcom/android/billingclient/api/BillingClientStateListener;->onBillingSetupFinished(Lcom/android/billingclient/api/BillingResult;)V
+                    """.trimIndent()
+                    if (!expandSwap(it, block)) {
+                        logger.warning("FreeIAP startConnection left stock (frame too small to clone safely)")
+                    }
                 }
+                // else: leave the overload alone (see comment above)
             }
-            // else: leave the overload alone (see comment above)
+        } else {
+            logger.info("FreeIAP startConnection left stock (fakeBillingConnection off)")
         }
 
         // onPurchasesUpdated is fired by the buy-time grant in
@@ -857,7 +891,7 @@ val freeInAppPurchasesPatch = bytecodePatch(
                                 move-result-object v5
                                 invoke-virtual {v5, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                                 move-result-object v5
-                                const-string v6, "\"}"
+                                const-string v6, "\",\"price\":\"0.00\",\"priceAmountMicros\":0,\"priceCurrencyCode\":\"USD\",\"countryCode\":\"US\",\"offerToken\":\"morphe_offer\",\"oneTimePurchaseOfferDetails\":{\"price\":\"0.00\",\"formattedPrice\":\"0.00\",\"priceAmountMicros\":0,\"priceCurrencyCode\":\"USD\",\"offerToken\":\"morphe_offer\",\"state\":1},\"subscriptionOfferDetails\":[{\"offerToken\":\"morphe_offer\",\"pricingPhases\":{\"pricingPhaseList\":[{\"formattedPrice\":\"0.00\",\"priceAmountMicros\":0,\"billingPeriod\":\"P1M\",\"billingCycleCount\":0}]},\"eligibilityState\":1}]}"
                                 invoke-virtual {v5, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                                 move-result-object v5
                                 invoke-virtual {v5}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
@@ -1005,10 +1039,10 @@ val freeInAppPurchasesPatch = bytecodePatch(
             }
         }
         // OneTimePurchaseOfferDetails / SubscriptionOfferDetails micros
-        patchAll(Fingerprint(name = "getPriceAmountMicros", returnType = "J"), "getPriceAmountMicros", 2) {
+        patchAll(Fingerprint(name = "getPriceAmountMicros", returnType = "J"), "getPriceAmountMicros", 2, "const-wide/16 v0, 0x0\nreturn-wide v0") {
             it.addInstructions(0, "const-wide/16 v0, 0x0\nreturn-wide v0")
         }
-        patchAll(Fingerprint(name = "getPriceAmountMicros", custom = { _, c -> c.type.lowercase().contains("offer") }), "Offer.getPriceAmountMicros", 2) {
+        patchAll(Fingerprint(name = "getPriceAmountMicros", custom = { _, c -> c.type.lowercase().contains("offer") }), "Offer.getPriceAmountMicros", 2, "const-wide/16 v0, 0x0\nreturn-wide v0") {
             if (it.returnType == "J") it.addInstructions(0, "const-wide/16 v0, 0x0\nreturn-wide v0")
         }
         // getOriginalJson -> fake json
@@ -1354,6 +1388,54 @@ val freeInAppPurchasesPatch = bytecodePatch(
             custom = { m, c -> !c.type.contains("revenuecat") && m.parameterTypes.any { it.contains("PurchasesError") } }),
             "RC.onError") {
             it.addInstructions(0, "return-void")
+        }
+
+        // ──────────────────────────────────────────────
+        // NATIVE STORE DIAGNOSIS
+        // ──────────────────────────────────────────────
+        //
+        // A growing number of Unity titles route purchases through their own
+        // store layer instead of Play Billing, so nothing in the Java billing
+        // API is called and every patch above silently no-ops. The game then
+        // dispatches the purchase and waits forever, which reads to the user
+        // like a broken patch rather than an unsupported game. Say so plainly.
+
+        if (patched == 0) {
+            val hasBillingApi = hasAnyClassWithPrefix("com/android/billingclient/")
+            val nativeStore = listOfNotNull(
+                "com/unity3d/udp/" to "Unity Gaming Services UDP store",
+                "com/tiktok/iap/" to "TikTok IAP store bridge",
+                "com/bytedance/applestore/" to "ByteDance app store",
+            ).firstOrNull { (prefix, _) -> hasAnyClassWithPrefix(prefix) }
+
+            when {
+                nativeStore != null -> logger.warning(
+                    "Free In-app Purchases: this app uses the ${nativeStore.second}, which does not " +
+                        "call Play Billing, so the Java billing patches cannot reach it. The grant " +
+                        "did not apply and purchases will stay locked. This game needs native " +
+                        "(IL2CPP) patching instead.",
+                )
+                // Nothing on the Java layer can be patched when the engine's own
+                // billing client is not even shipped in the dex. Unity games
+                // built this way keep the store (and any ad SDK) in
+                // libil2cpp.so, which is why the app looks empty here.
+                !hasBillingApi && hasAnyClassWithPrefix("com/unity3d/") -> logger.warning(
+                    "Free In-app Purchases: this Unity game ships no Play Billing classes in the dex, " +
+                        "so its store runs entirely inside libil2cpp.so. Nothing on the Java layer " +
+                        "can be patched and purchases will stay locked. This game needs native " +
+                        "(IL2CPP) patching instead.",
+                )
+                !hasBillingApi -> logger.warning(
+                    "Free In-app Purchases: this app ships no Play Billing classes at all, so it " +
+                        "cannot buy through Google Play. If its store is implemented natively, the " +
+                        "Java billing patches cannot reach it and this game needs native patching.",
+                )
+                hasAnyClassWithPrefix("com/unity3d/services/") -> logger.warning(
+                    "Free In-app Purchases: no billing or purchase checks found, and this app " +
+                        "embeds Unity Gaming Services. If the store is backed by UGS/UDP rather " +
+                        "than Play Billing, purchases cannot be granted from the Java layer.",
+                )
+            }
         }
 
         // ──────────────────────────────────────────────

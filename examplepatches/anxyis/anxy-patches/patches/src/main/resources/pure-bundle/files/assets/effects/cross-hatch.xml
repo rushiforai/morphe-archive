@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.cross-hatch" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/cross-hatch.webp" tags="stylize,hatch,sketch,ink,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Cross Hatch</string>
+            <string name="desc">Sketch-style cross hatching that adds more line layers as the image gets darker.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="ink" default="#FF101015" label="Ink" alpha="false" />
+        <color id="paper" default="#FFF7F2E8" label="Paper" alpha="false" />
+        <slider id="size" default="6.0" min="3.0" max="16.0" label="Spacing" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float hline(vec2 p, float ang, float sp){
+            float a = radians(ang);
+            float v = p.x*cos(a) + p.y*sin(a);
+            return smoothstep(0.0, 0.5, abs(fract(v/sp)-0.5));
+        }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            float l = dot(c, vec3(0.299,0.587,0.114));
+            vec2 p = acScreenNorm*acScreenSize;
+            float h = 1.0;
+            if(l<0.85) h = min(h, hline(p, 0.0, size));
+            if(l<0.65) h = min(h, hline(p, 90.0, size));
+            if(l<0.45) h = min(h, hline(p, 45.0, size));
+            if(l<0.25) h = min(h, hline(p, -45.0, size));
+            vec3 outc = mix(ink.rgb, paper.rgb, h);
+            gl_FragColor = vec4(outc,1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

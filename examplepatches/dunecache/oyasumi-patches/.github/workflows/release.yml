@@ -31,6 +31,13 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      # Five releases in a row shipped a defect that compiling cannot catch, because each
+      # was correct Kotlin producing wrong smali. These checks read the patch sources
+      # directly and need no APK, no device and no Morphe plugin, so they run before
+      # anything is published. See tools/checks/README.md.
+      - name: Check patch sources
+        run: python3 tools/checks/patch_smali_checks.py
+
       - name: Install dependencies
         run: npm install
 

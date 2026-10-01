@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.split-tone" name="@string/name" desc="@string/desc" category="color" thumb="thumb/split-tone.webp" tags="color,grade,tone,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Split Tone</string>
+            <string name="desc">Tints shadows and highlights with two different colors for a stylish graded look.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="shadow" default="#FF1E5AA0" label="Shadow Tint" alpha="false" />
+        <color id="highlight" default="#FFFFB04D" label="Highlight Tint" alpha="false" />
+        <slider id="amount" default="0.5" min="0.0" max="1.0" label="Strength" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            float l = dot(c, vec3(0.299,0.587,0.114));
+            vec3 outc = c + (shadow.rgb-0.5)*(1.0-l)*amount + (highlight.rgb-0.5)*l*amount;
+            gl_FragColor = vec4(clamp(outc,0.0,1.0),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

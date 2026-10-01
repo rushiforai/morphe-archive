@@ -98,6 +98,9 @@ public class FileNameTemplateTest {
 
     private static final String DAY = "20260901";
 
+    /** A Page's number, as long as the ones Facebook gives Pages now. */
+    private static final String OWNER_ID = "100064123456789";
+
     /** A save that knows everything of its post. */
     private static PostDetails full() {
         return new PostDetails(ID, "Stevi Ous", posted());
@@ -201,15 +204,16 @@ public class FileNameTemplateTest {
 
         String[] templates = {"Clip", "Reel {video_id}", "{video_id}", "Clip_", "x-", FileNameTemplate.DEFAULT,
                 "{date}", "{creator}", "{owner}", "{posted}", "{owner}_{posted}", "{owner} {video_id}", "{posted}{date}",
-                "Reel {owner}"};
-        PostDetails[] known = {PostDetails.NONE, PostDetails.of(ID), new PostDetails(null, "Stevi Ous", posted()), full()};
+                "Reel {owner}", "{owner_id}", "{owner}_{owner_id}_{posted}", "{owner_id} {video_id}"};
+        PostDetails[] known = {PostDetails.NONE, PostDetails.of(ID), new PostDetails(null, "Stevi Ous", posted()), full(),
+                new PostDetails(null, "Stevi Ous", OWNER_ID, posted()), new PostDetails(null, null, OWNER_ID, null)};
         for (String template : templates) {
             for (PostDetails details : known) {
                 String clean = FileNameTemplate.sanitize(template);
                 String first = FileNameTemplate.videoName(template, at(5), details);
                 String second = FileNameTemplate.videoName(template, at(6), details);
                 boolean byThePost = !FileNameTemplate.usesDate(clean) && FileNameTemplate.keepsApart(clean,
-                        details.hasVideoId(), details.hasOwner(), details.hasPosted());
+                        details.hasVideoId(), details.hasOwner(), details.hasOwnerId(), details.hasPosted());
                 if (byThePost) {
                     // Named by what the post is: the same name for the same post.
                     assertEquals(template + " with " + details, first, second);
@@ -218,6 +222,49 @@ public class FileNameTemplateTest {
                 }
             }
         }
+    }
+
+    /**
+     * {@code {owner_id}} is the poster's profile or Page number, so a save stays traceable after a
+     * Page renames itself (issue #6). It drops out like the other tokens when the save doesn't
+     * know it, and a name that counts on it gets the date and time on the end then.
+     */
+    @Test
+    public void thePostersIdFillsInAndDropsOutLikeTheOtherTokens() {
+        assertEquals("{owner_id}", FileNameTemplate.OWNER_ID);
+        assertFalse("{owner} is part of {owner_id}", FileNameTemplate.OWNER_ID.contains(FileNameTemplate.OWNER));
+        PostDetails known = new PostDetails(ID, "Page Name", OWNER_ID, posted());
+        assertEquals("Page Name_" + OWNER_ID + "_" + DAY,
+                FileNameTemplate.videoName("{owner}_{owner_id}_{posted}", when(), known));
+        assertEquals(OWNER_ID, FileNameTemplate.videoName("{owner_id}", when(), known));
+        assertEquals(OWNER_ID + "-" + OWNER_ID, FileNameTemplate.videoName("{owner_id}-{owner_id}", when(), known));
+        assertTrue(FileNameTemplate.isClean("{owner}_{owner_id}_{posted}"));
+        assertTrue(FileNameTemplate.usesOwnerId("{owner_id}"));
+        assertFalse(FileNameTemplate.usesOwnerId("{owner}_{posted}"));
+        // Beside the date and time it just fills in.
+        assertEquals("FB_VID_" + STAMP + "_" + OWNER_ID,
+                FileNameTemplate.videoName("FB_VID_{date}_{owner_id}", when(), known));
+
+        // Unknown: left out with the separators typed round it, as the other tokens are, and the
+        // date and time keep saves apart.
+        PostDetails noId = new PostDetails(ID, "Page Name", posted());
+        assertEquals("Page Name__" + DAY + "_" + STAMP,
+                FileNameTemplate.videoName("{owner}_{owner_id}_{posted}", when(), noId));
+        assertEquals("FB_VID_" + STAMP, FileNameTemplate.videoName("{owner_id}", when(), noId));
+        assertEquals(STAMP + "_", FileNameTemplate.videoName("{date}_{owner_id}", when(), noId));
+        // A known video id keeps saves apart on its own, as it does for the poster's name.
+        assertEquals(ID + "_", FileNameTemplate.videoName("{video_id}_{owner_id}", when(), noId));
+
+        assertTrue(FileNameTemplate.keepsApart("{owner_id}", false, false, true, false));
+        assertFalse(FileNameTemplate.keepsApart("{owner_id}", false, true, false, true));
+        assertTrue(FileNameTemplate.keepsApart("{owner}_{owner_id}_{posted}", false, true, true, true));
+        assertFalse(FileNameTemplate.keepsApart("{owner}_{owner_id}_{posted}", false, true, false, true));
+        assertFalse(FileNameTemplate.keepsApart("{owner}_{owner_id}_{posted}", false, false, true, true));
+
+        // Already in the folder: the time of the save goes on the end, as for any name from the post.
+        assertEquals("Page Name_" + OWNER_ID + "_" + DAY + "_143005",
+                FileNameTemplate.takenVideoName("{owner}_{owner_id}_{posted}", when(), known));
+        assertEquals(OWNER_ID + "_143005", FileNameTemplate.takenVideoName("{owner_id}", when(), known));
     }
 
     /**
@@ -527,6 +574,32 @@ public class FileNameTemplateTest {
         String report = LogBufferManager.buildExportText();
         assertTrue(report, report.contains("the file name asks for the video id and this save has none, "
                 + "so the date and time go on the end"));
+        assertFalse(report, report.contains(ID));
+    }
+
+    /**
+     * A reel save under {@code {owner}_{owner_id}_{posted}} is named after the Page and its number;
+     * one that doesn't know the number gets the date and time instead, and the report says so
+     * without the name or any id.
+     */
+    @Test
+    public void aTemplateNamesVideosAfterThePostersId() throws Exception {
+        Settings.FILENAME_TEMPLATE.save("{owner}_{owner_id}_{posted}");
+        SaveProgressTest.Gallery gallery = gallery();
+        writable(gallery, MediaStore.Video.Media.EXTERNAL_CONTENT_URI, 1);
+        writable(gallery, MediaStore.Video.Media.EXTERNAL_CONTENT_URI, 2);
+        new MediaStoreWriter(context, true, new PostDetails(ID, "Page Name", OWNER_ID, posted())).open("video/mp4").close();
+        new MediaStoreWriter(context, true, new PostDetails(ID, "Page Name", posted())).open("video/mp4").close();
+
+        assertEquals("Page Name_" + OWNER_ID + "_" + DAY + ".mp4", nameOf(gallery.rows.get(1L)));
+        assertTrue(nameOf(gallery.rows.get(2L)),
+                nameOf(gallery.rows.get(2L)).matches("Page Name__" + DAY + "_\\d{8}_\\d{6}\\.mp4"));
+
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("the file name asks for the poster's id and this save has none, so the "
+                + "date and time go on the end"));
+        assertFalse(report, report.contains("Page Name"));
+        assertFalse(report, report.contains(OWNER_ID));
         assertFalse(report, report.contains(ID));
     }
 

@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.glitchpixel"
+    name="Glitch Pixel"
+    desc="Amazing New Extra FX from the Modder"
+    category="distort" 
+    tags="glitch"
+    thumb="thumb/TANRYU/pixelg.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <switch id="repeat" default="false" label="Repat Strength" />
+        <spinner id="progressa" label="Strength" default="1.0" min="0.0" max="100.0" step="0.025" type="percent" />
+        <spinner id="progress" label="Evolution" default="1.0" min="0" max="1000.0" step="0.02" type="percent" />
+        <!-- <point id="position" label="@am:string/effect_param_offset" /> -->
+        <spinner id="scale" default="1.0" min="0.1" max="5.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Seed" step="0.5" type="angle" />
+        <section text="Offset" />
+        <spinner id="progressr" label="R" default="0.08" min="-10.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="progressg" label="G" default="0.07" min="-10.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="progressb" label="B" default="0.0" min="-10.0" max="100.0" step="0.01" type="percent" />
+      
+        
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+   float hash(vec2 p) {
+    	float h = dot(p,vec2(127.1,311.7));
+    	return -1.0 + 2.0*fract(sin(h)*43758.5453123);
+    }
+    
+    float noise(vec2 p) {
+    	vec2 i = floor(p);
+    	vec2 f = fract(p);
+    
+    	vec2 u = f*f*(3.0-2.0*f);
+    
+    	return mix(mix(hash( i + vec2(0.0,0.0) ), 
+    		hash( i + vec2(1.0,0.0) ), u.x),
+    	mix( hash( i + vec2(0.0,1.0) ), 
+    		hash( i + vec2(1.0,1.0) ), u.x), u.y);
+    }
+    
+    float noise(vec2 p, int oct) {
+    	mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
+    	float f  = 0.0;
+    
+    	for(int i = 1; i < 3; i++){
+    		float mul = 1.0/pow(2.0, float(i));
+    		f += mul*noise(p); 
+    		p = m*p;
+    	}
+    
+    	return f;
+    }
+    
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm.st);
+        // vec4 texColor = texture2DCv(inputImg.texture,sampleCoord);
+                        
+        /////////////////////////
+        
+        
+    	vec4 result;
+    	
+    	// vec2 uvv = sampleCoord;
+    	vec2 uvv = acScreenNorm.st;
+        
+        float glitch = repeat? pow(cos((progressa+7.5)*0.5)*1.2+1.0, 1.2) : progressa;
+        
+        
+        if(noise(0.5+vec2(0, 0))*glitch > 0.62){
+    		uvv.y = mod(uvv.y+noise(vec2(1.0*4.0, 0)), 1.2);
+    	}
+    
+        vec2 TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+
+    	vec2 hp = vec2(progress, uvv.y);
+        hp /= scale;
+        hp *= rot2m((0.0+angle)*0.0174533);
+        // hp += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+    	
+    	float nh = noise(hp*7.0+progress*10.0, 3) * (noise(hp+3.0*0.3)*0.8);
+    	nh += noise(hp*100.0+10.0*10.0, 3)*0.02;
+    	float rnd = 0.0;
+    	if(glitch > 0.0){
+    		rnd = hash(uvv);
+    		if(glitch < 1.0){
+    			rnd *= glitch;
+    		}
+    	}
+    	nh *= glitch + rnd;
+    	float r = texture2DCv(inputImg.texture, uvv+vec2(nh, progressr)*nh).r;
+    	float g = texture2DCv(inputImg.texture, uvv+vec2(nh-progressg, 0.0)*nh).g;
+    	float b = texture2DCv(inputImg.texture, uvv+vec2(nh, progressb)*nh).b;
+    
+    	vec3 col = vec3(r, g, b);
+    	result = vec4(col.rgb, 1.0);
+    	
+            vec4 targetLuma = result;
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            float luma = dot(targetLuma.rgb, luminanceWeighting);
+            float lowThresholdB = (0.06*(1.0+0.05))-0.001;
+            float lowThresholdA = lowThresholdB-max(0.05,0.00001);
+            float highThresholdA = (1.0*(1.0+0.05)-0.05)+0.001;
+            float highThresholdB = highThresholdA+max(0.05,0.00001);
+            float lowBlend = smoothstep( lowThresholdA, lowThresholdB, luma );
+            float highBlend = 1. - smoothstep( highThresholdA, highThresholdB, luma );
+            float lumafx = min(lowBlend,highBlend);
+            vec4 fxLuma = targetLuma*lumafx;
+        
+    	gl_FragColor = newLayer(texColor, fxLuma) * texColor.a;
+
+    }
+
+
+    ]]></shader>
+
+</effect>

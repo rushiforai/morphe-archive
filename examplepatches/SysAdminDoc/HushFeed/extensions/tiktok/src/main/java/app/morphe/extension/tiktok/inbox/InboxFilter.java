@@ -64,20 +64,20 @@ import java.util.WeakHashMap;
  * </pre>
  */
 public final class InboxFilter {
-    private static final String[] LIST_IDS = {"47.0.3:l7b", "47.1.3:l91"};
-    private static final String[] SYSTEM_ROW_IDS = {"47.0.3:uy5", "47.1.3:v1m"};
-    private static final String[] CHAT_ROW_IDS = {"47.0.3:w1f", "47.1.3:w54"};
+    private static final String[] LIST_IDS = {"47.0.3:l7b", "47.1.3:l91", "47.1.4:l91"};
+    private static final String[] SYSTEM_ROW_IDS = {"47.0.3:uy5", "47.1.3:v1m", "47.1.4:v1m"};
+    private static final String[] CHAT_ROW_IDS = {"47.0.3:w1f", "47.1.3:w54", "47.1.4:w54"};
     private static final String[] MESSAGE_REQUESTS_IDS = {"tv_request_unread_count"};
-    private static final String[] SAY_HI_ROW_IDS = {"47.0.3:olv", "47.1.3:oom"};
-    private static final String[] SYSTEM_ROW_TITLE_IDS = {"47.0.3:brb", "47.1.3:brl"};
+    private static final String[] SAY_HI_ROW_IDS = {"47.0.3:olv", "47.1.3:oom", "47.1.4:oom"};
+    private static final String[] SYSTEM_ROW_TITLE_IDS = {"47.0.3:brb", "47.1.3:brl", "47.1.4:brl"};
     private static final String[] USER_ROW_TITLE_IDS = {"user_name"};
-    private static final String[] STORIES_TITLE_IDS = {"47.0.3:wqq", "47.1.3:wuh"};
-    private static final String[] SUGGESTED_HEADER_IDS = {"47.0.3:q3m", "47.1.3:q6c"};
-    private static final String[] SUGGESTED_TITLE_IDS = {"47.0.3:u1n", "47.1.3:u4x"};
-    private static final String[] SUGGESTED_REMOVE_IDS = {"47.0.3:fwz", "47.1.3:fyd"};
-    private static final String[] HEADER_ADD_PEOPLE_IDS = {"47.0.3:fg5", "47.1.3:fhi"};
-    private static final String[] HEADER_SEARCH_IDS = {"47.0.3:kp1", "47.1.3:kqj"};
-    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"47.0.3:l7d", "47.1.3:l93"};
+    private static final String[] STORIES_TITLE_IDS = {"47.0.3:wqq", "47.1.3:wuh", "47.1.4:wuh"};
+    private static final String[] SUGGESTED_HEADER_IDS = {"47.0.3:q3m", "47.1.3:q6c", "47.1.4:q6c"};
+    private static final String[] SUGGESTED_TITLE_IDS = {"47.0.3:u1n", "47.1.3:u4x", "47.1.4:u4x"};
+    private static final String[] SUGGESTED_REMOVE_IDS = {"47.0.3:fwz", "47.1.3:fyd", "47.1.4:fyd"};
+    private static final String[] HEADER_ADD_PEOPLE_IDS = {"47.0.3:fg5", "47.1.3:fhi", "47.1.4:fhi"};
+    private static final String[] HEADER_SEARCH_IDS = {"47.0.3:kp1", "47.1.3:kqj", "47.1.4:kqj"};
+    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"47.0.3:l7d", "47.1.3:l93", "47.1.4:l93"};
 
     /** One dismissal at a time, so bulk clearing does not hammer TikTok's API. */
     private static final long DISMISS_INTERVAL_MS = 300L;

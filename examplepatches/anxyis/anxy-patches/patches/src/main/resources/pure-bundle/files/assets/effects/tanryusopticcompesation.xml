@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e6f70746963636f6d7065736174696f6e" deprecated="true">
+
+    <params>
+         <slider id="iterations" label="Quality" default="10" min="1" max="15" step="1.0" type="integer"/>
+        <spinner id="distortion" label="Distortion" default="0.0" min="-10.0" max="25" step="0.01" type="percent" ticks="0" snap="0"/>
+        <spinner id="strength" label="Strength" default="0.01" min="0.0" max="25" step="0.01" type="percent" />
+        <spinner id="separation" label="Separation" default="0.1" min="0.0" max="25" step="0.01" type="percent" />
+        <selector id="blendMode" style="radio" default="0">
+            <choice label="NORMAL" value="0" />
+            <choice label="LAYER" value="3" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+        <spinner id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        vec4 Aberrate (sampler2D source, vec2 uv, float amount) {
+         
+            return texture2DCv(source, 0.5 + uv / sqrt(1.0 + amount * dot(uv, uv)));
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        float iTime = acTime;
+        vec2 TanRyu;
+        TanRyu = acScreenNorm; 
+        
+        TanRyu -= 0.5;
+        TanRyu /= scale;
+        TanRyu *= rot2m((0.0)*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+        	vec2 uv = TanRyu;
+        	// vec2 uv = uv / iResolution.xy - 0.5;
+            
+            vec4 A = vec4(0, 0, 0, 1);
+            
+            for (float i = -iterations; i < iterations; i++)
+            {
+        	   	A.r += Aberrate(inputImg.texture, uv, i * strength + (distortion + separation)).r;
+            }
+            
+            for (float i = -iterations; i < iterations; i++)
+            {
+        	   	A.g += Aberrate(inputImg.texture, uv, i * strength + distortion).g;
+            }
+            
+            for (float i = -iterations; i < iterations; i++)
+            {
+        	   	A.b += Aberrate(inputImg.texture, uv, i * strength + (distortion - separation)).b;
+            }
+            
+            A /= iterations * 2.0;
+            
+            fragColor = A;    
+        
+    	vec4 factor = texColorX+fragColor;
+    	// vec4 factor = mix(texColorX,fragColor,1.0);
+    	
+        vec4 resultfinal;
+          if( blendMode==0 ) {
+            resultfinal = (factor * hardness) * texColor.a; }
+            // resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; 
+            resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+              // resultfinal = max(factor, texColor) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

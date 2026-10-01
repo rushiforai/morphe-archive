@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.depth-particles" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/depth-particles.webp" tags="3d,particles,bokeh,depth,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Particles</string>
+            <string name="desc">Procedural glowing particles drifting through 3D space at different depths with soft bokeh.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color" default="#FFFFE9A8" label="Particle Color" alpha="false" />
+        <slider id="amount" default="0.5" min="0.1" max="1.0" label="Density" />
+        <slider id="speed" default="0.5" min="0.0" max="3.0" label="Speed" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec4 src=texture2DCv(inputImg.texture, acScreenNorm);
+            float asp=acScreenSize.x/acScreenSize.y;
+            vec3 add=vec3(0.0);
+            for(int i=1;i<=4;i++){
+                float fi=float(i);
+                float sc=4.0+amount*6.0*fi;
+                vec2 g=acScreenNorm*vec2(sc*asp, sc);
+                g.y+=acTime*speed*fi*0.5;
+                vec2 id=floor(g); vec2 f=fract(g)-0.5;
+                float h=rand(id+fi*7.0);
+                float size=mix(0.5,0.12,fi/4.0);
+                float dotv=smoothstep(size,0.0,length(f))*step(0.7,h);
+                float tw=0.6+0.4*sin(acTime*2.0+h*30.0);
+                add += color.rgb*dotv*tw/fi;
+            }
+            vec3 outc=1.0-(1.0-src.rgb)*(1.0-add);
+            gl_FragColor=vec4(outc, src.a) + vec4(add,0.0)*(1.0-src.a);
+        }
+    ]]></shader>
+
+</effect>

@@ -42,6 +42,7 @@ class AppCompatibilitiesMatchFixturesTest {
         val expected = mapOf(
             "47.0.3" to AppCompatibilities.TIKTOK_4703_VERSION_CODE,
             "47.1.3" to AppCompatibilities.TIKTOK_4713_VERSION_CODE,
+            "47.1.4" to AppCompatibilities.TIKTOK_4714_VERSION_CODE,
         )
         assertEquals("declared versions", expected.keys, targets.map { it.version }.toSet())
         assertEquals("the codes the Play Store patch accepts", expected.values.toSet(), AppCompatibilities.TIKTOK_VERSION_CODES)

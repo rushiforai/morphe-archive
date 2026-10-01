@@ -22,6 +22,9 @@ public final class NativeBridge {
     public static int pickerId(Object tab) { throw new IllegalStateException("Unpatched bridge"); }
     public static String pickerTitle(Object tab) { throw new IllegalStateException("Unpatched bridge"); }
     public static android.graphics.Bitmap pickerIcon(Object tab) { throw new IllegalStateException("Unpatched bridge"); }
+    public static Object pickerUrl(Object tab) { throw new IllegalStateException("Unpatched bridge"); }
+    public static void pickerRequestIcon(Object tab) { throw new IllegalStateException("Unpatched bridge"); }
+    public static void pickerInvalidateCapture(android.view.View toolbar) { throw new IllegalStateException("Unpatched bridge"); }
     public static void pickerSelect(Object model, int tabId) { throw new IllegalStateException("Unpatched bridge"); }
     public static void pickerClose(Object model, int tabId) { throw new IllegalStateException("Unpatched bridge"); }
     public static void writeChromeInt(int value, String key) { throw new IllegalStateException("Unpatched bridge"); }

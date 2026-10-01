@@ -210,25 +210,36 @@ final class Downloader {
          * the one Facebook's player can show, so the person saving is told.
          */
         final boolean lower;
+        /**
+         * The saved file, read back, holds a track WhatsApp and some editors refuse, so with Save
+         * videos other apps can open off the person saving is pointed at it (#11, #14).
+         */
+        final boolean refused;
 
-        private Result(Status status, String reason, String mime, boolean lower) {
+        private Result(Status status, String reason, String mime, boolean lower, boolean refused) {
             this.status = status;
             this.reason = reason;
             this.mime = mime;
             this.lower = lower;
+            this.refused = refused;
         }
 
         static Result ok(String mime) {
-            return new Result(Status.OK, null, mime, false);
+            return new Result(Status.OK, null, mime, false, false);
         }
 
         static Result fail(Status status, String reason) {
-            return new Result(status, reason, null, false);
+            return new Result(status, reason, null, false, false);
         }
 
         /** This result, told that the saved picture is below the manifest's. */
         Result lower() {
-            return new Result(status, reason, mime, true);
+            return new Result(status, reason, mime, true, refused);
+        }
+
+        /** This result, told that the saved file holds a track other apps refuse. */
+        Result refused() {
+            return new Result(status, reason, mime, lower, true);
         }
 
         boolean ok() {

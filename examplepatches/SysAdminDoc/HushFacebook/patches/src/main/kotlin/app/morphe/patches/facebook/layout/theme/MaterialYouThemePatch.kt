@@ -22,6 +22,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import kotlin.math.abs
@@ -98,7 +100,7 @@ internal const val FALLBACK_PALETTE =
         "000000 191B23 2E3038 45464F 5C5E67 757680 8F909A AAAAB4 C5C6D0 E2E2EC F0F0FA FEFBFF FFFFFF"
 
 /** The tone of each step of a palette family, darkest first. */
-private val TONES = listOf(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100)
+internal val TONES = listOf(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100)
 
 /** Android's resource names for those steps: system_*_1000 is tone 0, system_*_0 is tone 100. */
 private val SYSTEM_STEPS = listOf(1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 50, 10, 0)
@@ -153,7 +155,7 @@ private fun parseOpaque(value: String): Int? {
 }
 
 /** MaterialYouTheme.isFacebookBlue: an HSV hue from 200 to 225 degrees, clearly coloured. */
-private fun isFacebookBlue(r: Int, g: Int, b: Int): Boolean {
+internal fun isFacebookBlue(r: Int, g: Int, b: Int): Boolean {
     val delta = b - minOf(r, g)
     if (b < r || b < g || b < 77 || delta * 4 < b) return false
     val turn = 60 * (r - g)
@@ -205,8 +207,41 @@ internal fun recolourNightColours(night: Document, nightV31: Document): Int {
 
 private const val NIGHT_COLORS = "res/values-night/colors.xml"
 private const val NIGHT_V31_COLORS = "res/values-night-v31/colors.xml"
+private const val NIGHT_VALUES = "res/values-night"
+
+/** The night style items' colour state lists for Android 12 and newer, one file per [NightShade]. */
+private const val NIGHT_V31_STATE_LISTS = "res/color-night-v31"
+
+/** Read, never written: light mode's colours and styles stay as Facebook has them. */
+private const val DEFAULT_COLORS = "res/values/colors.xml"
+private const val DEFAULT_VALUES = "res/values"
+
+private const val EMPTY_RESOURCES = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>\n"
+
+/** A decoded resource file parsed for reading only, so nothing writes it back. */
+private fun readOnly(file: File): Document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+
+/**
+ * The colours given a night value in [res], a decoded resource folder: every values folder with a
+ * night qualifier, values-night-v31 or values-land-night as well as values-night. A colour Facebook
+ * gives its own night value in any of them is its choice at night, so route two leaves it alone.
+ */
+internal fun nightValuedColours(res: File): Set<String> =
+    res.listFiles().orEmpty()
+        .filter { folder -> folder.isDirectory && folder.name.split('-').let { it.first() == "values" && "night" in it } }
+        .map { File(it, "colors.xml") }.filter { it.isFile }
+        .flatMapTo(sortedSetOf()) { readOnly(it).colourValues().keys }
+
+/** Each colour in a decoded colours file, by name, with its value as written. */
+private fun Document.colourValues(): Map<String, String> {
+    val colors = getElementsByTagName("color")
+    return (0 until colors.length).mapNotNull { colors.item(it) as? Element }
+        .associate { it.getAttribute("name") to it.textContent.trim() }
+}
 
 private val materialYouResourcePatch = resourcePatch {
+    dependsOn(fdsTokenAttributesPatch)
+
     // After every patch's own work, so AMOLED's black has gone in first and stays: black is no
     // tone this recolours.
     finalize {
@@ -214,12 +249,43 @@ private val materialYouResourcePatch = resourcePatch {
         val dynamic = get(NIGHT_V31_COLORS, false)
         if (!dynamic.exists()) {
             dynamic.parentFile.mkdirs()
-            dynamic.writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>\n")
+            dynamic.writeText(EMPTY_RESOURCES)
         }
+        val nightColourNames = nightValuedColours(get("res", false))
         val changed = document(NIGHT_COLORS).use { night ->
             document(NIGHT_V31_COLORS).use { nightV31 -> recolourNightColours(night, nightV31) }
         }
         check(changed > 0) { "No night colour is near a palette tone, so text would keep its grey" }
+
+        // Route two for the FDS styles (MaterialYouStyles.kt): a night copy of the dark style.
+        val colours = readOnly(get(DEFAULT_COLORS)).colourValues()
+        val styleFiles = get(DEFAULT_VALUES).listFiles().orEmpty()
+            .filter { it.name.startsWith("style") && it.name.endsWith(".xml") }.sortedBy { it.name }
+        var restyled = 0
+        val stateLists = sortedMapOf<String, String>()
+        for (file in styleFiles) {
+            val family = darkFdsStyles(readOnly(file), tokenAttributeNames)
+            if (family.isEmpty()) continue
+            val nightStyles = "$NIGHT_VALUES/${file.name}"
+            get(nightStyles, false).let { if (!it.exists()) it.writeText(EMPTY_RESOURCES) }
+            restyled += document(nightStyles).use { night ->
+                document(NIGHT_COLORS).use { nightColours ->
+                    document(NIGHT_V31_COLORS).use { nightV31Colours ->
+                        writeNightStyles(family, colours, nightColourNames, tokenAttributeNames, night, nightColours,
+                            nightV31Colours, stateLists, plainTokens)
+                    }
+                }
+            }
+        }
+        check(restyled > 0) {
+            "No FDS dark style item takes a palette colour, so views Facebook inflates from its layouts would keep its blue"
+        }
+        for ((name, stateList) in stateLists) {
+            val file = get("$NIGHT_V31_STATE_LISTS/$name.xml", false)
+            check(!file.exists()) { "Facebook already has a colour state list named $name" }
+            file.parentFile.mkdirs()
+            file.writeText(stateList)
+        }
     }
 }
 
@@ -274,6 +340,10 @@ val materialYouThemePatch = bytecodePatch(
         // finding none is fine then.
         val read = readSurfaceLiterals()
         check(read > 0 || amoledParsers > 0) { "No dark surface written in code, so the chrome would stay grey" }
+
+        // React Native screens such as Marketplace home. With AMOLED in the build its call put
+        // the hooks in already, and ReactColours runs both themes.
+        hookReactColours()
     }
 }
 

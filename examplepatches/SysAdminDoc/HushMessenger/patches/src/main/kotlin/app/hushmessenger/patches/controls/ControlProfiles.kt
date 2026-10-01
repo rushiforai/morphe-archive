@@ -1,9 +1,12 @@
 package app.hushmessenger.patches.controls
 
 /**
- * What differs between the Redex builds of Messenger 580 the controls support. It's the same app
+ * What differs between the Redex builds of Messenger the controls support. It's the same app
  * under different obfuscated names and a few shifted instruction positions, so each build keeps its
  * own exact hook list and the references the validators pin. Nothing is matched by count alone.
+ *
+ * scripts/profiles records each build, and `CompatReport.java --kotlin` turns a record into a new
+ * profile. CompatProfileTest fails when a record and its profile here disagree.
  */
 internal class ControlProfile(
     val hooks: Map<String, Set<String>>,
@@ -22,7 +25,7 @@ internal class ControlProfile(
     val adFilterExits: List<Int>,
 )
 
-/** 346013387, 346013440, 346013442 and 346013354 share one mapping. */
+/** 346013387, 346013440, 346013442, 346013354 and 346013394 share one mapping. */
 internal val BASE_PROFILE = ControlProfile(
     hooks = expectedHooks,
     pluginSentinel = "LX/1dj;->A03:Ljava/lang/Object;",
@@ -36,7 +39,10 @@ internal val BASE_PROFILE = ControlProfile(
     adFilterExits = listOf(916, 931),
 )
 
-/** 346013370, the arm64 nodpi APK APKMirror serves as variant 19 of 580.0.0.49.91. */
+/**
+ * 346013370, the arm64 nodpi APK APKMirror serves as variant 19 of 580.0.0.49.91. It fills the
+ * sticker keyboard's tab list inline instead of returning it. Generated from its record.
+ */
 internal val PROFILE_346013370 = ControlProfile(
     hooks = mapOf(
         "ads" to setOf("LX/2Wk;->D2e(LX/1fw;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;"),
@@ -45,13 +51,14 @@ internal val PROFILE_346013370 = ControlProfile(
         "ai_search" to setOf("LX/5OE;->A0A(LX/5OE;)Z", "LX/5OE;->A0B(LX/5OE;)Z"),
         "ai_search_chip" to setOf("LX/O7T;->render(LX/2MY;)LX/1GF;"),
         "ai_stickers" to setOf("LX/PT6;->A03(LX/PT6;)Z", "LX/PTo;->A07(LX/PTo;)Z"),
+        "ai_tab" to setOf("LX/1iM;->A02(LX/1iM;)Z"),
         "ai_toolbar" to setOf("LX/2aO;->A04()Z"),
         "allow_screenshot" to setOf(
             "LX/4nb;->A00(Landroid/view/Window;)V", "LX/8wJ;->onScreenCaptured()V", "LX/N1j;->run()V",
             "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V",
         ),
+        "anonymous_stories" to setOf("LX/Ncx;->C1W(Lcom/facebook/messaging/montage/model/MontageCard;Z)V"),
         "avatar_stickers" to setOf("LX/PT6;->A01(LX/PT6;)Z"),
-        // This build fills the sticker keyboard's tab list inline instead of returning it.
         "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6U(LX/5n3;)V"),
         "browser" to setOf("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0M(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"),
         "bubbles" to setOf("LX/2ZV;->A00()Z"),
@@ -69,6 +76,8 @@ internal val PROFILE_346013370 = ControlProfile(
         ),
         "friend_requests" to setOf("LX/1pl;->A09()Z", "LX/2Wk;->A02()Z"),
         "growth" to setOf("LX/1pl;->A0A()Z", "LX/2GD;->A0A(LX/2GD;)Z"),
+        "growth_notes" to setOf("Lcom/facebook/presence/note/ui/nux/controller/NotesNuxController;->A01(Landroidx/fragment/app/Fragment;LX/Icw;Ljava/util/List;LX/5MW;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;"),
+        "growth_story_card" to setOf("Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0z(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)Z"),
         "hide_read_receipts" to setOf("LX/AVX;->run()V"),
         "inbox_promotions" to setOf("LX/2Ee;->A0J()Z", "LX/2Ee;->A0K()Z"),
         "keep_unsent" to setOf("LX/VTZ;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"),
@@ -77,11 +86,19 @@ internal val PROFILE_346013370 = ControlProfile(
             "LX/NjG;->CAp(LX/4k1;I)V", "LX/WnD;->A0J(Ljava/util/List;)V",
         ),
         "moments" to setOf("LX/HC4;->A05()Z", "LX/Jdr;->A05()Z"),
+        "original_photo" to setOf(
+            "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImage(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;)[B",
+            "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImageAsync(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Lcom/facebook/msys/mci/TranscodeImageCompletionCallback;)V",
+        ),
         "people" to setOf("LX/1pl;->A0C()Z", "LX/2Wk;->A04()Z"),
         "people_jewel" to setOf("LX/NRn;->A01(LX/NRn;)Z"),
         "people_list_end" to setOf("LX/1pl;->A0B()Z", "LX/2Wk;->A03()Z"),
+        "people_search" to setOf("LX/CTD;->DLJ(LX/E4Z;Ljava/lang/Object;)LX/E6Q;"),
+        "people_story" to setOf("Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0Z(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)V"),
+        "people_tab" to setOf("LX/E6o;->A01(LX/E6o;)V"),
         "read_mailbox" to setOf("LX/9rH;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V"),
         "reels_badge" to setOf("LX/7vk;->A09(LX/7vk;)Z"),
+        "save_stories" to setOf("LX/NfP;->onClick(Landroid/view/View;)V"),
         "stories" to setOf("LX/1mh;->A00()Z"),
         "subtabs" to setOf("LX/2UK;->run()V"),
         "suggested_replies" to setOf("LX/7R8;->A06(LX/7R8;)Z", "LX/7S6;->A05(LX/7S6;)Z", "LX/HCJ;->A05()Z"),
@@ -100,8 +117,268 @@ internal val PROFILE_346013370 = ControlProfile(
     adFilterExits = listOf(915, 930),
 )
 
-internal fun controlProfileFor(versionCode: String?): ControlProfile =
-    if (versionCode == "346013370") PROFILE_346013370 else BASE_PROFILE
+/**
+ * 346013423, the arm64 nodpi APK APKMirror serves as variant 13 of 580.0.0.49.91. Its Notifications tab
+ * check loads the server flag one instruction earlier. Generated from its record.
+ */
+internal val PROFILE_346013423 = ControlProfile(
+    hooks = mapOf(
+        "ads" to setOf("LX/2Xz;->D44(LX/1gs;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;"),
+        "ai_fab" to setOf("LX/6kF;->render(LX/2Nf;)LX/1Gf;"),
+        "ai_menu" to setOf("LX/HBB;->A00()Z", "LX/HBB;->A01()Z", "LX/JdK;->A00()Z", "LX/JdK;->A01()Z"),
+        "ai_search" to setOf("LX/5RV;->A0A(LX/5RV;)Z", "LX/5RV;->A0B(LX/5RV;)Z"),
+        "ai_search_chip" to setOf("LX/DB7;->render(LX/2Nf;)LX/1Gf;"),
+        "ai_stickers" to setOf("LX/YAk;->A03(LX/YAk;)Z", "LX/YBZ;->A07(LX/YBZ;)Z"),
+        "ai_tab" to setOf("LX/1jI;->A02(LX/1jI;)Z"),
+        "ai_toolbar" to setOf("LX/2bd;->A04()Z"),
+        "allow_screenshot" to setOf(
+            "LX/4qp;->A00(Landroid/view/Window;)V", "LX/8zQ;->onScreenCaptured()V", "LX/Pf4;->run()V",
+            "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V",
+        ),
+        "anonymous_stories" to setOf("LX/NUZ;->C1g(Lcom/facebook/messaging/montage/model/MontageCard;Z)V"),
+        "avatar_stickers" to setOf("LX/YAk;->A01(LX/YAk;)Z"),
+        "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6U(LX/5qN;)V"),
+        "browser" to setOf("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0M(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"),
+        "bubbles" to setOf("LX/2ak;->A00()Z"),
+        "business_suggestions" to setOf("LX/7Tb;->A05(LX/7Tb;)Z", "LX/7UZ;->A04(LX/7UZ;)Z", "LX/KHp;->A04()Z"),
+        "chat_promotions" to setOf("LX/KHo;->A0D()Z", "LX/KHo;->A0E()Z"),
+        "delta_unsent" to setOf("LX/YOo;->Bto(I)Z"),
+        "emoji_typeface" to setOf("LX/1Ku;->A00()Landroid/graphics/Typeface;"),
+        "event_prompts" to setOf("LX/KHo;->A07()Z", "LX/KHo;->A08()Z"),
+        "facebook" to setOf(
+            "LX/2bd;->A0C()Z", "LX/3GM;->A00()Z", "LX/3pQ;->A00()Z", "LX/3pU;->A02()Z", "LX/HB9;->A02()Z",
+            "LX/HKv;->A02()Z", "LX/HL8;->A06()Z", "LX/Jcm;->A04()Z", "LX/Jcy;->A06()Z", "LX/JdN;->A06()Z",
+            "LX/Jdf;->A00()Z", "LX/Jdn;->A01()Z", "LX/Jdp;->A02()Z", "LX/Jdr;->A02()Z", "LX/Jdw;->A03()Z",
+            "LX/Jdx;->A03()Z", "LX/Jdz;->A01()Z", "LX/Je0;->A01()Z", "LX/Je2;->A06()Z", "LX/Je3;->A06()Z",
+            "LX/Je4;->A06()Z",
+        ),
+        "friend_requests" to setOf("LX/1qi;->A09()Z", "LX/2Xz;->A02()Z"),
+        "growth" to setOf("LX/1qi;->A0A()Z", "LX/2HI;->A0A(LX/2HI;)Z"),
+        "growth_notes" to setOf("Lcom/facebook/presence/note/ui/nux/controller/NotesNuxController;->A01(Landroidx/fragment/app/Fragment;LX/IaJ;Ljava/util/List;LX/5Pn;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;"),
+        "growth_story_card" to setOf("Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0z(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)Z"),
+        "hide_read_receipts" to setOf("LX/AZP;->run()V"),
+        "inbox_promotions" to setOf("LX/2Fj;->A0J()Z", "LX/2Fj;->A0K()Z"),
+        "keep_unsent" to setOf("LX/M4U;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"),
+        "menu_settings" to setOf(
+            "LX/HB5;->AxC(LX/0MJ;)Ljava/util/ArrayList;", "LX/Jq9;->onClick(Landroid/view/View;)V",
+            "LX/Wh6;->CB5(LX/4nF;I)V", "LX/Wh7;->A0I(Ljava/util/List;)V",
+        ),
+        "moments" to setOf("LX/HBB;->A05()Z", "LX/JdK;->A05()Z"),
+        "original_photo" to setOf(
+            "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImage(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;)[B",
+            "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImageAsync(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Lcom/facebook/msys/mci/TranscodeImageCompletionCallback;)V",
+        ),
+        "people" to setOf("LX/1qi;->A0C()Z", "LX/2Xz;->A04()Z"),
+        "people_jewel" to setOf("LX/H9F;->A01(LX/H9F;)Z"),
+        "people_list_end" to setOf("LX/1qi;->A0B()Z", "LX/2Xz;->A03()Z"),
+        "people_search" to setOf("LX/CXB;->DMm(LX/E7Q;Ljava/lang/Object;)LX/E8v;"),
+        "people_story" to setOf("Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0a(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)V"),
+        "people_tab" to setOf("LX/E9L;->A01(LX/E9L;)V"),
+        "read_mailbox" to setOf("LX/9v6;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V"),
+        "reels_badge" to setOf("LX/7yl;->A09(LX/7yl;)Z"),
+        "save_stories" to setOf("LX/NT4;->onClick(Landroid/view/View;)V"),
+        "stories" to setOf("LX/1ne;->A00()Z"),
+        "subtabs" to setOf("LX/2VZ;->run()V"),
+        "suggested_replies" to setOf("LX/7Tb;->A06(LX/7Tb;)Z", "LX/7UZ;->A05(LX/7UZ;)Z", "LX/KHp;->A05()Z"),
+        "typing" to setOf("LX/AkF;->run()V"),
+        "typing_mailbox" to setOf("LX/8gA;->A0I(Ljava/lang/String;Z)LX/33W;"),
+        "unsent_indicator" to setOf("LX/YOo;->BWz(I)Ljava/lang/String;"),
+    ),
+    pluginSentinel = "LX/1eZ;->A03:Ljava/lang/Object;",
+    preferenceGetter = "Lcom/facebook/prefs/shared/FbSharedPreferences;->AhM(LX/1BV;Z)Z",
+    peopleKey = "LX/JON;->A01:LX/1BW;",
+    peopleFlagCheck = "LX/174;->A1Y(Ljava/lang/Object;J)Z",
+    subtabsSupplier = "LX/2VZ;->A00:Lcom/facebook/messaging/inboxsubtabs/plugins/subtabs/itemsupplier/InboxSubtabsItemSupplierImplementation;",
+    browserPreferenceKey = "LX/1DK;->A1U:LX/1BV;",
+    browserPreferenceIndex = 54,
+    adFilterSize = 935,
+    adFilterExits = listOf(916, 931),
+)
+
+/**
+ * 346013357, 346013358, 346013359, 346013391, 346013443, 346013444 and 346013445: single-density arm64 APKs of
+ * 580.0.0.49.91 on APKMirror that share one Redex mapping. Generated from 346013357's record.
+ */
+internal val PROFILE_346013357 = ControlProfile(
+    hooks = mapOf(
+        "ads" to setOf("LX/2Wl;->D2h(LX/1fx;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;"),
+        "ai_fab" to setOf("LX/6ji;->render(LX/2MZ;)LX/1GG;"),
+        "ai_menu" to setOf("LX/HEz;->A00()Z", "LX/HEz;->A01()Z", "LX/JiI;->A00()Z", "LX/JiI;->A01()Z"),
+        "ai_search" to setOf("LX/5O3;->A0A(LX/5O3;)Z", "LX/5O3;->A0B(LX/5O3;)Z"),
+        "ai_search_chip" to setOf("LX/D7q;->render(LX/2MZ;)LX/1GG;"),
+        "ai_stickers" to setOf("LX/PN4;->A03(LX/PN4;)Z", "LX/PNb;->A07(LX/PNb;)Z"),
+        "ai_tab" to setOf("LX/1iN;->A02(LX/1iN;)Z"),
+        "ai_toolbar" to setOf("LX/2aP;->A04()Z"),
+        "allow_screenshot" to setOf(
+            "LX/4nQ;->A00(Landroid/view/Window;)V", "LX/8xP;->onScreenCaptured()V", "LX/N1s;->run()V",
+            "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V",
+        ),
+        "anonymous_stories" to setOf("LX/HMz;->C1T(Lcom/facebook/messaging/montage/model/MontageCard;Z)V"),
+        "avatar_stickers" to setOf("LX/PN4;->A01(LX/PN4;)Z"),
+        "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A0P()Lcom/google/common/collect/ImmutableList;"),
+        "browser" to setOf("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0L(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"),
+        "bubbles" to setOf("LX/2ZW;->A00()Z"),
+        "business_suggestions" to setOf("LX/7SD;->A05(LX/7SD;)Z", "LX/7TB;->A04(LX/7TB;)Z", "LX/Ts4;->A04()Z"),
+        "chat_promotions" to setOf("LX/Ts2;->A0D()Z", "LX/Ts2;->A0E()Z"),
+        "delta_unsent" to setOf("LX/K0w;->Bta(I)Z"),
+        "emoji_typeface" to setOf("LX/1KV;->A00()Landroid/graphics/Typeface;"),
+        "event_prompts" to setOf("LX/Ts2;->A07()Z", "LX/Ts2;->A08()Z"),
+        "facebook" to setOf(
+            "LX/2aP;->A0C()Z", "LX/3EW;->A00()Z", "LX/3mb;->A00()Z", "LX/HEy;->A02()Z", "LX/HQo;->A06()Z",
+            "LX/HQp;->A02()Z", "LX/Jhw;->A06()Z", "LX/JiF;->A02()Z", "LX/Jic;->A00()Z", "LX/Jik;->A01()Z",
+            "LX/Jim;->A02()Z", "LX/Jio;->A02()Z", "LX/Jit;->A03()Z", "LX/Jiu;->A03()Z", "LX/Jiw;->A01()Z",
+            "LX/Jix;->A01()Z", "LX/Jiz;->A06()Z", "LX/Jj0;->A06()Z", "LX/Jj1;->A06()Z", "LX/Vi4;->A06()Z",
+            "LX/YHJ;->A04()Z",
+        ),
+        "friend_requests" to setOf("LX/1pm;->A09()Z", "LX/2Wl;->A02()Z"),
+        "growth" to setOf("LX/1pm;->A0A()Z", "LX/2GE;->A0A(LX/2GE;)Z"),
+        "growth_notes" to setOf("Lcom/facebook/presence/note/ui/nux/controller/NotesNuxController;->A01(Landroidx/fragment/app/Fragment;LX/OdC;Ljava/util/List;LX/5ML;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;"),
+        "growth_story_card" to setOf("Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0x(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)Z"),
+        "hide_read_receipts" to setOf("LX/AWg;->run()V"),
+        "inbox_promotions" to setOf("LX/2Ef;->A0J()Z", "LX/2Ef;->A0K()Z"),
+        "keep_unsent" to setOf("LX/SM8;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"),
+        "menu_settings" to setOf(
+            "LX/HEw;->Ax2(LX/0MG;)Ljava/util/ArrayList;", "LX/JwE;->onClick(Landroid/view/View;)V",
+            "LX/U8O;->CAm(LX/4jq;I)V", "LX/U8R;->A0J(Ljava/util/List;)V",
+        ),
+        "moments" to setOf("LX/HEz;->A05()Z", "LX/JiI;->A05()Z"),
+        "original_photo" to setOf(
+            "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImage(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;)[B",
+            "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImageAsync(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Lcom/facebook/msys/mci/TranscodeImageCompletionCallback;)V",
+        ),
+        "people" to setOf("LX/1pm;->A0C()Z", "LX/2Wl;->A04()Z"),
+        "people_jewel" to setOf("LX/H9p;->A01(LX/H9p;)Z"),
+        "people_list_end" to setOf("LX/1pm;->A0B()Z", "LX/2Wl;->A03()Z"),
+        "people_search" to setOf("LX/CX8;->DLO(LX/E9d;Ljava/lang/Object;)LX/EBQ;"),
+        "people_story" to setOf("Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0Y(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)V"),
+        "people_tab" to setOf("LX/JYS;->A01(LX/JYS;)V"),
+        "read_mailbox" to setOf("LX/9sS;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V"),
+        "reels_badge" to setOf("LX/7wp;->A09(LX/7wp;)Z"),
+        "save_stories" to setOf("LX/Jfc;->onClick(Landroid/view/View;)V"),
+        "stories" to setOf("LX/1mi;->A00()Z"),
+        "subtabs" to setOf("LX/2UL;->run()V"),
+        "suggested_replies" to setOf("LX/7SD;->A06(LX/7SD;)Z", "LX/7TB;->A05(LX/7TB;)Z", "LX/Ts4;->A05()Z"),
+        "typing" to setOf("LX/AhV;->run()V"),
+        "typing_mailbox" to setOf("LX/8eB;->A0I(Ljava/lang/String;Z)LX/325;"),
+        "unsent_indicator" to setOf("LX/K0w;->BWn(I)Ljava/lang/String;"),
+    ),
+    pluginSentinel = "LX/1dj;->A03:Ljava/lang/Object;",
+    preferenceGetter = "Lcom/facebook/prefs/shared/FbSharedPreferences;->AhD(LX/1BK;Z)Z",
+    peopleKey = "LX/JTH;->A01:LX/1BL;",
+    peopleFlagCheck = "LX/16z;->A1Z(Ljava/lang/Object;J)Z",
+    subtabsSupplier = "LX/2UL;->A00:Lcom/facebook/messaging/inboxsubtabs/plugins/subtabs/itemsupplier/InboxSubtabsItemSupplierImplementation;",
+    browserPreferenceKey = "LX/1D1;->A1U:LX/1BK;",
+    browserPreferenceIndex = 60,
+    adFilterSize = 935,
+    adFilterExits = listOf(916, 931),
+)
+
+/**
+ * 346013374 and 346013375, two more single-density arm64 APKs of 580.0.0.49.91 with a mapping of
+ * their own. Generated from 346013374's record.
+ */
+internal val PROFILE_346013374 = ControlProfile(
+    hooks = mapOf(
+        "ads" to setOf("LX/2Wk;->D2c(LX/1fw;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;"),
+        "ai_fab" to setOf("LX/6kf;->render(LX/2MY;)LX/1GF;"),
+        "ai_menu" to setOf("LX/HKQ;->A00()Z", "LX/HKQ;->A01()Z", "LX/Jk4;->A00()Z", "LX/Jk4;->A01()Z"),
+        "ai_search" to setOf("LX/5Q1;->A0A(LX/5Q1;)Z", "LX/5Q1;->A0B(LX/5Q1;)Z"),
+        "ai_search_chip" to setOf("LX/D5Q;->render(LX/2MY;)LX/1GF;"),
+        "ai_stickers" to setOf("LX/MEX;->A03(LX/MEX;)Z", "LX/MEu;->A07(LX/MEu;)Z"),
+        "ai_tab" to setOf("LX/1iM;->A02(LX/1iM;)Z"),
+        "ai_toolbar" to setOf("LX/2aO;->A04()Z"),
+        "allow_screenshot" to setOf(
+            "LX/4pO;->A00(Landroid/view/Window;)V", "LX/8yJ;->onScreenCaptured()V", "LX/YOO;->run()V",
+            "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V",
+        ),
+        "anonymous_stories" to setOf("LX/NFK;->C1U(Lcom/facebook/messaging/montage/model/MontageCard;Z)V"),
+        "avatar_stickers" to setOf("LX/MEX;->A01(LX/MEX;)Z"),
+        "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6U(LX/5os;)V"),
+        "browser" to setOf("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0M(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"),
+        "bubbles" to setOf("LX/2ZV;->A00()Z"),
+        "business_suggestions" to setOf("LX/7T9;->A05(LX/7T9;)Z", "LX/7U7;->A04(LX/7U7;)Z", "LX/HKl;->A04()Z"),
+        "chat_promotions" to setOf("LX/HKj;->A0D()Z", "LX/HKj;->A0E()Z"),
+        "delta_unsent" to setOf("LX/VmI;->Btb(I)Z"),
+        "emoji_typeface" to setOf("LX/1KU;->A00()Landroid/graphics/Typeface;"),
+        "event_prompts" to setOf("LX/HKj;->A07()Z", "LX/HKj;->A08()Z"),
+        "facebook" to setOf(
+            "LX/2aO;->A0C()Z", "LX/3EB;->A00()Z", "LX/3nw;->A00()Z", "LX/3ny;->A02()Z", "LX/HKO;->A02()Z",
+            "LX/HWE;->A06()Z", "LX/HWF;->A02()Z", "LX/Jjk;->A04()Z", "LX/Jjx;->A06()Z", "LX/Jk7;->A06()Z",
+            "LX/JkP;->A00()Z", "LX/JkX;->A01()Z", "LX/JkZ;->A02()Z", "LX/Jkb;->A02()Z", "LX/Jkg;->A03()Z",
+            "LX/Jkh;->A03()Z", "LX/Jkj;->A01()Z", "LX/Jkk;->A01()Z", "LX/Jkm;->A06()Z", "LX/Jkn;->A06()Z",
+            "LX/Jko;->A06()Z",
+        ),
+        "friend_requests" to setOf("LX/1pl;->A09()Z", "LX/2Wk;->A02()Z"),
+        "growth" to setOf("LX/1pl;->A0A()Z", "LX/2GD;->A0A(LX/2GD;)Z"),
+        "growth_notes" to setOf("Lcom/facebook/presence/note/ui/nux/controller/NotesNuxController;->A01(Landroidx/fragment/app/Fragment;LX/Fw0;Ljava/util/List;LX/5OJ;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;"),
+        "growth_story_card" to setOf("Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0z(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)Z"),
+        "hide_read_receipts" to setOf("LX/AXl;->run()V"),
+        "inbox_promotions" to setOf("LX/2Ee;->A0J()Z", "LX/2Ee;->A0K()Z"),
+        "keep_unsent" to setOf("LX/VOA;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"),
+        "menu_settings" to setOf(
+            "LX/HKK;->Ax0(LX/0MG;)Ljava/util/ArrayList;", "LX/JyZ;->onClick(Landroid/view/View;)V",
+            "LX/Khk;->CAn(LX/4lo;I)V", "LX/Khr;->A0I(Ljava/util/List;)V",
+        ),
+        "moments" to setOf("LX/HKQ;->A05()Z", "LX/Jk4;->A05()Z"),
+        "original_photo" to setOf(
+            "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImage(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;)[B",
+            "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImageAsync(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Lcom/facebook/msys/mci/TranscodeImageCompletionCallback;)V",
+        ),
+        "people" to setOf("LX/1pl;->A0C()Z", "LX/2Wk;->A04()Z"),
+        "people_jewel" to setOf("LX/TCu;->A01(LX/TCu;)Z"),
+        "people_list_end" to setOf("LX/1pl;->A0B()Z", "LX/2Wk;->A03()Z"),
+        "people_search" to setOf("LX/CUs;->DLH(LX/E5P;Ljava/lang/Object;)LX/E7G;"),
+        "people_story" to setOf("Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0Z(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)V"),
+        "people_tab" to setOf("LX/E7d;->A01(LX/E7d;)V"),
+        "read_mailbox" to setOf("LX/9tV;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V"),
+        "reels_badge" to setOf("LX/7xl;->A09(LX/7xl;)Z"),
+        "save_stories" to setOf("LX/PLV;->onClick(Landroid/view/View;)V"),
+        "stories" to setOf("LX/1mh;->A00()Z"),
+        "subtabs" to setOf("LX/2UK;->run()V"),
+        "suggested_replies" to setOf("LX/7T9;->A06(LX/7T9;)Z", "LX/7U7;->A05(LX/7U7;)Z", "LX/HKl;->A05()Z"),
+        "typing" to setOf("LX/Aia;->run()V"),
+        "typing_mailbox" to setOf("LX/8f5;->A0I(Ljava/lang/String;Z)LX/324;"),
+        "unsent_indicator" to setOf("LX/VmI;->BWm(I)Ljava/lang/String;"),
+    ),
+    pluginSentinel = "LX/1di;->A03:Ljava/lang/Object;",
+    preferenceGetter = "Lcom/facebook/prefs/shared/FbSharedPreferences;->AhB(LX/1BL;Z)Z",
+    peopleKey = "LX/VLH;->A01:LX/1BM;",
+    peopleFlagCheck = "LX/170;->A1Y(Ljava/lang/Object;J)Z",
+    subtabsSupplier = "LX/2UK;->A00:Lcom/facebook/messaging/inboxsubtabs/plugins/subtabs/itemsupplier/InboxSubtabsItemSupplierImplementation;",
+    browserPreferenceKey = "LX/1D1;->A1U:LX/1BL;",
+    browserPreferenceIndex = 54,
+    adFilterSize = 932,
+    adFilterExits = listOf(913, 928),
+)
+
+/** Each supported build's profile, by version code. Builds that share a mapping share a profile. */
+internal val controlProfiles: Map<Int, ControlProfile> = mapOf(
+    346013387 to BASE_PROFILE,
+    346013440 to BASE_PROFILE,
+    346013442 to BASE_PROFILE,
+    346013354 to BASE_PROFILE,
+    346013370 to PROFILE_346013370,
+    346013394 to BASE_PROFILE,
+    346013423 to PROFILE_346013423,
+    346013355 to BASE_PROFILE,
+    346013356 to BASE_PROFILE,
+    346013357 to PROFILE_346013357,
+    346013358 to PROFILE_346013357,
+    346013359 to PROFILE_346013357,
+    346013372 to PROFILE_346013370,
+    346013374 to PROFILE_346013374,
+    346013375 to PROFILE_346013374,
+    346013391 to PROFILE_346013357,
+    346013427 to PROFILE_346013423,
+    346013441 to BASE_PROFILE,
+    346013443 to PROFILE_346013357,
+    346013444 to PROFILE_346013357,
+    346013445 to PROFILE_346013357,
+)
+
+/** An unknown build gets the base profile, whose exact hooks then refuse it. */
+internal fun controlProfileFor(versionCode: String?, profiles: Map<Int, ControlProfile> = controlProfiles): ControlProfile =
+    versionCode?.toIntOrNull()?.let(profiles::get) ?: BASE_PROFILE
 
 /** The profile of the APK being patched. The settings extension sets it before any control runs. */
 internal var activeProfile: ControlProfile = BASE_PROFILE

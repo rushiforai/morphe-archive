@@ -1,0 +1,164 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.deepglow" name="Deep Glow+" desc="Deep Glow gives you the best looking glow right out of the box, even whilst working in a non-linear color space." category="drawing" tags="drawing,raster" thumb="thumb/TANRYU/deep.png" overdraw="true" max-overdraw="0.1" >
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="vblur" srcType="buffer" />
+        <texture id="hblur" srcType="buffer" />
+        <spinner id="strength" default="0.15" min="0.0" max="2.0" label="Glow Radius" step="0.005" />
+        <spinner id="rrr" label="Intensity" default="1.5" min="0.0" max="5.0" step="0.01" type="percent" />
+        <point id="higsha" default="0.0,0.0" min="0.0,0.0" max="5.0, 5.0" label="Highlight Shadow" step="0.01" />
+        <point id="satvib" default="0.0,1.0" min="-1.0,1.0" max="1, 2" label="Saturate Vibrance" step="0.01" />
+        <spinner id="hue" default="360.0" min="0.0" max="3600.0" label="@am:string/effect_param_hueshift" ticks="0,60,120,180,240,300,360" snap="60,120,180,240,300" type="angle" step="0.5" />
+        <point id="position" label="Center Point" />
+        <spinner id="oalpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Glow Alpha" type="percent" />
+        <spinner id="calpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Comp Alpha" type="percent" />
+        <switch id="sshadow" default="false" label="Shadow" />
+        <spinner id="power" default="0.15" min="0.0" max="2.0" label="Power" step="0.005" />
+        <!-- <spinner id="radiuss" default="10.0" min="0" max="100.0" label="Shadow Radius" step="0.5" ticks="10,20,30,40,50" snap="10,20,30,40,50" /> -->
+        <spinner id="alphaa" default="0.75" min="0.0" max="2.0" step="0.01" label="Shadow Strength" ticks="0,1" snap="0,1" type="percent" />
+        <switch id="cblend" default="false" label="Glow ColorBlend" />
+        <color id="color" default="#FFAA0000" label="Key Color" alpha="true" />
+        <slider id="alpb" default="0.5" min="0" max="1" label="Alpha Blend" type="percent" step="0.01" snap="0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9" />
+        <switch id="thrs" default="false" label="Glow Threshold" />
+        <spinner id="lowThreshold" default="0" min="0" max="1" step="0.005" label="Threshold" type="percent" />
+        <float id="highThreshold" value="1.0" />
+        <!-- <spinner id="highThreshold" default="1" min="0" max="1" step="0.005" label="Light Threshold" type="percent" /> -->
+        <spinner id="feather" default="3" min="0" max="10" step="0.01" label="Feather" type="percent" />
+        <slider id="iter" default="1" min="1" max="3" label="Hardness" type="integer" step="1" />
+       
+    </params>
+
+    <iterations param="iter" />
+
+    <passes>
+        <pass target="vblur" effect="com.alightcreative.effects.gaussianblur"/>
+        <pass target="hblur" effect="com.alightcreative.effects.boxblur2"/>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high"><![CDATA[
+    
+      mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+               vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+       vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+
+        void main() {
+        
+            highp mat3 rgb2yuv = mat3(
+                 0.299,     0.587,    0.114,
+                -0.14713,  -0.28886,  0.436,
+                 0.615,    -0.51499, -0.10001
+            );
+            highp mat3 yuv2rgb = mat3(
+                1.0,  0.0,      1.13983,
+                1.0, -0.39465, -0.58060,
+                1.0,  2.03211,  0.0
+            );
+            float rad = hue * 0.0174533;
+            highp mat3 huemat = mat3(
+                1.0,  0.0,       0.0,
+                0.0,  cos(rad),  sin(rad),
+                0.0,  -sin(rad), cos(rad)
+            );
+            
+            vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm.st);
+            
+                vec2 TanRyu = acScreenNorm;
+                // TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+                // TanRyu.y*=acLayerSize.y/acLayerSize.x;
+                TanRyu += vec2((0.0+(position.x/15.0)), (0.0+(position.y/15.0)))*vec2(-1.,1.)/500.;
+                // vec2 scaleVec;
+                // scaleVec = vec2(1.0*stretch.x,1.0*stretch.y);
+                // TanRyu /= scaleVec;
+                
+            // vec2 UV = acScreenNorm;
+            // vec2 center = acLayerCenterNorm-(centerPoint/1000. * vec2(-1.,1.));
+
+            // UV -= center;
+            // UV.x *= acScreenSize.x / acScreenSize.y;
+        
+            ////// OLD
+            vec4 baseColor;
+            vec4 compColorr;
+            vec4 shadow;
+            // float rr = length(rrr - UV);
+            float rr = length(rrr - acScreenNorm.st);
+            
+            baseColor = texture2DCv(inputImg.texture,acScreenNorm.st)*calpha;
+            compColorr = texture2DCv(vblur.texture, TanRyu);
+            ///SATVIB
+            highp vec3 rgb = compColorr.rgb ;
+            highp vec3 yuv = rgb * rgb2yuv;
+            
+            yuv = yuv * huemat; //HUE
+
+            float origSat = min(1.0,length(yuv.yz)*2.5); //
+            vec2 satUV = yuv.yz * satvib.y;
+            yuv.yz = mix(satUV,yuv.yz,origSat);
+            yuv.yz = yuv.yz * (satvib.x+1.0);
+            rgb = yuv * yuv2rgb;
+            
+            vec4 newComp = vec4(rgb, compColorr.a);
+            
+            // compColorr = texture2DCv(vblur.texture, acScreenNorm.st);
+            
+            shadow = newComp * (vec4(0.,0.,0,1.0) * higsha.y) * compColorr.a;
+            // shadow = compColorr * (vec4(0.,0.,0,1.0) * higsha.y) * compColorr.a;
+            vec4 c = shadow + vec4(1.)*(1.-shadow.a);
+
+            vec4 dblur = vec4(newComp.rgb / compColorr.a,1.) * (rr - 0.5);
+            // vec4 dblur = vec4(compColorr.rgb / compColorr.a,1.) * (rr - 0.5);
+            
+            vec4 targetLuma = dblur ;
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            float luma = dot(targetLuma.rgb, luminanceWeighting);
+            float lowThresholdB = (lowThreshold*(1.0+feather))-0.0001;
+            float lowThresholdA = lowThresholdB-max(feather,0.00001);
+            float highThresholdA = (highThreshold*(1.0+feather)-feather)+0.0001;
+            float highThresholdB = highThresholdA+max(feather,0.00001);
+            float lowBlend = smoothstep( lowThresholdA, lowThresholdB, luma );
+            float highBlend = 1. - smoothstep( highThresholdA, highThresholdB, luma );
+            float lumafx = min(lowBlend,highBlend);
+            vec4 dblurr = targetLuma;
+            if (thrs) {
+            dblurr *= lumafx; }
+            
+            ///OLD
+            vec4 blendC = vec4((dblurr.rgb/dblurr.a)*c.rgb,1.0) * dblurr.a;
+            vec4 resultfinalx = vec4(color.rgb,dblurr.a) * dblurr.a;
+            // vec4 resultfinalx = vec4(cross(color.rgb,blendC.rgb),1.0) * dblurr.a;
+            // vec4 resultfinalx = vec4(saturate(color.rgb,blendC.rgb),1.0) * dblurr.a;
+            // vec4 resultfinalx = vec4(color.rgb*blendC.rgb, alpc) * dblurr.a;
+            vec4 resultfinal = mix(blendC, resultfinalx, alpb ) * dblurr.a;
+            vec4 rrfinal = cblend? resultfinal : blendC;
+            // vec4 resultfinal = vec4(saturate(color.rgb*blendC.rgb), progressa) * dblurr.a;
+            
+            // vec4 resultfinal = vec4((dblurr.rgb/dblurr.a)*c.rgb,1.0) * dblurr.a;
+            // vec4 blendC = vec3(resultfinal.rgb, progressa) * dblurr.a;
+            
+            vec4 L2 = ((baseColor*higsha.x) + (rrfinal*oalpha)) * compColorr.a;
+            L2 += baseColor;
+            
+            vec4 L1 = texture2DCv(hblur.texture, acScreenNorm.st);
+            L1 = vec4(vec3(0.,0.,0), L1.a);
+            L1 *= alphaa;
+
+            gl_FragColor = sshadow? newLayer(L1, L2) : L2;
+            
+        }
+
+    ]]></shader>
+
+</effect>

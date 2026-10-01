@@ -17,7 +17,10 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.inbox.MainActivityOnCreateFingerprint
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.interaction.resume.FeedPlayCompletedFingerprint
+import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.patches.tiktok.shared.requireLocals
+import app.morphe.patcher.patch.PatchException
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -27,6 +30,9 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 
 private const val VIDEO_ITEM_PARAMS_DESCRIPTOR =
     "Lcom/ss/android/ugc/aweme/feed/model/VideoItemParams;"
+
+private const val FINISH_LAST_VIDEO =
+    "Lapp/morphe/extension/tiktok/wellbeing/FinishLastVideo;"
 
 @Suppress("unused")
 val blockAuthorPatch = bytecodePatch(
@@ -119,6 +125,31 @@ val blockAuthorPatch = bytecodePatch(
 
         val pager = mutableClassDefBy("Lcom/ss/android/ugc/aweme/common/widget/VerticalViewPager;")
         validateBlockPager(pager.methods)
+
+        // Let the last video finish. While the daily hold waits for the video on screen, the
+        // feed's pager turns a swipe down the way TikTok's own setDisableScroll does: both touch
+        // methods answer false before they look at the event, so the pager never takes the
+        // gesture and everything inside it still gets its touches. The extension only says yes
+        // for the main activity's pager, so a video opened from messages keeps its swipe.
+        listOf("onInterceptTouchEvent", "onTouchEvent").forEach { name ->
+            val touch = pager.methods.singleOrNull {
+                it.name == name && it.parameterTypes == listOf("Landroid/view/MotionEvent;") &&
+                    it.returnType == "Z" && it.implementation != null
+            } ?: throw PatchException(
+                "Block author: VerticalViewPager no longer declares $name(MotionEvent), which " +
+                    "the last-video swipe hold answers. Read the class on the new build.",
+            )
+            touch.guardAtEntry(
+                "Block author",
+                "invoke-static/range { p0 .. p0 }, $FINISH_LAST_VIDEO->holdsSwipe(Landroid/view/View;)Z",
+                "const/4 v0, 0x0\nreturn v0",
+            )
+        }
+        // The video ending is what ends that wait. p1 is the id the progress callback reports.
+        FeedPlayCompletedFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p1 .. p1 }, $FINISH_LAST_VIDEO->onPlayCompleted(Ljava/lang/String;)V",
+        )
 
         val detail = mutableClassDefBy("Lcom/ss/android/ugc/aweme/detail/ui/DetailPageFragment;")
         val visibility = "Lapp/morphe/extension/tiktok/blockauthor/FeedVisibility;"

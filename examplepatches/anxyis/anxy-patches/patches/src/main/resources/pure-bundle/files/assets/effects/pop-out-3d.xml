@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.pop-out-3d" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/pop-out-3d.webp" tags="3d,extrude,pop,depth,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Pop Out</string>
+            <string name="desc">Extrudes the layer toward the viewer with stacked depth slices for a chunky 3D pop-out.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="angle" default="135.0" min="0.0" max="360.0" label="Direction" type="angle" step="1" />
+        <slider id="depth" default="0.05" min="0.0" max="0.2" label="Depth" />
+        <slider id="dark" default="0.5" min="0.0" max="1.0" label="Side Shade" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            float a=radians(angle);
+            vec2 dir=vec2(cos(a),sin(a))*depth;
+            vec4 front=texture2DCv(inputImg.texture, acScreenNorm);
+            vec4 side=vec4(0.0);
+            for(int i=1;i<=16;i++){
+                vec2 uv=acScreenNorm - dir*(float(i)/16.0);
+                vec4 s=texture2DCv(inputImg.texture, uv);
+                if(s.a>0.01 && side.a<0.01){ side=s; side.rgb*=1.0-dark; }
+            }
+            gl_FragColor = front.a>0.01 ? front : side;
+        }
+    ]]></shader>
+
+</effect>

@@ -202,6 +202,18 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "3.4.12", versionCode = 4197422, minSdk = 24)),
     )
 
+    val ONE4HOME = Compatibility(
+        name = "One4Home Launcher",
+        packageName = "com.one4studio.one4home",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x596580,
+        signatures = setOf(
+            "5620d2344aa13b4fb30df6bb59df508839af348ad12f5e4f3b95fca02662b77b",
+            "b87ed511109b159844ff23ab802e00d56ab9d94d1435d89edd32cf07b62551fa",
+        ),
+        targets = listOf(AppTarget(version = "0.4.72", versionCode = 284, minSdk = 32)),
+    )
+
     val ONE_WEATHER = Compatibility(
         name = "1Weather",
         packageName = "com.handmark.expressweather",
@@ -230,6 +242,17 @@ internal object AppCompatibilities {
             "868aa1a8470b4214e88a5c9e65a1dbe475a32e1da7a23079ba6e0be0bd50b621",
         ),
         targets = listOf(AppTarget(version = "1.791.265", versionCode = 265100, minSdk = 28)),
+    )
+
+    val POCKET_WHIP = Compatibility(
+        name = "Pocket Whip",
+        packageName = "com.greenstone.pocketwhip",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x232323,
+        signatures = setOf(
+            "27262c6f8cd7448c28622464a0f1b8ce6a848f087a131c229cc0d1846d9b0b5d",
+        ),
+        targets = listOf(AppTarget(version = "2.3", versionCode = 20, minSdk = 26)),
     )
 
     val PROJECTIVY = Compatibility(

@@ -113,7 +113,8 @@ Write-Host "============================================================" -Foreg
 Write-Host "  READY: Pixiv is running on $DeviceId" -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Green
 Write-Host "Useful commands for agent / developer interaction:" -ForegroundColor Cyan
-Write-Host "  Deep-link to art:  & `"$Adb`" -s $DeviceId shell am start -a android.intent.action.VIEW -d `"https://www.pixiv.net/artworks/<ID>`""
+Write-Host "  Deep-link (preferred): Open-Work -IllustId `"<ID>`" -Wait  (from scripts\emulator-cli.ps1)"
+Write-Host "  Deep-link (raw adb):   & `"$Adb`" -s $DeviceId shell am start -a android.intent.action.VIEW -d `"https://www.pixiv.net/artworks/<ID>`" -p jp.pxv.android"
 Write-Host "  Capture screen:    & `"$Adb`" -s $DeviceId shell screencap -p /sdcard/s.png; & `"$Adb`" -s $DeviceId pull /sdcard/s.png captures/<name>.png"
 Write-Host "  Tap coordinate:    & `"$Adb`" -s $DeviceId shell input tap <X> <Y>"
 Write-Host "  Swipe / scroll:    & `"$Adb`" -s $DeviceId shell input swipe <X1> <Y1> <X2> <Y2> <duration_ms>"

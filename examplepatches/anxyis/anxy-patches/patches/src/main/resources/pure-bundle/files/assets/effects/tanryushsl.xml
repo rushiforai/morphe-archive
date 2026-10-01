@@ -1,0 +1,370 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e68736c" deprecated="true">
+
+    <params>
+        <section text="RED" />
+        <slider id="rex" label="Hue" default="0.0" min="-100.0" max="100.0" step="0.5" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="0.0" />
+        <spinner id="rey" label="Saturate" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <spinner id="rez" label="Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <section text="ORANGE" />
+        <slider id="orx" label="Hue" default="0.0" min="-100.0" max="100.0" step="0.5" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="0.0" />
+        <spinner id="ory" label="Saturate" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <spinner id="orz" label="Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <section text="YELLOW" />
+        <slider id="yex" label="Hue" default="0.0" min="-100.0" max="100.0" step="0.5" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="0.0" />
+        <spinner id="yey" label="Saturate" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <spinner id="yez" label="Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <section text="GREEN" />
+        <slider id="grx" label="Hue" default="0.0" min="-100.0" max="100.0" step="0.5" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="0.0" />
+        <spinner id="gry" label="Saturate" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <spinner id="grz" label="Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <section text="CYAN" />
+        <slider id="cyx" label="Hue" default="0.0" min="-100.0" max="100.0" step="0.5" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="0.0" />
+        <spinner id="cyy" label="Saturate" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <spinner id="cyz" label="Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <section text="BLUE" />
+        <slider id="blx" label="Hue" default="0.0" min="-100.0" max="100.0" step="0.5" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="0.0" />
+        <spinner id="bly" label="Saturate" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <spinner id="blz" label="Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <section text="PURPLE" />
+        <slider id="pux" label="Hue" default="0.0" min="-100.0" max="100.0" step="0.5" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="0.0" />
+        <spinner id="puy" label="Saturate" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <spinner id="puz" label="Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <section text="MAGENTA" />
+        <slider id="maxx" label="Hue" default="0.0" min="-100.0" max="100.0" step="0.5" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="0.0" />
+        <spinner id="may" label="Saturate" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <spinner id="maz" label="Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="angle" snap="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" ticks="-75.0,-50.0,-25.0, 0.0, 25.0,50.0,75.0" />
+        <section text="Advance Option" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Exposure" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord
+   const float hue = 1.0;
+   const float saturation = 1.0;
+   const float brightness = 1.0;
+    
+   /////////////////////////
+   
+   vec3 RGB2HSL(vec3 rgb) {
+        float h = 0.0, s = 0.0, l = 0.0;
+        float r = rgb.r;
+        float g = rgb.g;
+        float b = rgb.b;
+        float cmax = max(r, max(g, b));
+        float cmin = min(r, min(g, b));
+        float delta = cmax - cmin;
+        l = (cmax + cmin) / 2.0;
+        if (delta == 0.0) {
+            s = 0.0;
+            h = 0.0;
+        } else {
+            if (l <= 0.5)
+                s = delta / (cmax + cmin);
+            else
+                s = delta / (2.0 - (cmax + cmin));
+            if (cmax == r) {
+                if (g >= b)
+                    h = 60.0 * (g - b) / delta;
+                else
+                    h = 60.0 * (g - b) / delta + 360.0;
+            } else if (cmax == g) {
+                h = 60.0 * (b - r) / delta + 120.0;
+            } else {
+                h = 60.0 * (r - g) / delta + 240.0;
+            }
+        }
+        return vec3(h, s, l);
+    }
+    
+    float hueToRgb(float p, float q, float t) {
+        if (t < 0.0)
+            t += 1.0;
+        if (t > 1.0)
+            t -= 1.0;
+        if (t < 1.0 / 6.0)
+            return p + (q - p) * 6.0 * t;
+        if (t < 1.0 / 2.0)
+            return q;
+        if (t < 2.0 / 3.0)
+            return p + (q - p) * (2.0 / 3.0 - t) * 6.0;
+        return p;
+    }
+    
+    vec3 HSL2RGB(vec3 hsl) {
+        float r, g, b;
+        float h = hsl.x / 360.0;
+        if (hsl.y == 0.0) {
+            r = g = b = hsl.z;   // gray
+        } else {
+            float q = hsl.z < 0.5 ? hsl.z * (1.0 + hsl.y) : (hsl.z + hsl.y - hsl.z * hsl.y);
+            float p = 2.0 * hsl.z - q;
+            r = hueToRgb(p, q, h + 1.0 / 3.0);
+            g = hueToRgb(p, q, h);
+            b = hueToRgb(p, q, h - 1.0 / 3.0);
+        }
+        return vec3(r, g, b);
+    }
+    
+    vec3 pixel_adjust(float h, float hue, float saturation, float brightness, float left_left, float left, float right, float right_right, vec3 delta_hsb) {
+        if (left_left < left && left > right && right < right_right) {
+            if (h >= left && h <= 360.0) {
+                delta_hsb.x += hue;
+                delta_hsb.y += saturation;
+                delta_hsb.z += brightness;
+                return delta_hsb;
+            }
+            if (h >= 0.0 && h <= right) {
+                delta_hsb.x += hue;
+                delta_hsb.y += saturation;
+                delta_hsb.z += brightness;
+                return delta_hsb;
+            }
+            if (h >= left_left && h <= left) {
+                delta_hsb.x += hue * (h - left_left) / (left - left_left);
+                delta_hsb.y += saturation * (h - left_left) / (left - left_left);
+                delta_hsb.z += brightness * (h - left_left) / (left - left_left);
+                return delta_hsb;
+            }
+            if (h >= right && h <= right_right) {
+                delta_hsb.x += hue * (right_right - h) / (right_right - right);
+                delta_hsb.y += saturation * (right_right - h) / (right_right - right);
+                delta_hsb.z += brightness * (right_right - h) / (right_right - right);
+                return delta_hsb;
+            }
+        }
+        if (left_left > left && left < right && right < right_right) {
+            if (h >= left && h <= right) {
+                delta_hsb.x += hue;
+                delta_hsb.y += saturation;
+                delta_hsb.z += brightness;
+                return delta_hsb;
+            }
+            if (h >= 0.0 && h <= left) {
+                delta_hsb.x += hue * (h + 360.0 - left_left) / (left + 360.0 - left_left);
+                delta_hsb.y += saturation * (h + 360.0 - left_left) / (left + 360.0 - left_left);
+                delta_hsb.z += brightness * (h + 360.0 - left_left) / (left + 360.0 - left_left);
+                return delta_hsb;
+            }
+            if (h >= left_left && h <= 360.0) {
+                delta_hsb.x += hue * (h - left_left) / (left + 360.0 - left_left);
+                delta_hsb.y += saturation * (h - left_left) / (left + 360.0 - left_left);
+                delta_hsb.z += brightness * (h - left_left) / (left + 360.0 - left_left);
+                return delta_hsb;
+            }
+            if (h >= right && h <= right_right) {
+                delta_hsb.x += hue * (right_right - h) / (right_right - right);
+                delta_hsb.y += saturation * (right_right - h) / (right_right - right);
+                delta_hsb.z += brightness * (right_right - h) / (right_right - right);
+                return delta_hsb;
+            }
+        }
+        if (left_left <= left && left < right && right <= right_right) {
+    
+            if (h >= left && h <= right) {
+                delta_hsb.x += hue;
+                delta_hsb.y += saturation;
+                delta_hsb.z += brightness;
+                return delta_hsb;
+            }
+            if (h >= left_left && h <= left) {
+                delta_hsb.x += hue * (h - left_left) / (left - left_left);
+                delta_hsb.y += saturation * (h - left_left) / (left - left_left);
+                delta_hsb.z += brightness * (h - left_left) / (left - left_left);
+                return delta_hsb;
+            }
+            if (h >= right && h <= right_right) {
+                delta_hsb.x += hue * (right_right - h) / (right_right - right);
+                delta_hsb.y += saturation * (right_right - h) / (right_right - right);
+                delta_hsb.z += brightness * (right_right - h) / (right_right - right);
+                return delta_hsb;
+            }
+        }
+        if (left_left < left && left < right && right > right_right) {
+            if (h >= left && h <= right) {
+                delta_hsb.x += hue;
+                delta_hsb.y += saturation;
+                delta_hsb.z += brightness;
+                return delta_hsb;
+            }
+            if (h >= left_left && h <= left) {
+                delta_hsb.x += hue * (h - left_left) / (left - left_left);
+                delta_hsb.y += saturation * (h - left_left) / (left - left_left);
+                delta_hsb.z += brightness * (h - left_left) / (left - left_left);
+                return delta_hsb;
+            }
+            if (h >= right && h <= 360.0) {
+                delta_hsb.x += hue * (right_right + 360.0 - h) / (right_right + 360.0 - right);
+                delta_hsb.y += saturation * (right_right + 360.0 - h) / (right_right + 360.0 - right);
+                delta_hsb.z += brightness * (right_right + 360.0 - h) / (right_right + 360.0 - right);
+                return delta_hsb;
+            }
+            if (h >= 0.0 && h <= right_right) {
+                delta_hsb.x += hue * (right_right - h) / (right_right + 360.0 - right);
+                delta_hsb.y += saturation * (right_right - h) / (right_right + 360.0 - right);
+                delta_hsb.z += brightness * (right_right - h) / (right_right + 360.0 - right);
+                return delta_hsb;
+            }
+        }
+        return delta_hsb;
+    }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        TanRyu = acScreenNorm; 
+        /////////////////////////
+
+    	vec4 fragColor;
+    	
+    	vec3 clO;
+        vec3 clA;
+        vec3 RedHSL;
+        vec3 OrangeHSL;
+        vec3 YellowHSL;
+        vec3 GreenHSL;
+        vec3 CyanHSL;
+        vec3 BlueHSL;
+        vec3 PurpleHSL;
+        vec3 MagentaHSL;
+    
+        RedHSL = vec3(rex * 0.25, rey, rez / 2.7);
+        OrangeHSL = vec3(orx * 0.15, ory, orz / 2.7);
+        YellowHSL = vec3(yex * 0.3, yey, yez / 2.7);
+        GreenHSL = vec3(grx * 0.3, gry * 1.1, grz / 2.7);
+        CyanHSL = vec3(cyx * 0.4, cyy, cyz / 2.2);
+        BlueHSL = vec3(blx * 0.4, bly * 1.2, blz / 2.0);
+        PurpleHSL = vec3(pux * 0.4, puy, puz / 2.7);
+        MagentaHSL = vec3(maxx * 0.4, may, maz / 2.7);
+    
+        vec4 baseColor;
+        baseColor = texture2DCv(inputImg.texture, TanRyu);
+        clO = baseColor.rgb;
+    
+        vec3 hsb;
+        hsb = RGB2HSL(clO);
+        // adjust each channel
+        vec3 delta_hsb = vec3(0.0);
+        delta_hsb = pixel_adjust(hsb.x, RedHSL.x, RedHSL.y, RedHSL.z, 315.0, 330.0, 5.0, 20.0, delta_hsb);
+        delta_hsb = pixel_adjust(hsb.x, OrangeHSL.x, OrangeHSL.y, OrangeHSL.z, 350.0, 20.0, 40.0, 60.0, delta_hsb);
+        delta_hsb = pixel_adjust(hsb.x, YellowHSL.x, YellowHSL.y, YellowHSL.z, 25.0, 50.0, 70.0, 90.0, delta_hsb);
+        delta_hsb = pixel_adjust(hsb.x, GreenHSL.x, GreenHSL.y, GreenHSL.z, 50.0, 70.0, 160.0, 190.0, delta_hsb);
+        delta_hsb = pixel_adjust(hsb.x, CyanHSL.x, CyanHSL.y, CyanHSL.z, 135.0, 165., 195.0, 225.0, delta_hsb);
+        delta_hsb = pixel_adjust(hsb.x, BlueHSL.x, 0.0, 0.0, 145.0, 180., 235.0, 275.0, delta_hsb);
+        delta_hsb = pixel_adjust(hsb.x, 0.0, BlueHSL.y, BlueHSL.z, 145.0, 180., 235.0, 270.0, delta_hsb);
+        delta_hsb = pixel_adjust(hsb.x, PurpleHSL.x, PurpleHSL.y, PurpleHSL.z, 235.0, 255.0, 315.0, 335.0, delta_hsb);
+        delta_hsb = pixel_adjust(hsb.x, MagentaHSL.x, MagentaHSL.y, MagentaHSL.z, 255.0, 285.0, 335.0, 5.0, delta_hsb);
+    
+        // adjust hue
+        hsb.x = hsb.x + delta_hsb.x;
+        for (float j = 0.1; j >= 0.0; j += 1.0) {
+            if (hsb.x > 360.0) {
+                hsb.x -= 360.0;
+            }
+            if (hsb.x < 0.0) {
+                hsb.x += 360.0;
+            }
+            if (hsb.x <= 360.0 && hsb.x >= 0.0)
+                break;
+        }
+    
+        // adjust saturation
+        delta_hsb.y = clamp(delta_hsb.y / 100.0, -1.0, 1.0);
+        if (delta_hsb.y < 0.0) {
+            hsb.y = hsb.y * (1.0 + delta_hsb.y);
+        } else {
+            delta_hsb.y = delta_hsb.y / 2.0;   // TODO：移到业务层
+            float temp = hsb.y * (1.0 - delta_hsb.y);
+            hsb.y = hsb.y + (hsb.y - temp);
+        }
+    
+        // adjust brightness
+        delta_hsb.z = clamp(delta_hsb.z / 100.0, -1.0, 1.0);
+        if (delta_hsb.z <= 0.0) {
+            float radio = hsb.y;
+            if (hsb.z >= 0.5) {
+                radio = hsb.y * 1.0;
+            }
+            if (hsb.z < 0.5) {
+                radio = hsb.y * 2.0 * hsb.z;
+            }
+            float temp = hsb.z - radio * (1.0 - hsb.z) * delta_hsb.z;
+            hsb.z = hsb.z + (hsb.z - temp);
+        } else {
+            float radio = hsb.y;
+            if (hsb.z >= 0.5) {
+                radio = hsb.y * 1.0;
+            }
+            if (hsb.z < 0.5) {
+                radio = hsb.y * 2.0 * hsb.z;
+            }
+            delta_hsb.z = (1.0 - delta_hsb.y) * delta_hsb.z;
+            hsb.z = hsb.z + radio * (1.15 - hsb.z) * delta_hsb.z;
+        }
+        hsb.y = clamp(hsb.y, 0.0, 1.0);
+        hsb.z = clamp(hsb.z, 0.0, 1.0);
+    
+        clO = HSL2RGB(hsb);
+        fragColor = vec4(clO, baseColor.a);
+                
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor,resultfinal,alpha);
+          }
+        }
+
+    ]]></shader>
+
+</effect>

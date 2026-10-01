@@ -1,3 +1,51 @@
+## [1.4.27](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.26...v1.4.27) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* resolve crash on start by keeping loop bytecode intact and safe build call ([dbd2e15](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/dbd2e154a182e40a610f2bc5d5b908b70736ac60))
+
+## [1.4.26](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.25...v1.4.26) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* prevent duplicate key and empty root crashes when selecting media provider ([3d733b1](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/3d733b1e87dfb75497e22f63544b29b2a31e62e9))
+
+## [1.4.25](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.24...v1.4.25) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* remove non-public field access on bwyf to prevent VerifyError crash ([eac7ebe](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/eac7ebe51a9981afce8af1a092e9337a334ba4cb))
+
+## [1.4.24](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.23...v1.4.24) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* direct injection of Morphe YT Music ResolveInfo fallback into media providers map ([210b0d9](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/210b0d92fd591b6f59db6ef944c13a242cb2350d))
+
+## [1.4.23](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.22...v1.4.23) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* set explicit package on MediaBrowserService Intent and fix XML namespace in manifest patch ([96047dc](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/96047dc9182488f29fb54b7715b24ca657e37fbf))
+
+## [1.4.22](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.21...v1.4.22) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* use addInstructions before queryIntentServices for MATCH_ALL injection (not between invoke and move-result) ([fddc3a9](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/fddc3a98d531775a5012559898ba449ccd26d7fc))
+
+## [1.4.21](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.20...v1.4.21) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* correct BsmaTrustedAppsFingerprint filter order to match bytecode order (mango[18] before music[19]) ([9860c7f](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/9860c7ff3955e8cc7b33f81434f45823553a284a))
+
+## [1.4.20](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.19...v1.4.20) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* correct const/high16 literal to 0x20000 (full 32-bit value, not raw high-word 0x0002) ([d8edc78](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/d8edc783acd7fe2c91241f1c94cf123d8c37e334))
+
 ## [1.4.19](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.18...v1.4.19) (2026-09-29)
 
 ### 🐛 Bug Fixes

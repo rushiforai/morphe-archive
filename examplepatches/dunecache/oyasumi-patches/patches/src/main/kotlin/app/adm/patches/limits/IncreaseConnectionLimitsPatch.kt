@@ -1,8 +1,9 @@
 package app.adm.patches.limits
 
 import app.adm.patches.shared.Constants.COMPATIBILITY_ADM
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -27,8 +28,10 @@ val increaseConnectionLimitsPatch = bytecodePatch(
     execute {
         // The simultaneous-download ceiling is a single shared constant, so one edit
         // covers all three network profiles. `const/4` cannot hold 32, so the
-        // replacement is one code unit wider; this method has no switch or array
-        // payload, and the patcher recomputes every branch offset afterwards.
+        // replacement is one code unit wider; `replaceInstruction` keeps the
+        // instruction count, so no index in this method moves, and branch targets are
+        // `Label`s in dexlib2 that are bound to the instruction they point at rather
+        // than to a byte offset, so the wider constant needs no offset fixup.
         DownloadCeilingFingerprint.let { fingerprint ->
             val ceiling = fingerprint.instructionMatches[0]
             val register = ceiling.getInstruction<OneRegisterInstruction>().getRegisterA()
@@ -38,16 +41,43 @@ val increaseConnectionLimitsPatch = bytecodePatch(
 
         // The per-download ceiling cannot be raised through its source register, because
         // that register is also the minimum of the chunk-size controls. A `const/16` is
-        // written ahead of the store instead, so only the `b` field of this one control
-        // changes and the chunk-size minimum is left alone.
-        ThreadCeilingFingerprint.let { fingerprint ->
-            val maximum = fingerprint.instructionMatches[3]
-            // A 22c store names its two registers A (the value) and B (the target object).
-            val target = maximum.getInstruction<TwoRegisterInstruction>().getRegisterB()
-            val field = maximum.getInstruction<ReferenceInstruction>().getReference() as FieldReference
+        // written ahead of each store instead, so only the `b` field of the three
+        // `DOWN_THREADS_*` controls changes and the chunk-size minimum is left alone.
+        //
+        // All three sites live in the same method, and each edit removes one instruction
+        // and adds two, so every later index shifts by one. The three stores are
+        // therefore resolved up front, while the method is still unedited, and then
+        // applied from the highest index down so that no edit invalidates an index the
+        // remaining edits still need.
+        val threadCeilings = listOf(
+            ThreadCeiling3GFingerprint,
+            ThreadCeilingWifiFingerprint,
+            ThreadCeiling3GWifiFingerprint
+        ).map { fingerprint ->
+            val maximum = fingerprint.instructionMatches[2]
+            Triple(
+                // A 22c store names its two registers A (the value) and B (the target).
+                maximum.getInstruction<TwoRegisterInstruction>().getRegisterB(),
+                maximum.getInstruction<ReferenceInstruction>().getReference() as FieldReference,
+                fingerprint.method
+            ) to maximum.index
+        }.sortedByDescending { it.second }
 
-            fingerprint.method.replaceInstructions(
-                maximum.index,
+        threadCeilings.forEach { (site, index) ->
+            val (target, field, method) = site
+            // The original store has to go, and it must be removed *explicitly*.
+            // `replaceInstructions` removes as many instructions as it inserts, so
+            // handing it two instructions also deletes the one after the store. For the
+            // 3G control that next instruction is
+            // `iget-object v12, v0, Lcom/dv/get/Pref;->f:Lf5/g;`, which is what gives
+            // `v12` its `f5/g` reference type. Without it `v12` keeps the
+            // `const v12, <int>` written earlier in the method, and the later
+            // `Lv2/j4;->h(Lf5/g; ...)` invocation that reads `v12` fails the verifier
+            // with "register v12 has type IntegerConstant but expected Reference:
+            // f5.g", killing the app when the download settings screen is built.
+            method.removeInstruction(index)
+            method.addInstructions(
+                index,
                 "const/16 $SCRATCH_REGISTER, $MAX_THREADS\n" +
                     // smali writes a field reference as ->name:TYPE, not ->name TYPE.
                     "iput $SCRATCH_REGISTER, v$target, ${field.definingClass}->${field.name}:${field.type}"

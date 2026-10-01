@@ -1,4 +1,7 @@
 /**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ *
  * Original code is credited to ReVanced:
  * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/all/misc/appicon/HideAppIconPatch.kt
  */
@@ -39,6 +42,11 @@ val hideAppIconPatch = resourcePatch(
 
                 if (hasMainAction && launcherCategory != null) {
                     launcherCategory.setAttribute("android:name", "android.intent.category.DEFAULT")
+
+                    val infoCategory = launcherCategory.cloneNode(true) as Element
+                    infoCategory.setAttribute("android:name", "android.intent.category.INFO")
+                    launcherCategory.parentNode.appendChild(infoCategory)
+
                     changed = true
                 }
             }

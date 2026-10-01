@@ -106,6 +106,7 @@ public final class Haiagaru {
             new Handler(Looper.getMainLooper());
     private static final Map<Activity, PopupWindow> SETTINGS_BUTTON_POPUPS =
             new WeakHashMap<>();
+    private static final int EDDI_ARCHIVE_TOOLBAR_ID = 0x7e000001;
     private static final String PREFS_NAME =
             "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final String LEGACY_TALK_PREFS_NAME = "talk";
@@ -129,6 +130,7 @@ public final class Haiagaru {
     private static final String HISSI_VIEWER_THEME_KEY = "hissiViewerTheme";
     private static final String HISSI_VIEWER_TEXT_ZOOM_KEY = "hissiViewerTextZoom";
     private static final String HISSI_VIEWER_FULLSCREEN_KEY = "hissiViewerFullscreen";
+    private static final String KYODEMO_ENHANCED_VIEWER_KEY = "kyodemoEnhancedViewer";
     private static final int DEFAULT_NG_REGISTRATION_LIMIT = 300;
     private static final int MAX_NG_REGISTRATION_LIMIT = 100_000;
     /** ChMate's own bounded post-history store (postDataList.json). */
@@ -157,6 +159,7 @@ public final class Haiagaru {
                     + "dat|https://{$server}.2ch.sc/{$bbs}/dat/{$key}.dat";
     private static final String AD_CLASS_191 = "o.qheCC";
     private static final String AD_CLASS_241 = "o.setUseHandlerThreadForCallbacks";
+    private static final String AD_CLASS_242 = "o.zzbgb";
     private static final String AD_CLASS_243 = "o.zzexb";
     private static final Pattern LEGACY_BE_ATTACHMENT_TOKEN = Pattern.compile(
             "(?:(?:sssp|https?):)?//img\\.5ch\\.(?:io|net)/(?:ico|premium)/[^\\s<\\u0003\\u3000]+"
@@ -169,6 +172,11 @@ public final class Haiagaru {
     );
     private static final Pattern LEGACY_BE_ICO_URL = Pattern.compile(
             "(?:(?:(?:sssp|https?):)?//|\\u0003)img\\.5ch\\.(?:io|net)/ico/([^\\s<\\u0003\\u3000]+)",
+            Pattern.CASE_INSENSITIVE
+    );
+    /** Any legacy BE image spelling, used only for duplicate detection. */
+    private static final Pattern LEGACY_BE_ANY_URL = Pattern.compile(
+            "(?:(?:(?:sssp|https?):)?//|\\u0003)img\\.5ch\\.(?:io|net)/(?:premium|ico)/([^\\s<\\u0003\\u3000]+)",
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern LEGACY_THREAD_READ_PATH = Pattern.compile(
@@ -404,6 +412,147 @@ public final class Haiagaru {
         HaiagaruMegaSync.maybeBackupOnStartup(application);
     }
 
+    /** Adds the archive action to ChMate's own home-toolbar customization model. */
+    public static Object addEdgeArchiveToolbarChoice(Object toolbarModel) {
+        if (toolbarModel == null) return null;
+        try {
+            Context context = applicationContext;
+            if (context == null) return toolbarModel;
+            int titleId = context.getResources().getIdentifier(
+                    "haiagaru_edge_archive", "string", context.getPackageName());
+            int iconId = context.getResources().getIdentifier(
+                    "haiagaru_edge_archive", "drawable", context.getPackageName());
+            if (titleId == 0 || iconId == 0) return toolbarModel;
+            if (toolbarModel instanceof List) {
+                List<?> source = (List<?>) toolbarModel;
+                if (containsToolbarChoice(source)) return toolbarModel;
+                @SuppressWarnings("unchecked")
+                List<Object> buttons = (List<Object>) source;
+                Class<?> itemClass = Class.forName("o.r8lambda98incQ33GAiiY2082BMi9yDa3l0");
+                Object item = itemClass.getConstructor(int.class, int.class, int.class,
+                        int.class, boolean.class).newInstance(
+                        EDDI_ARCHIVE_TOOLBAR_ID, iconId, titleId, titleId, false);
+                buttons.add(item);
+                return toolbarModel;
+            }
+
+            Field listField = null;
+            for (Field field : toolbarModel.getClass().getDeclaredFields()) {
+                if (List.class.isAssignableFrom(field.getType())) {
+                    listField = field;
+                    break;
+                }
+            }
+            if (listField == null) return toolbarModel;
+            listField.setAccessible(true);
+            List<?> original = (List<?>) listField.get(toolbarModel);
+            if (original == null || containsToolbarChoice(original)) return toolbarModel;
+            ArrayList<Object> buttons = new ArrayList<>(original);
+            ClassLoader loader = toolbarModel.getClass().getClassLoader();
+            Class<?> specClass = Class.forName(
+                    "jp.syoboi.a2chMate.feature.toolbar.ToolbarButtonSpec", false, loader);
+            Object item = specClass.getConstructor(int.class, int.class, int.class,
+                    int.class, boolean.class).newInstance(
+                    EDDI_ARCHIVE_TOOLBAR_ID, iconId, titleId, titleId, false);
+            // Modern ToolbarDefault keeps a mutable button list. Extending that
+            // list preserves its position and configuration objects; rebuilding
+            // the model can silently lose the new choice on some versions.
+            try {
+                @SuppressWarnings("unchecked")
+                List<Object> mutableButtons = (List<Object>) original;
+                mutableButtons.add(item);
+                return toolbarModel;
+            } catch (UnsupportedOperationException ignored) {
+                // Fall through for immutable toolbar catalogs.
+            }
+            buttons.add(item);
+
+            ArrayList<Field> modelFields = new ArrayList<>();
+            for (Field field : toolbarModel.getClass().getDeclaredFields()) {
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                        || field == listField) continue;
+                field.setAccessible(true);
+                modelFields.add(field);
+            }
+            java.lang.reflect.Constructor<?> selected = null;
+            for (java.lang.reflect.Constructor<?> constructor
+                    : toolbarModel.getClass().getDeclaredConstructors()) {
+                Class<?>[] parameterTypes = constructor.getParameterTypes();
+                if (parameterTypes.length == modelFields.size() + 1
+                        && List.class.isAssignableFrom(parameterTypes[parameterTypes.length - 1])
+                        && parameterTypes[0] == String.class) {
+                    selected = constructor;
+                    break;
+                }
+            }
+            if (selected == null) return toolbarModel;
+            ArrayList<Object> constructorArgs = new ArrayList<>();
+            Class<?>[] parameterTypes = selected.getParameterTypes();
+            Field titleField = null;
+            for (Field field : modelFields) {
+                if (field.getType() == String.class) {
+                    titleField = field;
+                    break;
+                }
+            }
+            if (titleField == null) return toolbarModel;
+            constructorArgs.add(titleField.get(toolbarModel));
+            ArrayList<Field> remainingFields = new ArrayList<>(modelFields);
+            remainingFields.remove(titleField);
+            for (int parameterIndex = 1; parameterIndex < parameterTypes.length - 1;
+                    parameterIndex++) {
+                Field match = null;
+                for (Field field : remainingFields) {
+                    if (parameterTypes[parameterIndex].isAssignableFrom(field.getType())
+                            || field.getType().isAssignableFrom(parameterTypes[parameterIndex])) {
+                        match = field;
+                        break;
+                    }
+                }
+                if (match == null) return toolbarModel;
+                constructorArgs.add(match.get(toolbarModel));
+                remainingFields.remove(match);
+            }
+            constructorArgs.add(buttons);
+            selected.setAccessible(true);
+            return selected.newInstance(constructorArgs.toArray());
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to add Edge archive toolbar choice", error);
+            return toolbarModel;
+        }
+    }
+
+    private static boolean containsToolbarChoice(List<?> buttons) {
+        for (Object button : buttons) {
+            if (button == null) continue;
+            for (Field id : button.getClass().getDeclaredFields()) {
+                if (id.getType() != int.class) continue;
+                try {
+                    id.setAccessible(true);
+                    if (id.getInt(button) == EDDI_ARCHIVE_TOOLBAR_ID) return true;
+                } catch (Throwable ignored) { }
+            }
+        }
+        return false;
+    }
+
+    /** Handles the custom toolbar item before ChMate dispatches its stock actions. */
+    public static boolean handleEdgeArchiveToolbarClick(Object fragment, int itemId) {
+        if (itemId != EDDI_ARCHIVE_TOOLBAR_ID || fragment == null) return false;
+        try {
+            Object activity = fragment.getClass().getMethod("getActivity").invoke(fragment);
+            if (!(activity instanceof Activity)) return false;
+            Intent intent = new Intent((Activity) activity, HissiMenuActivity.class);
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://eddiarchive3rd.boy.jp/"));
+            ((Activity) activity).startActivity(intent);
+            return true;
+        } catch (Throwable error) {
+            Log.e(LOG_TAG, "Unable to open Edge archive search from ChMate toolbar", error);
+            return false;
+        }
+    }
+
     /** Applies the bundled emoji fallback while preserving the original text. */
     public static CharSequence processEmojiText(CharSequence source) {
         return EmojiFontFallback.processText(source);
@@ -559,14 +708,23 @@ public final class Haiagaru {
         writer.flush();
     }
 
+    /** Repairs only the certificate comparison before 242's image upload pipeline. */
+    public static void normalizeImageUploadIntegrity242(Object[] state) {
+        if (state == null || state.length < 2
+                || !(state[0] instanceof int[]) || !(state[1] instanceof int[])) {
+            throw new IllegalStateException("Unexpected ChMate 242 image integrity state");
+        }
+        int[] actual = (int[]) state[0];
+        int[] expected = (int[]) state[1];
+        if (actual.length == 0 || expected.length == 0) {
+            throw new IllegalStateException("Empty ChMate 242 image integrity state");
+        }
+        expected[0] = actual[0];
+    }
+
     /**
-     * Runs the current image uploader after repairing its certificate-derived cache.
-     *
-     * <p>ChMate 0.8.10.243 loads this uploader from an in-memory DEX. Its normal
-     * path compares two cached integers immediately before building the request;
-     * re-signing leaves those values three apart and sends execution into a decoy
-     * allocation whose size is hundreds of megabytes. Repair the cached comparison
-     * value and keep the uploader, response parser, and network behavior unchanged.</p>
+     * Repairs 243's generated uploader cache without changing its request or parser.
+     * A mismatched comparison otherwise enters a decoy allocation of hundreds of MB.
      */
     public static Object invokeCurrentImageUploader(
             Method method,
@@ -988,6 +1146,45 @@ public final class Haiagaru {
      */
     public static boolean loadLiveTalkDat(String url, File destination) throws IOException {
         return ArchivedThreadImporter.loadLiveTalkDat(url, destination);
+    }
+
+    /**
+     * Keeps the 191 downloader on the ordinary DAT reader for Talk URLs.  The
+     * stock type-4 branch invokes a dynamically restored signer; after a
+     * Morphe rebuild that signer is the source of the divide-by-zero trap.
+     * ChMate's URL-info class is app-owned, so use its stable no-arg URL
+     * accessor and the integer transport field reflectively.
+     */
+    public static void normalizeLegacyTalkTransport(Object urlInfo) {
+        if (urlInfo == null) return;
+        try {
+            String url = null;
+            for (String accessor : new String[]{"o", "G", "H", "D"}) {
+                try {
+                    java.lang.reflect.Method method = urlInfo.getClass().getDeclaredMethod(accessor);
+                    if (method.getReturnType() == String.class) {
+                    method.setAccessible(true);
+                    Object value = method.invoke(urlInfo);
+                    if (value instanceof String && ArchivedThreadImporter.isTalkThreadUrl((String) value)) {
+                        url = (String) value;
+                        break;
+                    }
+                    }
+                } catch (NoSuchMethodException ignored) {
+                }
+            }
+            if (url == null) return;
+            for (java.lang.reflect.Field field : urlInfo.getClass().getDeclaredFields()) {
+                if (field.getType() == int.class && (field.getName().equals("g")
+                        || field.getName().equals("type") || field.getName().equals("kind"))) {
+                    field.setAccessible(true);
+                    field.setInt(urlInfo, 1);
+                    return;
+                }
+            }
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to normalize legacy Talk transport", error);
+        }
     }
 
     /**
@@ -1657,9 +1854,11 @@ public final class Haiagaru {
         boolean talkThread = ArchivedThreadImporter.isTalkThreadUrl(original);
         if (talkThread) {
             try {
-                if ("0.8.10.243 dev".equals(activity.getPackageManager()
-                        .getPackageInfo(activity.getPackageName(), 0).versionName)) {
-                    // 243 fetches inside the native download lock, including refresh.
+                String version = activity.getPackageManager()
+                        .getPackageInfo(activity.getPackageName(), 0).versionName;
+                if ("0.8.10.243 dev".equals(version)) {
+                    // 243 refreshes the first render after its native download.
+                    // 242 does not, so let the importer populate the DAT before launch.
                     return;
                 }
             } catch (android.content.pm.PackageManager.NameNotFoundException ignored) {
@@ -1827,12 +2026,19 @@ public final class Haiagaru {
 
     /** Normalize only the retired BE token before ChMate builds its text and attachment models. */
     public static String normalizeLegacyBeBody(String original) {
-        if (original == null || !original.contains("sssp://img.5ch.net/premium/")) {
+        if (original == null || !LEGACY_BE_ANY_URL.matcher(original).find()) {
             return original;
         }
-        return original.replace(
-                "sssp://img.5ch.net/premium/",
-                "sssp://img.5ch.io/premium/");
+        // The pre-io DAT format appears as sssp://, https://, or a control
+        // character prefix. Normalize the host in all forms before the 226
+        // response model builds its attachment projection.
+        String normalized = original
+                .replace("img.5ch.net/", "img.5ch.io/")
+                .replace("img.5ch.NET/", "img.5ch.io/");
+        // 226 builds both the response model and the attachment projection
+        // from this field. Deduplicate here as well as in the renderer so a
+        // legacy row cannot produce one inline icon plus a second attachment.
+        return deduplicateBeIcons(normalized);
     }
 
     public static String prepareLegacyBeParsing(String original) {
@@ -1854,26 +2060,51 @@ public final class Haiagaru {
         // disagree, which produces duplicate icons or a broken link.
         String prepared = LEGACY_PREMIUM_BE_URL.matcher(original)
                 .replaceAll("sssp://img.5ch.net/ico/_be$1");
-        return LEGACY_BE_ICO_URL.matcher(prepared)
+        prepared = LEGACY_BE_ICO_URL.matcher(prepared)
                 .replaceAll("sssp://img.5ch.net/ico/$1");
+        return deduplicateBeIcons(prepared);
+    }
+
+    /** Keep one inline icon per BE filename even when the legacy parser visits a row twice. */
+    private static String deduplicateBeIcons(String text) {
+        Matcher matcher = LEGACY_BE_ANY_URL.matcher(text);
+        java.util.HashSet<String> seen = new java.util.HashSet<>();
+        StringBuffer output = null;
+        while (matcher.find()) {
+            String key = matcher.group(1).toLowerCase(Locale.ROOT);
+            if (key.startsWith("_be_")) key = key.substring(4);
+            else if (key.startsWith("_be")) key = key.substring(3);
+            if (seen.add(key)) continue;
+            if (output == null) output = new StringBuffer(text.length());
+            matcher.appendReplacement(output, "");
+        }
+        if (output == null) return text;
+        matcher.appendTail(output);
+        return output.toString();
     }
 
     /** Avoid drawing the same legacy BE icon twice when the row already owns its span. */
     public static String prepareLegacyBeParsing(Object renderBuffer, String original) {
-        if (original == null || renderBuffer == null || !LEGACY_PREMIUM_BE_URL.matcher(original).find()) {
+        if (original == null || renderBuffer == null
+                || (!LEGACY_PREMIUM_BE_URL.matcher(original).find()
+                && !LEGACY_BE_ICO_URL.matcher(original).find())) {
             return prepareLegacyBeParsing(original);
         }
-        if (original.length() > 80) return prepareLegacyBeParsing(original);
-        Matcher matcher = LEGACY_PREMIUM_BE_URL.matcher(original);
-        StringBuffer unique = null;
-        while (matcher.find()) {
-            if (!hasMatchingBeIconSpan(renderBuffer, matcher.group(1))) continue;
-            if (unique == null) unique = new StringBuffer(original.length());
-            matcher.appendReplacement(unique, "");
+        String prepared = original;
+        for (Pattern tokenPattern : new Pattern[]{LEGACY_PREMIUM_BE_URL, LEGACY_BE_ICO_URL}) {
+            Matcher matcher = tokenPattern.matcher(prepared);
+            StringBuffer unique = null;
+            while (matcher.find()) {
+                if (!hasMatchingBeIconSpan(renderBuffer, matcher.group(1))) continue;
+                if (unique == null) unique = new StringBuffer(prepared.length());
+                matcher.appendReplacement(unique, "");
+            }
+            if (unique != null) {
+                matcher.appendTail(unique);
+                prepared = unique.toString();
+            }
         }
-        if (unique == null) return prepareLegacyBeParsing(original);
-        matcher.appendTail(unique);
-        return prepareLegacyBeParsing(unique.toString());
+        return prepareLegacyBeParsing(prepared);
     }
 
     private static boolean hasMatchingBeIconSpan(Object renderBuffer, String fileName) {
@@ -1944,6 +2175,47 @@ public final class Haiagaru {
             linkInfo[5] = 4;
         }
         return found;
+    }
+
+    /**
+     * The pre-io renderer calculates an image span from the expanded sssp URL,
+     * but its displayed text still contains the shorter DAT token. A span that
+     * reaches the following newline is drawn on both lines as two BE icons.
+     */
+    public static int correctLegacyBeSpanEnd(
+            CharSequence text, Object span, int start, int end
+    ) {
+        if (text == null || span == null || start < 0 || start >= text.length()) return end;
+        int candidate = Math.min(end, text.length());
+        int newline = -1;
+        for (int i = start; i < candidate; i++) {
+            if (text.charAt(i) == '\n') {
+                newline = i;
+                break;
+            }
+        }
+        if (newline < 0 && end <= text.length()) return end;
+
+        String className = span.getClass().getName();
+        String urlField;
+        if ("o.oa".equals(className)) urlField = "e";
+        else if ("o.getFlexDirection".equals(className)) urlField = "b";
+        else return end;
+        try {
+            Field field = span.getClass().getDeclaredField(urlField);
+            field.setAccessible(true);
+            Object value = field.get(span);
+            if (!(value instanceof String)) return end;
+            String url = ((String) value).toLowerCase(Locale.ROOT);
+            if (!url.contains("img.5ch.io/premium/")
+                    && !url.contains("img.5ch.net/premium/")
+                    && !url.contains("img.5ch.io/ico/_be")
+                    && !url.contains("img.5ch.net/ico/_be")) return end;
+            int corrected = newline >= 0 ? newline : candidate;
+            return corrected > start ? corrected : end;
+        } catch (ReflectiveOperationException | SecurityException ignored) {
+            return end;
+        }
     }
 
     /**
@@ -2133,6 +2405,15 @@ public final class Haiagaru {
         if (!(view instanceof ViewGroup)) return;
         ViewGroup group = (ViewGroup) view;
         String name = group.getClass().getName();
+        // ChMate 242 uses a dedicated empty, childless view as the large inline
+        // Talk ad slot between consecutive responses. Identify that class by
+        // name, while still requiring the Talk thread guard in the caller.
+        if ("o.zzbiczzabzza".equals(name)
+                && view.getVisibility() == View.VISIBLE
+                && view.getHeight() >= dp(view.getContext(), 160)) {
+            collapseView(view);
+            return;
+        }
         if (name.contains("RecyclerView") || name.contains("AbsListView")
                 || name.contains("ScrollView")) {
             for (int i = 0; i < group.getChildCount(); i++) {
@@ -2471,7 +2752,8 @@ public final class Haiagaru {
                 new String[]{
                         text("端末設定に合わせる", "Follow system"),
                         text("ダーク", "Dark"),
-                        text("AMOLEDブラック", "AMOLED black")
+                        text("AMOLEDブラック", "AMOLED black"),
+                        text("ライト", "Light")
                 },
                 preferences.getInt(HISSI_VIEWER_THEME_KEY, 0)
         );
@@ -2487,6 +2769,12 @@ public final class Haiagaru {
                 activity,
                 text("必死チェッカーを全画面で表示", "Fullscreen checker viewer"),
                 preferences.getBoolean(HISSI_VIEWER_FULLSCREEN_KEY, false)
+        );
+        Switch kyodemoEnhancedViewer = addSwitch(
+                layout,
+                activity,
+                text("KyodemoのID/ﾜｯﾁｮｲ検索を専用表示", "Enhanced Kyodemo ID/Wacchoi viewer"),
+                preferences.getBoolean(KYODEMO_ENHANCED_VIEWER_KEY, false)
         );
         Switch edgeReporterId = addSwitch(
                 layout,
@@ -2651,6 +2939,10 @@ public final class Haiagaru {
         }
         final EditText archiveRouteTemplates = archiveRouteTemplatesValue;
         addOptionalSettingsSection(
+                "Edge archive search",
+                () -> addEddiArchiveSearchControl(activity, layout)
+        );
+        addOptionalSettingsSection(
                 "archived-thread preset",
                 () -> addArchiveSearchPresetControl(activity, layout)
         );
@@ -2758,6 +3050,7 @@ public final class Haiagaru {
                                     Math.max(0, Math.min(2, hissiViewerTextZoom.getSelectedItemPosition()))
                             ])
                             .putBoolean(HISSI_VIEWER_FULLSCREEN_KEY, hissiViewerFullscreen.isChecked())
+                            .putBoolean(KYODEMO_ENHANCED_VIEWER_KEY, kyodemoEnhancedViewer.isChecked())
                             .putBoolean("edgeReporterId", edgeReporterId.isChecked())
                             .putBoolean("forceHttps", forceHttps.isChecked())
                             .putBoolean("automaticDat", automaticDat.isChecked())
@@ -2836,6 +3129,19 @@ public final class Haiagaru {
         reset.setOnClickListener(view -> editor.setText(DEFAULT_ARCHIVE_ROUTE_TEMPLATES));
         layout.addView(reset, rowParams(activity));
         return editor;
+    }
+
+    private static void addEddiArchiveSearchControl(Activity activity, LinearLayout layout) {
+        Button button = new Button(activity);
+        button.setAllCaps(false);
+        button.setText(text("エッヂの過去ログを検索", "Search archived Edge threads"));
+        button.setOnClickListener(view -> {
+            Intent intent = new Intent(activity, HissiMenuActivity.class);
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://eddiarchive3rd.boy.jp/"));
+            activity.startActivity(intent);
+        });
+        layout.addView(button, rowParams(activity));
     }
 
     private static void addArchiveSearchPresetControl(Activity activity, LinearLayout layout) {
@@ -3284,6 +3590,7 @@ public final class Haiagaru {
         // obfuscated defaults; an explicitly entered custom class is preserved verbatim.
         if ((AD_CLASS_191.equals(savedClass)
                 || AD_CLASS_241.equals(savedClass)
+                || AD_CLASS_242.equals(savedClass)
                 || AD_CLASS_243.equals(savedClass))
                 && !classExists(savedClass)) {
             return defaultAdClass();
@@ -3301,6 +3608,7 @@ public final class Haiagaru {
             String versionName = packageInfo.versionName;
             return "0.8.10.191 dev".equals(versionName)
                     || "0.8.10.226 dev".equals(versionName)
+                    || "0.8.10.242 dev".equals(versionName)
                     || "0.8.10.243 dev".equals(versionName);
         } catch (Throwable error) {
             Log.w(LOG_TAG, "Unable to determine ChMate version for compatibility controls", error);
@@ -3310,6 +3618,7 @@ public final class Haiagaru {
 
     private static String defaultAdClass() {
         if (classExists(AD_CLASS_243)) return AD_CLASS_243;
+        if (classExists(AD_CLASS_242)) return AD_CLASS_242;
         if (classExists(AD_CLASS_241)) return AD_CLASS_241;
         return AD_CLASS_191;
     }
@@ -3476,13 +3785,13 @@ public final class Haiagaru {
         SharedPreferences prefs = preferencesOrNull();
         if (prefs == null) return 0;
         int value = prefs.getInt(HISSI_VIEWER_THEME_KEY, 0);
-        return value < 0 || value > 2 ? 0 : value;
+        return value < 0 || value > 3 ? 0 : value;
     }
 
     public static void setHissiViewerTheme(int value) {
         SharedPreferences prefs = preferencesOrNull();
         if (prefs != null) prefs.edit().putInt(HISSI_VIEWER_THEME_KEY,
-                Math.max(0, Math.min(2, value))).apply();
+                Math.max(0, Math.min(3, value))).apply();
     }
 
     public static int hissiViewerTextZoom() {
@@ -3501,6 +3810,11 @@ public final class Haiagaru {
     public static boolean hissiViewerFullscreen() {
         SharedPreferences prefs = preferencesOrNull();
         return prefs != null && prefs.getBoolean(HISSI_VIEWER_FULLSCREEN_KEY, false);
+    }
+
+    public static boolean kyodemoEnhancedViewer() {
+        SharedPreferences prefs = preferencesOrNull();
+        return prefs != null && prefs.getBoolean(KYODEMO_ENHANCED_VIEWER_KEY, false);
     }
 
     private static int viewerTextZoomIndex(int zoom) {

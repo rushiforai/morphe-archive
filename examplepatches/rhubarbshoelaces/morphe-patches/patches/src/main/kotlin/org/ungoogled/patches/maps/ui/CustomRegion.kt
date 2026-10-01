@@ -20,13 +20,13 @@ val COMPATIBILITY_MAPS = Compatibility(
     packageName = "com.google.android.apps.maps"
 )
 
-private const val ACTIVITY = "app.template.extension.extension.RegionActivity"
+private const val ACTIVITY = "rhubarbshoelaces.patches.maps.extension.RegionActivity"
 private const val TITLE = "Custom Cartographic Region"
 
 internal val regionExtensionPatch = bytecodePatch(
     description = "Adds the Custom Cartographic Region UI extension.",
 ) {
-    extendWith("extensions/extension.mpe")
+    extendWith("extension.mpe")
 }
 
 private val regionManifestPatch = resourcePatch(
@@ -84,14 +84,13 @@ val customRegionPatch = bytecodePatch(
             val customizationClass = mutableClassDefBy("Lorg/ungoogled/ui/CustomizationActivity;")
             val onCreateMethod = customizationClass.methods.firstOrNull { it.name == "onCreate" }
             onCreateMethod?.let { method ->
-                // Insert invocation at the end of onCreate before return-void
                 val returnIndex = method.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
                 val insertIndex = if (returnIndex != -1) returnIndex else method.instructions.size
 
                 method.addInstructions(
                     insertIndex,
                     """
-                        invoke-static { p0 }, Lapp/template/extension/extension/RegionActivity;->addRegionRow(Landroid/app/Activity;)V
+                        invoke-static { p0 }, Lrhubarbshoelaces/patches/maps/extension/RegionActivity;->addRegionRow(Landroid/app/Activity;)V
                     """.trimIndent()
                 )
             }
@@ -116,7 +115,7 @@ val customRegionPatch = bytecodePatch(
                 method.addInstructions(
                     insertIndex,
                     """
-                        invoke-static { v$valueReg }, Lapp/template/extension/extension/RegionActivity;->getForcedRegion(Ljava/lang/String;)Ljava/lang/String;
+                        invoke-static { v$valueReg }, Lrhubarbshoelaces/patches/maps/extension/RegionActivity;->getForcedRegion(Ljava/lang/String;)Ljava/lang/String;
                         move-result-object v$valueReg
                     """.trimIndent()
                 )
@@ -132,7 +131,7 @@ val customRegionPatch = bytecodePatch(
             method.addInstructions(
                 moveResultMatch.index + 1,
                 """
-                    invoke-static { v$targetReg }, Lapp/template/extension/extension/RegionActivity;->getForcedRegion(Ljava/lang/String;)Ljava/lang/String;
+                    invoke-static { v$targetReg }, Lrhubarbshoelaces/patches/maps/extension/RegionActivity;->getForcedRegion(Ljava/lang/String;)Ljava/lang/String;
                     move-result-object v$targetReg
                 """.trimIndent()
             )

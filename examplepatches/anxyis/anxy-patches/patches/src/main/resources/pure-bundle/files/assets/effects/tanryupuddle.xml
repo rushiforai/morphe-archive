@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.puddle"
+    name="Puddle"
+    desc="Amazing New Extra FX from the Modder"
+    category="distort" 
+    tags="distort"
+    thumb="thumb/TANRYU/puddle.png"
+    experimental="false">
+
+    <params>
+        <switch id="autop" default="true" label="Auto Progress" />
+        <switch id="lowh" default="false" label="New Wave" />
+        <spinner id="EVO" label="Progress" default="1.0" min="-10.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <slider id="NUM_DRIPS" label="Amount" default="20" min="0" max="30" step="1.0" type="integer" ticks="5,10,15,20,25" snap="5,10,15,20,25" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+       
+        <texture id="inputImg" srcType="content" />
+
+    </params>
+    
+    <!-- <iterations param="iter" /> -->
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        // #define NUM_DRIPS 20
+        
+        float Seed;
+        
+        void srand (float t)
+        {
+            Seed = 0.5 + (sin (t*59.0) + sin (t*73.0) + sin (t*97.0))/6.0;
+        }
+            
+        float rand()
+        {
+            Seed = 0.25 + 0.5*Seed + 0.25*sin (12345.0 * Seed);
+            return Seed;
+        }
+        
+        vec2 dripPos (float fTime, out float fAge)
+        {
+            float t = floor (fTime*0.1);
+            srand (t);
+            fAge = fTime*0.1 - t;
+            return vec2 (rand(), rand());
+        }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iRes = vec2(acScreenSize.x, acScreenSize.y);
+        
+        vec2 TanRyu;
+        TanRyu = acScreenNorm; 
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            vec2 vRel = TanRyu;
+        
+            float t = autop? EVO+(acTime*0.5) : EVO;
+            float fStep = 123.456;
+            float fHeight = 0.0;
+            
+            for (int i = 0; i < int(NUM_DRIPS); i++)
+            {
+                float fAge;
+                vec2 vRnd = dripPos (t, fAge); //
+                vRnd /= scale;
+                vRnd *= rot2m((0.0+angle)*0.0174533);
+                vRnd += vec2((0.0-position.x), (0.0-position.y))*vec2(-1.,1.)/500.;
+        
+                vec2 vD = vec2 (vRel - vRnd);
+                float fD = sqrt (dot (vD, vD));
+        
+                float fDa = 10.0 * (fD - fAge + 0.6);
+        
+                fHeight += (1.0 - fAge) 
+                    * max (0.0, 1.0 - (fDa*fDa))
+                    * sin (fD*150.0 - fAge*80.0);
+                
+                t += fStep;
+            }
+        
+            vRel.y -= sign (fHeight) * fHeight*fHeight;
+            vec4 vTex = texture2DCv(inputImg.texture, vRel);
+        
+            if (lowh)
+            // if (fHeight < 0.0)
+            {
+                float p = -fHeight*0.8;
+                float q = 1.0 - p;
+                vTex.b = p + q*vTex.b;
+                p = -fHeight*0.3;
+                q = 1.0 - p;
+                vTex.g = p + q*vTex.g;
+            }
+            
+            fragColor = vTex; 
+        
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+
+        vec4 resultfinal;
+            resultfinal = (factor * 1.0) * texColor.a;
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

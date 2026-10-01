@@ -28,8 +28,8 @@ public class ExpandedControlsTest {
     }
 
     @Test public void everyControlIsIndependentAndPauseKeepsItsChoice() {
-        assertEquals(24, SettingsActivity.CONTROLS.length);
-        assertEquals(24, Settings.installed.size());
+        assertEquals(28, SettingsActivity.CONTROLS.length);
+        assertEquals(28, Settings.installed.size());
         for (String[] spec : SettingsActivity.CONTROLS) {
             String key = spec[0];
             assertTrue(Settings.installed.contains(key));
@@ -42,6 +42,17 @@ public class ExpandedControlsTest {
             assertTrue(Settings.preferences.getBoolean(key, false));
             Settings.preferences.edit().clear().commit();
         }
+    }
+
+    @Test public void saveAnyStoryFollowsItsSwitchPauseAndInstall() {
+        assertFalse(Settings.saveAnyStory());
+        Settings.preferences.edit().putBoolean("save_stories", true).commit();
+        assertTrue(Settings.saveAnyStory());
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        assertFalse(Settings.saveAnyStory());
+        Settings.preferences.edit().putBoolean("paused", false).commit();
+        Settings.installed = Set.of("anonymous_stories");
+        assertFalse(Settings.saveAnyStory());
     }
 
     @Test public void adFilterPreservesOrdinaryRowsTheirOrderAndTheInput() {
@@ -126,15 +137,15 @@ public class ExpandedControlsTest {
             EditText search = root.findViewWithTag("find_control");
             TextView status = root.findViewWithTag("search_status");
             search.setText("  PEOPLE YOU  ");
-            assertEquals("1 of 24 installed controls", status.getText().toString());
+            assertEquals("1 of 28 installed controls", status.getText().toString());
             assertEquals(View.VISIBLE, ((View) root.findViewWithTag("people").getParent()).getVisibility());
             assertEquals(View.GONE, ((View) root.findViewWithTag("stories").getParent()).getVisibility());
             search.setText("Stickers");
-            assertEquals("2 of 24 installed controls", status.getText().toString());
+            assertEquals("2 of 28 installed controls", status.getText().toString());
             search.setText("missing control xyz");
             assertEquals("No matching controls. Try another search.", status.getText().toString());
             search.setText("");
-            assertEquals("24 of 24 installed controls", status.getText().toString());
+            assertEquals("28 of 28 installed controls", status.getText().toString());
         }
     }
 }

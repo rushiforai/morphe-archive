@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.sparkle" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/sparkle.webp" tags="drawing,sparkle,glitter,star,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Sparkle</string>
+            <string name="desc">Scatters twinkling star sparkles over the brightest parts of the layer.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color" default="#FFFFFFFF" label="Sparkle Color" alpha="false" />
+        <slider id="count" default="40.0" min="10.0" max="120.0" label="Density" />
+        <slider id="threshold" default="0.5" min="0.0" max="1.0" label="Brightness Cutoff" />
+        <slider id="speed" default="3.0" min="0.0" max="10.0" label="Twinkle Speed" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            float l = dot(src.rgb, vec3(0.299,0.587,0.114));
+            vec2 g = acScreenNorm*count;
+            vec2 id = floor(g);
+            vec2 f = fract(g)-0.5;
+            float h = rand(id);
+            float tw = 0.5 + 0.5*sin(acTime*speed + h*42.0);
+            float cx = smoothstep(0.03,0.0,abs(f.x))*smoothstep(0.45,0.0,abs(f.y));
+            float cy = smoothstep(0.03,0.0,abs(f.y))*smoothstep(0.45,0.0,abs(f.x));
+            float spark = max(cx,cy)*step(0.82,h)*tw*step(threshold,l);
+            gl_FragColor = src + vec4(color.rgb,0.0)*spark;
+        }
+    ]]></shader>
+
+</effect>

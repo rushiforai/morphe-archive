@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.snow" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/snow.webp" tags="procedural,snow,weather,animated,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Snow</string>
+            <string name="desc">Gentle procedural snowfall with drifting flakes layered over the scene.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="0.5" min="0.1" max="1.0" label="Density" />
+        <slider id="speed" default="0.6" min="0.0" max="3.0" label="Speed" />
+        <color id="color" default="#FFFFFFFF" label="Snow Color" alpha="false" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 flakes = vec3(0.0);
+            for(int i=1;i<=3;i++){
+                float fi = float(i);
+                float sc = 10.0*amount*fi + 6.0;
+                vec2 g = acScreenNorm*vec2(sc, sc);
+                g.y += acTime*speed*fi*0.8;
+                g.x += sin(acTime*speed + fi)*0.5;
+                vec2 id = floor(g);
+                vec2 f = fract(g)-0.5;
+                float h = rand(id+fi);
+                float flake = smoothstep(0.18,0.0,length(f))*step(0.8,h);
+                flakes += color.rgb*flake/fi;
+            }
+            gl_FragColor = src + vec4(flakes,0.0)*0.9;
+        }
+    ]]></shader>
+
+</effect>

@@ -5,6 +5,7 @@
 package app.morphe.patches.tiktok.interaction.resume
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
@@ -20,6 +21,9 @@ private const val CONTINUE_CONFIG =
  */
 internal object FeedProgressContinueGateFingerprint : Fingerprint(
     name = "invoke",
+    // The filter repeats a reference the custom block requires, so the patcher reads only the
+    // classes that make it (#54).
+    filters = listOf(fieldAccess(definingClass = CONTINUE_CONFIG, name = "enable")),
     returnType = "Ljava/lang/Object;",
     parameters = emptyList(),
     custom = { method, _ ->

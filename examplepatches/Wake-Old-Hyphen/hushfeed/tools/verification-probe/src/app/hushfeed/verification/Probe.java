@@ -679,22 +679,38 @@ public final class Probe extends Instrumentation {
                     }
                     case "feedmute": {
                         // What Mute feed videos matches on: each engine it has seen with the
-                        // source id TikTok's player reports for it, the videos the controller asked
-                        // for, and the one on screen. Ids by their last six digits only.
+                        // source id TikTok's player reports for it, whether it counts as a feed
+                        // engine and whether the engine is muted right now, the videos the
+                        // controller asked for, and the one on screen. Ids by their last six
+                        // digits only.
                         Class<?> mute = loader.loadClass("app.morphe.extension.tiktok.playback.FeedMute");
                         Field enginesField = mute.getDeclaredField("ENGINES");
                         enginesField.setAccessible(true);
+                        Field feedEnginesField = mute.getDeclaredField("FEED_ENGINES");
+                        feedEnginesField.setAccessible(true);
                         Field playsField = mute.getDeclaredField("PLAYS");
                         playsField.setAccessible(true);
                         Method sourceId = mute.getDeclaredMethod("engineSourceId", Object.class);
                         sourceId.setAccessible(true);
+                        Method isMute = mute.getDeclaredMethod("engineIsMute", Object.class);
+                        isMute.setAccessible(true);
                         StringBuilder out = new StringBuilder("engines=");
                         Map<?, ?> engines = (Map<?, ?>) enginesField.get(null);
+                        Map<?, ?> feedEngines = (Map<?, ?>) feedEnginesField.get(null);
+                        List<Object> seen;
                         synchronized (engines) {
-                            for (Object engine : new ArrayList<>(engines.keySet())) {
-                                out.append(Integer.toHexString(System.identityHashCode(engine))).append(':')
-                                        .append(tail(sourceId.invoke(null, engine))).append(' ');
+                            seen = new ArrayList<>(engines.keySet());
+                        }
+                        for (Object engine : seen) {
+                            boolean feed;
+                            synchronized (feedEngines) {
+                                feed = feedEngines.containsKey(engine);
                             }
+                            out.append(Integer.toHexString(System.identityHashCode(engine))).append(':')
+                                    .append(tail(sourceId.invoke(null, engine)))
+                                    .append(feed ? ":feed" : "")
+                                    .append(Boolean.TRUE.equals(isMute.invoke(null, engine)) ? ":muted" : ":sound")
+                                    .append(' ');
                         }
                         out.append("| plays=");
                         Map<?, ?> plays = (Map<?, ?>) playsField.get(null);
@@ -707,6 +723,57 @@ public final class Probe extends Instrumentation {
                                 .getMethod("getAweme").invoke(null);
                         out.append("| current=").append(tail(optional(aweme, "getAid")));
                         Log.i(TAG, "ok feedmute " + out);
+                        break;
+                    }
+                    case "pitaya": {
+                        // Whether Pitaya came up: the Pitaya libraries loaded into TikTok, the
+                        // real core provider its plugin hands over (null while every core is
+                        // TikTok's "host not ready" stand-in), the cores asked for so far and
+                        // what answers each, and the boot loader's state. PitayaLite is left
+                        // out on purpose: reading its fields runs its class initializer, which
+                        // loads libAndroidPitayaProxy, so the library list answers for it.
+                        StringBuilder out = new StringBuilder("libs=");
+                        java.util.Set<String> libs = new java.util.TreeSet<>();
+                        try (java.io.BufferedReader maps = new java.io.BufferedReader(
+                                new java.io.FileReader("/proc/self/maps"))) {
+                            for (String line; (line = maps.readLine()) != null; ) {
+                                int slash = line.lastIndexOf('/');
+                                if (slash >= 0 && line.toLowerCase(java.util.Locale.ROOT).contains("pitaya")) {
+                                    libs.add(line.substring(slash + 1));
+                                }
+                            }
+                        }
+                        out.append(libs).append(' ');
+                        for (String name : new String[] {
+                                "com.bytedance.pitaya.api.mutilinstance.DelegateCoreProvider",
+                                "com.bytedance.pitaya.api.PitayaBootLoader"}) {
+                            Class<?> type = loader.loadClass(name);
+                            out.append(type.getSimpleName()).append('{');
+                            for (Field field : type.getDeclaredFields()) {
+                                if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                                field.setAccessible(true);
+                                Object value = field.get(null);
+                                String shown;
+                                if (value == null || value instanceof Boolean || value instanceof Number) {
+                                    shown = String.valueOf(value);
+                                } else if (value instanceof Map) {
+                                    StringBuilder entries = new StringBuilder("[");
+                                    synchronized (value) {
+                                        for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                                            entries.append(entry.getKey()).append('=')
+                                                    .append(entry.getValue() == null ? "null" : entry.getValue().getClass().getSimpleName())
+                                                    .append(' ');
+                                        }
+                                    }
+                                    shown = entries.append(']').toString();
+                                } else {
+                                    shown = value.getClass().getName();
+                                }
+                                out.append(field.getName()).append('=').append(shown).append(' ');
+                            }
+                            out.append("} ");
+                        }
+                        Log.i(TAG, "ok pitaya " + out);
                         break;
                     }
                     case "addrs": {

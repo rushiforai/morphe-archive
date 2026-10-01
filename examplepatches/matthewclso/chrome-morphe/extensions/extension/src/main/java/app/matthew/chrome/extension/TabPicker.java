@@ -7,6 +7,8 @@ import android.content.res.Configuration;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
@@ -25,6 +27,7 @@ import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
+import java.util.Objects;
 
 /** An in-memory view of the current native model, inside Chrome's captured toolbar. */
 public final class TabPicker {
@@ -41,8 +44,7 @@ public final class TabPicker {
     private long renderedRevision = -1;
     private int count = -1, selected = -1, lastMargin = Integer.MIN_VALUE, addedMargin;
     private boolean paused, shown, dark, privateMode;
-    private View hairline;
-    private int hairlineVisibility = -1;
+    private boolean revealSelection;
     private Object pendingCloseModel;
     private int pendingCloseId;
     private long pendingCloseDeadline;
@@ -50,6 +52,18 @@ public final class TabPicker {
     private TabPicker(Activity activity, View toolbar, ViewGroup host) {
         this.activity = activity; this.toolbar = toolbar; this.host = host;
         scroll = new HorizontalScrollView(toolbar.getContext()) {
+            @Override protected void onScrollChanged(int x, int y, int oldX, int oldY) {
+                super.onScrollChanged(x, y, oldX, oldY);
+                invalidateCapture();
+            }
+            @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+                super.onLayout(changed, left, top, right, bottom);
+                if (revealSelection) {
+                    revealSelection = false;
+                    revealSelected();
+                }
+                if (changed) invalidateCapture();
+            }
             @Override public boolean dispatchTouchEvent(android.view.MotionEvent event) {
                 // Capture the down event even when a tab/close child receives the tap.
                 // Otherwise Chrome's toolbar swipe handler switches pages instead of
@@ -95,7 +109,31 @@ public final class TabPicker {
         });
     }
 
-    public static void changed() { revision++; }
+    public static void changed() {
+        revision++;
+        // A late favicon callback may arrive when Chrome has no other frame to draw.
+        for (WeakReference<TabPicker> reference : instances.values()) {
+            TabPicker picker = reference.get();
+            if (picker != null && !picker.paused) picker.scroll.postInvalidateOnAnimation();
+        }
+    }
+    /** Also applies while Chrome captures the toolbar behind a modal/context menu. */
+    public static boolean drawDividerBackground(View view, Canvas canvas) {
+        if (!PatchSettings.trueBottom() || !PatchSettings.enabled(PatchSettings.TAB_PICKER)) return false;
+        Activity activity = activity(view.getContext());
+        TabPicker picker = activity == null ? null : get(activity);
+        if (picker == null || !(picker.scroll.getBackground() instanceof ColorDrawable)) return false;
+        View container = view.getRootView().findViewById(view.getResources().getIdentifier(
+                "control_container", "id", view.getContext().getPackageName()));
+        if (container == null || !NativeBridge.pickerAtBottom(container)) return false;
+        // The compositor retains this slot in its geometry. An empty/transparent draw
+        // exposes the page through the gap; extend the picker's surface across it.
+        int saved = canvas.save();
+        canvas.clipRect(0, 0, view.getWidth(), view.getHeight());
+        canvas.drawColor(((ColorDrawable) picker.scroll.getBackground()).getColor());
+        canvas.restoreToCount(saved);
+        return true;
+    }
     private static TabPicker get(Activity activity) {
         WeakReference<TabPicker> ref = instances.get(activity);
         return ref == null ? null : ref.get();
@@ -159,16 +197,17 @@ public final class TabPicker {
             if (current != model || incognito != privateMode) {
                 clear(); model = current; privateMode = incognito;
             }
-            if (revision != renderedRevision || currentCount != count || currentIndex != selected) {
+            if (revision != renderedRevision || currentCount != count || currentIndex != selected
+                    || !Objects.equals(cells.get(currentIndex).iconUrl,
+                            NativeBridge.pickerUrl(NativeBridge.pickerTab(current, currentIndex)))) {
                 render(currentCount, currentIndex);
             }
             if (!shown) {
                 shown = true; scroll.setVisibility(View.VISIBLE);
-                hideDivider(true);
+                invalidateCapture();
                 host.requestLayout();
                 return false; // Measure the reserved row before drawing the first visible frame.
             }
-            hideDivider(true);
         } catch (RuntimeException ignored) {
             // Native restoration or teardown can temporarily remove the model.
             hide();
@@ -177,20 +216,18 @@ public final class TabPicker {
     }
 
     private void hide() {
-        if (shown) { shown = false; scroll.setVisibility(View.GONE); host.requestLayout(); }
-        hideDivider(false);
+        if (shown) {
+            shown = false; scroll.setVisibility(View.GONE); host.requestLayout();
+            invalidateCapture();
+        }
         clear();
     }
-    private void hideDivider(boolean hidden) {
-        if (hairline == null) hairline = toolbar.getRootView().findViewById(id("toolbar_hairline"));
-        if (hairline == null) return;
-        if (hidden) {
-            if (hairlineVisibility == -1) hairlineVisibility = hairline.getVisibility();
-            hairline.setVisibility(View.INVISIBLE);
-        } else if (hairlineVisibility != -1) {
-            if (hairline.getVisibility() == View.INVISIBLE) hairline.setVisibility(hairlineVisibility);
-            hairlineVisibility = -1;
-        }
+    private void invalidateCapture() {
+        // Chrome's snapshot key covers only native toolbar controls. Mark our changes
+        // as dirty too; native layout, motion, focus and capture guards still decide when.
+        NativeBridge.pickerInvalidateCapture(toolbar);
+        View divider = host.findViewById(id("toolbar_hairline"));
+        if (divider != null) divider.invalidate();
     }
     private void clear() {
         if (!cells.isEmpty()) { tabs.removeAllViews(); cells.clear(); }
@@ -211,7 +248,13 @@ public final class TabPicker {
         for (int i = 0; i < newCount; i++) {
             Object tab = NativeBridge.pickerTab(model, i);
             Cell cell = cells.get(i);
-            cell.tabId = NativeBridge.pickerId(tab);
+            int tabId = NativeBridge.pickerId(tab);
+            Object url = NativeBridge.pickerUrl(tab);
+            if (cell.tabId != tabId || !Objects.equals(cell.iconUrl, url)) {
+                cell.iconRequested = false;
+                cell.iconUrl = url;
+            }
+            cell.tabId = tabId;
             String title = NativeBridge.pickerTitle(tab);
             if (TextUtils.isEmpty(title)) title = privateMode ? "Incognito tab" : "New tab";
             cell.title.setText(title); cell.title.setTextColor(foreground);
@@ -221,6 +264,14 @@ public final class TabPicker {
             cell.choose.setStateDescription(i == newIndex ? "Active tab" : null);
             cell.close.setContentDescription("Close tab: " + title); cell.close.setTextColor(foreground);
             Bitmap bitmap = NativeBridge.pickerIcon(tab);
+            if (!cell.iconRequested) {
+                cell.iconRequested = true;
+                // Bind live contents even when a restored bitmap is already available.
+                // Native code returns that cache immediately or queries the local DB;
+                // Chrome owns the profile, URL checks, callback and helper lifetime.
+                NativeBridge.pickerRequestIcon(tab);
+                bitmap = NativeBridge.pickerIcon(tab);
+            }
             if (bitmap != null) {
                 cell.icon.setImageTintList(null); cell.icon.setImageBitmap(bitmap);
             } else {
@@ -236,22 +287,45 @@ public final class TabPicker {
         }
         boolean selectionChanged = selected != newIndex || count != newCount;
         count = newCount; selected = newIndex; renderedRevision = revision;
-        if (selectionChanged) scroll.post(() -> {
-            if (selected < 0 || selected >= cells.size()) return;
-            View cell = cells.get(selected).row;
-            int start = cell.getLeft(), end = cell.getRight(), offset = scroll.getScrollX();
-            if (start < offset || end > offset + scroll.getWidth())
-                scroll.smoothScrollTo(Math.max(0, start - (scroll.getWidth() - cell.getWidth()) / 2), 0);
-        });
+        invalidateCapture();
+        if (selectionChanged) {
+            // Newly recreated rows have no bounds until layout (e.g. after address entry).
+            revealSelection = true;
+            scroll.requestLayout();
+        }
+    }
+    private void revealSelected() {
+        if (selected < 0 || selected >= cells.size()) return;
+        View cell = cells.get(selected).row;
+        int start = cell.getLeft(), end = cell.getRight(), offset = scroll.getScrollX();
+        if (start < offset || end > offset + scroll.getWidth())
+            scroll.smoothScrollTo(Math.max(0, start - (scroll.getWidth() - cell.getWidth()) / 2), 0);
     }
 
     private final class Cell {
         final LinearLayout row = new LinearLayout(toolbar.getContext());
         final LinearLayout choose = new LinearLayout(toolbar.getContext());
         final ImageView icon = new ImageView(toolbar.getContext());
-        final TextView title = new TextView(toolbar.getContext());
-        final Button close = new Button(toolbar.getContext());
+        final TextView title = new TextView(toolbar.getContext()) {
+            private final Rect glyphBounds = new Rect();
+            @Override protected void onDraw(Canvas canvas) {
+                int saved = centerText(canvas, this, glyphBounds);
+                super.onDraw(canvas);
+                canvas.restoreToCount(saved);
+            }
+        };
+        final Button close = new Button(toolbar.getContext()) {
+            private final Rect glyphBounds = new Rect();
+            @Override protected void onDraw(Canvas canvas) {
+                // Keep the original glyph and size; center its ink, not its font line box.
+                int saved = centerText(canvas, this, glyphBounds);
+                super.onDraw(canvas);
+                canvas.restoreToCount(saved);
+            }
+        };
         int tabId;
+        Object iconUrl;
+        boolean iconRequested;
         Cell() {
             LinearLayout.LayoutParams rp = new LinearLayout.LayoutParams(dp(192), dp(48));
             rp.setMarginEnd(dp(4)); row.setLayoutParams(rp); row.setGravity(Gravity.CENTER_VERTICAL);
@@ -267,8 +341,9 @@ public final class TabPicker {
             icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             choose.addView(icon, new LinearLayout.LayoutParams(dp(20), dp(20)));
             title.setSingleLine(true); title.setEllipsize(TextUtils.TruncateAt.END); title.setTextSize(13);
+            title.setGravity(Gravity.CENTER_VERTICAL);
             title.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, -2, 1); tp.setMarginStart(dp(8));
+            LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, -1, 1); tp.setMarginStart(dp(8));
             choose.addView(title, tp); row.addView(choose, new LinearLayout.LayoutParams(0, -1, 1));
             close.setText("×"); close.setTextSize(24); close.setPadding(0, 0, 0, 0);
             close.setMinWidth(0); close.setMinimumWidth(0); close.setMinHeight(0); close.setMinimumHeight(0);
@@ -291,6 +366,17 @@ public final class TabPicker {
             else NativeBridge.pickerSelect(model, tabId);
             changed(); toolbar.invalidate();
         }
+    }
+    private static int centerText(Canvas canvas, TextView view, Rect bounds) {
+        int saved = canvas.save();
+        String visible = TextUtils.ellipsize(view.getText(), view.getPaint(),
+                Math.max(0, view.getWidth() - view.getCompoundPaddingLeft() - view.getCompoundPaddingRight()),
+                TextUtils.TruncateAt.END).toString();
+        if (!visible.isEmpty()) {
+            view.getPaint().getTextBounds(visible, 0, visible.length(), bounds);
+            canvas.translate(0, view.getHeight() / 2f - view.getBaseline() - bounds.exactCenterY());
+        }
+        return saved;
     }
     private void finishPendingClose() {
         if (pendingCloseModel == null) return;

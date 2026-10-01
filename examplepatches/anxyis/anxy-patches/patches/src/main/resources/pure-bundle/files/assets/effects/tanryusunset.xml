@@ -1,0 +1,295 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.sunset"
+    name="Sunset"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="other"
+    thumb="thumb/TANRYU/sunset.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="comp" srcType="comp" />
+        <!-- <texture id="black" srcType="image" src="textures/black.png" /> -->
+        <!-- <color id="color1" default="#FF000000" label="Color" alpha="true" /> -->
+        <switch id="scalex" default="true" label="Scale Normalize" />
+        <tip text="Enable the features if u use a shape to make a layer" />
+        <point id="positionn" label="@am:string/effect_param_offset" />
+        <spinner id="progressc" label="Progress" default="0.5" min="0.0" max="1.0" step="0.005" type="percent" />
+        <spinner id="progressd" label="Sun Intensify" default="5.0" min="0.0" max="20.0" step="0.05" type="percent" />
+        <spinner id="progresse" label="Wave Evolution" default="1.0" min="0" max="1000.0" step="0.01" type="percent" />
+        <spinner id="progressb" label="Wave Sinus" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="progressa" label="Wave Cosinus" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="wavex" label="Wave Height" default="1.2" min="0" max="10.0" step="0.01" type="percent" />
+        <!-- <spinner id="xnxx" label="X" default="1.0" min="0" max="1000.0" step="0.01" type="percent" /> -->
+        <spinner id="scale" default="1.0" min="0.1" max="20.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <color id="color1" default="#FF9B7530" label="Color Wave" alpha="true" />
+        <color id="color2" default="#FF907744" label="Color Sky" alpha="true" />
+        <color id="color3" default="#FFFFA100" label="Color Sun" alpha="true" />
+        <!-- <slider id="alphab" default="0.0" min="0.0" max="1.0" step="0.01" label="Alpha Blend" type="percent" /> -->
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+       
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        const float PI = 3.14159265;
+        const float MAX_RAYMARCH_DIST = 150.0;
+        const float MIN_RAYMARCH_DELTA = 0.00015; 
+        const float GRADIENT_DELTA = 0.015;
+        float waveHeight1 = 0.005;
+        float waveHeight2 = 0.004;
+        float waveHeight3 = 0.001;
+        
+        // --------------------- START of SIMPLEX NOISE
+        //
+        // Description : Array and textureless GLSL 2D simplex noise function.
+        //      Author : Ian McEwan, Ashima Arts.
+        //  Maintainer : ijm
+        //     Lastmod : 20110822 (ijm)
+        //     License : Copyright (C) 2011 Ashima Arts. All rights reserved.
+        //               Distributed under the MIT License. See LICENSE file.
+        //               https://github.com/ashima/webgl-noise
+        // 
+        
+        vec3 mod289(vec3 x) {
+          return x - floor(x * (1.0 / 289.0)) * 289.0;
+        }
+        
+        vec2 mod289(vec2 x) {
+          return x - floor(x * (1.0 / 289.0)) * 289.0;
+        }
+        
+        vec3 permute(vec3 x) {
+          return mod289(((x*34.0)+1.0)*x);
+        }
+        
+        float snoise(vec2 v)
+          {
+          const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
+                              0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)
+                             -0.577350269189626,  // -1.0 + 2.0 * C.x
+                              0.024390243902439); // 1.0 / 41.0
+        // First corner
+          vec2 i  = floor(v + dot(v, C.yy) );
+          vec2 x0 = v -   i + dot(i, C.xx);
+        
+        // Other corners
+          vec2 i1;
+          //i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1.0 : 0.0
+          //i1.y = 1.0 - i1.x;
+          i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+          // x0 = x0 - 0.0 + 0.0 * C.xx ;
+          // x1 = x0 - i1 + 1.0 * C.xx ;
+          // x2 = x0 - 1.0 + 2.0 * C.xx ;
+          vec4 x12 = x0.xyxy + C.xxzz;
+          x12.xy -= i1;
+        
+        // Permutations
+          i = mod289(i); // Avoid truncation effects in permutation
+          vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+        		+ i.x + vec3(0.0, i1.x, 1.0 ));
+        
+          vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+          m = m*m ;
+          m = m*m ;
+        
+        // Gradients: 41 points uniformly over a line, mapped onto a diamond.
+        // The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
+        
+          vec3 x = 2.0 * fract(p * C.www) - 1.0;
+          vec3 h = abs(x) - 0.5;
+          vec3 ox = floor(x + 0.5);
+          vec3 a0 = x - ox;
+        
+        // Normalise gradients implicitly by scaling m
+        // Approximation of: m *= inversesqrt( a0*a0 + h*h );
+          m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+        
+        // Compute final noise value at P
+          vec3 g;
+          g.x  = a0.x  * x0.x  + h.x  * x0.y;
+          g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+          return 130.0 * dot(m, g);
+        }
+        
+        // --------------------- END of SIMPLEX NOISE
+        
+        
+        float map(vec3 p) {
+        	return p.y + (0.5 + waveHeight1 + waveHeight2 + waveHeight3) 
+        		+ snoise(vec2(p.x + progresse * 0.4, p.z + progresse * 0.6)) * waveHeight1
+        		+ snoise(vec2(p.x * 1.6 - progresse * 0.4, p.z * 1.7 - progresse * 0.6)) * waveHeight2
+        	  	+ snoise(vec2(p.x * 6.6 - progresse * 1.0, p.z * 2.7 + progresse * 1.176)) * waveHeight3;
+        }
+        
+        vec3 gradientNormalFast(vec3 p, float map_p) {
+            return normalize(vec3(
+                map_p - map(p - vec3(GRADIENT_DELTA, 0, 0)),
+                map_p - map(p - vec3(0, GRADIENT_DELTA, 0)),
+                map_p - map(p - vec3(0, 0, GRADIENT_DELTA))));
+        }
+        
+        float intersect(vec3 p, vec3 ray_dir, out float map_p, out int iterations) {
+        	iterations = 0;
+        	if (ray_dir.y >= 0.0) { return -1.0; } // to see the sea you have to look down
+        	
+        	float distMin = (- 0.5 - p.y) / ray_dir.y;
+        	float distMid = distMin;
+        	for (int i = 0; i < 50; i++) {
+        		//iterations++;
+        		distMid += max(0.05 + float(i) * 0.002, map_p);
+        		map_p = map(p + ray_dir * distMid);
+        		if (map_p > 0.0) { 
+        			distMin = distMid + map_p;
+        		} else { 
+        			float distMax = distMid + map_p;
+        			// interval found, now bisect inside it
+        			for (int i = 0; i < 10; i++) {
+        				//iterations++;
+        				distMid = distMin + (distMax - distMin) / 2.0;
+        				map_p = map(p + ray_dir * distMid);
+        				if (abs(map_p) < MIN_RAYMARCH_DELTA) return distMid;
+        				if (map_p > 0.0) {
+        					distMin = distMid + map_p;
+        				} else {
+        					distMax = distMid + map_p;
+        				}
+        			}
+        			return distMid;
+        		}
+        	}
+        	return distMin;
+        }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+
+        TanRyu /= scalex? (scale+5.0) : scale;
+        // TanRyu.y = 1.-TanRyu.y;
+        TanRyu *= rot2m((180.0+angle)*0.0174533);
+        TanRyu += vec2((0.0+positionn.x), (35.0+positionn.y))*vec2(-1.,1.)/500.;
+
+        
+        /////////////////////////
+        
+        // if(progressa <= 0.0) { gl_FragColor = texture2DCv(inputImg.texture,acScreenNorm); }
+        // else if(progressa >= 0.0001) { 
+
+    	vec4 fragColor;
+    	
+              	float waveHeight = cos(1.0 * 0.03) * wavex + 1.6;
+        	waveHeight1 *= waveHeight;
+        	waveHeight2 *= waveHeight;
+        	waveHeight3 *= waveHeight;
+        	
+        	vec2 position = TanRyu;
+        	// vec2 position = vec2((fragCoord.x - iResolution.x / 2.0) / iResolution.y, (fragCoord.y - iResolution.y / 2.0) / iResolution.y);
+        	vec3 ray_start = vec3(0, 0.2, -2);
+        	vec3 ray_dir = normalize(vec3(position,0) - ray_start);
+        	ray_start.y = cos(progressa * 0.5) * 0.2 - 0.25 + sin(progressb * 2.0) * 0.05;
+        	
+        	const float dayspeed = 0.04;
+        	float subtime = max(-0.16, sin(1.0 * dayspeed) * 0.2);
+        	// float subtime = max(-0.16, sin(progressd * dayspeed) * 0.2);
+        	float middayperc = progressc * 0.3 - 0.15;
+        	// float middayperc = max(0.0, sin(subtime));
+        	// vec3 light1_pos = color3.rgb;
+        	vec3 light1_pos = ((vec3(0.0, middayperc * 200.0, 200.0)));
+        	// vec3 light1_pos = ((vec3(0.0, middayperc * 200.0, cos(subtime * dayspeed) * 200.0)));
+        	float sunperc = pow(max(0.0, min(dot(ray_dir, normalize(light1_pos)), 1.0)), 190.0 + max(0.0,light1_pos.y * 4.3));
+        	vec3 suncolor = ((1.0 - max(0.0, middayperc)) * vec3(color3.r, color3.g, middayperc + color3.b) + max(0.0, middayperc) * vec3(1.0, 1.0, 1.0) * progressd);
+        	// vec3 suncolor = ((1.0 - max(0.0, middayperc)) * vec3(1.5, 1.2, middayperc + 0.5) + max(0.0, middayperc) * vec3(1.0, 1.0, 1.0) * 4.0) * color2.rgb;
+        	vec3 skycolor = (vec3(color2.rgb));
+        	// vec3 skycolor = (vec3(middayperc + 0.8, middayperc + 0.7, middayperc + 0.5)) * color2.rgb;
+        	vec3 skycolor_now = suncolor * sunperc + (skycolor * (middayperc * 1.6 + 0.5)) * (1.0 - sunperc);
+        	vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+        	float map_p;
+        	int iterations;
+        	float dist = intersect(ray_start, ray_dir, map_p, iterations);
+        	if (dist > 0.0) {
+        		vec3 p = ray_start + ray_dir * dist;
+        		vec3 light1_dir = normalize(light1_pos - p);
+                	vec3 n = gradientNormalFast(p, map_p);
+        		vec3 ambient = skycolor_now * 0.1;
+                	vec3 diffuse1 = (vec3(color1.rgb)*0.5) * max(0.0, dot(light1_dir, n)  * 2.8);
+                	// vec3 diffuse1 = vec3(1.1, 1.1, 0.6) * max(0.0, dot(light1_dir, n)  * 2.8);
+        		vec3 r = reflect(light1_dir, n);
+        		vec3 specular1 = (vec3(color1.rgb)*0.5) * (0.8 * pow(max(0.0, dot(r, ray_dir)), 200.0));	    
+        		// vec3 specular1 = vec3(1.5, 1.2, 0.6) * (0.8 * pow(max(0.0, dot(r, ray_dir)), 200.0));	    
+        		float fog = min(max(p.z * 0.07, 0.0), 1.0);
+                	color.rgb = (vec3(4.,4.,4.) * diffuse1 + specular1 + ambient)  * (1.0 - fog) + skycolor_now * fog;
+                	// color.rgb = (vec3(0.6,0.6,1.0) * diffuse1 + specular1 + ambient)  * (1.0 - fog) + skycolor_now * fog;
+
+            	} else {
+                	color.rgb = skycolor_now.rgb;
+            	}
+        	fragColor = color;
+        
+            // const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            // vec4 gradmap;
+            // float luminance = dot(fragColor.rgb, luminanceWeighting);
+            // gradmap = mix(color1,color2,luminance)*fragColor.a;
+        
+    	// vec4 factorx = mix(fragColor,gradmap,alphab);
+    	float darken = 1.0;
+    	if(progressc <= 0.0) { darken -= smoothstep(progressc,0.9,1.0);  }
+    	vec4 factor = mix(texColorX,fragColor,darken);
+
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

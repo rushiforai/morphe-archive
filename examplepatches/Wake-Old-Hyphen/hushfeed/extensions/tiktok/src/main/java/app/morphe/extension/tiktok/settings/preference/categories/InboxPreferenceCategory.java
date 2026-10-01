@@ -9,10 +9,14 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.inbox.AutoStreak;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.ClockTimePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
+import app.morphe.extension.tiktok.settings.preference.SendStreakNowPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
 @SuppressWarnings("deprecation")
@@ -28,7 +32,8 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                 || SettingsStatus.hideSuggestedAccountsEnabled
                 || SettingsStatus.hideInboxStoriesEnabled
                 || SettingsStatus.expandActivityListEnabled
-                || SettingsStatus.notificationControlsEnabled;
+                || SettingsStatus.notificationControlsEnabled
+                || SettingsStatus.autoStreakEnabled;
     }
 
     @Override
@@ -154,5 +159,70 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                     Settings.EXPAND_ACTIVITY_LIST
             ));
         }
+        if (SettingsStatus.autoStreakEnabled) {
+            addStreakRows(context);
+        }
+    }
+
+    private void addStreakRows(Context context) {
+        addPreference(new SectionHeadingPreference(context, "Streak"));
+        TogglePreference keep = new TogglePreference(
+                context,
+                "Keep a streak going",
+                "Sends one message a day to the person below at the time below, so a streak with them keeps going on a day you don't open TikTok.",
+                Settings.AUTO_STREAK
+        );
+        Runnable refresh = () -> keep.showExtraLine(AutoStreak.statusLine(context));
+        refresh.run();
+        // Each listener runs before the change is saved, so the work waits for the next turn of
+        // the main thread, by which time the setting holds the new value.
+        keep.setOnPreferenceChangeListener((preference, value) -> {
+            boolean on = Boolean.TRUE.equals(value);
+            Utils.runOnMainThread(() -> {
+                AutoStreak.settingsChanged(context, on);
+                refresh.run();
+            });
+            return true;
+        });
+        addPreference(keep);
+
+        InputTextPreference who = new InputTextPreference(
+                context,
+                "Who to message",
+                "Their username, like @name. It has to be someone you already have a chat with.",
+                Settings.AUTO_STREAK_RECIPIENT
+        ).withNameKeyboard().withNote(value -> AutoStreak.recipientNote(context, value));
+        who.setOnPreferenceChangeListener((preference, value) -> {
+            String before = Settings.AUTO_STREAK_RECIPIENT.get();
+            Utils.runOnMainThread(() -> {
+                AutoStreak.recipientChanged(context, before);
+                refresh.run();
+            });
+            return true;
+        });
+        addPreference(who);
+
+        ClockTimePreference when = new ClockTimePreference(
+                context,
+                "When to send",
+                "The time of day the message goes out.",
+                Settings.AUTO_STREAK_MINUTE
+        );
+        when.setOnPreferenceChangeListener((preference, value) -> {
+            Utils.runOnMainThread(() -> {
+                AutoStreak.settingsChanged(context, true);
+                refresh.run();
+            });
+            return true;
+        });
+        addPreference(when);
+
+        addPreference(new InputTextPreference(
+                context,
+                "Message",
+                "What gets sent each day.",
+                Settings.AUTO_STREAK_MESSAGE
+        ));
+        addPreference(new SendStreakNowPreference(context, refresh));
     }
 }

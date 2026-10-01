@@ -26,6 +26,7 @@ class NativePlaybackFixturesTest {
             "46.9.3" to listOf("LIZIZ", "LX/036B;", "LIZ", "LJIILL"),
             "47.0.3" to listOf("LLJJIJIIJIL", "LX/037l;", "LJJLIIIJJI", "LJIILL"),
             "47.1.3" to listOf("LLJJJIL", "LX/037o;", "LIZ", "LJIILLIIL"),
+            "47.1.4" to listOf("LLJJJIL", "LX/037s;", "LIZ", "LJIILLIIL"),
         )
         val seen = mutableSetOf<String>()
         for (apk in Fixtures.apks()) {

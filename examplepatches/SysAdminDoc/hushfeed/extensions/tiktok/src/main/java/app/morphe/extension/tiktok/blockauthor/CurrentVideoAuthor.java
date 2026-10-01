@@ -151,7 +151,7 @@ public final class CurrentVideoAuthor {
             long now = SessionBudget.now();
             if (now - lastClaimAskedAt >= CLAIM_EVERY_MS || now < lastClaimAskedAt) {
                 lastClaimAskedAt = now;
-                if (SessionBudget.claimNotice()) SessionBudgetNotice.show();
+                if (SessionBudget.claimNotice()) SessionBudgetNotice.show(awemeId);
             }
         }
         SessionLockOverlay.ensureRunning();
@@ -192,7 +192,10 @@ public final class CurrentVideoAuthor {
 
         if (!Objects.equals(previousId, newId)) {
             SessionBudget.noteVideo(newId);
-            if (SessionBudget.claimNotice()) SessionBudgetNotice.show();
+            // Before the budget is asked: a last video being finished ends when another comes
+            // up, and the one that just came up may be the one that spends the budget.
+            app.morphe.extension.tiktok.wellbeing.FinishLastVideo.onVideoChanged(newId);
+            if (SessionBudget.claimNotice()) SessionBudgetNotice.show(newId);
             // Checked where the day's own notice is checked, on the video change rather than on
             // the progress callback: the reminder is measured in watched minutes but it should
             // arrive between videos rather than over one.

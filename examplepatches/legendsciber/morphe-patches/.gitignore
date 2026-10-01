@@ -132,4 +132,3 @@ local.properties
 .direnv
 apk
 apk_unpacked
-mpp-verify/

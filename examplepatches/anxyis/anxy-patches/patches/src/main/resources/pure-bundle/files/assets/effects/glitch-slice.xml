@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.glitch-slice" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/glitch-slice.webp" tags="distort,glitch,slice,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Glitch Slice</string>
+            <string name="desc">Cuts the image into vertical slices and randomly jumps them up and down over time.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="0.5" min="0.0" max="1.0" label="Intensity" />
+        <slider id="size" default="0.05" min="0.01" max="0.25" label="Slice Width" />
+        <slider id="speed" default="1.0" min="0.0" max="5.0" label="Speed" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            float t = floor(acTime*speed*6.0);
+            vec2 uv = acScreenNorm;
+            float col = floor(uv.x/size);
+            float r = rand(vec2(col, t));
+            float sh = step(1.0-amount*0.7, r) * (rand(vec2(col*1.7, t))-0.5)*0.4;
+            uv.y = fract(uv.y + sh);
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

@@ -14,13 +14,44 @@ from dataclasses import dataclass
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 
-STOCK_SHA256 = {
-    346013387: "128ec75e836f24328d2b28777091c03b20abba0adc536e7ee911ee5fe52e70bc",
-    346013440: "e7d3c64227a7d9a26adda4e89321a87a49c85ee9e9f28f2fa7ed7fa79ae15cf6",
-    346013442: "55636f34a49173f5607011a6dfdf635597f435047a8c105cb7fe420665a38c24",
-    346013354: "4f061acd57cbeb640fb547cb7191b18f0fea36df77a0f9ee01e8267ab6264c9d",
-    346013370: "c115c3fef9ceec8529f3c405db86b7222f6e29a6ff95e691edabd63641646355",
-}
+PROFILES = Path(__file__).resolve().parent / "profiles"
+
+
+def recorded_builds(directory: Path = PROFILES) -> dict[int, tuple[str, str]]:
+    """Version code to (version name, SHA-256) for each build CompatReport.java recorded."""
+    builds = {}
+    for path in sorted(directory.glob("*.txt")):
+        fields = {}
+        for line in path.read_text(encoding="utf-8").splitlines():
+            key, _, value = line.partition(" ")
+            if key in ("version", "code", "sha256"):
+                fields[key] = value
+        builds[int(fields["code"])] = (fields["version"], fields["sha256"])
+    return builds
+
+
+BUILDS = recorded_builds()
+STOCK_SHA256 = {code: sha256 for code, (_, sha256) in BUILDS.items()}
+
+
+def supported_builds() -> str:
+    """Each recorded version name with its version codes, for error messages."""
+    codes: dict[str, list[int]] = {}
+    for code, (version, _) in sorted(BUILDS.items()):
+        codes.setdefault(version, []).append(code)
+    return "; ".join(
+        f"{version}, version code {', '.join(map(str, numbers))}"
+        for version, numbers in codes.items()
+    )
+
+
+# Other patch sets' "Spoof package version" option raises the version code to Android's maximum.
+SPOOFED_VERSION_CODE = 2**31 - 1
+SPOOFED_HELP = (
+    " That's the highest version code Android allows, which usually means a Messenger build from "
+    'another patch set with "Spoof package version" on. See "INSTALL_FAILED_VERSION_DOWNGRADE" '
+    """under "If something doesn't work" in the README to remove it."""
+)
 
 
 @dataclass(frozen=True)
@@ -211,8 +242,29 @@ def read_apk(path: Path, args: argparse.Namespace, sdk: int) -> Apk:
     )
 
 
+def leftover_version(output: str, package: str) -> int | None:
+    """Read the version code Android keeps for a package, including one uninstalled with its data kept."""
+    codes = []
+    for line in output.splitlines():
+        if not line.strip():
+            continue
+        match = re.fullmatch(
+            r"package:([A-Za-z0-9_.]+) versionCode:(\d+)", line.strip()
+        )
+        if not match:
+            raise ValueError("Malformed package version inventory")
+        if match[1] == package:
+            codes.append(int(match[2]))
+    if len(codes) > 1:
+        raise ValueError(f"Ambiguous package version inventory for {package}")
+    return codes[0] if codes else None
+
+
 def conflicts(
-    candidate: Apk, installed: dict[str, Apk], owners: dict[str, str]
+    candidate: Apk,
+    installed: dict[str, Apk],
+    owners: dict[str, str],
+    leftover: int | None = None,
 ) -> list[str]:
     problems = []
     previous = installed.get(candidate.package)
@@ -225,7 +277,22 @@ def conflicts(
         if previous.version_code > candidate.version_code:
             problems.append(
                 f"Version downgrade: installed {previous.version_code}, candidate {candidate.version_code}."
+                + (
+                    SPOOFED_HELP
+                    if previous.version_code == SPOOFED_VERSION_CODE
+                    else ""
+                )
             )
+    elif leftover is not None and leftover > candidate.version_code:
+        problems.append(
+            f"Version downgrade: {candidate.package} was uninstalled with its data kept at version code "
+            f"{leftover}, candidate {candidate.version_code}."
+            + (
+                SPOOFED_HELP
+                if leftover == SPOOFED_VERSION_CODE
+                else " Android refuses anything lower until that leftover data is removed."
+            )
+        )
     for permission in sorted(candidate.permissions):
         owner = owners.get(permission)
         if owner and owner != candidate.package:
@@ -428,15 +495,13 @@ def check(args: argparse.Namespace) -> int:
     if sdk < 28:
         raise ValueError("This preview requires Android 9 (API 28) or newer")
     candidate = read_apk(args.apk, args, sdk)
+    recorded = BUILDS.get(candidate.version_code)
     if (
         candidate.package != "com.facebook.orca"
-        or candidate.version_name != "580.0.0.49.91"
-        or candidate.version_code not in STOCK_SHA256
+        or recorded is None
+        or candidate.version_name != recorded[0]
     ):
-        raise ValueError(
-            "Use Messenger 580.0.0.49.91, version code "
-            + ", ".join(str(c) for c in sorted(STOCK_SHA256))
-        )
+        raise ValueError("Use Messenger " + supported_builds())
     if not candidate.permissions:
         raise ValueError("Messenger permission declarations are missing")
     with args.apk.open("rb") as source:
@@ -451,11 +516,40 @@ def check(args: argparse.Namespace) -> int:
 
     owners = permission_owners(run(adb + ["shell", "pm", "list", "permissions", "-f"]))
     packages = {}
-    for user in user_ids(run(adb + ["shell", "pm", "list", "users"])):
+    users = user_ids(run(adb + ["shell", "pm", "list", "users"]))
+    for user in users:
         for package in package_names(
             run(adb + ["shell", "pm", "list", "packages", "--user", str(user)])
         ):
             packages.setdefault(package, user)
+    leftover = None
+    if candidate.package not in packages:
+        for user in users:
+            code = leftover_version(
+                run(
+                    adb
+                    + [
+                        "shell",
+                        "pm",
+                        "list",
+                        "packages",
+                        "-u",
+                        "--show-versioncode",
+                        "--user",
+                        str(user),
+                        candidate.package,
+                    ]
+                ),
+                candidate.package,
+            )
+            if code is not None:
+                leftover = max(code, leftover or 0)
+        if leftover is not None:
+            print(
+                f"NOTE: {candidate.package} was uninstalled with its data kept (version code {leftover}). "
+                "This check can't read that copy's signing key, and Android may refuse a different key "
+                "until the leftover data is removed."
+            )
     required = {owners[name] for name in candidate.permissions if name in owners}
     required.update(packages.keys() & {candidate.package, "com.facebook.katana"})
     installed = {}
@@ -487,7 +581,7 @@ def check(args: argparse.Namespace) -> int:
             print(
                 f"Installed {package} certificate SHA-256: {', '.join(sorted(info.signers))}"
             )
-    problems = conflicts(candidate, installed, owners)
+    problems = conflicts(candidate, installed, owners, leftover)
     if problems:
         for problem in problems:
             print(f"CONFLICT: {problem}")

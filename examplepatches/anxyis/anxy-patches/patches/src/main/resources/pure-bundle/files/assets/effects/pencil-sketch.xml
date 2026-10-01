@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.pencil-sketch" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/pencil-sketch.webp" tags="stylize,sketch,pencil,artistic,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Pencil Sketch</string>
+            <string name="desc">Turns the layer into a soft pencil drawing using a classic dodge-blend technique.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 px = 1.5/acScreenSize;
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            float g = dot(c, vec3(0.299,0.587,0.114));
+            float b = 0.0;
+            b += 1.0 - dot(texture2DCv(inputImg.texture, acScreenNorm+vec2(px.x,0.0)).rgb, vec3(0.333));
+            b += 1.0 - dot(texture2DCv(inputImg.texture, acScreenNorm-vec2(px.x,0.0)).rgb, vec3(0.333));
+            b += 1.0 - dot(texture2DCv(inputImg.texture, acScreenNorm+vec2(0.0,px.y)).rgb, vec3(0.333));
+            b += 1.0 - dot(texture2DCv(inputImg.texture, acScreenNorm-vec2(0.0,px.y)).rgb, vec3(0.333));
+            b += 1.0 - g;
+            b /= 5.0;
+            float dodge = g / (1.0 - b + 0.004);
+            dodge = clamp(dodge, 0.0, 1.0);
+            gl_FragColor = vec4(mix(c, vec3(dodge), amount),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

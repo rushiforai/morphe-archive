@@ -1,0 +1,172 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e73746172676c6f777061727469636c65" deprecated="true">
+
+    <params>
+        <selector id="ryu" style="radio" default="0" label="Type Layers">
+            <choice label="SHAPE" value="0" />
+            <choice label="MEDIA" value="1" />
+        </selector>
+        <point id="parallax" label="Parallax" default="3.0,3.0" step="0.01" />
+        <spinner id="evo" label="Evolution" default="1.5" min="1.0" max="100.0" step="0.005" type="percent" />
+        <spinner id="blink" label="Blink" default="0.8" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="seed" label="Seed" default="0" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="sizeparticle" label="Size" default="0.015" min="0" max="1.0" step="0.001" type="percent" />
+        <point id="off" label="Offset" default="0.5,0.5" step="0.01" />
+        <!-- <point id="ppp" label="Random Pattern" default="0.14,0.12" step="0.01" /> -->
+        <slider id="AMOUNT" label="Amount" default="15" min="1" max="50" step="1.0" type="integer" ticks="10,20,30,40" snap="10,15,20,25,30,35,40" />
+        <spinner id="scale" default="1.00" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <point id="position" label="Position" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+           
+        vec2 aspect;
+        vec2 uv;
+        vec2 pan;
+        
+        float rand(vec2 co){
+            return fract(sin(dot(co.xy ,vec2(32.9898,78.233))) * 43758.5453);
+        }
+        
+        float rand1(float i) {
+            return rand(vec2(i, i));
+        }
+        
+        vec4 star(int n) {
+            float fn = float(n);
+            vec2 p = vec2(
+                sin((rand1((0.14+seed)+float(n))* parallax.x)*evo)*2.0 + cos((rand1((0.14+seed)+float(n))* parallax.x)*evo)*2.0,
+                sin((rand1(0.12+seed)+float(n)) * parallax.y)*evo)*2.0 + cos((rand1((0.12+seed)+float(n))* parallax.x)*evo)*2.0;
+           	float pf = rand1(fn*0.63)*0.5+0.5;
+            p += pan*pf;
+            p = mod(p, 4.0);
+            p -= vec2(0.5);
+            
+            vec3 rgb = vec3(
+                rand1(0.654*fn),
+                rand1(0.953*fn),
+                rand1(0.123*fn));
+            
+            float blink = rand1(blink*fn)+0.8;
+            // float blink = rand1(0.868*fn)+0.8;
+            
+            float dist = length(uv-p);
+        	
+            float i;    
+            i = sizeparticle * pow(length(uv-p), -1.2) * pf;
+            
+            if (rand1(0.589*fn*sizeparticle) > blink) {
+                i *= 0.5;
+            }
+            
+            return vec4(rgb*i, 1);
+        
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+
+        TanRyu *= rot2m((0.0+angle)*0.0174533);
+        if ( ryu==0 ) {
+        TanRyu /= (scale+0.75);
+        TanRyu += vec2((-800.0+position.x), (500.0+position.y))*vec2(-1.,1.)/500.;
+        } else if (  ryu==1 ) {
+        TanRyu /= (scale-0.68);
+        TanRyu += vec2((-700.0+position.x), (300.0+position.y))*vec2(-1.,1.)/500.;
+        }
+        
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            aspect = vec2(acScreenSize.x, acScreenSize.y) / min(acScreenSize.x, acScreenSize.y);
+            uv = TanRyu;
+            
+            fragColor = vec4(0);
+            
+            pan = vec2(off.x, off.y);
+            
+            for (int i=0; i<int(AMOUNT); ++i) {
+                fragColor += star(i);
+            }
+            
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+    	    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+            // resultfinal = (newLayer(texColor, factor) * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+          }
+        }
+
+    ]]></shader>
+
+</effect>

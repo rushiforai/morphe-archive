@@ -49,4 +49,20 @@ internal object Constants {
             )
         )
     )
+
+    /**
+     * X (Twitter). Ported from piko, which targets 12.19.1; adapted to the latest release only,
+     * for the same reason as Instagram.
+     */
+    val COMPATIBILITY_X = Compatibility(
+        name = "X",
+        packageName = "com.twitter.android",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x000000,
+        targets = listOf(
+            AppTarget(
+                version = "12.30.0-prod.01"
+            )
+        )
+    )
 }

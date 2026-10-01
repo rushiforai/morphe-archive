@@ -33,6 +33,7 @@ val p2pRelayBlockerPatch = rawResourcePatch(
             nativeFiles,
             p2pRelayProfiles,
             resolveStandaloneFile = { path -> get(path) },
+            versionName = packageMetadata.versionName,
         )
         result.report("P2P Relay Blocker")
     }
@@ -173,7 +174,9 @@ val liveStreamSuiteOptimizerPatch = rawResourcePatch(
 }
 
 private fun StripSummary.report(patchName: String) {
-    if (alreadyStripped) {
+    if (files == 0) {
+        println("[$patchName] This build ships none of the reviewed files, so there was nothing to empty.")
+    } else if (alreadyStripped) {
         println("[$patchName] The reviewed target set was already empty.")
     } else {
         val mebibytes = String.format(Locale.US, "%.2f", bytes.toDouble() / (1024.0 * 1024.0))
@@ -347,6 +350,29 @@ private val liveCastFiles4713 = listOf(
     file("lib/armeabi-v7a/libdex_df_live_cast.so", "27d8fda3e735303adf18e9b092f633b65cf72349f0e2f7d00d52de2b26c29787"),
 )
 
+// 47.1.4 (APKMirror's universal APK, read on 2026-09-30): 47.1.3's 53 paths again. Both ABIs of
+// the two client AI libraries and of the Pitaya and live cast feature libraries were rebuilt;
+// the other Pitaya libraries, the C2PA, Microblink and log monitor files are 47.1.3's bytes.
+private val pitayaFiles4714 = listOf(
+    file("lib/arm64-v8a/libPitayaBdComponent.so", "ae7cf15f60167939497dabfd2c0149d94d3b2b2ae8045a309287066ffcad4edd"),
+    file("lib/arm64-v8a/libPitayaTTPPolicy.so", "644c79287cb465a2bbba9f43887eca694f0c9561e46830154c0a57473c1d3694"),
+    file("lib/arm64-v8a/libTTNativeML.so", "3ee1f54531db56564834e2aa9ef39e8da71c176be8650569275e2038098ee35a"),
+    file("lib/arm64-v8a/libclient_ai_impl_df_jni.so", "2cd72b97eb873e0dcc652aee6fd83b2ae959e84346a4a73e05110f54b9cc4a03"),
+    file("lib/arm64-v8a/libclient_ai_impl_jni.so", "938f8a725842a9df0c8530b81896720abfa2dcb203f69faa9d374cc9d6488d96"),
+    file("lib/arm64-v8a/libdex_df_pitaya.so", "f9c97cdc3d7c5e0094c9111d539821a0c99a1128fbe92df557b2af983a66064b"),
+    file("lib/armeabi-v7a/libPitayaBdComponent.so", "5e2bf11472c65f754cf05cc9386309d1be8d85f66e797bc416a0ef12c28bdb18"),
+    file("lib/armeabi-v7a/libPitayaTTPPolicy.so", "2cc41a8339a8ac6c4cd64e96c0cc70e1b0e90d96d761a41dd6a1219511ac2e83"),
+    file("lib/armeabi-v7a/libTTNativeML.so", "48ab30a6114c2ce2fda2aa6222eff2313c0128dc8962175c1bb1cdfa61fbfeac"),
+    file("lib/armeabi-v7a/libclient_ai_impl_df_jni.so", "9efe835fa5f754ad14540f6246dcf7f7d01b2f18b3606af0fde5cf7f6b2d1d6b"),
+    file("lib/armeabi-v7a/libclient_ai_impl_jni.so", "b11f7872f1f0c9b51a7ec8c6a1add5500b76b8ae33dabbf41e5c97f966b52a96"),
+    file("lib/armeabi-v7a/libdex_df_pitaya.so", "f9c97cdc3d7c5e0094c9111d539821a0c99a1128fbe92df557b2af983a66064b"),
+)
+
+private val liveCastFiles4714 = listOf(
+    file("lib/arm64-v8a/libdex_df_live_cast.so", "c8320f1bb23d3d7b8b06edda0b8b9ce580bbbbfe73c5a238cad9b7e363e2e8d1"),
+    file("lib/armeabi-v7a/libdex_df_live_cast.so", "c8320f1bb23d3d7b8b06edda0b8b9ce580bbbbfe73c5a238cad9b7e363e2e8d1"),
+)
+
 // APKMirror also sells 46.2.3 and 47.0.3 as split bundles (tiktok-46-2-3-2 and tiktok-47-0-3-2,
 // "arm64-v8a + armeabi-v7a", 120-640dpi). Morphe Manager and the desktop CLI merge every split in
 // one, and every file the merged APK shares with the universal APK is byte-identical: all of the
@@ -355,7 +381,10 @@ private val liveCastFiles4713 = listOf(
 // and keeps 25 languages (read off the bundle on 2026-09-18, issue #9, where all four strips
 // refused it). 47.0.3's lacks 92 armeabi-v7a libraries, adds three arm64 feature libraries no
 // strip lists, and keeps 27 languages (read off the bundle on 2026-09-22, issue #21). Each bundle
-// profile is its build's profile less the files the bundle does not have.
+// profile is its build's profile less the files the bundle does not have. 47.1.4's bundle
+// (tiktok-47-1-4, read on 2026-09-30) has 264 arm64 libraries to 47.1.3's 298: besides the
+// armeabi-v7a set 47.0.3's lacks, it lacks the arm64 C2PA debug library, both arm64 editor
+// plugins and all four P2P relay libraries, and keeps 46.2.3's 25 languages.
 
 /** [profile] without [absent], every one of which it must list: its build's split bundle. */
 private fun bundleOf(profile: ResourceProfile, vararg absent: String): ResourceProfile {
@@ -378,6 +407,11 @@ private val coreAssets4703 = ResourceProfile(
 private val coreAssets4713 = ResourceProfile(
     "TikTok 47.1.3",
     microblinkFiles + c2paArm64Files + c2paArmeabiFiles + pitayaFiles4713 + monitorFiles4703 + liveCastFiles4713,
+)
+
+private val coreAssets4714 = ResourceProfile(
+    "TikTok 47.1.4",
+    microblinkFiles + c2paArm64Files + c2paArmeabiFiles + pitayaFiles4714 + monitorFiles4703 + liveCastFiles4714,
 )
 
 internal val coreAssetProfiles = listOf(
@@ -419,6 +453,18 @@ internal val coreAssetProfiles = listOf(
     coreAssets4713,
     bundleOf(
         coreAssets4713,
+        "lib/armeabi-v7a/libtt_c2pa_sdk_d.so",
+        "lib/armeabi-v7a/libPitayaBdComponent.so",
+        "lib/armeabi-v7a/libPitayaTTPPolicy.so",
+        "lib/armeabi-v7a/libTTNativeML.so",
+        "lib/armeabi-v7a/libclient_ai_impl_df_jni.so",
+        "lib/armeabi-v7a/libdex_df_pitaya.so",
+        "lib/armeabi-v7a/libdex_df_live_cast.so",
+    ),
+    coreAssets4714,
+    bundleOf(
+        coreAssets4714,
+        "lib/arm64-v8a/libtt_c2pa_sdk_d.so",
         "lib/armeabi-v7a/libtt_c2pa_sdk_d.so",
         "lib/armeabi-v7a/libPitayaBdComponent.so",
         "lib/armeabi-v7a/libPitayaTTPPolicy.so",
@@ -478,6 +524,19 @@ private val studioAssets4713 = ResourceProfile(
         ),
 )
 
+// 47.1.4 rebuilt only the camera feature library, the same bytes for both ABIs.
+private val studioAssets4714 = ResourceProfile(
+    "TikTok 47.1.4",
+    studioArm64Files +
+        file("lib/arm64-v8a/libdex_df_camera_biz.so", "00a381fc36185d3b3017b28b1f468be14106af36f94d4ec8a2874748dd36a870") +
+        listOf(
+            file("lib/armeabi-v7a/libEffectCreatorJni.so", "d3ae58712413c2d1d06dcf508eb7850452f58c93b9befd57867cd029421c9482"),
+            file("lib/armeabi-v7a/libdex_df_camera_biz.so", "00a381fc36185d3b3017b28b1f468be14106af36f94d4ec8a2874748dd36a870"),
+            file("lib/armeabi-v7a/libeffect_plugin.so", "f89bd50e941392fee2e47d031711fdce3520dae7f3e531da59dd0afbbec9d91c"),
+            file("lib/armeabi-v7a/libttvesdk_plugin.so", "42ab2be66f2b02622f52062fc3ff1b4862f44f0098faecfac3996afe3e7cf1f9"),
+        ),
+)
+
 internal val studioAssetProfiles = listOf(
     studioAssets4623,
     bundleOf(studioAssets4623, *studioArmV7Files.map { it.path }.toTypedArray()),
@@ -507,6 +566,16 @@ internal val studioAssetProfiles = listOf(
     studioAssets4713,
     bundleOf(
         studioAssets4713,
+        "lib/armeabi-v7a/libEffectCreatorJni.so",
+        "lib/armeabi-v7a/libdex_df_camera_biz.so",
+        "lib/armeabi-v7a/libeffect_plugin.so",
+        "lib/armeabi-v7a/libttvesdk_plugin.so",
+    ),
+    studioAssets4714,
+    bundleOf(
+        studioAssets4714,
+        "lib/arm64-v8a/libeffect_plugin.so",
+        "lib/arm64-v8a/libttvesdk_plugin.so",
         "lib/armeabi-v7a/libEffectCreatorJni.so",
         "lib/armeabi-v7a/libdex_df_camera_biz.so",
         "lib/armeabi-v7a/libeffect_plugin.so",
@@ -564,6 +633,7 @@ internal val liveAssetProfiles = listOf(
             file("lib/armeabi-v7a/liblink_mic_sdk.so", "705c951bac3fba5eca0b7fc58d509559bee588228c0c838f23733e63322680de"),
         ),
     ),
+    // 47.1.4, APK and split bundle, carries these five files byte for byte.
     ResourceProfile(
         "TikTok 47.1.3",
         listOf(
@@ -637,8 +707,12 @@ internal val p2pRelayProfiles = listOf(
     ),
     p2pRelay4703,
     bundleOf(p2pRelay4703, "lib/armeabi-v7a/libavmdlp2pv2.so", "lib/armeabi-v7a/libp2plivevdp.so"),
+    // 47.1.4's universal APK carries 47.1.3's four relay libraries byte for byte.
     p2pRelay4713,
     bundleOf(p2pRelay4713, "lib/armeabi-v7a/libavmdlp2pv2.so", "lib/armeabi-v7a/libp2plivevdp.so"),
+    // 47.1.4 ships no relay library at all, so there is nothing to empty. Only on 47.1.4: another
+    // build without these files has renamed or moved them, and the strip must refuse it.
+    ResourceProfile("TikTok 47.1.4", emptyList(), onlyVersion = "47.1.4"),
 )
 
 internal val languageInventories = listOf(
@@ -659,6 +733,7 @@ internal val languageInventories = listOf(
             // 47.0.3: the same path inventory changed content again.
             "1835bf4b3ccfe982927139bf660eacb49312db0b0ed90984057724e2c69af8b4",
             // 47.1.3: the same 207 files in the same 64 directories, new strings once more.
+            // 47.1.4 carries these 207 files byte for byte.
             "f1e693f4041fba07ba1f505edd8baded98afe23acd461180bae56d2f470e330c",
         ),
     ),
@@ -670,7 +745,11 @@ internal val languageInventories = listOf(
             "pl", "pt", "ru", "sv", "th", "tr", "uk", "vi", "zh",
         ),
         pathManifestSha256 = "33aad0753feebf540e226b415eecfc59323d40f7b52dfc70a06bd278e7acc9a6",
-        contentManifestSha256 = setOf("9c41da0041c61b4eab8b891b6bb2749223330bbecdd6a8d5808ac2cac7226ae8"),
+        contentManifestSha256 = setOf(
+            "9c41da0041c61b4eab8b891b6bb2749223330bbecdd6a8d5808ac2cac7226ae8",
+            // The 47.1.4 split bundle: back to these 25 splits and 102 paths, new strings.
+            "c92a42adcd81b317ac6b83ac9c88f55767f2bb470e27d5becc57ce305bf32255",
+        ),
     ),
     // The 47.0.3 split bundle: 27 language splits (46.2.3's plus both Hebrew codes), 106 files,
     // each byte-identical to the universal APK's copy.

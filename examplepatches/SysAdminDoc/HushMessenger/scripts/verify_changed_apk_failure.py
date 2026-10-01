@@ -12,11 +12,24 @@ import zlib
 from pathlib import Path
 from zipfile import BadZipFile, ZipFile
 
-STOCK_SHA256 = {
-    "128ec75e836f24328d2b28777091c03b20abba0adc536e7ee911ee5fe52e70bc",
-    "e7d3c64227a7d9a26adda4e89321a87a49c85ee9e9f28f2fa7ed7fa79ae15cf6",
-    "55636f34a49173f5607011a6dfdf635597f435047a8c105cb7fe420665a38c24",
-}
+PROFILES = Path(__file__).resolve().parent / "profiles"
+
+
+def recorded_builds(directory: Path = PROFILES) -> dict[int, str]:
+    """Version code to SHA-256 for each build CompatReport.java recorded."""
+    builds = {}
+    for path in sorted(directory.glob("*.txt")):
+        fields = {}
+        for line in path.read_text(encoding="utf-8").splitlines():
+            key, _, value = line.partition(" ")
+            if key in ("code", "sha256"):
+                fields[key] = value
+        builds[int(fields["code"])] = fields["sha256"]
+    return builds
+
+
+BUILDS = recorded_builds()
+STOCK_SHA256 = set(BUILDS.values())
 OLD_LITERAL = b"com.facebook.permission.prod.FB_APP_COMMUNICATION"
 CHANGED_LITERAL = b"com.facebook.permission.proX.FB_APP_COMMUNICATION"
 
@@ -27,6 +40,19 @@ def altered_dex(data: bytes) -> bytes:
     changed[12:32] = hashlib.sha1(changed[32:], usedforsecurity=False).digest()
     changed[8:12] = (zlib.adler32(changed[12:]) & 0xFFFFFFFF).to_bytes(4, "little")
     return bytes(changed)
+
+
+def names_every_build(line: str) -> bool:
+    """The DEX-site rejection, naming every recorded build as a supported version code."""
+    match = re.search(r"\bexpected 6 permission loads, found 4\b(.*)", line)
+    if match is None:
+        return False
+    named = {
+        int(code)
+        for codes in re.findall(r"\bversion code (\d+(?: or \d+)*)\b", match.group(1))
+        for code in codes.split(" or ")
+    }
+    return named == set(BUILDS)
 
 
 def check(args: argparse.Namespace) -> int:
@@ -123,11 +149,7 @@ def check(args: argparse.Namespace) -> int:
             (
                 line.strip()
                 for line in patch_failure["reason"].splitlines()
-                if re.search(
-                    r"\bexpected 6 permission loads, found 4\b.*"
-                    r"\bversion code 346013387 or 346013440 or 346013442\b",
-                    line,
-                )
+                if names_every_build(line)
             ),
             None,
         )

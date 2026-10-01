@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.dome-3d" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/dome-3d.webp" tags="3d,dome,fisheye,bulge,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Dome</string>
+            <string name="desc">Projects the layer onto a curved dome surface for an immersive fisheye bulge.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="fov" default="120.0" min="40.0" max="170.0" label="Field of View" type="angle" step="1" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 p=acScreenNorm*2.0-1.0; float asp=acScreenSize.x/acScreenSize.y; p.x*=asp;
+            float r=length(p);
+            if(r>1.0){gl_FragColor=texture2DCv(inputImg.texture, acScreenNorm);return;}
+            float maxT=radians(fov)*0.5;
+            float theta=r*maxT;
+            float rr=sin(theta)/sin(maxT);
+            vec2 dir = r>0.0001? p/r : vec2(0.0);
+            vec2 np=dir*rr; np.x/=asp;
+            vec2 uv=mix(acScreenNorm, np*0.5+0.5, amount);
+            gl_FragColor=texture2DCv(inputImg.texture, clamp(uv,0.0,1.0));
+        }
+    ]]></shader>
+
+</effect>

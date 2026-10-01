@@ -151,6 +151,8 @@ internal val DARK_BACKGROUND_COLORS: Map<String, Set<String>> = run {
         // 47.1.3 added another color ahead of the block, so every gray moved one name along
         // again. The five values are 47.0.3's, and still no other style points at one.
         "47.1.3" to setOf("a40", "a42", "a43", "a45", "a4c"),
+        // 47.1.4's color table is 47.1.3's, name for name and value for value.
+        "47.1.4" to setOf("a40", "a42", "a43", "a45", "a4c"),
     )
 }
 

@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.fisheye" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/fisheye.webp" tags="distort,lens,bulge,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Fisheye</string>
+            <string name="desc">Barrel-lens fisheye bulge. Push positive to bulge outward or negative to pinch inward.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="strength" default="0.4" min="-1.0" max="1.0" label="Strength" ticks="0" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 p = acScreenNorm*2.0 - 1.0;
+            float r2 = dot(p,p);
+            p *= 1.0 + strength*r2;
+            vec2 uv = p*0.5 + 0.5;
+            if(uv.x<0.0||uv.x>1.0||uv.y<0.0||uv.y>1.0){ gl_FragColor=vec4(0.0); return; }
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

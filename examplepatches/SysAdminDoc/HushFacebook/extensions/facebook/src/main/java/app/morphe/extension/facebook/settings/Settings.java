@@ -13,6 +13,8 @@ import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
 import app.morphe.extension.facebook.download.SaveFolder;
+import app.morphe.extension.facebook.download.SaveTo;
+import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -52,8 +54,10 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_suggested_for_you", TRUE);
 
     /**
-     * The "People you may know" row in the feed, found by its GraphQL type name, and the carousel on
-     * your own profile, found by the name its section gives itself.
+     * The "People you may know" row in the feed, found by its GraphQL type name, the carousel on
+     * your own profile, found by the name its section gives itself, and, when Hide suggested
+     * stories is in too, the People you may know cards in the Stories tray, found by their bucket
+     * type (PYMK_STORY or PYMK_PROFILE_FORWARD_STORY).
      */
     public static final BooleanSetting HIDE_PEOPLE_YOU_MAY_KNOW =
             new BooleanSetting("hushfacebook_hide_people_you_may_know", TRUE);
@@ -153,6 +157,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_SUGGESTED_STORIES =
             new BooleanSetting("hushfacebook_hide_suggested_stories", TRUE);
 
+    /**
+     * The "Find friends from contacts" card in the Stories tray, which asks to upload the phone's
+     * contacts: a bucket whose type is CONTACT_IMPORTER_STORY, the type the tray's card dispatcher
+     * draws that card for. Stories and the other cards stay.
+     */
+    public static final BooleanSetting HIDE_CONTACT_IMPORT_CARD =
+            new BooleanSetting("hushfacebook_hide_contact_import_card", TRUE);
+
     /** Keep a finished Story visible until the user navigates. */
     public static final BooleanSetting BLOCK_STORY_AUTO_ADVANCE =
             new BooleanSetting("hushfacebook_block_story_auto_advance", TRUE);
@@ -183,6 +195,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_SPONSORED_MARKETPLACE_LISTINGS =
             new BooleanSetting("hushfacebook_hide_sponsored_marketplace_listings", TRUE);
+
+    /**
+     * The product cards of the shop links a creator attaches to a post go: on a reel, under a feed
+     * post and floating over the comment box ({@link app.morphe.extension.facebook.ads.AffiliateLinks}).
+     * The "Commission eligible" label stays. A change shows on the reels, posts and comment sheets
+     * built after it.
+     */
+    public static final BooleanSetting HIDE_AFFILIATE_LINKS =
+            new BooleanSetting("hushfacebook_hide_affiliate_links", TRUE);
 
     /**
      * The chips under a reel that prompt you to make something (Remix, Use template, Add yours,
@@ -463,7 +484,33 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_reels_tab_dot", TRUE);
 
     /**
-     * The folder every save goes to, under Movies for a video and Pictures for a photo. The
+     * The strip some posts carry ("Are you interested in this post?", "Show less", who recently
+     * commented, follow and chat suggestions) goes, and so does the room kept for it
+     * ({@link app.morphe.extension.facebook.feed.PostPrompts}). A change shows on the posts drawn
+     * after it.
+     */
+    public static final BooleanSetting HIDE_POST_PROMPTS =
+            new BooleanSetting("hushfacebook_hide_post_prompts", TRUE);
+
+    /**
+     * Reels come without the "Are you interested in this reel?" prompt
+     * ({@link app.morphe.extension.facebook.reels.ReelPrompts}). A change shows on the reels built
+     * after it.
+     */
+    public static final BooleanSetting HIDE_REEL_PROMPTS =
+            new BooleanSetting("hushfacebook_hide_reel_prompts", TRUE);
+
+    /**
+     * The top folder saves go to: Movies for a video and Pictures for a photo, the default and
+     * where Facebook's own saves go, or DCIM or Download for both (#42). The {@link #SAVE_FOLDER}
+     * goes under it. Saves made before a change stay where they are. Like the folder, it isn't a
+     * switch.
+     */
+    public static final EnumSetting<SaveTo> SAVE_TO =
+            new EnumSetting<>("hushfacebook_save_to", SaveTo.MOVIES_AND_PICTURES);
+
+    /**
+     * The folder every save goes to, under the top folder {@link #SAVE_TO} names. The
      * settings row and an import keep it clean, and {@link SaveFolder#sanitize} cleans it again
      * wherever it's read, so whatever wrote the store, a save lands in one folder under each.
      * It isn't a switch, and a paused Facebook makes no Hushfacebook saves for it to steer.
@@ -492,14 +539,29 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_download_compatible", FALSE);
 
     /**
-     * The name a saved video gets: {date}, {video_id}, {owner} and {posted} fill in per save, the
-     * last three only when the save knows them, and the default is Facebook's own FB_VID_ name, so
-     * nothing changes for anyone who leaves it. Photos keep their FB_IMG_ names. Cleaned like the
-     * folder wherever it's read ({@link FileNameTemplate#sanitize}), and like the folder, it isn't
-     * a switch.
+     * The name a saved video gets: {date}, {video_id}, {owner}, {owner_id} and {posted} fill in per
+     * save, the last four only when the save knows them, and the default is Facebook's own FB_VID_
+     * name, so nothing changes for anyone who leaves it. Photos keep their FB_IMG_ names. Cleaned
+     * like the folder wherever it's read ({@link FileNameTemplate#sanitize}), and like the folder,
+     * it isn't a switch.
      */
     public static final StringSetting FILENAME_TEMPLATE =
             new StringSetting("hushfacebook_filename_template", FileNameTemplate.DEFAULT);
+
+    /**
+     * What a tap on Download does for a reel or a feed or Watch video: save it here, the default,
+     * or send its link to another app ({@link SendLink}, #41). Stories always save. Like the
+     * quality, it isn't a switch.
+     */
+    public static final EnumSetting<SendLink.Action> DOWNLOAD_ACTION =
+            new EnumSetting<>("hushfacebook_download_action", SendLink.Action.SAVE);
+
+    /**
+     * The app {@link #DOWNLOAD_ACTION} sends links to, by package name. Blank, or anything that
+     * isn't a package name, leaves the choice to Android's chooser each time.
+     */
+    public static final StringSetting SEND_TO_APP =
+            new StringSetting("hushfacebook_send_to_app", "");
 
     /**
      * The tab a start from the launcher icon opens on while {@link #OPEN_ON_CHOSEN_TAB} is on:

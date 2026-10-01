@@ -6,15 +6,15 @@
 package hoodles.morphe.patches.duolingo.misc.debug
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.OpcodesFilter
+import app.morphe.patcher.opcode
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
 
 object BuildTargetFieldFingerprint : Fingerprint(
     strings = listOf("BUILD_TARGET", "debug", "release"),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.IGET_OBJECT,
-        Opcode.IGET_BOOLEAN,
-        Opcode.IF_EQZ
+    filters = listOf(
+        opcode(Opcode.IGET_BOOLEAN),
+        opcode(Opcode.IF_EQZ),
+        string("debug")
     )
 )
-

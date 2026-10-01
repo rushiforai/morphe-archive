@@ -1,12 +1,17 @@
 package app.morphe.patches.bongobdandroidtv.content
 
 import app.morphe.patcher.Fingerprint
-import com.android.tools.smali.dexlib2.AccessFlags
+import app.morphe.patcher.methodCall
+import com.android.tools.smali.dexlib2.Opcode
 
-object GetVideoDetailsDataFingerprint : Fingerprint(
-    definingClass = "Lsaas/ott/smarttv/ui/details/data/DetailsEndPoint;",
-    name = "getVideoDetailsData",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.ABSTRACT),
-    returnType = "Lretrofit2/Call;",
-    parameters = listOf("Ljava/lang/String;"),
+object GetVideoDetailsDataInvokerFingerprint : Fingerprint(
+    filters = listOf(
+        methodCall(
+            definingClass = "Lsaas/ott/smarttv/ui/details/data/DetailsEndPoint;",
+            name = "getVideoDetailsData",
+            parameters = listOf("Ljava/lang/String;"),
+            returnType = "Lretrofit2/Call;",
+            opcode = Opcode.INVOKE_INTERFACE
+        )
+    )
 )

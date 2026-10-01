@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.lensd"
+    name="Lens Distortion+"
+    desc="Amazing New Extra FX from the Modder"
+    category="color" 
+    tags="color"
+    thumb="thumb/TANRYU/lensd.png"
+    experimental="false">
+
+    <params>
+        <switch id="offs" default="false" label="Offside" />
+        <spinner id="amp" default="-0.15" min="-10.0" max="10.0" label="Fish Eye" step="0.0025" />
+        <spinner id="strength" label="Strength" default="100" min="-1000" max="1000.0" step="1" type="integer" ticks="0" snap="0"/>
+        <spinner id="blurMax" label="Blur Max" default="0.2" min="-10.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="aberrationMax" label="Abberation Max" default="1.2" min="0" max="100.0" step="0.01" type="percent" />
+        <slider id="numIters" label="Iteration" default="50" min="30" max="70" step="1.0" type="integer" ticks="40,50,60" snap="40,50,60" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <switch id="new" default="true" label="New Fisheye" />
+        <slider id="iter" default="1" min="1" max="3" label="Hardness" type="integer" step="1" />
+      
+        <texture id="inputImg" srcType="content" />
+        <texture id="xdist" srcType="buffer" />
+
+    </params>
+    
+    <iterations param="iter" />
+    
+    <passes>
+        <pass target="xdist" effect="com.alightcreative.effects.chromabbr"/>
+        <pass />
+    </passes>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        // const float blurMax = 0.2;
+        // const float aberrationMax = 1.2;
+        // const float numIters = 51.0;
+        
+        float weightedColour(float colour, float offset, float mid) {
+            
+            return colour * 1.0 * (mid - abs(mid-float(offset)))/mid;
+        }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iRes = vec2(acScreenSize.x, acScreenSize.y);
+        
+        float maxF = max(acScreenSize.x, acScreenSize.y);
+        vec2 texelSize = 1.0 / vec2(maxF, maxF);
+        
+        vec2 TanRyu;
+        TanRyu = acScreenNorm; 
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            vec2 scaledInput = vec2(strength, 0.0) / iRes;    
+        
+            float blur = -blurMax * scaledInput.x;
+        	float aberration = 1.0 + (aberrationMax * (1.0 - scaledInput.y));
+        
+        	int channelspread = int(float(numIters) / aberration);
+        	float mid = float(channelspread+1)/2.0;
+        
+            vec3 lobound = vec3(int(numIters)-channelspread,(int(numIters)-channelspread)/2,0.0);
+            vec3 hibound = vec3(int(numIters),(int(numIters)+channelspread)/2,channelspread);
+        
+        	vec2 uv = TanRyu;
+            
+        	const vec2 centre = vec2(0.5,0.5);
+            uv -= centre; 
+        
+            vec4 colour = vec4(0.0);
+        
+        	float blurPerIter = blur / float(int(numIters)-1); 
+            for(float i = 0.0; i < numIters; i++) {
+                float scale = 1.0 + (blurPerIter * float(i));
+                vec4 txColour = texture2DCv(xdist.texture, centre + (uv * scale));
+               
+                vec3 kk = vec3(i+1.0) - lobound;
+                
+                if (i>=lobound.x && i<hibound.x) {
+                    colour.x += weightedColour(txColour.x,kk.x,mid);
+                } 
+                if (i>=lobound.y && i<hibound.y) {
+                    colour.y += weightedColour(txColour.y,kk.y,mid);
+                }
+                if (i>=lobound.z && i<hibound.z) {
+                    colour.z += weightedColour(txColour.z,kk.z,mid);
+                }
+            }
+            
+            
+        	fragColor = colour / (0.5*float(channelspread+1));
+        
+    	vec4 factor = mix(texColorX,newLayer(texColorX,fragColor),1.0);
+    	factor *= bright;
+    	
+    	gl_FragColor = mix(texColor, factor, alpha) * texColor.a;
+    	if(offs) { gl_FragColor = newLayer(texColorX,fragColor) * bright; }
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

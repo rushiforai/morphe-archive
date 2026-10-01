@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.transform2" name="Transform" desc="Can copy the setting like Transform, Angle, Scale" tags="drawing" category="transform" thumb="thumb/TANRYU/trans.png">
+
+    <params>
+    <spinner id="posz" default="1" min="0.001" max="30" step="0.005" ticks="2,1.75,1.5,1.25,1,0.75,0.5,0.25,0" label ="Z Dist" />
+    <spinner id="posx" default="0" min="-8192" max="8192" step="0.5" ticks="-1024,-512,-300,-200,-100,0,100,200,300,512,1024" label ="Shift X" />
+    <spinner id="posy" default="0" min="-8192" max="8192" step="0.5" ticks="-1024,-512,-300,-200,-100,0,100,200,300,512,1024" label ="Shift Y" />
+    <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <switch id="zinv" default="false" label="Invert Z" />
+        <switch id="xinv" default="false" label="Invert X" />
+        <switch id="yinv" default="false" label="Invert Y" />
+        <switch id="ainv" default="false" label="Invert Angle" />
+    </params>
+
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let t = env.time;
+            var xposition = p.posx;
+            if ( p.xinv ) {
+            xposition = xposition * -1;
+            }
+            var zposition = p.posz;
+            if ( p.zinv ) {
+            zposition = 1.0 + (1.0 - zposition);
+            }
+            var yposition = p.posy;
+            if ( p.yinv ) {
+            yposition = yposition * -1;
+            }
+            var aposition = p.angle;
+            if ( p.ainv ) {
+            aposition = aposition * -1;
+            }
+            el.transform.location.x += xposition;
+            el.transform.location.y += yposition;
+            el.transform.angle += aposition;
+            el.transform.scale.x += zposition-1;
+            el.transform.scale.y += zposition-1;
+            return el;
+        }
+
+    ]]></script>
+</effect>

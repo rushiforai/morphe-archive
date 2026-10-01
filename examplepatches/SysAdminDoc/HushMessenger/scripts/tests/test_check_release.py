@@ -3,11 +3,14 @@ import hashlib
 import importlib.util
 import io
 import json
+import re
+import shutil
 import struct
+import subprocess
 import tempfile
 import unittest
 import zipfile
-from contextlib import redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 spec = importlib.util.spec_from_file_location(
@@ -15,6 +18,28 @@ spec = importlib.util.spec_from_file_location(
 )
 release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
+
+SSH_KEYGEN = shutil.which("ssh-keygen")
+REPO = Path(__file__).parents[2]
+
+
+def new_key(path):
+    subprocess.run(
+        [SSH_KEYGEN, "-q", "-t", "ed25519", "-N", "", "-C", "test", "-f", str(path)],
+        check=True,
+        capture_output=True,
+    )
+    return path.with_name(path.name + ".pub").read_text(encoding="utf-8").split()[:2]
+
+
+def sign(key, file, namespace=release.SIGNATURE_NAMESPACE):
+    signature = file.with_name(file.name + ".sig")
+    signature.unlink(missing_ok=True)
+    subprocess.run(
+        [SSH_KEYGEN, "-Y", "sign", "-f", str(key), "-n", namespace, str(file)],
+        check=True,
+        capture_output=True,
+    )
 
 
 class ReleaseChecks(unittest.TestCase):
@@ -85,6 +110,76 @@ class ReleaseChecks(unittest.TestCase):
         self.write("SHA256SUMS.txt", f"{'0' * 64}  {self.bundle.name}\n")
         with self.assertRaisesRegex(ValueError, "checksum file"):
             release.verify(self.root, checksums=self.root / "SHA256SUMS.txt")
+
+    @unittest.skipIf(SSH_KEYGEN is None, "ssh-keygen isn't installed")
+    def test_signed_checksums_pass_and_an_edit_another_key_or_namespace_fails(self):
+        key, other = self.root / "release_key", self.root / "other_key"
+        key_type, blob = new_key(key)
+        new_key(other)
+        self.write(
+            "scripts/release_signers",
+            f'# test\nSysAdminDoc namespaces="hushmessenger-release" {key_type} {blob}\n',
+        )
+        checksums = self.root / "SHA256SUMS.txt"
+        self.write("SHA256SUMS.txt", f"{self.digest}  {self.bundle.name}\n")
+        with self.assertRaisesRegex(ValueError, "Missing signature"):
+            release.verify_signature(self.root, checksums)
+        sign(key, checksums)
+        self.assertRegex(
+            release.verify_signature(self.root, checksums),
+            r'Good "hushmessenger-release" signature for SysAdminDoc with ED25519 key '
+            + re.escape(
+                release.signer_fingerprints(self.root / "scripts/release_signers")[0]
+            ),
+        )
+        output, error = io.StringIO(), io.StringIO()
+        cli = [
+            "--root",
+            str(self.root),
+            "--checksums",
+            str(checksums),
+            "--verify-signature",
+        ]
+        with redirect_stdout(output):
+            self.assertEqual(0, release.main(cli))
+        self.assertIn("Good", output.getvalue())
+        self.write("SHA256SUMS.txt", f"{'0' * 64}  {self.bundle.name}\n")
+        with self.assertRaisesRegex(ValueError, "isn't signed by the key"):
+            release.verify_signature(self.root, checksums)
+        self.write("SHA256SUMS.txt", f"{self.digest}  {self.bundle.name}\n")
+        for signer, namespace in [(other, release.SIGNATURE_NAMESPACE), (key, "file")]:
+            sign(signer, checksums, namespace)
+            with (
+                self.subTest(namespace=namespace),
+                self.assertRaisesRegex(ValueError, "isn't signed by the key"),
+            ):
+                release.verify_signature(self.root, checksums)
+            with redirect_stdout(io.StringIO()), redirect_stderr(error):
+                self.assertEqual(1, release.main(cli))
+        self.assertIn("CHECK FAILED:", error.getvalue())
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            release.main(["--root", str(self.root), "--verify-signature"])
+
+    def test_committed_release_key_is_the_one_the_readme_names(self):
+        signers = REPO / release.RELEASE_SIGNERS
+        lines = [
+            line.split()
+            for line in signers.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        self.assertEqual(1, len(lines))
+        self.assertEqual(
+            [
+                release.RELEASE_SIGNER,
+                f'namespaces="{release.SIGNATURE_NAMESPACE}"',
+                "ssh-ed25519",
+            ],
+            lines[0][:3],
+        )
+        [fingerprint] = release.signer_fingerprints(signers)
+        self.assertIn(
+            f"`{fingerprint}`", (REPO / "README.md").read_text(encoding="utf-8")
+        )
 
     def test_changed_catalog_metadata_and_stale_artifact_evidence_fail(self):
         for key, value in [

@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.vshakenew" name="Manual Shake 2" desc="@am:string/effect_shake_desc" category="other" tags="other" thumb="thumb/TANRYU/efek.png">
+
+    <params>
+        <slider id="amp" default="1" min="0" max="5" label="Amplitude" step="0.01" snap="0,0.3,0.5,1,1.5,2,3,4,5" ticks="0,0.3,0.5,1,1.5,2,3,4,5" originValue="0" />
+        <slider id="freq" default="8" min="0" max="30" label="Frequency" step="0.1" snap="0,1,2,3,4,6,8,10,12.5,15,20" ticks="0,1,2,3,4,6,8,10,12.5,15,20" originValue="0" />
+        
+        <section text="Shake Settings" />
+
+        <section text="X Shake" />
+        <spinner id="xrandamp" default="192" min="0" max="1000" label="X Rand Amp" step="0.5" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <spinner id="xrandfreq" default="1" min="0" max="5" label="X Rand Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <spinner id="xwaveamp" default="0" min="0" max="1000" label="X Wave Amp" step="0.5" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <spinner id="xwavefreq" default="0.5" min="0" max="5" label="X Wave Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <spinner id="xoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="X Offset" />
+        
+        <section text="Y Shake" />
+        <spinner id="yrandamp" default="96" min="0" max="1000" label="Y Rand Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <spinner id="yrandfreq" default="1" min="0" max="5" label="Y Rand Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <spinner id="ywaveamp" default="0" min="0" max="1000" label="Y Wave Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <spinner id="ywavefreq" default="0.5" min="0" max="5" label="Y Wave Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <spinner id="yoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Y Offset" />
+        
+        <section text="Z Shake" />
+        <spinner id="zrandamp" default="0" min="0" max="1000" label="Z Rand Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <spinner id="zrandfreq" default="1" min="0" max="5" label="Z Rand Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <spinner id="zwaveamp" default="0" min="0" max="1000" label="Z Wave Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <spinner id="zwavefreq" default="0.5" min="0" max="5" label="Z Wave Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <spinner id="zoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Z Offset" />
+        
+        <section text="Tilt Shake" />
+        <spinner id="trandamp" default="0" min="0" max="1000" label="T Rand Amp" step="0.1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <spinner id="trandfreq" default="1" min="0" max="5" label="T Rand Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <spinner id="twaveamp" default="0" min="0" max="1000" label="T Wave Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <spinner id="twavefreq" default="0.5" min="0" max="5" label="T Wave Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <spinner id="toffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Tilt Offset" />
+
+    </params>
+
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let t = env.time;
+            var dx = p.xrandamp/40;
+            var dy = p.yrandamp/40;
+            var dt = p.trandamp/40;
+            var dz = p.zrandamp/50;
+            let m;
+
+            let absTimeSeconds = env.frame/env.fps;
+            let evolution = (absTimeSeconds * 1.0) - 1.0;
+            
+            //m = Math.sin(t * env.duration * p.freq * 3.14159);
+
+            mx = AM.simplexNoise(t * env.duration * (p.freq * (p.xrandfreq/5)), 0, evolution + 49235.319798 + p.xoffset);
+            mx += Math.sin(t * env.duration * p.freq * (p.xwavefreq/5) * 3.14159 + p.xoffset) * (p.xwaveamp / 10.0);
+
+            my = AM.simplexNoise(0, t * env.duration * (p.freq * (p.yrandfreq/5)), evolution + 17337.940385 + p.yoffset);
+            my += Math.sin(t * env.duration * p.freq * (p.ywavefreq/5) * 3.14159 + p.yoffset) * (p.ywaveamp / 10.0);
+
+            mz = AM.simplexNoise(t * env.duration * (p.freq * (p.zrandfreq/5)), t * env.duration * (p.freq * (p.zrandfreq)), evolution + 21576.940385 + p.zoffset);
+            mz += Math.sin(t * env.duration * p.freq * (p.zwavefreq/5) * 3.14159 + p.zoffset) * (p.zwaveamp / 10.0);
+
+            mt = AM.simplexNoise(t * env.duration * (p.freq * (p.trandfreq/5)), t * env.duration * (p.freq * (p.trandfreq/5)), evolution + 35321.940385 + p.toffset);
+            mt += Math.sin(t * env.duration * p.freq * (p.twavefreq/5) * 3.14159 + p.toffset) * (p.twaveamp / 10.0);
+
+            dx *= dx * mx * (p.amp * 15);
+            dy *= dy * my * (p.amp * 15);
+            dt *= dt * mt * (p.amp * 15);
+            dz *= dz * mz * (p.amp * 15);
+            el.transform.location.x += dx;
+            el.transform.location.y += dy;
+            el.transform.angle += dt;
+            el.transform.scale.x += 1 + dz - 1;
+            el.transform.scale.y += 1 + dz - 1;
+            return el;
+        }
+
+    ]]></script>
+</effect>

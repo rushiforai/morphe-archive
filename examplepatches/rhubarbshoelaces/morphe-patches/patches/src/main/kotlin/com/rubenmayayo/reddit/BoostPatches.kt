@@ -78,7 +78,7 @@ val fixRandomSubredditPatch = bytecodePatch(
                 if (z2Index != -1) {
                     method.replaceInstruction(
                         z2Index,
-                        "invoke-static {}, Lapp/template/extension/extension/RandomSubredditProvider;->getRandomNsfwSubreddit()Ljava/lang/String;"
+                        "invoke-static {}, Lrhubarbshoelaces/patches/boost/extension/RandomSubredditProvider;->getRandomNsfwSubreddit()Ljava/lang/String;"
                     )
                     method.addInstructions(
                         z2Index + 1,
@@ -91,7 +91,7 @@ val fixRandomSubredditPatch = bytecodePatch(
                     method.addInstructions(
                         nsfwIndex + 1,
                         """
-                        invoke-static {}, Lapp/template/extension/extension/RandomSubredditProvider;->getRandomNsfwSubreddit()Ljava/lang/String;
+                        invoke-static {}, Lrhubarbshoelaces/patches/boost/extension/RandomSubredditProvider;->getRandomNsfwSubreddit()Ljava/lang/String;
                         move-result-object v$safeRegister
                         """.trimIndent()
                     )
@@ -118,7 +118,7 @@ val fixRandomSubredditPatch = bytecodePatch(
                 if (z2Index != -1) {
                     method.replaceInstruction(
                         z2Index,
-                        "invoke-static {}, Lapp/template/extension/extension/RandomSubredditProvider;->getRandomSubreddit()Ljava/lang/String;"
+                        "invoke-static {}, Lrhubarbshoelaces/patches/boost/extension/RandomSubredditProvider;->getRandomSubreddit()Ljava/lang/String;"
                     )
                     method.addInstructions(
                         z2Index + 1,
@@ -131,7 +131,7 @@ val fixRandomSubredditPatch = bytecodePatch(
                     method.addInstructions(
                         randomIndex + 1,
                         """
-                        invoke-static {}, Lapp/template/extension/extension/RandomSubredditProvider;->getRandomSubreddit()Ljava/lang/String;
+                        invoke-static {}, Lrhubarbshoelaces/patches/boost/extension/RandomSubredditProvider;->getRandomSubreddit()Ljava/lang/String;
                         move-result-object v$safeRegister
                         """.trimIndent()
                     )

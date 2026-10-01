@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.rainbow-shift" name="@string/name" desc="@string/desc" category="color" thumb="thumb/rainbow-shift.webp" tags="color,rainbow,hue,animated,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Rainbow Shift</string>
+            <string name="desc">Continuously cycles the hue of the layer through the full rainbow over time for a psychedelic animated color flow.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="speed" default="0.5" min="0.0" max="3.0" label="Speed" />
+        <slider id="spread" default="0.0" min="0.0" max="2.0" label="Spatial Spread" />
+        <slider id="saturation" default="1.0" min="0.0" max="2.0" label="Saturation" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        vec3 hue(vec3 c, float h){
+            mat3 m1 = mat3(0.299,0.587,0.114, -0.14713,-0.28886,0.436, 0.615,-0.51499,-0.10001);
+            mat3 m2 = mat3(1.0,0.0,1.13983, 1.0,-0.39465,-0.5806, 1.0,2.03211,0.0);
+            mat3 hm = mat3(1.0,0.0,0.0, 0.0,cos(h),sin(h), 0.0,-sin(h),cos(h));
+            vec3 yuv = c*m1; yuv = yuv*hm; return yuv*m2;
+        }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            float h = acTime*speed*3.14159 + (acScreenNorm.x+acScreenNorm.y)*spread*3.14159;
+            vec3 shifted = hue(c, h);
+            float lum = dot(shifted, vec3(0.299,0.587,0.114));
+            shifted = mix(vec3(lum), shifted, saturation);
+            gl_FragColor = vec4(clamp(shifted,0.0,1.0),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

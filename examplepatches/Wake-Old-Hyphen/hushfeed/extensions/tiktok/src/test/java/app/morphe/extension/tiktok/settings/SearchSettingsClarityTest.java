@@ -79,6 +79,11 @@ public class SearchSettingsClarityTest {
         assertRow("INTERFACE", "hide_location_labels", "Hide location labels", "multiple places");
     }
 
+    @Test public void creationTagsNameWhatTheyHideAndLeavePlacesToTheirOwnSwitch() {
+        assertRow("INTERFACE", "hide_creation_tags", "Hide effect and template tags", "CapCut");
+        assertRow("INTERFACE", "hide_creation_tags", "Hide effect and template tags", "Location labels");
+    }
+
     @Test public void bottomSearchNamesItsStripAndExplainsSpaceRecovery() {
         assertRow("INTERFACE", "hide_bottom_search_bar", "Hide the search bar below videos", "space");
         assertRow("INTERFACE", "hide_bottom_search_bar", "Hide the search bar below videos", "comments");

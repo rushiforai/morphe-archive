@@ -8,6 +8,9 @@
 package app.morphe.extension.facebook.download;
 
 import android.content.Context;
+import android.os.SystemClock;
+import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
@@ -73,9 +76,9 @@ public final class ReelDownload implements Function1<Object, Object> {
     /**
      * The reel's own story: the props its sidebar was built from, a GraphQL tree the patch hands
      * over beside the player. Facebook reads the reel's creation_time off it for the reel's time
-     * label, and its actors are who posted the reel, so it gives the file name its poster and post
-     * day ({@link PostDetails}). Null, or a model that isn't a tree, costs those two tokens and
-     * nothing else.
+     * label, and its actors are who posted the reel, so it gives the file name its poster, their id
+     * and the post day ({@link PostDetails}). Null, or a model that isn't a tree, costs those three
+     * tokens and nothing else.
      */
     private final Object story;
 
@@ -166,7 +169,7 @@ public final class ReelDownload implements Function1<Object, Object> {
      */
     public static String label() {
         try {
-            return L10n.t("Download");
+            return SendLink.sending() ? L10n.t("Send to app") : L10n.t("Download");
         } catch (Throwable t) {
             return "Download";
         }
@@ -180,10 +183,16 @@ public final class ReelDownload implements Function1<Object, Object> {
     @Override
     public Object invoke(Object argument) {
         try {
-            // Only the tap slot does anything. The others get the same object, so that no
-            // parameter of the factory is null, and they return without a word. They fire on every
-            // touch and every visibility change, which buries the log that this feature needs.
-            if (!saves) return null;
+            // Only the tap slot saves. The others get the same object, so that no parameter of
+            // the factory is null, and they return without a word. They fire on every touch and
+            // every visibility change, which buries the log that this feature needs. While links
+            // are sent, the touch slot's lift after a long press copies the link (#41).
+            if (!saves) {
+                if (SendLink.sending()) copyOnLongPress(argument);
+                return null;
+            }
+            // The same lift ends in a tap too, which mustn't send the link the press just copied.
+            if (tapEndsACopy(playerParams, SystemClock.uptimeMillis())) return null;
 
             HookStatus.invoked(FamilyNames.REEL_DOWNLOAD);
             final String event = argument == null ? "" : ", event " + argument.getClass().getName();
@@ -201,6 +210,13 @@ public final class ReelDownload implements Function1<Object, Object> {
     }
 
     private void save() {
+        if (SendLink.sending()) {
+            String link = SendLink.reelLink(videoIdOf(playerParams));
+            if (link == null) noLink();
+            else SendLink.send(context, link);
+            return;
+        }
+
         Object source = sourceOf(playerParams);
 
         if (source == null) {
@@ -211,6 +227,80 @@ public final class ReelDownload implements Function1<Object, Object> {
 
         MediaDownload.saveVideo(context, source, hdField, sdField, manifestField,
             PostDetails.read(videoIdOf(playerParams), story));
+    }
+
+    /**
+     * The long press that last copied a link, waiting for the tap Android sends for the same lift.
+     * Shared, since the touch slot and the tap slot are two handlers of the one button, and tied to
+     * that button's player params, which both hold, so a tap on another reel is never taken for
+     * it. Null is no copy waiting.
+     */
+    private static volatile Copied copied;
+
+    /** Which button's long press copied the link, and until when, on the uptime clock, its tap may come. */
+    private static final class Copied {
+        final Object button;
+        final long until;
+
+        Copied(Object button, long until) {
+            this.button = button;
+            this.until = until;
+        }
+    }
+
+    /** How long after a long press copies the link its own tap may still come. */
+    static final long TAP_AFTER_COPY_MS = 1000;
+
+    /**
+     * The touch slot's event: a finger lifted at least the phone's long-press time after it went
+     * down copies the reel's link. Only a lift counts, so a press that turns into a swipe, which
+     * ends in a cancel, copies nothing.
+     */
+    private void copyOnLongPress(Object argument) {
+        MotionEvent event = motionEventOf(argument);
+        if (event == null || event.getActionMasked() != MotionEvent.ACTION_UP) return;
+        if (event.getEventTime() - event.getDownTime() < ViewConfiguration.getLongPressTimeout()) return;
+        copied = new Copied(playerParams, SystemClock.uptimeMillis() + TAP_AFTER_COPY_MS);
+        String link = SendLink.reelLink(videoIdOf(playerParams));
+        if (link == null) noLink();
+        else SendLink.copy(context, link);
+    }
+
+    /**
+     * Whether a tap at [now] on the button of [button], its player params, ends the long press that
+     * just copied the link there. Any tap settles the copy waiting, so only the first one can be.
+     */
+    static boolean tapEndsACopy(Object button, long now) {
+        Copied waiting = copied;
+        if (waiting == null) return false;
+        copied = null;
+        return waiting.button == button && now < waiting.until;
+    }
+
+    /** The MotionEvent [argument] is, or holds in a field of its own, or null. Never throws. */
+    static MotionEvent motionEventOf(Object argument) {
+        if (argument instanceof MotionEvent) return (MotionEvent) argument;
+        if (argument == null) return null;
+        try {
+            for (java.lang.reflect.Field field : argument.getClass().getDeclaredFields()) {
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                if (!MotionEvent.class.isAssignableFrom(field.getType())) continue;
+                field.setAccessible(true);
+                Object value = field.get(argument);
+                return value instanceof MotionEvent ? (MotionEvent) value : null;
+            }
+        } catch (Throwable ignored) {
+            // An event this can't read is a touch that copies nothing.
+        }
+        return null;
+    }
+
+    /** Says the reel's link couldn't be built: its player named no video id. */
+    private void noLink() {
+        Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE,
+            () -> "the player of this reel names no video id, so it has no link", null);
+        Context application = context == null ? Utils.getContext() : context.getApplicationContext();
+        if (application != null) Feedback.show(application, L10n.t(application, "Couldn't find this reel's link"), true);
     }
 
     /** What Facebook's player params say of themselves on 577 and 580, before the id. */

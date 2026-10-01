@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.rockfield"
+    name="Rocks Terrain"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="other"
+    thumb="thumb/TANRYU/terrain.png"
+    experimental="false">
+
+    <params>
+        <texture id="noisex1" srcType="image" src="textures/iChannelX1.png" />
+        <texture id="noisex2" srcType="image" src="textures/iChannel12.png" />
+        <texture id="noisex3" srcType="image" src="textures/t33.png" />
+        <texture id="noisex4" srcType="image" src="textures/t44.png" />
+        <texture id="noisex5" srcType="image" src="textures/t66.png" />
+        <texture id="noisex6" srcType="image" src="textures/t77.png" />
+        <selector id="typeX" style="dropdown" default="0" label="Texture">
+            <choice label="Texture 1" value="0" />
+            <choice label="Texture 2" value="1" />
+            <choice label="Texture 3" value="2" />
+            <choice label="Texture 4" value="3" />
+            <choice label="Texture 5" value="4" />
+            <choice label="Texture 6" value="5" />
+        </selector>
+        <selector id="EVO" style="radio" default="0" label="Evo Mode">
+            <choice label="OFF" value="0" />
+            <choice label="FORWARD" value="1" />
+            <choice label="REVERSE" value="2" />
+        </selector>
+        <spinner id="scale" default="1.25" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="XXA" label="Appear" default="0.0" min="0.0" max="3.0" step="0.01" type="percent" />
+        <section text="Camera Setting" />
+        <spinner id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXD" label="X Camera" default="0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXE" label="Y Camera" default="2.25" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXG" label="H Camera" default="0.2" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="A1" label="Orient Camera" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" step="0.5" type="angle" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <section text="Lighting Setting" />
+        <xyz id="ORIENT" label="Shading Direction" default="0.0,50.0,200.0" />
+        <color id="color1" default="#FFAA0000" label="Shading Color" alpha="true" />
+        <switch id="GGG" default="false" label="GreyScale" />
+        <spinner id="hardness" default="1.0" min="1.0" max="20.0" step="0.1" label="Intensity" type="percent" />
+        <spinner id="XXB" label="Shadow" default="0.5" min="0.0" max="1.0" step="0.01" type="percent" />
+        <section text="Optional Setting" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.2,0.2" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+       
+        <texture id="inputImg" srcType="content" />
+        <texture id="xcipher" srcType="buffer" />
+
+    </params>
+    
+    <iterations param="iter" /> <passes> <pass target="xcipher" effect="636f6d2e616c6967687463726561746976652e656666656374732e726f636b6669656c64"/> <pass /> </passes> <shader type="fragment" precision="high"><![CDATA[
+    
+    void main ()
+    {
+            const vec3 luminance = vec3(0.2126, 0.7152, 0.0722); float phiQuarter = 90.0 * 0.0174533; float enchantDecryption = 8.0;/*
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(inputImg.texture,sampleLow);
+            vec4 colorHigh = texture2DCv(inputImg.texture,sampleHigh);
+            vec4 colorMid = texture2DCv(inputImg.texture,acScreenNorm);
+            vec4 outColor;
+            
+                vec4 r = vec4(outColor.r, 0.0, 0.0, outColor.r);
+                vec4 g = vec4(0.0, outColor.g, 0.0, outColor.g);
+                vec4 b = vec4(0.0, 0.0, outColor.b, outColor.b);
+                vec4 m = (r + g + b) / 3.;
+                vec4 c = vec4(0.0,0.0,0.0,0.0);
+                vec4 l = vec4(dot(luminanceWeighting * colorMid.rgb, vec3(1.0)));
+                c = m + (c*(1.0-m.a));
+                c = l + (c*(1.0-l.a));
+                
+            highp mat3 rgb2yuv = mat3(
+                 0.299,     0.587,    0.114,
+                -0.14713,  -0.28886,  0.436,
+                 0.615,    -0.51499, -0.10001
+            );
+            highp mat3 yuv2rgb = mat3(
+                1.0,  0.0,      1.13983,
+                1.0, -0.39465, -0.58060,
+                1.0,  2.03211,  0.0
+            );
+            float adjStrength = strength / 8.0;
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            float rad = angle * 0.0174533;
+            float adjStrength = strength / 8.0;
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(inputImg.texture,sampleLow); vec4 colorHigh = texture2DCv(inputImg.texture,sampleHigh); vec4 colorMid = texture2DCv(inputImg.texture,acScreenNorm);*/
+            float keyDecryptTanRyu = 0.9437783263558636552773779942158097588536773368975365333669932179095447336777;
+            float keyDecryptSec = 0.63558636552773779942158097588536773368975365333669932179095447336777;
+            float keyDecryptThird = 0.73779942158097588536773368975365333669932179095447336777;
+            keyDecryptTanRyu = 1.0;
+            vec4 DecodingFX = texture2DCv(xcipher.texture,acScreenNorm)*keyDecryptTanRyu;
+            gl_FragColor = DecodingFX;
+            
+         }
+
+
+    ]]></shader>
+
+</effect>

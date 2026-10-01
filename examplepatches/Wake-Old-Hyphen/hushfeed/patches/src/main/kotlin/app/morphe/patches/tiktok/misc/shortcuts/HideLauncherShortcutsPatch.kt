@@ -7,6 +7,7 @@
 package app.morphe.patches.tiktok.misc.shortcuts
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
 import app.morphe.util.addInstruction
 import app.morphe.util.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -105,7 +106,10 @@ internal fun MutableMethod.routeShortcutListThroughExtension(index: Int) {
  * long-press menu is the `setDynamicShortcuts` inside `TiktokShortcutManager`'s refresh, and the
  * `addDynamicShortcuts` is the fallback inside the support library's own push.
  */
-private object ShortcutPublishFingerprint : Fingerprint(
+internal object ShortcutPublishFingerprint : Fingerprint(
+    // The filter repeats a reference the custom block requires, so the patcher reads only the
+    // classes that make it (#54).
+    filters = listOf(methodCall(definingClass = SHORTCUT_MANAGER)),
     custom = { method, _ ->
         method.implementation?.instructions?.any(::publishesShortcuts) == true
     },

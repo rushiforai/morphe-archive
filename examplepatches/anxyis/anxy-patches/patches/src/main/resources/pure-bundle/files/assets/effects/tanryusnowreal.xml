@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.snowreal"
+    name="Snow Falling"
+    desc="Amazing New Extra FX from the Modder"
+    category="procedural" 
+    tags="procedural"
+    thumb="thumb/TANRYU/snow.png"
+    experimental="false">
+
+    <params>
+        <switch id="autop" default="true" label="Auto Progress" />
+        <color id="color1" default="#FFFFFFFF" label="Color" alpha="true" />
+        <slider id="LAYERS" label="Amount" default="25" min="0" max="50" step="1.0" type="integer" ticks="10,20,30,40" snap="5,10,15,20,25,30,35,40,45" />
+        <spinner id="EVO" label="Progress" default="10.0" min="0" max="1000.0" step="0.01" type="percent" />
+        <spinner id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Depth" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="bright" default="1.5" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <selector id="blendMode" style="radio" default="2" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+   
+        <texture id="inputImg" srcType="content" />
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+   
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 iRes = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 image_size = getTexSize(inputImg.size);
+        float maxF = max(acScreenSize.x, acScreenSize.y);
+        vec2 texelSize = 1.0 / vec2(maxF, maxF);
+        
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+
+        TanRyu /= scale;
+        TanRyu *= rot2m((-180.0+angle)*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            const mat3 p = mat3(13.323122,23.5112,21.71123,21.1212,28.7312,11.9312,21.8112,14.7212,61.3934);
+            vec2 MOUSE = vec2(0.0);
+        
+            vec2 uv = TanRyu;
+            float PROGRESS = autop ? EVO * (acTime*0.1) : EVO;
+            // vec2 uv = MOUSE.xy/u_resolution.xy + vec2(1.,u_resolution.y/u_resolution.x)*fragCoord.xy / u_resolution.xy;
+            vec3 acc = vec3(0.0);
+            float dof = 5.*sin(PROGRESS*.1);
+            for (float i=0.0;i<LAYERS;i++) {
+                float fi = float(i);
+                vec2 q = uv*(1.+fi*0.2);
+                q += vec2(q.y*((PROGRESS/10.0)*mod(fi*7.238917,1.)-(PROGRESS/10.0)*.5),0.8*PROGRESS/(1.+fi*0.2*.03));
+                vec3 n = vec3(floor(q),31.189+fi);
+                vec3 m = floor(n)*.00001 + fract(n);
+                vec3 mp = (31415.9+m)/fract(p*m);
+                vec3 r = fract(mp);
+                vec2 s = abs(mod(q,1.)-.5+.9*r.xy-.45);
+                s += .01*abs(2.*fract(10.*q.yx)-1.); 
+                float d = .6*max(s.x-s.y,s.x+s.y)+max(s.x,s.y)-.01;
+                float edge = .005+.05*min(.5*abs(fi-5.-dof),1.);
+                acc += vec3(smoothstep(edge,-edge,d)*(r.x/(1.+.02*fi*0.2)));
+            }
+            acc.rgb *= color1.rgb;
+            fragColor = vec4(vec3(acc),1.0);
+        
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+            // resultfinal = (newLayer(texColor, factor) * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

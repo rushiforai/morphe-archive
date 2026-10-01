@@ -487,6 +487,8 @@ Hide photo posts	Fotoğraf gönderilerini gizle
 Hide photo posts from the feed.	Fotoğraf gönderilerini akıştan gizle.
 Hide picture comments	Görselli yorumları gizle
 Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged.	Videolardaki yer rozetlerini, birden fazla yer içeren kartlar dahil gizle. Videolar ve konum izinlerin değişmez.
+Hide effect and template tags	Efekt ve şablon etiketlerini gizle
+Hide the tags above a video's description that invite you to try an effect, a template, CapCut or an AI style. Location labels and the music line have their own switches.	Bir videonun açıklamasının üstünde seni bir efekti, şablonu, CapCut'ı veya yapay zekâ stilini denemeye davet eden etiketleri gizle. Konum etiketleri ve müzik satırının kendi anahtarları var.
 Hide playlist videos	Oynatma listesi videolarını gizle
 Hide promotional music	Tanıtım amaçlı müzikleri gizle
 Hide comment typing suggestions	Yorum yazma önerilerini gizle
@@ -1394,3 +1396,39 @@ Problem detected.	Sorun algılandı.
 Couldn't save these choices. Try again.	Bu seçimler kaydedilemedi. Tekrar dene.
 Clearing seen videos	İzlenen videolar temizleniyor
 Couldn't clear seen videos. Try again.	İzlenen videolar temizlenemedi. Tekrar dene.
+Background play	Arka planda oynatma
+Keep playing in the background	Arka planda oynatmaya devam et
+The video you're watching keeps playing to its end after you leave TikTok or turn the screen off, with TikTok's own media notification to pause it. TikTok's background play switch stays on while this is on. Restart TikTok to apply this.	İzlediğin video, TikTok'tan çıktıktan veya ekranı kapattıktan sonra da sonuna kadar oynamaya devam eder ve TikTok'un kendi medya bildiriminden duraklatılabilir. Bu açıkken TikTok'un arka planda oynatma anahtarı da açık kalır. Bunu uygulamak için TikTok'u yeniden başlat.
+Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.	Hushfeed'in Oynatma ayarlarında Arka planda oynatmaya devam et açık, bu yüzden TikTok bu anahtar için 2 alır ve buradaki bir geçersiz kılma o anahtar kapanana kadar etkisizdir.
+2, from Keep playing in the background	2, Arka planda oynatmaya devam et ayarından
+Let the last video finish	Son videonun bitmesine izin ver
+When the budget runs out, the video on screen plays to its end before the hold covers the feed, and the feed won't swipe to another video meanwhile. A time budget the fade already dimmed goes straight to the hold. Needs a hold to wait for. It waits %1$d minutes at most.	Bütçe dolduğunda ekrandaki video, bekletme akışın üstünü örtmeden önce sonuna kadar oynar ve bu sırada akış başka bir videoya kaydırılamaz. Karartmanın zaten söndürdüğü bir süre bütçesi doğrudan bekletmeye geçer. Beklenecek bir bekletme gerekir. En fazla %1$d dakika bekler.
+The feed stops when this video ends.	Bu video bitince akış durur.
+Streak	Seri
+Keep a streak going	Bir seriyi sürdür
+Sends one message a day to the person below at the time below, so a streak with them keeps going on a day you don't open TikTok.	Aşağıdaki kişiye her gün aşağıdaki saatte bir mesaj gönderir, böylece TikTok'u açmadığın bir günde de onunla serin devam eder.
+Who to message	Kime yazılsın
+Their username, like @name. It has to be someone you already have a chat with.	Kullanıcı adı, örneğin @isim. Zaten sohbetin olan biri olmalı.
+When to send	Ne zaman gönderilsin
+The time of day the message goes out.	Mesajın gönderileceği saat.
+Message	Mesaj
+What gets sent each day.	Her gün gönderilecek olan.
+Send it now	Şimdi gönder
+Sends today's message right away. The daily one then waits for tomorrow.	Bugünün mesajını hemen gönderir. Günlük mesaj o zaman yarını bekler.
+Turn on Keep a streak going first	Önce Bir seriyi sürdür seçeneğini aç
+Sending the message	Mesaj gönderiliyor
+A message is already on its way	Zaten bir mesaj yolda
+Sent to @%1$s	@%1$s kişisine gönderildi
+Enter who to message below to start.	Başlamak için aşağıya kime yazılacağını gir.
+Sent today at %1$s. The next one goes tomorrow at %2$s.	Bugün gönderildi, saat %1$s. Sonraki yarın, saat %2$s.
+Next message: today at %1$s.	Sonraki mesaj: bugün, saat %1$s.
+Next message: tomorrow at %1$s.	Sonraki mesaj: yarın, saat %1$s.
+No chat with @%1$s turned up on this account. Open your chat with them once, then try again.	Bu hesapta @%1$s ile bir sohbet bulunamadı. Onunla olan sohbetini bir kez aç, sonra tekrar dene.
+Nobody was signed in to TikTok. Sign in, and it tries again at %1$s.	TikTok'ta oturum açmış kimse yoktu. Oturum aç, saat %1$s olunca tekrar denenir.
+A different account is signed in. Switch back to the one you set this up on, or enter who to message again.	Başka bir hesapta oturum açık. Bunu kurduğun hesaba geri dön ya da kime yazılacağını yeniden gir.
+TikTok's messages didn't start in time. It tries again at %1$s.	TikTok'un mesajları zamanında başlamadı. Saat %1$s olunca tekrar denenir.
+The message didn't go through. It tries again at %1$s.	Mesaj gitmedi. Saat %1$s olunca tekrar denenir.
+Found %1$s in your chats.	%1$s sohbetlerinde bulundu.
+App checks	Uygulama kontrolleri
+Look like the store app to TikTok's checks	TikTok'un kontrollerine mağaza uygulaması gibi görünün
+Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.	TikTok'un nasıl imzalanıp yüklendiğine dair kendi kontrollerini, Play Store uygulaması gibi yanıtlar. Yenilemede kendiliğinden geri alınan takip veya beğeniler için. TikTok bunu, buraya erişemeyen yerel koddan da kontrol edebilir, bu yüzden yardımcı olmayabilir.

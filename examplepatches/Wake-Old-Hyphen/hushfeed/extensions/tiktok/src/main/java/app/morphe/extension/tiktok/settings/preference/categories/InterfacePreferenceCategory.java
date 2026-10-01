@@ -217,6 +217,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Hide effect and template tags",
+                    "Hide the tags above a video's description that invite you to try an effect, a template, CapCut or an AI style. Location labels and the music line have their own switches.",
+                    Settings.HIDE_CREATION_TAGS
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Hide surveys",
                     "Hide the question cards TikTok slides over a video near its end.",
                     Settings.HIDE_FEED_SURVEYS

@@ -350,8 +350,8 @@ public class FeedVisibilityTest {
             assertNull(FeedVisibility.inboxTabView(activity));
 
             assertEquals(java.util.Arrays.asList(
-                            "view id 'Home tab (47.0.3:omq/47.1.3:oph)'",
-                            "view id 'Inbox tab (47.0.3:omr/47.1.3:opi)'"),
+                            "view id 'Home tab (47.0.3:omq/47.1.3:oph/47.1.4:oph)'",
+                            "view id 'Inbox tab (47.0.3:omr/47.1.3:opi/47.1.4:opi)'"),
                     HookStatus.missing("bottom navigation"));
             assertTrue(String.join(" ", HookStatus.report()).contains("bottom navigation"));
         } finally {

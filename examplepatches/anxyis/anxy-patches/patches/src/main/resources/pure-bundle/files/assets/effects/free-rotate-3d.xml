@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.free-rotate-3d" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/free-rotate-3d.webp" tags="3d,rotate,perspective,transform,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Rotate</string>
+            <string name="desc">Freely rotates the layer in 3D around all three axes with real perspective.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="rx" default="20.0" min="-180.0" max="180.0" label="Rotate X" type="angle" step="1" />
+        <spinner id="ry" default="30.0" min="-180.0" max="180.0" label="Rotate Y" type="angle" step="1" />
+        <spinner id="rz" default="0.0" min="-180.0" max="180.0" label="Rotate Z" type="angle" step="1" />
+        <slider id="dist" default="2.8" min="1.5" max="6.0" label="Distance" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        const float PI = 3.14159265;
+        mat3 mrotX(float a){ float s=sin(a),c=cos(a); return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c); }
+        mat3 mrotY(float a){ float s=sin(a),c=cos(a); return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c); }
+        mat3 mrotZ(float a){ float s=sin(a),c=cos(a); return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0); }
+        void main(){
+            mat3 R=mrotZ(radians(rz))*mrotY(radians(ry))*mrotX(radians(rx));
+            vec2 ndc=acScreenNorm*2.0-1.0; float asp=acScreenSize.x/acScreenSize.y; ndc.x*=asp;
+            vec3 ro=vec3(0.0,0.0,-dist), rd=normalize(vec3(ndc,dist));
+            vec3 N=R*vec3(0.0,0.0,1.0), RU=R*vec3(1.0,0.0,0.0), UP=R*vec3(0.0,1.0,0.0);
+            float dn=dot(rd,N);
+            if(abs(dn)<0.001){gl_FragColor=vec4(0.0);return;}
+            float t=dot(-ro,N)/dn; vec3 hit=ro+rd*t;
+            vec2 uv=vec2(dot(hit,RU)/asp, dot(hit,UP))*0.5+0.5;
+            if(t<0.0||uv.x<0.0||uv.x>1.0||uv.y<0.0||uv.y>1.0){gl_FragColor=vec4(0.0);return;}
+            gl_FragColor=texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

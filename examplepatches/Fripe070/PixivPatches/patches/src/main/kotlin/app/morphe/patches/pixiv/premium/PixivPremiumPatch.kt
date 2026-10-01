@@ -119,6 +119,18 @@ val pixivPremiumPatch: BytecodePatch = bytecodePatch(
             }
         }
 
+        // Hook MuteSettingActivity.onCreate to inject the Import/Export UI
+        val muteActivityClass = mutableClassDefByOrNull("Ljp/pxv/android/feature/mute/setting/MuteSettingActivity;")
+        muteActivityClass?.let { cls ->
+            val onCreateMethod = cls.methods.firstOrNull { it.name == "onCreate" }
+            onCreateMethod?.addInstructions(
+                1,
+                """
+                invoke-static/range {p0 .. p0}, Lapp/morphe/extension/pixiv/premium/MuteHelper;->setupMuteSettingsActivity(Landroid/app/Activity;)V
+                """.trimIndent()
+            )
+        }
+
         // 5. Hook MuteLimitForTextApiModel -> return 9999 for both free and premium mute limits
         val muteTextLimitClass = mutableClassDefByOrNull("Ljp/pxv/android/data/mute/remote/dto/MuteLimitForTextApiModel;")
         muteTextLimitClass?.let { cls ->

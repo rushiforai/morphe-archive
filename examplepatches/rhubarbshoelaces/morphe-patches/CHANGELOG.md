@@ -1,3 +1,15 @@
+## [1.0.12](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.11...v1.0.12) (2026-10-01)
+
+### 🐛 Bug Fixes
+
+* dark mode colors for menu item ([b062ee8](https://github.com/rhubarbshoelaces/morphe-patches/commit/b062ee89a6e6862b9da0c260c36770e630401ca1))
+
+## [1.0.11](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.10...v1.0.11) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* add direct command to set region, say with Tasker ([f43d04a](https://github.com/rhubarbshoelaces/morphe-patches/commit/f43d04a72ac6141b96607c9cca12a06b45f09375))
+
 ## [1.0.10](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.9...v1.0.10) (2026-09-29)
 
 ### 🐛 Bug Fixes

@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.color-splash" name="@string/name" desc="@string/desc" category="color" thumb="thumb/color-splash.webp" tags="color,selective,grayscale,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Color Splash</string>
+            <string name="desc">Keeps one selected color range vivid while turning everything else to grayscale.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="hue" default="0.0" min="0.0" max="360.0" label="Keep Hue" type="angle" step="1" />
+        <slider id="range" default="0.12" min="0.02" max="0.5" label="Range" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Strength" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        vec3 rgb2hsv(vec3 c){
+            vec4 K=vec4(0.0,-0.3333,0.6667,-1.0);
+            vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g));
+            vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r));
+            float d=q.x-min(q.w,q.y);
+            return vec3(abs(q.z+(q.w-q.y)/(6.0*d+1e-10)), d/(q.x+1e-10), q.x);
+        }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            float h = rgb2hsv(c).x;
+            float target = hue/360.0;
+            float dh = abs(h-target); dh = min(dh, 1.0-dh);
+            float keep = 1.0 - smoothstep(range, range*1.6, dh);
+            float g = dot(c, vec3(0.299,0.587,0.114));
+            vec3 outc = mix(vec3(g), c, keep*amount + (1.0-amount));
+            gl_FragColor = vec4(outc,1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

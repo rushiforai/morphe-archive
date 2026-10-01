@@ -27,7 +27,7 @@ val fingerprintProbePatch = bytecodePatch(
             apkFileType = ApkFileType.APKM,
             targets = listOf(
                 AppTarget(
-                    version = "2.1.22.561"
+                    version = "2.1.28.567"
                 ),
                 AppTarget(
                     version = null,

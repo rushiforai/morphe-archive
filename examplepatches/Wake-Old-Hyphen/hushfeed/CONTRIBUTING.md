@@ -121,6 +121,9 @@ that instead, and none of them has a default:
 - `HUSHFEED_BUILD_WRAPPER` names a PowerShell script the pre-push hook runs Gradle through,
   called as `<wrapper> -ProjectDir <repository> -Tasks <task>...`. It helps when several builds
   share one machine and need to queue. Unset, the hook runs `gradlew.bat` itself.
+- `HUSHFEED_GATE_SERIAL` set to `1` makes the pre-push hook apply the bundle to one fixture at a
+  time. Each desktop CLI run can take a quarter of the machine's memory, so on a machine that's
+  short of it the runs shouldn't overlap. Unset, they all run at once.
 - `HUSHFEED_DEVICE_SERIAL` is the adb serial of the one test phone `scripts/phone.sh` may drive.
   The script refuses every other device, and it won't run at all while this is unset. Keep your
   own phone out of it.

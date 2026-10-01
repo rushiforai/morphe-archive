@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.liquid-wave" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/liquid-wave.webp" tags="wave,distort,liquid,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Liquid Wave</string>
+            <string name="desc">Warps the layer with smooth flowing sine waves on both axes for an underwater / liquid wobble.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="ampX" default="0.5" min="0.0" max="1.0" label="Amplitude X" />
+        <slider id="ampY" default="0.5" min="0.0" max="1.0" label="Amplitude Y" />
+        <slider id="freq" default="8.0" min="1.0" max="40.0" label="Frequency" />
+        <slider id="speed" default="1.5" min="0.0" max="6.0" label="Speed" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 uv = acScreenNorm;
+            float t = acTime*speed;
+            uv.x += sin(uv.y*freq + t)*ampX*0.03;
+            uv.y += cos(uv.x*freq + t*1.2)*ampY*0.03;
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

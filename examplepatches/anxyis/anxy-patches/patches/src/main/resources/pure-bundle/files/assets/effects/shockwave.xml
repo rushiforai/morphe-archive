@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.shockwave" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/shockwave.webp" tags="distort,explosion,ring,impact,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Shockwave</string>
+            <string name="desc">An expanding ring distortion that pushes pixels outward like an explosion blast wave. Animate the progress for impact hits.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Center" />
+        <slider id="progress" default="0.5" min="0.0" max="1.0" label="Progress" />
+        <slider id="amplitude" default="0.5" min="0.0" max="1.0" label="Strength" />
+        <slider id="width" default="0.1" min="0.01" max="0.5" label="Ring Width" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 c = center/1000.0 + 0.5;
+            vec2 d = acScreenNorm - c;
+            d.x *= acScreenSize.x/acScreenSize.y;
+            float dist = length(d);
+            float ring = progress;
+            float diff = dist - ring;
+            float w = width;
+            float force = (1.0 - smoothstep(0.0, w, abs(diff))) * sign(diff);
+            force *= amplitude * 0.08 * (1.0-progress);
+            vec2 uv = acScreenNorm + normalize(d+0.0001)*force;
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.sepia" name="@string/name" desc="@string/desc" category="color" thumb="thumb/sepia.webp" tags="color,vintage,sepia,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Sepia</string>
+            <string name="desc">Warm vintage sepia tone with adjustable strength.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            vec3 s = vec3(dot(c,vec3(0.393,0.769,0.189)), dot(c,vec3(0.349,0.686,0.168)), dot(c,vec3(0.272,0.534,0.131)));
+            gl_FragColor = vec4(clamp(mix(c,s,amount),0.0,1.0),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

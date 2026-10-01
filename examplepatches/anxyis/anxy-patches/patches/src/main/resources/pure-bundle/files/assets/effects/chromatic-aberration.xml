@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.chromatic-aberration" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/chromatic-aberration.webp" tags="color,distort,glitch,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Chromatic Aberration</string>
+            <string name="desc">Splits the red, green and blue channels outward from the center for a lens-distortion / glitch color fringe effect.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="0.01" min="0.0" max="0.08" label="Amount" />
+        <slider id="falloff" default="1.0" min="0.0" max="3.0" label="Edge Falloff" />
+        <point id="center" default="0,0" label="Center" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 c = center/1000.0 + 0.5;
+            vec2 dir = acScreenNorm - c;
+            float d = pow(length(dir), falloff);
+            vec2 off = dir * amount * d;
+            float r = texture2DCv(inputImg.texture, acScreenNorm - off).r;
+            vec4 g = texture2DCv(inputImg.texture, acScreenNorm);
+            float b = texture2DCv(inputImg.texture, acScreenNorm + off).b;
+            gl_FragColor = vec4(r, g.g, b, g.a);
+        }
+    ]]></shader>
+
+</effect>

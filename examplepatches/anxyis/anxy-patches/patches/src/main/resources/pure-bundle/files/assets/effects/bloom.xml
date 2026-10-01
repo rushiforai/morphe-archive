@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.bloom" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/bloom.webp" tags="stylize,bloom,glow,light,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Bloom</string>
+            <string name="desc">Extracts the brightest parts of the layer and blooms them into a glowing halo.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="threshold" default="0.6" min="0.0" max="1.0" label="Threshold" />
+        <slider id="radius" default="0.03" min="0.0" max="0.1" label="Radius" />
+        <slider id="intensity" default="1.0" min="0.0" max="3.0" label="Intensity" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 b = vec3(0.0);
+            for(int i=0;i<12;i++){
+                float a = float(i)/12.0*6.28318;
+                vec2 o = vec2(cos(a),sin(a))*radius;
+                vec3 s = texture2DCv(inputImg.texture, acScreenNorm+o).rgb;
+                b += max(s - threshold, 0.0);
+            }
+            b /= 12.0;
+            gl_FragColor = vec4(src.rgb + b*intensity, src.a);
+        }
+    ]]></shader>
+
+</effect>

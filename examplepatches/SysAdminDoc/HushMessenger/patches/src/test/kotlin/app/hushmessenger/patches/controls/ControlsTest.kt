@@ -95,24 +95,28 @@ class ControlsTest {
     }
 
     @Test fun notificationsSuggestionsJoinTheStockPreferenceAndSkipTheServerOverride() {
-        val reader = peopleJewelMethod()
-        val original = reader.implementation!!.instructions.toList()
-        reader.injectPeopleSection()
-        val code = reader.implementation!!.instructions.toList()
-        fun assertSwitch(index: Int, method: String) {
-            assertEquals("$SETTINGS->$method(Z)Z", (code[index] as ReferenceInstruction).reference.toString())
-            assertEquals(listOf(1, 0), (code[index] as FiveRegisterInstruction).let { listOf(it.registerCount, it.registerC) })
-            assertEquals(Opcode.MOVE_RESULT, code[index + 1].opcode)
-            assertEquals(0, (code[index + 1] as OneRegisterInstruction).registerA)
+        // The server branch sits at 20, or at 19 in 346013423 where the list reset is one call.
+        for ((inlined, serverBranch) in listOf(false to 20, true to 19)) {
+            val reader = peopleJewelMethod(inlinedReset = inlined)
+            val original = reader.implementation!!.instructions.toList()
+            assertEquals(Opcode.IF_NEZ, original[serverBranch].opcode)
+            reader.injectPeopleSection()
+            val code = reader.implementation!!.instructions.toList()
+            fun assertSwitch(index: Int, method: String) {
+                assertEquals("$SETTINGS->$method(Z)Z", (code[index] as ReferenceInstruction).reference.toString())
+                assertEquals(listOf(1, 0), (code[index] as FiveRegisterInstruction).let { listOf(it.registerCount, it.registerC) })
+                assertEquals(Opcode.MOVE_RESULT, code[index + 1].opcode)
+                assertEquals(0, (code[index + 1] as OneRegisterInstruction).registerA)
+            }
+            assertEquals(original.take(12), code.take(12))
+            assertSwitch(12, "hidePeopleSection")
+            assertEquals(original.subList(12, serverBranch), code.subList(14, serverBranch + 2))
+            assertSwitch(serverBranch + 2, "keepPeopleSection")
+            assertEquals(original.drop(serverBranch), code.drop(serverBranch + 4))
+            // Both stock branches still skip to the original "not hidden" return.
+            assertEquals(code.lastIndex, code.branchTarget(14))
+            assertEquals(code.lastIndex, code.branchTarget(serverBranch + 4))
         }
-        assertEquals(original.take(12), code.take(12))
-        assertSwitch(12, "hidePeopleSection")
-        assertEquals(original.subList(12, 20), code.subList(14, 22))
-        assertSwitch(22, "keepPeopleSection")
-        assertEquals(original.drop(20), code.drop(24))
-        // Both stock branches still skip to the original "not hidden" return.
-        assertEquals(code.lastIndex, code.branchTarget(14))
-        assertEquals(code.lastIndex, code.branchTarget(24))
     }
 
     @Test fun changedNotificationsSuggestionsReaderFailsBeforeEditing() {
@@ -122,9 +126,107 @@ class ControlsTest {
             peopleJewelMethod(flags = AccessFlags.PUBLIC.value),
             peopleJewelMethod(serverFlag = "0x1L"),
             peopleJewelMethod(serverTarget = ":hidden"),
+            peopleJewelMethod(inlinedReset = true, serverTarget = ":hidden"),
+            // A second load of the flag makes the server branch ambiguous.
+            peopleJewelMethod(extraFlag = true),
+            peopleJewelMethod(inlinedReset = true, extraFlag = true),
         )) {
             val before = changed.implementation!!.instructions.toList()
             assertFailsWith<PatchException> { changed.injectPeopleSection() }
+            assertEquals(before, changed.implementation!!.instructions.toList())
+        }
+    }
+
+    @Test fun peopleTabListenerGetsEmptySuggestionsOnlyWhileTheSwitchIsOn() {
+        val publish = peopleTabMethod()
+        val original = publish.implementation!!.instructions.toList()
+        publish.injectPeopleTab()
+        val code = publish.implementation!!.instructions.toList()
+        fun ref(index: Int) = (code[index] as ReferenceInstruction).reference.toString()
+        assertEquals("$SETTINGS->enabled(Ljava/lang/String;)Z", ref(1))
+        assertEquals(Opcode.IF_EQZ, code[3].opcode)
+        assertEquals(11, code.branchTarget(3))
+        assertEquals(original, code.drop(11))
+        assertEquals("LX/JZ6;->A09:LX/KIH;", ref(4))
+        assertEquals("$IMMUTABLE_LIST->of()$IMMUTABLE_LIST", ref(5))
+        assertEquals("Ljava/util/Collections;->emptyMap()Ljava/util/Map;", ref(7))
+        assertEquals("LX/KIH;->CbW(${IMMUTABLE_LIST}Ljava/util/Map;)V", ref(9))
+        assertEquals(listOf(3, 2, 1, 0), (code[9] as FiveRegisterInstruction).let { listOf(it.registerCount, it.registerC, it.registerD, it.registerE) })
+        assertEquals(Opcode.RETURN_VOID, code[10].opcode)
+    }
+
+    @Test fun searchSuggestionsSourceReturnsNoSectionsOnlyWhileTheSwitchIsOn() {
+        val source = peopleSearchMethod()
+        val original = source.implementation!!.instructions.toList()
+        val at = original.indexOfFirst { it.opcode == Opcode.SGET_OBJECT }
+        source.injectPeopleSearch()
+        val code = source.implementation!!.instructions.toList()
+        assertEquals(original.take(at), code.take(at))
+        assertEquals("$SETTINGS->enabled(Ljava/lang/String;)Z", (code[at + 1] as ReferenceInstruction).reference.toString())
+        // The check borrows the status register, which the untouched status load overwrites next.
+        assertEquals(0, (code[at + 2] as OneRegisterInstruction).registerA)
+        assertEquals(at + 6, code.branchTarget(at + 3))
+        assertEquals("$IMMUTABLE_LIST->of()$IMMUTABLE_LIST", (code[at + 4] as ReferenceInstruction).reference.toString())
+        assertEquals(1, (code[at + 5] as OneRegisterInstruction).registerA)
+        assertEquals(original.drop(at), code.drop(at + 6))
+    }
+
+    @Test fun changedSearchSuggestionsSourceFailsBeforeEditing() {
+        for (changed in listOf(
+            peopleSearchMethod(flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value),
+            peopleSearchMethod(status = "LX/0R2;->A0N:Ljava/lang/Long;"),
+            peopleSearchMethod(wrap = "LX/CW4;->A0m(${IMMUTABLE_LIST}Ljava/lang/Object;)LX/EBu;"),
+            peopleSearchMethod(wrap = "LX/CW4;->A0m(${IMMUTABLE_LIST}Ljava/lang/Integer;)LX/EBv;"),
+            peopleSearchMethod(statusRegister = "v2"),
+            // A path that joins at the status load would skip the check.
+            peopleSearchMethod(jumpToStatus = true),
+        )) {
+            val before = changed.implementation!!.instructions.toList()
+            assertFailsWith<PatchException> { changed.injectPeopleSearch() }
+            assertEquals(before, changed.implementation!!.instructions.toList())
+        }
+    }
+
+    @Test fun storyViewerSkipsItsSuggestionsRequestOnlyWhileTheSwitchIsOn() {
+        val viewer = peopleStoryMethod()
+        val original = viewer.implementation!!.instructions.toList()
+        viewer.injectPeopleStory()
+        val code = viewer.implementation!!.instructions.toList()
+        assertEquals(original.take(4), code.take(4))
+        assertEquals("people", (code[4] as ReferenceInstruction).reference.toString())
+        assertEquals("$SETTINGS->enabled(Ljava/lang/String;)Z", (code[5] as ReferenceInstruction).reference.toString())
+        // The check reuses the flag register, so both ways out leave it as the stock check would.
+        assertEquals(0, (code[6] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_NEZ, code[7].opcode)
+        assertEquals(0, (code[7] as OneRegisterInstruction).registerA)
+        assertEquals(code.branchTarget(3), code.branchTarget(7))
+        assertEquals(Opcode.RETURN_VOID, code[code.branchTarget(7)].opcode)
+        assertEquals(original.drop(4), code.drop(8))
+    }
+
+    @Test fun changedStoryViewerRequestFailsBeforeEditing() {
+        for (changed in listOf(
+            peopleStoryMethod(flags = AccessFlags.PUBLIC.value),
+            peopleStoryMethod(checkedFlag = "A0w"),
+            peopleStoryMethod(skip = "if-eqz"),
+            // A path that joins right after the check would skip it.
+            peopleStoryMethod(jumpPastCheck = true),
+        )) {
+            val before = changed.implementation!!.instructions.toList()
+            assertFailsWith<PatchException> { changed.injectPeopleStory() }
+            assertEquals(before, changed.implementation!!.instructions.toList())
+        }
+    }
+
+    @Test fun changedPeopleTabPublishFailsBeforeEditing() {
+        for (changed in listOf(
+            peopleTabMethod(flags = AccessFlags.PUBLIC.value),
+            peopleTabMethod(listenerRegister = "v1"),
+            peopleTabMethod(listener = "LX/JZ6;->A08:Landroid/content/Context;"),
+            peopleTabMethod(call = "LX/KIH;->CbW(${IMMUTABLE_LIST}Ljava/util/List;)V"),
+        )) {
+            val before = changed.implementation!!.instructions.toList()
+            assertFailsWith<PatchException> { changed.injectPeopleTab() }
             assertEquals(before, changed.implementation!!.instructions.toList())
         }
     }

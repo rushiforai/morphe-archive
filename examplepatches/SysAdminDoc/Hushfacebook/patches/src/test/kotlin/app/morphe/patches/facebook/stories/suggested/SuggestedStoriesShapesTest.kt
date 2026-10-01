@@ -52,6 +52,8 @@ class SuggestedStoriesShapesTest {
     private val tree = "Lfixture/BucketTree;"
     private val label = "Lfixture/Label;"
     private val helperClass = "Lfixture/LabelHelper;"
+    private val typeEnumType = "Lfixture/BucketType;"
+    private val otherTypeEnum = "Lfixture/OtherBucketType;"
     private val public = AccessFlags.PUBLIC.value
     private val publicStatic = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value
 
@@ -61,6 +63,9 @@ class SuggestedStoriesShapesTest {
     private val flagCall = ImmutableMethodReference(bucket, "BZd", emptyList(), "Z")
     private val trendingCall = ImmutableMethodReference(bucket, "BZf", emptyList(), "Z")
     private val getBoolean = ImmutableMethodReference(TREE_JNI, "getBooleanValue", listOf("I"), "Z")
+    /** The tree class's own superclass, a TreeJNI subclass, is what the enum read names. */
+    private val getCachedEnum =
+        ImmutableMethodReference("Lfixture/TreeBase;", "getCachedEnum", listOf("I", "Ljava/lang/Enum;"), "Ljava/lang/Enum;")
 
     private fun method(
         definingClass: String,
@@ -134,6 +139,29 @@ class SuggestedStoriesShapesTest {
             ImmutableInstruction11x(Opcode.RETURN, 0),
         ))
 
+    /** The tree's type accessor: [field]'s key read with [reader], Facebook's unset value as the default. */
+    private fun typeReader(name: String = "C9d", field: String = BUCKET_TYPE_FIELD, reader: MethodReference = getCachedEnum,
+                           static: Boolean = false) =
+        method(tree, name, emptyList(), typeEnumType, if (static) publicStatic else public or AccessFlags.FINAL.value, 3, listOf(
+            ImmutableInstruction31i(Opcode.CONST, 1, field.hashCode()),
+            ImmutableInstruction21c(Opcode.SGET_OBJECT, 0, ImmutableFieldReference(typeEnumType, "A0o", typeEnumType)),
+            invoke(Opcode.INVOKE_VIRTUAL, reader, 2, 1, 0),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+            ImmutableInstruction21c(Opcode.CHECK_CAST, 0, ImmutableTypeReference(typeEnumType)),
+            ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+        ))
+
+    private fun enumNaming(type: String, names: List<String>) = classOf(type,
+        method(type, "<clinit>", emptyList(), "V", AccessFlags.STATIC.value or AccessFlags.CONSTRUCTOR.value, 1,
+            names.map { string(0, it) } + ImmutableInstruction10x(Opcode.RETURN_VOID)),
+        superclass = "Ljava/lang/Enum;")
+
+    /** The bucket type enum, and another naming the same cards that no bucket method answers. */
+    private val typeEnums = listOf(
+        enumNaming(typeEnumType, listOf("STORY", "PAGE_STORY") + BUCKET_TYPE_NAMES),
+        enumNaming(otherTypeEnum, BUCKET_TYPE_NAMES),
+    )
+
     private fun labelHelper(flags: Int = publicStatic, parameter: String = bucket, returnType: String = label) =
         method(helperClass, "A00", listOf(parameter), returnType, flags, 2, listOf(
             ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1),
@@ -157,15 +185,19 @@ class SuggestedStoriesShapesTest {
         receive: Method = receiver(),
         bucketFlags: Int = public or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value,
         readers: List<Method> = listOf(treeReader("BZd", SUGGESTED_FLAG_FIELD), treeReader("BZf", "is_trending_bucket")),
+        typeAccessors: List<Method> = listOf(abstractMethod(bucket, "C9d", typeEnumType)),
+        typeReaders: List<Method> = listOf(typeReader()),
+        enums: List<ClassDef> = typeEnums,
         helper: Method = labelHelper(),
         helperFlags: Int = public or AccessFlags.FINAL.value,
         list: ClassDef = immutableList,
-    ): List<ClassDef> = listOf(
+    ): List<ClassDef> = enums + listOf(
         classOf(fetch, post),
         dataClass,
         classOf(receiverClass, receive),
-        classOf(bucket, abstractMethod(bucket, "BZd", "Z"), abstractMethod(bucket, "BZf", "Z"), flags = bucketFlags),
-        classOf(tree, *readers.toTypedArray(), superclass = TREE_JNI, interfaces = listOf(bucket)),
+        classOf(bucket, abstractMethod(bucket, "BZd", "Z"), abstractMethod(bucket, "BZf", "Z"), *typeAccessors.toTypedArray(),
+            flags = bucketFlags),
+        classOf(tree, *(readers + typeReaders).toTypedArray(), superclass = "Lfixture/TreeBase;", interfaces = listOf(bucket)),
         labelEnum,
         classOf(helperClass, helper, flags = helperFlags),
         list,
@@ -223,6 +255,18 @@ class SuggestedStoriesShapesTest {
         assertEquals(-1530492979, SUGGESTED_FLAG_FIELD.hashCode())
     }
 
+    /** The type key picks the accessor, read as a cached enum through whatever TreeJNI subclass the tree has. */
+    @Test
+    fun `a type reader loads the type key and reads it as a cached enum`() {
+        assertTrue(isTreeEnumReader(typeReader(), BUCKET_TYPE_FIELD))
+        assertFalse("another key", isTreeEnumReader(typeReader(field = "story_bucket_owner_type"), BUCKET_TYPE_FIELD))
+        assertFalse("a static method", isTreeEnumReader(typeReader(static = true), BUCKET_TYPE_FIELD))
+        assertFalse("another reader", isTreeEnumReader(typeReader(reader = ImmutableMethodReference("Lfixture/TreeBase;",
+            "getEnumValue", listOf("I", "Ljava/lang/Enum;"), "Ljava/lang/Enum;")), BUCKET_TYPE_FIELD))
+        assertFalse("a boolean flag", isTreeEnumReader(treeReader("BZd", BUCKET_TYPE_FIELD), BUCKET_TYPE_FIELD))
+        assertEquals(0xa5133025L.toInt(), BUCKET_TYPE_FIELD.hashCode())
+    }
+
     @Test
     fun `the label helper is static, takes one bucket and answers the label`() {
         assertTrue(isLabelHelper(labelHelper(), setOf(bucket), label))
@@ -240,6 +284,7 @@ class SuggestedStoriesShapesTest {
         assertEquals("BZd", found.flag)
         assertEquals("A00", found.labelHelper.name)
         assertEquals(label, found.label)
+        assertEquals("C9d" to typeEnumType, found.type to found.typeEnum)
     }
 
     /** Each piece of evidence stops the patch when it's missing, and the message says which. */
@@ -258,6 +303,14 @@ class SuggestedStoriesShapesTest {
         assertTrue(refusal(tray(helper = labelHelper(flags = AccessFlags.STATIC.value))).contains("isn't public"))
         assertTrue(refusal(tray(bucketFlags = AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value)).contains("the bucket interface"))
         assertTrue(refusal(tray(list = classOf(IMMUTABLE_LIST, flags = public or AccessFlags.ABSTRACT.value))).contains("copyOf"))
+        assertTrue("no tree class reads the type", refusal(tray(typeReaders = listOf(typeReader(field = "story_bucket_owner_type"))))
+            .contains(BUCKET_TYPE_FIELD))
+        assertTrue("no bucket method answers a type enum", refusal(tray(typeAccessors = emptyList())).contains("PYMK_STORY"))
+        assertTrue("two bucket methods answer one", refusal(tray(typeAccessors = listOf(abstractMethod(bucket, "C9d", typeEnumType),
+            abstractMethod(bucket, "C9e", typeEnumType)))).contains("PYMK_STORY"))
+        assertTrue("the enum doesn't name the contacts card", refusal(tray(enums = listOf(
+            enumNaming(typeEnumType, listOf("STORY", "PYMK_STORY", "PYMK_PROFILE_FORWARD_STORY")))))
+            .contains("PYMK_STORY"))
     }
 
     /**
@@ -284,6 +337,8 @@ class SuggestedStoriesShapesTest {
             .implementation!!.instructions.toList()
         assertEquals(Opcode.INSTANCE_OF, stub(IS_BUCKET_STUB)[0].opcode)
         assertEquals("$bucket->BZd()Z", reference(stub(SUGGESTED_STUB)[1]))
+        assertEquals("$bucket->C9d()$typeEnumType", reference(stub(TYPE_STUB)[1]))
+        assertEquals(Opcode.MOVE_RESULT_OBJECT, stub(TYPE_STUB)[2].opcode)
         assertEquals("$helperClass->A00($bucket)$label", reference(stub(LABEL_STUB)[1]))
         assertEquals("$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMMUTABLE_LIST", reference(stub(COPY_STUB)[0]))
     }
@@ -300,6 +355,11 @@ class SuggestedStoriesShapesTest {
         assertTrue(declares(IS_BUCKET_STUB, listOf("Ljava/lang/Object;"), "Z"))
         assertTrue(declares(SUGGESTED_STUB, listOf("Ljava/lang/Object;"), "Ljava/lang/Object;"))
         assertTrue(declares(LABEL_STUB, listOf("Ljava/lang/Object;"), "Ljava/lang/Object;"))
+        assertTrue(declares(TYPE_STUB, listOf("Ljava/lang/Object;"), "Ljava/lang/Object;"))
+        assertEquals(BUCKET_TYPE_FIELD, ExtensionDex.stringConstant(SUGGESTED_STORIES, "BUCKET_TYPE_FIELD"))
+        val cards = listOf("PYMK_TYPE", "PYMK_PROFILE_FORWARD_TYPE", "CONTACT_IMPORTER_TYPE")
+            .map { ExtensionDex.stringConstant(SUGGESTED_STORIES, it) }
+        assertEquals(BUCKET_TYPE_NAMES.toSet(), cards.toSet())
         assertTrue(declares(COPY_STUB, listOf("Ljava/util/List;"), "Ljava/lang/Object;"))
         assertEquals(SUGGESTED_FLAG_FIELD, ExtensionDex.stringConstant(SUGGESTED_STORIES, "SUGGESTED_FLAG"))
         val labelName = ExtensionDex.stringConstant(SUGGESTED_STORIES, "SUGGESTED_LABEL")

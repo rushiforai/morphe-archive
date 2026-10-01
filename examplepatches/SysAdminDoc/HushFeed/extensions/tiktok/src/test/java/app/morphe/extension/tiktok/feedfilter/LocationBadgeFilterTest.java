@@ -24,7 +24,7 @@ import org.robolectric.annotation.Config;
 @Config(sdk = {23, 35})
 public class LocationBadgeFilterTest {
     @Rule public final SettingsContextRule context = new SettingsContextRule();
-    private boolean hide, filter;
+    private boolean hide, filter, tools;
     public static class Anchor {
         String key;
         public String getComponentKey() { return key; }
@@ -44,7 +44,9 @@ public class LocationBadgeFilterTest {
     @Before public void saveSettings() {
         hide = Settings.HIDE_LOCATION_LABELS.get();
         filter = Settings.FILTER_LOCATION_VIDEOS.get();
+        tools = Settings.HIDE_CREATION_TAGS.get();
         Settings.HIDE_LOCATION_LABELS.save(false);
+        Settings.HIDE_CREATION_TAGS.save(false);
         Settings.FILTER_LOCATION_VIDEOS.save(false);
         FeedItemsFilter.resetDiagnosticsForTests();
         LocationBadgeFilter.resetStripKindsForTests();
@@ -53,6 +55,7 @@ public class LocationBadgeFilterTest {
     @After public void restoreSettings() {
         Settings.HIDE_LOCATION_LABELS.save(hide);
         Settings.FILTER_LOCATION_VIDEOS.save(filter);
+        Settings.HIDE_CREATION_TAGS.save(tools);
         BaseSettings.DEBUG.resetToDefault();
         FeedItemsFilter.resetDiagnosticsForTests();
         LocationBadgeFilter.resetStripKindsForTests();
@@ -191,5 +194,60 @@ public class LocationBadgeFilterTest {
         String report = String.join("|", FeedFilterCounters.report());
         assertTrue(report, report.contains("CaptionStrip: 1 lists, 3 items, 2 removed. Last reason: placeLabel. "
                 + "Kinds: anchor_poi 2, anchor_effect/28 1"));
+    }
+
+    @Test public void creationTagsAreOffByDefaultAndLeaveEveryStripAlone() {
+        assertFalse(Settings.HIDE_CREATION_TAGS.defaultValue);
+        List<?> anchors = List.of(new TypedAnchor("anchor_effect", 28), new TypedAnchor("anchor_capcut", 54));
+        assertSame(anchors, LocationBadgeFilter.visibleAnchors(anchors));
+    }
+
+    @Test public void creationTagsRemoveToolsAndKeepPlacesFilmsAndOtherStripsInOrder() {
+        Settings.HIDE_CREATION_TAGS.save(true);
+        Anchor place = new TypedAnchor("anchor_poi", 45), film = new TypedAnchor("anchor_movie_tok", 61);
+        Anchor drama = new TypedAnchor("anchor_pine_drama", 117), lemon = new Anchor("anchor_lemon");
+        List<?> anchors = Arrays.asList(new TypedAnchor("anchor_effect", 28), place, new TypedAnchor("anchor_capcut", 54),
+                null, film, new TypedAnchor("anchor_ucg_template", 65), drama, new TypedAnchor("anchor_pugc_template", 78),
+                lemon, new Anchor("anchor_ai_style"));
+        Video video = new Video(anchors);
+
+        assertEquals(Arrays.asList(place, null, film, drama, lemon), LocationBadgeFilter.visibleAnchors(anchors));
+        assertSame(anchors, video.anchors);
+        assertEquals(10, anchors.size());
+        assertTrue(LocationBadgeFilter.hasBadge(video));
+    }
+
+    @Test public void onlyExactToolKeysCount() {
+        Settings.HIDE_CREATION_TAGS.save(true);
+        List<?> lookalikes = Arrays.asList(new Anchor("effect"), new Anchor("ANCHOR_EFFECT"), new Anchor("anchor_effect_dur"),
+                new Anchor("anchor_icon_color_for_effect_and_template"), new Anchor("anchor_template_used_functions"),
+                new Anchor(null), new Object());
+        assertSame(lookalikes, LocationBadgeFilter.visibleAnchors(lookalikes));
+    }
+
+    @Test public void bothSwitchesTogetherCountEachReasonOnItsOwn() {
+        Settings.HIDE_LOCATION_LABELS.save(true);
+        Settings.HIDE_CREATION_TAGS.save(true);
+        Anchor film = new TypedAnchor("anchor_movie_tok", 61);
+        assertEquals(List.of(film), LocationBadgeFilter.visibleAnchors(Arrays.asList(new Anchor("anchor_poi"),
+                new TypedAnchor("anchor_effect", 28), film, new TypedAnchor("anchor_capcut", 54))));
+
+        String report = String.join("|", FeedFilterCounters.report());
+        assertTrue(report, report.contains("CaptionStrip: 1 lists, 4 items, 3 removed. Last reason: creationTag. "));
+
+        // A list's places are counted before its tags, so a place alone shows it isn't put down to
+        // the creation switch either.
+        assertEquals(List.of(film), LocationBadgeFilter.visibleAnchors(Arrays.asList(film, new Anchor("anchor_poi"))));
+        report = String.join("|", FeedFilterCounters.report());
+        assertTrue(report, report.contains("CaptionStrip: 2 lists, 6 items, 4 removed. Last reason: placeLabel. "));
+    }
+
+    @Test public void placesStayWhenOnlyCreationTagsAreHidden() {
+        Settings.HIDE_CREATION_TAGS.save(true);
+        Anchor place = new Anchor("anchor_poi");
+        assertEquals(List.of(place), LocationBadgeFilter.visibleAnchors(Arrays.asList(place, new Anchor("anchor_template"))));
+
+        String report = String.join("|", FeedFilterCounters.report());
+        assertTrue(report, report.contains("CaptionStrip: 1 lists, 2 items, 1 removed. Last reason: creationTag."));
     }
 }

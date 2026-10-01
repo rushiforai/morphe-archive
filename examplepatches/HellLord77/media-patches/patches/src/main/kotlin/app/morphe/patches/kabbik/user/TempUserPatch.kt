@@ -1,11 +1,14 @@
 package app.morphe.patches.kabbik.user
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
 import app.morphe.patches.kabbik.extension.sharedExtensionPatch
 import app.morphe.patches.kabbik.shared.Constants.COMPATIBILITY_KABBIK
 import app.morphe.util.matchSingle
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/kabbik/patches/TempUserPatch;"
 
@@ -20,9 +23,17 @@ val tempUserPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch, changePackageInstallerPatch())
 
     execute {
-        KabbikApplicationOnCreateFingerprint.matchSingle().method.addInstructions(
-            0,
-            "invoke-static {}, $EXTENSION_CLASS->onCreate()V"
-        )
+        with(KabbikApplicationOnCreateFingerprint.matchSingle()) {
+            method.addInstruction(
+                0, BuilderInstruction35c(
+                    Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0, ImmutableMethodReference(
+                        EXTENSION_CLASS,
+                        originalMethod.name,
+                        originalMethod.parameters,
+                        originalMethod.returnType
+                    )
+                )
+            )
+        }
     }
 }

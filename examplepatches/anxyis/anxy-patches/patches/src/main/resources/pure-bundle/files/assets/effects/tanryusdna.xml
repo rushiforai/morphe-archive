@@ -1,0 +1,185 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e646e61" deprecated="true">
+
+    <params>
+        <color id="color1" default="#00000000" label="Color BG" alpha="true" />
+        <color id="color2" default="#FFFFFFFF" label="Color FG" alpha="true" />
+        <switch id="autop" default="true" label="Auto Progress" />
+        <spinner id="PROGRESS" label="Progress" default="1.0" min="-10.0" max="1000.0" step="0.01" type="percent" />
+        <spinner id="SIN_DENSITY" label="Density" default="0.4" min="-50.0" max="50.0" step="0.01" type="percent" />
+        <spinner id="COLOR_DIFFERENCE" label="Color Fade" default="0.8" min="0" max="1.0" step="0.01" type="percent" />
+        <spinner id="scale" default="0.3" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hardness" type="percent" />
+        <selector id="blendMode" style="radio" default="3" >
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+            <choice label="LAYER" value="3" />
+        </selector>
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        //Shader License: CC BY 3.0
+        //Author: Jan Mróz (jaszunio15)
+        
+        // #define SIN_DENSITY 0.4
+        // #define COLOR_DIFFERENCE 0.8
+        
+        float linearstep(float a, float b, float x)
+        {
+         	return clamp((b - x) / (b - a), 0.0, 1.0);
+        }
+        
+        
+        //x - circle alpha
+        //y - circle color
+        //Thanks to FabriceNeyret2 for this idea
+        vec2 circle(vec2 uv, float pixelSize, float sinDna, float cosDna, float _sign)
+        {
+            float height = _sign * sinDna;
+            float depth = abs((_sign * 0.5 + 0.5) - (cosDna * 0.25 + 0.5));	//this 0.25 is quite bad here
+            float size = 0.2 + depth * 0.1;
+            float alpha = 1.0 - smoothstep(size - pixelSize, 
+                                           size + pixelSize, 
+                                           distance(uv, vec2(0.5, height)));
+            
+            return vec2(
+                alpha, 
+                depth * COLOR_DIFFERENCE + (1.0 - COLOR_DIFFERENCE)
+            );
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        
+        vec2 syamjaidtz;
+        syamjaidtz = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        syamjaidtz.y*=acLayerSize.y/acLayerSize.x;
+        
+        syamjaidtz /= scale;
+        syamjaidtz *= rot2m((0.0+angle)*0.0174533);
+        syamjaidtz += vec2((0.0+position.x), (0.0-position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        syamjaidtz /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+        float TIME = autop? PROGRESS + acTime : PROGRESS;
+    	
+            vec2 uv = syamjaidtz;
+            
+            float angle = 0.3;
+            uv *= mat2(cos(angle + vec4(0,11,33,0)));
+        
+            uv.x -= TIME * 0.5;
+            
+            float pixelSize = 10.0 / iResolution.y;
+            vec2 baseUV = uv;
+            uv.x = fract(uv.x);
+            float lineIndex = floor(baseUV.x);
+            float dnaTimeIndex = lineIndex * SIN_DENSITY + TIME;
+            float sinDna = sin(dnaTimeIndex) * 2.0;
+            float cosDna = cos(dnaTimeIndex) * 2.0;
+            
+            //draw straight line
+            float lineSDF = abs(uv.x - 0.5);
+            float line = smoothstep(pixelSize * 2.0, 0.0, lineSDF);
+            
+            //cut upper part of the lines
+            float sinCutLineUp = abs(sinDna);
+            float sinCutMaskUp = smoothstep(sinCutLineUp + pixelSize, sinCutLineUp - pixelSize, uv.y);
+            
+            //cut lower part of the lines
+            float sinCutLineDown = -abs(sinDna);
+            float sinCutMaskDown = smoothstep(sinCutLineDown - pixelSize, sinCutLineDown + pixelSize, uv.y);
+            
+            //Create first side of dna circles
+            vec2 circle1 = circle(uv, pixelSize, sinDna, cosDna, 1.0);
+            
+            //Second side of dna circles
+            vec2 circle2 = circle(uv, pixelSize, sinDna, cosDna, -1.0);
+            
+            //Calculating line gradient for depth effect
+            //Thanks to @tb for this 3D effect idea
+            float lineGradient = linearstep(sinCutLineUp, sinCutLineDown, uv.y);
+            if (sin(lineIndex * SIN_DENSITY + TIME) > 0.0) lineGradient = 1.0 - lineGradient;
+            lineGradient = mix(circle1.y, circle2.y, lineGradient);
+            
+            //rendering line
+            float helis = 0.0;
+            
+            //rendering circles 
+            if (circle1.y < circle2.y)
+            {
+                helis = mix(helis, circle1.y, circle1.x);
+                helis = mix(helis, lineGradient, line * sinCutMaskUp * sinCutMaskDown);
+            	helis = mix(helis, circle2.y, circle2.x);
+            }
+            else
+            {
+                helis = mix(helis, circle2.y, circle2.x);
+                helis = mix(helis, lineGradient, line * sinCutMaskUp * sinCutMaskDown);
+                helis = mix(helis, circle1.y, circle1.x);
+            }
+            fragColor = vec4(helis);
+            fragColor.rgb *= color2.rgb;
+        
+    	vec4 factor = newLayer(color1,fragColor);
+
+        vec4 resultfinal;
+          if( blendMode==0 ) {
+            resultfinal = (factor * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a; }
+            // resultfinal = max(factor, texColor) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; 
+            resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+          }
+        }
+
+    ]]></shader>
+
+</effect>

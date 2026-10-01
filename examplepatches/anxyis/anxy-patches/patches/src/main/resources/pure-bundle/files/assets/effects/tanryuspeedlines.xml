@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.speedlines"
+    name="SpeedLines+"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="other"
+    thumb="thumb/TANRYU/speeed.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="black" srcType="image" src="textures/black.png" />
+        <texture id="white" srcType="image" src="textures/white.png" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="SOLID" value="0" />
+            <choice label="OUTLINE" value="2" />
+            <choice label="MASK" value="1" />
+        </selector>
+        <color id="color" default="#FF00FFFF" label="Color" alpha="true" />
+        <spinner id="progressa" label="Evolution" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="density" label="Density" default="2.5" min="2.00" max="10.00" step="0.05" />
+        <spinner id="highlight" label="Highlight" default="4.6" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="feather" label="Feather" default="1.0" min="0.1" max="10.0" step="0.01" type="percent" />
+        <spinner id="scalex" label="Scale" default="1.5" min="0" max="100.0" step="0.01" type="percent" />
+        <point id="position" label="Position" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <!-- <spinner id="lowThreshold" default="0" min="0" max="1" step="0.001" label="Low Threshold"/> -->
+        <!-- <spinner id="xxx" label="X" default="-2.5" min="-10.0" max="100.0" step="0.01" type="percent" /> -->
+        <!-- <spinner id="yyy" label="Y" default="0.8" min="-10.0" max="100.0" step="0.01" type="percent" /> -->
+        <!-- <spinner id="zzz" label="Z" default="0.1" min="-10.0" max="100.0" step="0.01" type="percent" /> -->
+     
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+       vec4 newLayer( vec4 a, vec4 b) {
+       return a * (1. - b.a) + b;
+       }
+    
+      mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+    #define scale 1.7 * scalex
+    
+    float hash( vec2 p ) {return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);} //Pseudo-random
+    float smoothNoise( in vec2 p) { //Bilinearly interpolated noise (4 samples)
+        vec2 i = floor( p ); vec2 f = fract( p );	
+    	vec2 u = f*f*(3.0-2.0*f);
+        float a = hash( i + vec2(0.0,0.0) );
+    	float b = hash( i + vec2(1.0,0.0) );
+    	float c = hash( i + vec2(0.0,1.0) );
+    	float d = hash( i + vec2(1.0,1.0) );
+        return float(a+(b-a)*u.x+(c-a)*u.y+(a-b-c+d)*u.x*u.y)/4.;
+    }
+    //Funciton to make the noise continuous while wrapping around angle 
+    float rotatedMirror(float t, float r){
+        //t : 0->1
+        t = fract(t+r);
+        return 2.*abs(t-0.5);
+    }
+    //Some continous radial perlin noise
+    const mat2 m2 = mat2(0.90,0.44,-0.44,0.90);
+    float radialPerlinNoise(float t, float d){
+        const float BUMP_MAP_UV_SCALE = 44.2;
+        d = pow(d,0.01); //Impression of speed : stretch noise as the distance increases.
+        float dOffset = -floor(progressa*10.)*0.1; //Time drift (animation)
+        vec2 p = vec2(rotatedMirror(t,0.1),d+dOffset);
+        float f1 = smoothNoise(p*BUMP_MAP_UV_SCALE);
+        p = 2.1*vec2(rotatedMirror(t,0.4),d+dOffset);
+        float f2 = smoothNoise(p*BUMP_MAP_UV_SCALE);
+        p = 3.7*vec2(rotatedMirror(t,0.8),d+dOffset);
+        float f3 = smoothNoise(p*BUMP_MAP_UV_SCALE);
+        p = 5.8*vec2(rotatedMirror(t,0.0),d+dOffset);
+        float f4 = smoothNoise(p*BUMP_MAP_UV_SCALE);
+        return (f1+0.5*f2+0.25*f3+0.125*f4)*3.;
+    }
+    //Colorize function (transforms BW Intensity to color)
+    vec3 colorize(float f){
+        f = clamp(f*.95,0.0,1.0);
+        vec3 c = mix(vec3(0,0,0), vec3(color.rgb), f); //Red-Yellow Gradient
+             c = mix(c, vec3(1,1,1), f*4.-3.0);      //While highlights
+        vec3 cAttenuated = mix(vec3(0), c, f+0.1);       //Intensity ramp
+        return cAttenuated;
+    }
+    
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+                        
+        /////////////////////////
+        
+    	vec4 result;
+    	
+    	vec2 uv = acScreenNorm;
+        uv += vec2((250.0+position.x), (-250.0+position.y))*vec2(-1.,1.)/500.;
+        uv *= scale;
+        uv *= rot2m(angle*0.0174533);
+
+        
+    	// vec2 uv = 2.2*(fragCoord-0.5*vec2(iResolution.xy))/iResolution.xx;
+        float d = dot(uv,uv); //Squared distance
+        float t = 0.5+atan(uv.y,uv.x)/density; //Normalized Angle
+        float v = radialPerlinNoise(t,d);
+        //Saturate and offset values
+        v = -2.38+v*highlight;
+        //Intersity ramp from center
+        v = mix(0.0,v, 0.5*smoothstep(0.3, (0.35+feather), d));
+        //Colorize (palette remap )
+        
+        result.rgb = colorize(v);
+        
+        vec4 nx = mix(vec4(0), color, v) * texColor.a;
+        vec4 nxx = mix(vec4(1), color, v) * texColor.a;
+        
+    	// vec4 factor = vec4(0.30,0.30,0.30,1.0) + gradmap;
+    	vec4 factora = vec4(0.30,0.30,0.30,1.0) + result;
+    	
+    	    const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            vec4 gradmap;
+            float luminance = dot(factora.rgb, luminanceWeighting);
+                
+        // gradmap = mix(colorbg,color,luminance)*factora.a;
+        // vec4 factor = gradmap;
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // SOLID
+            
+           vec4 rrr = newLayer(vec4(0,0,0,1), nx) * texColor.a;
+           
+            vec4 targetLuma = rrr;
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            float luma = dot(targetLuma.rgb, luminanceWeighting);
+            float lowThresholdB = (0.4*(1.0+0.05))-0.001;
+            float lowThresholdA = lowThresholdB-max(0.05,0.00001);
+            float highThresholdA = (1.0*(1.0+0.05)-0.05)+0.001;
+            float highThresholdB = highThresholdA+max(0.05,0.00001);
+            float lowBlend = smoothstep( lowThresholdA, lowThresholdB, luma );
+            float highBlend = 1. - smoothstep( highThresholdA, highThresholdB, luma );
+            float lumafx = min(lowBlend,highBlend);
+            vec4 fxLuma = targetLuma*lumafx;
+            
+           resultfinal = newLayer(texColor, fxLuma) * texColor.a;
+           // resultfinal = newLayer(texColor, nx) * texColor.a;
+            
+        }
+         else if( blendMode==1 ) {         // MASK
+            gradmap = mix(vec4(1.0),color,luminance)*nxx.a;
+            vec4 factor = gradmap;
+            
+            vec3 top = texColor.rgb;
+            vec3 bot = nxx.rgb * texColor.a;
+
+            vec3 mx = min(top,bot);
+            resultfinal = vec4(mx,texColor.a);
+            // vec4 c = (factora + vec4(1.)*(1.-factora.a));
+            // resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        }
+         else if( blendMode==2 ) {         // OUTLINE
+            gradmap = mix(vec4(0.,0.,0.,1.0),color,luminance)*factora.a;
+            vec4 factor = gradmap;
+            
+            vec3 top = texColor.rgb;
+            vec3 bot = result.rgb * texColor.a;
+
+            vec3 mx = max(top,bot);
+            resultfinal = vec4(mx,texColor.a);
+            // resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor,resultfinal,alpha) * texColor.a;
+    }
+
+
+    ]]></shader>
+
+</effect>

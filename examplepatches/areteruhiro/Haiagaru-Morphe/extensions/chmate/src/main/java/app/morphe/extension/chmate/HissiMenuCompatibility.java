@@ -23,6 +23,9 @@ public final class HissiMenuCompatibility {
         boolean dedicatedViewer = Haiagaru.dedicatedCheckerViewerAvailable();
         String stockFilter = "{$host[match:[25]ch.net$]}";
         String oldFilter = "{$host[match:(^|\\.)(2ch\\.net|5ch\\.(net|io))$]}";
+        // Observed in the stock 242 menu provider (not a user-defined filter).
+        String modernFilter = "{$host[match:(?:2ch\\.net|5ch\\.(?:net|io))$]}";
+        template = template.replace(modernFilter, oldFilter);
         String supportedFilter = "{$host[match:(?:^|\\.)(?:2ch\\.net|5ch\\.(?:net|io)|"
                 + "bbspink\\.com|open2ch\\.net|machi\\.to|vip2ch\\.com|5chan\\.jp)$|"
                 + "^(?:jbbs\\.shitaraba\\.net|bbs\\.eddibb\\.cc|bbs\\.punipuni\\.eu|"
@@ -53,6 +56,7 @@ public final class HissiMenuCompatibility {
             rewritten = rewritten.replace("//hissi.org/read.php/",
                     "haiagaru-hissi://hissi.org/read.php/");
         }
+        rewritten = addSelectedIdParameter(rewritten);
         String sourceFilter = rewritten.contains(stockFilter) ? stockFilter : oldFilter;
         if (!rewritten.contains(sourceFilter)) {
             // A previously rewritten template only needs its selected mode refreshed.
@@ -60,8 +64,16 @@ public final class HissiMenuCompatibility {
                     + Haiagaru.hissiCheckerMode());
         }
         return rewritten.replace(sourceFilter,
-                "?haiagaru_host={$host}&haiagaru_key={$key}&haiagaru_mode="
+                "?haiagaru_host={$host}&haiagaru_key={$key}&haiagaru_id={$id}&haiagaru_mode="
                         + Haiagaru.hissiCheckerMode() + supportedFilter);
+    }
+
+    private static String addSelectedIdParameter(String template) {
+        if (template.contains("haiagaru_id=")) return template;
+        int mode = template.indexOf("&haiagaru_mode=");
+        if (mode < 0) return template;
+        return template.substring(0, mode) + "&haiagaru_id={$id}"
+                + template.substring(mode);
     }
 
     /**

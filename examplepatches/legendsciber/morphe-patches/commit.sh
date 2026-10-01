@@ -1,11 +1,11 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# Degisiklikleri commit eder ve push lar.
+# Degisiklikleri commit eder. GitHub'a push ETMEZ.
 # Kullanim:  bash commit.sh
 # Mesaj asagida MSG satirinda tutulur; her duzeltmede guncellenir.
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="feat(stickwar): rewrite pairip bypass with bytecodePatch per community recipes"
+MSG="fix(dantheman): free iap works offline, drop 1.14.02 target"
 
 cd "$DIR"
 
@@ -28,11 +28,6 @@ else
     git commit -m "$MSG"
 fi
 
-# Release bot'u uzaktan commit atmissa once onu al, sonra push et
-git pull --rebase
-
-git push
 echo ""
-echo "Push tamamlandi. Workflow durumu:"
-echo "https://github.com/legendsciber/morphe-patches/actions"
+echo "Commit tamamlandi (push yapilmadi)."
 

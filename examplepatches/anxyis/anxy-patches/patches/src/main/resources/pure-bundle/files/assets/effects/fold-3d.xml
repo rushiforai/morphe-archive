@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.fold-3d" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/fold-3d.webp" tags="3d,fold,book,crease,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Fold</string>
+            <string name="desc">Folds the layer down the middle into a 3D V-shape, like an opening book.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="angle" default="40.0" min="0.0" max="85.0" label="Fold Angle" type="angle" step="1" />
+        <slider id="shade" default="0.6" min="0.0" max="1.0" label="Crease Shade" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            float a=radians(angle);
+            float side=acScreenNorm.x<0.5?-1.0:1.0;
+            float dx=abs(acScreenNorm.x-0.5);
+            float persp=1.0/(1.0+dx*sin(a)*2.0);
+            float x=0.5+(acScreenNorm.x-0.5)/max(cos(a),0.1);
+            float y=0.5+(acScreenNorm.y-0.5)*persp;
+            if(x<0.0||x>1.0||y<0.0||y>1.0){gl_FragColor=vec4(0.0);return;}
+            vec4 col=texture2DCv(inputImg.texture, vec2(x,y));
+            col.rgb *= mix(1.0, 1.0-dx*sin(a), shade);
+            gl_FragColor=col;
+        }
+    ]]></shader>
+
+</effect>

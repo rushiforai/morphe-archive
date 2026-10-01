@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.rgbglitch"
+    name="Glitch RGB"
+    desc="Amazing New Extra FX from the Modder"
+    category="distort" 
+    tags="other"
+    thumb="thumb/TANRYU/rgbg.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="black" srcType="image" src="textures/black.png" />
+        <spinner id="progressd" label="Size" default="0.1" min="0" max="1.4" step="0.01" type="percent" />
+        <spinner id="progressb" label="Strength" default="0.5" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="progressa" label="Frequency" default="0.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="progressc" label="Offset" default="0.2" min="0" max="100.0" step="0.01" type="percent" />
+       
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+   float random2d(vec2 n) { 
+        return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+    }
+    
+    float randomRange (in vec2 seed, in float min, in float max) {
+    		return min + random2d(seed) * (max - min);
+    }
+    
+    // return 1 if v inside 1d range
+    float insideRange(float v, float bottom, float top) {
+       return step(bottom, v) - step(top, v);
+    }
+    
+    //inputs
+    // float AMT = progressb; //0 - 1 glitch amount
+    // float SPEED = 0.6; //0 - 1 speed
+    
+    void main ()
+    {
+            
+        // vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        if(progressb <= 0.0) { gl_FragColor = texture2DCv(inputImg.texture,acScreenNorm); }
+        else if(progressb >= 0.0001) { 
+        
+        vec2 TanRyu = acLayerNorm;
+    	
+        TanRyu -= 0.5;
+        TanRyu += 0.5;
+        TanRyu.x *= acLayerSize.x/acLayerSize.y;
+        TanRyu.x /= acLayerSize.x/acLayerSize.y;
+        TanRyu /= 1.0;
+        // TanRyu *= rot2m(angle*0.0174533);
+        // TanRyu += position*vec2(-1.,1.)/500.;
+        
+        vec2 sampleCoord = l2s(TanRyu);
+    
+        vec4 texColor = texture2DCv(inputImg.texture,sampleCoord);
+                        
+        /////////////////////////
+        
+        
+    	vec4 result;
+    	    	
+    	float time = floor(progressa * 0.6 * 60.0);    
+    	vec2 uv = sampleCoord;
+        
+        //copy orig
+        vec3 outCol = texture2DCv(inputImg.texture, uv).rgb;
+        
+        //randomly offset slices horizontally
+        float maxOffset = progressb/2.0;
+        for (float i = 0.0; i < 10.0 * progressb; i += 1.0) {
+            float sliceY = random2d(vec2(time , 2345.0 + float(i)));
+            float sliceH = random2d(vec2(time , 9035.0 + float(i))) * progressd;
+            float hOffset = randomRange(vec2(time , 9625.0 + float(i)), -maxOffset, maxOffset);
+            vec2 uvOff = uv;
+            uvOff.x += hOffset;
+            if (insideRange(uv.y, sliceY, fract(sliceY+sliceH)) == 1.0 ){
+            	outCol = texture2DCv(inputImg.texture, uvOff).rgb;
+            }
+        }
+        
+        //do slight offset on one entire channel
+        float maxColOffset = progressc/6.0;
+        float rnd = random2d(vec2(time , 9545.0));
+        vec2 colOffset = vec2(randomRange(vec2(time , 9545.0),-maxColOffset,maxColOffset), 
+                           randomRange(vec2(time , 7205.0),-maxColOffset,maxColOffset));
+        if (rnd < 0.33){
+            outCol.r = texture2DCv(inputImg.texture, uv + colOffset).r;
+            
+        }else if (rnd < 0.66){
+            outCol.g = texture2DCv(inputImg.texture, uv + colOffset).g;
+            
+        } else{
+            outCol.b = texture2DCv(inputImg.texture, uv + colOffset).b;  
+        }
+           
+    	result = vec4(outCol,1.0);
+        
+    	vec4 factor = result * texColor.a;
+    	gl_FragColor = mix(texColor,factor,1.0);
+       }
+    }
+
+
+    ]]></shader>
+
+</effect>

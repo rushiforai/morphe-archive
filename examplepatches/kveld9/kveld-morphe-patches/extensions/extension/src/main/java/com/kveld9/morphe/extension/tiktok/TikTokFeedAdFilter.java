@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * High-performance, crash-safe feed ad filter for TikTok (com.zhiliaoapp.musically / com.ss.android.ugc.trill).
+ * High-performance, crash-safe feed ad filter for TikTok (com.zhiliaoapp.musically).
  * Neutralizes sponsored cards, brand promotions, affiliate videos, promotional audio, and shop anchors.
  */
 @SuppressWarnings("unused")
@@ -1037,6 +1037,9 @@ public final class TikTokFeedAdFilter {
             }
 
             // 3. CardInsertInfo checks:
+            // 34: In-Feed Trending Search Card
+            // 35: In-Feed Trending Search Card V2
+            // 38: In-Feed Standalone Search Interest Card
             // 49: RecUser / Suggested Accounts Card Insert
             // 120: Mini-Game Instant Play Card
             // 127: On This Day (Recuerdos) Creation Card
@@ -1061,7 +1064,8 @@ public final class TikTokFeedAdFilter {
                             cType = ((Number) res).intValue();
                         }
                     }
-                    if (cType == 49 || cType == 120 || cType == 127 || cType == 84 ||
+                    if (cType == 34 || cType == 35 || cType == 38 ||
+                        cType == 49 || cType == 120 || cType == 127 || cType == 84 ||
                         cType == 176 || cType == 113 || cType == 2 || cType == 4 || cType == 16 ||
                         (cType >= 188 && cType <= 191)) {
                         return true;

@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.mtint"
+    name="Magic Colortint"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="color,blur"
+    thumb="thumb/TANRYU/magic.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="progressa" label="ORANGE" default="1.4" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="progressc" label="TEAL" default="0.7" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="progressd" label="MAGENTA" default="0.0" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="progresse" label="GREEN" default="1.0" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="progressf" label="BLUE" default="1.2" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="0.5" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+        
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord
+    
+   /////////////////////////
+   
+   
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 ryu;
+        // if (adaptive) { 
+        ryu = acScreenNorm; 
+
+    	vec4 fragColor;
+    	
+              	vec2 uv = ryu;
+        	
+        	vec3 orig = texture2DCv(inputImg.texture, uv).xyz;	// ...this is the video
+        	
+        	vec3 col = orig * orig * progressa; 				// ...some contrast
+        	float bri = (col.x+col.y+col.z)/2.0;		// ...it's ok it's black and white!
+        	
+        	float v = smoothstep(.0, progressc, bri);			// ...tint the dark values into cyan/teal.
+        	col = mix(vec3(progressd, progresse, progressf) * bri, col, v);
+        	
+        	v = smoothstep(0.2, 1.1, bri);				// ...tint the light values into orange.
+        	col = mix(col, min(vec3(1.0, 0.5, 0.0) * bri, 1.0), v);
+        	
+        	float x = 0.0; //
+        	col = mix(orig, col, step(x, uv.x));		// ...mouse X to slide filter
+        	fragColor = vec4(min(col, 1.0),1.0);
+        
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

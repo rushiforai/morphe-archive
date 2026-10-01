@@ -331,14 +331,16 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         criticality="HIGH",
     ),
     PatchContract(
-        patch_id="copy_comments_without_username",
-        name="Copy comments without username",
+        patch_id="comment_customizer",
+        name="Comment Customizer",
         target_type="bytecode",
-        description="Copies only the comment text without prepending the author username.",
+        description="Customizes TikTok's comment section, including native sort controls, clean text copying, disabling suggested emojis bar, enabling voice comments, and automatic comment translation.",
         required_classes=[
             "Lcom/ss/android/ugc/aweme/comment/model/Comment;",
+            "Lcom/ss/android/ugc/aweme/comment/model/CommentKeyboardModel;",
+            "Lcom/ss/android/ugc/aweme/commentv2/commentlist/powercell/BaseCommentCell;",
         ],
-        required_strings=["getText"],
+        required_strings=["getText", "comment_sort_opt_style"],
         criticality="HIGH",
     ),
     PatchContract(
@@ -363,31 +365,7 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         required_strings=["onAssemPostCreate"],
         criticality="HIGH",
     ),
-    PatchContract(
-        patch_id="comment_auto_translate",
-        name="Auto-translate comments",
-        target_type="bytecode",
-        description="Automatically translates comments into your preferred language using TikTok's native translation engine.",
-        required_classes=[
-            "Lcom/ss/android/ugc/aweme/commentv2/commentlist/powercell/BaseCommentCell;",
-        ],
-        required_strings=["comment_panel", "lazySplitItemsParseTask"],
-        criticality="HIGH",
-    ),
-    PatchContract(
-        patch_id="disable_comment_suggested_emojis",
-        name="Disable Comment Suggested Emojis",
-        target_type="bytecode",
-        description="Removes the horizontal bar of suggested quick emojis displayed above the comment input box.",
-        required_classes=[
-            "Lcom/ss/android/ugc/aweme/comment/keyboard/keyboardv2/refactor/ExposedEmojiPanelTrigger;",
-            "Lcom/ss/android/ugc/aweme/comment/keyboard/keyboardv2/refactor/CommentPanelFakeInput;",
-            "Lcom/ss/android/ugc/aweme/comment/model/CommentKeyboardModel;",
-            "Lcom/ss/android/ugc/aweme/comment/experiment/PersonalizedEmojiExperiment;",
-        ],
-        required_strings=["getForceDisableExposedEmoji"],
-        criticality="HIGH",
-    ),
+
     PatchContract(
         patch_id="disable_story_feed_indicators",
         name="Disable Story Feed Indicators",
@@ -402,18 +380,17 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         criticality="HIGH",
     ),
     PatchContract(
-        patch_id="hide_feed_search_bar",
-        name="Hide Feed Search Bar",
+        patch_id="feed_navigation_declutter",
+        name="Navigation & Header Declutter",
         target_type="bytecode",
-        description="Removes the search suggestion pill and trending bar ('Search · <keyword>') from the bottom of feed videos, providing a clean viewing area without search distractions.",
+        description="Removes clutter from the feed navigation and top header bar, including the Nearby feed tab, Community (Explore) tab, top-left LIVE broadcast button, and in-video bottom search suggestion bar.",
         required_classes=[
-            "Lcom/ss/android/ugc/feed/platform/cell/interact/bottom/bar/FeedSearchBottomBarAssemTrigger;",
-            "Lcom/ss/android/ugc/feed/platform/cell/interact/bottom/bar/FeedSearchBottomBarAssemTriggerV2;",
-            "Lcom/ss/android/ugc/feed/platform/cell/interact/bottom/bar/TrendingBottomBarAssemTrigger;",
+            "Lcom/ss/android/ugc/nearby/service/NearbyServiceImpl;",
+            "Lcom/ss/android/ugc/aweme/explore/service/ExploreFeedServiceImpl;",
+            "Lcom/bytedance/tiktok/homepage/mainfragment/toolbar/LiveIconGenerator;",
             "Lcom/ss/android/ugc/feed/platform/cell/interact/bottom/bar/FeedSearchBottomBarAssem;",
-            "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
         ],
-        required_strings=["isDisableSearchTrendingBar", "getTrendingBar"],
+        required_strings=[],
         criticality="HIGH",
     ),
     PatchContract(
@@ -495,21 +472,6 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         criticality="HIGH",
     ),
     PatchContract(
-        patch_id="enable_voice_comments",
-        name="Enable Voice Comments",
-        target_type="bytecode",
-        description="Forces the native voice comment recording button in comment input bars, bypassing regional rollout restrictions and remote server blocks.",
-        required_classes=[
-            "Lcom/ss/android/ugc/aweme/comment/model/CommentKeyboardModel;",
-        ],
-        required_strings=[
-            "audio_comment_publish",
-            "comment_audio_publish_entry_forbidden",
-            "comment_audio_asr_translate_enable",
-        ],
-        criticality="HIGH",
-    ),
-    PatchContract(
         patch_id="hide_ai_tagged_content",
         name="Hide AI-Generated Content",
         target_type="bytecode",
@@ -552,28 +514,6 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         description="Hides the plus (+) follow badge on creator profile avatars in the feed.",
         required_classes=[
             "Lcom/ss/android/ugc/aweme/feed/assem/avatar/FeedAvatarDefaultAssem;",
-        ],
-        required_strings=[],
-        criticality="MEDIUM",
-    ),
-    PatchContract(
-        patch_id="hide_community_tab",
-        name="Hide Community Tab",
-        target_type="bytecode",
-        description="Hides the Community tab from the top navigation bar.",
-        required_classes=[
-            "Lcom/ss/android/ugc/aweme/homepage/ui/view/tab/bottom/hometab/HomeBottomTabProtocol;",
-        ],
-        required_strings=[],
-        criticality="MEDIUM",
-    ),
-    PatchContract(
-        patch_id="hide_top_live_entrance",
-        name="Hide Top LIVE Entrance",
-        target_type="bytecode",
-        description="Hides the LIVE icon in the top header bar of the main feed.",
-        required_classes=[
-            "Lcom/ss/android/ugc/aweme/live/LiveOuterService;",
         ],
         required_strings=[],
         criticality="MEDIUM",

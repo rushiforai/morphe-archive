@@ -6,22 +6,10 @@
 
 package app.crimera.patches.instagram.misc.download
 
-import app.crimera.patches.instagram.utils.Constants.DOWNLOAD_DESCRIPTOR
 import app.morphe.patcher.Fingerprint
-
-internal object FeedButtonOnClickFingerprint : Fingerprint(
-    parameters = listOf("Lcom/instagram/feed/media/mediaoption/MediaOption\$Option;"),
-    strings = listOf("MediaOptionsOverflowHelper"),
-    returnType = "V",
-)
 
 internal object GetDirectThreadMediaSaverModuleNameFingerprint : Fingerprint(
     strings = listOf("DirectThreadMediaSaver"),
     name = "getModuleName",
     returnType = "Ljava/lang/String;",
-)
-
-internal object MediaOptionsOverflowMenuCreatorConstructorFingerprint : Fingerprint(
-    returnType = "V",
-    strings = listOf("MediaOptionsOverflowMenuCreator"),
 )

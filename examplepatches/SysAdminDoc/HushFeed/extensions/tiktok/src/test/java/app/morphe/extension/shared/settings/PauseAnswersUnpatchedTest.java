@@ -71,6 +71,8 @@ public class PauseAnswersUnpatchedTest {
             "diagnostic_report_salt",
             // The budget's day is worked out from this hour, paused or not.
             "session_budget_reset_hour",
+            // The day the streak's message last went, so a pause can't send a second one.
+            "auto_streak_state",
             // Downloads rewrite TikTok's folder and file name with no switch in front.
             "download_video_path", "download_photo_path", "download_sticker_path",
             "download_sticker_format", "download_video_filename_template",

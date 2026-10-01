@@ -44,6 +44,7 @@ Couldn't start that. Try again in a moment.	Bu işlem başlatılamadı. Birazdan
 Couldn't start the report export. Try again shortly.	Rapor dışa aktarımı başlatılamadı. Birazdan tekrar dene.
 Couldn't turn Hushfacebook back on. Try again.	Hushfacebook yeniden açılamadı. Tekrar dene.
 Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.	Karanlık mod koyu gri yerine siyah görünür. Görmek için Facebook'ta karanlık modu aç.
+Dark mode draws %1$s instead of dark grey. Turn on dark mode in Facebook to see it.	Karanlık mod koyu gri yerine %1$s rengiyle görünür. Görmek için Facebook'ta karanlık modu aç.
 Debug logging	Hata ayıklama günlüğü
 Diagnostic data cleared. Tap again to put it back.	Tanılama verileri temizlendi. Geri getirmek için tekrar dokun.
 Diagnostic data put back.	Tanılama verileri geri getirildi.
@@ -212,6 +213,7 @@ The diagnostic report couldn't be saved. Try again.	Tanılama raporu kaydedileme
 The file %1$s couldn't be removed. Delete it from %2$s to turn Hushfacebook back on.	%1$s dosyası kaldırılamadı. Hushfacebook'u yeniden açmak için onu %2$s içinden sil.
 the part of the Reels ad block patched into the app	Reels reklam engelinin uygulamaya yamalanan kısmı
 the re-signed build fix	yeniden imzalanmış sürüm düzeltmesi
+the start-up fix for x86 devices	x86 cihazlar için açılış düzeltmesi
 the recoloured dark mode	yeniden renklendirilmiş karanlık mod
 The row of friend suggestions between posts, and the one on your own profile.	Gönderilerin arasındaki arkadaş önerileri satırı ve kendi profilindeki satır.
 The row of stories at the top of the feed, Create story included.	Akışın en üstündeki hikaye şeridi, “Hikaye oluştur” da dahil.
@@ -262,7 +264,7 @@ Videos will save at their lowest quality, for the smallest files.	Videolar en d�
 Videos will save at %1$s or the closest quality below it. A video with nothing that low will save at the closest quality above.	Videolar %1$s kalitesinde ya da bunun altındaki en yakın kalitede kaydedilecek. Bu kadar düşük kalitesi olmayan video, bunun üstündeki en yakın kalitede kaydedilecek.
 Settings imported.	Ayarlar içe aktarıldı.
 Video file name	Video dosya adı
-%1$s becomes the date and time of the save, %2$s the video's number on Facebook, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s kaydetme tarihine ve saatine, %2$s videonun Facebook'taki numarasına, %3$s paylaşan kişinin adına, %4$s ise paylaşıldığı güne dönüşür. Kaydederken bilinmeyenler dışarıda bırakılır ve bunların hiçbirini içermeyen bir ada tarih eklenir. Ad klasörde zaten varsa sonuna kaydetme saati eklenir. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %5$s adını kullanmak için boş bırak.
+%1$s becomes the date and time of the save, %2$s the video's number on Facebook, %3$s who posted it, %4$s their profile's number on Facebook and %5$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %6$s.	%1$s kaydetme tarihine ve saatine, %2$s videonun Facebook'taki numarasına, %3$s paylaşan kişinin adına, %4$s paylaşanın Facebook'taki profil numarasına, %5$s ise paylaşıldığı güne dönüşür. Kaydederken bilinmeyenler dışarıda bırakılır ve bunların hiçbirini içermeyen bir ada tarih eklenir. Ad klasörde zaten varsa sonuna kaydetme saati eklenir. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %6$s adını kullanmak için boş bırak.
 Videos are named %1$s. Photos keep Facebook's own %2$s names.	Videoların adı %1$s olur. Fotoğraflar Facebook'un kendi %2$s adlarını korur.
 Saved videos will be named %1$s.	Kaydedilen videoların adı %1$s olacak.
 File name	Dosya adı
@@ -556,6 +558,19 @@ Videos play at the best quality up to %1$s that Facebook offers for each, or the
 Videos play at the highest quality Facebook offers for each.	Videolar, Facebook'un her biri için sunduğu en yüksek kalitede oynatılır.
 Facebook will pick the quality videos play at.	Videoların oynatma kalitesini Facebook seçecek.
 Playback quality will be set to %1$s.	Oynatma kalitesi %1$s olarak ayarlanacak.
+Reels and videos will save to this phone when you tap Download.	İndir'e dokunduğunuzda reel'ler ve videolar bu telefona kaydedilecek.
+Tapping Download on a reel or video will send its link to an app.	Bir reel'de veya videoda İndir'e dokunmak bağlantısını bir uygulamaya gönderecek.
+Android will ask which app gets the links each time.	Android bağlantıları hangi uygulamanın alacağını her seferinde soracak.
+Links will go to %1$s.	Bağlantılar %1$s uygulamasına gidecek.
+Save to	Kaydetme yeri
+Movies and Pictures	Movies ve Pictures
+Videos and photos go to %1$s, next to the camera's. Saves you already have stay where they are.	Videolar ve fotoğraflar kameranınkilerin yanına, %1$s klasörüne kaydedilir. Önceden kaydettiklerin olduğu yerde kalır.
+Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.	Videolar ve fotoğraflar telefonun diğer indirmeleriyle birlikte %1$s klasörüne kaydedilir. Önceden kaydettiklerin olduğu yerde kalır.
+Videos go to %1$s and photos to %2$s, as Facebook's own saves do. Some galleries don't show %1$s.	Videolar %1$s klasörüne, fotoğraflar %2$s klasörüne kaydedilir, tıpkı Facebook'un kendi kayıtları gibi. Bazı galeriler %1$s klasörünü göstermez.
+Choose a folder name under %1$s. Invalid characters become underscores. Leave it blank to use the default folder, %2$s.	%1$s altında bir klasör adı seç. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %2$s klasörünü kullanmak için boş bırak.
+Videos and photos go to %1$s.	Videolar ve fotoğraflar %1$s klasörüne kaydedilir.
+Videos will go to %1$s and photos to %2$s.	Videolar %1$s klasörüne, fotoğraflar %2$s klasörüne gidecek.
+Videos and photos will go to %1$s.	Videolar ve fotoğraflar %1$s klasörüne gidecek.
 # context: row title under Pause, backup and diagnostics, shown only while Debug logging is on
 Test the Messenger link	Messenger bağlantısını test et
 # context: summary of that row; Debug logging is the switch's name as this table gives it
@@ -578,3 +593,77 @@ failed (%1$s)	başarısız (%1$s)
 Hide the Reels tab dot	Reels sekmesindeki noktayı gizle
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Bazı hesaplarda Video adıyla görünen Reels sekmesinde nokta ya da yeni sayısı olmaz. Diğer sekmeler kendilerininkini korur.
+# context: title of the overview row under the status card when the build lacks one patch Morphe Manager selects by default
+%1$d default patch isn't in this build	%1$d varsayılan yama bu sürümde yok
+# context: title of that row when several default patches are missing
+%1$d default patches aren't in this build	%1$d varsayılan yama bu sürümde yok
+# context: summary of that row while its list of patch names is closed; a tap opens it
+Tap to see which.	Hangileri olduğunu görmek için dokun.
+# context: that row's summary once opened, one patch missing; the placeholder is the patch's English name as Morphe Manager lists it
+Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Bu sürümde yok: %1$s. Morphe Manager bunu varsayılan olarak seçer. Yaptığı işi almak için onu seçip yeniden yamala.
+# context: that row's summary once opened, several patches missing; the placeholder is their English names joined as a list
+Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Bu sürümde yok: %1$s. Morphe Manager bunları varsayılan olarak seçer. Yaptıkları işi almak için onları seçip yeniden yamala.
+# context: Toast at the end of a video save whose file uses a codec WhatsApp and some video editors can't open (AV1, VP9, HEVC or xHE-AAC). A notification with a button to the fix is showing too. Keep it short: Android shows two lines at most.
+Saved, but WhatsApp and some editors may refuse it	Kaydedildi, ancak WhatsApp ve bazı düzenleyiciler reddedebilir
+# context: Toast at the end of a video save whose file WhatsApp may not open, when no notification can be shown. Downloads is the section of Hushfacebook settings with the fix. Two lines at most.
+Saved, but WhatsApp may refuse it. Fix: Downloads in Hushfacebook.	Kaydedildi, ancak WhatsApp reddedebilir. Çözüm: Hushfacebook'ta İndirmeler.
+# context: Second line of the notification after such a save. %1$s is the switch's name, Save videos other apps can open. They: WhatsApp and the editors.
+Turn on %1$s to save videos they all play.	Hepsinin oynatabileceği videolar kaydetmek için %1$s ayarını aç.
+# context: Title of the notification after a video save whose file uses a codec WhatsApp and some video editors can't open.
+WhatsApp and some editors may refuse this video	WhatsApp ve bazı düzenleyiciler bu videoyu reddedebilir
+# context: Button on that notification. It opens Hushfacebook settings at the switch Save videos other apps can open.
+Open the setting	Ayarı aç
+# context: switch title under News feed; the prompts are the strip Facebook puts under some posts, such as "Are you interested in this post?"
+Hide post prompts	Gönderi altındaki soruları gizle
+# context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
+The strip on some posts, like "Are you interested in this post?", "Show less" or who recently commented, and the follow and chat suggestions in the same place. The post stays.	Bazı gönderilerdeki şerit, örneğin “Bu gönderiyle ilgileniyor musun?”, “Daha az göster” veya kimin az önce yorum yaptığı, ve aynı yerdeki takip ve sohbet önerileri. Gönderi kalır.
+# context: switch title under Reels and Watch; the prompt is Facebook's "Are you interested in this reel?" question on a reel
+Hide reel interest prompts	Reels'teki ilgi sorusunu gizle
+# context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it
+No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	Reels'te “Bu reel ile ilgileniyor musun?” sorusu çıkmaz. Reel her zamanki gibi oynar.
+# context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
+Hide affiliate product links	Satış ortaklığı ürün bağlantılarını gizle
+# context: description of that switch; "Commission eligible" is Facebook's own label, so use Facebook's wording in your language if you know it
+The product cards of shop links creators add to posts, on reels, under feed posts and in the comments. The "Commission eligible" label stays.	İçerik üreticilerinin gönderilere eklediği mağaza bağlantılarının ürün kartları, reels'te, akıştaki gönderilerin altında ve yorumlarda. “Komisyona uygun” etiketi kalır.
+# context: The reel button and the video menu item while links are sent to another app (#41)
+Send to app	Uygulamaya gönder
+# context: Title of Android's app chooser when a video's link is sent
+Send the link to	Bağlantıyı gönder:
+# context: Toast when no app could take a video's link
+Couldn't open an app for this link	Bu bağlantı için bir uygulama açılamadı
+# context: Clipboard label of a copied video link
+Video link	Video bağlantısı
+# context: Toast after a long press on the reel button copied its link
+Link copied	Bağlantı kopyalandı
+# context: Toast when a reel's link can't be built
+Couldn't find this reel's link	Bu reel'in bağlantısı bulunamadı
+# context: Toast when a feed video's link can't be built
+Couldn't find this video's link	Bu videonun bağlantısı bulunamadı
+# context: Settings row title: what the Download button does
+When you tap Download	İndir'e dokunduğunuzda
+# context: Choice of the download action row
+Save to phone	Telefona kaydet
+# context: Choice of the download action row
+Send the link to an app	Bağlantıyı bir uygulamaya gönder
+# context: Summary of the download action row while links are sent
+Reels and videos go to the app below as a facebook.com link. Hold the reel Download button to copy the link instead. Stories still save to this phone.	Reel'ler ve videolar aşağıdaki uygulamaya facebook.com bağlantısı olarak gider. Bağlantıyı kopyalamak için reel'in İndir düğmesini basılı tutun. Hikayeler bu telefona kaydedilmeye devam eder.
+# context: Summary of the download action row while saving, the default
+Reels, videos and stories save to this phone.	Reel'ler, videolar ve hikayeler bu telefona kaydedilir.
+# context: Settings row title: the app links are sent to
+App to send to	Gönderilecek uygulama
+# context: Dialog message of the send-to app row; %1$s and %2$s are package names
+The package name of the app that gets the links, such as %1$s for YTDLnis or %2$s for Seal. Leave it blank to pick an app each time.	Bağlantıları alacak uygulamanın paket adı, örneğin YTDLnis için %1$s veya Seal için %2$s. Her seferinde bir uygulama seçmek için boş bırakın.
+# context: Hint in the send-to app field
+Package name	Paket adı
+# context: Toast when what was typed in the send-to app row isn't a package name; %1$s is what was typed
+%1$s isn't a package name, so the app stays as it was.	%1$s bir paket adı değil, uygulama olduğu gibi kaldı.
+# context: Summary of the send-to app row with no app named
+Android asks which app each time.	Android her seferinde hangi uygulamanın kullanılacağını sorar.
+# context: Summary of the send-to app row; %1$s is the package name
+Links go to %1$s. When it isn't installed, Android asks which app.	Bağlantılar %1$s uygulamasına gider. Yüklü değilse Android hangi uygulamanın kullanılacağını sorar.
+# context: switch title under Stories; Find friends from contacts is the Stories tray card that asks to upload your contacts
+Hide "Find friends from contacts"	“Kişilerinden arkadaş bul” kartını gizle
+# context: summary of that switch
+The Stories tray card asking to upload your contacts. Applies when Facebook next loads the tray.	Hikaye tepsisinde kişilerini yüklemeni isteyen kart. Facebook tepsiyi yeniden yüklediğinde uygulanır.
+# context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
+The row of friend suggestions between posts, the one on your own profile, and the cards with an Add button in the Stories tray.	Gönderilerin arasındaki arkadaş önerileri satırı, kendi profilindeki satır ve hikaye tepsisindeki Ekle düğmeli kartlar.

@@ -1,0 +1,17 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:name=".DevelopmentApplication" android:label="Spicetify Development"
+        android:theme="@android:style/Theme.Material" android:allowBackup="false"
+        android:supportsRtl="true" android:usesCleartextTraffic="false">
+        <activity android:name="app.spicetify.extension.spotify.localserver.DevelopmentActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="app.spicetify.extension.spotify.settings.SpicetifySettingsActivity" android:exported="false" />
+        <activity android:name="app.spicetify.extension.spotify.settings.ServerMusicActivity" android:exported="false" />
+        <provider android:name="app.spicetify.extension.spotify.localserver.ServerFileProvider"
+            android:authorities="${applicationId}.spicetify.localserver" android:exported="false" />
+    </application>
+</manifest>

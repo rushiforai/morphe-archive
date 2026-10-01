@@ -51,3 +51,8 @@ Noto Color Emoji is copyright Google and distributed under the SIL Open Font
 License 1.1. The bundled font comes from googlefonts/noto-emoji commit
 e20cbc2bbec1926686be9f9bee7d1d2cfa1fea0e. The complete license is at
 patches/src/main/resources/chmate/emoji/OFL.txt.
+
+MonaLite is a reduced MonaFont-derived font for displaying Japanese ASCII art.
+Its embedded metadata credits the MonaFont contributors and describes the font
+as public domain. The MonaFont project permits modification and redistribution:
+https://monafont.sourceforge.net/index.html

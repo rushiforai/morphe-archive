@@ -80,6 +80,8 @@ public final class FeedMute {
     private static volatile WeakReference<Object> lastSessionHelper = new WeakReference<>(null);
     private static volatile WeakReference<Object> lastPageHelper = new WeakReference<>(null);
 
+    /** TikTok's screens between their onStart and onStop. None means TikTok is in the background. */
+    private static final WeakHashMap<Activity, Boolean> STARTED = new WeakHashMap<>();
     /** The feed's activity is the one in front. Main thread writes, any thread reads. */
     private static volatile boolean feedInFront;
     /** The last video a controller asked to play was a feed video. */
@@ -128,9 +130,16 @@ public final class FeedMute {
             @Override public void onActivityCreated(Activity created, Bundle state) { }
             // A pager's first video can start its engine before the pager resumes.
             @Override public void onActivityStarted(Activity started) {
+                synchronized (STARTED) {
+                    STARTED.put(started, Boolean.TRUE);
+                }
                 if (isFeedHost(started)) feedInFront = true;
             }
-            @Override public void onActivityStopped(Activity stopped) { }
+            @Override public void onActivityStopped(Activity stopped) {
+                synchronized (STARTED) {
+                    STARTED.remove(stopped);
+                }
+            }
             @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
             @Override public void onActivityDestroyed(Activity destroyed) { }
         });
@@ -355,7 +364,15 @@ public final class FeedMute {
                 }
             }
             boolean isFeed;
-            if (feed == null && feedInFront) {
+            if (!feedInFront && inBackground()) {
+                // With no TikTok screen showing, what plays is the video background play carried
+                // on with, and TikTok's media notification resumes it with a play() on the same
+                // engine. That is still the feed video it was muted for (2026-09-30: a resume
+                // from the notification gave a muted feed video its sound back).
+                synchronized (FEED_ENGINES) {
+                    isFeed = id != null && id.equals(FEED_ENGINES.get(engine));
+                }
+            } else if (feed == null && feedInFront) {
                 // No note is no evidence against an engine muted for this same video: a profile
                 // grid or search results in the feed's own activity bind past MAX_PLAYS items and
                 // push the playing and next videos' notes out (verifier, 2026-09-29). An engine
@@ -383,6 +400,12 @@ public final class FeedMute {
             HookStatus.bound(HOOK_FAMILY, "engine play");
         } catch (Throwable failure) {
             HookStatus.threw(HOOK_FAMILY, "engine play", failure);
+        }
+    }
+
+    private static boolean inBackground() {
+        synchronized (STARTED) {
+            return STARTED.isEmpty();
         }
     }
 
@@ -505,6 +528,9 @@ public final class FeedMute {
             synchronized (map) {
                 map.clear();
             }
+        }
+        synchronized (STARTED) {
+            STARTED.clear();
         }
         lastSessionHelper = new WeakReference<>(null);
         lastPageHelper = new WeakReference<>(null);

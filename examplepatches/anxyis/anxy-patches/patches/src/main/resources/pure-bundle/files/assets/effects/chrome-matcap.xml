@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.chrome-matcap" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/chrome-matcap.webp" tags="3d,chrome,metal,matcap,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Chrome</string>
+            <string name="desc">Turns the layer into a shiny chrome metal surface using image brightness as a 3D surface.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="height" default="0.6" min="0.0" max="1.0" label="Bumpiness" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 px=1.0/acScreenSize;
+            vec4 src=texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c=src.a>0.0? src.rgb/src.a : src.rgb;
+            float l =dot(texture2DCv(inputImg.texture, acScreenNorm-vec2(px.x,0.0)).rgb,vec3(0.333));
+            float r =dot(texture2DCv(inputImg.texture, acScreenNorm+vec2(px.x,0.0)).rgb,vec3(0.333));
+            float u =dot(texture2DCv(inputImg.texture, acScreenNorm-vec2(0.0,px.y)).rgb,vec3(0.333));
+            float dn=dot(texture2DCv(inputImg.texture, acScreenNorm+vec2(0.0,px.y)).rgb,vec3(0.333));
+            vec3 nrm=normalize(vec3((l-r)*height*10.0,(u-dn)*height*10.0,1.0));
+            float grad=nrm.y*0.5+0.5;
+            vec3 sky=vec3(0.55,0.7,0.95); vec3 ground=vec3(0.15,0.14,0.13);
+            vec3 chrome=mix(ground, sky, smoothstep(0.35,0.65,grad));
+            float hi=pow(clamp(dot(nrm, normalize(vec3(-0.5,0.6,0.6))),0.0,1.0),12.0);
+            chrome += hi;
+            gl_FragColor=vec4(mix(c, clamp(chrome,0.0,1.0), amount),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

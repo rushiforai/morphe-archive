@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.crt-monitor" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/crt-monitor.webp" tags="retro,crt,scanline,vignette,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">CRT Monitor</string>
+            <string name="desc">Simulates an old CRT screen: barrel screen curvature, RGB phosphor scanlines and a soft vignette.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="curve" default="0.3" min="0.0" max="1.0" label="Screen Curve" />
+        <slider id="scanline" default="0.5" min="0.0" max="1.0" label="Scanlines" />
+        <slider id="vignette" default="0.5" min="0.0" max="1.0" label="Vignette" />
+        <slider id="bright" default="1.2" min="0.5" max="2.5" label="Brightness" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 uv = acScreenNorm*2.0 - 1.0;
+            vec2 off = uv.yx*uv.yx * curve * 0.25;
+            uv += uv*off;
+            uv = uv*0.5 + 0.5;
+            if(uv.x<0.0||uv.x>1.0||uv.y<0.0||uv.y>1.0){ gl_FragColor=vec4(0.0); return; }
+            vec4 col = texture2DCv(inputImg.texture, uv);
+            float sl = sin(uv.y*acScreenSize.y*1.0)*0.5+0.5;
+            col.rgb *= 1.0 - sl*scanline*0.4;
+            float ph = mod(floor(uv.x*acScreenSize.x), 3.0);
+            vec3 mask = vec3(ph==0.0?1.0:0.7, ph==1.0?1.0:0.7, ph==2.0?1.0:0.7);
+            col.rgb *= mix(vec3(1.0), mask, scanline*0.5);
+            float v = length((acScreenNorm-0.5));
+            col.rgb *= 1.0 - v*v*vignette*1.5;
+            col.rgb *= bright;
+            gl_FragColor = col;
+        }
+    ]]></shader>
+
+</effect>

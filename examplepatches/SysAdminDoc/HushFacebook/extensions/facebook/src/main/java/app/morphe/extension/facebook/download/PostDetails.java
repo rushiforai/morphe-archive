@@ -13,14 +13,15 @@ import java.util.List;
 
 /**
  * What a save knows about the post its video comes from, for the file name: the video's id, who
- * posted it and the day it went up. Each is missing when the route to the save doesn't reach it,
- * and {@link FileNameTemplate} then leaves its token out of the name.
+ * posted it, their id and the day it went up. Each is missing when the route to the save doesn't
+ * reach it, and {@link FileNameTemplate} then leaves its token out of the name.
  *
  * <p>The poster and the post time are read off Facebook's GraphQL models the way Facebook's own
  * code reads them. Every model is a {@code TreeJNI}, a class whose name Redex keeps, and its kept
  * {@code getTree}, {@code getTreeList}, {@code getString} and {@code getTimeValue} take the Java
  * hash of a field's GraphQL name. A video's {@code owner}, a post's {@code actors} and a reel's
- * {@code short_form_video_context.video_owner} are actor models with a {@code name}; a post's
+ * {@code short_form_video_context.video_owner} are actor models with a {@code name} and an
+ * {@code id}, the profile's or Page's number, which stays when a Page renames itself; a post's
  * {@code creation_time} is in seconds. Facebook reads each of these the same way: the reel's time
  * label casts the reel's story to {@code TreeJNI} and asks {@code getTimeValue(creation_time)},
  * and its first-actor helper takes the first actor with a {@code name}. Each accessor answers
@@ -39,13 +40,14 @@ public final class PostDetails {
     static final int OWNER = "owner".hashCode();
     static final int ACTORS = "actors".hashCode();
     static final int NAME = "name".hashCode();
+    static final int ID = "id".hashCode();
     static final int CREATION_TIME = "creation_time".hashCode();
     static final int CREATION_STORY = "creation_story".hashCode();
     static final int SHORT_FORM_VIDEO_CONTEXT = "short_form_video_context".hashCode();
     static final int VIDEO_OWNER = "video_owner".hashCode();
 
     /** A save that knows nothing of its post. */
-    public static final PostDetails NONE = new PostDetails(null, null, null);
+    public static final PostDetails NONE = new PostDetails(null, null, null, null);
 
     /** The video's id on Facebook as the route handed it over, or null. Used only when it's a number. */
     public final String videoId;
@@ -53,13 +55,25 @@ public final class PostDetails {
     /** The poster's name, cleaned the way a folder name is and bounded, or null when unknown. */
     public final String owner;
 
+    /**
+     * The poster's id on Facebook, the number of the profile or Page {@link #owner} names, or null
+     * when unknown. Only ever digits.
+     */
+    public final String ownerId;
+
     /** When the post went up, or null when unknown. */
     public final Date posted;
 
     PostDetails(String videoId, String owner, Date posted) {
+        this(videoId, owner, null, posted);
+    }
+
+    PostDetails(String videoId, String owner, String ownerId, Date posted) {
         this.videoId = videoId;
         String clean = owner == null ? "" : SaveFolder.clean(owner, FileNameTemplate.MAX_OWNER_CODE_POINTS);
         this.owner = clean.isEmpty() ? null : clean;
+        // A number, as a video id is, so nothing from the app but digits can reach the name.
+        this.ownerId = FileNameTemplate.isVideoId(ownerId) ? ownerId : null;
         this.posted = posted;
     }
 
@@ -76,23 +90,27 @@ public final class PostDetails {
         return owner != null;
     }
 
+    public boolean hasOwnerId() {
+        return ownerId != null;
+    }
+
     public boolean hasPosted() {
         return posted != null;
     }
 
     /**
      * The details of a save of [videoId], with the poster and the post time read from the first of
-     * [models] that knows each. A model that isn't a tree, or whose tree is gone, answers nothing.
-     * Never throws.
+     * [models] that knows each. The poster's id is the one the named poster carries. A model that
+     * isn't a tree, or whose tree is gone, answers nothing. Never throws.
      */
     public static PostDetails read(String videoId, Object... models) {
-        String owner = null;
+        Object poster = null;
         Date posted = null;
         for (Object model : models) {
-            if (owner == null) owner = ownerOf(model);
+            if (poster == null) poster = posterOf(model);
             if (posted == null) posted = postedOf(model);
         }
-        return new PostDetails(videoId, owner, posted);
+        return new PostDetails(videoId, nameOf(poster), idOf(poster), posted);
     }
 
     /**
@@ -117,7 +135,8 @@ public final class PostDetails {
             story = trees.get(0);
         }
         Date posted = millis > 0 ? new Date(millis) : postedOf(story);
-        return new PostDetails(videoId, ownerOf(story), posted);
+        Object poster = posterOf(story);
+        return new PostDetails(videoId, nameOf(poster), idOf(poster), posted);
     }
 
     /** The card's kept getTimestamp(), in milliseconds, or 0 when it has none. */
@@ -133,22 +152,37 @@ public final class PostDetails {
     }
 
     /**
-     * The poster of [model]: the name of its owner, a video's; then of its first actor with a
-     * name, a post's or a reel's; then of its short-form video's owner, a reel's. Null when it
-     * has none of them or isn't a tree.
+     * The poster's name for [model]: {@link #posterOf}'s. Null when it has no poster or isn't a
+     * tree.
      */
     static String ownerOf(Object model) {
+        return nameOf(posterOf(model));
+    }
+
+    /**
+     * The poster of [model], the actor model whose name the file name uses: its owner, a
+     * video's; then its first actor with a name, a post's or a reel's; then its short-form video's
+     * owner, a reel's. Null when none of them has a name or it isn't a tree.
+     */
+    static Object posterOf(Object model) {
         if (!isLiveTree(model)) return null;
-        String name = nameOf(tree(model, OWNER));
-        if (name != null) return name;
+        Object owner = tree(model, OWNER);
+        if (nameOf(owner) != null) return owner;
         List<?> actors = trees(model, ACTORS);
         if (actors != null) {
             for (Object actor : actors) {
-                name = nameOf(actor);
-                if (name != null) return name;
+                if (nameOf(actor) != null) return actor;
             }
         }
-        return nameOf(tree(tree(model, SHORT_FORM_VIDEO_CONTEXT), VIDEO_OWNER));
+        Object reelOwner = tree(tree(model, SHORT_FORM_VIDEO_CONTEXT), VIDEO_OWNER);
+        return nameOf(reelOwner) != null ? reelOwner : null;
+    }
+
+    /** The id [actor] carries, when it's a number, or null. */
+    static String idOf(Object actor) {
+        if (!isLiveTree(actor)) return null;
+        String id = string(actor, ID);
+        return FileNameTemplate.isVideoId(id) ? id : null;
     }
 
     /**
@@ -246,8 +280,8 @@ public final class PostDetails {
 
     @Override
     public String toString() {
-        // Never the poster's name or the id: a details object can end up in a diagnostic line.
+        // Never the poster's name or an id: a details object can end up in a diagnostic line.
         return "PostDetails(id " + (hasVideoId() ? "known" : "unknown") + ", poster " + (hasOwner() ? "known" : "unknown")
-            + ", posted " + (hasPosted() ? "known" : "unknown") + ")";
+            + ", poster id " + (hasOwnerId() ? "known" : "unknown") + ", posted " + (hasPosted() ? "known" : "unknown") + ")";
     }
 }

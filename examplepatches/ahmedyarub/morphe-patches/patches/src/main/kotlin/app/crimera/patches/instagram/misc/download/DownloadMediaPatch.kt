@@ -17,9 +17,7 @@ import app.crimera.patches.instagram.entity.userdata.userDataEntity
 import app.crimera.patches.instagram.entity.videoData.videoDataEntity
 import app.crimera.patches.instagram.misc.directMessage.saveAllMessages.saveAllMessagesPatch
 import app.crimera.patches.instagram.misc.hookFlags.hookFlagsPatch
-import app.crimera.patches.instagram.misc.overflowMenuButton.posts.addOverflowMenuButtonAttributes
 import app.crimera.patches.instagram.misc.overflowMenuButton.posts.hookFeedSheetPatch
-import app.crimera.patches.instagram.misc.overflowMenuButton.posts.hookOverflowMenuButton
 import app.crimera.patches.instagram.misc.overflowMenuButton.reels.hookReelOverflowMenuButton
 import app.crimera.patches.instagram.misc.stories.handleStoryButtonPatch
 import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
@@ -59,15 +57,12 @@ val downloadMediaPatch =
             handleStoryButtonPatch,
             hookFlagsPatch,
             saveAllMessagesPatch,
-            hookOverflowMenuButton,
             hookFeedSheetPatch,
             hookReelOverflowMenuButton,
         )
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
-
-            addOverflowMenuButtonAttributes("PIKO_DOWNLOAD", "downloadOverflowButton")
 
             // DM media downloader. The saver hands the message to its save routine wrapped in a
             // holder, so the hook has to unwrap it before the extension can read the message type.

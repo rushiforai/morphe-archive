@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.spiral-tunnel" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/spiral-tunnel.webp" tags="3d,spiral,tunnel,twist,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Spiral</string>
+            <string name="desc">A hypnotic twisting 3D spiral tunnel built from the layer, rushing toward the camera.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="speed" default="0.5" min="0.0" max="3.0" label="Speed" />
+        <slider id="twist" default="3.0" min="0.0" max="8.0" label="Twist" />
+        <slider id="fade" default="0.7" min="0.0" max="1.0" label="Depth Fade" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        const float PI = 3.14159265;
+        void main(){
+            vec2 p=acScreenNorm-0.5; float asp=acScreenSize.x/acScreenSize.y; p.x*=asp;
+            float r=length(p)+0.001;
+            float ang=atan(p.y,p.x);
+            float depth=0.3/r + acTime*speed;
+            float u=fract(ang/(2.0*PI) + twist*depth*0.1 + 0.5);
+            float v=fract(depth);
+            vec4 col=texture2DCv(inputImg.texture, vec2(u,v));
+            col.rgb *= mix(1.0, clamp(r*2.5,0.0,1.0), fade);
+            gl_FragColor=vec4(col.rgb,1.0);
+        }
+    ]]></shader>
+
+</effect>

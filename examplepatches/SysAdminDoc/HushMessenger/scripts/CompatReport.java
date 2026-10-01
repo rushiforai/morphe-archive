@@ -1,29 +1,45 @@
 /*
- * Dry-run compatibility report for Messenger APKs.
+ * Dry-run compatibility report for Messenger APKs, and the source of each build's profile.
  *
- * Checks whether a given APK is compatible with all 27 HushMessenger patches
+ * Checks whether a given APK is compatible with every HushMessenger patch
  * without modifying the file. Prints package, version code, ABI, signer and
  * PASS/FAIL per patch, then exits non-zero on any failure.
+ *
+ * Every supported build is recorded in scripts/profiles/<version code>.txt: its
+ * version, SHA-256, hooks, the other values ControlProfile pins and the permission
+ * loads. This report compares an APK with its recorded build, and the Python
+ * scripts read their version and checksum tables from the same files. A Gradle
+ * test checks each record against the Kotlin profiles, so the copies can't drift.
+ *
+ * Adding a build:
+ *   CompatReport <apk> --save           records the build when every control resolves,
+ *                                       and prints the Kotlin to paste. Otherwise it
+ *                                       lists the controls that didn't resolve.
+ *   CompatReport --kotlin <record.txt>  prints the Kotlin for a recorded build again.
  *
  * Compile:
  *   javac -cp <dexlib2.jar>;<guava.jar> scripts/CompatReport.java
  * Run:
  *   java -cp <dexlib2.jar>;<guava.jar>;scripts CompatReport <apk>
+ * or run the source file directly:
+ *   java -cp <dexlib2.jar>;<guava.jar> scripts/CompatReport.java <apk>
  *
  * Requires: JDK 21+, smali-dexlib2-3.0.9.jar, guava-33.x-jre.jar,
  *           aapt2 and apksigner from Android Build Tools.
  */
 
 import com.android.tools.smali.dexlib2.AccessFlags;
+import com.android.tools.smali.dexlib2.DexFileFactory;
 import com.android.tools.smali.dexlib2.Opcode;
 import com.android.tools.smali.dexlib2.Opcodes;
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
 import com.android.tools.smali.dexlib2.iface.ClassDef;
 import com.android.tools.smali.dexlib2.iface.Method;
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction;
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction;
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 import com.android.tools.smali.dexlib2.iface.reference.StringReference;
@@ -32,6 +48,7 @@ import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue;
 
 import java.io.*;
 import java.nio.file.*;
+import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.cert.Certificate;
 import java.util.*;
@@ -45,8 +62,6 @@ import java.util.zip.ZipFile;
 public class CompatReport {
 
     static final String PACKAGE = "com.facebook.orca";
-    static final String VERSION = "580.0.0.49.91";
-    static final Set<Integer> VERSION_CODES = Set.of(346013387, 346013440, 346013442, 346013354, 346013370);
 
     static final String FACEBOOK_SIGNER =
         "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1";
@@ -55,8 +70,20 @@ public class CompatReport {
 
     static final String AD_ITEM = "Lcom/facebook/messaging/business/inboxads/common/InboxAdsItem;";
     static final String IMMUTABLE_LIST = "Lcom/google/common/collect/ImmutableList;";
-    static final String PREFERENCE_GETTER = "Lcom/facebook/prefs/shared/FbSharedPreferences;->AhC(LX/1BK;Z)Z";
+    static final String PREFERENCES = "Lcom/facebook/prefs/shared/FbSharedPreferences;";
+    static final String MONTAGE_CARD = "Lcom/facebook/messaging/montage/model/MontageCard;";
+    static final String PEOPLE_TAB_FETCH = "Lcom/facebook/messaging/peopletab/segments/friendrequests/usecase/"
+        + "PeopleTabPYMKHandler$fetchPymkSuggestions$$inlined$CoroutineExceptionHandler$1;";
     static final String PEOPLE_JEWEL_KEY = "pymk_jewel_section_hidden";
+    static final String STORY_CARD_DATE_KEY = "last_date_creation_card_shown";
+    static final long PEOPLE_SERVER_FLAG = 72344235860374863L;
+
+    // Material You theme finds its targets by shape when it patches (MaterialYouPatch.kt), so no profile records them
+    static final String DARK_SCHEME = "Lcom/facebook/mig/scheme/schemes/DarkColorScheme;";
+    static final String FDS_COLORS = "Lcom/facebook/fds/core/theme/component/FDSColors;";
+    static final Set<Integer> DARK_SURFACES = Set.of(0xFF080809, 0xFF1C1C1D, 0xFF252728, 0xFF333334, 0xFF323339);
+    static final Set<String> COLOR_CALLS = Set.of(
+        "Landroid/graphics/Color;->parseColor(Ljava/lang/String;)I", "Landroid/content/Context;->getColor(I)I");
 
     static final Set<String> FACEBOOK_PLUGINS = Set.of(
         "Lcom/facebook/messaging/inbox/tab/plugins/core/tabtoolbarbutton/facebookbutton/facebooktoolbarbutton/FacebookButtonTabButtonImplementation;",
@@ -90,130 +117,19 @@ public class CompatReport {
         Map.entry("business_suggestions", Set.of("com.facebook.messaging.business.plugins.suggestasyoutype.SAYTKillSwitch")),
         Map.entry("event_prompts", Set.of("com.facebook.messaging.events.plugins.qp.EventsQpKillSwitch")),
         Map.entry("reels_badge", Set.of("com.facebook.messaging.reels.plugins.badge.ReelsBadgeKillSwitch")),
-        Map.entry("ai_toolbar", Set.of("com.facebook.messaging.inbox.tab.plugins.core.tabtoolbarbutton.aihomebutton.AiHomeButtonKillSwitch"))
+        Map.entry("ai_toolbar", Set.of("com.facebook.messaging.inbox.tab.plugins.core.tabtoolbarbutton.aihomebutton.AiHomeButtonKillSwitch")),
+        Map.entry("ai_tab", Set.of("com.facebook.messaging.aibot.plugins.tab.tabcontent.MetaAiTabContentImplementation"))
     );
-
-    static final Map<String, Set<String>> EXPECTED_HOOKS;
-    static {
-        var hooks = new LinkedHashMap<String, Set<String>>();
-        hooks.put("stories", Set.of("LX/1mi;->A00()Z"));
-        hooks.put("facebook", Set.of(
-            "LX/Sc2;->A06()Z", "LX/YFi;->A04()Z", "LX/2aP;->A0C()Z", "LX/3Ec;->A00()Z",
-            "LX/3me;->A00()Z", "LX/HFd;->A02()Z", "LX/HRL;->A06()Z", "LX/HRM;->A02()Z",
-            "LX/JiY;->A06()Z", "LX/Jir;->A02()Z", "LX/JjE;->A00()Z", "LX/JjM;->A01()Z",
-            "LX/JjO;->A02()Z", "LX/JjQ;->A02()Z", "LX/JjV;->A03()Z", "LX/JjW;->A03()Z",
-            "LX/JjY;->A01()Z", "LX/JjZ;->A01()Z", "LX/Jjb;->A06()Z", "LX/Jjc;->A06()Z", "LX/Jjd;->A06()Z"
-        ));
-        hooks.put("ai_menu", Set.of("LX/HFe;->A00()Z", "LX/HFe;->A01()Z", "LX/Jiu;->A00()Z", "LX/Jiu;->A01()Z"));
-        hooks.put("ai_fab", Set.of("LX/6k8;->render(LX/2MZ;)LX/1GG;"));
-        hooks.put("subtabs", Set.of("LX/2UL;->run()V"));
-        hooks.put("typing", Set.of("LX/Ahp;->run()V"));
-        hooks.put("bubbles", Set.of("LX/2ZW;->A00()Z"));
-        hooks.put("browser", Set.of("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0L(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"));
-        hooks.put("ads", Set.of("LX/2Wl;->D2i(LX/1fx;" + IMMUTABLE_LIST + "Ljava/lang/String;)" + IMMUTABLE_LIST));
-        hooks.put("people_jewel", Set.of("LX/HAR;->A01(LX/HAR;)Z"));
-        hooks.put("allow_screenshot", Set.of("LX/N2h;->run()V", "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V",
-            "LX/8xp;->onScreenCaptured()V", "LX/4nW;->A00(Landroid/view/Window;)V"));
-        hooks.put("hide_read_receipts", Set.of("LX/AX0;->run()V"));
-        hooks.put("keep_unsent", Set.of("LX/SH3;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"));
-        hooks.put("unsent_indicator", Set.of("LX/K1Y;->BWo(I)Ljava/lang/String;"));
-        hooks.put("delta_unsent", Set.of("LX/K1Y;->Btd(I)Z"));
-        hooks.put("ai_search", Set.of("LX/5OA;->A0A(LX/5OA;)Z", "LX/5OA;->A0B(LX/5OA;)Z"));
-        hooks.put("emoji_typeface", Set.of("LX/1KV;->A00()Landroid/graphics/Typeface;"));
-        hooks.put("ai_search_chip", Set.of("LX/D8E;->render(LX/2MZ;)LX/1GG;"));
-        hooks.put("typing_mailbox", Set.of("LX/8eb;->A0I(Ljava/lang/String;Z)LX/325;"));
-        hooks.put("read_mailbox", Set.of("LX/9sm;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V"));
-        hooks.put("avatar_tabs", Set.of("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A0P()" + IMMUTABLE_LIST));
-        hooks.put("menu_settings", Set.of("LX/HFb;->Ax1(LX/0MG;)Ljava/util/ArrayList;", "LX/TxV;->CAo(LX/4jw;I)V",
-            "LX/Txc;->A0I(Ljava/util/List;)V", "LX/Jwp;->onClick(Landroid/view/View;)V"));
-        hooks.put("people", Set.of("LX/1pm;->A0C()Z", "LX/2Wl;->A04()Z"));
-        hooks.put("people_list_end", Set.of("LX/1pm;->A0B()Z", "LX/2Wl;->A03()Z"));
-        hooks.put("friend_requests", Set.of("LX/1pm;->A09()Z", "LX/2Wl;->A02()Z"));
-        hooks.put("growth", Set.of("LX/1pm;->A0A()Z", "LX/2GE;->A0A(LX/2GE;)Z"));
-        hooks.put("moments", Set.of("LX/HFe;->A05()Z", "LX/Jiu;->A05()Z"));
-        hooks.put("ai_stickers", Set.of("LX/PKW;->A03(LX/PKW;)Z", "LX/PKz;->A07(LX/PKz;)Z"));
-        hooks.put("avatar_stickers", Set.of("LX/PKW;->A01(LX/PKW;)Z"));
-        hooks.put("inbox_promotions", Set.of("LX/2Ef;->A0J()Z", "LX/2Ef;->A0K()Z"));
-        hooks.put("chat_promotions", Set.of("LX/ThP;->A0D()Z", "LX/ThP;->A0E()Z"));
-        hooks.put("suggested_replies", Set.of("LX/7Sd;->A06(LX/7Sd;)Z", "LX/7Tb;->A05(LX/7Tb;)Z", "LX/ThO;->A05()Z"));
-        hooks.put("business_suggestions", Set.of("LX/7Sd;->A05(LX/7Sd;)Z", "LX/7Tb;->A04(LX/7Tb;)Z", "LX/ThO;->A04()Z"));
-        hooks.put("event_prompts", Set.of("LX/ThP;->A07()Z", "LX/ThP;->A08()Z"));
-        hooks.put("reels_badge", Set.of("LX/7xF;->A09(LX/7xF;)Z"));
-        hooks.put("ai_toolbar", Set.of("LX/2aP;->A04()Z"));
-        EXPECTED_HOOKS = Collections.unmodifiableMap(hooks);
-    }
-
-    /** Build 346013370: the same controls under that build's names (mirrors ControlProfiles.kt). */
-    static final Map<String, Set<String>> EXPECTED_HOOKS_346013370;
-    static {
-        var hooks370 = new LinkedHashMap<String, Set<String>>();
-        hooks370.put("ads", Set.of("LX/2Wk;->D2e(LX/1fw;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;"));
-        hooks370.put("ai_fab", Set.of("LX/6ie;->render(LX/2MY;)LX/1GF;"));
-        hooks370.put("ai_menu", Set.of("LX/HC4;->A00()Z", "LX/HC4;->A01()Z", "LX/Jdr;->A00()Z", "LX/Jdr;->A01()Z"));
-        hooks370.put("ai_search", Set.of("LX/5OE;->A0A(LX/5OE;)Z", "LX/5OE;->A0B(LX/5OE;)Z"));
-        hooks370.put("ai_search_chip", Set.of("LX/O7T;->render(LX/2MY;)LX/1GF;"));
-        hooks370.put("ai_stickers", Set.of("LX/PT6;->A03(LX/PT6;)Z", "LX/PTo;->A07(LX/PTo;)Z"));
-        hooks370.put("ai_toolbar", Set.of("LX/2aO;->A04()Z"));
-        hooks370.put("allow_screenshot", Set.of("LX/4nb;->A00(Landroid/view/Window;)V", "LX/8wJ;->onScreenCaptured()V", "LX/N1j;->run()V", "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V"));
-        hooks370.put("avatar_stickers", Set.of("LX/PT6;->A01(LX/PT6;)Z"));
-        hooks370.put("avatar_tabs", Set.of("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6U(LX/5n3;)V"));
-        hooks370.put("browser", Set.of("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0M(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"));
-        hooks370.put("bubbles", Set.of("LX/2ZV;->A00()Z"));
-        hooks370.put("business_suggestions", Set.of("LX/7R8;->A05(LX/7R8;)Z", "LX/7S6;->A04(LX/7S6;)Z", "LX/HCJ;->A04()Z"));
-        hooks370.put("chat_promotions", Set.of("LX/HCH;->A0D()Z", "LX/HCH;->A0E()Z"));
-        hooks370.put("delta_unsent", Set.of("LX/VsH;->Btd(I)Z"));
-        hooks370.put("emoji_typeface", Set.of("LX/1KU;->A00()Landroid/graphics/Typeface;"));
-        hooks370.put("event_prompts", Set.of("LX/HCH;->A07()Z", "LX/HCH;->A08()Z"));
-        hooks370.put("facebook", Set.of("LX/2aO;->A0C()Z", "LX/3EW;->A00()Z", "LX/3mK;->A00()Z", "LX/3mO;->A02()Z", "LX/HC2;->A02()Z", "LX/HMK;->A02()Z", "LX/HMk;->A06()Z", "LX/Jda;->A04()Z", "LX/Jdn;->A06()Z", "LX/Jdu;->A06()Z", "LX/JeC;->A00()Z", "LX/JeK;->A01()Z", "LX/JeM;->A02()Z", "LX/JeO;->A02()Z", "LX/JeT;->A03()Z", "LX/JeU;->A03()Z", "LX/JeW;->A01()Z", "LX/JeX;->A01()Z", "LX/JeZ;->A06()Z", "LX/Jea;->A06()Z", "LX/Jeb;->A06()Z"));
-        hooks370.put("friend_requests", Set.of("LX/1pl;->A09()Z", "LX/2Wk;->A02()Z"));
-        hooks370.put("growth", Set.of("LX/1pl;->A0A()Z", "LX/2GD;->A0A(LX/2GD;)Z"));
-        hooks370.put("hide_read_receipts", Set.of("LX/AVX;->run()V"));
-        hooks370.put("inbox_promotions", Set.of("LX/2Ee;->A0J()Z", "LX/2Ee;->A0K()Z"));
-        hooks370.put("keep_unsent", Set.of("LX/VTZ;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"));
-        hooks370.put("menu_settings", Set.of("LX/HBx;->Ax3(LX/0MG;)Ljava/util/ArrayList;", "LX/Jpx;->onClick(Landroid/view/View;)V", "LX/NjG;->CAp(LX/4k1;I)V", "LX/WnD;->A0J(Ljava/util/List;)V"));
-        hooks370.put("moments", Set.of("LX/HC4;->A05()Z", "LX/Jdr;->A05()Z"));
-        hooks370.put("people", Set.of("LX/1pl;->A0C()Z", "LX/2Wk;->A04()Z"));
-        hooks370.put("people_jewel", Set.of("LX/NRn;->A01(LX/NRn;)Z"));
-        hooks370.put("people_list_end", Set.of("LX/1pl;->A0B()Z", "LX/2Wk;->A03()Z"));
-        hooks370.put("read_mailbox", Set.of("LX/9rH;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V"));
-        hooks370.put("reels_badge", Set.of("LX/7vk;->A09(LX/7vk;)Z"));
-        hooks370.put("stories", Set.of("LX/1mh;->A00()Z"));
-        hooks370.put("subtabs", Set.of("LX/2UK;->run()V"));
-        hooks370.put("suggested_replies", Set.of("LX/7R8;->A06(LX/7R8;)Z", "LX/7S6;->A05(LX/7S6;)Z", "LX/HCJ;->A05()Z"));
-        hooks370.put("typing", Set.of("LX/AgM;->run()V"));
-        hooks370.put("typing_mailbox", Set.of("LX/8d4;->A0I(Ljava/lang/String;Z)LX/324;"));
-        hooks370.put("unsent_indicator", Set.of("LX/VsH;->BWp(I)Ljava/lang/String;"));
-        EXPECTED_HOOKS_346013370 = Collections.unmodifiableMap(hooks370);
-    }
-
-    static final String PREFERENCE_GETTER_346013370 = "Lcom/facebook/prefs/shared/FbSharedPreferences;->AhF(LX/1BL;Z)Z";
-
-    /** Chosen from the APK's version code before discovery runs. */
-    static Map<String, Set<String>> expectedHooks = EXPECTED_HOOKS;
-    static Map<String, String> expectedDexSites;
-    static String preferenceGetter = PREFERENCE_GETTER;
 
     static final String APP_COMMUNICATION = "com.facebook.permission.prod.FB_APP_COMMUNICATION";
     static final String RECEIVER_ACCESS = "com.facebook.receiver.permission.ACCESS";
     static final String APP_COMMUNICATION_FORMAT = "com.facebook.permission.%s.FB_APP_COMMUNICATION";
     static final Set<String> DEX_NAMES = Set.of(APP_COMMUNICATION, RECEIVER_ACCESS, APP_COMMUNICATION_FORMAT);
-
-    static final Map<String, String> EXPECTED_DEX_SITES = Map.of(
-        "LX/0iX;->A04(Landroid/app/Application;)V@18", APP_COMMUNICATION_FORMAT,
-        "LX/15l;->A03()V@25", APP_COMMUNICATION,
-        "LX/1f4;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f4;Ljava/lang/String;Ljava/lang/String;)V@36", APP_COMMUNICATION,
-        "LX/2Qr;->A01(Landroid/content/Intent;LX/2Qr;)V@24", APP_COMMUNICATION_FORMAT,
-        "LX/33K;->A04(LX/5X3;Ljava/lang/Object;II)Ljava/lang/Object;@1433", APP_COMMUNICATION_FORMAT,
-        "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@507", APP_COMMUNICATION_FORMAT
-    );
-
-    static final Map<String, String> EXPECTED_DEX_SITES_346013370 = Map.of(
-        "LX/0iY;->A04(Landroid/app/Application;)V@18", APP_COMMUNICATION_FORMAT,
-        "LX/15l;->A03()V@25", APP_COMMUNICATION,
-        "LX/1f3;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f3;Ljava/lang/String;Ljava/lang/String;)V@36", APP_COMMUNICATION,
-        "LX/2Qq;->A01(Landroid/content/Intent;LX/2Qq;)V@24", APP_COMMUNICATION_FORMAT,
-        "LX/33J;->A04(LX/5X7;Ljava/lang/Object;II)Ljava/lang/Object;@1433", APP_COMMUNICATION_FORMAT,
-        "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@894", APP_COMMUNICATION_FORMAT
+    /** The Kotlin constant InstallBesideMetaAppsPatch.kt writes each shared name as. */
+    static final Map<String, String> DEX_NAME_CONSTANTS = Map.of(
+        APP_COMMUNICATION, "APP_COMMUNICATION",
+        RECEIVER_ACCESS, "RECEIVER_ACCESS",
+        APP_COMMUNICATION_FORMAT, "APP_COMMUNICATION_FORMAT"
     );
 
     static final Map<String, Integer> EXPECTED_MANIFEST_MENTIONS = Map.of(
@@ -224,14 +140,14 @@ public class CompatReport {
     static final Map<String, List<String>> PATCHES = new LinkedHashMap<>();
     static {
         PATCHES.put("Hide inbox ads", List.of("ads"));
-        PATCHES.put("Hide People You May Know", List.of("people", "people_list_end", "people_jewel"));
+        PATCHES.put("Hide People You May Know", List.of("people", "people_list_end", "people_jewel", "people_tab", "people_search", "people_story"));
         PATCHES.put("Hide friend request cards", List.of("friend_requests"));
-        PATCHES.put("Hide growth prompts", List.of("growth"));
+        PATCHES.put("Hide growth prompts", List.of("growth", "growth_notes", "growth_story_card"));
         PATCHES.put("Hide inbox promotions", List.of("inbox_promotions"));
         PATCHES.put("Hide stories and notes", List.of("stories"));
         PATCHES.put("Hide inbox tabs", List.of("subtabs"));
         PATCHES.put("Hide Facebook shortcuts", List.of("facebook"));
-        PATCHES.put("Hide Meta AI", List.of("ai_menu", "ai_fab", "ai_toolbar", "ai_search", "ai_search_chip"));
+        PATCHES.put("Hide Meta AI", List.of("ai_menu", "ai_fab", "ai_toolbar", "ai_tab", "ai_search", "ai_search_chip"));
         PATCHES.put("Hide Chat Moments", List.of("moments"));
         PATCHES.put("Hide Reels badge", List.of("reels_badge"));
         PATCHES.put("Hide AI sticker tools", List.of("ai_stickers"));
@@ -244,10 +160,390 @@ public class CompatReport {
         PATCHES.put("Open web links externally", List.of("browser"));
         PATCHES.put("Allow chat bubbles", List.of("bubbles"));
         PATCHES.put("Use system emoji", List.of("emoji_typeface"));
+        PATCHES.put("Send photos at original quality", List.of("original_photo"));
         PATCHES.put("Allow screenshots", List.of("allow_screenshot"));
         PATCHES.put("Hide read receipts", List.of("hide_read_receipts", "read_mailbox"));
         PATCHES.put("Keep unsent messages", List.of("keep_unsent", "unsent_indicator", "delta_unsent"));
+        PATCHES.put("View stories anonymously", List.of("anonymous_stories"));
+        PATCHES.put("Save any story", List.of("save_stories"));
         PATCHES.put("Open settings from menu", List.of("menu_settings"));
+    }
+
+    static final Set<String> ORIGINAL_PHOTO_HOOKS = Set.of(
+        "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImage(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;)[B",
+        "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImageAsync(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Lcom/facebook/msys/mci/TranscodeImageCompletionCallback;)V");
+
+    /** Every control key, in patch order. */
+    static final Set<String> CONTROL_KEYS = new LinkedHashSet<>();
+    static {
+        for (var keys : PATCHES.values()) CONTROL_KEYS.addAll(keys);
+    }
+
+    /**
+     * ControlProfile's values besides the hooks, in constructor order, and the controls whose
+     * validators pin each one. Discovery reads them from the same instructions.
+     */
+    static final Map<String, Set<String>> FIELD_CONTROLS = new LinkedHashMap<>();
+    static {
+        FIELD_CONTROLS.put("pluginSentinel", PLUGIN_GATE_ANCHORS.keySet());
+        FIELD_CONTROLS.put("preferenceGetter", Set.of("browser", "people_jewel"));
+        FIELD_CONTROLS.put("peopleKey", Set.of("people_jewel"));
+        FIELD_CONTROLS.put("peopleFlagCheck", Set.of("people_jewel"));
+        FIELD_CONTROLS.put("subtabsSupplier", Set.of("subtabs"));
+        FIELD_CONTROLS.put("browserPreferenceKey", Set.of("browser"));
+        FIELD_CONTROLS.put("browserPreferenceIndex", Set.of("browser"));
+        FIELD_CONTROLS.put("adFilterSize", Set.of("ads"));
+        FIELD_CONTROLS.put("adFilterExits", Set.of("ads"));
+    }
+    static final Set<String> NUMBER_FIELDS = Set.of("browserPreferenceIndex", "adFilterSize");
+    static final String PERMISSION_LOADS = "Install beside Meta apps";
+
+    /**
+     * What the patches pin for one build. scripts/profiles/<version code>.txt records it one
+     * value per line: "hook <control> <method>", "<field> <value>" and "dexSite <site> <name>".
+     */
+    static final class Profile {
+        String version = "", code = "", sha256 = "";
+        final Map<String, Set<String>> hooks = new TreeMap<>();
+        final Map<String, String> fields = new HashMap<>();
+        final Map<String, String> dexSites = new TreeMap<>();
+
+        boolean sameControls(Profile other) {
+            return hooks.equals(other.hooks) && fields.equals(other.fields);
+        }
+
+        List<String> lines() {
+            var lines = new ArrayList<String>();
+            lines.add("# Messenger " + version + " (" + code + "), written by CompatReport.java --save. Record the APK again instead of editing this.");
+            lines.add("version " + version);
+            lines.add("code " + code);
+            lines.add("sha256 " + sha256);
+            hooks.forEach((key, ids) -> new TreeSet<>(ids).forEach(id -> lines.add("hook " + key + " " + id)));
+            for (var name : FIELD_CONTROLS.keySet()) {
+                if (fields.containsKey(name)) lines.add(name + " " + fields.get(name));
+            }
+            dexSites.forEach((site, name) -> lines.add("dexSite " + site + " " + name));
+            return lines;
+        }
+
+        static Profile read(Path file) throws IOException {
+            var p = new Profile();
+            for (var line : Files.readAllLines(file)) {
+                if (line.isBlank() || line.startsWith("#")) continue;
+                var parts = line.split(" ", 3);
+                switch (parts[0]) {
+                    case "version" -> p.version = parts[1];
+                    case "code" -> p.code = parts[1];
+                    case "sha256" -> p.sha256 = parts[1];
+                    case "hook" -> p.hooks.computeIfAbsent(parts[1], key -> new TreeSet<>()).add(parts[2]);
+                    case "dexSite" -> p.dexSites.put(parts[1], parts[2]);
+                    default -> {
+                        if (!FIELD_CONTROLS.containsKey(parts[0])) throw new IOException(file + ": unknown line " + line);
+                        p.fields.put(parts[0], line.substring(parts[0].length() + 1));
+                    }
+                }
+            }
+            return p;
+        }
+    }
+
+    /** The directory this report was started from, as a source file or as a compiled class. */
+    static Path scriptDir() {
+        String source = System.getProperty("jdk.launcher.sourcefile");
+        if (source != null) return Path.of(source).toAbsolutePath().getParent();
+        try {
+            return Path.of(CompatReport.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        } catch (Exception e) {
+            return Path.of("scripts");
+        }
+    }
+
+    static final Path PROFILES = scriptDir().resolve("profiles");
+
+    /** Version code -> recorded build. */
+    static Map<String, Profile> recorded(Path dir) throws IOException {
+        var builds = new TreeMap<String, Profile>();
+        if (!Files.isDirectory(dir)) return builds;
+        try (var files = Files.list(dir)) {
+            for (var file : files.filter(f -> f.toString().endsWith(".txt")).sorted().toList()) {
+                var build = Profile.read(file);
+                builds.put(build.code, build);
+            }
+        }
+        return builds;
+    }
+
+    /** "580.0.0.49.91 (version code 346013354 or 346013370)", joined with " or " across version names. */
+    static String supported(Map<String, Profile> builds) {
+        var codes = new TreeMap<String, List<String>>();
+        for (var build : builds.values()) codes.computeIfAbsent(build.version, v -> new ArrayList<>()).add(build.code);
+        return codes.entrySet().stream()
+            .map(e -> e.getKey() + " (version code " + String.join(" or ", e.getValue()) + ")")
+            .collect(Collectors.joining(" or "));
+    }
+
+    /** A value that didn't resolve: what it is, the controls that need it, and why. */
+    record Problem(String label, Set<String> controls, String detail) {
+        @Override public String toString() {
+            return label + ": " + detail;
+        }
+    }
+
+    /**
+     * Why a discovered profile can't be written. Every recorded build has the same number of hooks
+     * per control and the same permission loads by name, so a new build must too. An empty list
+     * means every control resolved.
+     */
+    static List<Problem> unresolved(Profile found, Collection<Profile> recorded) {
+        var problems = new ArrayList<Problem>();
+        Profile shape = recorded.isEmpty() ? null : recorded.iterator().next();
+        for (var key : CONTROL_KEYS) {
+            int count = found.hooks.getOrDefault(key, Set.of()).size();
+            int expected = shape == null ? Math.max(count, 1) : shape.hooks.getOrDefault(key, Set.of()).size();
+            if (count != expected) problems.add(new Problem(key, Set.of(key), "expected " + expected + " hooks, found " + count));
+        }
+        for (var entry : FIELD_CONTROLS.entrySet()) {
+            if (found.fields.containsKey(entry.getKey())) continue;
+            var label = entry.getValue().size() > 2 ? "plugin gates" : String.join(", ", new TreeSet<>(entry.getValue()));
+            problems.add(new Problem(label, entry.getValue(), entry.getKey() + " not found"));
+        }
+        if (shape != null) {
+            var names = new ArrayList<>(found.dexSites.values());
+            var expected = new ArrayList<>(shape.dexSites.values());
+            Collections.sort(names);
+            Collections.sort(expected);
+            if (!names.equals(expected)) {
+                problems.add(new Problem(PERMISSION_LOADS, Set.of(PERMISSION_LOADS),
+                    "expected " + expected.size() + " permission loads, found " + names.size()));
+            }
+        }
+        return problems;
+    }
+
+    /** How a patch's controls differ from the recorded build. */
+    static List<String> differences(Profile expected, Profile found, List<String> keys) {
+        var failures = new ArrayList<String>();
+        for (var key : keys) {
+            var want = expected.hooks.getOrDefault(key, Set.of());
+            var got = found.hooks.getOrDefault(key, Set.of());
+            if (!want.equals(got)) {
+                failures.add(key + ": expected " + want.size() + " hooks " + want + ", found " + got.size() + " " + got);
+            }
+        }
+        for (var entry : FIELD_CONTROLS.entrySet()) {
+            if (Collections.disjoint(entry.getValue(), keys)) continue;
+            var want = expected.fields.get(entry.getKey());
+            var got = found.fields.get(entry.getKey());
+            if (!Objects.equals(want, got)) failures.add(entry.getKey() + ": expected " + want + ", found " + got);
+        }
+        return failures;
+    }
+
+    static List<Instruction> instructions(Method method) {
+        var code = new ArrayList<Instruction>();
+        if (method.getImplementation() != null) method.getImplementation().getInstructions().forEach(code::add);
+        return code;
+    }
+
+    static String ref(Instruction instruction) {
+        return instruction instanceof ReferenceInstruction ri ? ri.getReference().toString() : null;
+    }
+
+    static int register(Instruction instruction) {
+        return instruction instanceof OneRegisterInstruction r ? r.getRegisterA() : -1;
+    }
+
+    /** Every plugin gate compares its cached answer with one "not computed yet" sentinel. */
+    static String pluginSentinel(Map<String, List<Method>> controls) {
+        var sentinels = new TreeSet<String>();
+        for (var key : PLUGIN_GATE_ANCHORS.keySet()) {
+            for (var method : controls.getOrDefault(key, List.of())) {
+                var code = instructions(method);
+                if (code.size() < 5) return null;
+                var tail = code.subList(code.size() - 5, code.size());
+                if (!tail.stream().map(Instruction::getOpcode).toList().equals(
+                        List.of(Opcode.IGET_OBJECT, Opcode.SGET_OBJECT, Opcode.IF_EQ, Opcode.RETURN, Opcode.RETURN))) return null;
+                sentinels.add(ref(tail.get(1)));
+            }
+        }
+        return sentinels.size() == 1 ? sentinels.first() : null;
+    }
+
+    record PreferenceRead(int index, String key, String getter) {}
+
+    /** The one boolean preference read the external-browser check branches on. */
+    static PreferenceRead browserPreferenceRead(List<Method> browser) {
+        if (browser.size() != 1) return null;
+        var code = instructions(browser.get(0));
+        PreferenceRead read = null;
+        for (int k = 0; k + 3 < code.size(); k++) {
+            if (code.get(k).getOpcode() != Opcode.SGET_OBJECT || register(code.get(k)) != 0 ||
+                !(code.get(k + 1) instanceof FiveRegisterInstruction call) || call.getOpcode() != Opcode.INVOKE_INTERFACE ||
+                call.getRegisterCount() != 3 || call.getRegisterC() != 1 || call.getRegisterD() != 0 || call.getRegisterE() != 3 ||
+                !(((ReferenceInstruction) call).getReference() instanceof MethodReference getter) ||
+                !PREFERENCES.equals(getter.getDefiningClass()) || !"Z".equals(getter.getReturnType()) ||
+                code.get(k + 2).getOpcode() != Opcode.MOVE_RESULT || register(code.get(k + 2)) != 0 ||
+                code.get(k + 3).getOpcode() != Opcode.IF_EQZ || register(code.get(k + 3)) != 0) continue;
+            if (read != null) return null;
+            read = new PreferenceRead(k, ref(code.get(k)), getter.toString());
+        }
+        return read;
+    }
+
+    /** The Notifications tab's preference key and its server-override check. */
+    static List<String> peopleSection(List<Method> jewel, String getter) {
+        if (jewel.size() != 1) return null;
+        var code = instructions(jewel.get(0));
+        // The server flag loads at 17, or at 16 where Redex inlined the list reset into one call (346013423).
+        var flags = new ArrayList<Integer>();
+        for (int i = 0; i < code.size(); i++) {
+            if (code.get(i).getOpcode() == Opcode.CONST_WIDE && code.get(i) instanceof WideLiteralInstruction flag &&
+                flag.getWideLiteral() == PEOPLE_SERVER_FLAG) flags.add(i);
+        }
+        if (flags.size() != 1 || flags.get(0) < 16 || flags.get(0) > 17) return null;
+        int at = flags.get(0);
+        if (code.size() < at + 4 || code.get(8).getOpcode() != Opcode.SGET_OBJECT || register(code.get(8)) != 0 ||
+            code.get(10).getOpcode() != Opcode.INVOKE_INTERFACE || !getter.equals(ref(code.get(10))) ||
+            code.get(at + 1).getOpcode() != Opcode.INVOKE_STATIC) return null;
+        return List.of(ref(code.get(8)), ref(code.get(at + 1)));
+    }
+
+    static String subtabsSupplier(List<Method> subtabs) {
+        if (subtabs.size() != 1) return null;
+        var code = instructions(subtabs.get(0));
+        return code.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.IGET_OBJECT, Opcode.IGET_OBJECT,
+            Opcode.CONST_4, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID)) ? ref(code.get(0)) : null;
+    }
+
+    /** Everything the patches pin, read from the APK's DEX. Values that don't resolve are left out. */
+    static Profile discover(List<ClassDef> classes, Map<String, List<Method>> controls) {
+        var found = new Profile();
+        controls.forEach((key, methods) -> {
+            if (!methods.isEmpty()) {
+                found.hooks.put(key, methods.stream().map(CompatReport::hookId).collect(Collectors.toCollection(TreeSet::new)));
+            }
+        });
+        var sentinel = pluginSentinel(controls);
+        if (sentinel != null) found.fields.put("pluginSentinel", sentinel);
+        var read = browserPreferenceRead(controls.get("browser"));
+        if (read != null) {
+            found.fields.put("preferenceGetter", read.getter());
+            found.fields.put("browserPreferenceKey", read.key());
+            found.fields.put("browserPreferenceIndex", String.valueOf(read.index()));
+            var people = peopleSection(controls.get("people_jewel"), read.getter());
+            if (people != null) {
+                found.fields.put("peopleKey", people.get(0));
+                found.fields.put("peopleFlagCheck", people.get(1));
+            }
+        }
+        var supplier = subtabsSupplier(controls.get("subtabs"));
+        if (supplier != null) found.fields.put("subtabsSupplier", supplier);
+        var ads = controls.get("ads");
+        if (ads.size() == 1) {
+            var code = instructions(ads.get(0));
+            var exits = new ArrayList<String>();
+            for (int i = 0; i < code.size(); i++) if (code.get(i).getOpcode() == Opcode.RETURN_OBJECT) exits.add(String.valueOf(i));
+            if (!exits.isEmpty()) {
+                found.fields.put("adFilterSize", String.valueOf(code.size()));
+                found.fields.put("adFilterExits", String.join(" ", exits));
+            }
+        }
+        for (var site : findDexSites(classes)) found.dexSites.put(site.getKey(), site.getValue());
+        return found;
+    }
+
+    static final int KOTLIN_WIDTH = 120;
+
+    static String kotlinString(String value) {
+        return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$") + "\"";
+    }
+
+    /** The ControlProfile declaration for ControlProfiles.kt, wrapped like the hand-written ones. */
+    static String kotlinProfile(Profile build) {
+        var out = new StringBuilder("internal val PROFILE_" + build.code + " = ControlProfile(\n    hooks = mapOf(\n");
+        build.hooks.forEach((key, ids) -> {
+            var quoted = new TreeSet<>(ids).stream().map(CompatReport::kotlinString).toList();
+            var head = "        " + kotlinString(key) + " to setOf(";
+            var line = head + String.join(", ", quoted) + "),";
+            if (quoted.size() == 1 || line.length() <= KOTLIN_WIDTH) {
+                out.append(line).append('\n');
+                return;
+            }
+            out.append(head).append('\n');
+            var row = new StringBuilder("           ");
+            for (var id : quoted) {
+                if (row.length() > 11 && row.length() + id.length() + 2 > KOTLIN_WIDTH) {
+                    out.append(row).append('\n');
+                    row = new StringBuilder("           ");
+                }
+                row.append(' ').append(id).append(',');
+            }
+            out.append(row).append("\n        ),\n");
+        });
+        out.append("    ),\n");
+        for (var name : FIELD_CONTROLS.keySet()) {
+            var value = build.fields.get(name);
+            var kotlin = NUMBER_FIELDS.contains(name) ? value
+                : "adFilterExits".equals(name) ? "listOf(" + String.join(", ", value.split(" ")) + ")"
+                : kotlinString(value);
+            out.append("    ").append(name).append(" = ").append(kotlin).append(",\n");
+        }
+        return out.append(")\n").toString();
+    }
+
+    /** The permission load sites for InstallBesideMetaAppsPatch.kt. */
+    static String kotlinDexSites(Profile build) {
+        var out = new StringBuilder("internal val expectedDexSites" + build.code + " = mapOf(\n");
+        build.dexSites.forEach((site, name) ->
+            out.append("    ").append(kotlinString(site)).append(" to ").append(DEX_NAME_CONSTANTS.get(name)).append(",\n"));
+        return out.append(")\n").toString();
+    }
+
+    /** The Kotlin a new build needs, reusing a recorded build's profile or sites when they're identical. */
+    static void printKotlin(Profile build, Collection<Profile> others) {
+        var sameControls = others.stream().filter(o -> o.sameControls(build)).map(o -> o.code).toList();
+        var sameSites = others.stream().filter(o -> o.dexSites.equals(build.dexSites)).map(o -> o.code).toList();
+        System.out.println("// MessengerTarget.kt: list " + build.code + " under \"" + build.version + "\" in VERSIONS.");
+        if (sameControls.isEmpty()) {
+            System.out.println("// ControlProfiles.kt: add this profile and map " + build.code + " to it in controlProfiles.");
+            System.out.println();
+            System.out.print(kotlinProfile(build));
+        } else {
+            System.out.println("// ControlProfiles.kt: the controls match build " + String.join(", ", sameControls) +
+                ". Map " + build.code + " to the same profile in controlProfiles.");
+        }
+        System.out.println();
+        if (sameSites.isEmpty()) {
+            System.out.println("// InstallBesideMetaAppsPatch.kt: add these sites and map " + build.code + " to them in expectedDexSitesByBuild.");
+            System.out.println();
+            System.out.print(kotlinDexSites(build));
+        } else {
+            System.out.println("// InstallBesideMetaAppsPatch.kt: the permission loads match build " + String.join(", ", sameSites) +
+                ". Map " + build.code + " to the same sites in expectedDexSitesByBuild.");
+        }
+    }
+
+    /** --kotlin: the Kotlin for a recorded build, or the controls that keep it from resolving. */
+    static int printKotlin(Path record) throws IOException {
+        var build = Profile.read(record);
+        var others = recorded(PROFILES);
+        others.remove(build.code);
+        var problems = unresolved(build, others.values());
+        if (!problems.isEmpty()) {
+            System.out.println("No profile generated. These controls did not resolve:");
+            for (var problem : problems) System.out.println("       " + problem);
+            return 1;
+        }
+        printKotlin(build, others.values());
+        return 0;
+    }
+
+    static String sha256(File apk) throws Exception {
+        var digest = MessageDigest.getInstance("SHA-256");
+        try (var in = new FileInputStream(apk); var out = new DigestOutputStream(OutputStream.nullOutputStream(), digest)) {
+            in.transferTo(out);
+        }
+        return HexFormat.of().formatHex(digest.digest());
     }
 
     static String hookId(Method m) {
@@ -256,15 +552,21 @@ public class CompatReport {
         return m.getDefiningClass() + "->" + m.getName() + "(" + params + ")" + m.getReturnType();
     }
 
+    static boolean classReferencesType(ClassDef cls, String type) {
+        for (var m : cls.getMethods()) {
+            if (m.getImplementation() == null) continue;
+            for (var i : m.getImplementation().getInstructions())
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof TypeReference tr && type.equals(tr.getType())) return true;
+        }
+        return false;
+    }
+
     static List<ClassDef> loadDex(File apk) throws Exception {
+        // The container API reads the same in upstream dexlib2 and in the patcher's fork the tests use.
         var classes = new ArrayList<ClassDef>();
-        try (var zip = new ZipFile(apk)) {
-            for (var e : Collections.list(zip.entries())) {
-                if (!e.getName().matches("classes[0-9]*\\.dex")) continue;
-                var dex = new DexBackedDexFile(Opcodes.getDefault(),
-                    zip.getInputStream(e).readAllBytes());
-                for (var cls : dex.getClasses()) classes.add(cls);
-            }
+        var container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
+        for (var name : container.getDexEntryNames()) {
+            if (name.matches("classes[0-9]*\\.dex")) classes.addAll(container.getEntry(name).getDexFile().getClasses());
         }
         return classes;
     }
@@ -297,7 +599,8 @@ public class CompatReport {
 
     static Map<String, List<Method>> findControls(List<ClassDef> classes) {
         var found = new LinkedHashMap<String, List<Method>>();
-        for (var key : EXPECTED_HOOKS.keySet()) found.put(key, new ArrayList<>());
+        for (var key : CONTROL_KEYS) found.put(key, new ArrayList<>());
+        var jewelCandidates = new ArrayList<Map.Entry<Method, Set<String>>>();
 
         boolean hasAdItem = false, hasImmutableCopy = false;
         for (var cls : classes) {
@@ -335,6 +638,23 @@ public class CompatReport {
                 for (var i : code) {
                     if (i.getOpcode() == Opcode.SPUT_OBJECT && i instanceof ReferenceInstruction ri) {
                         peopleJewelKeys.add(ri.getReference().toString());
+                    }
+                }
+            }
+        }
+
+        // The static field a class initializer stores the story card's last-shown date key in
+        var storyCardKeys = new HashSet<String>();
+        for (var cls : classes) {
+            for (var m : cls.getMethods()) {
+                if (!"<clinit>".equals(m.getName()) || m.getImplementation() == null) continue;
+                boolean pending = false;
+                for (var i : m.getImplementation().getInstructions()) {
+                    if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr &&
+                        STORY_CARD_DATE_KEY.equals(sr.getString())) pending = true;
+                    else if (pending && i.getOpcode() == Opcode.SPUT_OBJECT) {
+                        storyCardKeys.add(((ReferenceInstruction) i).getReference().toString());
+                        pending = false;
                     }
                 }
             }
@@ -513,16 +833,11 @@ public class CompatReport {
                     found.get("browser").add(method);
                 }
 
-                // people_jewel
+                // people_jewel, kept once discovery knows the preference getter
                 if ("Z".equals(method.getReturnType()) && isStatic &&
                     paramTypes.equals(List.of(cls.getType()))) {
-                    boolean hasJewelKey = false, hasPrefGetter = false;
-                    for (var r : refs) {
-                        String rs = r.toString();
-                        if (peopleJewelKeys.contains(rs)) hasJewelKey = true;
-                        if (preferenceGetter.equals(rs)) hasPrefGetter = true;
-                    }
-                    if (hasJewelKey && hasPrefGetter) found.get("people_jewel").add(method);
+                    var refIds = refs.stream().map(Object::toString).collect(Collectors.toSet());
+                    if (!Collections.disjoint(refIds, peopleJewelKeys)) jewelCandidates.add(Map.entry(method, refIds));
                 }
 
                 // ScreenshotContentObserver.onChange
@@ -612,6 +927,12 @@ public class CompatReport {
                     found.get("ai_search").add(method);
                 }
 
+                // original_photo: the encrypted-chat photo transcoder's two entry points, named the same in every build
+                if ("Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;".equals(cls.getType()) &&
+                    !isStatic && ORIGINAL_PHOTO_HOOKS.contains(hookId(method))) {
+                    found.get("original_photo").add(method);
+                }
+
                 // emoji_typeface
                 if ("Landroid/graphics/Typeface;".equals(method.getReturnType()) &&
                     paramTypes.isEmpty() && !isStatic &&
@@ -628,6 +949,50 @@ public class CompatReport {
                 // read_mailbox: the msys call that marks a thread read (and sends the receipt) in encrypted chats
                 if ("V".equals(method.getReturnType()) && strings.contains("markAsReadThreadWithThreadIdentifier")) {
                     found.get("read_mailbox").add(method);
+                }
+
+                // anonymous_stories: the story mark-read handler that reports a viewed card
+                if ("V".equals(method.getReturnType()) && paramTypes.equals(List.of(MONTAGE_CARD, "Z")) &&
+                    !isStatic && strings.contains("MontageMsysMarkReadHandler")) {
+                    found.get("anonymous_stories").add(method);
+                }
+
+                // save_stories: the story viewer's More options menu, which adds Save to your own story's menu
+                if ("onClick".equals(method.getName()) && "V".equals(method.getReturnType()) &&
+                    paramTypes.equals(List.of("Landroid/view/View;")) && strings.contains("toolbar_click_menu_button")) {
+                    found.get("save_stories").add(method);
+                }
+
+                // growth_notes: the launcher every notes tip sheet (Make my notes public, Add lyrics) goes through
+                if (!isStatic && "Ljava/lang/Object;".equals(method.getReturnType()) &&
+                    strings.contains("NotesMigNuxBottomSheet") && strings.contains("arg_nux_type")) {
+                    found.get("growth_notes").add(method);
+                }
+
+                // growth_story_card: the daily cap check the story viewer's Share your own story card waits on
+                if (isStatic && "Z".equals(method.getReturnType()) && paramTypes.equals(List.of(cls.getType())) &&
+                    refs.stream().anyMatch(r -> storyCardKeys.contains(r.toString()))) {
+                    found.get("growth_story_card").add(method);
+                }
+
+                // people_tab: the People tab suggestion handler handing its list and filter map to the tab
+                if ("V".equals(method.getReturnType()) && isStatic && paramTypes.equals(List.of(cls.getType())) &&
+                    refs.stream().anyMatch(r -> r instanceof MethodReference mr && "V".equals(mr.getReturnType()) &&
+                        mr.getParameterTypes().stream().map(CharSequence::toString).toList().equals(List.of(IMMUTABLE_LIST, "Ljava/util/Map;"))) &&
+                    classReferencesType(cls, PEOPLE_TAB_FETCH)) {
+                    found.get("people_tab").add(method);
+                }
+
+                // people_search: the search screen's empty-state suggestions source
+                if (!isStatic && strings.contains("PeopleYouMayKnowSectionDataSource") &&
+                    strings.contains("Failed to load people you may know")) {
+                    found.get("people_search").add(method);
+                }
+
+                // people_story: the story viewer's once-per-viewer request for a page of suggested people
+                if ("V".equals(method.getReturnType()) && isStatic && paramTypes.equals(List.of(cls.getType())) &&
+                    strings.contains("MsgrPeopleYouMayKnowQuery")) {
+                    found.get("people_story").add(method);
                 }
 
                 // avatar_tabs: the Litho sticker keyboard's tab list builder
@@ -725,6 +1090,11 @@ public class CompatReport {
                     }
                 }
             }
+        }
+        // The Notifications tab reads its preference through the getter the external-browser check uses.
+        var read = browserPreferenceRead(found.get("browser"));
+        for (var candidate : jewelCandidates) {
+            if (read != null && candidate.getValue().contains(read.getter())) found.get("people_jewel").add(candidate.getKey());
         }
         return found;
     }
@@ -874,6 +1244,199 @@ public class CompatReport {
         }
     }
 
+    static final String APP_COMPONENT_FACTORY = "com.facebook.common.appcomponentfactory.m4a.M4aAppComponentFactory";
+    static final String SCREEN_HOST = "com.facebook.messaging.about.preference.NeueAboutPreferenceActivity";
+    static final String SHORTCUT_HOST = "com.facebook.zero.upsell.activity.ZeroUpsellBuyConfirmInterstitialActivity";
+
+    /**
+     * What SettingsShortcut.kt and ScreenHosts.kt need for settings on a Root Mount install: the stock factory's two
+     * entry points in the shape the hooks expect, and two stock activities with exactly the tested attributes.
+     */
+    static List<String> screenHostProblems(File apk, List<ClassDef> classes) {
+        var problems = new ArrayList<String>();
+        String factory = "L" + APP_COMPONENT_FACTORY.replace('.', '/') + ";";
+        ClassDef factoryClass = classes.stream().filter(c -> c.getType().equals(factory)).findFirst().orElse(null);
+        if (factoryClass == null) {
+            problems.add("no " + APP_COMPONENT_FACTORY);
+        } else {
+            Method activity = null, application = null;
+            for (Method m : factoryClass.getMethods()) {
+                String id = hookId(m);
+                if (id.equals(factory + "->instantiateActivity(Ljava/lang/ClassLoader;Ljava/lang/String;Landroid/content/Intent;)Landroid/app/Activity;")) activity = m;
+                if (id.equals(factory + "->instantiateApplication(Ljava/lang/ClassLoader;Ljava/lang/String;)Landroid/app/Application;")) application = m;
+            }
+            if (activity == null || AccessFlags.STATIC.isSet(activity.getAccessFlags()) || activity.getImplementation() == null ||
+                activity.getImplementation().getRegisterCount() <= 4) problems.add("instantiateActivity has no local register to use");
+            if (application == null || AccessFlags.STATIC.isSet(application.getAccessFlags()) || application.getImplementation() == null) {
+                problems.add("no instantiateApplication");
+            } else {
+                var code = instructions(application);
+                if (code.stream().filter(i -> i.getOpcode() == Opcode.RETURN_OBJECT).count() != 1 ||
+                    code.stream().anyMatch(i -> i.getOpcode().name.startsWith("if-") || i.getOpcode().name.startsWith("goto")
+                        || i.getOpcode().name.endsWith("-switch")))
+                    problems.add("instantiateApplication isn't one straight path to its return");
+            }
+        }
+        String aapt2 = findTool("aapt2");
+        if (aapt2 == null) {
+            problems.add("aapt2 unavailable, cannot check the stock activities");
+            return problems;
+        }
+        List<String> lines;
+        try {
+            var proc = new ProcessBuilder(aapt2, "dump", "xmltree", apk.getAbsolutePath(), "--file", "AndroidManifest.xml")
+                .redirectErrorStream(true).start();
+            lines = Arrays.asList(new String(proc.getInputStream().readAllBytes()).split("\\r?\\n"));
+            proc.waitFor();
+        } catch (Exception e) {
+            problems.add("aapt2 failed: " + e);
+            return problems;
+        }
+        var attribute = Pattern.compile("^\\s*A: http://schemas.android.com/apk/res/android:(\\w+)\\(0x[0-9a-f]+\\)=(\"[^\"]*\"|\\S+)");
+        if (lines.stream().noneMatch(l -> l.contains(":appComponentFactory(") && l.contains("=\"" + APP_COMPONENT_FACTORY + "\"")))
+            problems.add("the manifest's app component factory differs");
+        Map<String, Map<String, String>> expected = Map.of(
+            SCREEN_HOST, Map.of("exported", "false", "parentActivityName", "\"com.facebook.messenger.neue.MainActivity\""),
+            SHORTCUT_HOST, Map.of("exported", "false", "taskAffinity", "\"\"", "theme", "@0x01030010", "configChanges", "*"));
+        for (var host : expected.entrySet()) {
+            int found = 0;
+            for (int i = 0; i < lines.size(); i++) {
+                if (!lines.get(i).trim().startsWith("E: activity ")) continue;
+                int depth = lines.get(i).indexOf('E');
+                var attributes = new TreeMap<String, String>();
+                var children = new TreeSet<String>();
+                for (int j = i + 1; j < lines.size() && lines.get(j).indexOf(lines.get(j).trim()) > depth; j++) {
+                    String line = lines.get(j);
+                    int indent = line.indexOf(line.trim());
+                    Matcher m = attribute.matcher(line);
+                    if (indent == depth + 2 && m.find()) attributes.put(m.group(1), m.group(2));
+                    else if (line.trim().startsWith("E: ")) children.add(line.trim().split(" ")[1]);
+                }
+                if (!("\"" + host.getKey() + "\"").equals(attributes.remove("name"))) continue;
+                found++;
+                for (var want : host.getValue().entrySet()) {
+                    String value = attributes.remove(want.getKey());
+                    if (value == null || !(want.getValue().equals("*") || want.getValue().equals(value)))
+                        problems.add(host.getKey() + " " + want.getKey() + " is " + value);
+                }
+                if (!attributes.isEmpty()) problems.add(host.getKey() + " has " + attributes);
+                children.remove("meta-data");
+                if (!children.isEmpty()) problems.add(host.getKey() + " has " + children);
+            }
+            if (found != 1) problems.add("expected one " + host.getKey() + ", found " + found);
+        }
+        return problems;
+    }
+
+    /** MaterialYouPatch.kt's isTokenColorMethod: one class-typed parameter, an int result, and ()I called on that parameter's type. */
+    static boolean isTokenColorMethod(Method m) {
+        if (m.getParameterTypes().size() != 1 || !"I".equals(m.getReturnType())) return false;
+        String token = m.getParameterTypes().get(0).toString();
+        return token.startsWith("L") && instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.INVOKE_INTERFACE &&
+            i instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference mr &&
+            mr.getDefiningClass().equals(token) && "I".equals(mr.getReturnType()) && mr.getParameterTypes().isEmpty());
+    }
+
+    /** The one candidate, or null after noting that there were none or several. */
+    static Method onlyOne(List<Method> candidates, String what, List<String> problems) {
+        if (candidates.size() == 1) return candidates.get(0);
+        problems.add("expected one " + what + ", found " + candidates.size() + (candidates.isEmpty() ? "" :
+            ": " + candidates.stream().map(CompatReport::hookId).collect(Collectors.joining(", "))));
+        return null;
+    }
+
+    /** A method the patch hooks just before it returns. */
+    static void hookBeforeReturn(Method m, List<String> problems, List<String> targets) {
+        if (instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.RETURN)) targets.add(hookId(m));
+        else problems.add(hookId(m) + " has no return to hook");
+    }
+
+    static boolean takesOnlyContext(List<? extends CharSequence> parameters) {
+        return parameters.size() == 1 && "Landroid/content/Context;".equals(parameters.get(0).toString());
+    }
+
+    /**
+     * What MaterialYouPatch.kt finds by shape when it patches: one DarkColorScheme token resolver, one dark mode
+     * check called by FDSColors' (Context, ?, ?)I resolvers, FDSColors' int returns, and the constants and calls
+     * routes 3 and 4 rewrite. The patch quietly skips its FDS half when it can't find it, so this is where a build
+     * that resolves only part of it fails. Found targets go in targets.
+     */
+    static List<String> materialYouProblems(List<ClassDef> classes, List<String> targets) {
+        var problems = new ArrayList<String>();
+        ClassDef scheme = null, fds = null;
+        int surfaces = 0, colorCalls = 0;
+        for (ClassDef cls : classes) {
+            if (cls.getType().equals(DARK_SCHEME)) scheme = cls;
+            if (cls.getType().equals(FDS_COLORS)) fds = cls;
+            for (Method m : cls.getMethods()) {
+                for (Instruction i : instructions(m)) {
+                    Opcode op = i.getOpcode();
+                    if ((op == Opcode.CONST || op == Opcode.CONST_HIGH16) && i instanceof NarrowLiteralInstruction literal &&
+                        DARK_SURFACES.contains(literal.getNarrowLiteral())) surfaces++;
+                    if ((op == Opcode.INVOKE_STATIC || op == Opcode.INVOKE_VIRTUAL) && COLOR_CALLS.contains(ref(i))) colorCalls++;
+                }
+            }
+        }
+        if (scheme == null) {
+            problems.add("no " + DARK_SCHEME);
+        } else {
+            var resolvers = new ArrayList<Method>();
+            for (Method m : scheme.getMethods()) if (isTokenColorMethod(m)) resolvers.add(m);
+            Method resolver = onlyOne(resolvers, "DarkColorScheme token resolver", problems);
+            if (resolver != null) hookBeforeReturn(resolver, problems, targets);
+        }
+        if (fds == null) {
+            problems.add("no " + FDS_COLORS);
+        } else {
+            var resolvers = new ArrayList<Method>();
+            int intReturns = 0;
+            for (Method m : fds.getMethods()) {
+                if (!"I".equals(m.getReturnType()) || m.getImplementation() == null) continue;
+                intReturns += (int) instructions(m).stream().filter(i -> i.getOpcode() == Opcode.RETURN).count();
+                if (m.getParameterTypes().size() == 3 && "Landroid/content/Context;".equals(m.getParameterTypes().get(0).toString()))
+                    resolvers.add(m);
+            }
+            // The 21 builds have two, A00 and A01, calling the same check; the patch reads the check from the first
+            var calls = new TreeMap<String, MethodReference>();
+            boolean firstCalls = false;
+            for (Method resolver : resolvers) {
+                for (Instruction i : instructions(resolver)) {
+                    if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference mr &&
+                        "Z".equals(mr.getReturnType()) && takesOnlyContext(mr.getParameterTypes())) {
+                        calls.putIfAbsent(mr.toString(), mr);
+                        if (resolver == resolvers.get(0)) firstCalls = true;
+                    }
+                }
+            }
+            if (resolvers.isEmpty()) {
+                problems.add("no FDSColors (Context, ?, ?)I resolver");
+            } else if (calls.size() != 1) {
+                problems.add("expected one (Context)Z dark mode check in FDSColors' resolvers, found " + calls.size() +
+                    (calls.isEmpty() ? "" : ": " + String.join(", ", calls.keySet())));
+            } else if (!firstCalls) {
+                problems.add(hookId(resolvers.get(0)) + ", where the patch looks, doesn't call " + calls.firstKey());
+            } else {
+                MethodReference call = calls.firstEntry().getValue();
+                var checks = new ArrayList<Method>();
+                classes.stream().filter(c -> c.getType().equals(call.getDefiningClass())).findFirst().ifPresent(owner -> {
+                    for (Method m : owner.getMethods()) {
+                        if (m.getName().equals(call.getName()) && "Z".equals(m.getReturnType()) &&
+                            takesOnlyContext(m.getParameterTypes()) && m.getImplementation() != null) checks.add(m);
+                    }
+                });
+                Method check = onlyOne(checks, "dark mode check " + call, problems);
+                if (check != null) hookBeforeReturn(check, problems, targets);
+            }
+            if (intReturns == 0) problems.add("FDSColors has no int return to hook");
+            else targets.add(intReturns + " FDSColors int returns");
+        }
+        if (surfaces == 0) problems.add("no dark surface constants for route 3");
+        else targets.add(surfaces + " dark surface constants");
+        if (colorCalls == 0) problems.add("no Color.parseColor or Context.getColor calls for route 4");
+        else targets.add(colorCalls + " Color.parseColor and Context.getColor calls");
+        return problems;
+    }
+
     static int countManifestMentions(File apk, String permName) {
         String aapt2 = findTool("aapt2");
         if (aapt2 == null) return -1;
@@ -897,8 +1460,12 @@ public class CompatReport {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1) {
-            System.err.println("Usage: CompatReport <apk>");
+        if (args.length == 2 && "--kotlin".equals(args[0])) {
+            System.exit(printKotlin(Path.of(args[1])));
+        }
+        if (args.length < 1 || args.length > 3 || (args.length > 1 && !"--save".equals(args[1]))) {
+            System.err.println("Usage: CompatReport <apk> [--save [<profiles dir>]]");
+            System.err.println("       CompatReport --kotlin <recorded build .txt>");
             System.exit(2);
         }
         File apk = new File(args[0]);
@@ -906,6 +1473,9 @@ public class CompatReport {
             System.err.println("File not found: " + apk);
             System.exit(2);
         }
+        boolean save = args.length > 1;
+        Path saveDir = args.length > 2 ? Path.of(args[2]) : PROFILES;
+        var builds = recorded(PROFILES);
 
         // Header info
         ApkInfo info = parseApkInfo(apk);
@@ -925,27 +1495,24 @@ public class CompatReport {
         System.out.println();
 
         boolean anyFail = false;
+        // Failed checks that aren't about the recorded profile; a new build with any of these isn't recorded
+        var blockers = new ArrayList<String>();
 
         // Pre-checks
         if (info != null && !PACKAGE.equals(info.packageName)) {
             System.out.println("[FAIL] Package name: expected " + PACKAGE + ", got " + info.packageName);
+            blockers.add("Package name");
             anyFail = true;
         }
-        if (info != null && !VERSION.equals(info.versionName)) {
-            System.out.println("[FAIL] Version name: expected " + VERSION + ", got " + info.versionName);
+        String code = info != null ? info.versionCode : null;
+        Profile expected = code != null ? builds.get(code) : null;
+        if (info != null && expected == null) {
+            System.out.println("[FAIL] Version code: " +
+                (code == null ? "aapt2 couldn't read it" : code + " has no recorded build in scripts/profiles"));
             anyFail = true;
-        }
-        if (info != null && info.versionCode != null) {
-            try {
-                int code = Integer.parseInt(info.versionCode);
-                if (!VERSION_CODES.contains(code)) {
-                    System.out.println("[FAIL] Version code: " + code + " is not in " + VERSION_CODES);
-                    anyFail = true;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("[FAIL] Version code: not a number: " + info.versionCode);
-                anyFail = true;
-            }
+        } else if (expected != null && !expected.version.equals(info.versionName)) {
+            System.out.println("[FAIL] Version name: expected " + expected.version + ", got " + info.versionName);
+            anyFail = true;
         }
         if (signer != null && !FACEBOOK_SIGNER.equals(signer) && !META_SIGNER.equals(signer)) {
             System.out.println("[WARN] Signer: " + signer + " is not the stock Facebook or Meta certificate");
@@ -957,13 +1524,13 @@ public class CompatReport {
         System.out.println("Loaded " + classes.size() + " classes from " + apk.getName());
         System.out.println();
 
-        // Find controls
-        // Build 346013370 keeps the same controls under different Redex names.
-        boolean build346013370 = info != null && "346013370".equals(info.versionCode);
-        expectedHooks = build346013370 ? EXPECTED_HOOKS_346013370 : EXPECTED_HOOKS;
-        expectedDexSites = build346013370 ? EXPECTED_DEX_SITES_346013370 : EXPECTED_DEX_SITES;
-        preferenceGetter = build346013370 ? PREFERENCE_GETTER_346013370 : PREFERENCE_GETTER;
+        // Find controls and everything else the build's profile pins
         Map<String, List<Method>> controls = findControls(classes);
+        Profile found = discover(classes, controls);
+        found.version = info != null && info.versionName != null ? info.versionName : "";
+        found.code = code != null ? code : "";
+        found.sha256 = sha256(apk);
+        var problems = unresolved(found, builds.values());
         int totalHooks = controls.values().stream().mapToInt(List::size).sum();
         System.out.println("Discovered " + totalHooks + " hooks across " + controls.size() + " feature keys");
         System.out.println();
@@ -971,15 +1538,14 @@ public class CompatReport {
         // Check Install beside Meta apps (DEX sites + manifest mentions)
         {
             var failures = new ArrayList<String>();
-            var sites = findDexSites(classes);
-            if (sites.size() != expectedDexSites.size()) {
-                failures.add("expected " + expectedDexSites.size() + " permission loads, found " + sites.size());
-            } else {
-                var siteMap = new LinkedHashMap<String, String>();
-                for (var e : sites) siteMap.put(e.getKey(), e.getValue());
-                if (!siteMap.equals(expectedDexSites)) {
-                    failures.add("permission instruction sites differ from the tested build");
+            if (expected == null) {
+                for (var problem : problems) {
+                    if (problem.controls().contains(PERMISSION_LOADS)) failures.add(problem.detail());
                 }
+            } else if (found.dexSites.size() != expected.dexSites.size()) {
+                failures.add("expected " + expected.dexSites.size() + " permission loads, found " + found.dexSites.size());
+            } else if (!found.dexSites.equals(expected.dexSites)) {
+                failures.add("permission instruction sites differ from the tested build");
             }
             for (var entry : EXPECTED_MANIFEST_MENTIONS.entrySet()) {
                 int count = countManifestMentions(apk, entry.getKey());
@@ -994,6 +1560,20 @@ public class CompatReport {
             } else {
                 System.out.println("[FAIL] Install beside Meta apps");
                 for (var f : failures) System.out.println("       " + f);
+                blockers.add("Install beside Meta apps");
+                anyFail = true;
+            }
+        }
+
+        // Check what settings need on a Root Mount install (every patch depends on them)
+        {
+            var failures = screenHostProblems(apk, classes);
+            if (failures.isEmpty()) {
+                System.out.println("[PASS] Settings on Root Mount installs");
+            } else {
+                System.out.println("[FAIL] Settings on Root Mount installs");
+                for (var f : failures) System.out.println("       " + f);
+                blockers.add("Settings on Root Mount installs");
                 anyFail = true;
             }
         }
@@ -1006,26 +1586,36 @@ public class CompatReport {
             } else {
                 System.out.println("[FAIL] Restore screens on re-signed builds");
                 System.out.println("       No method found matching the signer lookup pattern");
+                blockers.add("Restore screens on re-signed builds");
                 anyFail = true;
             }
         }
 
-        // Check each control patch
+        // Check Material You theme, which finds its targets when it patches instead of reading the profile
+        {
+            var targets = new ArrayList<String>();
+            var failures = materialYouProblems(classes, targets);
+            if (failures.isEmpty()) {
+                System.out.println("[PASS] Material You theme");
+                for (var t : targets) System.out.println("       " + t);
+            } else {
+                System.out.println("[FAIL] Material You theme");
+                for (var f : failures) System.out.println("       " + f);
+                blockers.add("Material You theme");
+                anyFail = true;
+            }
+        }
+
+        // Check each control patch: against the recorded build, or for a new build, that it resolves
         for (var entry : PATCHES.entrySet()) {
             String patchName = entry.getKey();
             List<String> hookKeys = entry.getValue();
             var failures = new ArrayList<String>();
-            for (String key : hookKeys) {
-                Set<String> expected = expectedHooks.get(key);
-                if (expected == null) {
-                    failures.add(key + ": no expected hooks defined");
-                    continue;
-                }
-                List<Method> actual = controls.getOrDefault(key, List.of());
-                Set<String> actualIds = actual.stream().map(CompatReport::hookId).collect(Collectors.toSet());
-                if (actualIds.size() != expected.size() || !actualIds.equals(expected)) {
-                    failures.add(key + ": expected " + expected.size() + " hooks " + expected +
-                        ", found " + actualIds.size() + " " + actualIds);
+            if (expected != null) {
+                failures.addAll(differences(expected, found, hookKeys));
+            } else {
+                for (var problem : problems) {
+                    if (!Collections.disjoint(problem.controls(), hookKeys)) failures.add(problem.toString());
                 }
             }
             if (failures.isEmpty()) {
@@ -1037,15 +1627,49 @@ public class CompatReport {
             }
         }
 
+        // The build's profile: recorded already, written now, or the controls that keep it from being written
+        System.out.println();
+        if (!problems.isEmpty()) {
+            System.out.println("PROFILE: not written. These controls did not resolve:");
+            for (var problem : problems) System.out.println("       " + problem);
+            anyFail = true;
+        } else if (expected != null && expected.sameControls(found) && expected.dexSites.equals(found.dexSites)) {
+            System.out.println("PROFILE: matches scripts/profiles/" + found.code + ".txt" +
+                (expected.sha256.equals(found.sha256) ? "" : " (from a different APK file than the recorded one)"));
+        } else if (expected != null) {
+            System.out.println("PROFILE: differs from scripts/profiles/" + found.code + ".txt; see the failures above.");
+            anyFail = true;
+        } else if (!blockers.isEmpty()) {
+            System.out.println("PROFILE: not written. Every control resolved, but these checks failed: " + String.join(", ", blockers) + ".");
+        } else if (!save) {
+            System.out.println("PROFILE: every control resolved. Run again with --save to record this build.");
+        } else if (found.code.isEmpty()) {
+            System.out.println("PROFILE: not written. aapt2 couldn't read the version code.");
+            anyFail = true;
+        } else {
+            Path record = saveDir.resolve(found.code + ".txt");
+            if (Files.exists(record) && !Profile.read(record).lines().equals(found.lines())) {
+                System.out.println("PROFILE: not written. " + record + " records a different APK with this version code;");
+                System.out.println("         delete it first to replace it.");
+                anyFail = true;
+            } else {
+                Files.createDirectories(saveDir);
+                Files.writeString(record, String.join("\n", found.lines()) + "\n");
+                System.out.println("PROFILE: wrote " + record);
+                System.out.println();
+                var others = new TreeMap<>(builds);
+                others.remove(found.code);
+                printKotlin(found, others.values());
+            }
+        }
+
         System.out.println();
         if (anyFail) {
             System.out.println("RESULT: FAIL — one or more patches are incompatible with this APK.");
-            System.out.println("Use an unmodified arm64 Messenger " + VERSION +
-                " (version code " + VERSION_CODES.stream().map(String::valueOf)
-                    .collect(Collectors.joining(" or ")) + ").");
+            if (!builds.isEmpty()) System.out.println("Use an unmodified arm64 Messenger " + supported(builds) + ".");
             System.exit(1);
         } else {
-            System.out.println("RESULT: PASS — all " + (PATCHES.size() + 2) + " patches are compatible.");
+            System.out.println("RESULT: PASS — all " + (PATCHES.size() + 3) + " patches are compatible.");
             System.exit(0);
         }
     }

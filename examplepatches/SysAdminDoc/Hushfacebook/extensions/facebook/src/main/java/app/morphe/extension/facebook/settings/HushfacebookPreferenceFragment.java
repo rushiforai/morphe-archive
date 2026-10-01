@@ -16,7 +16,6 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -50,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,10 +59,13 @@ import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
 import app.morphe.extension.facebook.download.SaveControl;
 import app.morphe.extension.facebook.download.SaveFolder;
+import app.morphe.extension.facebook.download.SaveTo;
+import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.facebook.navigation.MarketplaceOnly;
+import app.morphe.extension.facebook.theme.AmoledTheme;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -99,6 +102,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     static final String CHECK_NOW = "action_check_for_release";
     /** The Supported links row's key. It stores nothing either. */
     static final String SUPPORTED_LINKS = "action_supported_links";
+    /** The key of the row naming the default patches this build lacks. It stores nothing either. */
+    static final String MISSING_DEFAULTS = "action_missing_default_patches";
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -156,6 +161,14 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (getParentFragment() instanceof SettingsDialog && !sections().isEmpty()) {
             navigation = new SettingsNavigation(this, (SettingsDialog) getParentFragment(), savedInstanceState);
         }
+        showRequestedSetting();
+    }
+
+    /** Goes to the row the request that opened the page named, if it named one this build has. */
+    void showRequestedSetting() {
+        String key = SettingsEntry.takeRequestedSetting();
+        Preference target = key == null ? null : findPreference(key);
+        if (target != null) jumpTo(target);
     }
 
     @Override
@@ -309,7 +322,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 || build.contains(PatchFamily.RETURN_REFRESH)
                 || build.contains(PatchFamily.AI_DETECTED_POSTS)
                 || build.contains(PatchFamily.SPONSORED_PROFILE_POSTS)
-                || build.contains(PatchFamily.POST_WORDS)) {
+                || build.contains(PatchFamily.AFFILIATE_LINKS)
+                || build.contains(PatchFamily.POST_WORDS)
+                || build.contains(PatchFamily.POST_PROMPTS)) {
             PreferenceCategory feed = category(screen, L10n.t("News feed"));
             if (build.contains(PatchFamily.SPONSORED_POSTS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_SPONSORED_POSTS, L10n.t("Hide sponsored posts"),
@@ -323,6 +338,13 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Hide sponsored profile posts"),
                         L10n.t("Ads between the posts on someone's profile or a Page. Their own posts stay.")));
             }
+            // One switch covers the cards on reels and in the comment sheet too.
+            if (build.contains(PatchFamily.AFFILIATE_LINKS)) {
+                feed.addPreference(toggle(context, Settings.HIDE_AFFILIATE_LINKS,
+                        L10n.t("Hide affiliate product links"),
+                        L10n.t("The product cards of shop links creators add to posts, on reels, under feed posts and "
+                                + "in the comments. The \"Commission eligible\" label stays.")));
+            }
             if (build.contains(PatchFamily.SUGGESTED_POSTS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_POSTS,
                         L10n.t("Hide page suggestions and Facebook's own promos"),
@@ -331,9 +353,14 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_FOR_YOU,
                         L10n.t("Hide \"Suggested for you\" posts"),
                         L10n.t("Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.")));
+                // The Stories tray's cards are filtered by Hide suggested stories' hook, so the
+                // switch reaches them only when that patch is in too.
                 feed.addPreference(toggle(context, Settings.HIDE_PEOPLE_YOU_MAY_KNOW,
                         L10n.t("Hide \"People you may know\""),
-                        L10n.t("The row of friend suggestions between posts, and the one on your own profile.")));
+                        build.contains(PatchFamily.SUGGESTED_STORIES)
+                                ? L10n.t("The row of friend suggestions between posts, the one on your own profile, "
+                                        + "and the cards with an Add button in the Stories tray.")
+                                : L10n.t("The row of friend suggestions between posts, and the one on your own profile.")));
                 feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_GROUPS,
                         L10n.t("Hide suggested groups"),
                         L10n.t("The row of groups to join between posts, with its Discover more groups button. "
@@ -353,6 +380,12 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             if (build.contains(PatchFamily.FEED_REELS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_FEED_REELS, L10n.t("Hide Reels in the feed"),
                         L10n.t("The rows of reels between posts, and the reels Facebook adds where your feed ends.")));
+            }
+            if (build.contains(PatchFamily.POST_PROMPTS)) {
+                feed.addPreference(toggle(context, Settings.HIDE_POST_PROMPTS, L10n.t("Hide post prompts"),
+                        L10n.t("The strip on some posts, like \"Are you interested in this post?\", \"Show less\" "
+                                + "or who recently commented, and the follow and chat suggestions in the same place. "
+                                + "The post stays.")));
             }
             if (build.contains(PatchFamily.RETURN_REFRESH)) {
                 feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
@@ -399,6 +432,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 stories.addPreference(toggle(context, Settings.HIDE_SUGGESTED_STORIES,
                         L10n.t("Hide suggested stories"),
                         L10n.t("Keep friends and followed Pages in the Stories tray. Applies when Facebook next loads the tray.")));
+                stories.addPreference(toggle(context, Settings.HIDE_CONTACT_IMPORT_CARD,
+                        L10n.t("Hide \"Find friends from contacts\""),
+                        L10n.t("The Stories tray card asking to upload your contacts. Applies when Facebook next loads the tray.")));
             }
             if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
                 stories.addPreference(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE,
@@ -454,6 +490,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (build.contains(PatchFamily.REELS_TAB_DOT)) {
             reels.addPreference(toggle(context, Settings.HIDE_REELS_TAB_DOT, L10n.t("Hide the Reels tab dot"),
                     L10n.t("No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.")));
+        }
+        if (build.contains(PatchFamily.REEL_PROMPTS)) {
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_PROMPTS, L10n.t("Hide reel interest prompts"),
+                    L10n.t("No \"Are you interested in this reel?\" prompt on reels. The reel plays as usual.")));
         }
         // Both reel filters work on each batch of reels as it arrives, so a change leaves the
         // reels already loaded as they are, and the rows say so.
@@ -554,8 +594,15 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                     L10n.t("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves "
                             + "without sound. May lower quality.")));
             downloads.addPreference(qualityRow(context));
+            downloads.addPreference(saveToRow(context));
             downloads.addPreference(folderRow(context));
             downloads.addPreference(fileNameRow(context));
+            // Reels and feed and Watch videos can go to another app as a link (#41). A story can't:
+            // its link opens only for someone signed in, so no downloader could fetch it.
+            if (build.contains(PatchFamily.REEL_DOWNLOAD) || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
+                downloads.addPreference(downloadActionRow(context));
+                downloads.addPreference(sendAppRow(context));
+            }
         }
 
         if (build.contains(PatchFamily.MESSENGER_CARD) || build.contains(PatchFamily.MESSENGER_ICON)) {
@@ -708,7 +755,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             }
             if (build.contains(PatchFamily.AMOLED_THEME)) {
                 patched.addPreference(mark(info(context, L10n.t("AMOLED black theme"),
-                        L10n.t("Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.")), SettingsIcons.MOON));
+                        amoledSummary(AmoledTheme.backgroundColour())), SettingsIcons.MOON));
             }
             if (build.contains(PatchFamily.MATERIAL_YOU_THEME)) {
                 patched.addPreference(mark(info(context, L10n.t("Material You theme"),
@@ -812,6 +859,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             return true;
         });
         about.addPreference(mark(licenses, SettingsIcons.LICENSE));
+
+        // The overview shows it under the card by its key. Last in the model, it moves no other row.
+        Preference lacking = missingDefaultsRow(context, build);
+        if (lacking != null) screen.addPreference(lacking);
     }
 
     /**
@@ -986,6 +1037,40 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return card;
     }
 
+    /**
+     * Under the card when this build lacks a patch Morphe Manager selects by default, or null when
+     * it has them all. A patch left out is the usual answer to "ads still show" (#29, #35). A tap
+     * opens and closes the list of names, which runs to thirty for a build patched with one
+     * patch picked.
+     */
+    @Nullable
+    private static Preference missingDefaultsRow(Context context, Set<PatchFamily> build) {
+        List<String> missing = PatchFamily.missingDefaults(build);
+        if (missing.isEmpty()) return null;
+        List<String> names = new ArrayList<>();
+        for (String name : missing) names.add(L10n.isolate(name));
+        String closed = L10n.t("Tap to see which.");
+        String open = L10n.quantity(missing.size(),
+                "Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to "
+                        + "get what it does.",
+                "Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to "
+                        + "get what they do.",
+                L10n.join(names));
+        Row row = new Row(context);
+        row.setKey(MISSING_DEFAULTS);
+        row.setPersistent(false);
+        // The tap only opens or closes the list, so the row goes without a chevron.
+        row.actsAtOnce = true;
+        row.setTitle(L10n.quantity(missing.size(), "%1$d default patch isn't in this build",
+                "%1$d default patches aren't in this build", missing.size()));
+        row.setSummary(closed);
+        row.setOnPreferenceClickListener(p -> {
+            p.setSummary(closed.contentEquals(p.getSummary()) ? open : closed);
+            return true;
+        });
+        return row;
+    }
+
     void resumeFromOverview() {
         Context context = getContext();
         if (context == null || statusCard == null) return;
@@ -1120,12 +1205,27 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     protected void updateUIAvailability() {
         super.updateUIAvailability();
         showMarketplaceSettings();
+        showSaveFolder();
     }
 
     @Override
     protected void updateUIToSettingValues() {
         super.updateUIToSettingValues();
         showMarketplaceSettings();
+        showSaveFolder();
+    }
+
+    /**
+     * The folder row names the top folder Save to picks, in its summary and its dialog, so it's
+     * redone after a tap on either row or an import.
+     */
+    private void showSaveFolder() {
+        if (getPreferenceScreen() == null) return;
+        Preference folder = findPreference(Settings.SAVE_FOLDER.key);
+        if (!(folder instanceof FolderRow)) return;
+        FolderRow row = (FolderRow) folder;
+        row.setSummary(folderSummary(SaveFolder.sanitize(row.getText())));
+        row.setDialogMessage(folderDialogMessage(Settings.SAVE_TO.savedValue()));
     }
 
     /**
@@ -1158,6 +1258,16 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             tab.setSummary(selected ? L10n.t("Marketplace mode chooses the opening tab. Your previous choice stays saved.")
                     : startTabSummary(Settings.START_TAB.savedValue()));
         }
+    }
+
+    /** The AMOLED row under Patched: black, or the Background colour the patch was given (issue #34). */
+    static String amoledSummary(int background) {
+        if (background == Color.BLACK) {
+            return L10n.t("Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.");
+        }
+        String colour = String.format(Locale.ROOT, "#%06X", background & 0xFFFFFF);
+        return L10n.f("Dark mode draws %1$s instead of dark grey. Turn on dark mode in Facebook to see it.",
+                L10n.isolate(colour));
     }
 
     static String marketplaceSummary() {
@@ -1477,13 +1587,17 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     }
 
     /**
-     * The quality, start tab, comment order and playback quality rows' summaries are sentences of
-     * their own rather than the chosen entry.
+     * The quality, download action, start tab, comment order and playback quality rows' summaries
+     * are sentences of their own rather than the chosen entry.
      */
     @Override
     protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
         if (listPreference instanceof QualityRow) {
             ((QualityRow) listPreference).showSummary();
+        } else if (listPreference instanceof DownloadActionRow) {
+            ((DownloadActionRow) listPreference).showSummary();
+        } else if (listPreference instanceof SaveToRow) {
+            ((SaveToRow) listPreference).showSummary();
         } else if (listPreference instanceof StartTabRow) {
             ((StartTabRow) listPreference).showSummary();
         } else if (listPreference instanceof CommentOrderRow) {
@@ -1504,8 +1618,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setKey(Settings.SAVE_FOLDER.key);
         row.setTitle(L10n.t("Save folder"));
         row.setDialogTitle(L10n.t("Save folder"));
-        row.setDialogMessage(L10n.f("Choose a folder name under Movies and Pictures. Invalid characters become "
-                + "underscores. Leave it blank to use the default folder, %1$s.", L10n.isolate(SaveFolder.DEFAULT)));
+        row.setDialogMessage(folderDialogMessage(Settings.SAVE_TO.savedValue()));
         row.setPositiveButtonText(L10n.t("Save"));
         // Unset, Android fills in its own Cancel in the activity's language, which can differ
         // from Facebook's, and the dialog read "Speichern" next to "Cancel".
@@ -1527,6 +1640,52 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
+    /** What the folder row's dialog says, naming the top folder [to] puts the folder under. */
+    static String folderDialogMessage(SaveTo to) {
+        if (to == SaveTo.MOVIES_AND_PICTURES) {
+            return L10n.f("Choose a folder name under Movies and Pictures. Invalid characters become "
+                    + "underscores. Leave it blank to use the default folder, %1$s.", L10n.isolate(SaveFolder.DEFAULT));
+        }
+        return L10n.f("Choose a folder name under %1$s. Invalid characters become underscores. Leave it blank to "
+                + "use the default folder, %2$s.", L10n.isolate(to.directory(true)), L10n.isolate(SaveFolder.DEFAULT));
+    }
+
+    /**
+     * The top folder saves go to (#42): Movies and Pictures, where Facebook's own saves go, or DCIM
+     * or Download for both. The values are the setting's own names, as the quality's are. DCIM and
+     * Download are the folders' own names on the phone, so they aren't translated.
+     */
+    static SaveToRow saveToRow(Context context) {
+        SaveToRow row = new SaveToRow(context);
+        row.setKey(Settings.SAVE_TO.key);
+        row.setTitle(L10n.t("Save to"));
+        row.setDialogTitle(L10n.t("Save to"));
+        // Android's own Cancel follows the activity's language, as the quality row's did.
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        // DCIM and Download are folder names, spelled as the phone spells them in every language.
+        row.setEntries(new CharSequence[]{L10n.t("Movies and Pictures"), L10n.isolate(SaveTo.DCIM.directory(true)),
+                L10n.isolate(SaveTo.DOWNLOAD.directory(true))});
+        row.setEntryValues(new CharSequence[]{SaveTo.MOVIES_AND_PICTURES.name(), SaveTo.DCIM.name(),
+                SaveTo.DOWNLOAD.name()});
+        row.setValue(Settings.SAVE_TO.savedValue().name());
+        return row;
+    }
+
+    /** What the Save to row says for [to]. */
+    static String saveToSummary(SaveTo to) {
+        switch (to) {
+            case DCIM:
+                return L10n.f("Videos and photos go to %1$s, next to the camera's. Saves you already have stay "
+                        + "where they are.", L10n.isolate(to.directory(true)));
+            case DOWNLOAD:
+                return L10n.f("Videos and photos go to %1$s, with the phone's other downloads. Saves you already "
+                        + "have stay where they are.", L10n.isolate(to.directory(true)));
+            default:
+                return L10n.f("Videos go to %1$s and photos to %2$s, as Facebook's own saves do. Some galleries "
+                        + "don't show %1$s.", L10n.isolate(to.directory(true)), L10n.isolate(to.directory(false)));
+        }
+    }
+
     /**
      * The name every saved video gets, next to the folder it goes to. What's typed is cleaned the
      * way the folder is, and held to the gallery's naming, so the row, the setting and the next
@@ -1538,13 +1697,13 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setTitle(L10n.t("Video file name"));
         row.setDialogTitle(L10n.t("Video file name"));
         row.setDialogMessage(L10n.f("%1$s becomes the date and time of the save, %2$s the video's number on "
-                        + "Facebook, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is "
-                        + "left out, and a name with none of these gets the date added. When the name is already in "
-                        + "the folder, the time of the save goes on the end. Invalid characters become underscores. "
-                        + "Leave it blank to use the default, %5$s.",
+                        + "Facebook, %3$s who posted it, %4$s their profile's number on Facebook and %5$s the day it "
+                        + "was posted. What a save doesn't know is left out, and a name with none of these gets the "
+                        + "date added. When the name is already in the folder, the time of the save goes on the end. "
+                        + "Invalid characters become underscores. Leave it blank to use the default, %6$s.",
                 L10n.isolate(FileNameTemplate.DATE), L10n.isolate(FileNameTemplate.VIDEO_ID),
-                L10n.isolate(FileNameTemplate.OWNER), L10n.isolate(FileNameTemplate.POSTED),
-                L10n.isolate(FileNameTemplate.DEFAULT)));
+                L10n.isolate(FileNameTemplate.OWNER), L10n.isolate(FileNameTemplate.OWNER_ID),
+                L10n.isolate(FileNameTemplate.POSTED), L10n.isolate(FileNameTemplate.DEFAULT)));
         row.setPositiveButtonText(L10n.t("Save"));
         // Android's own Cancel follows the activity's language, as the folder row's did.
         row.setNegativeButtonText(L10n.t("Cancel"));
@@ -1570,10 +1729,87 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 L10n.isolate(template), L10n.isolate(FileNameTemplate.PHOTO_PREFIX));
     }
 
-    /** "Videos go to Movies/Clips and photos to Pictures/Clips." for the folder [leaf]. */
+    /**
+     * What a tap on Download does for a reel or a video: save it to the phone, the default, or send
+     * its link to another app (#41). The values are the setting's own names, as the quality's are.
+     */
+    static DownloadActionRow downloadActionRow(Context context) {
+        DownloadActionRow row = new DownloadActionRow(context);
+        row.setKey(Settings.DOWNLOAD_ACTION.key);
+        row.setTitle(L10n.t("When you tap Download"));
+        row.setDialogTitle(L10n.t("When you tap Download"));
+        // Android's own Cancel follows the activity's language, as the quality row's did.
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        row.setEntries(new CharSequence[]{L10n.t("Save to phone"), L10n.t("Send the link to an app")});
+        row.setEntryValues(new CharSequence[]{SendLink.Action.SAVE.name(), SendLink.Action.SEND.name()});
+        row.setValue(Settings.DOWNLOAD_ACTION.savedValue().name());
+        return row;
+    }
+
+    /** What the download action's row says for [action]. */
+    static String downloadActionSummary(SendLink.Action action) {
+        return action == SendLink.Action.SEND
+                ? L10n.t("Reels and videos go to the app below as a facebook.com link. Hold the reel Download "
+                        + "button to copy the link instead. Stories still save to this phone.")
+                : L10n.t("Reels, videos and stories save to this phone.");
+    }
+
+    /**
+     * The app links go to while they're sent, by package name. What's typed is trimmed, anything
+     * that isn't a package name is turned down with a message, and blank leaves the pick to
+     * Android each time.
+     */
+    static SendAppRow sendAppRow(Context context) {
+        SendAppRow row = new SendAppRow(context);
+        row.setKey(Settings.SEND_TO_APP.key);
+        row.setTitle(L10n.t("App to send to"));
+        row.setDialogTitle(L10n.t("App to send to"));
+        row.setDialogMessage(L10n.f("The package name of the app that gets the links, such as %1$s for YTDLnis or "
+                + "%2$s for Seal. Leave it blank to pick an app each time.",
+                L10n.isolate(SendLink.YTDLNIS), L10n.isolate(SendLink.SEAL)));
+        row.setPositiveButtonText(L10n.t("Save"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        field.setSingleLine(true);
+        field.setHint(L10n.t("Package name"));
+        row.setText(Settings.SEND_TO_APP.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String raw = typed == null ? "" : typed.toString();
+            String clean = raw.trim();
+            if (!clean.isEmpty() && SendLink.targetPackage(clean) == null) {
+                Utils.showToastShort(L10n.f("%1$s isn't a package name, so the app stays as it was.",
+                        L10n.isolate(clean)));
+                return false;
+            }
+            if (clean.equals(raw)) return true;
+            // Keeps the trimmed name in place of what was typed, as the folder row does.
+            ((SendAppRow) preference).setText(clean);
+            return false;
+        });
+        return row;
+    }
+
+    /** What the send-to row says for [app], the package typed there. */
+    static String sendAppSummary(String app) {
+        String target = SendLink.targetPackage(app);
+        return target == null
+                ? L10n.t("Android asks which app each time.")
+                : L10n.f("Links go to %1$s. When it isn't installed, Android asks which app.", L10n.isolate(target));
+    }
+
+    /** {@link #folderSummary(String, SaveTo)} under the top folder Save to picks now. */
     static String folderSummary(String leaf) {
-        String videos = Environment.DIRECTORY_MOVIES + "/" + leaf;
-        String photos = Environment.DIRECTORY_PICTURES + "/" + leaf;
+        return folderSummary(leaf, Settings.SAVE_TO.savedValue());
+    }
+
+    /**
+     * "Videos go to Movies/Clips and photos to Pictures/Clips." for the folder [leaf] under
+     * [to], or "Videos and photos go to Download/Clips." when both go to one top folder.
+     */
+    static String folderSummary(String leaf, SaveTo to) {
+        String videos = to.directory(true) + "/" + leaf;
+        String photos = to.directory(false) + "/" + leaf;
+        if (videos.equals(photos)) return L10n.f("Videos and photos go to %1$s.", L10n.isolate(videos));
         return L10n.f("Videos go to %1$s and photos to %2$s.", L10n.isolate(videos), L10n.isolate(photos));
     }
 
@@ -2017,6 +2253,113 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         protected void showDialog(Bundle state) {
             super.showDialog(state);
             if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The Save to row. Its summary follows its value, whoever sets it: the person, the shared page
+     * syncing it from the setting, or an import.
+     */
+    static final class SaveToRow extends ListPreference {
+        SaveToRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            SaveTo to = SaveTo.MOVIES_AND_PICTURES;
+            for (SaveTo candidate : SaveTo.values()) {
+                if (candidate.name().equals(getValue())) to = candidate;
+            }
+            setSummary(saveToSummary(to));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The download action's row. Its summary follows its value, whoever sets it: the person or the
+     * shared page syncing it from the setting.
+     */
+    static final class DownloadActionRow extends ListPreference {
+        DownloadActionRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            setSummary(downloadActionSummary(SendLink.Action.SEND.name().equals(getValue())
+                    ? SendLink.Action.SEND : SendLink.Action.SAVE));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The send-to app's row. Its summary follows its text, whoever sets it: the person or the
+     * shared page syncing it from the setting.
+     */
+    static final class SendAppRow extends EditTextPreference {
+        SendAppRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(sendAppSummary(text));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its edit dialog takes the screen's colours, as the folder's does. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            fitAboveKeyboard(getDialog());
         }
     }
 

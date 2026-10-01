@@ -37,6 +37,28 @@ public class DarkModeTest {
         assertTrue(DarkMode.on());
     }
 
+    /**
+     * Before Facebook first answers, on() says dark so the themes act as they always did, but
+     * saidOn() waits: the blues both of Facebook's themes share take the palette only once Facebook
+     * has said dark. A first answer of dark changes nothing on() said, so it runs no listener.
+     */
+    @Test
+    public void saidOnWaitsForFacebooksFirstAnswer() {
+        AtomicInteger runs = new AtomicInteger();
+        DarkMode.forget();
+        DarkMode.changed = runs::incrementAndGet;
+        assertTrue("dark until Facebook answers", DarkMode.on());
+        assertFalse("but not said", DarkMode.saidOn());
+        DarkMode.answer(true);
+        assertTrue(DarkMode.saidOn());
+        assertEquals("the first answer kept what on() said", 0, runs.get());
+        DarkMode.answer(false);
+        assertFalse(DarkMode.saidOn());
+        assertFalse(DarkMode.on());
+        DarkMode.answer(true);
+        assertTrue("said dark again", DarkMode.saidOn());
+    }
+
     /** Material You writes its route three fields again only when the answer changes, not on every ask. */
     @Test
     public void theListenerRunsOnAChangeOnly() {

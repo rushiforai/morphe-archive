@@ -159,6 +159,62 @@ public class PostDetailsTest {
         assertEquals(Arrays.<Object>asList(story), PostDetails.treesIn(new Card("id", story, 0)));
     }
 
+    /**
+     * The poster's id is the id of the actor whose name the file name uses. On 577 and 580
+     * Facebook's own getters read it the same way: {@code getCachedNullableString("id".hashCode())}
+     * on the tree model, which asks {@code TreeJNI.getString} on a cache miss. Only a number is
+     * kept, so nothing but digits from the app can reach a file name.
+     */
+    @Test
+    public void thePostersIdIsTheOneTheNamedPosterCarries() {
+        assertEquals("id".hashCode(), PostDetails.ID);
+        assertEquals(3355, PostDetails.ID);
+        // A video's owner, a post's first named actor, a reel's short-form video owner.
+        TreeJNI video = new TreeJNI().with("owner", actor("Page Owner").with("id", "100064123456789"));
+        assertEquals("100064123456789", PostDetails.read("1", video).ownerId);
+        TreeJNI post = new TreeJNI().with("actors", Arrays.asList(new TreeJNI().with("id", "111"),
+                actor("First Actor").with("id", "222"), actor("Second Actor").with("id", "333")));
+        PostDetails fromPost = PostDetails.read("1", post);
+        assertEquals("First Actor", fromPost.owner);
+        assertEquals("the nameless actor before the named one lent its id", "222", fromPost.ownerId);
+        TreeJNI reel = new TreeJNI().with("short_form_video_context",
+                new TreeJNI().with("video_owner", actor("Reel Owner").with("id", "555")));
+        assertEquals("555", PostDetails.read("1", reel).ownerId);
+        // An owner with no name gives no id either, and the actors answer for both.
+        TreeJNI both = new TreeJNI().with("owner", new TreeJNI().with("id", "999"))
+                .with("actors", Collections.singletonList(actor("Actor").with("id", "444")));
+        PostDetails fromBoth = PostDetails.read("1", both);
+        assertEquals("Actor", fromBoth.owner);
+        assertEquals("444", fromBoth.ownerId);
+        // The first model with a poster gives both, and a later model's id never pairs with it.
+        assertEquals("100064123456789", PostDetails.read("1", video, post).ownerId);
+        PostDetails noId = PostDetails.read("1", new TreeJNI().with("owner", actor("No Id")), video);
+        assertEquals("No Id", noId.owner);
+        assertNull(noId.ownerId);
+        assertFalse(noId.hasOwnerId());
+        // A story card's own story lends its actor's id.
+        TreeJNI story = new TreeJNI().with("actors", Collections.singletonList(actor("Story Teller").with("id", "777")))
+                .with("creation_time", SECONDS);
+        assertEquals("777", PostDetails.ofCard("1", new Card("id", story, SECONDS * 1000)).ownerId);
+
+        // Only digits, and no more than an id has.
+        StringBuilder tooLong = new StringBuilder();
+        for (int i = 0; i < 26; i++) tooLong.append('1');
+        for (String refused : new String[]{"", "abc", "12a", "1/2", " 123", "123 ", "-5", "\u0661\u0662", tooLong.toString()}) {
+            TreeJNI odd = new TreeJNI().with("owner", actor("Page Owner").with("id", refused));
+            assertNull(refused, PostDetails.read("1", odd).ownerId);
+            assertEquals("Page Owner", PostDetails.read("1", odd).owner);
+            assertNull(refused, new PostDetails(null, "Page Owner", refused, null).ownerId);
+        }
+        assertTrue(new PostDetails(null, "Page Owner", "4", null).hasOwnerId());
+
+        // A released actor gives no id and is never read.
+        TreeJNI gone = actor("Page Owner").with("id", "100064123456789");
+        gone.releasedTree();
+        assertNull(PostDetails.read("1", new TreeJNI().with("owner", gone)).ownerId);
+        assertFalse(gone.readAfterRelease);
+    }
+
     @Test
     public void theOwnerIsCleanedLikeAFolderNameAndBounded() {
         assertEquals("a_b", new PostDetails(null, " a/b ", null).owner);
@@ -179,8 +235,10 @@ public class PostDetailsTest {
     /** A details object can land in a diagnostic line, so it never says who or which. */
     @Test
     public void toStringNamesNothing() {
-        String text = new PostDetails("1234567890123456", "Stevi Ous", new Date(SECONDS * 1000)).toString();
-        assertFalse(text, text.contains("Stevi") || text.contains("1234567890123456") || text.contains("2026"));
+        String text = new PostDetails("1234567890123456", "Stevi Ous", "100064123456789", new Date(SECONDS * 1000)).toString();
+        assertFalse(text, text.contains("Stevi") || text.contains("1234567890123456") || text.contains("100064123456789")
+                || text.contains("2026"));
+        assertTrue(text, text.contains("poster id known"));
         assertTrue(text, text.contains("known"));
         assertTrue(PostDetails.NONE.toString().contains("unknown"));
     }

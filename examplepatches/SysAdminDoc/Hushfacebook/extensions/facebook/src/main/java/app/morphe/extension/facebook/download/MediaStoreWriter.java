@@ -12,7 +12,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 
 import java.io.IOException;
@@ -71,8 +70,8 @@ final class MediaStoreWriter implements Downloader.Sink {
     }
 
     /**
-     * {@code Movies/Facebook} or {@code Pictures/Facebook}, or the folder the person named in
-     * place of Facebook, for the message to the user.
+     * {@code Movies/Facebook} or {@code Pictures/Facebook}, or the top folder and the folder the
+     * person chose in their place, such as {@code Download/Clips}, for the message to the user.
      */
     String savedLocation() {
         return location;
@@ -81,15 +80,15 @@ final class MediaStoreWriter implements Downloader.Sink {
     @Override
     public OutputStream open(String mimeFromServer) throws IOException {
         String mime = mime(mimeFromServer);
-        String directory = video ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES;
+        // Read here, per file, like the folder. The top folder decides the collection too: only
+        // the Downloads one takes Download, and it takes both kinds.
+        SaveTo to = SaveTo.current();
         // One folder name for both kinds, so a story's photos and its videos land side by side.
         // It's read here, per file, and cleaned where it's read: a slash or a dot segment in the
         // setting can't turn this into a path of the setting's choosing.
-        location = directory + "/" + SaveFolder.leaf();
+        location = to.directory(video) + "/" + SaveFolder.leaf();
 
-        Uri collection = video
-            ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-            : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        Uri collection = to.collection(video);
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, name(mime, collection));
@@ -254,10 +253,12 @@ final class MediaStoreWriter implements Downloader.Sink {
         List<String> missing = new ArrayList<>();
         if (FileNameTemplate.usesVideoId(template) && !details.hasVideoId()) missing.add("the video id");
         if (FileNameTemplate.usesOwner(template) && !details.hasOwner()) missing.add("the poster");
+        if (FileNameTemplate.usesOwnerId(template) && !details.hasOwnerId()) missing.add("the poster's id");
         if (FileNameTemplate.usesPosted(template) && !details.hasPosted()) missing.add("the post date");
         if (missing.isEmpty()) return;
 
-        boolean apart = FileNameTemplate.keepsApart(template, details.hasVideoId(), details.hasOwner(), details.hasPosted());
+        boolean apart = FileNameTemplate.keepsApart(template, details.hasVideoId(), details.hasOwner(),
+            details.hasOwnerId(), details.hasPosted());
         String asked = missing.size() == 1 ? missing.get(0)
             : String.join(", ", missing.subList(0, missing.size() - 1)) + " and " + missing.get(missing.size() - 1);
         String has = missing.size() == 1 ? "none" : missing.size() == 2 ? "neither" : "none of them";

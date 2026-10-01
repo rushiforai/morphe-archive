@@ -92,4 +92,12 @@ internal val pluginGates = mapOf(
         ),
         setOf("LX/2aP;->A04()Z"),
     ),
+    // The Meta AI bottom tab. Its kill switch also gates the tab's own toolbar buttons, so the
+    // anchor is the tab content, which only the bottom bar's gate builds.
+    "ai_tab" to PluginGate(
+        setOf(
+            "com.facebook.messaging.aibot.plugins.tab.tabcontent.MetaAiTabContentImplementation",
+        ),
+        setOf("LX/1iN;->A02(LX/1iN;)Z"),
+    ),
 )

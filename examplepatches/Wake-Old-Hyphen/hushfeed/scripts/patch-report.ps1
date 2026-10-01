@@ -3,11 +3,12 @@
     The checks that say whether a morphe-desktop run actually patched anything.
 
 .DESCRIPTION
-    Dot-sourced by verify-all-patches.ps1, patch-for-device.ps1 and measure-patch-heap.ps1. They
-    ask the same question of the same CLI, and two used to carry their own copy of these functions. The
-    copies drifted: the verification script learned on 2026-09-08 that morphe-desktop 1.15.0
-    omits the top-level success field when it is true, and the heap script did not, so every
-    successful run it measured came back invalid. One copy is why that cannot happen again.
+    Dot-sourced by verify-all-patches.ps1, patch-for-device.ps1, measure-patch-heap.ps1 and
+    time-patches.ps1. The first three ask the same question of the same CLI, and two used to
+    carry their own copy of these functions. The copies drifted: the verification script learned
+    on 2026-09-08 that morphe-desktop 1.15.0 omits the top-level success field when it is true,
+    and the heap script did not, so every successful run it measured came back invalid. One copy
+    is why that cannot happen again. The last reads the CLI's progress lines and GC log instead.
 
     The CLI writes its result file from a finally block, so a file exists even after a failed
     compile or save. Nothing here treats the file's existence as the answer.
@@ -192,4 +193,54 @@ function Test-PatchingReport {
         Applied = $applied.Count
         Failed = $failed.Count
     }
+}
+
+function Read-GcHeapLog {
+    <#
+    .SYNOPSIS
+        The collections in a JVM log written with -Xlog:gc:file=...:timemillis, each as the wall
+        clock it ran at (milliseconds since the epoch) and the heap in MB just before it, which is
+        where the heap peaks. Lines that are not a collection are skipped.
+    #>
+    param([string[]]$Lines)
+    # "[1790000000123ms] GC(12) Pause Young (Normal) (G1 Evacuation Pause) 1234M->567M(4096M) 12.345ms"
+    return @($Lines | ForEach-Object {
+        if ($_ -match '^\[(\d+)ms\].*?\s(\d+)M->(\d+)M\(') {
+            [pscustomobject]@{ At = [long]$Matches[1]; Before = [int]$Matches[2] }
+        }
+    })
+}
+
+function Get-PatchTimes {
+    <#
+    .SYNOPSIS
+        Each patch's wall time and heap peak, from the CLI's output lines stamped with the clock
+        the GC log uses. $null when the CLI never reached its patches.
+    .DESCRIPTION
+        $Stamped holds objects with At (milliseconds since the epoch) and Line. The CLI prints
+        "Applied: <name>" or "FAILED: <name>" as each patch finishes, in the order it runs them,
+        and matches a patch's fingerprints while it runs, so a patch's time is the gap since the
+        line before it, counted from "Executing patches". Its heap peak is the fullest the heap got
+        in that gap, $null when no collection ran in it. Lines before "Executing patches" are
+        loading and decoding and are never counted as a patch.
+    #>
+    param([object[]]$Stamped, [object[]]$Collections)
+    $executing = @($Stamped | Where-Object { $_.Line -match '^INFO: Executing patches' })
+    if ($executing.Count -eq 0) { return $null }
+    $from = $executing[0].At
+    $rows = New-Object System.Collections.Generic.List[object]
+    $previous = $from
+    foreach ($entry in @($Stamped)) {
+        if ($entry.At -lt $from) { continue }
+        # -match ignores case, so "FAILED" is taken too, and the capture keeps the CLI's spelling.
+        if ($entry.Line -match '^(?:INFO|SEVERE): (Applied|Failed): (.+?)\s*$') {
+            $patch = $Matches[2]
+            $result = $Matches[1]
+            $inside = @($Collections | Where-Object { $_.At -gt $previous -and $_.At -le $entry.At })
+            $peak = if ($inside.Count -eq 0) { $null } else { [int]($inside | Measure-Object -Property Before -Maximum).Maximum }
+            $rows.Add([pscustomobject]@{ Patch = $patch; Result = $result; Ms = $entry.At - $previous; PeakMb = $peak })
+            $previous = $entry.At
+        }
+    }
+    return [pscustomobject]@{ ExecutingAt = $from; LastPatchAt = $previous; Rows = $rows.ToArray() }
 }

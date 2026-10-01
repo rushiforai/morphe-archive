@@ -1,0 +1,414 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e726f636b6669656c64" deprecated="true">
+
+    <params>
+        <texture id="noisex1" srcType="image" src="textures/iChannelX1.png" />
+        <texture id="noisex2" srcType="image" src="textures/iChannel12.png" />
+        <texture id="noisex3" srcType="image" src="textures/t33.png" />
+        <texture id="noisex4" srcType="image" src="textures/t44.png" />
+        <texture id="noisex5" srcType="image" src="textures/t66.png" />
+        <texture id="noisex6" srcType="image" src="textures/t77.png" />
+        <selector id="typeX" style="dropdown" default="0" label="Texture">
+            <choice label="Texture 1" value="0" />
+            <choice label="Texture 2" value="1" />
+            <choice label="Texture 3" value="2" />
+            <choice label="Texture 4" value="3" />
+            <choice label="Texture 5" value="4" />
+            <choice label="Texture 6" value="5" />
+        </selector>
+        <selector id="EVO" style="radio" default="0" label="Evo Mode">
+            <choice label="OFF" value="0" />
+            <choice label="FORWARD" value="1" />
+            <choice label="REVERSE" value="2" />
+        </selector>
+        <spinner id="scale" default="1.25" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="XXA" label="Appear" default="0.0" min="0.0" max="3.0" step="0.01" type="percent" />
+        <section text="Camera Setting" />
+        <spinner id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXD" label="X Camera" default="0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXE" label="Y Camera" default="2.25" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="XXG" label="H Camera" default="0.2" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="A1" label="Orient Camera" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" step="0.5" type="angle" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <section text="Lighting Setting" />
+        <xyz id="ORIENT" label="Shading Direction" default="0.0,50.0,200.0" />
+        <color id="color1" default="#FFAA0000" label="Shading Color" alpha="true" />
+        <switch id="GGG" default="false" label="GreyScale" />
+        <spinner id="hardness" default="1.0" min="1.0" max="20.0" step="0.1" label="Intensity" type="percent" />
+        <spinner id="XXB" label="Shadow" default="0.5" min="0.0" max="1.0" step="0.01" type="percent" />
+        <section text="Optional Setting" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.2,0.2" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1.0 - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.0,1.0)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        #define PI 3.14159265358979
+        
+        vec3 hsv2rgb(vec3 c)
+        {
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+        }
+
+        vec3 rgb2hsv(vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        
+        // Grey scale.
+        float getGrey(vec3 p){ return p.x*0.299 + p.y*0.587 + p.z*0.114; }
+        float greyScale(in vec3 col) { return dot(col, vec3(0.2126, 0.7152, 0.0722)); }
+        
+        // 2x2 matrix rotation.
+        mat2 rot2( float a ){ float c = cos(a), s = sin(a);	return mat2( c, -s,	s, c ); }
+        
+        // Cheapish vec3-to-vec3 hash function.
+        vec3 hash33(vec3 p){ 
+            
+            float n = sin(dot(p, vec3(7, 157, 113)));    
+            return fract(vec3(2097152, 262144, 32768)*n); 
+        }
+        
+        
+        // Tri-Planar blending function.0 Based on an old Nvidia tutorial.
+        vec3 tex3D( sampler2D tex, in vec3 p, in vec3 n ){
+          
+            n = max((abs(n) - 0.2)*7.0, 0.001); // n = max(abs(n), 0.001), etc.
+            n /= (n.x + n.y + n.z ); 
+        	p = (texture2DCv(tex, p.yz)*n.x + texture2DCv(tex, p.zx)*n.y + texture2DCv(tex, p.xy)*n.z).xyz;
+            return p*p;
+        }
+        
+        
+        vec3 tri(in vec3 x){return abs(x-floor(x)-.5);} // Triangle function.
+        vec3 triSmooth(in vec3 x){return cos(x*6.2831853)*0.25+0.25;} // Smooth version.0 Not used here.
+        
+        
+        float surfFunc(in vec3 p){
+            
+            float n = dot(tri(p*0.15 + tri(p.yzx*0.075)), vec3(0.444));
+            p = p*1.5773;// - n; // The "n" mixes things up more.
+            p.yz = vec2(p.y + p.z, p.z - p.y) * 0.866;
+            p.xz = vec2(p.x + p.z, p.z - p.x) * 0.866;
+            n += dot(tri(p*0.225 + tri(p.yzx*0.1125)), vec3(0.222)); 
+            
+            return abs(n-0.5)*1.9 + (1.0 - abs(sin(n*9.0)))*0.05; // Range [0, 1]
+                    
+        }
+        vec2 path(in float z){ float s = sin(z/36.0)*cos(z/18.0); return vec2(0.0, 0.0); }
+        // vec2 path(in float z){ float s = sin(z/36.0)*cos(z/18.0); return vec2(s*16.0, 0.0); }
+        
+        // Standard setup for a plane at zero level with a perturbed surface on it.
+        float map(vec3 p){
+         
+             return p.y - surfFunc(p)*XXA;
+             // return p.y - surfFunc(p)*1.5;
+         
+        }
+        
+        vec3 doBumpMap( sampler2D tex, in vec3 p, in vec3 nor, float bumpfactor){
+           
+            const float eps = 0.001;
+            vec3 grad = vec3( getGrey(tex3D(tex, vec3(p.x-eps, p.y, p.z), nor)),
+                              getGrey(tex3D(tex, vec3(p.x, p.y-eps, p.z), nor)),
+                              getGrey(tex3D(tex, vec3(p.x, p.y, p.z-eps), nor)));
+            
+            grad = (grad - getGrey(tex3D(tex,  p , nor)))/eps; 
+                    
+            grad -= nor*dot(nor, grad);          
+                              
+            return normalize( nor + grad*bumpfactor );
+        	
+        }
+        
+        // Tetrahedral normal: I remember a similar version on "Pouet.net" years ago, but this one is courtesy of IQ.
+        vec3 getNormal( in vec3 p ){
+        
+            vec2 e = vec2(0.5773,-0.5773)*0.001;
+            return normalize( e.xyy*map(p+e.xyy ) + e.yyx*map(p+e.yyx ) + e.yxy*map(p+e.yxy ) + e.xxx*map(p+e.xxx ));
+        }
+        
+        // Based on original by IQ.
+        float calculateAO(vec3 p, vec3 n){
+        
+            const float AO_SAMPLES = 5.0;
+            float r = 0.0, w = 1.0, d;
+            
+            for (float i=1.0; i<AO_SAMPLES+1.1; i++){
+                d = i/AO_SAMPLES;
+                r += w*(d - map(p + n*d));
+                // w *= (1.0 - XXB);
+                w *= XXB;
+                // w *= 0.5;
+            }
+            
+            return 1.0-clamp(r,0.0,1.0);
+        }
+        
+        float curve(in vec3 p, in float w){
+        
+            vec2 e = vec2(-1.0, 1.0)*w;
+            
+            float t1 = map(p + e.yxx), t2 = map(p + e.xxy);
+            float t3 = map(p + e.xyx), t4 = map(p + e.yyy);
+            
+            return 0.125/(w*w) *(t1 + t2 + t3 + t4 - 4.0*map(p));
+        }
+        
+        
+        // Blackbody color palette.0 Handy for all kinds of things.
+        vec3 blackbodyPalette(float t){
+        
+            // t = tLow + (tHigh - tLow)*t;
+            t *= 3200.0; // Temperature range.0 Hardcoded from 0K to 4000K, in this case.0    
+            
+            // Planckian locus or black body locus approximated in CIE color space.
+            float cx = (0.860117757 + 1.54118254e-4*t + 1.28641212e-7*t*t)/(1.0 + 8.42420235e-4*t + 7.08145163e-7*t*t);
+            float cy = (0.317398726 + 4.22806245e-5*t + 4.20481691e-8*t*t)/(1.0 - 2.89741816e-5*t + 1.61456053e-7*t*t);
+            
+            // Converting the chromacity coordinates to XYZ tristimulus color space.
+            float d = (2.0*cx - 8.0*cy + 4.0);
+            vec3 XYZ = vec3(3.0*cx/d, 2.0*cy/d, 1.0 - (3.0*cx + 2.0*cy)/d);
+            
+            // Converting XYZ color space to RGB: http://www.cs.rit.edu/~ncs/color/t_spectr.html
+            vec3 RGB = ((vec3(1.0,1.0,1.0) * hardness)
+            // vec3 RGB = ((vec3(1.0,1.0,1.0) * hardness)
+            // vec3 RGB = mat3(3.240479, -0.969256, 0.055648, -1.537150, 1.875992, -0.204043, 
+                            // -0.498535, 0.041556, 1.057311) 
+                            * vec3(1./XYZ.y*XYZ.x, 1.0, 1./XYZ.y*XYZ.z));
+        
+            // Apply Stefanâ€“Boltzmann law to the RGB color
+            return max(RGB, 0.0)*pow(t*0.0004, 4.0); 
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        TanRyu /= scale;
+        TanRyu *= rot2m((180.0+angle)*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.0,1.0)/500.0;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+        	vec2 uv = TanRyu;
+        	// vec2 uv = (fragCoord - iResolution.xy*0.5)/iResolution.y;
+        	
+        	// Camera Setup.
+        	float XD;
+        	if(EVO==0) { XD = PROGRESS; }
+        	else if(EVO==1) { XD = PROGRESS + acTime; }
+        	else if(EVO==2) { XD = PROGRESS - acTime; }
+        	// float XD = autop? PROGRESS + acTime : PROGRESS;
+        	vec3 lookAt = vec3(XXD, XXE, XD);  // "Look At" position.
+        	// vec3 lookAt = vec3(XXD, XXE, PROGRESS);  // "Look At" position.
+        	// vec3 lookAt = vec3(0.0, 2.25, PROGRESS);  // "Look At" position.
+        	vec3 camPos = lookAt + vec3(0.0, XXG, -0.5); // Camera position, doubling as the ray origin.
+        	// vec3 camPos = lookAt + vec3(0.0, 0.2, -0.5); // Camera position, doubling as the ray origin.
+         
+            // Light positioning.0 One is just in front of the camera, and the other is in front of that.
+         	vec3 lp = camPos + vec3(ORIENT.x /100.0, ORIENT.y /100.0, ORIENT.z /100.0);// Put it a bit in front of the camera.
+        	vec3 lp2 = camPos + vec3(0.0, 0.5, 9.0);// Put it a bit in front of the camera.
+         	// vec3 lp = camPos + vec3(0.0, 0.5, 2.0);// Put it a bit in front of the camera.
+        	
+        	lookAt.xz *= rot2m(A1*0.0174533);
+        	lookAt.xy += path(lookAt.z);
+        	camPos.xy += path(camPos.z);
+        	lp.xy += path(lp.z);
+        	lp2.xy += path(lp2.z);
+        
+            // Using the above to produce the unit ray-direction vector.
+            float FOV = PI/3.0; // FOV - Field of view.
+            vec3 forward = normalize(lookAt-camPos);
+            vec3 right = normalize(vec3(forward.z, 0.0, -forward.x )); 
+            // "right" and "forward" are perpendicular, due to the dot product being zero.0 Therefore, Im 
+            // assuming no normalizaztion is necessary? The only reason I ask is that lots of people do 
+            // normalize, so perhaps Im overlooking something?
+            vec3 up = cross(forward, right); 
+        
+            // rd - Ray direction.
+            vec3 rd = normalize(forward + FOV*uv.x*right + FOV*uv.y*up);
+            
+            // Swiveling the camera about the XY-plane (from left to right) when turning corners.
+            // Naturally, it synchronized with the path in some kind of way.
+        	rd.xy *= rot2( path(lookAt.z).x/32.0 );
+        		
+        	float t = 0.0, dt;
+        	for(int i=0; i<128; i++){
+        		dt = map(camPos + rd*t);
+        		if(abs(dt)<0.001*(1.0 + t*0.125) || t>40.0) break; 
+        		t += dt*0.7; // Without the "abs" call, you would need "t += dt*0.5;," or thereabouts.
+        	}
+            
+            t = min(t, 40.0);
+        	
+            // Initiate the scene color to black.
+        	vec3 sceneCol = vec3(0.0);
+        	
+        	// The ray has effectively hit the surface, so light it up.
+        	if(t<40.0001){
+        
+            	
+            	// Surface position and surface normal.
+        	    vec3 sp = camPos + rd*t;
+        	    vec3 sn = getNormal(sp);
+                
+                // Texture scale factor.
+                const float tSize0 = 1./3.0;
+                // Texture-based bump mapping.0 Comment this line out to 
+                // spoil the illusion.
+                    if( typeX==0 ) {
+        	       sn = doBumpMap(noisex1.texture, sp*tSize0, sn, 0.04); }
+                    else if( typeX==1 ) {
+        	       sn = doBumpMap(noisex2.texture, sp*tSize0, sn, 0.04); }
+                    else if( typeX==2 ) {
+        	       sn = doBumpMap(noisex3.texture, sp*tSize0, sn, 0.04); }
+                    else if( typeX==3 ) {
+        	       sn = doBumpMap(noisex4.texture, sp*tSize0, sn, 0.04); }
+                    else if( typeX==4 ) {
+        	       sn = doBumpMap(noisex5.texture, sp*tSize0, sn, 0.04); }
+                    else if( typeX==5 ) {
+        	       sn = doBumpMap(noisex6.texture, sp*tSize0, sn, 0.04); }
+
+                    vec3 texCol;
+                    if( typeX==0 ) {
+        	       texCol = tex3D(noisex1.texture, sp*tSize0, sn); }
+                    else if( typeX==1 ) {
+        	       texCol = tex3D(noisex2.texture, sp*tSize0, sn); }
+                    else if( typeX==2 ) {
+        	       texCol = tex3D(noisex3.texture, sp*tSize0, sn); }
+                    else if( typeX==3 ) {
+        	       texCol = tex3D(noisex4.texture, sp*tSize0, sn); }
+                    else if( typeX==4 ) {
+        	       texCol = tex3D(noisex5.texture, sp*tSize0, sn); }
+                    else if( typeX==5 ) {
+        	       texCol = tex3D(noisex6.texture, sp*tSize0, sn); }
+
+        	    // Ambient occlusion.
+        	    float ao = calculateAO(sp, sn);
+            	
+            	// Light direction vectors.
+        	    vec3 ld = lp-sp;
+        	    vec3 ld2 = lp2-sp;
+        
+                // Distance from respective lights to the surface point.
+        	    float lDist = max(length(ld), 0.001);
+        	    float lDist2 = max(length(ld2), 0.001);
+            	
+            	// Normalize the light direction vectors.
+        	    ld /= lDist;
+        	    ld2 /= lDist2;
+        	    
+        	    // Light attenuation, based on the distances above.
+        	    float atten = 1./(1.0 + lDist*lDist*0.075);
+        	    float atten2 = 1./(1.0 + lDist2*lDist2*0.075);
+            	
+            	// Ambient light.
+        	    float ambience = 0.05;
+            	
+            	// Diffuse lighting.
+        	    float diff = max( dot(sn, ld), 0.0);
+        	    float diff2 = max( dot(sn, ld2), 0.0);
+            	
+            	// Specular lighting.
+        	    float spec = pow(max( dot( reflect(-ld, sn), -rd ), 0.0 ), 8.0);
+        	    float spec2 = pow(max( dot( reflect(-ld2, sn), -rd ), 0.0 ), 8.0);
+            	
+            	// Curvature.
+        	    float crv = clamp(curve(sp, 0.125)*0.5 + 0.5, .0, 1.0);
+        	    
+        	    float shading =  crv*0.75 + 0.25; //surfFunc(sp)*0.5+0.5;//
+                
+                
+        	    float rnd = fract(sin(dot(sp, vec3(7, 157, 113)))*43758.4543);
+                float tRange = 0.25;
+                float nDepth = 0.03;
+                vec3 hf = normalize(rd+ld);
+        	    float ss = tRange*0.5-map( sp-sn*(nDepth+rnd*0.005) + hf*tRange*0.5 ) + (tRange-map( sp-sn*(nDepth*2.+rnd*0.01) + hf*tRange ))*0.5;
+        	    hf = normalize(rd+ld2);
+                float ss2 = tRange*0.5-map( sp-sn*(nDepth+rnd*0.005) + hf*tRange*0.5 ) + (tRange-map( sp-sn*(nDepth*2.+rnd*0.01) + hf*tRange ))*0.5;
+        	    
+        	    ss = max(ss, 0.0);
+        	    ss2 = max(ss2, 0.0);
+                
+            	
+            	// Combing the above terms to produce the surface color.
+                vec3 rCol = getGrey(texCol)*0.5 + texCol*0.5;
+                vec3 sCol = texCol*0.5 + 0.5;
+                sceneCol += (rCol*(diff + ambience) + blackbodyPalette(ss*.6)*sCol*12.0 + spec*texCol*2.0)*atten;
+                sceneCol += (rCol*(diff2 + ambience) + blackbodyPalette(ss2*.6)*sCol*12.0 + spec2*texCol*2.0)*atten2;
+              
+        	    
+                // Shading.
+                sceneCol *= shading*ao;
+        	
+        	}
+        	
+            // Loose gamma correction.
+        	fragColor = vec4(sqrt(clamp(sceneCol, 0.0, 1.0)), 1.0);
+        	
+            vec3 top = color1.rgb;
+            vec3 bot;
+            bot = fragColor.rgb * texColor.a;
+            if (GGG) { bot = vec3(greyScale(fragColor.rgb)) * texColor.a; }
+
+            // Blend top, bot
+            vec3 result = hsv2rgb(vec3(rgb2hsv(top).r, rgb2hsv(bot).gb));
+
+            // Output result
+            vec4 finalFrag = vec4(result,texColor.a);
+            	
+    	gl_FragColor = mix(texColor, finalFrag, alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

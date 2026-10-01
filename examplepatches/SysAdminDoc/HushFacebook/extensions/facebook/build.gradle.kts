@@ -78,6 +78,9 @@ val requestedBouncyCastleVersions = sortedSetOf<String>()
 // Module names, kept apart from the versions above so a name can never end up in the reviewed
 // version set by someone pasting it in.
 val unversionedBouncyCastleRequests = sortedSetOf<String>()
+// GHSA-xxph-c9ww-hj94 covers every Guava before 33.7.2, and Robolectric's test graph asks for
+// 33.6.0. Rewritten to the catalog's release, as :patches does for the patcher's graph.
+val safeGuavaVersion = libs.versions.guava.get()
 
 configurations.configureEach {
     resolutionStrategy.eachDependency {
@@ -100,6 +103,10 @@ configurations.configureEach {
             }
             useVersion(safeBouncyCastleVersion)
             because("The Robolectric test graph must use the reviewed security release.")
+        }
+        if (requested.group == "com.google.guava" && requested.name == "guava") {
+            useVersion(safeGuavaVersion)
+            because("GHSA-xxph-c9ww-hj94 covers every Guava before 33.7.2.")
         }
     }
 }

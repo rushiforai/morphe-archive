@@ -39,7 +39,7 @@ Tap the button below from an Android device with Morphe Manager installed:
 | 🤖 **AI Work Flagger** | Detects and tags AI-generated works. Dims thumbnails with an `[AI]` badge (or hides them entirely), adds an `[AI]` tag next to titles, displays a clean single top warning banner on detail pages, and includes custom tag settings. |
 | 🚫 **Adblocker** | Removes banner ads, sponsored cards, promotional carousels, and review prompts without leaving blank layout padding. |
 | ⬇️ **Artwork Downloader** | Adds an in-app button to download original, full-resolution illustrations and manga with a multi-image picker grid and fast local thumbnail caching. |
-| 💎 **Premium Features** | Emulates client-side premium membership status for clean ad suppression, unlocks popularity search sorting (`popular_desc`), lifts mute limits up to 9,999 entries, and enables local browsing history. |
+| 💎 **Premium Features** | Emulates client-side premium membership status for clean ad suppression, unlocks popularity search sorting (`popular_desc`), lifts mute limits up to 9,999 entries with backup import/export, and enables local browsing history. |
 | 🔒 **Analytics Blocker** | Blocks Firebase Analytics, Google Measurement telemetry, and Pixiv internal tracking for better privacy. |
 | 🌙 **OLED Dark Theme** | Overrides dark gray backgrounds, comment sections, card surfaces, and bottom sheets with true pitch-black (`#000000`) for OLED displays and battery savings. |
 | 🔍 **Enhanced Viewer & Zoom** | Shows standard-resolution artwork instantly as a placeholder while full-resolution loads, with a discreet HD loading indicator and seamless zoom preservation. |

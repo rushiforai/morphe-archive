@@ -1,0 +1,15 @@
+<?xml 
+version='1.0' 
+  encoding='UTF-8' ?> 
+  <effect id="com.alightcreative.effect.tanryu" 
+  name="About Me" 
+  desc="Info from the Modder" 
+  category="other" 
+  thumb="thumb/TANRYU/Tanryu.png" 
+  tags="other">
+<params>
+    <section text="Mod By Tanryu" />
+    <section text="Follow My Instagram:@alone.yeakin" />
+    <tip text="Thanks for Trusting Us" />
+    </params>
+</effect>

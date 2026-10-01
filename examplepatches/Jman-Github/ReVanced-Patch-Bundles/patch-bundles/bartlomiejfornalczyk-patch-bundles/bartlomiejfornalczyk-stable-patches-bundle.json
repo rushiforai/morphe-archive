@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-29T23:52:41",
-  "description": "## [1.4.19](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.18...v1.4.19) (2026-09-29)\n\n### \ud83d\udc1b Bug Fixes\n\n* inject MATCH_ALL via same-size CHECK_CAST replacement to avoid method expansion and startup crash ([0b70df9](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/0b70df9f3fe94bd5422226cb014c141df39eb72e))\n",
-  "download_url": "https://github.com/bartlomiejfornalczyk/morphe-patches/releases/download/v1.4.19/patches-1.4.19.mpp",
+  "created_at": "2026-09-30T10:04:45",
+  "description": "## [1.4.27](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.26...v1.4.27) (2026-09-30)\n\n### \ud83d\udc1b Bug Fixes\n\n* resolve crash on start by keeping loop bytecode intact and safe build call ([dbd2e15](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/dbd2e154a182e40a610f2bc5d5b908b70736ac60))\n",
+  "download_url": "https://github.com/bartlomiejfornalczyk/morphe-patches/releases/download/v1.4.27/patches-1.4.27.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.4.19"
+  "version": "v1.4.27"
 }

@@ -1,0 +1,212 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e66756a69" deprecated="true">
+
+    <params>
+        <switch id="scalex" default="false" label="Scale Normalize" />
+        <tip text="Enable the features if u use a shape to make a layer" />
+        <section text="Sun Option" />
+        <point id="positionn" label="Sun Position" />
+        <spinner id="progressa" label="Sun Progress" default="1.0" min="0" max="1000.0" step="0.01" type="percent" />
+        <spinner id="scalen" default="0.5" min="0.1" max="100.0" step="0.01" label="Scale Sun" type="percent" />
+        <spinner id="anglen" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Angle Sun" step="0.5" type="angle" />
+        <spinner id="alphan" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha Sun" type="percent" />
+        <section text="Grid Option" />
+        <point id="position" label="Position Grid" />
+        <point id="sstretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="progressb" label="Grid Progress" default="1.0" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="scale" default="0.5" min="0.1" max="100.0" step="0.01" label="Scale Grid" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Angle Grid" step="0.5" type="angle" />
+        <switch id="visible" default="false" label="Remove Grid" />
+        <!-- <spinner id="alphag" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha Grid" type="percent" /> -->
+        <!-- <spinner id="xnxx" default="3.5" min="0.0" max="5.0" step="0.01" label="XYZ" type="percent" /> -->
+        <color id="color1" default="#FFDD44DD" label="Base ColorSun" alpha="true" />
+        <color id="color3" default="#FFDD66DD" label="Top ColorSun" alpha="true" />
+        <!-- <color id="color6" default="#FFFFFFFF" label="Glow Sun" alpha="true" /> -->
+        <color id="color4" default="#FFDD77DD" label="Grid Color" alpha="true" />
+        <!-- <color id="color5" default="#FFDD77DD" label="Horizon Color" alpha="true" /> -->
+        <color id="color2" default="#FF000000" label="Backgrund" alpha="true" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha Comp" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <!-- <slider id="alphab" default="0.0" min="0.0" max="1.0" step="0.01" label="Alpha Blend" type="percent" /> -->
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+          float sun(vec2 uv, float battery)
+        {
+         	float val = smoothstep(0.3, 0.29, length(uv));
+         	float bloom = smoothstep(0.7, 0.0, length(uv));
+            float cut = 3.0 * sin((uv.y + progressa * 0.2 * (battery + 0.02)) * 100.0) 
+        				+ clamp(uv.y * 14.0 + 1.0, -6.0, 6.0);
+            cut = clamp(cut, 0.0, 1.0);
+            return clamp(val * cut, 0.0, 1.0) + bloom * 0.6;
+        }
+        
+        float grid(vec2 uv, float battery)
+        {
+            vec2 size = vec2(uv.y, uv.y * uv.y * 0.2) * 0.01;
+            uv += vec2(0.0, progressb * 4.0 * (battery + 0.05));
+            uv = abs(fract(uv) - 0.5);
+         	vec2 lines = smoothstep(size, vec2(0.0), uv);
+         	lines += smoothstep(size * 5.0, vec2(0.0), uv) * 0.4 * battery;
+            return clamp(lines.x + lines.y, 0.0, 3.0);
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec2 sscaleVec;
+        sscaleVec = vec2(1.0*sstretch.x,1.0*sstretch.y);
+        vec4 texColor = texture2DCv(inputImg.texture, (acScreenNorm/sscaleVec));
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+
+        if (visible) { TanRyu /= 100.0; }
+        else { TanRyu /= scalex? (scale+3.5) : scale; }
+        
+        TanRyu *= rot2m((180.0+angle)*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        
+        vec2 sunst;
+        sunst = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        sunst.y*=acLayerSize.y/acLayerSize.x;
+
+        sunst /= scalex? (scalen+3.5) : scalen;
+        sunst *= rot2m((180.0+anglen)*0.0174533);
+        sunst += vec2((375.0+positionn.x), (-180.0+positionn.y))*vec2(-1.,1.)/500.;
+
+        
+        /////////////////////////
+        
+        // if(progressa <= 0.0) { gl_FragColor = texture2DCv(inputImg.texture,acScreenNorm); }
+        // else if(progressa >= 0.0001) { 
+
+    	vec4 fragColor;
+    	
+     	    vec2 scaleVec;
+            scaleVec = vec2(1.0*stretch.x,1.0*stretch.y);
+            
+            vec2 uv = TanRyu/scaleVec;
+            // vec3 cx;
+            // cx.r = color1.r;
+            // cx.g = color1.g + 0.3;
+            // cx.b = color1.b;
+            
+            // vec3 cxx;
+            // cxx.r = color1.r;
+            // cxx.g = color1.g + 0.2;
+            // cxx.b = color1.b;
+            
+            // vec2 uv = (2.0 * fragCoord.xy - iResolution.xy)/iResolution.y;
+            float battery = 1.0;
+            {
+                // Grid
+                float fog = smoothstep(0.1, -0.02, abs(uv.y + 0.2));
+                vec3 col = vec3(0.0, 0.1, 0.2);
+                if (uv.y < -0.2)
+                {
+                    uv.y = 3.0 / (abs(uv.y + 0.2) + 0.05);
+                    uv.x *= uv.y * 1.0;
+                    float gridVal = grid(uv, battery); //180
+                    // col = mix(col, cx, gridVal);
+                    col = mix(col, vec3(color4.rgb), gridVal);
+                    // col *= alphag;
+                    // col = mix(col, vec3(1.0, 0.5, 1.0), gridVal);
+                }
+                else
+                {
+                    // float fujiD = min(uv.y * 4.5 - 0.5, 1.0);
+                    // uv.y -= battery * 1.1 - 0.51;
+                    
+                    vec2 sunUV = sunst;
+                    
+                    // Sun
+                    sunUV += vec2(0.75, 0.2); //193
+                    //uv.y -= 1.1 - 0.51;
+                    col = vec3(color1.rgb);
+                    // col = vec3(1.0, 0.2, 1.0);
+                    float sunVal = sun(sunUV, battery);
+                    //197
+                    // col = mix(col, cxx, sunUV.y * 2.0 + 0.2);
+                    col = mix(col, vec3(vec3(color3.rgb)), sunUV.y * 2.0 + 0.2); //)*alphag;
+                    // col = mix(col, vec3(1.0, 0.4, 0.1), sunUV.y * 2.0 + 0.2);
+                    col = mix(vec3(0.0, 0.0, 0.0), col, (sunVal*alphan));
+                    
+                    col += mix( col, mix(vec3(color4.rgb), vec3(0.0, 0.0, 0.2), clamp(uv.y * 3.5 + 3.0, 0.0, 1.0)), vec3(1.0, 1.0, 1.0) ); //) * alphag;
+                    // col += mix( col, mix(vec3(1.0, 0.12, 0.8), vec3(0.0, 0.0, 0.2), clamp(uv.y * 3.5 + 3.0, 0.0, 1.0)), vec3(1.0, 1.0, 1.0) );
+                    col = mix(col, vec3(0.0, 0.0, 0.2), 1.0 - smoothstep(0.075 - 0.0001, 0.075, vec3(1.0, 1.0, 1.0)));
+                }
+        
+                col += fog * fog * fog;
+                col = mix(vec3(color2.rgb), col, battery * 0.7);
+                // col = mix(vec3(col.r, col.r, col.r) * 0.5, col, battery * 0.7);
+                        
+                fragColor = vec4(col,1.0);
+            }
+            	vec4 factor = mix(texColorX,fragColor,1.0);
+
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+          }
+        }
+
+    ]]></shader>
+
+</effect>

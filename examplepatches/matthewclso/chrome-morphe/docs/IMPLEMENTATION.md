@@ -1,5 +1,7 @@
 # Implementation
 
+The [user-visible behavior contract](BEHAVIOR_CONTRACT.md) has higher authority than this implementation description. It defines the required outcomes; these notes describe the current approach and must not be used to justify a conflicting behavior.
+
 Target: original `com.android.chrome` 153.0.8010.53, version code 801005304, ARM64.
 The version gate runs inside each feature patch even if Morphe compatibility is forced. Stable strings locate host code;
 exact descriptors, call counts and resource IDs validate the supported artifact. These are not cross-version hooks.
@@ -57,7 +59,15 @@ reserves the measured toolbar/search height. Layout changes recalculate that res
 
 `TabPickerPatch` connects a horizontal Android view inside the native toolbar resource container to the current
 `TabModel`. It stores no tab metadata on disk and performs no favicon network requests. Favicons come from Chrome's
-`TabFavicon.getBitmapWithFallback`; unavailable icons use a local fallback. Selection and closure resolve IDs in the
+`TabFavicon.getBitmapWithFallback`, preferring the live favicon before accepting a saved fallback. For missing/restored
+icons, the picker requests Chrome’s local favicon database once per displayed tab/URL. The favicon helper
+is synchronized with the tab's existing WebContents even when a cached bitmap is already available, through the native content-change handler, which preserves its
+identity guard, attachment and cleanup. The constructor's observer still handles future changes; no extra observer is
+registered. The shipped build inlines the public Promise-returning `getFaviconOrFallback` into its JNI
+wrapper; a guarded copy of that native prefix exposes the original operation without JNI callback wiring. Chrome
+retains its profile choice, URL-change rejection, pending-request cleanup and helper destruction. Completion invalidates
+the picker after native metadata writes; an active-URL check and empty-favicon notifications clear old page icons.
+No separate icon download, disk cache or profile lifetime is introduced. Selection and closure resolve IDs in the
 current model at click time, using native `setIndex(FROM_USER)` and `TabRemover.closeTabs` with dialogs allowed.
 Native group protections and regular-tab Undo remain in that path. The last private close first focuses the native Hub;
 a bounded pre-draw callback completes it only while the same model is still current and unlocked. Native empty-pane
@@ -66,8 +76,22 @@ handling then retains the viewer without retaining a private session.
 The picker inserts a 48dp margin above ToolbarPhone before native container measurement. The native measured-height
 supplier feeds the bottom-controls stack, reserving page space and moving the entire captured toolbar when scrolling.
 Chrome temporarily hides its Android toolbar while showing the compositor texture; this must not remove the picker's
-measured height. Active-tab outlines are inset 6dp vertically without shrinking the 48dp tap targets. The native hairline
-is invisible only while the picker is present and is restored when the picker hides. The picker disallows parent
+measured height. Active-tab outlines are inset 6dp vertically without shrinking the 48dp tap targets. A guarded
+`ToolbarHairlineView.onDraw` override paints the picker's background across the divider slot for a full browser with
+the picker enabled at the bottom, including captures behind context menus. Chrome retains control of its visibility;
+repeatedly hiding the view was insufficient because texture capture makes it visible again. Leaving the slot transparent
+exposes the page through it during scrolling. Disabling the picker or True bottom restores native drawing.
+Black mode maps the compositor's toolbar and URL-field background colors immediately before native drawing.
+The model's original colors, resource IDs, offsets, visibility and progress-bar colors remain intact.
+This keeps the scrolling surfaces consistent with the Android views. See the exact-target
+[TopToolbarSceneLayer](https://github.com/chromium/chromium/blob/153.0.8010.53/chrome/browser/ui/android/toolbar/java/src/org/chromium/chrome/browser/toolbar/top/TopToolbarSceneLayer.java).
+Chrome's capture snapshot key contains only its built-in controls. Picker render, visibility, size and horizontal-scroll
+changes clear that cached snapshot and invalidate the toolbar and divider, so a stale bitmap cannot omit the picker or retain its old
+icons/position. Layout, motion, focus and other native capture-readiness checks remain in control; unchanged frames do
+not continually request new captures.
+Title and close-button text retain
+their font sizes; drawing offsets center their visible glyph bounds on the same 48dp row center. Selected-tab reveal
+waits for layout, so rows recreated after address entry have valid positions before scrolling. The picker disallows parent
 touch interception on the initial down event, including events directed to tab children, so horizontal gestures scroll
 the row rather than invoking Chrome's toolbar tab-switch gesture. Explicit pressed/focused backgrounds avoid an
 extra selected-state underline on the S26 while retaining the accessibility selection state.
@@ -88,6 +112,9 @@ sources explain these native boundaries; shipped bytecode validates the descript
 Black chooses Chrome's existing dark configuration plus an independent palette flag. Chrome's Theme screen retains
 its original System default, Light and Dark choices. Selecting a native theme clears the Black flag so native theme
 choices remain effective. The Morphe switch is the sole Black-mode control.
+
+Tint hooks require a known Drawable owner and void return type. Android `Icon` is a separate type in the same package;
+its chainable tint methods remain native to avoid verifier failures in the share sheet.
 
 Dark neutral backgrounds map to #000000, including translucent fills composited over black; accent colors, text colors and rendered websites are not globally
 recolored. Hooks cover native background/tint setters and ToolbarPhone's background palette, with a layout pass for

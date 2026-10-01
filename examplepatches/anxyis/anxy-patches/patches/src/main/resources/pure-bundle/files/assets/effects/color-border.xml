@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.color-border" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/color-border.webp" tags="drawing,border,frame,neon,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Glow Border</string>
+            <string name="desc">Adds a soft glowing colored frame around the inner edge of the layer.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color" default="#FF19E0FF" label="Border Color" alpha="false" />
+        <slider id="width" default="0.08" min="0.0" max="0.4" label="Width" />
+        <slider id="amount" default="0.9" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            float d = min(min(acScreenNorm.x, 1.0-acScreenNorm.x), min(acScreenNorm.y, 1.0-acScreenNorm.y));
+            float b = smoothstep(width, 0.0, d);
+            vec3 outc = mix(c, color.rgb, b*amount);
+            gl_FragColor = vec4(outc,1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

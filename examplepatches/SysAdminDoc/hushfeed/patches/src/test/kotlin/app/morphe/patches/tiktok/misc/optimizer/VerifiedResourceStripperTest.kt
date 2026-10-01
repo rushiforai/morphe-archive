@@ -17,6 +17,25 @@ class VerifiedResourceStripperTest {
     val temporary = TemporaryFolder()
 
     @Test
+    fun `an empty profile passes only the build it names`() {
+        val root = temporary.newFolder("no-files")
+        val profiles = listOf(
+            ResourceProfile("fixture", listOf(ResourceFileContract("lib/arm64-v8a/librelay.so", sha256("relay")))),
+            ResourceProfile("fixture 2.0", emptyList(), onlyVersion = "2.0"),
+        )
+        val strip = { version: String? ->
+            stripVerifiedResources(root, "Test resources", emptyList(), listOf("lib/arm64-v8a/librelay.so"), profiles,
+                versionName = version)
+        }
+
+        assertEquals(0, strip("2.0").files)
+        // Another build without the file renamed or moved it, which is not the same as not having it.
+        assertThrows(PatchException::class.java) { strip("2.1") }
+        assertThrows(PatchException::class.java) { strip(null) }
+        assertThrows(IllegalArgumentException::class.java) { ResourceProfile("unpinned", emptyList()) }
+    }
+
+    @Test
     fun `a bad digest stops the whole group before any file is changed`() {
         val root = temporary.newFolder("bad-digest")
         val first = root.write("assets/group/first.bin", "first")

@@ -45,7 +45,8 @@ import org.junit.Test
  * <p>The table has to list exactly the lookups the code makes, so it can't fall behind the code.
  * Older fixtures only report what they cover, since the bundle doesn't claim them. 47.1.3 handed
  * 42 of the groups new names (g6r's like button is g85 there), each found by the owner and tell
- * that hold 47.0.3's, and the other 13 kept theirs.
+ * that hold 47.0.3's, and the other 13 kept theirs. 47.1.4 kept every one of 47.1.3's names: its
+ * resource table is 47.1.3's, name for name and id for id.
  */
 class RuntimeViewIdAnchorsTest {
     @Test
@@ -196,13 +197,14 @@ class RuntimeViewIdAnchorsTest {
     /** Each group handed another group's id on each declared build, by that build's name for it. */
     @Test
     fun `semantic owners reject an unrelated id for every group that needs one`() {
-        val actions = "share/ShareSheetTools.java|ACTIONS_LIST_IDS|47.0.3:a5t,47.1.3:a5u"
-        val dislike = "comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.0.3:k0k,47.1.3:k2_"
-        val dislikeIcon = "comment/CommentTools.java|DISLIKE_ICON_IDS|47.0.3:mmt,47.1.3:mpe"
-        val captionText = "captions/CaptionStyle.java|TEXT_IDS|47.0.3:dlr,47.1.3:dmb"
+        val actions = "share/ShareSheetTools.java|ACTIONS_LIST_IDS|47.0.3:a5t,47.1.3:a5u,47.1.4:a5u"
+        val dislike = "comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.0.3:k0k,47.1.3:k2_,47.1.4:k2_"
+        val dislikeIcon = "comment/CommentTools.java|DISLIKE_ICON_IDS|47.0.3:mmt,47.1.3:mpe,47.1.4:mpe"
+        val captionText = "captions/CaptionStyle.java|TEXT_IDS|47.0.3:dlr,47.1.3:dmb,47.1.4:dmb"
         val wrongNames = mapOf(
             "47.0.3" to mapOf(actions to "k0k", dislike to "a5t", dislikeIcon to "a5t", captionText to "k0k"),
             "47.1.3" to mapOf(actions to "k2_", dislike to "a5u", dislikeIcon to "a5u", captionText to "k2_"),
+            "47.1.4" to mapOf(actions to "k2_", dislike to "a5u", dislikeIcon to "a5u", captionText to "k2_"),
         )
         assertEquals(Fixtures.declaredVersions().toSet(), wrongNames.keys)
         for ((version, wrong) in wrongNames) {

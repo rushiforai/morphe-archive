@@ -54,6 +54,9 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
  * leaderboards, and skips the "OFFLINE - NO DAILY BONUS" message that Glu's missing time server
  * brings up (see [deadServersNativePatch]).
  *
+ * Without its OBB the game would ask Google Play and then Glu's `rpack.glu.com`, which no longer
+ * resolves, for the file; [obbMessagePatch] shows what is wrong with the OBB instead.
+ *
  * OpenFeint's servers closed in 2012, and [openFeintPatch] keeps the SDK from starting: every
  * call the game makes into it first checks a flag that only a finished `initialize()` sets. Its
  * 319 classes are then dead code, and one antivirus engine, AhnLab V3, flags them
@@ -65,11 +68,12 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
 val deadServersPatch = bytecodePatch(
     name = "Stop requests to dead servers",
     description = "Removes the 30 second wait on the loading screen and the daily offline message, and stops " +
-        "the game from contacting Tapjoy, OpenFeint and Glu's dead servers.",
+        "the game from contacting Tapjoy, OpenFeint and Glu's dead servers. " +
+        "If the OBB is missing, the game says why.",
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
 
-    dependsOn(serverCheckStallPatch, deadServersNativePatch, openFeintPatch)
+    dependsOn(serverCheckStallPatch, deadServersNativePatch, openFeintPatch, obbMessagePatch)
 
     execute {
         // Find everything first, so an APK that differs from Glu's is refused before any edit.

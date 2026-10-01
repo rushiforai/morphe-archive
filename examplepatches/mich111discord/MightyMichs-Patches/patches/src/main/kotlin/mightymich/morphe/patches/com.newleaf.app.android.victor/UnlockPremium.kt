@@ -8,63 +8,41 @@ import app.morphe.patcher.patch.bytecodePatch
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium Features (Experimental)",
-    description = "Unlocks ReelShort premium by forcing isVipFreeAdvUnlock and isVipRenew to return true. WARNING: May cause crashes.",
+    description = "Unlocks ReelShort premium by forcing getVip_status and isVipFreeAdvUnlock to return true. WARNING: May cause crashes.",
     default = true
 ) {
     compatibleWith(ReelShortCompatibility.REELSHORT)
 
-    // 1. Fingerprint for isVipFreeAdvUnlock() in EpisodeEntity.
-    val episodeVipFingerprint = Fingerprint(
-        definingClass = "Lcom/newleaf/app/android/victor/player/bean/EpisodeEntity;",
-        name = "isVipFreeAdvUnlock",
+    // 1. Fingerprint for getVip_status()I – returns int.
+    val getVipStatusFingerprint = Fingerprint(
+        name = "getVip_status",
         returnType = "I"
     )
 
-    // 2. Fingerprint for isVipFreeAdvUnlock() in InteractEntity.
-    val interactVipFingerprint = Fingerprint(
-        definingClass = "Lcom/newleaf/app/android/victor/interackPlayer/bean/InteractEntity;",
+    // 2. Fingerprint for isVipFreeAdvUnlock()I – returns int.
+    val isVipFreeAdvUnlockFingerprint = Fingerprint(
         name = "isVipFreeAdvUnlock",
-        returnType = "I"
-    )
-
-    // 3. Fingerprint for isVipRenew() in VipSubCfg.
-    val vipRenewFingerprint = Fingerprint(
-        definingClass = "Lcom/newleaf/app/android/victor/library/bean/VipSubCfg;",
-        name = "isVipRenew",
         returnType = "I"
     )
 
     execute {
-        // Patch EpisodeEntity.isVipFreeAdvUnlock() -> return 1.
-        episodeVipFingerprint.let { fingerprint ->
+        // Patch getVip_status -> return 0x2.
+        getVipStatusFingerprint.let { fingerprint ->
             val method = fingerprint.method
-                ?: throw PatchException("Could not find EpisodeEntity.isVipFreeAdvUnlock method.")
+                ?: throw PatchException("Could not find getVip_status method.")
             method.addInstructions(
                 0,
                 """
-                    const/4 v0, 0x1
+                    const/4 v0, 0x2
                     return v0
                 """
             )
         }
 
-        // Patch InteractEntity.isVipFreeAdvUnlock() -> return 1.
-        interactVipFingerprint.let { fingerprint ->
+        // Patch isVipFreeAdvUnlock -> return 0x1 (true).
+        isVipFreeAdvUnlockFingerprint.let { fingerprint ->
             val method = fingerprint.method
-                ?: throw PatchException("Could not find InteractEntity.isVipFreeAdvUnlock method.")
-            method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x1
-                    return v0
-                """
-            )
-        }
-
-        // Patch VipSubCfg.isVipRenew() -> return 1.
-        vipRenewFingerprint.let { fingerprint ->
-            val method = fingerprint.method
-                ?: throw PatchException("Could not find VipSubCfg.isVipRenew method.")
+                ?: throw PatchException("Could not find isVipFreeAdvUnlock method.")
             method.addInstructions(
                 0,
                 """

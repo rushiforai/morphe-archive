@@ -28,6 +28,7 @@ import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.stories.SuggestedStoriesForTests.Bucket;
 import app.morphe.extension.facebook.stories.SuggestedStoriesForTests.Copy;
 import app.morphe.extension.facebook.stories.SuggestedStoriesForTests.Label;
+import app.morphe.extension.facebook.stories.SuggestedStoriesForTests.Type;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
@@ -38,8 +39,10 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 /**
  * The filter first in the tray data's constructor: a bucket Facebook marks as suggested, by its
- * flag or by its first label, doesn't make it into the tray; every other bucket does, in order; and
- * the switch off, a pause, anything it can't read or any failure leaves the tray as Facebook sent it.
+ * flag or by its first label, doesn't make it into the tray, and neither do the People you may know
+ * and "Find friends from contacts" cards, by their bucket type, each behind its own switch; every
+ * other bucket does, in order; and a switch off, a pause, anything it can't read or any failure
+ * leaves the tray as Facebook sent it.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -56,6 +59,9 @@ public class SuggestedStoriesTest {
     public void restore() {
         PauseForTests.resume();
         Settings.HIDE_SUGGESTED_STORIES.resetToDefault();
+        Settings.HIDE_PEOPLE_YOU_MAY_KNOW.resetToDefault();
+        Settings.HIDE_CONTACT_IMPORT_CARD.resetToDefault();
+        SuggestedStoriesForTests.peopleYouMayKnowInBuild(null);
         FeedFilterCounters.clear();
         HookStatus.clear();
     }
@@ -84,7 +90,7 @@ public class SuggestedStoriesTest {
         assertEquals(Arrays.asList(own, friend), tray);
         assertEquals(SuggestedStories.ROUTE + ": 1 lists, 3 items, 1 removed. Last reason: suggested. Removed: "
                 + "suggested 1. Kinds: not suggested 2, suggested 1", counterLine());
-        assertEquals(FamilyNames.SUGGESTED_STORIES + ": invoked 1, 2 found, 0 missing", statusLine());
+        assertEquals(FamilyNames.SUGGESTED_STORIES + ": invoked 1, 3 found, 0 missing", statusLine());
         assertEquals("Hide suggested stories", FamilyNames.SUGGESTED_STORIES);
     }
 
@@ -195,6 +201,7 @@ public class SuggestedStoriesTest {
         assertSame(tray, SuggestedStories.keptBuckets(tray));
         assertTrue(counterLine(), counterLine().contains("Kinds: " + SuggestedStories.NOT_A_BUCKET + " 1"));
         assertFalse(SuggestedStories.isBucket(new Object()));
+        assertSame(SuggestedStories.UNPATCHED, SuggestedStories.bucketType(new Object()));
         assertSame(SuggestedStories.UNPATCHED, SuggestedStories.suggested(new Object()));
         assertSame(SuggestedStories.UNPATCHED, SuggestedStories.label(new Object()));
         assertNull(SuggestedStories.immutableCopy(Collections.emptyList()));
@@ -203,14 +210,14 @@ public class SuggestedStoriesTest {
     /** A flag or label stub the patch didn't fill is reported in Hook status, and the bucket stays. */
     @Test
     public void anUnfilledStubIsReported() {
-        SuggestedStories.Buckets noFlag = standIn(true, false, true);
+        SuggestedStories.Buckets noFlag = standIn(true, true, false, true);
         List<Bucket> tray = Collections.singletonList(new Bucket(true, null));
         assertSame(tray, SuggestedStories.keptBuckets(tray, noFlag));
         assertTrue(statusLine(), statusLine().contains("1 missing"));
         assertTrue(statusLine(), statusLine().contains("tray bucket#" + SuggestedStories.SUGGESTED_FLAG));
 
         HookStatus.clear();
-        SuggestedStories.Buckets noLabel = standIn(true, true, false);
+        SuggestedStories.Buckets noLabel = standIn(true, true, true, false);
         List<Bucket> labelled = Collections.singletonList(new Bucket(false, Label.SUGGESTED));
         assertSame(labelled, SuggestedStories.keptBuckets(labelled, noLabel));
         assertTrue(statusLine(), statusLine().contains("tray bucket#first label"));
@@ -223,7 +230,7 @@ public class SuggestedStoriesTest {
      */
     @Test
     public void noCopyLeavesTheTrayWhole() {
-        SuggestedStories.Buckets noCopy = standIn(true, true, true);
+        SuggestedStories.Buckets noCopy = standIn(true, true, true, true);
         List<Bucket> tray = Arrays.asList(new Bucket(true, null), new Bucket(false, null));
         assertSame(tray, SuggestedStories.keptBuckets(tray, noCopy));
         assertTrue(counterLine(), counterLine().contains(" 0 removed"));
@@ -237,6 +244,11 @@ public class SuggestedStoriesTest {
             @Override
             public boolean isBucket(Object item) {
                 return item instanceof Bucket || item instanceof String;
+            }
+
+            @Override
+            public Object type(Object bucket) {
+                return bucket instanceof Bucket ? SuggestedStoriesForTests.STAND_IN.type(bucket) : null;
             }
 
             @Override
@@ -299,7 +311,7 @@ public class SuggestedStoriesTest {
             SuggestedStoriesForTests.keptBuckets(Collections.singletonList(new Bucket(true, null)));
             String log = LogBufferManager.buildExportText();
             assertTrue(log, log.contains("Stories tray: 3 buckets, 2 kept. Kinds: suggested 1, not suggested 2"));
-            assertTrue(log, log.contains("Stories tray: 1 buckets, 1 kept. Kinds: suggested 1 (switch off)"));
+            assertTrue(log, log.contains("Stories tray: 1 buckets, 1 kept. Kinds: suggested 1 (off: suggested)"));
             assertFalse(log, log.contains("NEWFRIEND"));
         } finally {
             BaseSettings.DEBUG.resetToDefault();
@@ -319,16 +331,242 @@ public class SuggestedStoriesTest {
         assertTrue(SuggestedStoriesForTests.hidesSuggestions());
     }
 
+    // The cards the tray draws for a bucket's type.
+
+    /**
+     * With Hide suggested and promoted posts in the build and its People you may know switch on,
+     * both kinds of People you may know card leave the tray, and so does the contacts card, which
+     * has its own switch. The stories stay in order.
+     */
+    @Test
+    public void theFriendSuggestionCardsLeaveTheTray() {
+        assertTrue("the contacts switch starts on", Settings.HIDE_CONTACT_IMPORT_CARD.get());
+        assertTrue(Settings.HIDE_PEOPLE_YOU_MAY_KNOW.get());
+        SuggestedStoriesForTests.peopleYouMayKnowInBuild(true);
+        Bucket own = Bucket.of(Type.STORY);
+        Bucket friend = new Bucket(false, Label.NEWFRIEND);
+        List<Bucket> tray = Arrays.asList(own, Bucket.of(Type.CONTACT_IMPORTER_STORY), Bucket.of(Type.PYMK_STORY),
+                friend, Bucket.of(Type.PYMK_PROFILE_FORWARD_STORY), Bucket.of(Type.PYMK_STORY));
+        assertEquals(Arrays.asList(own, friend), SuggestedStoriesForTests.keptBuckets(tray));
+        // The counter lists kinds most often seen first, then by name.
+        assertEquals(SuggestedStories.ROUTE + ": 1 lists, 6 items, 4 removed. Last reason: people you may know. "
+                + "Removed: people you may know 3, contact import card 1. Kinds: people you may know 3, "
+                + "not suggested 2, contact import card 1", counterLine());
+        assertEquals(FamilyNames.SUGGESTED_STORIES + ": invoked 1, 3 found, 0 missing", statusLine());
+    }
+
+    /**
+     * The People you may know switch belongs to Hide suggested and promoted posts. Without that
+     * patch the switch isn't on the screen, so its cards stay; the contacts card still goes.
+     */
+    @Test
+    public void withoutItsPatchThePeopleYouMayKnowCardsStay() {
+        SuggestedStoriesForTests.peopleYouMayKnowInBuild(false);
+        Bucket card = Bucket.of(Type.PYMK_STORY);
+        Bucket forward = Bucket.of(Type.PYMK_PROFILE_FORWARD_STORY);
+        Bucket friend = new Bucket(false, null);
+        Object kept = SuggestedStoriesForTests.keptBuckets(Arrays.asList(card, Bucket.of(Type.CONTACT_IMPORTER_STORY), friend, forward));
+        assertEquals(Arrays.asList(card, friend, forward), kept);
+        assertTrue(counterLine(), counterLine().contains("Removed: contact import card 1."));
+        // With no test saying, SettingsStatus answers, and unpatched it says the patch isn't in.
+        SuggestedStoriesForTests.peopleYouMayKnowInBuild(null);
+        List<Bucket> alone = Collections.singletonList(card);
+        assertSame(alone, SuggestedStoriesForTests.keptBuckets(alone));
+    }
+
+    /** Each card kind answers to its own switch, and Hide suggested stories reaches neither. */
+    @Test
+    public void eachCardHasItsOwnSwitch() {
+        SuggestedStoriesForTests.peopleYouMayKnowInBuild(true);
+        Bucket card = Bucket.of(Type.PYMK_STORY);
+        Bucket contacts = Bucket.of(Type.CONTACT_IMPORTER_STORY);
+        Bucket suggested = new Bucket(true, null);
+
+        Settings.HIDE_PEOPLE_YOU_MAY_KNOW.save(false);
+        assertEquals(Collections.singletonList(card), SuggestedStoriesForTests.keptBuckets(Arrays.asList(card, contacts, suggested)));
+        Settings.HIDE_PEOPLE_YOU_MAY_KNOW.save(true);
+        Settings.HIDE_CONTACT_IMPORT_CARD.save(false);
+        assertEquals(Collections.singletonList(contacts), SuggestedStoriesForTests.keptBuckets(Arrays.asList(card, contacts, suggested)));
+        Settings.HIDE_CONTACT_IMPORT_CARD.save(true);
+        Settings.HIDE_SUGGESTED_STORIES.save(false);
+        assertEquals(Collections.singletonList(suggested), SuggestedStoriesForTests.keptBuckets(Arrays.asList(card, contacts, suggested)));
+    }
+
+    /**
+     * The type picks the card Facebook draws, so a People you may know card that also carries the
+     * suggested flag or label is a card: it stays with its own switch off, whatever the suggested
+     * switch says.
+     */
+    @Test
+    public void theTypeDecidesTheCardBeforeTheFlags() {
+        SuggestedStoriesForTests.peopleYouMayKnowInBuild(true);
+        Settings.HIDE_PEOPLE_YOU_MAY_KNOW.save(false);
+        List<Bucket> tray = Arrays.asList(new Bucket(true, null, Type.PYMK_STORY), new Bucket(false, Label.SUGGESTED, Type.PYMK_STORY));
+        assertSame(tray, SuggestedStoriesForTests.keptBuckets(tray));
+        assertTrue(counterLine(), counterLine().contains("Kinds: people you may know 2"));
+    }
+
+    /**
+     * Negative control: stories and the types that aren't these cards stay, a friend request and a
+     * new friendship among them, and so do the People you may know types the tray doesn't draw as a
+     * card, a bucket with no type and an unrecognised one.
+     */
+    @Test
+    public void everyOtherTypeStays() {
+        SuggestedStoriesForTests.peopleYouMayKnowInBuild(true);
+        List<Bucket> tray = new ArrayList<>();
+        for (Type type : Type.values()) {
+            if (type != Type.PYMK_STORY && type != Type.PYMK_PROFILE_FORWARD_STORY && type != Type.CONTACT_IMPORTER_STORY) {
+                tray.add(Bucket.of(type));
+            }
+        }
+        tray.add(Bucket.of(null));
+        assertSame(tray, SuggestedStoriesForTests.keptBuckets(tray));
+        assertTrue(counterLine(), counterLine().contains("Kinds: " + SuggestedStories.NOT_SUGGESTED + " " + tray.size()));
+    }
+
+    /** A type that isn't an enum constant isn't a card, even when it reads the same; the flags still count. */
+    @Test
+    public void aTypeThatIsntAnEnumGoesByTheFlags() {
+        SuggestedStoriesForTests.peopleYouMayKnowInBuild(true);
+        Bucket plain = new Bucket(false, null, "PYMK_STORY");
+        Bucket suggested = new Bucket(true, null, "CONTACT_IMPORTER_STORY");
+        assertEquals(Collections.singletonList(plain), SuggestedStoriesForTests.keptBuckets(Arrays.asList(plain, suggested)));
+        assertTrue(counterLine(), counterLine().contains("Kinds: not suggested 1, suggested 1"));
+    }
+
+    /**
+     * A type stub the patch didn't fill, or a type read that throws, is reported in Hook status, no
+     * card leaves, and the suggested flag still does its work.
+     */
+    @Test
+    public void anUnreadableTypeFallsBackToTheFlags() {
+        SuggestedStoriesForTests.peopleYouMayKnowInBuild(true);
+        Bucket card = Bucket.of(Type.PYMK_STORY);
+        Bucket suggested = new Bucket(true, null, Type.CONTACT_IMPORTER_STORY);
+        assertEquals(Collections.singletonList(card),
+                SuggestedStories.keptBuckets(Arrays.asList(card, suggested), typeReadBy(SuggestedStories::bucketType)));
+        assertTrue(statusLine(), statusLine().contains("tray bucket#" + SuggestedStories.BUCKET_TYPE_FIELD));
+        assertTrue(statusLine(), statusLine().contains("1 missing"));
+
+        HookStatus.clear();
+        SuggestedStories.Buckets throwing = typeReadBy(bucket -> {
+            throw new IllegalStateException("released tree");
+        });
+        assertEquals(Collections.singletonList(card), SuggestedStories.keptBuckets(Arrays.asList(card, suggested), throwing));
+        assertTrue(statusLine(), statusLine().contains("IllegalStateException"));
+    }
+
+    /**
+     * The test stand-in with its type read swapped for {@code type}, and every other read, the copy
+     * included, as the stand-in has it. {@link #standIn} can't serve here: its copy is the unfilled
+     * stub, so a tray it filters always comes back whole.
+     */
+    private static SuggestedStories.Buckets typeReadBy(java.util.function.Function<Object, Object> type) {
+        return new SuggestedStories.Buckets() {
+            @Override
+            public boolean isBucket(Object item) {
+                return SuggestedStoriesForTests.STAND_IN.isBucket(item);
+            }
+
+            @Override
+            public Object type(Object bucket) {
+                return type.apply(bucket);
+            }
+
+            @Override
+            public Object suggested(Object bucket) {
+                return SuggestedStoriesForTests.STAND_IN.suggested(bucket);
+            }
+
+            @Override
+            public Object label(Object bucket) {
+                return SuggestedStoriesForTests.STAND_IN.label(bucket);
+            }
+
+            @Override
+            public Object copy(List<Object> kept) {
+                return SuggestedStoriesForTests.STAND_IN.copy(kept);
+            }
+        };
+    }
+
+    /** Paused, or before the settings are ready, every card stays. */
+    @Test
+    public void pausedOrAtStartUpTheCardsStay() {
+        assertTrue(SuggestedStoriesForTests.hidesPeopleYouMayKnow());
+        assertTrue(SuggestedStoriesForTests.hidesContactImportCard());
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse(SuggestedStoriesForTests.hidesPeopleYouMayKnow());
+        assertFalse(SuggestedStoriesForTests.hidesContactImportCard());
+        PauseForTests.resume();
+        boolean[] hid = {true, true};
+        SettingsContextRule.withoutContext(() -> hid[0] = SuggestedStoriesForTests.hidesPeopleYouMayKnow()
+                || SuggestedStoriesForTests.hidesContactImportCard());
+        SettingsContextRule.beforeThePauseIsDecided(() -> hid[1] = SuggestedStoriesForTests.hidesPeopleYouMayKnow()
+                || SuggestedStoriesForTests.hidesContactImportCard());
+        assertFalse(hid[0]);
+        assertFalse(hid[1]);
+        assertNull("the probe left its build answer behind", SuggestedStories.peopleYouMayKnowInBuildForTests);
+    }
+
+    /** The Debug line counts the cards by kind and names the switches that are off, never whose cards they are. */
+    @Test
+    public void theDebugLineCountsTheCards() {
+        LogBufferManager.clearLogBuffer();
+        try {
+            BaseSettings.DEBUG.save(true);
+            SuggestedStoriesForTests.peopleYouMayKnowInBuild(true);
+            List<Bucket> tray = Arrays.asList(Bucket.of(Type.STORY), Bucket.of(Type.CONTACT_IMPORTER_STORY),
+                    Bucket.of(Type.PYMK_STORY), Bucket.of(Type.PYMK_STORY));
+            SuggestedStoriesForTests.keptBuckets(tray);
+            Settings.HIDE_PEOPLE_YOU_MAY_KNOW.save(false);
+            Settings.HIDE_CONTACT_IMPORT_CARD.save(false);
+            SuggestedStoriesForTests.keptBuckets(tray);
+            String log = LogBufferManager.buildExportText();
+            String hidden = "Stories tray: 4 buckets, 1 kept. Kinds: not suggested 1, contact import card 1, people you may know 2";
+            int at = log.indexOf(hidden);
+            assertTrue(log, at >= 0);
+            assertFalse("every switch is on, so no note: " + log, log.startsWith(" (off", at + hidden.length()));
+            assertTrue(log, log.contains("Stories tray: 4 buckets, 4 kept. Kinds: not suggested 1, contact import card 1, "
+                    + "people you may know 2 (off: people you may know, contact import card)"));
+            assertFalse(log, log.contains("PYMK"));
+            assertFalse(log, log.contains("CONTACT_IMPORTER"));
+        } finally {
+            BaseSettings.DEBUG.resetToDefault();
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
+    /** Before the settings are ready, or when they can't be read, the debug line doesn't call the switches off. */
+    @Test
+    public void switchesNotReadArentCalledOff() {
+        assertEquals(" (switches not read)", SuggestedStories.Switches.NONE.offNote());
+        assertEquals(" (off: suggested, contact import card)",
+                new SuggestedStories.Switches(false, false, false, false).offNote());
+    }
+
+    @Test
+    public void theProbesHideTheCards() {
+        assertTrue(SuggestedStoriesForTests.hidesPeopleYouMayKnow());
+        assertTrue(SuggestedStoriesForTests.hidesContactImportCard());
+    }
+
     /**
      * The stand-in stubs with one or more of them left as the extension ships them: [bucket] false
-     * leaves isBucket unpatched, [flag] and [label] false leave those, and the copy is always the
-     * unpatched one here.
+     * leaves isBucket unpatched, [type], [flag] and [label] false leave those, and the copy is
+     * always the unpatched one here.
      */
-    private static SuggestedStories.Buckets standIn(boolean bucket, boolean flag, boolean label) {
+    private static SuggestedStories.Buckets standIn(boolean bucket, boolean type, boolean flag, boolean label) {
         return new SuggestedStories.Buckets() {
             @Override
             public boolean isBucket(Object item) {
                 return bucket ? SuggestedStoriesForTests.STAND_IN.isBucket(item) : SuggestedStories.isBucket(item);
+            }
+
+            @Override
+            public Object type(Object item) {
+                return type ? SuggestedStoriesForTests.STAND_IN.type(item) : SuggestedStories.bucketType(item);
             }
 
             @Override

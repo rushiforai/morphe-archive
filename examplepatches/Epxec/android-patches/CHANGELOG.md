@@ -1,3 +1,15 @@
+## [1.13.0](https://github.com/Epxec/android-patches/compare/v1.12.0...v1.13.0) (2026-09-30)
+
+### ✨ New Features
+
+* elmwood microg support ([2401dd0](https://github.com/Epxec/android-patches/commit/2401dd028c7d420284311096704cef9c6c7d7cda))
+
+## [1.13.0-dev.1](https://github.com/Epxec/android-patches/compare/v1.12.0...v1.13.0-dev.1) (2026-09-30)
+
+### ✨ New Features
+
+* elmwood microg support ([2401dd0](https://github.com/Epxec/android-patches/commit/2401dd028c7d420284311096704cef9c6c7d7cda))
+
 ## [1.12.0](https://github.com/Epxec/android-patches/compare/v1.11.0...v1.12.0) (2026-09-27)
 
 ### ✨ New Features

@@ -74,12 +74,18 @@ public class SettingsStatus {
     public static void enableFeedMute() {
         feedMuteEnabled = true;
     }
+    public static boolean backgroundPlayEnabled = false;
+
+    public static void enableBackgroundPlay() {
+        backgroundPlayEnabled = true;
+    }
     public static boolean inboxFilterEnabled = false;
     public static boolean videoFitEnabled = false;
     public static boolean refreshRateEnabled = false;
     public static boolean launcherShortcutsEnabled = false;
     public static boolean duetStitchEnabled = false;
     public static boolean notificationControlsEnabled = false;
+    public static boolean autoStreakEnabled = false;
     public static boolean hideSuggestedAccountsEnabled = false;
     public static boolean hideInboxStoriesEnabled = false;
     public static boolean expandActivityListEnabled = false;
@@ -105,6 +111,7 @@ public class SettingsStatus {
     public static boolean resourceGovernorEnabled = false;
     public static boolean browserPrivacyGuardEnabled = false;
     public static boolean cameraMicIndicatorEnabled = false;
+    public static boolean storeIdentityEnabled = false;
 
     public static void enableContactListBlocker() {
         contactListBlockerEnabled = true;
@@ -132,6 +139,10 @@ public class SettingsStatus {
 
     public static void enableCameraMicIndicator() {
         cameraMicIndicatorEnabled = true;
+    }
+
+    public static void enableStoreIdentity() {
+        storeIdentityEnabled = true;
     }
 
     public static void enableFeedFilter() {
@@ -282,6 +293,10 @@ public class SettingsStatus {
 
     public static void enableNotificationControls() {
         notificationControlsEnabled = true;
+    }
+
+    public static void enableAutoStreak() {
+        autoStreakEnabled = true;
     }
 
     public static void enableInboxFilter() {

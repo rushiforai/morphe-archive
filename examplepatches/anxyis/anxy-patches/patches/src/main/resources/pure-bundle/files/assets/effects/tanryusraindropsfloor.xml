@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e7261696e64726f7073666c6f6f72" deprecated="true">
+
+    <params>
+    <switch id="autop" default="true" label="Auto Progress" />
+        <slider id="MAX_RADIUS" label="Max Radius" default="1" min="1" max="4" step="1.0" type="integer"/>
+        <spinner id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="RAINSPEED" label="Control Speed" default="0.3" min="0.0" max="100.0" step="0.01" />
+        <spinner id="RANSIZE" label="Floor Size" default="0.7" min="0.0" max="100.0" step="0.01" type="percent" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="alpha" default="0.35" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1.0 - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.0,1.0)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        #define HASHSCALE1 .1031
+        #define HASHSCALE3 vec3(.1031, .1030, .0973)
+   
+        // #define MAX_RADIUS 2
+        #define DOUBLE_HASH 0
+        // #define RANSIZE 0.7
+        // #define RAINSPEED 0.3
+        
+        float hash12(vec2 p)
+        {
+        	vec3 p3  = fract(vec3(p.xyx) * HASHSCALE1);
+            p3 += dot(p3, p3.yzx + 19.19);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+        
+        vec2 hash22(vec2 p)
+        {
+        	vec3 p3 = fract(vec3(p.xyx) * HASHSCALE3);
+            p3 += dot(p3, p3.yzx+19.19);
+            return fract((p3.xx+p3.yz)*p3.zy);
+        
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        float iTime = autop? PROGRESS + (acTime*0.5) : PROGRESS;
+        
+        /////////////////////////
+       
+    	vec4 fragColor;
+    	
+            float resolution = 10.0 * exp2(-3.0*RANSIZE);
+            
+        	vec2 uv = acScreenNorm * resolution;
+                uv += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+                vec2 scaleVec;
+                scaleVec = vec2(1.0*stretch.x,1.0*stretch.y);
+                uv /= scaleVec;
+        	
+                vec2 uv2 = acScreenNorm * resolution;
+                
+            vec2 p0 = floor(uv);
+        
+            vec2 circles = vec2(0.0);
+            for (int j = -int(MAX_RADIUS); j <= int(MAX_RADIUS); ++j)
+            {
+                for (int i = -int(MAX_RADIUS); i <= int(MAX_RADIUS); ++i)
+                {
+        			vec2 pi = p0 + vec2(i, j);
+                    #if DOUBLE_HASH
+                    vec2 hsh = hash22(pi);
+                    #else
+                    vec2 hsh = pi;
+                    #endif
+                    vec2 p = pi + hash22(hsh);
+        
+                    float t = fract(RAINSPEED*iTime + hash12(hsh));
+                    vec2 v = p - uv;
+                    float d = length(v) - (MAX_RADIUS + 1.0)*t;
+        
+                    float h = 1e-3;
+                    float d1 = d - h;
+                    float d2 = d + h;
+                    float p1 = sin(31.0*d1) * smoothstep(-0.6, -0.3, d1) * smoothstep(0.0, -0.3, d1);
+                    float p2 = sin(31.0*d2) * smoothstep(-0.6, -0.3, d2) * smoothstep(0.0, -0.3, d2);
+                    circles += alpha * normalize(v) * ((p2 - p1) / (2.0 * h) * (1.0 - t) * (1.0 - t));
+                    // circles += 0.5 * normalize(v) * ((p2 - p1) / (2.0 * h) * (1.0 - t) * (1.0 - t));
+                }
+            }
+            circles /= float((int(MAX_RADIUS)*2+1)*(int(MAX_RADIUS)*2+1));
+        
+            float intensity = mix(0.01, 0.15, smoothstep(0.1, 0.6, abs(fract(0.05*iTime + 0.5)*2.-1.0)));
+            
+            vec3 n = vec3(circles, sqrt(1.0 - dot(circles, circles)));
+        	vec3 color = texture2DCv(inputImg.texture, uv2/resolution - intensity*n.xy).rgb 
+        	+ 5.0*pow(clamp(dot(n, 
+        	normalize(vec3(1.0, 0.7, 0.5))), 0.0, 1.0), 6.0);
+        	
+            fragColor = vec4(color, 1.0);
+        
+    	gl_FragColor = mix(texColor, fragColor, 1.0) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

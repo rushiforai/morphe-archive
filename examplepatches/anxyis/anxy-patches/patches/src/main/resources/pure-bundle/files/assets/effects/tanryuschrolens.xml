@@ -1,0 +1,285 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e6368726f6c656e73" deprecated="true">
+
+    <params>
+        <switch id="WITHHALO" default="false" label="Halo" />
+        <switch id="autop" default="false" label="Auto Blink" />
+        <point id="position" label="Position" />
+        <spinner id="xxb" label="Angle" default="1.0" min="-1000.0" max="1000.0" step="0.01" type="percent" />
+        <spinner id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="xxc" label="Distance" default="1.0" min="-1000.0" max="1000.0" step="0.01" type="percent" />
+        <switch id="SMALLENS" default="false" label="Small Lens" />
+        <switch id="BIGLENS" default="false" label="Big Lens" />
+        <spinner id="xxa" label="Evolution " default="1.0" min="0.0" max="1000.0" step="0.01" type="percent" />
+        <spinner id="flares" default="1.0" min="0.0" max="3.0" step="0.01" label="Flare Strength" type="percent" />
+        <spinner id="halos" default="0.3" min="0.0" max="3.0" step="0.01" label="Halo Strength" type="percent" />
+        <spinner id="inners" default="1.0" min="0.0" max="3.0" step="0.01" label="Inner Strength" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Comp Alpha" type="percent" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate UV" step="0.5" type="angle" />
+        <!-- <spinner id="alphabg" default="0.0" min="0.0" max="1.0" step="0.01" label="Alpha BG" type="percent" /> -->
+        <color id="colorlens" default="#FFFFFFFF" label="Inner ColorLens" alpha="true" />
+        <selector id="blendMode" style="radio" default="3">
+            <choice label="NORMAL" value="0" />
+            <choice label="LAYER" value="3" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        #define time acTime
+        
+        const float PI = 3.1415925358;
+        
+        float safety_sin( in float x ) { return sin( mod( x, PI ) ); }
+        
+        float saturatef( in float x ) { return clamp( x, 0., 1. ); }
+        vec3  saturatev( in vec3  x ) { return clamp( x, 0., 1. ); }
+        
+        vec2 rotate( in vec2 p, float r )
+        {
+        	float s = sin( r );
+        	float c = cos( r );
+        	return mat2( c, -s, s, c ) * p;
+        }
+        
+        float rand( in vec2 p ) { return fract( safety_sin( dot(p, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ); }
+        float rand( in vec2 p, in float t ) { return fract( safety_sin( dot(p, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 + t ); }
+        
+        float noise( in vec2 x )
+        {
+        	vec2 i = floor( x );
+        	vec2 f = fract( x );
+        	vec4 h;
+        	// Smooth Interpolation
+        	f = f * f * ( f * -2.0 + 3.0 );
+        	// Four corners in 2D of a tile
+        	h.x = rand( i + vec2( 0., 0. ) );
+        	h.y = rand( i + vec2( 1., 0. ) );
+        	h.z = rand( i + vec2( 0., 1. ) );
+        	h.w = rand( i + vec2( 1., 1. ) );
+        	// Mix 4 coorners percentages
+        	return mix( mix( h.x, h.y, f.x ), mix( h.z, h.w, f.x ), f.y );
+        }
+        
+        float noise( in vec2 x, in float t )
+        {
+        	vec2 i = floor( x );
+        	vec2 f = fract( x );
+        	vec4 h;
+        	// Smooth Interpolation
+        	f = f * f * ( f * -2.0 + 3.0 );
+        	// Four corners in 2D of a tile
+        	h.x = rand( i + vec2( 0., 0. ), t );
+        	h.y = rand( i + vec2( 1., 0. ), t );
+        	h.z = rand( i + vec2( 0., 1. ), t );
+        	h.w = rand( i + vec2( 1., 1. ), t );
+        	// Mix 4 coorners percentages
+        	return mix( mix( h.x, h.y, f.x ), mix( h.z, h.w, f.x ), f.y );
+        }
+        
+        float sdCircle( in vec2 p, in float r )
+        {
+            return length(p) - r;
+        }
+        
+        float sdHexagon( in vec2 p, in float r )
+        {
+            const vec3 k = vec3(-0.866025404,0.5,0.577350269);
+            p = abs(p);
+            p -= 2.0*min(dot(k.xy,p),0.0)*k.xy;
+            p -= vec2(clamp(p.x, -k.z*r, k.z*r), r);
+            return length(p)*sign(p.y);
+        }
+        
+        float star_burst( in vec2 p, in vec2 center )
+        {
+            float c0 = 0.5;
+            float c1 = 2.0;
+            float c2 = 6.0;
+            float c3 = 12.0;
+            float c4 = 2.0;
+            float c5 = 6.2;
+            float c6 = 4.0;
+            float c7 = 0.1;
+            float c8 = 6.2;
+        
+            float t  = autop? xxa * 0.35+(acTime*0.5) : xxa * 0.35;
+            // float t  = xxa * 0.35;
+            float l  = length( p );
+            float l2 = pow( l, c0 );
+            float n0 = noise( vec2( atan(  p.y,  p.x ) * c1, l2 ) * c2, t );
+            float n1 = noise( vec2( atan( -p.y, -p.x ) * c1, l2 ) * c2, t );
+            float n  = pow( max( n0, n1 ), c3 ) * pow( saturatef( 1.0 - l * c4 ), c5 );
+            n += pow( saturatef( 1.0 - ( l * c6 - c7 ) ), c8 );// glare
+            return n;
+        }
+        
+        vec3 star_burst3( in vec2 p, in vec2 center )
+        {
+            p -= center;
+            vec3 col;
+            col.r = star_burst( p * 0.9, center );
+            col.g = star_burst( p * 1.0, center );
+            col.b = star_burst( p * 1.1, center );
+            return col * vec3( colorlens.r+1.0, colorlens.g+0.5, colorlens.b );
+            // return col * vec3( 2.0, 1.5, 1.0 );
+        }
+        
+        float halo( in vec2 p, in vec2 center, in float r, in float offset )
+        {
+            float c0 = 0.5;
+            float c1 = 32.0;
+            float c2 = 12.0;
+            float c3 = 2.0;
+            float c4 = 0.7;// 1.0 == blur
+            float c5 = 4.0;// 0.0 == like glare
+            float c6 = 5.2;
+            float c7 = 0.5;
+            float c8 = 1.5;
+            float c9 = 0.25;
+        
+            float t  = dot( center, vec2( c9 ) );
+            float l  = length( p );
+            float l1 = abs( l - r );
+            float l2 = pow( l, c0 );
+            float n0 = noise( vec2( atan(  p.y,  p.x ) * c1, l2 ) * c2, t );
+            float n1 = noise( vec2( atan( -p.y, -p.x ) * c1, l2 ) * c2, t );
+            float n  = mix( pow( max( n0, n1 ), c3 ), 1.0, c4 ) * pow( saturate( 1.0 - l1 * c5 ), c6 );
+            return n * 0.2 * saturatef( pow(
+                1.0 - saturatef( pow( length( center ), c7 ) ),
+                ( length( p - center ) / r ) * c8
+            ) );
+        }
+        
+        vec3 ghost3( in vec2 p, in vec2 center, float focus, in float r, in float offset )
+        {
+            float shape_factor = 0.4;   // 0.0 == Circular aperture(like digital camera)
+                                        // 1.0 == Six blades aperture(like old camera)
+            p -= center * offset;
+            vec2 p2 = rotate( p, 0.25 );
+            float d0 = mix( sdCircle( p2 * 0.85, r ), sdHexagon( p2 * 0.85, r ), shape_factor );
+            float d1 = mix( sdCircle( p2,        r ), sdHexagon( p2,        r ), shape_factor );
+            float d2 = mix( sdCircle( p2 * 1.15, r ), sdHexagon( p2 * 1.15, r ), shape_factor );
+            return mix(
+                vec3(
+                    halo( p * 1.05, center, r, offset ),
+                    halo( p * 1.0,  center, r, offset ),
+                    halo( p * 0.95, center, r, offset )
+                ) * vec3( 2.0, 1.5, 1.0 ),
+                pow( saturatev( 1.0 - vec3( d0, d1, d2 ) ), vec3( 200. ) ),
+                focus
+            );
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        vec2 TanRyu;
+        TanRyu = acScreenNorm; 
+        
+        TanRyu /= scale;
+        TanRyu *= rot2m((0.0+angle)*0.0174533);
+        TanRyu += vec2((250.0+position.x), (-250.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            vec2 p = TanRyu;
+            // vec2 p = fragCoord / iResolution.xy - 0.5;
+            p.x *= iResolution.x/iResolution.y; // fix aspect ratio
+            
+            // Light position
+            float t0 = mod( xxb * 1.5, 2.0*PI );
+            float t1 = mod( xxc * 0.4, 2.0*PI );
+            vec2 center = vec2( cos( t0 ), sin( t0 ) ) * 0.4 * ( sin( t1 ) * 0.5 + 0.5 );
+            
+            // Background
+            vec3 col = vec3(0.0);
+            
+            // Flare( glare + star burst )
+        	col += star_burst3( p, center ) * inners;
+            
+            // Ghost
+            if(WITHHALO) {
+            col += ghost3( p, center, 0.0,  0.15,   1.0  ) * flares;// halo
+            col += ghost3( p, center, 0.0,  0.5,   0.85/1.5 ) * halos; }
+            
+            if(SMALLENS) {
+            col += ghost3( p, center, 0.3,  0.005, 0.5 /1.5 ) * vec3( 0.5, 0.1, -0.05 );  //1
+            col += ghost3( p, center, 0.3,  0.01,  0.4 /1.5 ) * vec3( 0.0, 0.5, -0.05 ); //2
+            }
+            // col += ghost3( p, center, 0.3,  0.01,  0.3 /1.5 ) * vec3( 0.05, -0.05, 0.45 ); //3
+            if(BIGLENS) {
+            col += ghost3( p, center, 0.2,  0.03,  -0.8 /3.5 ) * vec3( 0.5, 0.1, -0.05 ); //4
+            // col += ghost3( p, center, 0.05, 0.01,  -1.2 /3.5 ) * vec3( 0.0, 0.5, -0.05 ); //5
+            col += ghost3( p, center, 0.2,  0.07,  -2.0 /3.5 ) * vec3( 0.05, -0.05, 0.45 ); //6
+            col += ghost3( p, center, 0.25, 0.04,  -3.15/3.5 ) * vec3( 0.0, 0.4, 0.2 ); //7
+            col += ghost3( p, center, 0.15, 0.085, -3.75/3.5 ) * vec3( 0.0, 0.2, 0.05 ); //8
+            }
+        
+            // Output to screen
+            col = pow( col, vec3( 1.0 / 2.2 ) );
+            float alpbg = blendMode==3? 0.0 : 1.0;
+            fragColor = vec4( col, alpbg );
+            // fragColor = vec4( col, alphabg );
+        
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+    	
+        vec4 resultfinal;
+          if( blendMode==0 ) {
+            resultfinal = (factor * 1.0) * texColor.a; }
+            // resultfinal = (newLayer(texColor, factor) * 1.0) * texColor.a; }
+          else if( blendMode==1 ) { factor *= 1.0;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= 1.0; 
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a; }
+          else if( blendMode==3 ) { factor *= 1.0; 
+            resultfinal = (newLayer(texColor, factor) * 1.0) * texColor.a; }
+              // resultfinal = max(factor, texColor) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.solarize" name="@string/name" desc="@string/desc" category="color" thumb="thumb/solarize.webp" tags="color,solarize,surreal,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Solarize</string>
+            <string name="desc">Inverts only the tones above a threshold, producing a surreal solarized exposure.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="threshold" default="0.5" min="0.0" max="1.0" label="Threshold" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            vec3 s = mix(c, 1.0-c, step(vec3(threshold), c));
+            gl_FragColor = vec4(mix(c,s,amount),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

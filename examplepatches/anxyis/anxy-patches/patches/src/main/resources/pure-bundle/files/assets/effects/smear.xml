@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.smear" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/smear.webp" tags="distort,blur,motion,smear,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Smear</string>
+            <string name="desc">Directional motion smear that streaks the layer along a chosen angle.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="angle" default="0.0" min="0.0" max="360.0" label="Direction" type="angle" step="1" />
+        <slider id="size" default="0.05" min="0.0" max="0.3" label="Length" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            float a = radians(angle);
+            vec2 dir = vec2(cos(a), sin(a))*size;
+            vec4 acc = vec4(0.0);
+            for(int i=0;i<8;i++){
+                acc += texture2DCv(inputImg.texture, acScreenNorm - dir*(float(i)/8.0));
+            }
+            gl_FragColor = acc/8.0;
+        }
+    ]]></shader>
+
+</effect>

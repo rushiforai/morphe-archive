@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.objectevo" name="Object Evolution" desc="Can copy the setting like Transform, Stretching, Wipe, Color Blending and Inverter" tags="drawing" thumb="thumb/TANRYU/tra.png">
+
+    <params>
+    <texture id="inputImg" srcType="content" />
+    <spinner id="posx" default="0" min="-8192" max="8192" step="1.5" ticks="-1024,-512,-300,-200,-100,0,100,200,300,512,1024" snap="-1024,-512,-300,-200,-100,0,100,200,300,512,1024" label ="Position X" type="angle" />
+    <spinner id="posy" default="0" min="-8192" max="8192" step="1.5" ticks="-1024,-512,-300,-200,-100,0,100,200,300,512,1024" snap="-1024,-512,-300,-200,-100,0,100,200,300,512,1024" label ="Position Y" type="angle" />
+    <spinner id="posz" default="1" min="0.001" max="30" step="0.01" ticks="2,1.75,1.5,1.25,1,0.75,0.5,0.25,0" snap="2,1.75,1.5,1.25,1,0.75,0.5,0.25,0"  label ="Position Z" type="relative-percent" />
+    <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" snap="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Angle" step="1.0" type="angle" />
+    <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="@am:string/effect_param_alpha" type="percent" />
+    <section text="STRETCHING" />
+    <spinner id="scale" default="1" min="0.01" max="50.0" step="0.01" label="@am:string/effect_param_scale" ticks="0" />
+    <spinner id="anglea" default="90.0" min="0.0" max="3600.0" label="Axis" type="angle" step="0.5" ticks="0,45,90,135,180,225,270,315,360" snap="45,90,135" />
+    <section text="PINCH AND BULGE" />
+    <switch id="pinch" default="false" label="Pinch Bulge Active" />
+    <point id="centerPoint" label="@am:string/effect_param_center" />
+    <spinner id="strength" default="0.0" min="-1" max="1" label="@am:string/effect_param_strength" step="0.01" ticks="-0.5,0,0.5"/>
+    <spinner id="radius" default="0.3" min="0.0" max="2.5" label="@am:string/effect_param_radius" step="0.005" />
+    <section text="WIPE" />
+    <switch id="TanRyu" default="false" label="Wipe Active" />
+    <spinner id="start" default="0.0" min="-0.5" max="1.5" step="0.001" label="@am:string/effect_param_start" type="percent" />
+    <spinner id="end" default="1.0" min="-0.5" max="1.5" step="0.001" label="@am:string/effect_param_end" type="percent" />
+    <spinner id="angleb" default="0.0" min="0.0" max="3600.0" label="Angle Wipe" type="angle" step="0.5" ticks="0,45,90,135,180,225,270,315,360" snap="45,90,135" />
+    <spinner id="feather" default="0.1" min="0.0" max="100.0" step="0.1" label="@am:string/effect_param_feather" />
+    <section text="COLOR BLENDING" />
+    <color id="color" default="#FF00FFFF" label="@am:string/effect_param_color" alpha="true" />
+    <spinner id="alphaa" default="0.0" min="0.0" max="1.0" step="0.01" label="@am:string/effect_param_alpha" type="percent" />
+    <selector id="blendMode" style="radio" label="@am:string/effect_param_blendmode">
+        <choice label="@am:string/effect_param_normal" value="0" />
+        <choice label="@am:string/effect_param_multiply" value="1" />
+        <choice label="@am:string/effect_param_screen" value="2" />
+    </selector>
+    <section text="INVERTER" />
+        <switch id="zinv" default="false" label="Invert Z" />
+        <switch id="xinv" default="false" label="Invert X" />
+        <switch id="yinv" default="false" label="Invert Y" />
+        <switch id="ainv" default="false" label="Invert Angle" />
+    </params>
+
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let t = env.time;
+            var xposition = p.posx;
+            if ( p.xinv ) {
+            xposition = xposition * -1;
+            }
+            var zposition = p.posz;
+            if ( p.zinv ) {
+            zposition = 1.0 + (1.0 - zposition);
+            }
+            var yposition = p.posy;
+            if ( p.yinv ) {
+            yposition = yposition * -1;
+            }
+            var aposition = p.angle;
+            if ( p.ainv ) {
+            aposition = aposition * -1;
+            }
+            el.transform.location.x += xposition;
+            el.transform.location.y += yposition;
+            el.transform.angle += aposition;
+            el.transform.scale.x += zposition-1;
+            el.transform.scale.y += zposition-1;
+            return el;
+        }
+
+    ]]></script>
+    
+    <shader type="fragment"><![CDATA[
+    
+        //vec2 projectAndClamp(vec2 a, vec2 b) {
+        //    return clamp(dot(a,b)/dot(b,b),0.0,1.0) * b;
+        //}
+        vec2 project(vec2 a, vec2 b) {
+            return (dot(a,b)/dot(b,b)) * b;
+        }
+
+        float smoothstepRev(float edge0, float edge1, float x) {
+            if(edge0 == edge1) return step(edge0, x);
+            else return smoothstep(edge0, edge1, x);
+        }
+        
+        void main() {
+            float adjStart = start;
+            float adjEnd = end;
+            float adjFeather = feather/100.0;
+            float radwipe = angleb * 0.0174533;
+            vec2 v = normalize(vec2(cos(radwipe),-sin(radwipe)));
+            //vec2 v = (vec4(normalize(vec2(cos(radwipe),-sin(radwipe))),0.0,1.0) * acLayerToScreen).xy;
+            //float p = length(projectAndClamp(acLayerNorm.st-vec2(0.5,0.5), v))/length(v)+0.5;
+            float p = dot(acLayerNorm.st-vec2(0.5,0.5), v)+0.5;
+
+            float p0 = smoothstepRev(adjStart-adjFeather,adjStart,p);
+            float p1 = 1. - smoothstepRev(adjEnd,adjEnd+adjFeather,p);
+            
+            float rad = anglea* 0.0174533;
+            mat2 rot = mat2(cos(rad),-sin(rad),sin(rad),cos(rad));
+            mat2 invrot = mat2(cos(-rad),-sin(-rad),sin(-rad),cos(-rad));
+            
+            vec2 sampleCoord = ((((acLayerNorm - 0.5) * rot) * vec2((1.0/scale), 1.0)) * invrot) + 0.5;
+            sampleCoord = (vec4(sampleCoord,0.0,1.0) * acLayerToScreen).xy;
+            
+            //////////////////////////
+            if ( pinch ) {
+            vec2 center = acLayerCenterNorm-(centerPoint/1000. * vec2(-1.,1.));
+
+            sampleCoord -= center;
+            sampleCoord.x *= acScreenSize.x / acScreenSize.y;
+            float dist = length(sampleCoord);
+            if ( dist < radius ) {
+                float p = dist / radius;
+                if(strength > 0.) {
+                    sampleCoord *= mix(1.0, smoothstep(0.0, radius / dist, p), strength * 0.75);
+                } else {
+                    sampleCoord *= mix(1.0, pow(p, 1.0 + strength * 0.75) * radius / dist, 1.0 - p);
+                }
+            }
+            sampleCoord.x /= acScreenSize.x / acScreenSize.y;
+            sampleCoord += center;
+            }
+            //////////////////////////
+            
+            vec4 texColor;
+            if( TanRyu ) {
+            texColor = texture2DCv(inputImg.texture,sampleCoord) *p0*p1*alpha;
+            } else {
+            texColor = texture2DCv(inputImg.texture,sampleCoord) * alpha;
+            }
+            
+            vec4 result;
+            if( blendMode==1 ) {
+                result = vec4((texColor.rgb/texColor.a)*color.rgb,1.0) * texColor.a;
+            } else if( blendMode==2 ) {
+                result = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-color.rgb)),1.0) * texColor.a;
+            } else {
+                result = vec4(color.rgb,1.0)*texColor.a;
+            }
+            gl_FragColor = mix(texColor,result,alphaa);
+        }
+
+    ]]></shader>
+</effect>

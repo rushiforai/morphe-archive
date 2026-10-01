@@ -288,6 +288,9 @@ final class SettingsNavigation extends BaseAdapter {
             for (Section section : sections) if (!section.primary) visible.add(section.link);
         } else {
             visible.add(screen.getPreference(0));
+            // Only in a build that lacks a default patch: the card's own line under it.
+            Preference missing = screen.findPreference(HushfacebookPreferenceFragment.MISSING_DEFAULTS);
+            if (missing != null) visible.add(missing);
             visible.add(browse);
             for (Section section : sections) if (section.primary) visible.add(section.link);
             visible.add(more);

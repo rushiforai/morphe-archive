@@ -145,7 +145,9 @@ public final class FeatureGateCatalog {
     }
 
     static void awaitForTests() throws Exception {
-        EXECUTOR.submit(() -> { }).get(5, TimeUnit.SECONDS);
+        // A pre-push run shares the machine with other builds. On 2026-09-30 a catalog refresh
+        // there ran past 5 s and failed FeatureGateLabActionsTest, which passes when it has room.
+        EXECUTOR.submit(() -> { }).get(30, TimeUnit.SECONDS);
     }
 
     static void resetForTests() {

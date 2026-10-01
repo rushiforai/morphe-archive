@@ -7,9 +7,9 @@ package hoodles.morphe.patches.superchinese.misc.telemetry
 
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.all.misc.fix.spoofsignature.spoofSignaturePatch
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction11n
 import hoodles.morphe.compatibility.Compat
+import hoodles.morphe.patches.superchinese.shared.signature.spoofSignaturePatch
 
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(

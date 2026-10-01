@@ -12,7 +12,7 @@ Morphe Patches for some Android apps that I use.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.10](https://github.com/rhubarbshoelaces/morphe-patches/releases/tag/v1.0.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.0.12](https://github.com/rhubarbshoelaces/morphe-patches/releases/tag/v1.0.12)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
 <summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -51,7 +51,10 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 Or manually add this repository url as a patch source in Morphe: https://github.com/rhubarbshoelaces/morphe-patches
 
-With Google Map's, Bearinmindcat's Ungoogled Maps patches are required: https://github.com/bearinmindcat/morphe-patches
+With Google Maps, Bearinmindcat's Ungoogled Maps patches are highly recommend: https://github.com/bearinmindcat/morphe-patches
+* At a minimum, "Restore map data" is required to see map tiles.
+* Without the CustomizationScreen patch, the Cartography Region submenu can still be accessed with this shell command: am start -n org.ungoogled.android.apps.maps/rhubarbshoelaces.patches.maps.extension.RegionActivity
+* The region can also be set directly, say via Tasker, with a similar command: am start -n org.ungoogled.android.apps.maps/rhubarbshoelaces.patches.maps.extension.RegionActivity --es region "CA"
 
 With Boost, Wchill's patches or Breal's fork are recommended for their various other fixes:
 * Wchill: https://github.com/wchill/patcheddit

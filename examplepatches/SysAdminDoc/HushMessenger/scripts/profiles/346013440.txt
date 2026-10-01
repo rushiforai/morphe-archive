@@ -1,0 +1,108 @@
+# Messenger 580.0.0.49.91 (346013440), written by CompatReport.java --save. Record the APK again instead of editing this.
+version 580.0.0.49.91
+code 346013440
+sha256 e7d3c64227a7d9a26adda4e89321a87a49c85ee9e9f28f2fa7ed7fa79ae15cf6
+hook ads LX/2Wl;->D2i(LX/1fx;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;
+hook ai_fab LX/6k8;->render(LX/2MZ;)LX/1GG;
+hook ai_menu LX/HFe;->A00()Z
+hook ai_menu LX/HFe;->A01()Z
+hook ai_menu LX/Jiu;->A00()Z
+hook ai_menu LX/Jiu;->A01()Z
+hook ai_search LX/5OA;->A0A(LX/5OA;)Z
+hook ai_search LX/5OA;->A0B(LX/5OA;)Z
+hook ai_search_chip LX/D8E;->render(LX/2MZ;)LX/1GG;
+hook ai_stickers LX/PKW;->A03(LX/PKW;)Z
+hook ai_stickers LX/PKz;->A07(LX/PKz;)Z
+hook ai_tab LX/1iN;->A02(LX/1iN;)Z
+hook ai_toolbar LX/2aP;->A04()Z
+hook allow_screenshot LX/4nW;->A00(Landroid/view/Window;)V
+hook allow_screenshot LX/8xp;->onScreenCaptured()V
+hook allow_screenshot LX/N2h;->run()V
+hook allow_screenshot Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V
+hook anonymous_stories LX/HNV;->C1V(Lcom/facebook/messaging/montage/model/MontageCard;Z)V
+hook avatar_stickers LX/PKW;->A01(LX/PKW;)Z
+hook avatar_tabs Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A0P()Lcom/google/common/collect/ImmutableList;
+hook browser Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0L(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z
+hook bubbles LX/2ZW;->A00()Z
+hook business_suggestions LX/7Sd;->A05(LX/7Sd;)Z
+hook business_suggestions LX/7Tb;->A04(LX/7Tb;)Z
+hook business_suggestions LX/ThO;->A04()Z
+hook chat_promotions LX/ThP;->A0D()Z
+hook chat_promotions LX/ThP;->A0E()Z
+hook delta_unsent LX/K1Y;->Btd(I)Z
+hook emoji_typeface LX/1KV;->A00()Landroid/graphics/Typeface;
+hook event_prompts LX/ThP;->A07()Z
+hook event_prompts LX/ThP;->A08()Z
+hook facebook LX/2aP;->A0C()Z
+hook facebook LX/3Ec;->A00()Z
+hook facebook LX/3me;->A00()Z
+hook facebook LX/HFd;->A02()Z
+hook facebook LX/HRL;->A06()Z
+hook facebook LX/HRM;->A02()Z
+hook facebook LX/JiY;->A06()Z
+hook facebook LX/Jir;->A02()Z
+hook facebook LX/JjE;->A00()Z
+hook facebook LX/JjM;->A01()Z
+hook facebook LX/JjO;->A02()Z
+hook facebook LX/JjQ;->A02()Z
+hook facebook LX/JjV;->A03()Z
+hook facebook LX/JjW;->A03()Z
+hook facebook LX/JjY;->A01()Z
+hook facebook LX/JjZ;->A01()Z
+hook facebook LX/Jjb;->A06()Z
+hook facebook LX/Jjc;->A06()Z
+hook facebook LX/Jjd;->A06()Z
+hook facebook LX/Sc2;->A06()Z
+hook facebook LX/YFi;->A04()Z
+hook friend_requests LX/1pm;->A09()Z
+hook friend_requests LX/2Wl;->A02()Z
+hook growth LX/1pm;->A0A()Z
+hook growth LX/2GE;->A0A(LX/2GE;)Z
+hook growth_notes Lcom/facebook/presence/note/ui/nux/controller/NotesNuxController;->A01(Landroidx/fragment/app/Fragment;LX/Ocr;Ljava/util/List;LX/5MS;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+hook growth_story_card Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0x(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)Z
+hook hide_read_receipts LX/AX0;->run()V
+hook inbox_promotions LX/2Ef;->A0J()Z
+hook inbox_promotions LX/2Ef;->A0K()Z
+hook keep_unsent LX/SH3;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V
+hook menu_settings LX/HFb;->Ax1(LX/0MG;)Ljava/util/ArrayList;
+hook menu_settings LX/Jwp;->onClick(Landroid/view/View;)V
+hook menu_settings LX/TxV;->CAo(LX/4jw;I)V
+hook menu_settings LX/Txc;->A0I(Ljava/util/List;)V
+hook moments LX/HFe;->A05()Z
+hook moments LX/Jiu;->A05()Z
+hook original_photo Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImage(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;)[B
+hook original_photo Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImageAsync(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Lcom/facebook/msys/mci/TranscodeImageCompletionCallback;)V
+hook people LX/1pm;->A0C()Z
+hook people LX/2Wl;->A04()Z
+hook people_jewel LX/HAR;->A01(LX/HAR;)Z
+hook people_list_end LX/1pm;->A0B()Z
+hook people_list_end LX/2Wl;->A03()Z
+hook people_search LX/CX5;->DLP(LX/EA8;Ljava/lang/Object;)LX/EBu;
+hook people_story Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A0Y(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)V
+hook people_tab LX/JZ6;->A01(LX/JZ6;)V
+hook read_mailbox LX/9sm;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
+hook reels_badge LX/7xF;->A09(LX/7xF;)Z
+hook save_stories LX/JgG;->onClick(Landroid/view/View;)V
+hook stories LX/1mi;->A00()Z
+hook subtabs LX/2UL;->run()V
+hook suggested_replies LX/7Sd;->A06(LX/7Sd;)Z
+hook suggested_replies LX/7Tb;->A05(LX/7Tb;)Z
+hook suggested_replies LX/ThO;->A05()Z
+hook typing LX/Ahp;->run()V
+hook typing_mailbox LX/8eb;->A0I(Ljava/lang/String;Z)LX/325;
+hook unsent_indicator LX/K1Y;->BWo(I)Ljava/lang/String;
+pluginSentinel LX/1dj;->A03:Ljava/lang/Object;
+preferenceGetter Lcom/facebook/prefs/shared/FbSharedPreferences;->AhC(LX/1BK;Z)Z
+peopleKey LX/JTx;->A01:LX/1BL;
+peopleFlagCheck LX/16z;->A1Z(Ljava/lang/Object;J)Z
+subtabsSupplier LX/2UL;->A00:Lcom/facebook/messaging/inboxsubtabs/plugins/subtabs/itemsupplier/InboxSubtabsItemSupplierImplementation;
+browserPreferenceKey LX/1D1;->A1U:LX/1BK;
+browserPreferenceIndex 60
+adFilterSize 935
+adFilterExits 916 931
+dexSite LX/0iX;->A04(Landroid/app/Application;)V@18 com.facebook.permission.%s.FB_APP_COMMUNICATION
+dexSite LX/15l;->A03()V@25 com.facebook.permission.prod.FB_APP_COMMUNICATION
+dexSite LX/1f4;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f4;Ljava/lang/String;Ljava/lang/String;)V@36 com.facebook.permission.prod.FB_APP_COMMUNICATION
+dexSite LX/2Qr;->A01(Landroid/content/Intent;LX/2Qr;)V@24 com.facebook.permission.%s.FB_APP_COMMUNICATION
+dexSite LX/33K;->A04(LX/5X3;Ljava/lang/Object;II)Ljava/lang/Object;@1433 com.facebook.permission.%s.FB_APP_COMMUNICATION
+dexSite Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@507 com.facebook.permission.%s.FB_APP_COMMUNICATION

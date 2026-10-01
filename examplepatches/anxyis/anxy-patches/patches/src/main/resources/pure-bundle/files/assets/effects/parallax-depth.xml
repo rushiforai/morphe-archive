@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.parallax-depth" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/parallax-depth.webp" tags="3d,parallax,depth,camera,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Parallax 3D</string>
+            <string name="desc">Fakes 3D depth by shifting bright (near) and dark (far) areas as the camera moves.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="camera" default="0,0" label="Camera Offset" />
+        <slider id="amount" default="0.5" min="0.0" max="1.0" label="Depth" />
+        <switch id="invert" default="false" label="Invert Depth" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            float h=dot(texture2DCv(inputImg.texture, acScreenNorm).rgb, vec3(0.299,0.587,0.114));
+            if(invert) h=1.0-h;
+            vec2 cam=camera/1000.0;
+            vec2 uv=acScreenNorm + cam*(h-0.5)*amount*0.4;
+            gl_FragColor=texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

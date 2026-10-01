@@ -25,6 +25,7 @@ import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -168,6 +169,69 @@ public class PatchFamilyTest {
         assertEquals(listed, families);
     }
 
+    /**
+     * The overview and the report name the default patches a build lacks from this list, so it has
+     * to be Morphe Manager's own default selection: a new default patch fails here until it's listed.
+     */
+    @Test
+    public void theDefaultSelectionIsTheOneManagerMakes() throws Exception {
+        JSONArray patches = new JSONObject(new String(Files.readAllBytes(patchesList().toPath()),
+                StandardCharsets.UTF_8)).getJSONArray("patches");
+        Set<String> selected = new TreeSet<>();
+        for (int i = 0; i < patches.length(); i++) {
+            JSONObject patch = patches.getJSONObject(i);
+            if (patch.getBoolean("use")) selected.add(patch.getString("name"));
+        }
+        assertTrue("the settings entry left the default selection", selected.remove("Hushfacebook settings"));
+
+        Set<String> listed = new TreeSet<>();
+        for (PatchFamily family : PatchFamily.DEFAULT_SELECTION) listed.add(family.patchName);
+        assertEquals(selected, listed);
+        // The check can fail: an opt-in patch isn't in either list.
+        assertFalse(selected.contains(PatchFamily.AMOLED_THEME.patchName));
+        assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.AMOLED_THEME));
+    }
+
+    /**
+     * A build that lacks default patches names them, in the order the report lists families, and
+     * one with every default patch names none. Opt-in patches left out are never named.
+     */
+    @Test
+    public void theMissingDefaultsAreTheDefaultPatchesABuildLacks() {
+        Set<PatchFamily> build = EnumSet.allOf(PatchFamily.class);
+        assertEquals(Collections.emptyList(), PatchFamily.missingDefaults(build));
+        build.remove(PatchFamily.AMOLED_THEME);
+        build.remove(PatchFamily.STORY_SEEN);
+        assertEquals(Collections.emptyList(), PatchFamily.missingDefaults(build));
+        for (String line : PatchFamily.reportLines(build, false)) {
+            assertFalse(line, line.startsWith("left out of Manager's default selection"));
+        }
+
+        build.remove(PatchFamily.SPONSORED_REELS);
+        build.remove(PatchFamily.SPONSORED_POSTS);
+        assertEquals(Arrays.asList("Hide sponsored posts", "Hide sponsored reels"), PatchFamily.missingDefaults(build));
+        List<String> lines = PatchFamily.reportLines(build, false);
+        assertEquals("left out of Manager's default selection: Hide sponsored posts, Hide sponsored reels",
+                lines.get(lines.size() - 1));
+        assertEquals("not in this build: Hide sponsored posts, View stories anonymously, Hide sponsored reels, "
+                + "AMOLED black theme", lines.get(lines.size() - 2));
+    }
+
+    /** The new line goes through the redactor like the rest of the section and comes out whole. */
+    @Test
+    public void theExportCarriesTheMissingDefaultsWhole() {
+        Set<PatchFamily> build = EnumSet.allOf(PatchFamily.class);
+        build.remove(PatchFamily.RESTORE_TRUST);
+        build.remove(PatchFamily.INSTALL_BESIDE_META_APPS);
+        PatchFamily.inBuildForTests = build;
+        LogBufferManager.registerReportSection(PatchFamily.REPORT);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("\nleft out of Manager's default selection: Restore screens on re-signed "
+                + "builds, Install beside Meta's apps\n"));
+    }
+
     @Test
     public void marketplaceIsIncludedByDefaultWithItsSettingsAndNotificationHooks() throws Exception {
         JSONArray patches = new JSONObject(new String(Files.readAllBytes(patchesList().toPath()), StandardCharsets.UTF_8))
@@ -246,13 +310,22 @@ public class PatchFamilyTest {
                         + "the background",
                 "not in this build: Hide suggested and promoted posts, Hide Stories tray, Hide Reels in the feed, "
                         + "Block background-return feed refresh, Hide AI-detected posts, Hide posts by words, "
-                        + "Hide sponsored stories, Hide suggested stories, Stop Story auto-advance, View stories anonymously, Hide sponsored search results, "
-                        + "Hide sponsored profile posts, Hide sponsored Marketplace listings, Clean up Reels, Don't send reel watch history, Turn off double tap to like, Keep the reel speed, Hold a reel for 2x, Default comment order, "
+                        + "Hide post prompts, Hide sponsored stories, Hide suggested stories, Stop Story auto-advance, View stories anonymously, Hide sponsored search results, "
+                        + "Hide sponsored profile posts, Hide sponsored Marketplace listings, Hide affiliate product links, Clean up Reels, Hide reel interest prompts, Don't send reel watch history, Turn off double tap to like, Keep the reel speed, Hold a reel for 2x, Default comment order, "
                         + "Tag suggestions only after @, Tap to play, Resume long videos, Default playback quality, "
                         + "Use the system font, Use the phone's emoji, Open links in "
                         + "external browser, Sanitize sharing links, Stop update prompts, Download any story, Download any reel, "
                         + "Download any video, Open on a chosen tab, Marketplace only, Hide the Reels tab, Hide the Reels tab dot, Hide the Get Messenger card, Open Messenger from the top bar, Hide Menu promotions, Hide Meta AI in search, Block promotional notifications, Block ad telemetry, Disable Audience Network, AMOLED black theme, Material You theme, "
-                        + "Restore screens on re-signed builds, Install beside Meta's apps, Hushfacebook in the Menu"),
+                        + "Restore screens on re-signed builds, Start on x86 devices, Install beside Meta's apps, Hushfacebook in the Menu",
+                "left out of Manager's default selection: Hide suggested and promoted posts, Hide AI-detected posts, "
+                        + "Hide posts by words, Hide post prompts, Hide sponsored stories, Hide suggested stories, Hide sponsored search "
+                        + "results, Hide sponsored profile posts, Hide sponsored Marketplace listings, Hide affiliate product links, Hide reel interest prompts, Keep the reel "
+                        + "speed, Resume long videos, Open links in external browser, Sanitize sharing links, Stop "
+                        + "update prompts, Download any story, Download any reel, Marketplace only, Hide the Reels tab "
+                        + "dot, Hide the Get Messenger card, Open Messenger from the top bar, Hide Menu promotions, "
+                        + "Hide Meta AI in search, Block promotional notifications, Block ad telemetry, Disable "
+                        + "Audience Network, Restore screens on re-signed builds, Start on x86 devices, Install beside Meta's apps, "
+                        + "Hushfacebook in the Menu"),
                 running);
         // Clean up Reels has three switches, and the report names each one.
         Settings.HIDE_REEL_FOLLOW_BUTTON.save(false);

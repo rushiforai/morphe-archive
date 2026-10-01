@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.fractaltexture"
+    name="Fractal Texture"
+    desc="Amazing New Extra FX from the Modder"
+    category="procedural"
+    tags="other"
+    thumb="thumb/TANRYU/fractal.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="offset" label="@am:string/effect_param_offset" />
+        <spinner id="scale" label="Scale" default="1.0" min="0.0001" max="10.0" step="0.01" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+      
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+    
+    
+    void main ()
+    {
+        
+        // vec2 st = acLayerNorm;
+        // st -= 0.5;
+        // st.x *= acLayerSize.x/acLayerSize.y;
+        // st /= 1.0;
+        // st.x /= acLayerSize.x/acLayerSize.y;
+        // st += 0.5;
+    
+        // vec2 sampleCoord = l2s(st);
+    
+        // vec4 texColor = texture2DCv(inputImg.texture,sampleCoord);
+                
+        /////////////////////////
+        
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        
+        vec2 uv = acLayerNorm;
+        uv -= 0.5;
+        uv /= scale;
+        uv.x *= acLayerSize.x/acLayerSize.y;
+        uv *= rot2m(angle*0.0174533);
+                
+    	vec4 result;
+    	
+     	vec2 m = offset.xy / acScreenSize.xy;
+        vec3 p = vec3(uv, 0.5-m.x+0.02*sin(0.1));
+        for (int i = 0; i < 128; i++)
+        p.xzy = vec3(1.3, 0.999, 0.777) * abs(p/dot(p,p)-vec3(1.0,1.0,m.y*0.3));
+        result = vec4(p, 1.0);
+        result *= alpha;
+        
+    	// gl_FragColor = result * texColor.a * alpha;
+    	
+    	vec4 factor = result;
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            factor *= texColor.a;
+            resultfinal = factor + (texColor*(1.0-factor.a));
+        } else if( blendMode==1 ) {         // multiply
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = resultfinal;
+    }
+
+
+    ]]></shader>
+
+</effect>

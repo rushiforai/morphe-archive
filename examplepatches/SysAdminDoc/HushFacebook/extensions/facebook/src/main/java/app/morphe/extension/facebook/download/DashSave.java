@@ -171,8 +171,9 @@ final class DashSave {
 
             Downloader.Result published = Downloader.publish(joined, "video/mp4", sink, progress);
             if (published.ok()) {
-                String holds = savedFormat(joined);
-                MediaDownload.info(() -> "the saved file holds " + holds);
+                ReadBack holds = savedFormat(joined);
+                MediaDownload.info(() -> "the saved file holds " + holds.text);
+                if (holds.refused) return published.refused();
             }
             return published;
         } catch (Throwable t) {
@@ -467,25 +468,71 @@ final class DashSave {
      * HE-AAC with implicit signalling is the LC core. Only codec facts go in, cut to a fixed size,
      * and never an address, a path, a name or an id.
      */
-    static String savedFormat(File file) {
+    static ReadBack savedFormat(File file) {
         MediaExtractor extractor = null;
         try {
             extractor = new MediaExtractor();
             extractor.setDataSource(file.getPath());
             int count = extractor.getTrackCount();
-            if (count <= 0) return "no track the phone could read";
+            if (count <= 0) return new ReadBack("no track the phone could read", false);
             StringBuilder tracks = new StringBuilder();
-            for (int i = 0; i < Math.min(count, MAX_DESCRIBED_TRACKS); i++) {
+            boolean refused = false;
+            for (int i = 0; i < count; i++) {
+                MediaFormat format = extractor.getTrackFormat(i);
+                refused |= othersMayRefuse(token(text(format, MediaFormat.KEY_MIME)), aacType(format));
+                if (i >= MAX_DESCRIBED_TRACKS) continue;
                 if (tracks.length() > 0) tracks.append(", ");
-                tracks.append(describe(extractor.getTrackFormat(i)));
+                tracks.append(describe(format));
             }
             if (count > MAX_DESCRIBED_TRACKS) tracks.append(", ").append(count - MAX_DESCRIBED_TRACKS).append(" more track(s)");
-            return tracks.toString();
+            return new ReadBack(tracks.toString(), refused);
         } catch (Throwable t) {
-            return "nothing the phone could read (" + t.getClass().getSimpleName() + ")";
+            return new ReadBack("nothing the phone could read (" + t.getClass().getSimpleName() + ")", false);
         } finally {
             if (extractor != null) attempt(null, extractor::release);
         }
+    }
+
+    /** What {@link #savedFormat} read back from a saved file. */
+    static final class ReadBack {
+        /** Each track's codec facts, for the report. */
+        final String text;
+        /**
+         * A track the file declares is one WhatsApp and some editors refuse ({@link #othersMayRefuse}).
+         * A file the phone couldn't read isn't one: the message says what's known, never a guess.
+         */
+        final boolean refused;
+
+        ReadBack(String text, boolean refused) {
+            this.text = text;
+            this.refused = refused;
+        }
+    }
+
+    /**
+     * Whether a track of type [mime], of AAC object type [aacType] when it's AAC, is one WhatsApp
+     * and some editors refuse: AV1, VP9 or HEVC pictures, or xHE-AAC sound. #11's failed file was
+     * AV1 (dav1d), and WhatsApp stopped at 40%; #14's POCO gallery couldn't play an AV1 reel with
+     * xHE-AAC sound. H.264 and the other AAC types every one of them plays.
+     */
+    static boolean othersMayRefuse(String mime, Integer aacType) {
+        if (mime == null) return false;
+        switch (mime) {
+            case "video/av01":
+            case "video/x-vnd.on2.vp9":
+            case "video/hevc":
+                return true;
+            case "audio/mp4a-latm":
+                return aacType != null && aacType == MediaCodecInfo.CodecProfileLevel.AACObjectXHE;
+            default:
+                return false;
+        }
+    }
+
+    /** The AAC object type a track declares, or null. */
+    private static Integer aacType(MediaFormat format) {
+        Integer type = number(format, MediaFormat.KEY_AAC_PROFILE);
+        return type != null ? type : number(format, MediaFormat.KEY_PROFILE);
     }
 
     private static String describe(MediaFormat format) {
@@ -500,8 +547,7 @@ final class DashSave {
             track.append(' ').append(width == null || height == null ? "size unknown" : width + "x" + height);
         } else if (mime != null && mime.startsWith("audio/")) {
             if (mime.equals("audio/mp4a-latm")) {
-                Integer type = number(format, MediaFormat.KEY_AAC_PROFILE);
-                if (type == null) type = number(format, MediaFormat.KEY_PROFILE);
+                Integer type = aacType(format);
                 track.append(' ').append(type == null ? "AAC object type unknown" : "AAC object type " + type + aacName(type));
             }
             Integer rate = number(format, MediaFormat.KEY_SAMPLE_RATE);

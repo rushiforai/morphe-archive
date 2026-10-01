@@ -41,15 +41,110 @@ internal fun fixtureClass(
         interfaces, null, emptySet(), fields, methods))
 }
 
-internal const val PEOPLE_JEWEL_HOOK = "LX/HAR;->A01(LX/HAR;)Z"
+/** The stock app component factory's two entry points, cut down to the shape the screen-host hooks check. */
+internal fun factoryActivity(registers: Int = 12, id: String = INSTANTIATE_ACTIVITY) = fixtureMethod(id, """
+    const/4 v0, 0x0
+    invoke-super {p0, p1, p2, p3}, Landroid/app/AppComponentFactory;->instantiateActivity(Ljava/lang/ClassLoader;Ljava/lang/String;Landroid/content/Intent;)Landroid/app/Activity;
+    move-result-object v0
+    return-object v0
+""".trimIndent(), registers)
 
-/** Instructions 0-20 match both supported APKs; one instruction stands in for the list reset. */
+internal fun factoryApplication(body: String = """
+    invoke-super {p0, p1, p2}, Landroid/app/AppComponentFactory;->instantiateApplication(Ljava/lang/ClassLoader;Ljava/lang/String;)Landroid/app/Application;
+    move-result-object v1
+    sput-object v1, $FACTORY_TYPE->messengerApp:Landroid/app/Application;
+    return-object v1
+""".trimIndent()) = fixtureMethod(INSTANTIATE_APPLICATION, body, 5)
+
+internal fun bundledControlsMethod(body: String = "const-string v0, \"\"\nreturn-object v0") =
+    fixtureMethod(BUNDLED_CONTROLS, body, 1, AccessFlags.STATIC.value)
+
+/** The factory and the extension class every settings run touches, as a supported APK plus the extension has them. */
+internal fun screenHostClasses() = listOf(
+    fixtureClass(FACTORY_TYPE, listOf(factoryActivity(), factoryApplication())),
+    fixtureClass(HOST_SCREENS, listOf(bundledControlsMethod())),
+)
+
+internal const val PEOPLE_JEWEL_HOOK = "LX/HAR;->A01(LX/HAR;)Z"
+internal const val PEOPLE_TAB_HOOK = "LX/JZ6;->A01(LX/JZ6;)V"
+
+/** The People tab handler's publish step as 346013440 has it: list and filter map to the listener it loads first. */
+internal fun peopleTabMethod(
+    listener: String = "LX/JZ6;->A09:LX/KIH;",
+    call: String = "LX/KIH;->CbW(${IMMUTABLE_LIST}Ljava/util/Map;)V",
+    listenerRegister: String = "v2",
+    flags: Int = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+) = fixtureMethod(PEOPLE_TAB_HOOK, """
+    iget-object v2, v3, $listener
+    iget-object v1, v3, LX/JZ6;->A00:$IMMUTABLE_LIST
+    iget-object v0, v3, LX/JZ6;->A0A:Ljava/util/concurrent/ConcurrentHashMap;
+    invoke-static {v0}, LX/01Q;->A0A(Ljava/util/Map;)Ljava/util/Map;
+    move-result-object v0
+    invoke-interface {$listenerRegister, v1, v0}, $call
+    return-void
+""".trimIndent(), registers = 4, flags = flags)
+
+internal const val PEOPLE_SEARCH_HOOK = "LX/CX5;->DLP(LX/EA8;Ljava/lang/Object;)LX/EBu;"
+
+/** The search screen's suggestions source, cut down to its log strings and the tail that wraps its section. */
+internal fun peopleSearchMethod(
+    status: String = "LX/0R2;->A0N:Ljava/lang/Integer;",
+    wrap: String = "LX/CW4;->A0m(${IMMUTABLE_LIST}Ljava/lang/Integer;)LX/EBu;",
+    statusRegister: String = "v0",
+    jumpToStatus: Boolean = false,
+    flags: Int = AccessFlags.PUBLIC.value,
+) = fixtureMethod(PEOPLE_SEARCH_HOOK, """
+    const-string v2, "$PEOPLE_SEARCH_SOURCE"
+    const-string v2, "Failed to load people you may know"
+    const/4 v1, 0x0
+    ${if (jumpToStatus) "if-eqz v4, :status" else "nop"}
+    invoke-static {v1}, $IMMUTABLE_LIST->of(Ljava/lang/Object;)$IMMUTABLE_LIST
+    move-result-object v1
+    ${if (jumpToStatus) ":status" else "nop"}
+    sget-object $statusRegister, $status
+    invoke-static {v1, v0}, $wrap
+    move-result-object v0
+    return-object v0
+""".trimIndent(), registers = 6, flags = flags)
+
+/** The handler's fetch, the one place its obfuscated class names the unobfuscated coroutine. */
+internal fun peopleTabFetchMethod() = fixtureMethod("LX/JZ6;->A03()V", "new-instance v0, $PEOPLE_TAB_FETCH\nreturn-void", registers = 2)
+
+internal const val STORY_VIEWER = "Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;"
+internal const val PEOPLE_STORY_HOOK = "$STORY_VIEWER->A0Y($STORY_VIEWER)V"
+
+/** The story viewer's suggestions request, cut down to its already-requested check, the flag set and the query. */
+internal fun peopleStoryMethod(
+    checkedFlag: String = "A0x",
+    skip: String = "if-nez",
+    jumpPastCheck: Boolean = false,
+    flags: Int = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+) = fixtureMethod(PEOPLE_STORY_HOOK, """
+    iget-boolean v0, v3, $STORY_VIEWER->A1S:Z
+    if-nez v0, ${if (jumpPastCheck) ":request" else ":done"}
+    iget-boolean v0, v3, $STORY_VIEWER->$checkedFlag:Z
+    $skip v0, :done
+    :request
+    iget-object v1, v3, $STORY_VIEWER->A25:LX/17Z;
+    const/4 v2, 0x1
+    iput-boolean v2, v3, $STORY_VIEWER->A0x:Z
+    const-string v0, "$STORY_SUGGESTIONS_QUERY"
+    :done
+    return-void
+""".trimIndent(), registers = 4, flags = flags)
+
+/**
+ * Instructions 0-20 match the supported APKs; one instruction stands in for the list reset. With [inlinedReset],
+ * 346013423's single call replaces the two calls at 14-15, so the server flag moves from 17 to 16.
+ */
 internal fun peopleJewelMethod(
     key: String = "LX/JTx;->A01:LX/1BL;",
     resultRegister: String = "v0",
     serverFlag: String = "72344235860374863L",
     serverTarget: String = ":shown",
     flags: Int = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+    inlinedReset: Boolean = false,
+    extraFlag: Boolean = false,
 ) = fixtureMethod(PEOPLE_JEWEL_HOOK, """
     iget-object v0, p0, LX/HAR;->A07:LX/17Z;
     invoke-static {v0}, LX/17Z;->A0F(LX/17Z;)Ljava/lang/Object;
@@ -65,14 +160,15 @@ internal fun peopleJewelMethod(
     move-result $resultRegister
     if-eqz v0, :shown
     iget-object v0, p0, LX/HAR;->A06:LX/17Z;
-    invoke-static {v0}, LX/17Z;->A0I(LX/17Z;)V
-    invoke-static {v2, v4}, LX/1Aa;->A07(Ljava/lang/Object;I)LX/4nI;
+    ${if (inlinedReset) "invoke-static {v0, v2}, LX/H7e;->A0T(LX/17Z;Ljava/lang/Object;)LX/4qb;"
+      else "invoke-static {v0}, LX/17Z;->A0I(LX/17Z;)V\n    invoke-static {v2, v4}, LX/1Aa;->A07(Ljava/lang/Object;I)LX/4nI;"}
     move-result-object v2
     const-wide v0, $serverFlag
     invoke-static {v2, v0, v1}, LX/16z;->A1Z(Ljava/lang/Object;J)Z
     move-result v0
     if-nez v0, $serverTarget
     iget-object v3, p0, LX/HAR;->A0F:LX/WZw;
+    ${if (extraFlag) "const-wide v0, $serverFlag" else ""}
     :hidden
     const/4 v0, 0x1
     return v0
@@ -83,6 +179,17 @@ internal fun peopleJewelMethod(
 internal fun peopleJewelKeyHolder() = fixtureClass("LX/JTx;", listOf(fixtureMethod("LX/JTx;-><clinit>()V", """
     const-string v0, "pymk_jewel_section_hidden"
     sput-object v0, LX/JTx;->A01:LX/1BL;
+    return-void
+""".trimIndent(), flags = AccessFlags.STATIC.value or AccessFlags.CONSTRUCTOR.value)))
+
+/** Build 346013440's story preference keys: the card's date key sits between two others. */
+internal fun storyCardKeyHolder() = fixtureClass("LX/JVI;", listOf(fixtureMethod("LX/JVI;-><clinit>()V", """
+    const-string v0, "story_timestamp"
+    sput-object v0, LX/JVI;->A0T:LX/1BL;
+    const-string v0, "$STORY_CARD_DATE_KEY"
+    sput-object v0, LX/JVI;->A0E:LX/1BL;
+    const-string v0, "creation_card_impression_count"
+    sput-object v0, LX/JVI;->A08:LX/1BL;
     return-void
 """.trimIndent(), flags = AccessFlags.STATIC.value or AccessFlags.CONSTRUCTOR.value)))
 
@@ -167,3 +274,58 @@ internal fun pluginBody(anchor: String, branch: String = "if-eq") = """
     :disabled
     return v5
 """.trimIndent()
+
+internal const val STORY_MARK_READ_HOOK = "LX/HNV;->C1V(${MONTAGE_CARD}Z)V"
+internal const val STORY_READ_SET = "LX/2W3;"
+internal const val STORY_READ_SET_ADD = "$STORY_READ_SET->A01(${MONTAGE_CARD}LX/5Jf;LX/56l;)V"
+internal const val STORY_READ_SET_INIT = "$STORY_READ_SET-><init>($FB_USER_SESSION)V"
+
+internal const val STORY_MARK_READ_BODY = """const/4 v0, 0x0
+iget-object v1, p0, LX/HNV;->A00:Ljava/lang/Object;
+if-eqz v1, :local_seen
+const-string v2, "MontageMsysMarkReadHandler"
+if-eqz p2, :first_view
+const-string v3, "StoryOptimisticMarkReadRewatch"
+goto :send
+:first_view
+const-string v3, "StoryOptimisticMarkRead"
+:send
+invoke-static {v1, v2, v3}, LX/Erv;->A00(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V
+:local_seen
+invoke-static {p1}, Lcom/google/common/collect/ImmutableList;->of(Ljava/lang/Object;)Lcom/google/common/collect/ImmutableList;
+move-result-object v1
+invoke-static {v1}, LX/5Jf;->A0C(Lcom/google/common/collect/ImmutableList;)V
+iget-object v2, p0, LX/HNV;->A05:LX/2W3;
+invoke-virtual {v2, p1, v1, v0}, $STORY_READ_SET_ADD
+return-void"""
+
+/** The read set's constructor: the session, then an empty set, then nothing that could skip the end. */
+internal const val STORY_READ_SET_INIT_BODY = """const/4 v1, 0x0
+invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+iput-object p1, p0, LX/2W3;->A02:$FB_USER_SESSION
+new-instance v0, Ljava/util/HashSet;
+invoke-direct {v0}, Ljava/util/HashSet;-><init>()V
+iput-object v0, p0, LX/2W3;->A01:Ljava/util/Set;
+return-void"""
+
+/** The local update adds each card's ID to the set, then tells the in-memory story lists. */
+internal const val STORY_READ_SET_ADD_BODY = """invoke-static {p1}, Lcom/google/common/collect/ImmutableList;->of(Ljava/lang/Object;)Lcom/google/common/collect/ImmutableList;
+move-result-object v4
+iget-object v1, p0, LX/2W3;->A01:Ljava/util/Set;
+iget-object v0, p1, $MONTAGE_CARD->A0K:Ljava/lang/String;
+invoke-interface {v1, v0}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+invoke-virtual {p2, v4, p3}, LX/5Jf;->A0C(Lcom/google/common/collect/ImmutableList;LX/56l;)V
+return-void"""
+
+internal fun storyReadSetClass(
+    init: String = STORY_READ_SET_INIT_BODY,
+    add: String = STORY_READ_SET_ADD_BODY,
+    fieldTypes: List<String> = listOf("Ljava/util/Set;", FB_USER_SESSION),
+    extraMethods: List<Method> = emptyList(),
+): MutableClass {
+    val fields = fieldTypes.mapIndexed { i, type -> ImmutableField(STORY_READ_SET, "A0${i + 1}", type, AccessFlags.FINAL.value, null, null, null) } +
+        ImmutableField(STORY_READ_SET, "A03", "Ljava/lang/String;", AccessFlags.STATIC.value or AccessFlags.FINAL.value, null, null, null)
+    val methods = listOf(fixtureMethod(STORY_READ_SET_INIT, init, registers = 4), fixtureMethod(STORY_READ_SET_ADD, add, registers = 9)) + extraMethods
+    return MutableClass(ImmutableClassDef(STORY_READ_SET, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;",
+        emptyList(), null, emptySet(), fields, methods))
+}

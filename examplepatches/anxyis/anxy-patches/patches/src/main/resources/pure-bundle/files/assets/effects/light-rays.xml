@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.light-rays" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/light-rays.webp" tags="light,rays,glow,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Light Rays</string>
+            <string name="desc">Volumetric god-ray streaks radiating from a light point, sampled from the brightest parts of the layer.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="source" default="0,-200" label="Light Source" />
+        <slider id="density" default="0.6" min="0.0" max="1.0" label="Density" />
+        <slider id="decay" default="0.92" min="0.8" max="0.99" label="Decay" />
+        <slider id="weight" default="0.5" min="0.0" max="1.0" label="Weight" />
+        <color id="color" default="#FFFFF2CC" label="Ray Color" alpha="false" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 src = source/1000.0 + 0.5;
+            vec2 uv = acScreenNorm;
+            vec2 delta = (uv - src) * density * 0.04;
+            vec4 base = texture2DCv(inputImg.texture, uv);
+            vec3 accum = vec3(0.0);
+            float illum = 1.0;
+            vec2 coord = uv;
+            for(int i=0;i<32;i++){
+                coord -= delta;
+                vec4 s = texture2DCv(inputImg.texture, coord);
+                float l = dot(s.rgb, vec3(0.299,0.587,0.114));
+                accum += l * illum * color.rgb;
+                illum *= decay;
+            }
+            accum *= weight*0.15;
+            vec3 outc = base.rgb + accum;
+            gl_FragColor = vec4(outc, base.a) + vec4(accum,0.0)*(1.0-base.a);
+        }
+    ]]></shader>
+
+</effect>

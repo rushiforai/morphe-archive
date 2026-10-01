@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.edgeline" name="Edge Line" desc="@am:string/effect_findedges_desc" category="drawing" tags="edge,drawing,neon,raster" thumb="thumb/TANRYU/edge.png">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="smoothing" default="1." min="1." max="10." step="0.01" label="@am:string/effect_param_smoothing" />
+        <spinner id="threshold" default="0." min="0." max="1." step="0.001" label="@am:string/effect_param_threshold" />
+        <spinner id="amp" default="1." min="0." max="10." label="Amplitude" step="0.01" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <color id="color2" default="#FF000000" label="Color BG" alpha="false" />
+        <color id="color1" default="#FF00FFFF" label="Color FG" alpha="false" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+	<switch id="fix" default="true" label="Fix Noise" />
+        <switch id="newMode" default="true" label="New Mode" />
+        <switch id="invert" default="false" label="Invert" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+
+        const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+
+        void main() {
+
+            vec2 st = acScreenNorm;
+            vec2 fragSize = vec2(1.)/getTexSize(inputImg.size) * smoothing;
+            
+            float w  = dot(vec3(1.),texture2DCv(inputImg.texture, vec2(acScreenNorm.x - fragSize.x, acScreenNorm.y) ).rgb*luminanceWeighting);
+            float e  = dot(vec3(1.),texture2DCv(inputImg.texture, vec2(acScreenNorm.x + fragSize.x, acScreenNorm.y) ).rgb*luminanceWeighting);
+            float n  = dot(vec3(1.),texture2DCv(inputImg.texture, vec2(acScreenNorm.x, acScreenNorm.y + fragSize.y) ).rgb*luminanceWeighting);
+            float s  = dot(vec3(1.),texture2DCv(inputImg.texture, vec2(acScreenNorm.x, acScreenNorm.y - fragSize.y) ).rgb*luminanceWeighting);
+            float nw  = dot(vec3(1.),texture2DCv(inputImg.texture, vec2(acScreenNorm.x - fragSize.x, acScreenNorm.y + fragSize.y) ).rgb*luminanceWeighting);
+            float ne  = dot(vec3(1.),texture2DCv(inputImg.texture, vec2(acScreenNorm.x + fragSize.x, acScreenNorm.y + fragSize.y) ).rgb*luminanceWeighting);
+            float sw  = dot(vec3(1.),texture2DCv(inputImg.texture, vec2(acScreenNorm.x - fragSize.x, acScreenNorm.y - fragSize.y) ).rgb*luminanceWeighting);
+            float se  = dot(vec3(1.),texture2DCv(inputImg.texture, vec2(acScreenNorm.x + fragSize.x, acScreenNorm.y - fragSize.y) ).rgb*luminanceWeighting);
+
+            float v = nw * 3. + n * 10. + ne * 3. + sw * -3. + s * -10. + se * -3.;
+            float h = nw * -3. + w * -10. + sw * -3. + ne * 3. + e * 10. + se * 3.;
+
+            vec4 texColor = texture2DCv(inputImg.texture, acScreenNorm);
+            if (fix) { v *= v; h *= h; }
+            v *= amp;
+            h *= amp;
+            
+           float g = clamp(sqrt(h*h + v*v)-threshold, 0., 1.);
+            
+            float edge = sqrt(h*h + v*v);
+            vec4 keyColor = vec4(1,1,1,1);
+            vec4 colour = vec4(edge*keyColor.r, edge*keyColor.g, edge*keyColor.b, 1.0);
+
+            vec4 edgeLine = clamp(colour-threshold,0.0,1.0)*1.0/(1.0-threshold);
+
+            vec4 edgeNew = vec4(1.-edgeLine.r, 1.-edgeLine.g, 1.-edgeLine.b, edgeLine.a ) * texColor.a;
+            vec4 edgeOld;
+            vec4 edgeNewFinal;
+            // if (mix) {
+            // vec4 mixresult = 1.0-(1.0-texColor)*(1.0-edgeLine);
+            // edgeNew = mix(texColor,mixresult,1.0) * texColor.a; }
+            // else {
+            
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            vec4 edgeFinal;
+            float luminance = dot(edgeNew.rgb, luminanceWeighting);
+            edgeFinal = mix(color1,color2,luminance)*edgeNew.a;
+            vec4 xnxx = edgeFinal;
+
+            if( invert ) {
+            edgeNewFinal = vec4( 1.-xnxx.r, 1.-xnxx.g, 1.-xnxx.b, xnxx.a ) * texColor.a;
+            edgeOld = vec4(g,g,g,1.) * texColor; }
+            else {
+            edgeNewFinal = edgeFinal * texColor.a;
+            edgeOld = vec4(1.-g,1.-g,1.-g,1.) * texColor.a; }
+            
+            vec4 factor = newMode? edgeNewFinal : edgeOld;
+            
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = factor * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+
+
+        }
+
+    ]]></shader>
+
+</effect>

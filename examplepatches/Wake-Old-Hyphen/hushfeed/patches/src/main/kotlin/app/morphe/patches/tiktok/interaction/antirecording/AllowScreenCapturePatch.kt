@@ -16,7 +16,9 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.privacy.targetNames
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classesCalling
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -52,14 +54,21 @@ val allowScreenCapturePatch = bytecodePatch(
             "Landroid/view/Window;->setAttributes(Landroid/view/WindowManager@LayoutParams;)V" to
                 "setAttributes(Landroid/view/Window;Landroid/view/WindowManager@LayoutParams;)V",
         ).mapKeys { it.key.replace('@', '$') }.mapValues { it.value.replace('@', '$') }
+        val names = targetNames(signatures.keys)
+        val callers = classesCalling(signatures.keys.map { it.substringBefore("->") })
         val sites = mutableListOf<CaptureSite>()
         classDefForEach { owner ->
-            if (!owner.type.startsWith("Lapp/morphe/extension/")) owner.methods.forEach { method ->
+            if (owner.type in callers && !owner.type.startsWith("Lapp/morphe/extension/")) owner.methods.forEach { method ->
                 method.implementation?.instructions?.forEachIndexed { index, instruction ->
-                    val reference = instruction.getReference<MethodReference>()
-                    val target = signatures[reference?.toString()]
-                    if (target != null && (instruction.opcode == Opcode.INVOKE_VIRTUAL ||
-                                instruction.opcode == Opcode.INVOKE_VIRTUAL_RANGE)) {
+                    // Opcode, then name, then the whole descriptor: every instruction of TikTok
+                    // passes here, and a descriptor per instruction cost seconds a run (#54).
+                    if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) {
+                        return@forEachIndexed
+                    }
+                    val reference = instruction.getReference<MethodReference>() ?: return@forEachIndexed
+                    if (reference.name !in names) return@forEachIndexed
+                    val target = signatures[reference.toString()]
+                    if (target != null) {
                         val invoke = when (instruction) {
                             is FiveRegisterInstruction -> {
                                 val regs = listOf(instruction.registerC, instruction.registerD, instruction.registerE,

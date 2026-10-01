@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<effect id="com.tanryu.effects.magic_bullet" name="TanRyu Magic Bullet Looks" desc="Cinematic color grading, diffusion, and halation grade">
+    <section text="Color Grading">
+        <param id="exposure" name="Exposure" type="slider" default="0.0" min="-2.0" max="2.0" />
+        <param id="contrast" name="Contrast" type="slider" default="1.2" min="0.5" max="2.0" />
+        <param id="saturation" name="Saturation" type="slider" default="1.1" min="0.0" max="2.0" />
+    </section>
+    <section text="Cinematic Glow">
+        <param id="halation" name="Halation Strength" type="slider" default="0.5" min="0.0" max="1.0" />
+        <param id="diffusion" name="Diffusion" type="slider" default="0.3" min="0.0" max="1.0" />
+        <param id="temperature" name="Color Temp" type="slider" default="5500.0" min="2000.0" max="12000.0" />
+    </section>
+    <shader type="fragment" version="300es">
+        <![CDATA[
+        precision highp float;
+        in vec2 fragCoord;
+        out vec4 fragColor;
+        uniform sampler2D uTexture;
+        uniform float exposure;
+        uniform float contrast;
+        uniform float saturation;
+        uniform float halation;
+        uniform float diffusion;
+        uniform float temperature;
+
+        void main() {
+            vec4 col = texture(uTexture, fragCoord);
+            
+            // Exposure & Contrast
+            col.rgb *= pow(2.0, exposure);
+            col.rgb = (col.rgb - 0.5) * contrast + 0.5;
+            
+            // Saturation
+            float luma = dot(col.rgb, vec3(0.299, 0.587, 0.114));
+            col.rgb = mix(vec3(luma), col.rgb, saturation);
+            
+            // Cinematic Halation (Red/Orange glow on highlights)
+            float highlight = max(col.r, max(col.g, col.b));
+            if (highlight > 0.7) {
+                col.rgb += vec3(halation * 0.3, halation * 0.1, 0.0);
+            }
+            
+            // Color Temperature adjustment
+            float tempFactor = (temperature - 5500.0) / 6500.0;
+            col.r += tempFactor * 0.1;
+            col.b -= tempFactor * 0.1;
+            
+            fragColor = clamp(col, 0.0, 1.0);
+        }
+        ]]>
+    </shader>
+</effect>

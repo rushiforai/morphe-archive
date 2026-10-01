@@ -83,6 +83,7 @@ public final class Shapes {
     public static boolean powerSavingPatched() { return false; }
     public static boolean hideDirectoryPatched() { return false; }
     public static boolean highRefreshPatched() { return false; }
+    public static boolean timelinePatched() { return false; }
     /** Location provider toggle's option: rewritten to return true when it defaults to Play services. */
     public static boolean playLocationByDefault() { return false; }
 
@@ -316,6 +317,11 @@ public final class Shapes {
         }
     }
 
+    /** The Application, for code called from Maps without a Context of its own. */
+    static Context appContext() {
+        return application();
+    }
+
     // ---- Proxy ---------------------------------------------------------------
     //
     // An HTTP proxy for all of Maps' own traffic -- point it at Orbot's HTTP port
@@ -528,6 +534,7 @@ public final class Shapes {
             HIDE_TABS = hideTabsEnabled(base);
             HIDE_DIRECTORY = hideDirectoryEnabled(base);
             HIGH_REFRESH = highRefreshEnabled(base);
+            SavedPlaces.track(base);
             BETTER_OFFLINE = betterOfflineEnabled(base);
             NAV_ZOOM_BUTTONS = navZoomEnabled(base);
             refreshPlayLocation(base);

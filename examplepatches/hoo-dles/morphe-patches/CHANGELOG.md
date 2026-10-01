@@ -1,3 +1,77 @@
+# [1.46.0](https://github.com/hoo-dles/morphe-patches/compare/v1.45.0...v1.46.0) (2026-09-30)
+
+
+### Bug Fixes
+
+* **`Hide app icon`:** Allow app to be launched from app info settings ([d71cda1](https://github.com/hoo-dles/morphe-patches/commit/d71cda147681ce35526f3b2f7eb3c9c21323c8f9))
+* **Duolingo:** Update support for `Enable debug mode` patch ([ee7381b](https://github.com/hoo-dles/morphe-patches/commit/ee7381bebcff21e9d24c484f8104c544ed97296e))
+* **FotMob:** Force FotMob+ toolbar logo ([77c4570](https://github.com/hoo-dles/morphe-patches/commit/77c45701d1836adbb145a73cc631d29b20b822fc))
+* **Lyfta:** Display premium UI elements as well as unlock features ([6020f74](https://github.com/hoo-dles/morphe-patches/commit/6020f74fff49aebeba8bfd0c8111afa797ba10bc))
+* **SuperChinese:** Fix signature spoofing for native binary ([a6dfeec](https://github.com/hoo-dles/morphe-patches/commit/a6dfeec6d62d6429b0182469c01cbac5ac05b8c1))
+
+
+### Features
+
+* **FotMob:** Update support for `237.17536.20260911` ([3ec4b73](https://github.com/hoo-dles/morphe-patches/commit/3ec4b73753a248bed80a8e5a467fdd6bba390e96))
+* **Lyfta:** Update support for `1.599` ([26bfde8](https://github.com/hoo-dles/morphe-patches/commit/26bfde8d231e91c74925355d280393c35b8cc4e8))
+* **Superchinese:** Add `Block launch upsell` patch ([7968b81](https://github.com/hoo-dles/morphe-patches/commit/7968b8193f38faaf442bcb69b33d9ea6e1f442ac))
+
+# [1.46.0-dev.7](https://github.com/hoo-dles/morphe-patches/compare/v1.46.0-dev.6...v1.46.0-dev.7) (2026-09-30)
+
+
+### Bug Fixes
+
+* **FotMob:** Force FotMob+ toolbar logo ([77c4570](https://github.com/hoo-dles/morphe-patches/commit/77c45701d1836adbb145a73cc631d29b20b822fc))
+
+# [1.46.0-dev.6](https://github.com/hoo-dles/morphe-patches/compare/v1.46.0-dev.5...v1.46.0-dev.6) (2026-09-30)
+
+
+### Bug Fixes
+
+* **SuperChinese:** Fix signature spoofing for native binary ([a6dfeec](https://github.com/hoo-dles/morphe-patches/commit/a6dfeec6d62d6429b0182469c01cbac5ac05b8c1))
+
+# [1.46.0-dev.5](https://github.com/hoo-dles/morphe-patches/compare/v1.46.0-dev.4...v1.46.0-dev.5) (2026-09-29)
+
+
+### Bug Fixes
+
+* **`Hide app icon`:** Allow app to be launched from app info settings ([d71cda1](https://github.com/hoo-dles/morphe-patches/commit/d71cda147681ce35526f3b2f7eb3c9c21323c8f9))
+
+# [1.46.0-dev.4](https://github.com/hoo-dles/morphe-patches/compare/v1.46.0-dev.3...v1.46.0-dev.4) (2026-09-29)
+
+
+### Features
+
+* **FotMob:** Update support for `237.17536.20260911` ([3ec4b73](https://github.com/hoo-dles/morphe-patches/commit/3ec4b73753a248bed80a8e5a467fdd6bba390e96))
+
+# [1.46.0-dev.3](https://github.com/hoo-dles/morphe-patches/compare/v1.46.0-dev.2...v1.46.0-dev.3) (2026-09-29)
+
+
+### Features
+
+* **Superchinese:** Add `Block launch upsell` patch ([7968b81](https://github.com/hoo-dles/morphe-patches/commit/7968b8193f38faaf442bcb69b33d9ea6e1f442ac))
+
+# [1.46.0-dev.2](https://github.com/hoo-dles/morphe-patches/compare/v1.46.0-dev.1...v1.46.0-dev.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* **Lyfta:** Display premium UI elements as well as unlock features ([6020f74](https://github.com/hoo-dles/morphe-patches/commit/6020f74fff49aebeba8bfd0c8111afa797ba10bc))
+
+# [1.46.0-dev.1](https://github.com/hoo-dles/morphe-patches/compare/v1.45.1-dev.1...v1.46.0-dev.1) (2026-09-28)
+
+
+### Features
+
+* **Lyfta:** Update support for `1.599` ([26bfde8](https://github.com/hoo-dles/morphe-patches/commit/26bfde8d231e91c74925355d280393c35b8cc4e8))
+
+## [1.45.1-dev.1](https://github.com/hoo-dles/morphe-patches/compare/v1.45.0...v1.45.1-dev.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **Duolingo:** Update support for `Enable debug mode` patch ([ee7381b](https://github.com/hoo-dles/morphe-patches/commit/ee7381bebcff21e9d24c484f8104c544ed97296e))
+
 # [1.45.0](https://github.com/hoo-dles/morphe-patches/compare/v1.44.1...v1.45.0) (2026-09-28)
 
 

@@ -68,6 +68,7 @@ public class SaveFolderTest {
     @After
     public void tearDown() {
         Settings.SAVE_FOLDER.resetToDefault();
+        Settings.SAVE_TO.resetToDefault();
         MediaDownload.policyForTests = null;
         ShadowMediaExtractor.reset();
         LogBufferManager.clearLogBuffer();
@@ -265,6 +266,87 @@ public class SaveFolderTest {
         assertEquals("Pictures/My_Clips", photo.savedLocation());
         video.abandon();
         photo.abandon();
+    }
+
+    /**
+     * Each Save to choice (#42) puts a video and a photo under its top folder and the folder,
+     * through the collection Android lets that folder into: only the Downloads one takes Download.
+     */
+    @Test
+    public void eachTopFolderTakesAVideoAndAPhotoThroughItsOwnCollection() throws IOException {
+        SaveProgressTest.Gallery gallery = gallery();
+        Settings.SAVE_FOLDER.save("Clips");
+        Map<SaveTo, String[]> paths = new LinkedHashMap<>();
+        paths.put(SaveTo.MOVIES_AND_PICTURES, new String[]{"Movies/Clips", "Pictures/Clips"});
+        paths.put(SaveTo.DCIM, new String[]{"DCIM/Clips", "DCIM/Clips"});
+        paths.put(SaveTo.DOWNLOAD, new String[]{"Download/Clips", "Download/Clips"});
+        Map<SaveTo, Uri[]> collections = new LinkedHashMap<>();
+        collections.put(SaveTo.MOVIES_AND_PICTURES,
+                new Uri[]{MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.EXTERNAL_CONTENT_URI});
+        collections.put(SaveTo.DCIM,
+                new Uri[]{MediaStore.Video.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.EXTERNAL_CONTENT_URI});
+        collections.put(SaveTo.DOWNLOAD,
+                new Uri[]{MediaStore.Downloads.EXTERNAL_CONTENT_URI, MediaStore.Downloads.EXTERNAL_CONTENT_URI});
+
+        long id = 1;
+        for (SaveTo to : SaveTo.values()) {
+            Settings.SAVE_TO.save(to);
+            Uri[] expected = collections.get(to);
+            writable(ContentUris.withAppendedId(expected[0], id));
+            writable(ContentUris.withAppendedId(expected[1], id + 1));
+
+            MediaStoreWriter video = new MediaStoreWriter(context, true);
+            video.open("video/mp4").close();
+            MediaStoreWriter photo = new MediaStoreWriter(context, false);
+            photo.open("image/jpeg").close();
+
+            assertEquals(to + " video", ContentUris.withAppendedId(expected[0], id), gallery.inserts.get((int) id - 1));
+            assertEquals(to + " photo", ContentUris.withAppendedId(expected[1], id + 1), gallery.inserts.get((int) id));
+            assertEquals(paths.get(to)[0], pathOf(gallery.rows.get(id)));
+            assertEquals(paths.get(to)[0], video.savedLocation());
+            assertEquals(paths.get(to)[1], pathOf(gallery.rows.get(id + 1)));
+            assertEquals(paths.get(to)[1], photo.savedLocation());
+            video.abandon();
+            photo.abandon();
+            id += 2;
+        }
+    }
+
+    /**
+     * A save Android stopped half way leaves a pending row in whichever collection its top folder
+     * uses, and the sweep after the next start removes it from each one, a Download row as much as
+     * a Movies one. A finished save in the same collections stays.
+     */
+    @Test
+    public void theSweepAfterAStoppedSaveFindsItsRowUnderEveryTopFolder() throws IOException {
+        SaveProgressTest.Gallery gallery = gallery();
+        long id = 1;
+        for (SaveTo to : SaveTo.values()) {
+            Settings.SAVE_TO.save(to);
+            for (boolean isVideo : new boolean[]{true, false}) {
+                writable(ContentUris.withAppendedId(to.collection(isVideo), id));
+                writable(ContentUris.withAppendedId(to.collection(isVideo), id + 1));
+                // One the process was ended during, left as it was, and one that finished.
+                new MediaStoreWriter(context, isVideo).open(isVideo ? "video/mp4" : "image/jpeg");
+                MediaStoreWriter done = new MediaStoreWriter(context, isVideo);
+                done.open(isVideo ? "video/mp4" : "image/jpeg");
+                done.commit();
+                id += 2;
+            }
+        }
+        assertEquals(12, gallery.rows.size());
+
+        SaveLeftovers.forgetSweepForTests();
+        SaveLeftovers.sweepOnce(context);
+
+        assertEquals("the pending rows weren't all removed, or a finished one went", 6, gallery.rows.size());
+        for (long row = 1; row <= 12; row++) {
+            boolean stopped = row % 2 == 1;
+            assertEquals("row " + row + " (" + gallery.inserts.get((int) row - 1) + ")", !stopped,
+                    gallery.rows.containsKey(row));
+        }
+        assertEquals("the Download saves didn't go through the Downloads collection", 4, gallery.inserts.stream()
+                .filter(uri -> uri.toString().startsWith(MediaStore.Downloads.EXTERNAL_CONTENT_URI + "/")).count());
     }
 
     @Test

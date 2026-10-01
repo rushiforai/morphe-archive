@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.glass-3d" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/glass-3d.webp" tags="3d,glass,refraction,fresnel,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Glass</string>
+            <string name="desc">Refracts the layer through a bumpy 3D glass surface with a bright fresnel rim.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="height" default="0.5" min="0.0" max="1.0" label="Bumpiness" />
+        <slider id="refraction" default="0.5" min="0.0" max="1.0" label="Refraction" />
+        <slider id="rim" default="0.5" min="0.0" max="1.0" label="Rim Light" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 px=1.0/acScreenSize;
+            float l =dot(texture2DCv(inputImg.texture, acScreenNorm-vec2(px.x,0.0)).rgb,vec3(0.333));
+            float r =dot(texture2DCv(inputImg.texture, acScreenNorm+vec2(px.x,0.0)).rgb,vec3(0.333));
+            float u =dot(texture2DCv(inputImg.texture, acScreenNorm-vec2(0.0,px.y)).rgb,vec3(0.333));
+            float dn=dot(texture2DCv(inputImg.texture, acScreenNorm+vec2(0.0,px.y)).rgb,vec3(0.333));
+            vec3 nrm=normalize(vec3((l-r)*height*8.0,(u-dn)*height*8.0,1.0));
+            vec2 off=nrm.xy*refraction*0.05;
+            vec4 col=texture2DCv(inputImg.texture, acScreenNorm+off);
+            float fres=pow(1.0-nrm.z, 3.0)*rim;
+            col.rgb += fres;
+            gl_FragColor=vec4(clamp(col.rgb,0.0,1.0), col.a);
+        }
+    ]]></shader>
+
+</effect>

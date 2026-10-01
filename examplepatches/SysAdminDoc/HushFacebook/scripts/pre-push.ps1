@@ -181,13 +181,14 @@ function Invoke-GitQuietly {
         leaving $LASTEXITCODE for the caller to read. Windows PowerShell 5.1 turns a native
         command's standard error into a terminating error under Stop even when it is redirected,
         so a warning, or the "fatal:" a missing object prints, stopped the hook with a
-        NativeCommandError before the caller could say what went wrong.
+        NativeCommandError before the caller could say what went wrong. The console reads UTF-8
+        for the call (Use-Utf8ConsoleOutput), so a non-ASCII path in a -z list comes back whole.
     #>
     param([string[]]$Arguments)
     $preference = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        & git @Arguments 2>$null
+        Use-Utf8ConsoleOutput { & git @Arguments 2>$null }
     } finally {
         $ErrorActionPreference = $preference
     }
@@ -239,7 +240,8 @@ function Invoke-HookGit {
     <#
         git without the hook's own GIT_* environment, returning standard output and throwing on
         failure. Windows PowerShell 5.1 turns a native command's standard error into a terminating
-        error under Stop, so that preference is relaxed here.
+        error under Stop, so that preference is relaxed here. The console reads UTF-8 for the call,
+        as Invoke-RepoGit explains.
     #>
     param([string[]]$Arguments)
     Invoke-WithoutGitEnvironment {
@@ -247,8 +249,10 @@ function Invoke-HookGit {
         $ErrorActionPreference = 'Continue'
         try {
             $errors = New-Object System.Collections.Generic.List[string]
-            $output = @(& git @Arguments 2>&1 | ForEach-Object {
-                if ($_ -is [System.Management.Automation.ErrorRecord]) { $errors.Add($_.ToString()) } else { $_ }
+            $output = @(Use-Utf8ConsoleOutput {
+                & git @Arguments 2>&1 | ForEach-Object {
+                    if ($_ -is [System.Management.Automation.ErrorRecord]) { $errors.Add($_.ToString()) } else { $_ }
+                }
             })
             if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed: $($errors -join ' ')" }
             return $output

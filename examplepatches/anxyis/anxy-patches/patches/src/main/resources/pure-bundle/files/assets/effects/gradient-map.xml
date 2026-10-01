@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.gradient-map" name="@string/name" desc="@string/desc" category="color" thumb="thumb/gradient-map.webp" tags="color,gradient,grade,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Gradient Map</string>
+            <string name="desc">Remaps image brightness across a three-color gradient for cinematic color grading.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="low" default="#FF0B0030" label="Shadows" alpha="false" />
+        <color id="mid" default="#FFB5366B" label="Midtones" alpha="false" />
+        <color id="high" default="#FFFFD27A" label="Highlights" alpha="false" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            float l = dot(c, vec3(0.299,0.587,0.114));
+            vec3 g = l<0.5 ? mix(low.rgb, mid.rgb, l*2.0) : mix(mid.rgb, high.rgb, (l-0.5)*2.0);
+            gl_FragColor = vec4(mix(c,g,amount),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

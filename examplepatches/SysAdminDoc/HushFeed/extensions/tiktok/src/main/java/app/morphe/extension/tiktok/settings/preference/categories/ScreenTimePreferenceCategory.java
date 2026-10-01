@@ -24,6 +24,7 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.StartTodayOverPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.wellbeing.BudgetChanges;
+import app.morphe.extension.tiktok.wellbeing.FinishLastVideo;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 
@@ -127,6 +128,14 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                         + "so you arrive at it rather than land on it. Needs a time budget and "
                         + "a hold to arrive at.",
                 Settings.SESSION_BUDGET_RAMP));
+        // The limit is formatted in from the constant that enforces it.
+        addPreference(new TogglePreference(context, "Let the last video finish",
+                L10n.f(context, "When the budget runs out, the video on screen plays to its end "
+                        + "before the hold covers the feed, and the feed won't swipe to another "
+                        + "video meanwhile. A time budget the fade already dimmed goes straight to the hold. Needs "
+                        + "a hold to wait for. It waits %1$d minutes at most.",
+                        FinishLastVideo.LONGEST_MS / 60_000L),
+                Settings.SESSION_BUDGET_FINISH_VIDEO));
         addPreference(new TogglePreference(context, "Show what is left of the budget",
                 "A small label on the feed shows the minutes or videos left of today's "
                         + "budget, whichever is closer to running out.",

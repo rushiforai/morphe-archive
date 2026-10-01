@@ -12,7 +12,22 @@ import java.util.Locale
 
 internal data class ResourceFileContract(val path: String, val sha256: String)
 
-internal data class ResourceProfile(val label: String, val files: List<ResourceFileContract>)
+/**
+ * A reviewed set of files. A profile with [onlyVersion] describes that TikTok build alone. An empty
+ * profile needs one: without it, any build that renamed or dropped the files would match it and the
+ * strip would pass with nothing done.
+ */
+internal data class ResourceProfile(
+    val label: String,
+    val files: List<ResourceFileContract>,
+    val onlyVersion: String? = null,
+) {
+    init {
+        require(files.isNotEmpty() || onlyVersion != null) { "$label: an empty profile has to name the build it describes" }
+    }
+
+    fun describes(versionName: String?) = onlyVersion == null || onlyVersion == versionName
+}
 
 internal data class StripSummary(
     val files: Int,
@@ -41,6 +56,7 @@ internal fun stripVerifiedResources(
     standaloneFiles: List<String>,
     profiles: List<ResourceProfile>,
     resolveStandaloneFile: ((String) -> File)? = null,
+    versionName: String? = null,
 ): StripSummary {
     if (profiles.isEmpty()) throw PatchException("$patchName: no reviewed resource profiles were supplied.")
 
@@ -67,7 +83,7 @@ internal fun stripVerifiedResources(
     }
 
     val matchingPathProfiles = profiles.filter { profile ->
-        profile.files.map(ResourceFileContract::path).toSet() == actual.keys
+        profile.describes(versionName) && profile.files.map(ResourceFileContract::path).toSet() == actual.keys
     }
     if (matchingPathProfiles.isEmpty()) {
         val expectedCounts = profiles.map { it.files.size }.distinct().sorted().joinToString()

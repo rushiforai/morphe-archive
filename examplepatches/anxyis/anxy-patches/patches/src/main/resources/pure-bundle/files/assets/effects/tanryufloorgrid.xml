@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.floorgrid"
+    name="360° Floor Grid"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="other"
+    thumb="thumb/TANRYU/360.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <!-- <texture id="black" srcType="image" src="textures/black.png" /> -->
+        <color id="colora" default="#FF777777" label="Edge Color" alpha="true" />
+        <!-- <point id="position" label="Position" step="2.0" ticks="0" snap="0" /> -->
+        <xyz id="position" default="0.,0.,20" label="@am:string/effect_param_position" step="2.0" />
+        <spinner id="progressa" label="Circular" default="0.0" min="-100.0" max="100.0" step="0.02" type="percent" />
+        <spinner id="progressb" label="Perspective" default="2.0" min="0.0" max="5.0" step="0.01" type="percent" ticks="0,1,2,3,4,5" snap="0,1,2,3,4,5"/>
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <spinner id="progressh" label="Thickness" default="0.30" min="0.1" max="1.0" step="0.01" type="percent" />
+        <spinner id="progressg" label="Second Grid" default="2.0" min="0.0" max="2.0" step="0.01" type="percent" ticks="0,1" snap="0,1"/>
+        <!-- <spinner id="scale" default="3.0" min="0.1" max="5.0" step="0.01" label="Scale" type="percent" /> -->
+        <spinner id="bright" default="1.0" min="0.0" max="3.0" step="0.01" label="Brightness" type="percent" ticks="0,1" snap="0,1" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <switch id="gradient" default="false" label="Custom Color" enablestarget="color1, color2" />
+        <color id="color1" default="#FFFFFFFF" label="Color FG" alpha="true" />
+        <color id="color2" default="#FF000000" label="Color BG" alpha="true" />
+
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+       
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+    // Created by Per Bloksgaard/2020
+    
+    #define PI 3.14159265358979
+    
+    float derivative(vec2 p)
+    {
+        vec2 dx = vec2(0,0);
+        vec2 dy = vec2(0,0);
+     	vec2 d = p - floor(p);
+        return exp2(-progressh * min((1.-d.x) * d.x, (1.-d.y) * d.y) / (dot(dx,dy) + dot(dy,dy) + 2e-3));
+    }
+      
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        // if (adaptive) { TanRyu = acScreenNorm; }
+        // else { 
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        // }
+
+        TanRyu /= (position.z/100.0);
+        // TanRyu /= scale;
+        TanRyu *= rot2m((-180.0+angle)*0.0174533);
+        TanRyu += vec2(position.x,position.y) * vec2(-1.,1.)/500.;
+        
+        /////////////////////////
+
+    	vec4 result;
+    	
+      // vec3 tot = texture2DCv(inputImg.texture,TanRyu).rgb;
+      vec3 tot = vec3(0.);
+      float u = progressa*0.2;
+      float v = -PI*0.6-cos(1.0*0.01)*PI*0.1;
+      float f = clamp(cos(0.5),0.,1.)*progressb;
+      vec3 vCamTarget = vec3(0.,0.2,0.);
+      vec3 vCamPos = vec3(cos(u)*sin(v)*2.,0.4+f,sin(u)*sin(v));
+      vec3 vCamForward = normalize(vCamTarget-vCamPos);
+      vec3 vCamRight = normalize(cross(vCamForward,vec3(0.,1.,0.)));
+      vec3 vCamUp = normalize(cross(vCamRight,vCamForward));    
+      for(int m=-1; m<2; m++)
+      {
+        for(int n=-1; n<2; n++)
+        {
+          vec2 o = vec2(float(m),float(n)) * 0.5;
+          
+          vec2 s = TanRyu;
+          // vec2 s = (-acScreenNorm + 2.0*(acScreenNorm+o));
+          // vec2 s = (-acScreenNorm + 2.0*(acScreenNorm+o))/acScreenSize.y;
+          
+    	  vec3 vRayDir = normalize(s.x*vCamRight+s.y*vCamUp+vCamForward*1.5);
+          float d = -vCamPos.y / min(vRayDir.y,-1e-6);
+          vec3 vHitPos = vCamPos + vRayDir * d;
+          float sV = progressg*derivative(vHitPos.xz*2.);
+          float bV = derivative(vHitPos.xz);
+          tot += mix(vec3(colora.rgb), vec3(1.-max(bV,sV)), exp2(-.12*length(vCamPos.xz - vHitPos.xz)));
+          // tot += mix(vec3(.79,.88,1.), vec3(1.-max(bV,sV)), exp2(-.12*length(vCamPos.xz - vHitPos.xz)));
+        }
+      }
+      tot *= float(1./9.);
+      result = vec4(vec3(tot),1.);
+        
+    	const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            vec4 gradmap;
+            float luminance = dot(result.rgb, luminanceWeighting);
+            gradmap = mix(color1,color2,luminance)*result.a;
+        
+    	vec4 factor;
+        if (gradient) { factor = mix(texColorX,gradmap,1.0) * bright; }
+    	else { factor = mix(texColorX,result,1.0) * bright; }
+    	
+    	vec4 oriTex = mix(texColor,factor,alpha);
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = oriTex * texColor.a;
+            // resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            // factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            // factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-oriTex.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = resultfinal;
+    }
+
+
+    ]]></shader>
+
+</effect>

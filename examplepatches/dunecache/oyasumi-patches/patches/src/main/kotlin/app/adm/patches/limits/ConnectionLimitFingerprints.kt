@@ -36,24 +36,28 @@ object DownloadCeilingFingerprint : Fingerprint(
 )
 
 /**
- * The `DOWN_THREADS_*` ceilings are the `b` field of each control, written just
- * before that control's own preference key. They cannot be raised by editing their
- * source register, because `v8` is also the minimum of the chunk-size controls, so the
- * ordered chain below instead walks shared minimum constant, the `DOWN_LOADS_*`
- * maximum, then the first `DOWN_THREADS_*` control's minimum, maximum, and key.
+ * Builds the fingerprint for one network profile's `DOWN_THREADS_*` ceiling.
+ *
+ * The three profiles are laid out identically in `Pref.U()`: a `DOWN_LOADS_*` control,
+ * a `DOWN_THREADS_*` control, then a chunk-size control, each a fresh `Lv2/j4;` whose
+ * `a` is the minimum and `b` the maximum. Every `DOWN_THREADS_*` maximum is the same
+ * `const/16 v8, 16` store, so the control cannot be told apart from the chunk-size
+ * minimum it shares that constant with. The only per-profile difference is the
+ * preference key that follows it, and a control's bounds always precede its own key, so
+ * the chain is anchored on the profile's `DOWN_LOADS_*` key and then walks the next
+ * `a`, the next `b`, and that profile's `DOWN_THREADS_*` key. Nothing else touches
+ * `Lv2/j4;->a:I` or `->b:I` between the two keys, so the match is unambiguous.
  */
-object ThreadCeilingFingerprint : Fingerprint(
+private fun threadCeilingFingerprint(
+    downloadsKey: String,
+    threadsKey: String,
+) = Fingerprint(
     definingClass = "Lcom/dv/get/Pref;",
     name = "U",
     returnType = "V",
     parameters = listOf(),
     filters = listOf(
-        literal(1, listOf(Opcode.CONST_4)),
-        fieldAccess(
-            definingClass = "Lv2/j4;",
-            name = "b",
-            type = "I"
-        ),
+        string(downloadsKey),
         fieldAccess(
             definingClass = "Lv2/j4;",
             name = "a",
@@ -64,8 +68,26 @@ object ThreadCeilingFingerprint : Fingerprint(
             name = "b",
             type = "I"
         ),
-        string("DOWN_THREADS_3G")
+        string(threadsKey)
     )
+)
+
+/** The `DOWN_THREADS_3G` ceiling, at instruction 33 in 14.0.39. */
+val ThreadCeiling3GFingerprint = threadCeilingFingerprint(
+    "DOWN_LOADS_3G",
+    "DOWN_THREADS_3G"
+)
+
+/** The `DOWN_THREADS_WF` ceiling, at instruction 170 in 14.0.39. */
+val ThreadCeilingWifiFingerprint = threadCeilingFingerprint(
+    "DOWN_LOADS_WF",
+    "DOWN_THREADS_WF"
+)
+
+/** The `DOWN_THREADS_3GWF` ceiling, at instruction 317 in 14.0.39. */
+val ThreadCeiling3GWifiFingerprint = threadCeilingFingerprint(
+    "DOWN_LOADS_3GWF",
+    "DOWN_THREADS_3GWF"
 )
 
 /**

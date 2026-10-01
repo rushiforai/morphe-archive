@@ -109,7 +109,7 @@ class ExtensionHostsTest {
 
     private companion object {
         /** The hosts the README's Privacy section names. */
-        val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org")
+        val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org", "www.facebook.com")
         const val RELEASE_CHECK =
             "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/ReleaseCheck.java"
         val TRANSPORTS = listOf(

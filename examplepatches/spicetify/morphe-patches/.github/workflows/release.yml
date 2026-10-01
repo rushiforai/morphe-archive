@@ -44,10 +44,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :extensions:extension:testDebugUnitTest :extensions:extension:lintDebug :patches:test buildAndroid --no-daemon
 
+      - name: Test device check safeguards
+        run: python3 scripts/test-device-check.py
+
+      - name: Remove bundles built before version selection
+        run: rm -f patches/build/libs/patches-*.mpp
+
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release
-        if: github.ref_name == 'dev' || (github.ref_name == 'main' && vars.STABLE_RELEASE_ENABLED == 'true')
+        if: github.ref_name == 'dev' || github.ref_name == 'main'
         uses: cycjimmy/semantic-release-action@v6
         id: release
         env:

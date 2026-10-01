@@ -1,3 +1,15 @@
+## [1.0.2](https://github.com/xxxR3Dxxx/R3D-PatchLab/compare/v1.0.1...v1.0.2) (2026-09-30)
+
+### 🚀 Updated App Support
+
+* add StandBy 2.1.28.567 support ([7c68f90](https://github.com/xxxR3Dxxx/R3D-PatchLab/commit/7c68f90810481430f9f7da60b31990c3d4936f5a))
+
+## [1.0.2-dev.1](https://github.com/xxxR3Dxxx/R3D-PatchLab/compare/v1.0.1...v1.0.2-dev.1) (2026-09-30)
+
+### 🚀 Updated App Support
+
+* add StandBy 2.1.28.567 support ([7c68f90](https://github.com/xxxR3Dxxx/R3D-PatchLab/commit/7c68f90810481430f9f7da60b31990c3d4936f5a))
+
 ## [1.0.1](https://github.com/xxxR3Dxxx/R3D-PatchLab/compare/v1.0.0...v1.0.1) (2026-08-31)
 
 ### 🐛 Bug Fixes

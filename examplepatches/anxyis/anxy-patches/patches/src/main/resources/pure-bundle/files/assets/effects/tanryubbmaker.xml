@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.bbmaker" name="BlackBar Maker+" category="drawing" desc="Makes Black Bar to easy" tags="drawing" thumb="thumb/TANRYU/BB.webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="start" default="20.0" min="0.0" max="100.0" step="0.15" label="Amount" type="percent" />        
+        <spinner id="angle" default="90.0" min="-720.0" max="720.0" step="1" label="Angle" type="angle" ticks="0,45,90,135,180,225,270,315,360" snap="0,45,90,135,180,225,270,315,360" />
+        <section text="Blackbar Option" />
+        <color id="colorbg" default="#00000000" label="Color BG" alpha="true" />
+        <spinner id="startA" default="0.0" min="-0.5" max="1.5" step="0.001" label="@am:string/effect_param_start" type="percent" />
+        <spinner id="endA" default="1.0" min="-0.5" max="1.5" step="0.001" label="@am:string/effect_param_end" type="percent" />
+        <spinner id="angleA" default="0.0" min="0.0" max="3600.0" label="@am:string/effect_param_angle" type="angle" step="0.5" ticks="0,45,90,135,180,225,270,315,360" snap="45,90,135" />
+        <spinner id="featherA" default="0.0" min="0.0" max="100.0" step="0.1" label="@am:string/effect_param_feather" />
+        
+    </params>
+
+    <shader type="fragment"><![CDATA[
+
+        //vec2 projectAndClamp(vec2 a, vec2 b) {
+        //    return clamp(dot(a,b)/dot(b,b),0.0,1.0) * b;
+        //}
+        vec2 project(vec2 a, vec2 b) {
+            return (dot(a,b)/dot(b,b)) * b;
+        }
+        
+         vec4 newLayer( vec4 a, vec4 b) {
+         return a * (1. - b.a) + b;
+         }
+         
+            float smoothstepRev(float edge0, float edge1, float x) {
+            if(edge0 == edge1) return step(edge0, x);
+            else return smoothstep(edge0, edge1, x);
+        }
+
+        void main() {
+        
+            vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm.st);
+            float adjStartA = startA;
+            float adjEndA = endA;
+            float adjFeatherA = featherA/100.0;
+            float radA = angleA * 0.0174533;
+            vec2 vA = normalize(vec2(cos(radA),-sin(radA)));
+            float pA = dot(acLayerNorm.st-vec2(0.5,0.5), vA)+0.5;
+
+            float p0A = smoothstepRev(adjStartA-adjFeatherA,adjStartA,pA);
+            float p1A = 1. - smoothstepRev(adjEndA,adjEndA+adjFeatherA,pA);
+            vec4 wipebb = (colorbg * texColor.a)*p0A*p1A;
+
+            //////////////////////////
+
+            float adjStart = (0.0+start)/100.0;
+            float adjEnd = (100.0-start)/100.0;
+            float adjFeather = 0.0/100.0;
+            float rad = angle * 0.0174533;
+            adjStart = (-20.0+start)/100.0;
+            adjEnd = (120.0-start)/100.0;
+            vec2 v = normalize(vec2(cos(rad),-sin(rad)));
+            float p = dot(acLayerNorm.st-vec2(0.5,0.5), v)+0.5;
+            float p0 = smoothstep(adjStart-adjFeather,adjStart,p);
+            float p1 = 1. - smoothstep(adjEnd,adjEnd+adjFeather,p);
+            vec4 bbmaker = texture2DCv(inputImg.texture,acScreenNorm.st)*p0*p1;
+            
+            gl_FragColor = newLayer(wipebb, bbmaker) * texColor.a;
+        }
+
+    ]]></shader>
+
+</effect>

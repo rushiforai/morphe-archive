@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.warptexture"
+    name="Warp Texture+"
+    desc="Amazing New Extra FX from the Modder"
+    category="procedural" 
+    tags="other"
+    thumb="thumb/TANRYU/warpx.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color1" default="#FF000000" label="Background" alpha="true" />
+        <color id="color2" default="#FFFFFFFF" label="Foreground" alpha="true" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <spinner id="progressa" label="Delta Y" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="progressb" label="Delta X" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="progressc" label="Spread" default="1.0" min="0" max="10.0" step="0.01" type="percent" />
+        <slider id="AMOUNT" label="Amount" default="10" min="0" max="20" step="1.0" type="integer" ticks="5,10,15" snap="5,10,15" />
+        <spinner id="scale" default="1.0" min="0.1" max="5.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+    
+    
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu = acScreenNorm;
+        TanRyu /= scale;
+        TanRyu *= rot2m(angle*0.0174533);
+        TanRyu += position*vec2(-1.,1.)/500.;
+        
+        /////////////////////////
+
+    	vec4 result;
+    	
+       vec2 uv =  TanRyu;
+       // vec2 uv =  TanRyu / min(acScreenSize.x, acScreenSize.y);
+       // vec2 uv =  (2.0 * TanRyu) / min(acScreenSize.x, acScreenSize.y);
+    
+        for(float i = 1.0; i < AMOUNT; i++){
+            uv.x += 0.6 / i * cos(i * 2.5* uv.y + progressa);
+            uv.y += 0.6 / i * sin(i * 1.5 * uv.x + progressb);
+        }
+        
+        result = vec4(vec3(0.1)/abs(sin(progressc-uv.y-uv.x)),1.0);
+        
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            vec4 gradmap;
+            float luminance = dot(result.rgb, luminanceWeighting);
+            gradmap = mix(color1,color2,luminance)*result.a;
+
+        
+    	vec4 factor = mix(texColorX,gradmap,alpha);
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = resultfinal;
+    }
+
+
+    ]]></shader>
+
+</effect>

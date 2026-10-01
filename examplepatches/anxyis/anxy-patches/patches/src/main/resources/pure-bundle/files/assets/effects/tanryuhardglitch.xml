@@ -1,0 +1,159 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.hardglitch"
+    name="Glitch Offset"
+    desc="Amazing New Extra FX from the Modder"
+    category="distort" 
+    tags="distort"
+    thumb="thumb/TANRYU/hardg.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="black" srcType="image" src="textures/black.png" />
+        <!-- <color id="color" default="#FFC53A1B" label="@am:string/effect_param_color" alpha="true" /> -->
+        <!-- <switch id="layerM" default="false" label="Layer Mode" /> -->
+        <selector id="type" style="radio" default="0" label="Type">
+            <choice label="BLACK BG" value="0" />
+            <choice label="NORMAL" value="1" />
+            <choice label="ADD" value="2" />
+        </selector>
+        <float id="lowThreshold" value="0.005" />
+        <float id="highThreshold" value="1.0" />
+        <float id="feather" value="0.0" />
+        <spinner id="progress" label="Progress" default="0.65" min="0" max="100.0" step="0.01" type="percent" ticks="0,2,4,6,8" snap="0,1,2,3,4,5,6,7,8"/>
+        <spinner id="glitchAmplitude" label="Amplitude" default="2.0" min="-100.0" max="100.0" step="0.05" type="percent" ticks="0,2,4,6,8" snap="0,1,2,3,4,5,6,7,8"/>
+        <spinner id="seed" default="0.0" min="-100" max="100" label="Seed" step="0.5"/>
+        <spinner id="glitchNarrowness" label="Narrownes" default="4.0" min="0" max="100.0" step="0.01" ticks="0,1,2,3,4,5" snap="0,1,2,3,4,5"/>
+        <spinner id="glitchBlockiness" label="Blockiness" default="0.500" min="0.0" max="1.000" step="0.01" type="percent" />
+        <spinner id="glitchMinimizer" label="Minimizer" default="8.0" min="0" max="20.0" step="0.025" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <switch id="rcolor" default="false" label="Red Offset" />
+        <switch id="gcolor" default="false" label="Green Offset" />
+        <switch id="bcolor" default="false" label="Blue Offset" />
+
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+   float rand(vec2 p)
+    {
+        float t = floor(progress * 20.) / 10.;
+        return fract(sin(dot(p, vec2(t * 12.9898, t * 78.233))) * 43758.5453);
+    }
+    
+    float noise(vec2 uv, float blockiness)
+    {   
+        vec2 lv = fract(uv);
+        vec2 id = floor(uv);
+        
+        float n1 = rand(id);
+        float n2 = rand(id+vec2(1,0));
+        float n3 = rand(id+vec2(0,1));
+        float n4 = rand(id+vec2(1,1));
+        
+        vec2 u = smoothstep(0.0, 1.0 + blockiness, lv);
+    
+        return mix(mix(n1, n2, u.x), mix(n3, n4, u.x), u.y);
+    }
+    
+    float fbm(vec2 uv, int count, float blockiness, float complexity)
+    {
+        float val = 0.0;
+        float amp = 0.5;
+        
+        while(count != 0)
+        {
+        	val += amp * noise(uv, blockiness);
+            amp *= 0.5;
+            uv *= complexity;    
+            count--;
+        }
+        
+        return val;
+    }
+        
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        
+
+        /////////////////////////
+        
+    	vec4 result;
+    	
+    	vec2 uv = acScreenNorm;
+        float aspect = acScreenSize.x / acScreenSize.y;
+        vec2 a = vec2(uv.x * aspect , uv.y);
+        vec2 uv2 = vec2(a.x / acScreenSize.x, exp(a.y));
+        uv2 *= rot2m(seed*0.0174533);
+        
+        float shift = glitchAmplitude * pow(fbm(uv2, 4, glitchBlockiness, glitchNarrowness), glitchMinimizer);
+        
+        float colR;
+        if (rcolor) { colR = texture2DCv(inputImg.texture, vec2(uv.x + shift, uv.y)).r * (1. - shift); }
+        else { colR = texture2DCv(inputImg.texture, vec2(uv.x - shift, uv.y)).r * (1. - shift); }
+        
+        float colG;
+        if (gcolor) { colG = texture2DCv(inputImg.texture, vec2(uv.x + shift, uv.y)).g * (1. - shift); }
+        else { colG = texture2DCv(inputImg.texture, vec2(uv.x - shift, uv.y)).g * (1. - shift); }
+        
+        float colB;
+        if (bcolor) { colB = texture2DCv(inputImg.texture, vec2(uv.x + shift, uv.y)).b * (1. - shift); }
+        else { colB = texture2DCv(inputImg.texture, vec2(uv.x - shift, uv.y)).b * (1. - shift); }
+
+        
+        vec3 f = vec3(colR, colG, colB);
+        
+        result = vec4(f, 1.0);
+        
+    	vec4 factor = result * alpha;
+        factor *= texColor.a;
+        vec4 resultfinal = factor + (texColor*(1.0-factor.a));
+        
+            vec4 targetLuma = resultfinal;
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            float luma = dot(targetLuma.rgb, luminanceWeighting);
+            float lowThresholdB = (lowThreshold*(1.0+feather))-0.001;
+            float lowThresholdA = lowThresholdB-max(feather,0.00001);
+            float highThresholdA = (highThreshold*(1.0+feather)-feather)+0.001;
+            float highThresholdB = highThresholdA+max(feather,0.00001);
+            float lowBlend = smoothstep( lowThresholdA, lowThresholdB, luma );
+            float highBlend = 1. - smoothstep( highThresholdA, highThresholdB, luma );
+            float lumafx = min(lowBlend,highBlend);
+            vec4 fxLuma = targetLuma*lumafx;
+            
+        vec4 rfinal;
+        if(type==0) { rfinal = resultfinal * texColor.a; }
+        else if(type==1) { rfinal = fxLuma; }
+        else if(type==2) { rfinal = newLayer(texColor,fxLuma); }
+
+    	gl_FragColor = rfinal;
+    	// gl_FragColor = layerM? newLayer(texColor,fxLuma) : fxLuma;
+    }
+
+
+    ]]></shader>
+
+</effect>

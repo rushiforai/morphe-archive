@@ -14,7 +14,8 @@ import app.morphe.extension.tiktok.settings.Settings;
  * Swaps TikTok's own text font for the device's system font (issue #7).
  *
  * <p>TikTok draws its interface text in a bundled family, TikTok Sans, built by one font engine
- * (its two implementations on 46.2.3 are {@code LX/0Wa3} and {@code LX/0Wa4}). Every text
+ * (two implementations of one interface, renamed on every build; SystemFontAnchorsTest holds
+ * the patch's match to each declared build). Every text
  * typeface the app asks for is produced by that engine's two methods, the variable-font builder
  * and the static asset loader, and this stands at their exit. The engine handles only the
  * TikTok text and display fonts, so the icon glyph fonts, the gift combo font and the

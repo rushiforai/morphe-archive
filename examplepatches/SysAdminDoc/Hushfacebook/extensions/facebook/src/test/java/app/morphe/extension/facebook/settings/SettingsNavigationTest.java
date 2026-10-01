@@ -560,6 +560,46 @@ public class SettingsNavigationTest {
         assertEquals(before, savedValues());
     }
 
+    /**
+     * A build that lacks default patches says how many under the card, and a tap opens and closes
+     * their names. Every default patch in, the row isn't there (the nine rows of the first test).
+     */
+    @Test public void theOverviewNamesTheDefaultPatchesABuildLacks() {
+        assertFalse(contains(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
+        controller.close();
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        PatchFamily.inBuildForTests.remove(PatchFamily.MATERIAL_YOU_THEME);
+        PatchFamily.inBuildForTests.remove(PatchFamily.SPONSORED_REELS);
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = SettingsL10nTest.show(controller.get());
+        page = page(dialog);
+        Map<String, Object> before = savedValues();
+
+        assertEquals(10, list().getCount());
+        assertEquals(1, position(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
+        Preference row = (Preference) list().getItemAtPosition(1);
+        assertEquals("1 default patch isn't in this build", String.valueOf(row.getTitle()));
+        assertEquals("Tap to see which.", String.valueOf(row.getSummary()));
+        tap(HushfacebookPreferenceFragment.MISSING_DEFAULTS);
+        assertEquals("Not in this build: " + L10n.isolate("Hide sponsored reels") + ". Morphe Manager selects it by "
+                + "default. Patch again with it selected to get what it does.", String.valueOf(row.getSummary()));
+        tap(HushfacebookPreferenceFragment.MISSING_DEFAULTS);
+        assertEquals("Tap to see which.", String.valueOf(row.getSummary()));
+        assertEquals(before, savedValues());
+
+        controller.close();
+        PatchFamily.inBuildForTests.remove(PatchFamily.SPONSORED_POSTS);
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = SettingsL10nTest.show(controller.get());
+        page = page(dialog);
+        row = (Preference) list().getItemAtPosition(1);
+        assertEquals("2 default patches aren't in this build", String.valueOf(row.getTitle()));
+        tap(HushfacebookPreferenceFragment.MISSING_DEFAULTS);
+        assertEquals("Not in this build: " + L10n.isolate("Hide sponsored posts") + " and "
+                + L10n.isolate("Hide sponsored reels") + ". Morphe Manager selects them by default. Patch again with "
+                + "them selected to get what they do.", String.valueOf(row.getSummary()));
+    }
+
     /** Without its patch a line names the patch to add, can't be tapped and says nothing is installed. */
     @Test public void aMapLineWithoutItsPatchNamesThePatchAndGoesNowhere() {
         controller.close();

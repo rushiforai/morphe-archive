@@ -1,0 +1,325 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.tanryu.effects.typography.3d-extrude"
+    name="Tanryu 3D Typography"
+    desc="Extrudes a text or shape layer into a perspective 3D typography volume with depth, rotation, camera position, bevel lighting, and adaptive-quality controls."
+    category="3d"
+    tags="3d,typography,text,extrude,camera,perspective,depth,bevel"
+    thumb="thumb/tanryu-3d-typography.webp"
+    overdraw="true"
+    maxOverdraw="0.2"
+    deprecated="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="blurBuf" srcType="buffer" />
+        <orient id="orient" label="@am:string/effect_param_orientation" invert="true" />
+        <xyz id="rotate" label="@am:string/effect_param_rotation" type="rotate" />
+        <spinner id="widthRatio" default="1.0" min="0.01" max="10" label="@am:string/effect_param_width" step="0.001" ticks="1" type="percent" />
+        <spinner id="heightRatio" default="1.0" min="0.01" max="10" label="@am:string/effect_param_height" step="0.001" ticks="1" type="percent" />
+        <spinner id="depth" default="0.1" min="0.01" max="10" label="@am:string/effect_param_depth" step="0.001" ticks="1" multiplier="100" />
+        <float id="strength" value="0.1" />
+<!--        <spinner id="normres" default="0.01" min="0.001" max="100.0" label="NormalRes" step="0.001" />-->
+        <xyz id="position" default="0.,100.,500." label="@am:string/effect_param_position" step="0.01" ticks="1.0" />
+        <spinner id="scale" default="1.0" min="0" max="10.0" label="@am:string/effect_param_scale" step="0.01" ticks="1.0" />
+
+        <section text="@am:string/effect_param_interior" />
+        <color id="interiorColor" default="#FF3366AA" label="@am:string/effect_param_interior_color" alpha="false" />
+        <slider id="interiorBlend" default="0.00" min="0.0" max="1" label="@am:string/effect_param_interior" type="percent" />
+        <color id="fadeColor" default="#FFAA3366" label="@am:string/effect_param_fade_color" alpha="false" />
+        <slider id="fadeBlend" default="0.00" min="0.0" max="1" label="@am:string/effect_param_fade" type="percent" />
+
+        <section text="@am:string/effect_section_lightsource" />
+        <selector id="shadingType" default="1" style="dropdown" label="@am:string/effect_param_shading" >
+            <choice label="@am:string/effect_param_shading_flat" value="0" />
+            <choice label="@am:string/effect_param_shading_pointlight" value="1" />
+            <choice label="@am:string/effect_param_shading_dirlight" value="2" />
+            <choice label="@am:string/effect_param_shading_depth" value="3" />
+            <choice label="@am:string/effect_param_shading_normal" value="4" />
+            <choice label="@am:string/effect_param_shading_normal_with_depth" value="5" />
+        </selector>
+        <spinner id="lightIntensity" default="1.0" min="0" max="2" step="0.001" label="@am:string/effect_param_intensity" type="percent" />
+        <spinner id="shine" default="0.8" min="0.0" max="1.0" label="@am:string/effect_param_shine" step="0.01" ticks="0.5" />
+        <spinner id="spec" default="30.0" min="1.0" max="150.0" label="@am:string/effect_param_specularity" step="0.5" ticks="30.0" />
+        <spinner id="ambient" default="0.1" min="0.0" max="1.0" label="@am:string/effect_param_ambient" step="0.01" />
+        <color id="lightColor" default="#FFFFFFFF" label="@am:string/effect_param_color" alpha="false" />
+        <point id="lightDir" default="75,-75" label="@am:string/effect_param_direction" />
+        <spinner id="lightDepth" default="100" min="-100" max="800" label="@am:string/effect_param_elevation" step="0.5" ticks="1,100"  />
+
+        <section text="@am:string/effect_section_raymarch" />
+        <tip text="@am:string/effect_raymarch_tip" />
+        <slider id="MAX_ITER" default="200" min="10" max="800" label="@am:string/effect_param_raymarch_iter" type="integer" step="1" ticks="100,200" snap="100,200" />
+
+    </params>
+
+    <passes>
+        <pass target="blurBuf" effect="com.alightcreative.effects.gaussianblur"/>
+        <pass />
+    </passes>
+
+    <shader type="vertex" precision="high"><![CDATA[
+
+        varying mat4 rotateAndOrient;
+
+        mat4 rotationAxisAngle( vec3 v, float angle )
+        {
+            float s = sin( angle );
+            float c = cos( angle );
+            float ic = 1.0 - c;
+
+            return mat4( v.x*v.x*ic + c,     v.y*v.x*ic - s*v.z, v.z*v.x*ic + s*v.y, 0.0,
+                         v.x*v.y*ic + s*v.z, v.y*v.y*ic + c,     v.z*v.y*ic - s*v.x, 0.0,
+                         v.x*v.z*ic - s*v.y, v.y*v.z*ic + s*v.x, v.z*v.z*ic + c,     0.0,
+                         0.0,                0.0,                0.0,                1.0 );
+        }
+
+        void main() {
+            vertShaderInit();
+            vec3 r = rotate * 0.0174533;
+            mat4 rx = rotationAxisAngle(vec3(1.,0.,0.),r.x);
+            mat4 ry = rotationAxisAngle(vec3(0.,1.,0.),r.y);
+            mat4 rz = rotationAxisAngle(vec3(0.,0.,1.),r.z);
+            rotateAndOrient = orient * rz * rx * ry;
+        }
+
+    ]]></shader>
+
+    <shader type="fragment" precision="high"><![CDATA[
+
+        varying mat4 rotateAndOrient;
+
+        #define OBJECT_CENTER (position/100.)
+        #define width (widthRatio*0.5*acLayerSize.x/max(acLayerSize.x,acLayerSize.y) )
+        #define height (heightRatio*0.5*acLayerSize.y/max(acLayerSize.x,acLayerSize.y) )
+
+        float sdBox( vec3 p, vec3 b )
+        {
+          vec3 d = abs(p) - b;
+          return length(max(d,0.0))
+                 + min(max(d.x,max(d.y,d.z)),0.0); // remove this line for an only partially signed sdf
+        }
+
+        mat2 rot(float a) {
+            float c = cos(a);
+            float s = sin(a);
+            return mat2(
+                c, -s,
+                s, c
+            );
+        }
+        
+        
+        vec2 l2s( vec2 v ) {
+            return (vec4(v,0.,1.)*acLayerToScreen).xy;
+        }
+
+        vec2 sdExtrude( vec3 p, vec3 r, vec3 rd ) {
+            vec2 st = (((p.xy/r.xy)*vec2(1.,1.))+1.)/2.;
+            vec4 texColor = texture2DCv(inputImg.texture, l2s(st) );
+            vec4 blurColor = texture2DCv(blurBuf.texture, l2s(st) );
+            float t = max(saturate(blurColor.a*2.),texColor.a);
+            float z = ((p.z/r.z) + 1.)/2.;
+            float maxdim = length(r);
+            float td = (1.-t) * (maxdim*2.*(1.+strength))/MAX_ITER;
+            return vec2( max(td,sdBox(p,r*vec3(2.,2.,1.))), z);
+        }
+
+
+        vec2 dist(vec3 p, vec3 rd) {
+            p = p-OBJECT_CENTER;
+            p = (vec4(p,1.) * rotateAndOrient).xyz;
+            return sdExtrude(p,vec3(width,height,depth),rd);
+        }
+
+        vec2 march(vec3 ro, vec3 rd) {
+            float d = 0.0;
+            float dz = -1.0;
+            for( int i=0; i<int(MAX_ITER); i++ ) {
+                vec3 p = ro + rd*d;
+                vec2 dinf = dist(p,rd);
+                float dd = dinf.x;
+                d += dd;
+                if( dd < 0.0000001 || d > 10000.0 ) {
+                    dz = dinf.y;
+                    break;
+                }
+            }
+            return vec2(d,dz);
+        }
+
+        mat4 rotationAxisAngle( vec3 v, float angle )
+        {
+            float s = sin( angle );
+            float c = cos( angle );
+            float ic = 1.0 - c;
+
+            return mat4( v.x*v.x*ic + c,     v.y*v.x*ic - s*v.z, v.z*v.x*ic + s*v.y, 0.0,
+                         v.x*v.y*ic + s*v.z, v.y*v.y*ic + c,     v.z*v.y*ic - s*v.x, 0.0,
+                         v.x*v.z*ic - s*v.y, v.y*v.z*ic + s*v.x, v.z*v.z*ic + c,     0.0,
+                         0.0,                0.0,                0.0,                1.0 );
+        }
+
+        mat4 vecToVec( vec3 from, vec3 to ) {
+            vec3 w = cross(normalize(from),normalize(to));
+            vec3 axis = normalize(w);
+            float angle = asin(length(w));
+            return rotationAxisAngle(axis,angle);
+        }
+
+        vec3 calcNormal(vec3 p, vec3 rd) {
+            float d = dist(p,rd).x;
+            vec2 e = vec2(0.01,0.);
+            return normalize(d - vec3(
+                dist(p-e.xyy,rd).x,
+                dist(p-e.yxy,rd).x,
+                dist(p-e.yyx,rd).x));
+        }
+
+        float lighting(vec3 p, vec3 n) {
+            vec3 lightPos = vec3(lightDir.x/2.0, -lightDir.y/2.0, -lightDepth*2.0);
+            vec3 l = normalize(lightPos-p);
+            return dot(n,l);
+        }
+
+        float directionalLighting(vec3 p, vec3 n) {
+            vec3 lightPos = vec3(lightDir.x/2.0, -lightDir.y/2.0, -lightDepth*2.0);
+            vec3 l = normalize(lightPos);
+            return dot(n,l);
+        }
+
+        vec4 applyShading(vec4 texColor, vec3 p, vec3 n, float d ) {
+            vec4 result = vec4(0.);
+            float a = smoothstep(30.0,9.,d);
+            a *= smoothstep(0.3,0.2,n.z);
+            if( shadingType == 0 ) {                // Flat
+                result = texColor * a;
+            } else if( shadingType == 1 ) {         // Point Light
+                float l = lighting(p,n);
+                vec3 tc = texColor.rgb;
+                vec3 surface = tc * ambient + tc * lightColor.rgb * l * (1.-ambient);
+                surface *= lightIntensity;
+                float s = pow(l,spec);
+                surface = mix(surface*(1.-shine*0.1),vec3(1.),shine*s);
+                result = vec4(surface, texColor.a) * a;
+            } else if( shadingType == 2 ) {         // Directonal Light
+                float l = directionalLighting(p,n);
+                vec3 tc = texColor.rgb;
+                vec3 surface = tc * ambient + tc * lightColor.rgb * l * (1.-ambient);
+                surface *= lightIntensity;
+                float s = pow(l,spec);
+                surface = mix(surface*(1.-shine*0.1),vec3(1.),shine*s);
+                result = vec4(surface, texColor.a) * a;
+            } else if( shadingType == 3 ) {         // Depth Map
+                //float dd = clamp(1.-d/10.,0.,1.)*2.;
+                float ds = max(max(width,height),depth)*2.5;
+                float dd = 1. - ((d - OBJECT_CENTER.z + ds/2.)/ds);
+                result = vec4( dd,dd,dd, 1. ) * a;
+            } else if( shadingType == 4 ) {         // Normal Map
+                result = vec4( (n/2.)+0.5, 1. ) * a;
+            } else if( shadingType == 5 ) {         // Normal * Depth
+                float ds = max(max(width,height),depth)*2.5;
+                float dd = 1. - ((d - OBJECT_CENTER.z + ds/2.)/ds);
+                result = vec4( ((n/2.)+0.5)*dd, 1. ) * a;
+            }
+
+            return result;
+        }
+
+        void main() {
+
+            vec2 st = acLayerNorm;
+            st -= 0.5;
+            if( acLayerSize.x < acLayerSize.y ) {
+                st.x *= acLayerSize.x/acLayerSize.y;
+            } else {
+                st.y *= acLayerSize.y/acLayerSize.x;
+            }
+
+            st /= scale;
+            st /= 5.8;
+
+            vec3 ro = vec3(0., 1., -1.);
+            vec3 rd = normalize(vec3(st, 1.));
+
+            vec2 dinf = march(ro,rd);
+            float d = dinf.x;
+            float dz = dinf.y;
+            vec3 p = ro + rd * d;
+
+            vec3 n = calcNormal(p,rd);
+            vec3 nn = n;
+            float l = lighting(p,n);
+
+            vec4 localCoord = vec4(p-OBJECT_CENTER, 1.);
+            n = (vec4(n,0.) * rotateAndOrient).xyz;
+            localCoord *= rotateAndOrient;
+            vec4 pp = localCoord;
+            vec4 qq = pp * (vecToVec(n,pp.xyz*vec3(0.,1.,0.)));
+
+            pp /= vec4(width,height,depth,1.);
+
+            vec2 texCoord;
+            float a;
+            /*if( n.x > 0.5 ) {
+                texCoord = ((pp.zy+1.)/2.);
+                a = height<0.0105 || depth<0.0105 ? 0.0 : 1.0;
+            } else if ( n.x < -0.5 ) {
+                texCoord = ((pp.zy+1.)/2.);
+                texCoord.x = 1.-texCoord.x;
+                a = height<0.0105 || depth<0.0105 ? 0.0 : 1.0;
+            } else if ( n.y > 0.5 ) {
+                texCoord = ((pp.xz+1.)/2.);
+                a = width<0.0105 || depth<0.0105 ? 0.0 : 1.0;
+            } else if ( n.y < -0.5 ) {
+                texCoord = 1.-((pp.xz+1.)/2.);
+                texCoord.x = 1.-texCoord.x;
+                a = width<0.0105 || depth<0.0105 ? 0.0 : 1.0;
+            } else if ( n.z > 0.5 ) {
+                texCoord = (pp.xy+1.)/2.;
+                texCoord.x = 1.-texCoord.x;
+                a = width<0.0105 || height<0.0105 ? 0.0 : 1.0;
+            } else if ( n.z < -0.5 ) {
+                texCoord = (pp.xy+1.)/2.;
+                a = width<0.0105 || height<0.0105 ? 0.0 : 1.0;
+            } else {
+                texCoord = vec2(0.,0.);
+                a = 1.0;
+            }*/
+            
+            texCoord = (pp.xy+1.)/2.;
+            a = width<0.0105 || height<0.0105 ? 0.0 : 1.0;
+            
+            //vec2 texCoord = (qq.xz+1.)/2.;
+
+            //texCoord = mod(texCoord*crop, 1.);
+            //texCoord = mapTexture(texCoord);
+
+            vec2 tc = l2s(texCoord);
+            vec4 baseColor = texture2DCv( inputImg.texture, tc );
+            vec4 blurColor = texture2DCv( blurBuf.texture, tc );
+            vec4 texColor;
+            if( blurColor.a > baseColor.a && blurColor.a > 0.25 ) {
+                texColor = blurColor / blurColor.a;
+            } else if( baseColor.a > 0.25 ) {
+                texColor = baseColor / baseColor.a;
+            } else {
+                texColor = baseColor;
+            }
+            
+            if( dz > 0.001 && dz < 0.999 ) {
+                if( interiorBlend > 0.0 ) {
+                    texColor = mix(texColor,interiorColor*texColor.a,interiorBlend);
+                }
+                if( fadeBlend > 0.0 ) {
+                    texColor = mix(texColor,fadeColor*texColor.a,fadeBlend*dz);
+                }
+            }
+
+
+            gl_FragColor = applyShading(texColor, p, nn, d) * a;
+
+        }
+
+    ]]></shader>
+
+</effect>

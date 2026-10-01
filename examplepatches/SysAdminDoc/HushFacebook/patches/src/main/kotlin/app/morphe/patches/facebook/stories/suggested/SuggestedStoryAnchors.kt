@@ -39,6 +39,12 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * 577 0x7f146a31) when that flag is true or when the bucket's first label is SUGGESTED, a constant
  * of the label enum that also names NEWFRIEND and TRENDING (580 LX/2yG;, 577 LX/2y8;). One static
  * helper answers that label for a bucket (580 LX/2Qy;->A00, 577 LX/2DS;->A00).
+ *
+ * Some buckets are cards, not stories (2026-09-30). The interface has one method answering the
+ * bucket type enum (580 C9d()LX/2LX;, 577 CAm()LX/24X;), the one naming PYMK_STORY,
+ * PYMK_PROFILE_FORWARD_STORY and CONTACT_IMPORTER_STORY among the tray's other types, and the tree
+ * class answers it with getCachedEnum of [BUCKET_TYPE_FIELD]'s key. Two other enums name the same
+ * three types, but no bucket method answers them.
  */
 
 /** Kept trace name of the tray fetch's post-processing, the one builder of the tray data. */
@@ -52,6 +58,12 @@ internal const val SUGGESTED_FLAG_FIELD = "is_story_bucket_suggested"
 
 /** Names the bucket label enum's static initializer holds. NEWFRIEND is in no other class. */
 internal val LABEL_NAMES = listOf("NEWFRIEND", "SUGGESTED", "TRENDING")
+
+/** The GraphQL field holding a bucket's type, which picks the card the tray draws for it. */
+internal const val BUCKET_TYPE_FIELD = "story_bucket_type"
+
+/** The card types the bucket type enum's static initializer names, among the tray's other types. */
+internal val BUCKET_TYPE_NAMES = listOf("PYMK_PROFILE_FORWARD_STORY", "PYMK_STORY", "CONTACT_IMPORTER_STORY")
 
 internal const val IMMUTABLE_LIST = "Lcom/google/common/collect/ImmutableList;"
 
@@ -135,6 +147,23 @@ internal fun isTreeFlagReader(method: Method, field: String): Boolean {
             val call = instruction.methodReference()
             instruction.opcode == Opcode.INVOKE_VIRTUAL && call != null && call.definingClass == TREE_JNI &&
                 call.name == "getBooleanValue" && call.returnType == "Z" && call.parameterTypes.map { it.toString() } == listOf("I")
+        }
+}
+
+/**
+ * Whether [method] answers the tree's enum [field]: an instance method with no arguments and an
+ * object back, loading the field's key and reading it with getCachedEnum(int, Enum). The call names
+ * the tree class's own superclass (580 LX/i17;), a TreeJNI subclass, so only its name and shape count.
+ */
+internal fun isTreeEnumReader(method: Method, field: String): Boolean {
+    if (method.isStatic() || method.parameterTypes.isNotEmpty() || !method.returnType.startsWith("L")) return false
+    val body = method.body()
+    val key = treeFieldKey(field)
+    return body.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == key } &&
+        body.any { instruction ->
+            val call = instruction.methodReference()
+            instruction.opcode == Opcode.INVOKE_VIRTUAL && call != null && call.name == "getCachedEnum" &&
+                call.returnType == "Ljava/lang/Enum;" && call.parameterTypes.map { it.toString() } == listOf("I", "Ljava/lang/Enum;")
         }
 }
 

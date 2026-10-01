@@ -1,0 +1,267 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e7261696e79646577" deprecated="true">
+
+    <params>
+        <switch id="ryu" default="false" label="New Pattern" />
+        <spinner id="progress" label="Evolution" default="5" min="5" max="1000.0" step="0.01" type="percent" />
+        <spinner id="scaleuv" default="1.5" min="0.1" max="5.0" step="0.01" label="Scale Comp" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha Comp" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="position" label="Position" />
+        <point id="space" default="6.0,10.0" min="0.01,0.01" max="50, 50" label="Distance" step="0.025" />
+        <section text="Scale Option" />
+        <spinner id="scalex" default="1.0" min="-10.0" max="10.0" step="0.01" label="Scale Static" type="percent" />
+        <spinner id="scaley" default="1.0" min="-10.0" max="10.0" step="0.01" label="Scale Mid" type="percent" />
+        <spinner id="scalez" default="1.85" min="-10.0" max="10.0" step="0.01" label="Scale Base" type="percent" />
+        <section text="Alpha Option" />
+        <spinner id="alpx" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha Static" type="percent" />
+        <spinner id="alpy" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha Base" type="percent" />
+        <switch id="xxx" default="false" label="Specularity" />
+        <switch id="lightfx" default="false" label="Lighting" />
+        <spinner id="aai" label="Lighting Temp" default="0.5" min="-10.0" max="100.0" step="0.01" type="percent" />
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.0,1.0)*acLayerToScreen).xy;
+    }
+    
+    #define fragCoord gl_FragCoord
+    #define S(a, b, t) smoothstep(a, b, t)
+    
+   /////////////////////////
+       
+    vec3 N13(float p) {
+        //  from DAVE HOSKINS
+       vec3 p3 = fract(vec3(p) * vec3(0.1031,.11369,.13787));
+       p3 += dot(p3, p3.yzx + 19.19);
+       return fract(vec3((p3.x + p3.y)*p3.z, (p3.x+p3.z)*p3.y, (p3.y+p3.z)*p3.x));
+    }
+    
+    vec4 N14(float t) {
+    	return fract(sin(t*vec4(123.0, 1024.0, 1456.0, 264.0))*vec4(6547.0, 345.0, 8799.0, 1564.0));
+    }
+    float N(float t) {
+        return fract(sin(t*12345.564)*7658.76);
+    }
+    
+    float Saw(float b, float t) {
+    	return S(0.0, b, t)*S(1.0, b, t);
+    }
+    
+    
+    vec2 DropLayer2(vec2 uv, float t) {
+        vec2 UV = uv;
+        
+        uv.y += t*0.75;
+        vec2 a = vec2(space.x, 1.0);
+        vec2 grid = a*2.0;
+        vec2 id = floor(uv*grid);
+        
+        float colShift = N(id.x); 
+        uv.y += colShift;
+        
+        id = floor(uv*grid);
+        vec3 n = N13(id.x*35.2+id.y*2376.1);
+        vec2 st = fract(uv*grid)-vec2(0.5, 0);
+        
+        float x = n.x-0.5;
+        
+        float y = UV.y*20.0;
+        float wiggle = sin(y+sin(y));
+        x += wiggle*(0.5-abs(x))*(n.z-0.5);
+        x *= 0.7;
+        float ti = fract(t+n.z);
+        y = (Saw(0.85, ti)-0.5)*0.9+0.5;
+        vec2 p = vec2(x, y);
+        
+        float d = length((st-p)*a.yx);
+        
+        float mainDrop = S(0.4, 0.0, d);
+        
+        float r = sqrt(S(1.0, y, st.y));
+        float cd = abs(st.x-x);
+        float trail = S(0.23*r, 0.15*r*r, cd);
+        float trailFront = S(-0.02, 0.02, st.y-y);
+        trail *= trailFront*r*r;
+        
+        y = UV.y;
+        float trail2 = S(0.2*r, .0, cd);
+        float droplets = max(0.0, (sin(y*(1.-y)*120.0)-st.y))*trail2*trailFront*n.z;
+        y = fract(y*space.y)+(st.y-0.5);
+        // y = fract(y*10.0)+(st.y-0.5);
+        float dd = length(st-vec2(x, y));
+        droplets = S(0.3, 0.0, dd);
+        float m = (mainDrop+droplets*r*trailFront)*alpy;
+        
+        //m += st.x>a.y*.45 || st.y>a.x*.165 ? 1.2 : 0.0;
+        return vec2(m, trail);
+    }
+    
+    float StaticDrops(vec2 uv, float t) {
+    	uv *= 40.0;
+        
+        vec2 id = floor(uv);
+        uv = fract(uv)-0.5;
+        vec3 n = N13(id.x*107.45+id.y*3543.654);
+        vec2 p = (n.xy-0.5)*.7;
+        float d = length(uv-p);
+        
+        float fade = Saw(0.025, fract(t+n.z));
+        float c = (S(0.3, 0.0, d)*fract(n.z*10.0)*fade)*alpx;
+        // float c = S(0.3, 0.0, d)*fract(n.z*10.0)*fade;
+        return c;
+    }
+    
+    vec2 Drops(vec2 uv, float t, float l0, float l1, float l2) {
+        float s = StaticDrops(uv*scalex, t)*l0; 
+        vec2 m1 = DropLayer2(uv*scaley, t)*l1;
+        vec2 m2 = DropLayer2(uv*scalez, t)*l2;
+        
+        float c = s+m1.x+m2.x;
+        c = S(0.3, 1.0, c);
+        
+        return vec2(c, max(m1.y*l0, m2.y*l1));
+    }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+
+        if(ryu) {
+        TanRyu /= (scaleuv+1.5); }
+        else { TanRyu /= scaleuv; }
+        
+        TanRyu *= rot2m((-180.0+angle)*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.0,1.0)/500.0;
+
+        
+        /////////////////////////
+
+    	vec4 fragColor;
+    	
+    	vec2 uv = TanRyu;
+        vec2 UV = acScreenNorm;
+        
+        vec3 M = vec3(0.0,0.0,0.0);
+        float T = progress+M.x*2.0;
+        
+                /// HEART
+                if(ryu) {
+                T = mod(progress, 102.0);
+                T = mix(T, M.x*102.0, M.z>0.?1.:0.0); }
+        
+        
+        float t = T*0.2;
+        
+        float rainAmount = 0.0>0. ? M.y : sin(T*.05)*.3+.7;
+        
+        float maxBlur = mix(3.0, 6.0, rainAmount);
+        float minBlur = 2.0;
+        
+        float story = 0.0;
+        float heart = 0.0;
+        
+                /// HEART
+                if(ryu) {
+                story = S(0.0, 70.0, T);
+                
+                t = min(1.0, T/70.0);						// remap drop time so it goes slower when it freezes
+                t = 1.-t;
+                t = (1.-t*t)*70.0;
+                
+                minBlur = 4.0+S(0.5, 1.0, story)*3.0;		// more opaque glass towards the end
+                maxBlur = 6.0+S(0.5, 1.0, story)*1.5;
+                
+                vec2 hv = uv-vec2(0.0, -0.1);				// build heart
+                hv.x *= 0.5;
+                float s = S(110.0, 70.0, T);				// heart gets smaller and fades towards the end
+                hv.y-=sqrt(abs(hv.x))*0.5*s;
+                heart = length(hv);
+                heart = S(0.4*s, 0.2*s, heart)*s;
+                rainAmount = heart;						// the rain is where the heart is
+                
+                maxBlur-=heart;							// inside the heart slighly less foggy
+                uv *= 1.5;								// zoom out a bit more
+                t *= 0.25; }
+        
+        float staticDrops = S(-0.5, 1.0, rainAmount)*2.0;
+        float layer1 = S(0.25, 0.75, rainAmount);
+        float layer2 = S(0.0, 0.5, rainAmount);
+        
+        
+        vec2 c = Drops(uv, t, staticDrops, layer1, layer2);
+	vec2 e = vec2(0.001, 0.0);
+	float cx = Drops(uv+e, t, staticDrops, layer1, layer2).x;
+	float cy = Drops(uv+e.yx, t, staticDrops, layer1, layer2).x;
+	vec2 n = vec2(cx-c.x, cy-c.x);		// expensive normals
+        
+        
+                /// HEART
+                if(ryu) {
+                n *= 1.0-S(60.0, 85.0, T);
+                c.y *= 1.0-S(80.0, 100.0, T)*0.8; }
+        
+                        float focus = mix(maxBlur-c.y, minBlur, S(0.1, 0.2, c.x));
+                        vec4 col = texture2DCv(inputImg.texture, UV+n);
+                        if(xxx) { col.a *= focus; }
+                        else { col.a = focus; }
+        
+        if(lightfx) {
+        t = (T+3.0)*0.5;										// make time sync with first lightnoing
+        float colFade = (sin(t*0.2)*aai+0.5+story*1.0);
+        col.rgb *= (mix(vec3(1.0), vec3(0.8, 0.9, 1.3), colFade)*1.0);	// subtle color shift
+        float fade = S(0.0, 10.0, T);							// fade in at the start
+        float lightning = sin(t*sin(t*10.0));				// lighting flicker
+        lightning *= pow(max(0.0, sin(t+sin(t))), 10.0);		// lightning flash
+        col.rgb *= (1.0+lightning*fade*mix(1.0, 0.1, story*story)*0.5);	// composite lightning
+        col.rgb *= (1.0-dot(UV-=0.5, UV)*1.0);	// vignette
+        											
+                /// HEART
+                if(ryu) {
+        	col.rgb = (mix(pow(col.rgb, vec3(1.2)), col.rgb, heart)*1.0);
+        	fade *= S(102.0, 97.0, T); }
+
+        col.rgb *= fade; }							// composite start and end fade
+
+        fragColor = col;
+                    
+    	gl_FragColor = mix(texColor, fragColor, alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

@@ -7,6 +7,7 @@ package app.morphe.patches.tiktok.privacy
 import app.morphe.util.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.util.classesCalling
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
@@ -59,13 +60,19 @@ internal fun BytecodePatchContext.invokeSitesOf(
         static -> STATIC_OPCODES
         else -> VIRTUAL_OPCODES
     }
+    val names = targetNames(targets)
+    val callers = classesCalling(targets.map { it.substringBefore("->") })
     val sites = mutableListOf<InvokeSite>()
     classDefForEach { owner ->
-        if (owner.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
+        if (owner.type !in callers || owner.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
         owner.methods.forEach { method ->
             method.implementation?.instructions?.forEachIndexed { index, instruction ->
                 if (instruction.opcode !in opcodes) return@forEachIndexed
-                val ref = instruction.getReference<MethodReference>()?.toString() ?: return@forEachIndexed
+                val reference = instruction.getReference<MethodReference>() ?: return@forEachIndexed
+                // The name first: writing every call in TikTok out as a descriptor to compare took a
+                // quarter of a whole patching run, once for each privacy patch (#54).
+                if (reference.name !in names) return@forEachIndexed
+                val ref = reference.toString()
                 if (ref !in targets) return@forEachIndexed
                 val registers: List<Int>
                 val ranged: Boolean
@@ -89,6 +96,13 @@ internal fun BytecodePatchContext.invokeSitesOf(
     }
     return sites
 }
+
+/** The method names in full descriptors like `Lpkg/Type;->name(params)ret`. */
+internal fun targetNames(targets: Collection<String>): Set<String> =
+    targets.mapTo(HashSet()) { target ->
+        require("->" in target && "(" in target) { "not a full method descriptor: $target" }
+        target.substringAfter("->").substringBefore('(')
+    }
 
 /**
  * The `invoke-static` that hands this site's registers to [replacement], a full static method

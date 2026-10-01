@@ -783,6 +783,12 @@ function Invoke-RepoGit {
         GIT_WORK_TREE already in its environment, so without this a -Root parameter is a
         suggestion rather than an instruction: git reads whichever repository the hook came from.
         On 2026-09-15 that turned a temporary fixture into three commits on the real branch.
+
+        git writes UTF-8, and PowerShell decodes a native command's output with the console's
+        encoding, which is code page 437 for a hook's pwsh when the push starts in Git Bash. There a
+        byte order mark came back as the three characters U+2229 U+2557 U+2510 and any other
+        non-ASCII text as nonsense, so Use-Utf8ConsoleOutput (common.ps1) has PowerShell read UTF-8
+        for the call, with or without a console, and puts the caller's encoding back.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Root,
@@ -799,7 +805,7 @@ function Invoke-RepoGit {
     $preference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        return & git -C $Root @Arguments 2>$null
+        return Use-Utf8ConsoleOutput { & git -C $Root @Arguments 2>$null }
     } finally {
         $ErrorActionPreference = $preference
         foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }

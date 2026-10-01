@@ -22,7 +22,21 @@ public class SettingsTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        Settings.hookErrors.clear();
+        Settings.metaAiTab = null;
         CrashGuard.resetForTests();
+    }
+
+    @Test public void theMetaAiTabKeepsItsFirstAnswerUntilARestart() {
+        assertFalse(Settings.hideMetaAiTab());
+        Settings.preferences.edit().putBoolean("meta_ai", true).commit();
+        assertTrue(Settings.hideMetaAi());
+        assertFalse(Settings.hideMetaAiTab());
+        Settings.metaAiTab = null;
+        assertTrue(Settings.hideMetaAiTab());
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        assertFalse(Settings.hideMetaAi());
+        assertTrue(Settings.hideMetaAiTab());
     }
 
     @Test public void allControlsPreserveStockUntilEnabled() {
@@ -233,6 +247,35 @@ public class SettingsTest {
         assertNull(Settings.filterKeyboardTabs(tabs));
     }
 
+    // Robolectric's default Typeface stand-in accepts any path; the native one fails on a missing file like a phone does.
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test public void aSystemEmojiFontThatWontLoadIsTriedOnceAndStopsCountingAsAUse() throws Exception {
+        String font = Settings.systemEmojiFont;
+        try {
+            Settings.systemEmojiFont = "/nonexistent/NoColorEmoji.ttf";
+            Settings.systemEmoji = null;
+            Settings.systemEmojiMissing = false;
+            Settings.activeAt.clear();
+            Settings.preferences.edit().putBoolean("use_system_emoji", true).apply();
+            assertNull(Settings.systemEmojiTypeface());
+            String failure = Settings.hookErrors.get("use_system_emoji");
+            assertNotNull(failure);
+            assertTrue(failure.contains(" at Settings.systemEmojiTypeface"));
+            long used = Settings.lastActive("use_system_emoji");
+            assertTrue(Settings.hookErrorAt("use_system_emoji") >= used);
+            Thread.sleep(5);
+            // Later draws neither load the font again (which would record a newer failure) nor count as a use.
+            assertNull(Settings.systemEmojiTypeface());
+            assertNull(Settings.systemEmojiTypeface());
+            assertEquals(failure, Settings.hookErrors.get("use_system_emoji"));
+            assertEquals(used, Settings.lastActive("use_system_emoji"));
+        } finally {
+            Settings.systemEmojiFont = font;
+            Settings.systemEmoji = null;
+            Settings.systemEmojiMissing = false;
+        }
+    }
+
     @Test public void inlineTabListsLoseTheAvatarTabEvenWhenItsEventSitsOneLevelDeeper() {
         KeyboardTab avatar = new KeyboardTab(new X.TabConfig(new com.facebook.xapp.messaging.composer.avatar.composertab.event.ActivateAvatarSticker()));
         KeyboardTab stickers = new KeyboardTab(new X.TabConfig("stickers"));
@@ -243,8 +286,10 @@ public class SettingsTest {
         Settings.preferences.edit().putBoolean("avatar_stickers", true).apply();
         Settings.removeAvatarTabs(tabs);
         assertEquals(java.util.List.of(stickers, text), tabs);
-        // Anything that isn't a changeable collection is left alone.
+        // Anything that isn't a changeable collection is left alone, and a list that refuses the change is kept as a hook error.
+        assertEquals(0, Settings.hookErrorAt("avatar_stickers"));
         Settings.removeAvatarTabs(java.util.List.of(avatar));
+        assertTrue(Settings.hookErrorAt("avatar_stickers") > 0);
         Settings.removeAvatarTabs(null);
     }
 

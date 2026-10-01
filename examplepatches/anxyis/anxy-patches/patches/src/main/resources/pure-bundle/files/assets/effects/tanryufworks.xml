@@ -1,0 +1,208 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.fireworks"
+    name="Firework Particle"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="other"
+    thumb="thumb/TANRYU/work.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="black" srcType="image" src="textures/black.png" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="SCREEN" value="1" />
+        </selector>
+        <point id="position" label="@am:string/effect_param_offset" />
+        <spinner id="progress" label="Progress" default="0.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="orientX" label="Orient X" default="1.0" min="0" max="180.0" step="0.01" type="percent" />
+        <spinner id="orientY" label="Orient Y" default="1.0" min="0" max="180.0" step="0.01" type="percent" />
+        <spinner id="scale" label="Scale" default="1.0" min="0" max="10.0" step="0.01" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <slider id="AMOUNT" label="Amount" default="6" min="0" max="20" step="1.0" type="integer" ticks="5,10,15" snap="5,10,15" />
+        <slider id="SPARKS" label="Sparks" default="10" min="0" max="20" step="1.0" type="integer" ticks="5,10,15" snap="5,10,15" />
+        <switch id="onecolor" default="false" label="One Color Mode" />
+        <color id="color1" default="#FF000000" label="@am:string/effect_param_color" alpha="true" />
+        <color id="color2" default="#FFFFFFFF" label="@am:string/effect_param_color" alpha="true" />
+     
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+            
+    // #define FIREWORKS AMOUNT
+    // #define BASE_PAUSE FIREWORKS / 60.
+    #define PI 3.14
+    #define PI2 6.28
+    
+    // int SPARKS = int(SPARKSS);
+    
+    float n21(vec2 n) {
+        return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+    }
+    
+    vec2 randomSpark(float noise) {
+        vec2 v0 = vec2((noise - .5) * 13., (fract(noise * 123.) - .5) * 15.);
+        return v0;
+    }
+    
+    vec2 circularSpark(float i, float noiseId, float noiseSpark) {
+        noiseId = fract(noiseId * 7897654.45);
+        float a = (PI2 / SPARKS) * i;
+        float speed = 10.*clamp(noiseId, .7, 1.);
+        float x = sin(a + orientX*((noiseId-.5)*3.));
+        float y = cos(a + orientY*(fract(noiseId*4567.332) - .5)*2.);
+        vec2 v0 = vec2(x, y) * speed;
+        return v0;
+    }
+    
+    
+    vec2 rocket(vec2 start, float t) {
+        float y = t;
+        float x = sin(y*10.+cos(t*3.))*.1;
+        vec2 p = start + vec2(x, y * 8.);
+        return p;
+    }
+    
+    vec3 firework(vec2 uv, float index, float pauseTime) {
+        vec3 col = vec3(0.);
+    
+    
+        float timeScale = 1.;
+        vec2 gravity = vec2(0., -9.8);
+    
+        float explodeTime = .9;
+        float rocketTime = 1.1;
+        float episodeTime = rocketTime + explodeTime + pauseTime;
+    
+        float ratio = acScreenSize.x / acScreenSize.y;
+    
+        float timeScaled = (progress - pauseTime) / timeScale;
+    
+        float id = floor(timeScaled / episodeTime);
+        float et = mod(timeScaled, episodeTime);
+    
+        float noiseId = n21(vec2(id+1., index+1.));
+    
+        float scale = clamp(fract(noiseId*567.53)*30., 10., 30.);
+        uv *= scale;
+    
+        rocketTime -= (fract(noiseId*1234.543) * .5);
+    
+        vec2 pRocket = rocket(vec2(0. + ((noiseId - .5)*scale*ratio), 0. - scale/2.), clamp(et, 0., rocketTime));
+    
+        if (et < rocketTime) {
+            float rd = length(uv - pRocket);
+            col += pow(.05/rd , 1.9) * vec3(0.9, .3, .0);
+        }
+    
+    
+        if (et > rocketTime && et < (rocketTime + explodeTime)) {
+            float burst = sign(fract(noiseId*44432.22) - .6);
+            for(int i = 0 ; i < int(SPARKS) ; i++) {
+                    vec2 center = pRocket;
+                    float fi = float(i);
+                    float noiseSpark = fract(n21(vec2(id*10.+index*20., float(i+1))) * 332.44);
+                    float t = et - rocketTime;
+                    vec2 v0;
+    
+                    if (fract(noiseId*3532.33) > .5) {
+                        v0 = randomSpark(noiseSpark);
+                        t -= noiseSpark * (fract(noiseId*543.) * .2);
+                    } else {
+                        v0 = circularSpark(fi, noiseId, noiseSpark);
+    
+                        if ( (fract(noiseId*973.22) - .5) > 0.) {
+                            float re = mod(fi, 4. + 10. * noiseId);
+                            t -= floor(re/2.) * burst * .1;
+                        } else {
+                            t -= mod(fi, 2.) == 0. ? 0. : burst * .5*clamp(noiseId, .3, 1.);
+                        }
+                    }
+    
+                    vec2 s = v0*t + (gravity * t * t) / 2.;
+    
+                    vec2 p = center + s;
+    
+                    float d = length(uv - p);
+    
+                    if (t > 0.) {
+                        float fade = clamp((1. - t/explodeTime), 0., 1.);
+                        vec3 sparkColor = vec3(noiseId*.9, .5*fract(noiseId *456.33), .5*fract(noiseId *1456.33));
+                        vec3 c = (.05 / d) * sparkColor;
+                        col += c * fade;
+                    }
+                }
+        }
+    
+    
+        return col;
+    }
+    
+    void main ()
+    {
+            
+        vec4 texColorX = texture2DCv(black.texture,acScreenNorm);
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+                        
+        /////////////////////////
+        
+        
+    	vec4 result;
+    	
+    	vec2 uv = acScreenNorm;
+    	uv /= scale;
+        uv += position*vec2(-1.,1.)/500.;
+    	
+        uv -= 0.5;
+        uv.x *= acScreenSize.x / acScreenSize.y;
+    
+        vec3 col = vec3(0.);
+    
+        for (float i = 0. ; i < AMOUNT ; i += 1.) {
+            col += firework(uv, i + 1., (i * (AMOUNT/60.0)));
+        }
+    
+        result = vec4(col, 1.);
+        
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            vec4 gradmap;
+            float luminance = dot(result.rgb, luminanceWeighting);
+            gradmap = mix(color1,color2,luminance)*result.a;
+
+        vec4 factor;
+        if ( onecolor ) { factor = mix(texColorX,gradmap,alpha); }
+    	else { factor = mix(texColorX,result,alpha); }
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor,resultfinal, alpha) * texColor.a;
+    }
+
+
+    ]]></shader>
+
+</effect>

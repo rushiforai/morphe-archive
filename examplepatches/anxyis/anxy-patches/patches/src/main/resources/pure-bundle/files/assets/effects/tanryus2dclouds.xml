@@ -1,0 +1,200 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="636f6d2e616c6967687463726561746976652e656666656374732e3264636c6f756473" deprecated="true">
+
+    <params>
+        <color id="skycolour2" default="#FF66B3FF" label="BaseSky Color" alpha="true" />
+        <color id="skycolour1" default="#FF336699" label="TrimSky Color" alpha="true" />
+        <color id="ccolor" default="#FFFFFFE5" label="Cloud Color" alpha="true" />
+        <spinner id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.005" type="percent" />
+        <spinner id="scale" default="1.75" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <spinner id="clouddark" label="Dark Cloud" default="0.5" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="cloudlight" label="Light Cloud" default="0.3" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="cloudcover" label="Threshold" default="0.2" min="0.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="cloudalpha" label="Alpha Cloud" default="8.0" min="0.0" max="10.0" step="0.1" type="percent" />
+        <spinner id="skytint" label="Sky Tint" default="0.5" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.5,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+        <selector id="blendMode" style="radio" default="3">
+            <choice label="NORMAL" value="0" />
+            <choice label="LAYER" value="3" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            groups.push(0);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        const mat2 m = mat2( 1.6,  1.2, -1.2,  1.6 );
+        
+        vec2 hash( vec2 p ) {
+        	p = vec2(dot(p,vec2(127.1,311.7)), dot(p,vec2(269.5,183.3)));
+        	return -1.0 + 2.0*fract(sin(p)*43758.5453123);
+        }
+        
+        float noise( in vec2 p ) {
+            const float K1 = 0.366025404; // (sqrt(3)-1)/2;
+            const float K2 = 0.211324865; // (3-sqrt(3))/6;
+        	vec2 i = floor(p + (p.x+p.y)*K1);	
+            vec2 a = p - i + (i.x+i.y)*K2;
+            vec2 o = (a.x>a.y) ? vec2(1.0,0.0) : vec2(0.0,1.0); //vec2 of = 0.5 + 0.5*vec2(sign(a.x-a.y), sign(a.y-a.x));
+            vec2 b = a - o + K2;
+        	vec2 c = a - 1.0 + 2.0*K2;
+            vec3 h = max(0.5-vec3(dot(a,a), dot(b,b), dot(c,c) ), 0.0 );
+        	vec3 n = h*h*h*h*vec3( dot(a,hash(i+0.0)), dot(b,hash(i+o)), dot(c,hash(i+1.0)));
+            return dot(n, vec3(70.0));	
+        }
+        
+        float fbm(vec2 n) {
+        	float total = 0.0, amplitude = 0.1;
+        	for (int i = 0; i < 7; i++) {
+        		total += noise(n) * amplitude;
+        		n = m * n;
+        		amplitude *= 0.4;
+        	}
+        	return total;
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        vec2 TanRyu;
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        
+        TanRyu /= scale;
+        TanRyu *= rot2m((0.0+angle)*0.0174533);
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            vec2 p = TanRyu;
+        	vec2 uv = p*vec2(iResolution.x/iResolution.y,1.0);    
+            float time = PROGRESS;
+            // float time = iTime * speed;
+            float q = fbm(uv * 1.1 * 0.5);
+            
+            //ridged noise shape
+        	float r = 0.0;
+        	uv *= 1.1;
+            uv -= q - time;
+            float weight = 0.8;
+            for (int i=0; i<8; i++){
+        		r += abs(weight*noise( uv ));
+                uv = m*uv + time;
+        		weight *= 0.7;
+            }
+            
+            //noise shape
+        	float f = 0.0;
+            uv = p*vec2(iResolution.x/iResolution.y,1.0);
+        	uv *= 1.1;
+            uv -= q - time;
+            weight = 0.7;
+            for (int i=0; i<8; i++){
+        		f += weight*noise( uv );
+                uv = m*uv + time;
+        		weight *= 0.6;
+            }
+            
+            f *= r + f;
+            
+            //noise colour
+            float c = 0.0;
+            time = PROGRESS * 2.0;
+            uv = p*vec2(iResolution.x/iResolution.y,1.0);
+        	uv *= 1.1*2.0;
+            uv -= q - time;
+            weight = 0.4;
+            for (int i=0; i<7; i++){
+        		c += weight*noise( uv );
+                uv = m*uv + time;
+        		weight *= 0.6;
+            }
+            
+            //noise ridge colour
+            float c1 = 0.0;
+            time = PROGRESS * 3.0;
+            uv = p*vec2(iResolution.x/iResolution.y,1.0);
+        	uv *= 1.1*3.0;
+            uv -= q - time;
+            weight = 0.4;
+            for (int i=0; i<7; i++){
+        		c1 += abs(weight*noise( uv ));
+                uv = m*uv + time;
+        		weight *= 0.6;
+            }
+        	
+            c += c1;
+            
+            vec3 skycolour = mix(skycolour2.rgb, skycolour1.rgb, p.y);
+            vec3 cloudcolour = vec3(ccolor.r+0.1, ccolor.g+0.1, ccolor.b) * clamp((clouddark + cloudlight*c), 0.0, 1.0);
+            // vec3 cloudcolour = vec3(1.1, 1.1, 0.9) * clamp((clouddark + cloudlight*c), 0.0, 1.0);
+           
+            f = cloudcover + cloudalpha*f*r;
+            
+            vec3 result = mix(skycolour, clamp(skytint * skycolour + cloudcolour, 0.0, 1.0), clamp(f + c, 0.0, 1.0));
+            
+        	fragColor = vec4( result, skycolour2.a );
+        
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+    	
+        vec4 resultfinal;
+          if( blendMode==0 ) {
+            resultfinal = (factor * hardness) * texColor.a; }
+            // resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; 
+            resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+              // resultfinal = max(factor, texColor) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+          }
+        }
+
+    ]]></shader>
+
+</effect>

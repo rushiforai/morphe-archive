@@ -69,5 +69,13 @@ val pixivAiFlaggerPatch: BytecodePatch = bytecodePatch(
             1,
             "invoke-static/range {p0 .. p1}, Lapp/morphe/extension/pixiv/aiflag/AiUiHelper;->onDetailBottomBarBound(Landroid/view/View;Ljava/lang/Object;)V"
         )
+
+        // --- Hook 5: DetailImageViewHolder.bind (Inline AI banner) ---
+        val detailImageHolderClass = mutableClassDefBy("Ljp/pxv/android/feature/illustviewer/detail/DetailImageViewHolder;")
+        val holderBindMethod = detailImageHolderClass.methods.first { it.name == "bind" && it.parameterTypes.size == 1 }
+        holderBindMethod.addInstructions(
+            1,
+            "invoke-static/range {p0 .. p1}, Lapp/morphe/extension/pixiv/aiflag/AiUiHelper;->onDetailImageBound(Ljava/lang/Object;Ljava/lang/Object;)V"
+        )
     }
 }

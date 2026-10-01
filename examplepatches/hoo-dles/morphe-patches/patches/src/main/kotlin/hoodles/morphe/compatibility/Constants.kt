@@ -8,7 +8,7 @@ object Compat {
         name = "AdGuard",
         packageName = "com.adguard.android",
         appIconColor = 0x67b279,
-        targets = listOf(AppTarget("4.14.1", versionCode = 42219001))
+        targets = listOf(AppTarget("4.14.2", versionCode = 42220003))
     )
 
     val ALL_TRAILS = Compatibility(
@@ -92,7 +92,7 @@ object Compat {
         name = "FotMob",
         packageName = "com.mobilefootie.wc2010",
         appIconColor = 0x00985F,
-        targets = listOf(AppTarget("236.17398.20260827"))
+        targets = listOf(AppTarget("237.17536.20260911"))
     )
 
     val GITHUB = Compatibility(
@@ -177,7 +177,7 @@ object Compat {
         name = "Lyfta",
         packageName = "com.lyfta",
         appIconColor = 0x000000,
-        targets = listOf(AppTarget("1.551"))
+        targets = listOf(AppTarget("1.599"))
     )
 
     val MACROFACTOR = Compatibility(

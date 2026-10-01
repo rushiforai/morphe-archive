@@ -509,9 +509,11 @@ public final class MediaDownload {
             if (!fetched.ok()) return fetched;
             Downloader.Result published = Downloader.publish(file, fetched.mime, writer, progress);
             boolean lower = false;
+            boolean refused = false;
             if (published.ok() && kind == Downloader.Kind.VIDEO) {
-                String holds = DashSave.savedFormat(file);
-                info(() -> "the saved file holds " + holds + (why == null ? "" : ". Saved in place of the manifest's "
+                DashSave.ReadBack holds = DashSave.savedFormat(file);
+                refused = holds.refused;
+                info(() -> "the saved file holds " + holds.text + (why == null ? "" : ". Saved in place of the manifest's "
                     + "tracks because " + bounded(why)));
                 if (!offered.isEmpty() || writable != null) {
                     int savedShortSide = DashSave.savedVideoShortSide(file);
@@ -535,7 +537,8 @@ public final class MediaDownload {
                     }
                 }
             }
-            return published.ok() && lower ? published.lower() : published;
+            Downloader.Result saved = published.ok() && lower ? published.lower() : published;
+            return refused ? saved.refused() : saved;
         } catch (Throwable t) {
             return Downloader.Result.fail(Downloader.Status.WRITE_ERROR, "the cache could not hold the file");
         } finally {
@@ -857,8 +860,15 @@ public final class MediaDownload {
                 boolean cancelled = result.status == Downloader.Status.CANCELLED;
                 if (result.ok() || cancelled) info(() -> "save finished: " + result);
                 else failure(() -> "save finished: " + result, null);
-                Feedback.show(application, message(application, result.status, writer.savedLocation(), result.lower),
-                    !result.ok() && !cancelled);
+                String text = message(application, result.status, writer.savedLocation(), result.lower);
+                if (result.ok() && result.refused && !compatibleSaves()) {
+                    info(() -> "the saved file has a track WhatsApp and some editors refuse, with Save videos "
+                        + "other apps can open off");
+                    Feedback.show(application, refusedMessage(application, SaveControl.showRefused(application, text)),
+                        true);
+                } else {
+                    Feedback.show(application, text, !result.ok() && !cancelled);
+                }
             } catch (Throwable t) {
                 // Nothing can leave this thread. Facebook installs its own handler for uncaught
                 // exceptions and reports them as its own crashes.
@@ -909,6 +919,18 @@ public final class MediaDownload {
             default:
                 return L10n.t(application, "Download failed");
         }
+    }
+
+    /**
+     * The toast at the end of a save WhatsApp and some editors may refuse, with Save videos other
+     * apps can open off. [notified] when the notification with the button to that switch is up;
+     * without it the toast says where the switch is. Two lines at most either way, since Android 12
+     * cuts a toast there.
+     */
+    static String refusedMessage(Context application, boolean notified) {
+        return notified
+            ? L10n.t(application, "Saved, but WhatsApp and some editors may refuse it")
+            : L10n.t(application, "Saved, but WhatsApp may refuse it. Fix: Downloads in Hushfacebook.");
     }
 
     /**

@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.thermal" name="@string/name" desc="@string/desc" category="color" thumb="thumb/thermal.webp" tags="color,thermal,infrared,gradient,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Thermal Vision</string>
+            <string name="desc">Maps the layer's brightness to a heat-map gradient (predator / infrared style) with adjustable contrast.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="contrast" default="1.0" min="0.2" max="3.0" label="Contrast" />
+        <slider id="offset" default="0.0" min="-0.5" max="0.5" label="Shift" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Amount" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        vec3 heat(float t){
+            t = clamp(t,0.0,1.0);
+            vec3 c1=vec3(0.0,0.0,0.1), c2=vec3(0.3,0.0,0.6), c3=vec3(0.9,0.1,0.1);
+            vec3 c4=vec3(1.0,0.7,0.0), c5=vec3(1.0,1.0,0.8);
+            if(t<0.25) return mix(c1,c2,t/0.25);
+            if(t<0.5)  return mix(c2,c3,(t-0.25)/0.25);
+            if(t<0.75) return mix(c3,c4,(t-0.5)/0.25);
+            return mix(c4,c5,(t-0.75)/0.25);
+        }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            float lum = dot(c, vec3(0.299,0.587,0.114));
+            lum = clamp((lum-0.5)*contrast+0.5+offset, 0.0, 1.0);
+            vec3 col = mix(c, heat(lum), amount);
+            gl_FragColor = vec4(col,1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

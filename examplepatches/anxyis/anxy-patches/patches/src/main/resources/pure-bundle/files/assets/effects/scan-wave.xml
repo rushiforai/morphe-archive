@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.scan-wave" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/scan-wave.webp" tags="scan,glow,neon,scifi,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Scan Wave</string>
+            <string name="desc">A bright horizontal scan band that sweeps up the layer over time, energizing whatever it passes with a glow.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color" default="#FF00FFAA" label="Scan Color" alpha="false" />
+        <slider id="width" default="0.15" min="0.02" max="0.6" label="Band Width" />
+        <slider id="speed" default="0.5" min="0.0" max="3.0" label="Speed" />
+        <slider id="glow" default="1.5" min="0.0" max="4.0" label="Glow" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            float pos = fract(acTime*speed);
+            float d = abs(acScreenNorm.y - pos);
+            float band = smoothstep(width, 0.0, d);
+            vec3 add = color.rgb * band * glow;
+            vec3 base = src.rgb;
+            vec3 outc = 1.0 - (1.0 - base) * (1.0 - add * src.a);
+            gl_FragColor = vec4(outc, src.a) + vec4(add, band) * (1.0 - src.a);
+        }
+    ]]></shader>
+
+</effect>

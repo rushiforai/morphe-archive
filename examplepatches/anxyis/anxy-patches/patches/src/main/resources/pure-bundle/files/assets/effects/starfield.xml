@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.starfield" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/starfield.webp" tags="procedural,space,stars,animated,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Starfield</string>
+            <string name="desc">A procedural field of twinkling stars flying toward the viewer, perfect for space backdrops and intros.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="density" default="0.5" min="0.1" max="1.0" label="Density" />
+        <slider id="speed" default="0.5" min="0.0" max="3.0" label="Speed" />
+        <color id="color" default="#FFFFFFFF" label="Star Color" alpha="false" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" label="Opacity" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float hash(vec2 p){ return fract(sin(dot(p,vec2(41.3,289.1)))*43758.5453); }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec2 uv = (acScreenNorm-0.5);
+            uv.x *= acScreenSize.x/acScreenSize.y;
+            float t = acTime*speed;
+            vec3 stars = vec3(0.0);
+            float layers = 3.0;
+            for(float i=1.0;i<=3.0;i++){
+                float sc = 12.0*i*density+8.0;
+                vec2 g = uv*sc;
+                g.y += t*i;
+                vec2 id = floor(g);
+                vec2 f = fract(g)-0.5;
+                float h = hash(id);
+                if(h>0.92){
+                    float tw = 0.5+0.5*sin(t*3.0+h*40.0);
+                    float d = length(f);
+                    stars += color.rgb * smoothstep(0.12,0.0,d) * tw / i;
+                }
+            }
+            vec3 outc = 1.0 - (1.0 - src.rgb) * (1.0 - stars);
+            gl_FragColor = mix(src, vec4(outc, src.a) + vec4(stars, 1.0) * (1.0 - src.a), alpha);
+        }
+    ]]></shader>
+
+</effect>

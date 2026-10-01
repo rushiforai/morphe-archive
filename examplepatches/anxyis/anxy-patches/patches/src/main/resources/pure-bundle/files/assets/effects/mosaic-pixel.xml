@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.mosaic-pixel" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/mosaic-pixel.webp" tags="stylize,pixel,mosaic,blocky,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Mosaic</string>
+            <string name="desc">Blocky pixel mosaic with adjustable tile size and optional rounded tiles.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="size" default="24.0" min="4.0" max="120.0" label="Tile Size" />
+        <switch id="roundTiles" default="false" label="Round Tiles" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 cell = vec2(size)/acScreenSize;
+            vec2 base = (floor(acScreenNorm/cell)+0.5)*cell;
+            vec4 col = texture2DCv(inputImg.texture, base);
+            if(roundTiles){
+                vec2 f = fract(acScreenNorm/cell)-0.5;
+                float m = step(length(f), 0.5);
+                col *= m;
+            }
+            gl_FragColor = col;
+        }
+    ]]></shader>
+
+</effect>

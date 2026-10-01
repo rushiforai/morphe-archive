@@ -5,25 +5,29 @@
 
 package hoodles.morphe.patches.fotmob.plus
 
-import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.checkCast
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.newInstance
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableStringEncodedValue
 import app.morphe.patches.all.misc.extension.activityOnCreateExtensionHook
 import app.morphe.patches.all.misc.extension.sharedExtensionPatch
-import app.morphe.util.indexOfFirstInstructionReversed
-import app.morphe.util.returnBoxedBooleanEarly
-import app.morphe.util.returnEarly
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import app.morphe.util.fieldByName
 import hoodles.morphe.compatibility.Compat
+import kotlin.properties.Delegates
 
 val sharedExtensionPatch = sharedExtensionPatch(
     "fotmob",
     activityOnCreateExtensionHook("/MainActivityWrapper;")
 )
+
+var toolbarDrawableId by Delegates.notNull<Long>()
+
+val getToolbarDrawableId = resourcePatch {
+    execute {
+        toolbarDrawableId = this.resourceIds[ResourceType.DRAWABLE, "ic_fotmob_plus_logo_app_bar"]
+    }
+}
 
 @Suppress("unused")
 val enablePlusPatch = bytecodePatch(
@@ -32,28 +36,27 @@ val enablePlusPatch = bytecodePatch(
 ) {
     compatibleWith(Compat.FOTMOB)
 
-    dependsOn(sharedExtensionPatch)
+    dependsOn(sharedExtensionPatch, getToolbarDrawableId)
 
     execute {
-        val subUtilClass = SubscriptionUtilClassFingerprint.classDef
-        IsValidSubFingerprint.match(subUtilClass).method.returnEarly(true)
-        HasActiveSubFingerprint.match(subUtilClass).method.returnBoxedBooleanEarly(value = true)
+        val patchClass = mutableClassDefBy("Lhoodles/morphe/extension/fotmob/plus/EnablePlusPatch;")
 
-        val entitlementType = EntitlementFingerprint.classDef.type
-        Fingerprint(filters = listOf(
-            checkCast(entitlementType),
-            newInstance(LifetimeEntitlementFingerprint.classDef.type)
-        )).apply {
-            val lifetimeNewInstanceIndex = instructionMatches.last().index
-            val checkCastEntitlementIndex = method.indexOfFirstInstructionReversed(lifetimeNewInstanceIndex, Opcode.CHECK_CAST)
-            val entitlementReg = method.getInstruction<OneRegisterInstruction>(checkCastEntitlementIndex).registerA
+        (patchClass.fieldByName("PERIOD_TYPE_CLASS").initialValue as MutableStringEncodedValue).value =
+            PeriodTypeClassFingerprint.classDef.type
+        (patchClass.fieldByName("STORE_TYPE_CLASS").initialValue as MutableStringEncodedValue).value =
+            StoreTypeClassFingerprint.classDef.type
+        (patchClass.fieldByName("OWNERSHIP_TYPE_CLASS").initialValue as MutableStringEncodedValue).value =
+            OwnershipTypeClassFingerprint.classDef.type
+        (patchClass.fieldByName("VERIFIED_TYPE_CLASS").initialValue as MutableStringEncodedValue).value =
+            VerifiedTypeClassFingerprint.classDef.type
 
-            // Create entitlement
-            method.addInstructions(checkCastEntitlementIndex, """
-                const-string v$entitlementReg, "$entitlementType"
-                invoke-static {v$entitlementReg}, Lhoodles/morphe/extension/fotmob/plus/EnablePlusPatch;->createEntitlement(Ljava/lang/String;)Ljava/lang/Object;
-                move-result-object v$entitlementReg
-            """.trimIndent())
-        }
+        EntitlementInfosCtorFingerprint.method.addInstructions(0,
+            "invoke-static {p1}, Lhoodles/morphe/extension/fotmob/plus/EnablePlusPatch;->addEntitlement(Ljava/util/Map;)V"
+        )
+
+        // no idea what actually determines the toolbar logo, so I'm just going to force it...
+        SetLogoFingerprint.method.addInstructions(0,
+            "const p1, $toolbarDrawableId"
+        )
     }
 }

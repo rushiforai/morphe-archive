@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.page-curl" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/page-curl.webp" tags="3d,page,curl,peel,transition,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Page Curl</string>
+            <string name="desc">Peels a corner of the layer like turning the page of a book, with a soft shadow.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="0.4" min="0.0" max="1.0" label="Curl" />
+        <slider id="radius" default="0.12" min="0.03" max="0.3" label="Roll Size" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        const float PI = 3.14159265;
+        void main(){
+            vec2 dir=normalize(vec2(1.0,1.0));
+            float pos=dot(acScreenNorm,dir);
+            float curlAt=mix(1.42, -radius*PI, amount);
+            vec2 uv=acScreenNorm;
+            vec4 col;
+            if(pos>curlAt+radius*PI){
+                col=texture2DCv(inputImg.texture, uv);
+            } else if(pos>curlAt){
+                float ph=(pos-curlAt)/radius;
+                float off=radius*(ph - sin(ph));
+                uv -= dir*off*2.0;
+                col=texture2DCv(inputImg.texture, uv);
+                col.rgb *= 0.6+0.4*sin(ph);
+            } else {
+                float back=curlAt-pos;
+                uv += dir*back*1.0;
+                col=texture2DCv(inputImg.texture, uv);
+                col.rgb *= 0.35;
+            }
+            gl_FragColor=col;
+        }
+    ]]></shader>
+
+</effect>

@@ -42,6 +42,10 @@ public class VerifyEdgeReporterHistory {
         equal(false, EdgeReporterId.isBoard("evil.example/liveedge"));
         equal(false, EdgeReporterId.isBoard("bbs.eddibb.cc%2Fother"));
         equal(full, EdgeReporterHistory.title(board, 1234567890L, full));
+        equal("スレ", EdgeReporterHistory.copyTitle(full));
+        equal("未保存", EdgeReporterHistory.copyTitle("未保存 [/sE8R8tL★]"));
+        equal("本文\nスレ [/sE8R8tL★]", EdgeReporterHistory.copyTitle("本文\nスレ [/sE8R8tL★]"));
+        equal("スレ [not-an-id★]", EdgeReporterHistory.copyTitle("スレ [not-an-id★]"));
         restart(); // New preferences instance over persisted data, with no live subject available.
         equal(full, EdgeReporterHistory.title(board, 1234567890L, "スレ"));
         equal(full, EdgeReporterHistory.historyTitle(1234567890L, board, "スレ"));

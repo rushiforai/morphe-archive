@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.hexagonblur"
+    name="Hexagon Blur"
+    desc="Amazing New Extra FX from the Modder"
+    category="blur" 
+    tags="blur"
+    thumb="thumb/TANRYU/hexblur.png"
+    experimental="false">
+
+    <params>
+        <slider id="NUM_SAMPLES" label="Samples" default="15" min="5" max="30" step="1.0" type="integer" snap="10,15,20,25" />
+        <spinner id="STRENGTH" label="Strength" default="50" min="0" max="100.0" step="1" type="integer" />
+        <spinner id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <slider id="iter" default="1" min="1" max="3" label="Hardness" type="integer" step="1" />
+      
+        <texture id="inputImg" srcType="content" />
+        <texture id="xdist" srcType="buffer" />
+
+    </params>
+    
+    <iterations param="iter" />
+    
+    <passes>
+        <pass target="xdist" effect="com.alightcreative.effects.fastadj"/>
+        <pass />
+    </passes>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        // const int NUM_SAMPLES = 16;
+        vec3 srgb2lin(vec3 c) { return c*c; }
+        vec3 lin2srgb(vec3 c) { return sqrt(c); }
+        
+        float hash12n(vec2 p)
+        {
+        	p  = fract(p * vec2(5.3987, 5.4421));
+            p += dot(p.yx, p.xy + vec2(21.5351, 14.3137));
+        	return fract(p.x * p.y * 95.4307);
+        }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 TanRyu;
+        TanRyu = acScreenNorm; 
+                
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            vec2 uv = TanRyu;
+        
+           	vec3 sumcol0 = vec3(0.0);
+            {
+                vec2 blurdir = vec2( 1.0, 0.577350269189626 );
+            	vec2 blurvec = normalize(blurdir) / iResolution.xy;
+                vec2 p0 = uv - 0.5 * STRENGTH * blurvec;
+            	vec2 p1 = uv + 0.5 * STRENGTH * blurvec;
+            	vec2 stepvec = (p1-p0) / NUM_SAMPLES;
+            	vec2 p = p0;
+            
+                for (int i=0;i<int(NUM_SAMPLES);++i)
+                {
+                    sumcol0 += srgb2lin( texture2DCv( inputImg.texture, p ).rgb);
+                    p += stepvec;
+                }
+                sumcol0 /= float(NUM_SAMPLES);
+            }
+            
+            vec3 sumcol1 = vec3(0.0);
+            {
+                vec2 blurdir = vec2( -1.0, 0.577350269189626 );
+                vec2 blurvec = normalize(blurdir) / iResolution.xy;
+                vec2 p0 = uv - 0.5 * STRENGTH * blurvec;
+                vec2 p1 = uv + 0.5 * STRENGTH * blurvec;
+                vec2 stepvec = (p1-p0) / NUM_SAMPLES;
+                vec2 p = p0;
+        
+                for (int i=0;i<int(NUM_SAMPLES);++i)
+                {
+                    sumcol1 += srgb2lin( texture2DCv( inputImg.texture, p ).rgb);
+                    p += stepvec;
+                }
+                sumcol1 /= NUM_SAMPLES;
+            }
+        
+            vec3 sumcol = min( sumcol0, sumcol1 );
+            
+            fragColor = vec4( lin2srgb(sumcol), 1.0 );
+        
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+
+        vec4 resultfinal;
+        resultfinal = (factor * hardness) * texColor.a;
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

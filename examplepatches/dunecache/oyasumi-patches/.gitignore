@@ -135,3 +135,7 @@ reference/*
 .idea/
 local.properties
 .scratch/
+
+# python bytecode from tools/
+__pycache__/
+*.pyc

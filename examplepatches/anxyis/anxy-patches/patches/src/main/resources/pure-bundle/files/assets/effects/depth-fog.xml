@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.depth-fog" name="@string/name" desc="@string/desc" category="color" thumb="thumb/depth-fog.webp" tags="3d,fog,depth,atmosphere,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Depth Fog</string>
+            <string name="desc">Adds atmospheric 3D depth by fading distant (darker) areas into a fog color.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="fog" default="#FFB9C7D6" label="Fog Color" alpha="false" />
+        <slider id="amount" default="0.6" min="0.0" max="1.0" label="Density" />
+        <switch id="invert" default="false" label="Invert Depth" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src=texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c=src.a>0.0? src.rgb/src.a : src.rgb;
+            float h=dot(c, vec3(0.299,0.587,0.114));
+            if(invert) h=1.0-h;
+            float f=(1.0-h)*amount;
+            gl_FragColor=vec4(mix(c, fog.rgb, f),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

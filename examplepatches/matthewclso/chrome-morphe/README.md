@@ -5,6 +5,10 @@
 
 Independent Android Chrome patches for use with [Morphe Manager](https://github.com/MorpheApp/morphe-manager).
 
+The [user-visible behavior contract](docs/BEHAVIOR_CONTRACT.md) is the authoritative product specification. It takes precedence over all other repository sources for intended behavior and records the owner's final decisions, preservation requirements, and regression checks.
+
+Feel free to open issues for feature requests, improvements, or bug reports.  Feel free to open PRs as well.
+
 ## Features
 
 Open **Chrome Settings → Morphe settings** to enable or disable:
@@ -78,7 +82,7 @@ export GITHUB_ACTOR=your-github-login
 bash gradlew buildAndroid --no-daemon
 ```
 
-Bundle output: `patches/build/libs/patches-0.5.0.mpp`.
+Bundle output: `patches/build/libs/patches-0.5.1.mpp`.
 The local development helpers in `scripts/` also support the prepared JDK/SDK layout described in [development](docs/DEVELOPMENT.md).
 
 ## Project layout

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-23T17:27:21",
-  "description": "## [1.7.0-dev.7](https://github.com/dh6k/morphe-patches/compare/v1.7.0-dev.6...v1.7.0-dev.7) (2026-09-23)\n\n### \ud83d\udc1b Bug Fixes\n\n* **brave:** use invoke-interface for Runnable callback drain ([adf562b](https://github.com/dh6k/morphe-patches/commit/adf562b790e0a994a2400ddfb49bfe84e9e7620e))\n",
-  "download_url": "https://github.com/dh6k/morphe-patches/releases/download/v1.7.0-dev.7/patches-1.7.0-dev.7.mpp",
+  "created_at": "2026-09-30T17:48:07",
+  "description": "## [1.8.0-dev.6](https://github.com/dh6k/morphe-patches/compare/v1.8.0-dev.5...v1.8.0-dev.6) (2026-09-30)\n\n### \u2728 New Features\n\n* **brave:** add AMOLED text and accent color options ([e0484bb](https://github.com/dh6k/morphe-patches/commit/e0484bbec22ffb990d510ca2b9ecaa3499545f81))\n",
+  "download_url": "https://github.com/dh6k/morphe-patches/releases/download/v1.8.0-dev.6/patches-1.8.0-dev.6.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.7.0-dev.7"
+  "version": "v1.8.0-dev.6"
 }

@@ -86,8 +86,10 @@ public class FeedMuteTest {
             @Override public void abandonPage(Object helper, Context context) { calls.add("abandon page " + helper); }
             @Override public void requestPage(Object helper, Context context) { calls.add("request page " + helper); }
         };
-        feed = Robolectric.buildActivity(Activity.class).setup();
+        // Installed from the feed's onCreate, as the patch does, so its start is seen.
+        feed = Robolectric.buildActivity(Activity.class).create();
         FeedMute.install(feed.get());
+        feed.start().postCreate(null).resume().visible();
     }
 
     @After public void tearDown() {
@@ -513,6 +515,45 @@ public class FeedMuteTest {
         // Back on the feed, the next video comes on with a play() before its current-video change.
         FeedMute.onEnginePlay(b);
         assertEquals("B mute", lastFor("B"));
+    }
+
+    /**
+     * Background play: with TikTok in the background, its media notification resumes the feed
+     * video with a play() on the same engine, and the mute has to hold through it.
+     */
+    @Test public void aMutedFeedVideoResumedInTheBackgroundStaysMuted() {
+        Settings.FEED_MUTED.save(true);
+        Object a = engine("A", "980");
+        FeedMute.onControllerPlay(new Controller(feed.get()), video("980"));
+        FeedMute.onEnginePlay(a);
+        assertEquals(List.of("A mute"), calls);
+
+        feed.pause().stop();
+        FeedMute.onEnginePlay(a);
+        assertEquals("A mute", lastFor("A"));
+        // An engine that wasn't the feed's is left alone, and one taken for another video gets
+        // its sound back, as in front.
+        FeedMute.onEnginePlay(engine("B", "981"));
+        assertNull(lastFor("B"));
+        ids.put(a, "982");
+        FeedMute.onEnginePlay(a);
+        assertEquals("A sound", lastFor("A"));
+        feed.start().resume();
+    }
+
+    /** Another TikTok screen in front isn't the background: the feed's engine plays with sound there. */
+    @Test public void aFeedEnginePlayedWhileAnotherScreenIsInFrontStillGetsItsSound() {
+        Settings.FEED_MUTED.save(true);
+        Object a = engine("A", "985");
+        FeedMute.onControllerPlay(new Controller(feed.get()), video("985"));
+        FeedMute.onEnginePlay(a);
+        feed.pause();
+        ActivityController<OtherScreen> other = Robolectric.buildActivity(OtherScreen.class).setup();
+        feed.stop();
+        FeedMute.onEnginePlay(a);
+        assertEquals("A sound", lastFor("A"));
+        other.pause().stop().destroy();
+        feed.start().resume();
     }
 
     private Object engine(String name, String id) {

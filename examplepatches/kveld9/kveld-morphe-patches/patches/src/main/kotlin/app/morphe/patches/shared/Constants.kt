@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
-    const val BRAVE_TARGET_VERSION = "1.96.59"
+    const val BRAVE_TARGET_VERSION = "1.96.60"
     const val BRAVE_PACKAGE_NAME = "com.brave.browser"
 
     val COMPATIBILITY_BRAVE = Compatibility(
@@ -16,14 +16,14 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = BRAVE_TARGET_VERSION,
-                description = "Download Bravemonoarm64.apk or BraveMonoarm.apk (v1.96.59) from github.com/brave/brave-browser/releases"
+                description = "Download Bravemonoarm64.apk or BraveMonoarm.apk (v1.96.60) from github.com/brave/brave-browser/releases"
             )
         )
     )
 
     const val GBOARD_PACKAGE_NAME = "com.google.android.inputmethod.latin"
-    const val GBOARD_TARGET_VERSION = "18.3.2.977415014-lite_release-arm64-v8a"
-    const val GBOARD_TARGET_VERSION_V7A = "18.3.2.977415014-lite_release-armeabi-v7a"
+    const val GBOARD_TARGET_VERSION = "18.4.1.985164140-lite_beta-arm64-v8a"
+    const val GBOARD_TARGET_VERSION_V7A = "18.4.1.985164140-lite_beta-armeabi-v7a"
 
     val COMPATIBILITY_GBOARD = Compatibility(
         name = "Gboard Lite",
@@ -33,11 +33,11 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = GBOARD_TARGET_VERSION,
-                description = "Download 18.3.2.977415014-lite_release-arm64-v8a (APK nodpi) from APKMirror"
+                description = "Download $GBOARD_TARGET_VERSION (APK nodpi) from APKMirror"
             ),
             AppTarget(
                 version = GBOARD_TARGET_VERSION_V7A,
-                description = "Download 18.3.2.977415014-lite_release-armeabi-v7a (APK nodpi) from APKMirror"
+                description = "Download $GBOARD_TARGET_VERSION_V7A (APK nodpi) from APKMirror"
             )
         )
     )
@@ -59,38 +59,24 @@ object Constants {
         )
     )
 
-    const val TIKTOK_GLOBAL_PACKAGE_NAME = "com.zhiliaoapp.musically"
-    const val TIKTOK_ASIA_PACKAGE_NAME = "com.ss.android.ugc.trill"
+    const val TIKTOK_PACKAGE_NAME = "com.zhiliaoapp.musically"
     const val TIKTOK_TARGET_VERSION = "47.1.4"
 
     val COMPATIBILITY_TIKTOK = Compatibility(
         name = "TikTok",
-        packageName = TIKTOK_GLOBAL_PACKAGE_NAME,
+        packageName = TIKTOK_PACKAGE_NAME,
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFE2C55,
         targets = listOf(
             AppTarget(
                 version = TIKTOK_TARGET_VERSION,
-                description = "Download TikTok Global v$TIKTOK_TARGET_VERSION (nodpi APK) from APKMirror"
-            )
-        )
-    )
-
-    val COMPATIBILITY_TIKTOK_ASIA = Compatibility(
-        name = "TikTok",
-        packageName = TIKTOK_ASIA_PACKAGE_NAME,
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0xFE2C55,
-        targets = listOf(
-            AppTarget(
-                version = TIKTOK_TARGET_VERSION,
-                description = "Download TikTok Asia (trill) v$TIKTOK_TARGET_VERSION (nodpi APK) from APKMirror"
+                description = "Download TikTok v$TIKTOK_TARGET_VERSION (nodpi APK) from APKMirror"
             )
         )
     )
 
     const val NOKOPRINT_PACKAGE_NAME = "com.nokoprint"
-    const val NOKOPRINT_TARGET_VERSION = "5.28.4"
+    const val NOKOPRINT_TARGET_VERSION = "5.28.6"
 
     val COMPATIBILITY_NOKOPRINT = Compatibility(
         name = "NokoPrint - WiFi, Bluetooth, USB",

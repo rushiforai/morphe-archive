@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.bevel-3d" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/bevel-3d.webp" tags="3d,bevel,edge,extrude,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Bevel</string>
+            <string name="desc">Adds a beveled 3D edge and lighting to the shape of the layer using its alpha as height.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="size" default="0.5" min="0.0" max="1.0" label="Bevel Size" />
+        <spinner id="lightAngle" default="135.0" min="0.0" max="360.0" label="Light" type="angle" step="1" />
+        <slider id="strength" default="0.7" min="0.0" max="1.0" label="Strength" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 px=(1.0+size*4.0)/acScreenSize;
+            vec4 src=texture2DCv(inputImg.texture, acScreenNorm);
+            float al=texture2DCv(inputImg.texture, acScreenNorm-vec2(px.x,0.0)).a;
+            float ar=texture2DCv(inputImg.texture, acScreenNorm+vec2(px.x,0.0)).a;
+            float au=texture2DCv(inputImg.texture, acScreenNorm-vec2(0.0,px.y)).a;
+            float ad=texture2DCv(inputImg.texture, acScreenNorm+vec2(0.0,px.y)).a;
+            vec3 nrm=normalize(vec3((al-ar)*4.0,(au-ad)*4.0,1.0));
+            float a=radians(lightAngle);
+            vec3 L=normalize(vec3(cos(a),sin(a),0.6));
+            float d=dot(nrm,L);
+            float lit=1.0+ d*strength;
+            gl_FragColor=vec4(clamp(src.rgb*lit,0.0,1.0), src.a);
+        }
+    ]]></shader>
+
+</effect>

@@ -186,7 +186,7 @@ public class CaptionToolsTest {
         CaptionStyle.apply(new FrameLayout(Utils.getContext()));
 
         assertTrue(HookStatus.anyMissing());
-        assertEquals(java.util.Arrays.asList("view id '47.0.3:dlr|47.1.3:dmb'", "view id '47.0.3:dlk|47.1.3:dm5'"),
+        assertEquals(java.util.Arrays.asList("view id '47.0.3:dlr|47.1.3:dmb|47.1.4:dmb'", "view id '47.0.3:dlk|47.1.3:dm5|47.1.4:dm5'"),
                 HookStatus.missing("captions"));
         assertTrue(String.join(" ", HookStatus.report()).contains("captions"));
         HookStatus.clear();
@@ -216,7 +216,7 @@ public class CaptionToolsTest {
         assertTrue("a build where neither caption view is reachable says nothing",
                 HookStatus.anyMissing());
         assertEquals(java.util.Arrays.asList(
-                        "view caption container#47.0.3:dlr|47.1.3:dmb", "view caption container#47.0.3:dlk|47.1.3:dm5"),
+                        "view caption container#47.0.3:dlr|47.1.3:dmb|47.1.4:dmb", "view caption container#47.0.3:dlk|47.1.3:dm5|47.1.4:dm5"),
                 HookStatus.missing("captions"));
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();
@@ -308,7 +308,7 @@ public class CaptionToolsTest {
                 text.getTextSize() > 16);
         assertEquals("the half of the build that works was reported as broken, or the half "
                         + "that does not was not reported at all",
-                java.util.Collections.singletonList("view caption container#47.0.3:dlk|47.1.3:dm5"),
+                java.util.Collections.singletonList("view caption container#47.0.3:dlk|47.1.3:dm5|47.1.4:dm5"),
                 HookStatus.missing("captions"));
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();

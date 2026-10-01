@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.rain" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/rain.webp" tags="procedural,rain,weather,animated,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Rain</string>
+            <string name="desc">Procedural animated rain streaks falling over the layer.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="0.5" min="0.1" max="1.0" label="Density" />
+        <slider id="speed" default="1.0" min="0.0" max="4.0" label="Speed" />
+        <color id="color" default="#FFBFD8FF" label="Rain Color" alpha="false" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec2 uv = acScreenNorm;
+            vec2 g = uv*vec2(40.0*amount+10.0, 8.0);
+            g.y += acTime*speed*3.0;
+            vec2 id = floor(g);
+            vec2 f = fract(g);
+            float h = rand(id);
+            float drop = smoothstep(0.5,0.0,abs(f.x-0.5)*2.0) * smoothstep(1.0,0.0,f.y) * step(0.78,h);
+            gl_FragColor = src + vec4(color.rgb,0.0)*drop*0.7;
+        }
+    ]]></shader>
+
+</effect>

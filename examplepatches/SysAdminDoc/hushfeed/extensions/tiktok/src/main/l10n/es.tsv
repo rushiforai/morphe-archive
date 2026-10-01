@@ -1228,6 +1228,8 @@ Hide location labels	Ocultar etiquetas de ubicación
 Hide the search bar below videos	Ocultar la barra de búsqueda bajo los videos
 Hide the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.	Oculta la barra de búsquedas sugeridas sobre las pestañas inferiores para que los detalles del video y los controles laterales usen ese espacio. El botón de búsqueda superior y los comentarios no cambian.
 Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged.	Oculta las etiquetas de ubicación de los videos, incluidas las tarjetas con varios lugares. Los videos y tus permisos de ubicación no cambian.
+Hide effect and template tags	Ocultar etiquetas de efectos y plantillas
+Hide the tags above a video's description that invite you to try an effect, a template, CapCut or an AI style. Location labels and the music line have their own switches.	Oculta las etiquetas sobre la descripción de un video que te invitan a probar un efecto, una plantilla, CapCut o un estilo de IA. Las etiquetas de ubicación y la línea de música tienen sus propios interruptores.
 Filter location-tagged videos	Filtrar videos con ubicación
 Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.	Oculta los videos del feed con etiquetas de ubicación, aunque no sean anuncios pagados. Para conservar el video y ocultar solo su etiqueta, usa Ocultar etiquetas de ubicación en Pantalla del feed.
 Location-tagged videos	Videos con ubicación
@@ -1394,3 +1396,39 @@ Problem detected.	Se detectó un problema.
 Couldn't save these choices. Try again.	No se pudieron guardar estas opciones. Inténtalo de nuevo.
 Clearing seen videos	Borrando los vídeos vistos
 Couldn't clear seen videos. Try again.	No se pudieron borrar los vídeos vistos. Inténtalo de nuevo.
+Background play	Reproducción en segundo plano
+Keep playing in the background	Seguir reproduciendo en segundo plano
+The video you're watching keeps playing to its end after you leave TikTok or turn the screen off, with TikTok's own media notification to pause it. TikTok's background play switch stays on while this is on. Restart TikTok to apply this.	El video que estás viendo sigue reproduciéndose hasta el final cuando sales de TikTok o apagas la pantalla, y puedes pausarlo desde la notificación multimedia de TikTok. El interruptor de reproducción en segundo plano de TikTok sigue activado mientras esto esté activado. Reinicia TikTok para que se aplique.
+Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.	Seguir reproduciendo en segundo plano está activado en los ajustes de Reproducción de Hushfeed, así que TikTok recibe 2 para esta clave y una sustitución aquí no tiene efecto hasta que desactives ese interruptor.
+2, from Keep playing in the background	2, por Seguir reproduciendo en segundo plano
+Let the last video finish	Dejar terminar el último vídeo
+When the budget runs out, the video on screen plays to its end before the hold covers the feed, and the feed won't swipe to another video meanwhile. A time budget the fade already dimmed goes straight to the hold. Needs a hold to wait for. It waits %1$d minutes at most.	Cuando se agota el presupuesto, el vídeo en pantalla se reproduce hasta el final antes de que la pausa cubra el feed, y mientras tanto el feed no se desliza a otro vídeo. Un presupuesto de tiempo que el atenuado ya oscureció pasa directo a la pausa. Necesita una pausa que esperar. Espera %1$d minutos como máximo.
+The feed stops when this video ends.	El feed se detiene cuando termine este vídeo.
+Streak	Racha
+Keep a streak going	Mantener una racha
+Sends one message a day to the person below at the time below, so a streak with them keeps going on a day you don't open TikTok.	Envía un mensaje al día a la persona de abajo a la hora de abajo, para que la racha con ella siga aunque un día no abras TikTok.
+Who to message	A quién escribir
+Their username, like @name. It has to be someone you already have a chat with.	Su nombre de usuario, como @nombre. Tiene que ser alguien con quien ya tengas un chat.
+When to send	Cuándo enviar
+The time of day the message goes out.	La hora del día a la que sale el mensaje.
+Message	Mensaje
+What gets sent each day.	Lo que se envía cada día.
+Send it now	Enviar ahora
+Sends today's message right away. The daily one then waits for tomorrow.	Envía el mensaje de hoy ahora mismo. El diario espera entonces a mañana.
+Turn on Keep a streak going first	Activa primero Mantener una racha
+Sending the message	Enviando el mensaje
+A message is already on its way	Ya hay un mensaje en camino
+Sent to @%1$s	Enviado a @%1$s
+Enter who to message below to start.	Escribe abajo a quién enviar para empezar.
+Sent today at %1$s. The next one goes tomorrow at %2$s.	Enviado hoy a las %1$s. El siguiente sale mañana a las %2$s.
+Next message: today at %1$s.	Próximo mensaje: hoy a las %1$s.
+Next message: tomorrow at %1$s.	Próximo mensaje: mañana a las %1$s.
+No chat with @%1$s turned up on this account. Open your chat with them once, then try again.	No apareció ningún chat con @%1$s en esta cuenta. Abre tu chat con esa persona una vez y vuelve a intentarlo.
+Nobody was signed in to TikTok. Sign in, and it tries again at %1$s.	No había nadie con la sesión iniciada en TikTok. Inicia sesión y se vuelve a intentar a las %1$s.
+A different account is signed in. Switch back to the one you set this up on, or enter who to message again.	Hay otra cuenta con la sesión iniciada. Vuelve a la cuenta en la que lo configuraste o escribe de nuevo a quién enviar.
+TikTok's messages didn't start in time. It tries again at %1$s.	Los mensajes de TikTok no arrancaron a tiempo. Se vuelve a intentar a las %1$s.
+The message didn't go through. It tries again at %1$s.	El mensaje no se envió. Se vuelve a intentar a las %1$s.
+Found %1$s in your chats.	%1$s está en tus chats.
+App checks	Comprobaciones de la app
+Look like the store app to TikTok's checks	Aparentar ser la app de la tienda ante las comprobaciones de TikTok
+Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.	Responde a las comprobaciones de TikTok sobre cómo se firmó e instaló como lo haría la app de Play Store. Para seguidos o me gusta que se deshacen solos al actualizar. TikTok también puede comprobarlo desde código nativo que esto no alcanza, así que puede que no sirva.

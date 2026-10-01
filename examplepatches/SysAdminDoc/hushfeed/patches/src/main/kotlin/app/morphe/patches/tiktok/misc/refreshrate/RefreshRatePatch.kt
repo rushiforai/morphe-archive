@@ -7,6 +7,7 @@
 package app.morphe.patches.tiktok.misc.refreshrate
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.util.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
@@ -37,7 +38,10 @@ private fun writesRefreshRate(instruction: Instruction) =
  * PlayerController, where the rate it asks for is the frame rate of the video that just
  * started, which is what drops a 120 Hz screen to the video's 30.
  */
-private object RefreshRateWriteFingerprint : Fingerprint(
+internal object RefreshRateWriteFingerprint : Fingerprint(
+    // The filter repeats a reference the custom block requires, so the patcher reads only the
+    // classes that make it (#54).
+    filters = listOf(fieldAccess(definingClass = LAYOUT_PARAMS, name = "preferredRefreshRate", opcode = Opcode.IPUT)),
     custom = { method, _ ->
         method.implementation?.instructions?.any(::writesRefreshRate) == true
     },

@@ -49,15 +49,19 @@ class ControlFailureTest {
         for (broken in listOf(false, true)) withResourceContext(temporary.resolve("run-$broken")) { resources, config ->
             val anchor = pluginGates.getValue("people").anchors.single()
             val listEnd = pluginGates.getValue("people_list_end").anchors.single()
-            // A supported APK supplies all three suggestion placements the control selects.
+            // A supported APK supplies all six suggestion placements the control selects.
             val classes = listOf(
                 fixtureMethod("LX/1pm;->A0C()Z", pluginBody(anchor)),
                 fixtureMethod("LX/1pm;->A0B()Z", pluginBody(listEnd)),
                 fixtureMethod("LX/2Wl;->A04()Z", pluginBody(anchor, if (broken) "if-ne" else "if-eq")),
                 fixtureMethod("LX/2Wl;->A03()Z", pluginBody(listEnd)),
                 peopleJewelMethod(),
+                peopleTabMethod(),
+                peopleTabFetchMethod(),
+                peopleSearchMethod(),
+                peopleStoryMethod(),
             ).groupBy { it.definingClass }.map { (type, methods) -> fixtureClass(type, methods) }
-                .plus(peopleJewelKeyHolder()).toSet()
+                .plus(peopleJewelKeyHolder()).plus(screenHostClasses()).toSet()
             val context = BytecodePatchContext::class.java.declaredConstructors.single()
                 .newInstance(config, resources.packageMetadata) as BytecodePatchContext
             val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
@@ -71,6 +75,8 @@ class ControlFailureTest {
                     else hidePeoplePatch.execute(context)
                     feature.finalize(resources)
                     assertEquals(!broken, resources.hasPeopleFeature())
+                    // A Root Mount install reads the same list from the patched code.
+                    assertEquals(if (broken) emptySet() else setOf("people"), bundledControls.toSet())
                 } finally {
                     discovery.finalize(context)
                 }

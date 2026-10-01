@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.ribbon-3d" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/ribbon-3d.webp" tags="3d,wave,sheet,ribbon,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Wave Sheet</string>
+            <string name="desc">Bends the layer into an undulating 3D sheet with directional lighting along the waves.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amp" default="0.5" min="0.0" max="1.0" label="Wave Height" />
+        <slider id="freq" default="6.0" min="1.0" max="20.0" label="Frequency" />
+        <slider id="speed" default="1.0" min="0.0" max="5.0" label="Speed" />
+        <slider id="light" default="0.6" min="0.0" max="1.0" label="Lighting" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            float t=acTime*speed;
+            float wave=sin(acScreenNorm.x*freq + t)*amp*0.08;
+            float slope=cos(acScreenNorm.x*freq + t)*amp*freq*0.08;
+            vec2 uv=vec2(acScreenNorm.x, acScreenNorm.y + wave);
+            if(uv.y<0.0||uv.y>1.0){gl_FragColor=vec4(0.0);return;}
+            vec4 col=texture2DCv(inputImg.texture, uv);
+            vec3 nrm=normalize(vec3(-slope,1.0,0.0));
+            float diff=clamp(dot(nrm, normalize(vec3(0.3,0.8,0.5))),0.0,1.0);
+            col.rgb *= mix(1.0, 0.4+0.8*diff, light);
+            gl_FragColor=col;
+        }
+    ]]></shader>
+
+</effect>

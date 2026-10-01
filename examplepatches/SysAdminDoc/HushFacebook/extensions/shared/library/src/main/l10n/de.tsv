@@ -44,6 +44,7 @@ Couldn't start that. Try again in a moment.	Das ließ sich nicht starten. Versuc
 Couldn't start the report export. Try again shortly.	Der Export des Berichts ließ sich nicht starten. Versuche es gleich noch einmal.
 Couldn't turn Hushfacebook back on. Try again.	Hushfacebook ließ sich nicht wieder einschalten. Versuche es noch einmal.
 Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.	Der Dunkelmodus zeigt Schwarz statt Dunkelgrau. Schalte in Facebook den Dunkelmodus ein, um das zu sehen.
+Dark mode draws %1$s instead of dark grey. Turn on dark mode in Facebook to see it.	Der Dunkelmodus zeigt %1$s statt Dunkelgrau. Schalte in Facebook den Dunkelmodus ein, um das zu sehen.
 Debug logging	Debug-Protokollierung
 Diagnostic data cleared. Tap again to put it back.	Diagnosedaten gelöscht. Tippe erneut, um sie wiederherzustellen.
 Diagnostic data put back.	Diagnosedaten wiederhergestellt.
@@ -212,6 +213,7 @@ The diagnostic report couldn't be saved. Try again.	Der Diagnosebericht ließ si
 The file %1$s couldn't be removed. Delete it from %2$s to turn Hushfacebook back on.	Die Datei %1$s ließ sich nicht entfernen. Lösche sie aus %2$s, um Hushfacebook wieder einzuschalten.
 the part of the Reels ad block patched into the app	der in die App gepatchte Teil der Reels-Werbesperre
 the re-signed build fix	der Fix für neu signierte Builds
+the start-up fix for x86 devices	der Startfix für x86-Geräte
 the recoloured dark mode	die Umfärbung des Dunkelmodus
 The row of friend suggestions between posts, and the one on your own profile.	Die Reihe mit Freundschaftsvorschlägen zwischen den Beiträgen und die auf deinem eigenen Profil.
 The row of stories at the top of the feed, Create story included.	Die Reihe mit Stories oben im Feed, „Story erstellen“ eingeschlossen.
@@ -262,7 +264,7 @@ Videos will save at their lowest quality, for the smallest files.	Videos werden 
 Videos will save at %1$s or the closest quality below it. A video with nothing that low will save at the closest quality above.	Videos werden dann in %1$s oder der nächstniedrigeren Qualität gespeichert. Hat ein Video keine so niedrige Qualität, wird es in der nächsthöheren gespeichert.
 Settings imported.	Einstellungen importiert.
 Video file name	Dateiname für Videos
-%1$s becomes the date and time of the save, %2$s the video's number on Facebook, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s wird zu Datum und Uhrzeit des Speicherns, %2$s zur Nummer des Videos auf Facebook, %3$s zum Namen dessen, der es gepostet hat, und %4$s zum Tag der Veröffentlichung. Was beim Speichern nicht bekannt ist, wird weggelassen, und ein Name ohne eines davon bekommt das Datum angehängt. Gibt es den Namen im Ordner schon, wird die Uhrzeit des Speicherns angehängt. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardnamen %5$s zu verwenden.
+%1$s becomes the date and time of the save, %2$s the video's number on Facebook, %3$s who posted it, %4$s their profile's number on Facebook and %5$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %6$s.	%1$s wird zu Datum und Uhrzeit des Speicherns, %2$s zur Nummer des Videos auf Facebook, %3$s zum Namen dessen, der es gepostet hat, %4$s zur Nummer seines Profils auf Facebook und %5$s zum Tag der Veröffentlichung. Was beim Speichern nicht bekannt ist, wird weggelassen, und ein Name ohne eines davon bekommt das Datum angehängt. Gibt es den Namen im Ordner schon, wird die Uhrzeit des Speicherns angehängt. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardnamen %6$s zu verwenden.
 Videos are named %1$s. Photos keep Facebook's own %2$s names.	Videos heißen %1$s. Fotos behalten Facebooks eigene Namen mit %2$s.
 Saved videos will be named %1$s.	Gespeicherte Videos heißen dann %1$s.
 File name	Dateiname
@@ -556,6 +558,19 @@ Videos play at the best quality up to %1$s that Facebook offers for each, or the
 Videos play at the highest quality Facebook offers for each.	Videos laufen in der höchsten Qualität, die Facebook für sie anbietet.
 Facebook will pick the quality videos play at.	Facebook wählt die Qualität, in der Videos laufen.
 Playback quality will be set to %1$s.	Die Wiedergabequalität wird auf %1$s gesetzt.
+Reels and videos will save to this phone when you tap Download.	Beim Tippen auf Download werden Reels und Videos auf diesem Handy gespeichert.
+Tapping Download on a reel or video will send its link to an app.	Beim Tippen auf Download wird der Link eines Reels oder Videos an eine App gesendet.
+Android will ask which app gets the links each time.	Android fragt jedes Mal, welche App die Links bekommt.
+Links will go to %1$s.	Links gehen dann an %1$s.
+Save to	Speichern in
+Movies and Pictures	Movies und Pictures
+Videos and photos go to %1$s, next to the camera's. Saves you already have stay where they are.	Videos und Fotos landen in %1$s, neben denen der Kamera. Was du schon gespeichert hast, bleibt, wo es ist.
+Videos and photos go to %1$s, with the phone's other downloads. Saves you already have stay where they are.	Videos und Fotos landen in %1$s, bei den anderen Downloads des Handys. Was du schon gespeichert hast, bleibt, wo es ist.
+Videos go to %1$s and photos to %2$s, as Facebook's own saves do. Some galleries don't show %1$s.	Videos landen in %1$s und Fotos in %2$s, wie bei Facebooks eigenen Speicherungen. Manche Galerien zeigen %1$s nicht an.
+Choose a folder name under %1$s. Invalid characters become underscores. Leave it blank to use the default folder, %2$s.	Wähle einen Ordnernamen unter %1$s. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardordner %2$s zu verwenden.
+Videos and photos go to %1$s.	Videos und Fotos landen in %1$s.
+Videos will go to %1$s and photos to %2$s.	Videos landen dann in %1$s und Fotos in %2$s.
+Videos and photos will go to %1$s.	Videos und Fotos landen dann in %1$s.
 # context: row title under Pause, backup and diagnostics, shown only while Debug logging is on
 Test the Messenger link	Messenger-Verbindung testen
 # context: summary of that row; Debug logging is the switch's name as this table gives it
@@ -578,3 +593,77 @@ failed (%1$s)	fehlgeschlagen (%1$s)
 Hide the Reels tab dot	Punkt am Reels-Tab ausblenden
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Kein Punkt und keine Neu-Zahl am Reels-Tab, bei manchen Konten Video genannt. Andere Tabs behalten ihre.
+# context: title of the overview row under the status card when the build lacks one patch Morphe Manager selects by default
+%1$d default patch isn't in this build	%1$d Standard-Patch ist nicht in diesem Build
+# context: title of that row when several default patches are missing
+%1$d default patches aren't in this build	%1$d Standard-Patches sind nicht in diesem Build
+# context: summary of that row while its list of patch names is closed; a tap opens it
+Tap to see which.	Tippe, um sie zu sehen.
+# context: that row's summary once opened, one patch missing; the placeholder is the patch's English name as Morphe Manager lists it
+Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Nicht in diesem Build: %1$s. Morphe Manager wählt diesen Patch standardmäßig aus. Wähle ihn aus und patche erneut, um zu bekommen, was er tut.
+# context: that row's summary once opened, several patches missing; the placeholder is their English names joined as a list
+Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Nicht in diesem Build: %1$s. Morphe Manager wählt diese Patches standardmäßig aus. Wähle sie aus und patche erneut, um zu bekommen, was sie tun.
+# context: Toast at the end of a video save whose file uses a codec WhatsApp and some video editors can't open (AV1, VP9, HEVC or xHE-AAC). A notification with a button to the fix is showing too. Keep it short: Android shows two lines at most.
+Saved, but WhatsApp and some editors may refuse it	Gespeichert, aber WhatsApp und manche Editoren lehnen es eventuell ab
+# context: Toast at the end of a video save whose file WhatsApp may not open, when no notification can be shown. Downloads is the section of Hushfacebook settings with the fix. Two lines at most.
+Saved, but WhatsApp may refuse it. Fix: Downloads in Hushfacebook.	Gespeichert, aber WhatsApp lehnt es eventuell ab. Abhilfe: Downloads in Hushfacebook.
+# context: Second line of the notification after such a save. %1$s is the switch's name, Save videos other apps can open. They: WhatsApp and the editors.
+Turn on %1$s to save videos they all play.	Schalte %1$s ein, um Videos zu speichern, die alle abspielen können.
+# context: Title of the notification after a video save whose file uses a codec WhatsApp and some video editors can't open.
+WhatsApp and some editors may refuse this video	WhatsApp und manche Editoren lehnen dieses Video eventuell ab
+# context: Button on that notification. It opens Hushfacebook settings at the switch Save videos other apps can open.
+Open the setting	Einstellung öffnen
+# context: switch title under News feed; the prompts are the strip Facebook puts under some posts, such as "Are you interested in this post?"
+Hide post prompts	Nachfragen unter Beiträgen ausblenden
+# context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
+The strip on some posts, like "Are you interested in this post?", "Show less" or who recently commented, and the follow and chat suggestions in the same place. The post stays.	Der Streifen bei manchen Beiträgen, etwa „Interessiert dich dieser Beitrag?“, „Weniger anzeigen“ oder wer vor Kurzem kommentiert hat, und die Vorschläge zum Folgen und Chatten an derselben Stelle. Der Beitrag bleibt.
+# context: switch title under Reels and Watch; the prompt is Facebook's "Are you interested in this reel?" question on a reel
+Hide reel interest prompts	Interessenfrage bei Reels ausblenden
+# context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it
+No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	Keine Frage „Interessiert dich dieses Reel?“ bei Reels. Das Reel läuft wie gewohnt.
+# context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
+Hide affiliate product links	Affiliate-Produktlinks ausblenden
+# context: description of that switch; "Commission eligible" is Facebook's own label, so use Facebook's wording in your language if you know it
+The product cards of shop links creators add to posts, on reels, under feed posts and in the comments. The "Commission eligible" label stays.	Die Produktkarten der Shop-Links, die Creator zu Beiträgen hinzufügen, bei Reels, unter Beiträgen im Feed und in den Kommentaren. Das Label „Provisionsberechtigt“ bleibt.
+# context: The reel button and the video menu item while links are sent to another app (#41)
+Send to app	An App senden
+# context: Title of Android's app chooser when a video's link is sent
+Send the link to	Link senden an
+# context: Toast when no app could take a video's link
+Couldn't open an app for this link	Keine App für diesen Link gefunden
+# context: Clipboard label of a copied video link
+Video link	Videolink
+# context: Toast after a long press on the reel button copied its link
+Link copied	Link kopiert
+# context: Toast when a reel's link can't be built
+Couldn't find this reel's link	Link zu diesem Reel nicht gefunden
+# context: Toast when a feed video's link can't be built
+Couldn't find this video's link	Link zu diesem Video nicht gefunden
+# context: Settings row title: what the Download button does
+When you tap Download	Beim Tippen auf Download
+# context: Choice of the download action row
+Save to phone	Aufs Handy speichern
+# context: Choice of the download action row
+Send the link to an app	Link an eine App senden
+# context: Summary of the download action row while links are sent
+Reels and videos go to the app below as a facebook.com link. Hold the reel Download button to copy the link instead. Stories still save to this phone.	Reels und Videos gehen als facebook.com-Link an die App darunter. Halte die Download-Taste eines Reels gedrückt, um den Link stattdessen zu kopieren. Storys werden weiter auf diesem Handy gespeichert.
+# context: Summary of the download action row while saving, the default
+Reels, videos and stories save to this phone.	Reels, Videos und Storys werden auf diesem Handy gespeichert.
+# context: Settings row title: the app links are sent to
+App to send to	Ziel-App
+# context: Dialog message of the send-to app row; %1$s and %2$s are package names
+The package name of the app that gets the links, such as %1$s for YTDLnis or %2$s for Seal. Leave it blank to pick an app each time.	Der Paketname der App, die die Links bekommt, etwa %1$s für YTDLnis oder %2$s für Seal. Leer lassen, um jedes Mal eine App zu wählen.
+# context: Hint in the send-to app field
+Package name	Paketname
+# context: Toast when what was typed in the send-to app row isn't a package name; %1$s is what was typed
+%1$s isn't a package name, so the app stays as it was.	%1$s ist kein Paketname, die App bleibt unverändert.
+# context: Summary of the send-to app row with no app named
+Android asks which app each time.	Android fragt jedes Mal nach der App.
+# context: Summary of the send-to app row; %1$s is the package name
+Links go to %1$s. When it isn't installed, Android asks which app.	Links gehen an %1$s. Ist sie nicht installiert, fragt Android nach der App.
+# context: switch title under Stories; Find friends from contacts is the Stories tray card that asks to upload your contacts
+Hide "Find friends from contacts"	„Freunde aus Kontakten finden“ ausblenden
+# context: summary of that switch
+The Stories tray card asking to upload your contacts. Applies when Facebook next loads the tray.	Die Karte in der Story-Leiste, die dich bittet, deine Kontakte hochzuladen. Gilt beim nächsten Laden der Leiste.
+# context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
+The row of friend suggestions between posts, the one on your own profile, and the cards with an Add button in the Stories tray.	Die Reihe mit Freundschaftsvorschlägen zwischen den Beiträgen, die auf deinem eigenen Profil und die Karten mit der Schaltfläche „Hinzufügen“ in der Story-Leiste.

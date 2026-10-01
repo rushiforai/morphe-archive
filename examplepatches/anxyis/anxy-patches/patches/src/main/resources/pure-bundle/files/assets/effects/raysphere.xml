@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.raysphere" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/raysphere.webp" tags="3d,sphere,ball,shade,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Ball</string>
+            <string name="desc">Wraps the layer onto a real shaded 3D ball with specular highlight and rim light.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="spin" default="0.0" min="-1080.0" max="1080.0" label="Spin" type="angle" step="1" />
+        <slider id="gloss" default="0.6" min="0.0" max="1.0" label="Gloss" />
+        <slider id="size" default="0.9" min="0.3" max="1.2" label="Size" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        const float PI = 3.14159265;
+        mat3 mrotX(float a){ float s=sin(a),c=cos(a); return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c); }
+        mat3 mrotY(float a){ float s=sin(a),c=cos(a); return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c); }
+        mat3 mrotZ(float a){ float s=sin(a),c=cos(a); return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0); }
+        void main(){
+            vec2 p=(acScreenNorm*2.0-1.0); float asp=acScreenSize.x/acScreenSize.y; p.x*=asp;
+            p/=size;
+            float r2=dot(p,p);
+            if(r2>1.0){gl_FragColor=vec4(0.0);return;}
+            float z=sqrt(1.0-r2);
+            vec3 nrm=vec3(p,z);
+            vec3 rn=mrotY(radians(spin))*nrm;
+            float uu=0.5+atan(rn.x,rn.z)/(2.0*PI);
+            float vv=0.5-asin(clamp(rn.y,-1.0,1.0))/PI;
+            vec4 col=texture2DCv(inputImg.texture, vec2(fract(uu),clamp(vv,0.0,1.0)));
+            vec3 L=normalize(vec3(-0.5,0.6,0.8));
+            float diff=clamp(dot(nrm,L),0.0,1.0);
+            vec3 H=normalize(L+vec3(0.0,0.0,1.0));
+            float spec=pow(clamp(dot(nrm,H),0.0,1.0),mix(8.0,80.0,gloss))*gloss;
+            float rim=pow(1.0-z,2.5)*0.4;
+            gl_FragColor=vec4(col.rgb*(0.35+0.8*diff)+spec+rim, 1.0);
+        }
+    ]]></shader>
+
+</effect>

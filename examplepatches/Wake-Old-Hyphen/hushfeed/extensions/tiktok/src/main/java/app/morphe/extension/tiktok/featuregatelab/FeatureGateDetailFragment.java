@@ -43,6 +43,7 @@ import android.os.Build;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.misc.BackgroundPlay;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 
 @SuppressWarnings({"deprecation", "SetTextI18n"})
@@ -231,6 +232,15 @@ public final class FeatureGateDetailFragment extends Fragment {
             int noticeMargin = FeatureGateLabUi.dp(context, SettingsUi.NOTICE_MARGIN);
             params.setMargins(0, noticeMargin, 0, noticeMargin);
             content.addView(sensitive, params);
+        }
+        if (BackgroundPlay.decidesGate(entry.key)) {
+            View decided = SettingsUi.inlineNotice(context,
+                    L10n.t(context, "Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off."),
+                    SettingsUi.attentionColor());
+            LinearLayout.LayoutParams params = FeatureGateLabUi.matchWrap();
+            int noticeMargin = FeatureGateLabUi.dp(context, SettingsUi.NOTICE_MARGIN);
+            params.setMargins(0, noticeMargin, 0, noticeMargin);
+            content.addView(decided, params);
         }
 
         addSectionTitle(content, L10n.t(context, "Override"));

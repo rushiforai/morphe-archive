@@ -28,13 +28,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * a feed request or an app job as well as the UI, so a change is one atomic swap.
  *
  * <p>Until Facebook first answers, {@link #on} says dark, so the themes act as they did before there
- * was an answer to ask.
+ * was an answer to ask. {@link #saidOn} waits for the answer, for the colours that are the same in
+ * both of Facebook's themes and so can't say for themselves which one is on.
  */
 public final class DarkMode {
 
     private DarkMode() {}
 
     private static final AtomicBoolean ON = new AtomicBoolean(true);
+
+    /** Whether Facebook has answered since the app started. Outside tests it only goes from false to true. */
+    private static volatile boolean answered;
 
     /**
      * Run when the answer changes, once per change, on the thread that made it. Material You sets it,
@@ -49,9 +53,13 @@ public final class DarkMode {
      * @return {@code dark}, for the controller to return
      */
     public static boolean answer(boolean dark) {
-        // The read keeps the usual case, the same answer again, to one volatile read. Of the answers
+        // The reads keep the usual case, the same answer again, to two volatile reads. Of the answers
         // that change it at the same moment, the swap lets exactly one run the listener.
-        if (ON.get() != dark && ON.getAndSet(dark) != dark) {
+        boolean flipped = ON.get() != dark && ON.getAndSet(dark) != dark;
+        // Only once ON holds this answer, or saidOn could pair a first light answer with the
+        // starting dark on another thread.
+        if (!answered) answered = true;
+        if (flipped) {
             Runnable listener = changed;
             if (listener != null) listener.run();
         }
@@ -61,5 +69,16 @@ public final class DarkMode {
     /** Whether Facebook's dark mode is on, as it last answered. */
     public static boolean on() {
         return ON.get();
+    }
+
+    /** Whether Facebook has answered, and said its dark mode is on. */
+    public static boolean saidOn() {
+        return answered && ON.get();
+    }
+
+    /** Package-visible for tests: back to before Facebook's first answer. */
+    static void forget() {
+        answered = false;
+        ON.set(true);
     }
 }

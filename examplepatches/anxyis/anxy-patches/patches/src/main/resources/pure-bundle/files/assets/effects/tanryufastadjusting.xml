@@ -1,0 +1,271 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.fastadjusting" name="Fast Adjusting+" category="color" desc="Are you tired of choosing the same effect? Now there is a solution" tags="color" thumb="thumb/TANRYU/coloradjustment.png" deprecated="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="comp" srcType="comp" />
+        <!-- <section text="LIGHTING SETTINGS" /> -->
+        <switch id="mode" default="false" label="Comp Mode" />
+        <spinner id="exposure" default="0.0" min="-2.0" max="2.0" label="@am:string/effect_param_exposure" ticks="-2.0,-1.0,0.0,1.0,2.0" snap="0.0" />
+        <spinner id="gamma" default="1.0" min="0.01" max="9.99" label="@am:string/effect_param_gamma" logscale="2.351" snap="1.0" ticks="0.5,1.0,2.0" step="0.005" />
+        <spinner id="brightness" default="0.0" min="-1.0" max="1.0" label="@am:string/effect_param_brightness" ticks="0.0" snap="0.0" step="0.005" type="relative-percent" />
+        <spinner id="contrast" default="0.0" min="-1.0" max="3.0" label="@am:string/effect_param_contrast" ticks="-1.0,0.0,1.0,3.0" snap="0.0,1.0" step="0.005" type="relative-percent" />
+        <spinner id="highlights" default="1.0" min="0.0" max="2.0" label="@am:string/effect_param_highlights" snap="1.0" ticks="1.0" step="0.01" type="percent" />
+        <spinner id="shadows" default="1.0" min="0.0" max="2.0" label="@am:string/effect_param_shadows" snap="1.0" ticks="1.0" step="0.01" type="percent" />
+        <spinner id="offset" default="0.0" min="-0.9" max="0.9" label="@am:string/effect_param_offset" ticks="0.0" snap="0.0" step="0.01" />
+        <section text="COLORING SETTING" />
+        <spinner id="saturation" default="0.0" min="-1.0" max="1.0" label="@am:string/effect_param_saturation" snap="0.0" ticks="0.0" step="0.005" type="relative-percent" />
+        <spinner id="vib" default="1.0" min="1.0" max="2.0" label="@am:string/effect_param_vibrance"  step="0.01" />
+        <spinner id="hue" default="360.0" min="0.0" max="3600.0" label="@am:string/effect_param_hueshift" ticks="0,60,120,180,240,300,360" snap="60,120,180,240,300" type="angle" step="0.5" />
+        <spinner id="temperature" default="6.5" min="1.0" max="15.0" step="0.05" ticks="6.5" type="kelvin" label="@am:string/effect_param_colortemperature" />
+        <!-- <spinner id="strength" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" label="@am:string/effect_param_strength" /> -->
+        <spinner id="redGamma" default="1.0" min="0.01" max="9.99" label="RED" logscale="2.351" snap="1.0" ticks="0.5,1.0,2.0" step="0.005" />
+        <spinner id="greenGamma" default="1.0" min="0.01" max="9.99" label="GREEN" logscale="2.351" snap="1.0" ticks="0.5,1.0,2.0" step="0.005" />
+        <spinner id="blueGamma" default="1.0" min="0.01" max="9.99" label="BLUE" logscale="2.351" snap="1.0" ticks="0.5,1.0,2.0" step="0.005" />
+        <section text="CHANNEL REMAPPING" />
+        <selector id="red" default="0" style="radio" label="R" >
+            <choice label="R" value="0" />
+            <choice label="G" value="1" />
+            <choice label="B" value="2" />
+            <choice label="A" value="3" />
+            <choice label="Y" value="4" />
+            <choice label="0" value="5" />
+            <choice label="1" value="6" />
+        </selector>
+        <selector id="green" default="1" style="radio" label="G" >
+            <choice label="R" value="0" />
+            <choice label="G" value="1" />
+            <choice label="B" value="2" />
+            <choice label="A" value="3" />
+            <choice label="Y" value="4" />
+            <choice label="0" value="5" />
+            <choice label="1" value="6" />
+        </selector>
+        <selector id="blue" default="2" style="radio" label="B" >
+            <choice label="R" value="0" />
+            <choice label="G" value="1" />
+            <choice label="B" value="2" />
+            <choice label="A" value="3" />
+            <choice label="Y" value="4" />
+            <choice label="0" value="5" />
+            <choice label="1" value="6" />
+        </selector>
+        <selector id="alpha" default="3" style="radio" label="A" >
+            <choice label="R" value="0" />
+            <choice label="G" value="1" />
+            <choice label="B" value="2" />
+            <choice label="A" value="3" />
+            <choice label="Y" value="4" />
+            <choice label="0" value="5" />
+            <choice label="1" value="6" />
+        </selector>
+    
+        <!-- <float id="strength" value="0.0" /> -->
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+        const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+        
+        vec3 colorTemperatureToRGB(const in float temperature){
+            mat3 m = (temperature <= 6500.0) ? mat3(vec3(0.0, -2902.1955373783176, -8257.7997278925690),
+                                                  vec3(0.0, 1669.5803561666639, 2575.2827530017594),
+                                                  vec3(1.0, 1.3302673723350029, 1.8993753891711275)) :
+                                             mat3(vec3(1745.0425298314172, 1216.6168361476490, -8257.7997278925690),
+                                                  vec3(-2666.3474220535695, -2173.1012343082230, 2575.2827530017594),
+                                                  vec3(0.55995389139931482, 0.70381203140554553, 1.8993753891711275));
+            return mix(clamp(vec3(m[0] / (vec3(clamp(temperature, 1000.0, 40000.0)) + m[1]) + m[2]), vec3(0.0), vec3(1.0)), vec3(1.0), smoothstep(1000.0, 0.0, temperature));
+        }
+        
+        vec3 rotUV( vec3 yuv, float degrees ) {
+            float rad = degrees * 0.0174533;
+            mat3 rmat = mat3(
+                1.0,  0.0,       0.0,
+                0.0,  cos(rad),  sin(rad),
+                0.0,  -sin(rad), cos(rad)
+            );
+            return yuv * rmat;
+        }
+
+        vec3 hsv2rgb(vec3 c)
+        {
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+        }
+
+        void main() {
+            highp mat3 rgb2yuv = mat3(
+                 0.299,     0.587,    0.114,
+                -0.14713,  -0.28886,  0.436,
+                 0.615,    -0.51499, -0.10001
+            );
+            highp mat3 yuv2rgb = mat3(
+                1.0,  0.0,      1.13983,
+                1.0, -0.39465, -0.58060,
+                1.0,  2.03211,  0.0
+            );
+            float rad = hue * 0.0174533;
+            highp mat3 huemat = mat3(
+                1.0,  0.0,       0.0,
+                0.0,  cos(rad),  sin(rad),
+                0.0,  -sin(rad), cos(rad)
+            );
+            
+            vec4 channel;
+            vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+            vec4 lift = mix(texture2DCv(comp.texture,acScreenNorm)*texColor.a,texColor,0.0);
+            
+            vec4 realTexture = mode? lift : texColor;
+            
+            float luminanceX = dot(realTexture.rgb, luminanceWeighting);
+            vec2 s = step(vec2(0.,0.), acLayerNorm) - step(vec2(1.,1.), acLayerNorm);
+            float maskFactor = s.x * s.y;
+            vec4 outColor = vec4(0.0);
+
+            if( realTexture.a > 0.0 )
+                realTexture.rgb /= realTexture.a;
+
+            if( red==0 ) {
+                outColor.r = realTexture.r;
+            } else if( red==1 ) {
+                outColor.r = realTexture.g;
+            } else if( red==2 ) {
+                outColor.r = realTexture.b;
+            } else if( red==3 ) {
+                outColor.r = realTexture.a;
+            } else if( red==4 ) {
+                outColor.r = luminanceX;
+            } else if( red==5 ) {
+                outColor.r = 0.0;
+            } else {
+                outColor.r = 1.0;
+            }
+
+            if( green==0 ) {
+                outColor.g = realTexture.r;
+            } else if( green==1 ) {
+                outColor.g = realTexture.g;
+            } else if( green==2 ) {
+                outColor.g = realTexture.b;
+            } else if( green==3 ) {
+                outColor.g = realTexture.a;
+            } else if( green==4 ) {
+                outColor.g = luminanceX;
+            } else if( green==5 ) {
+                outColor.g = 0.0;
+            } else {
+                outColor.g = 1.0;
+            }
+
+            if( blue==0 ) {
+                outColor.b = realTexture.r;
+            } else if( blue==1 ) {
+                outColor.b = realTexture.g;
+            } else if( blue==2 ) {
+                outColor.b = realTexture.b;
+            } else if( blue==3 ) {
+                outColor.b = realTexture.a;
+            } else if( blue==4 ) {
+                outColor.b = luminanceX;
+            } else if( blue==5 ) {
+                outColor.b = 0.0;
+            } else {
+                outColor.b = 1.0;
+            }
+
+            if( alpha==0 ) {
+                outColor.a = realTexture.r;
+            } else if( alpha==1 ) {
+                outColor.a = realTexture.g;
+            } else if( alpha==2 ) {
+                outColor.a = realTexture.b;
+            } else if( alpha==3 ) {
+                outColor.a = realTexture.a;
+            } else if( alpha==4 ) {
+                outColor.a = luminanceX;
+            } else if( alpha==5 ) {
+                outColor.a = 0.0;
+            } else {
+                outColor.a = 1.0;
+            }
+
+            outColor.rgb *= outColor.a;
+
+            channel = outColor * maskFactor;
+
+                    vec4 highshadow;
+                    // vec4 source = texture2DCv(inputImg.texture,acScreenNorm);
+                    float luminance = dot(channel.rgb, luminanceWeighting);
+        
+                    float clampedShadows = clamp(shadows,1.0,2.0);
+                    float shadow = clamp((pow(luminance, 1.0/clampedShadows) + (-0.76)*pow(luminance, 2.0/clampedShadows)) - luminance, 0.0, 1.0);
+                    float highlight = clamp((1.0 - (pow(1.0-luminance, 1.0/(2.0-highlights)) + (-0.8)*pow(1.0-luminance, 2.0/(2.0-highlights)))) - luminance, -1.0, 0.0);
+                    lowp vec3 result = vec3(0.0, 0.0, 0.0) + ((luminance + shadow + highlight) - 0.0) * ((channel.rgb - vec3(0.0, 0.0, 0.0))/(luminance - 0.0));
+        
+                    float contrastedLuminance = ((luminance - 0.5) * 1.5) + 0.5;
+                    float whiteInterp = contrastedLuminance*contrastedLuminance*contrastedLuminance;
+                    float whiteTarget = clamp(highlights, 1.0, 2.0) - 1.0;
+                    result = mix(result, vec3(1.0), whiteInterp*whiteTarget);
+        
+                    float invContrastedLuminance = 1.0 - contrastedLuminance;
+                    float blackInterp = invContrastedLuminance*invContrastedLuminance*invContrastedLuminance;
+                    float blackTarget = 1.0 - clamp(shadows, 0.0, 1.0);
+                    result = mix(result, vec3(0.0), blackInterp*blackTarget);
+        
+                    highshadow = vec4(result.rgb, channel.a);
+
+            
+            vec4 exsat;
+            // vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+            
+            vec4 afterHs = mix(channel,highshadow,1.0) * channel.a;
+            afterHs.rgb = pow(afterHs.rgb,vec3(1.0/redGamma,1.0/greenGamma,1.0/blueGamma));
+            
+            highp vec3 rgb = afterHs.rgb;
+            lowp float a = afterHs.a;
+            highp vec3 yuv = rgb * rgb2yuv;
+            // yuv.x = (yuv.x-0.5*a) * (contrast+1.0) + 0.5*a + brightness*a;
+
+            float origSat = min(1.0,length(yuv.yz)*2.5); //
+            vec2 satUV = yuv.yz * vib;
+            
+            yuv.yz = mix(satUV,yuv.yz,origSat);
+            // yuv = yuv * huemat;
+            yuv.yz = yuv.yz * (saturation+1.0);
+            
+            rgb = yuv * yuv2rgb;
+            rgb = rgb + vec3(offset)*a;
+            rgb = pow(rgb,vec3(1.0/gamma));
+            rgb = rgb * pow(2.0,exposure);
+            rgb = mix(rgb, rgb * colorTemperatureToRGB(temperature * 1000.0), 0.8);
+            //////////////////////////
+            
+            exsat = vec4(rgb,a);
+            
+                vec4 bright;
+                vec3 rgbx = exsat.rgb;
+                float ax = exsat.a;
+                vec3 yuvbc = rgbx * rgb2yuv;
+    
+                yuvbc.x = (yuvbc.x-0.5*ax) * (contrast+1.0) + 0.5*ax + brightness*ax;
+                rgbx = yuvbc * yuv2rgb;
+                bright = vec4(rgbx,a);
+                
+            vec4 huecolor;
+    	    highp vec3 rgbxx = bright.rgb;
+            lowp float axx = bright.a;
+            highp vec3 yuvhue = rgbxx * rgb2yuv;
+
+            yuvhue = yuvhue * huemat;
+            rgbxx = yuvhue * yuv2rgb;
+
+            huecolor = vec4(rgbxx,a);
+                                    
+            gl_FragColor = huecolor;
+            
+        }
+
+    ]]></shader>
+
+</effect>

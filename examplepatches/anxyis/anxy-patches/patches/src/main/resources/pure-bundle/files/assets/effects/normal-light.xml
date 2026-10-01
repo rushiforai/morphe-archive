@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.normal-light" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/normal-light.webp" tags="3d,light,specular,normal,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Normal Light</string>
+            <string name="desc">Adds 3D directional lighting and a glossy specular highlight derived from the image as a height map, keeping the original colors.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="lightPos" default="-200,200" label="Light" />
+        <slider id="height" default="0.5" min="0.0" max="1.0" label="Depth" />
+        <slider id="shininess" default="0.5" min="0.0" max="1.0" label="Gloss" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 px=1.0/acScreenSize;
+            vec4 src=texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c=src.a>0.0? src.rgb/src.a : src.rgb;
+            float l =dot(texture2DCv(inputImg.texture, acScreenNorm-vec2(px.x,0.0)).rgb,vec3(0.333));
+            float r =dot(texture2DCv(inputImg.texture, acScreenNorm+vec2(px.x,0.0)).rgb,vec3(0.333));
+            float u =dot(texture2DCv(inputImg.texture, acScreenNorm-vec2(0.0,px.y)).rgb,vec3(0.333));
+            float dn=dot(texture2DCv(inputImg.texture, acScreenNorm+vec2(0.0,px.y)).rgb,vec3(0.333));
+            vec3 nrm=normalize(vec3((l-r)*height*8.0,(u-dn)*height*8.0,1.0));
+            vec2 lp=lightPos/1000.0+0.5;
+            vec3 L=normalize(vec3(lp-acScreenNorm, 0.6));
+            float diff=clamp(dot(nrm,L),0.0,1.0);
+            vec3 H=normalize(L+vec3(0.0,0.0,1.0));
+            float spec=pow(clamp(dot(nrm,H),0.0,1.0), mix(4.0,64.0,shininess))*shininess;
+            gl_FragColor=vec4(c*(0.4+0.8*diff)+spec,1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

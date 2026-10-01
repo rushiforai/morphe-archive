@@ -78,6 +78,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean affiliateLinks() {
+        return false;
+    }
+
     public static boolean reelDeclutter() {
         return false;
     }
@@ -150,6 +154,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean translatedStart() {
+        return false;
+    }
+
     public static boolean installBesideMetaApps() {
         return false;
     }
@@ -187,6 +195,14 @@ public final class SettingsStatus {
     }
 
     public static boolean reelsTabDot() {
+        return false;
+    }
+
+    public static boolean postPrompts() {
+        return false;
+    }
+
+    public static boolean reelPrompts() {
         return false;
     }
 

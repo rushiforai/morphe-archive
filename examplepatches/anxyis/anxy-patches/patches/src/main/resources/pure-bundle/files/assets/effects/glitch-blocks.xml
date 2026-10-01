@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.glitch-blocks" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/glitch-blocks.webp" tags="glitch,digital,distort,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Glitch Blocks</string>
+            <string name="desc">Randomly displaces horizontal blocks of the image with RGB shifting, creating a digital data-corruption glitch.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="0.5" min="0.0" max="1.0" label="Intensity" />
+        <slider id="blockSize" default="0.06" min="0.01" max="0.3" label="Block Size" />
+        <slider id="speed" default="1.0" min="0.0" max="5.0" label="Speed" />
+        <slider id="rgbShift" default="0.5" min="0.0" max="1.0" label="RGB Shift" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            float t = floor(acTime*speed*8.0);
+            vec2 uv = acScreenNorm;
+            float row = floor(uv.y/blockSize);
+            float r = rand(vec2(row, t));
+            float shift = 0.0;
+            if(r > 1.0-amount*0.6){
+                shift = (rand(vec2(row*1.7, t))-0.5) * amount * 0.3;
+            }
+            uv.x += shift;
+            float rs = rgbShift*0.01*(r>0.5?1.0:0.0);
+            float cr = texture2DCv(inputImg.texture, uv+vec2(rs,0.0)).r;
+            vec4 cg = texture2DCv(inputImg.texture, uv);
+            float cb = texture2DCv(inputImg.texture, uv-vec2(rs,0.0)).b;
+            gl_FragColor = vec4(cr,cg.g,cb,cg.a);
+        }
+    ]]></shader>
+
+</effect>

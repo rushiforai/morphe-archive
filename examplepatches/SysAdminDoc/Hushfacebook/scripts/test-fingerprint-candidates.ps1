@@ -342,10 +342,44 @@ try {
     foreach ($id in 'reels-ad-break-tick', 'reels-state-name', 'reel-button-factory', 'amoled-fds-litho-resolver') {
         Assert-True ($caseIds -contains $id) "The calibration lost the case $id, one of the transitions that moved."
     }
+    # A version names its split bundle over an APK made from it, as the fixture folder holds the 580
+    # bundle beside the emulator's -minapi28.apk. The APK here lacks the target, so a wrapper that
+    # read it would fail closed instead of ranking the moved method first. Two bundles, or none, are
+    # still refused.
+    $pickFolder = Join-Path $caseRoot 'pick-fixtures'
+    New-Item -ItemType Directory -Force -Path $pickFolder | Out-Null
+    $pickBundle = Join-Path $pickFolder 'facebook-9.9.9.9-arm64-v8a.apkm'
+    $archive = [System.IO.Compression.ZipFile]::Open($pickBundle, [System.IO.Compression.ZipArchiveMode]::Create)
+    try {
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, (Join-Path $caseRoot 'moved.apk'),
+            'base.apk', [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
+    } finally {
+        $archive.Dispose()
+    }
+    Copy-Item -LiteralPath (Join-Path $caseRoot 'gone.apk') -Destination (Join-Path $pickFolder 'facebook-9.9.9.9-arm64-v8a-minapi28.apk')
+    $fixtureDir = $env:HUSHFACEBOOK_FIXTURE_DIR
+    try {
+        $env:HUSHFACEBOOK_FIXTURE_DIR = $pickFolder
+        $pickArguments = @('-Signature', $signature, '-ReportPath', (Join-Path $caseRoot 'picked.txt'),
+            '-Java', $Java, '-DesktopJar', $DesktopJar, '-Root', $Root)
+        $picked = Invoke-Wrapper (@('-NewApk', '9.9.9.9') + $pickArguments)
+        Assert-True ($picked.ExitCode -eq 0 -and
+            ($picked.Output | Where-Object { $_ -like '*#1 *' } | Select-Object -First 1) -like "*$moved*") `
+            "The wrapper did not read the split bundle a version names beside an APK.`n$($picked.Text)"
+        $none = Invoke-Wrapper (@('-NewApk', '9.9.9.8') + $pickArguments)
+        Assert-True ($none.ExitCode -ne 0 -and $none.Text -match 'names 0 fixtures') `
+            "A version naming no fixture was not refused as before.`n$($none.Text)"
+        Copy-Item -LiteralPath $pickBundle -Destination (Join-Path $pickFolder 'facebook-9.9.9.9-x86.apkm')
+        $two = Invoke-Wrapper (@('-NewApk', '9.9.9.9') + $pickArguments)
+        Assert-True ($two.ExitCode -ne 0 -and $two.Text -match 'names 3 fixtures') `
+            "A version naming two split bundles was not refused.`n$($two.Text)"
+    } finally {
+        $env:HUSHFACEBOOK_FIXTURE_DIR = $fixtureDir
+    }
+
     $fixtures = if ($env:HUSHFACEBOOK_FIXTURE_DIR) { $env:HUSHFACEBOOK_FIXTURE_DIR } else { Join-Path $Root 'fixtures' }
     foreach ($version in '577.0.0.50.72', '580.0.0.51.74') {
-        Assert-True (@(Get-ChildItem -LiteralPath $fixtures -File -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name.Contains($version) }).Count -eq 1) `
+        Assert-True (@(Select-FixtureBuild -Folder $fixtures -Version $version).Count -eq 1) `
             ("The calibration needs Facebook $version in $fixtures, the folder HUSHFACEBOOK_FIXTURE_DIR names. " +
                 'Without it the top-five claim is not checked, so this fails rather than skipping.')
     }

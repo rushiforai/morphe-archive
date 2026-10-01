@@ -135,8 +135,8 @@ public class NumberInputPreference extends EditTextPreference {
         setSummary(L10n.t(getContext(), baseSummary)
                 // Formatted like the value under it and carrying the unit, so a limit reads
                 // "0 to 86,400 seconds" where it used to be the bare "0 to 86400".
-                + "\n" + L10n.f(getContext(), "%1$s to %2$s",
-                        displayValue(minValue), withUnit(maxValue, displayValue(maxValue)))
+                + (showsRange() ? "\n" + L10n.f(getContext(), "%1$s to %2$s",
+                        displayValue(minValue), withUnit(maxValue, displayValue(maxValue))) : "")
                 + "\n" + L10n.f(getContext(), "Current: %1$s", shown(clampedValue))
                 + (extra == null ? "" : "\n" + extra));
     }
@@ -157,6 +157,11 @@ public class NumberInputPreference extends EditTextPreference {
      */
     protected String extraSummaryLine() {
         return null;
+    }
+
+    /** Whether the summary states the range. A row whose picker can't leave it has no need to. */
+    protected boolean showsRange() {
+        return true;
     }
 
     /**

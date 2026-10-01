@@ -77,6 +77,26 @@ class AmoledColorLiteralTest {
         assertEquals(black.toLong(), (written as WideLiteralInstruction).wideLiteral)
     }
 
+    /** Issue #34: with a Background colour, the sweep writes it instead of black, in either width. */
+    @Test
+    fun aBackgroundColourTakesBlacksPlace() {
+        val navy = 0xFF0D1117.toInt()
+        val method = palette(
+            ImmutableInstruction31i(Opcode.CONST, 0, darkGrey),
+            ImmutableInstruction31i(Opcode.CONST_WIDE_32, 0, darkGrey),
+            ImmutableInstruction31i(Opcode.CONST, 1, black),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+        )
+
+        assertEquals(2, method.blackenDarkColors(navy))
+        val (int, long, kept) = method.implementation!!.instructions.take(3)
+        assertEquals(Opcode.CONST, int.opcode)
+        assertEquals(navy.toLong(), (int as WideLiteralInstruction).wideLiteral)
+        assertEquals(Opcode.CONST_WIDE_32, long.opcode)
+        assertEquals(navy.toLong(), (long as WideLiteralInstruction).wideLiteral)
+        assertEquals("Facebook's black stays black", black.toLong(), (kept as WideLiteralInstruction).wideLiteral)
+    }
+
     @Test
     fun aDarkColourWithAHueIsLeftAlone() {
         val method = palette(

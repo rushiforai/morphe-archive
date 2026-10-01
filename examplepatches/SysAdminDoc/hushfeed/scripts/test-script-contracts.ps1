@@ -205,14 +205,14 @@ Write-Host '[scripts] guarded phone foreground parser contracts passed'
 $catalog = Get-Content -LiteralPath (Join-Path $Root 'patches-list.json') -Raw | ConvertFrom-Json
 $target = Get-PatchTarget -PatchList $catalog
 Assert-True ($target.PackageName -eq 'com.zhiliaoapp.musically') 'The catalog package was not resolved.'
-Assert-True ((@($target.PackageVersions) -join ',') -eq '47.0.3,47.1.3' -and $target.PackageVersion -eq '47.1.3') `
+Assert-True ((@($target.PackageVersions) -join ',') -eq '47.0.3,47.1.3,47.1.4' -and $target.PackageVersion -eq '47.1.4') `
     "The catalog versions were not resolved: $(@($target.PackageVersions) -join ', ')."
 Assert-True ((Format-VersionList -Versions @('47.0.3')) -eq '47.0.3' -and
     (Format-VersionList -Versions @('47.0.3', '47.1.3')) -eq '47.0.3 and 47.1.3' -and
     (Format-VersionList -Versions @('1.0', '2.0', '3.0')) -eq '1.0, 2.0 and 3.0') 'A version list was not written as a sentence.'
 Assert-True ((Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersion = '47.0.3' }) -Target $target) -eq '47.0.3' -and
-    (Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersion = '47.2.3' }) -Target $target) -eq '47.1.3' -and
-    (Get-DeclaredReportVersion -Report $null -Target $target) -eq '47.1.3') `
+    (Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersion = '47.2.3' }) -Target $target) -eq '47.1.4' -and
+    (Get-DeclaredReportVersion -Report $null -Target $target) -eq '47.1.4') `
     'A report was held to a version other than the declared one it names.'
 
 $allNames = @($catalog.patches | ForEach-Object { $_.name })
@@ -457,6 +457,48 @@ foreach ($name in $consumerScripts) {
     Assert-True ($text -match 'AllowedDependencyNames') `
         "$name does not pass declared dependency names into result validation."
 }
+
+# --- patch timing ----------------------------------------------------------------------------
+#
+# time-patches.ps1 splits one CLI run into patches by the "Applied:" and "FAILED:" lines and gives
+# each the heap peak of the collections between its line and the one before (#54). Lines before
+# "Executing patches" are loading, and a gap with no collection has no peak rather than zero.
+
+$gcLines = @(
+    '[1500ms] GC(0) Pause Young (Normal) (G1 Evacuation Pause) 900M->200M(4096M) 3.100ms',
+    '[2200ms] GC(1) Pause Young (Normal) (G1 Evacuation Pause) 1000M->300M(4096M) 5.100ms',
+    '[2300ms] GC(1) Using 24 workers of 24 for evacuation',
+    '[2400ms] GC(2) Pause Young (Concurrent Start) (G1 Humongous Allocation) 1200M->400M(4096M) 6.200ms',
+    '[3000ms] GC(3) Pause Young (Normal) (G1 Evacuation Pause) 800M->350M(4096M) 4.000ms'
+)
+$collections = Read-GcHeapLog -Lines $gcLines
+Assert-True ($collections.Count -eq 4 -and $collections[1].At -eq 2200 -and $collections[1].Before -eq 1000) `
+    'Read-GcHeapLog did not read each collection as its clock and the heap before it.'
+$stamped = @(
+    [pscustomobject]@{ At = 1000; Line = 'INFO: Loading patches' },
+    [pscustomobject]@{ At = 1800; Line = 'INFO: Applied: Early' },
+    [pscustomobject]@{ At = 2000; Line = 'INFO: Executing patches' },
+    [pscustomobject]@{ At = 2500; Line = 'INFO: Applied: First' },
+    [pscustomobject]@{ At = 4000; Line = 'SEVERE: FAILED: Second' },
+    [pscustomobject]@{ At = 4050; Line = 'INFO: Ignored progress line' },
+    [pscustomobject]@{ At = 4100; Line = 'INFO: Applied: Third  ' }
+)
+$times = Get-PatchTimes -Stamped $stamped -Collections $collections
+Assert-True ($null -ne $times -and $times.ExecutingAt -eq 2000 -and $times.LastPatchAt -eq 4100 -and $times.Rows.Count -eq 3) `
+    'Get-PatchTimes counted a line before "Executing patches" or missed a result line.'
+Assert-True ($times.Rows[0].Patch -eq 'First' -and $times.Rows[0].Ms -eq 500 -and $times.Rows[0].PeakMb -eq 1200) `
+    'Get-PatchTimes gave the first patch the wrong time or heap peak.'
+Assert-True ($times.Rows[1].Patch -eq 'Second' -and $times.Rows[1].Result -eq 'FAILED' -and
+    $times.Rows[1].Ms -eq 1500 -and $times.Rows[1].PeakMb -eq 800) `
+    'Get-PatchTimes did not read a failed patch as its own row.'
+Assert-True ($times.Rows[2].Patch -eq 'Third' -and $times.Rows[2].Ms -eq 100 -and $null -eq $times.Rows[2].PeakMb) `
+    'Get-PatchTimes kept trailing spaces in a name or gave a gap without a collection a heap peak.'
+Assert-True ($null -eq (Get-PatchTimes -Stamped @($stamped[0], $stamped[1]) -Collections $collections)) `
+    'Get-PatchTimes timed a run that never reached its patches.'
+$timingScript = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'time-patches.ps1') -Raw
+Assert-True ($timingScript -match 'Get-PatchTimes' -and $timingScript -match 'Read-GcHeapLog' -and
+    $timingScript -match 'Resolve-DesktopCli') `
+    'time-patches.ps1 no longer reads its run through the shared parsers and CLI lookup.'
 
 # --- release receipt -------------------------------------------------------------------------
 
@@ -1760,8 +1802,11 @@ try {
         try {
             $applyCalls = Join-Path $hookRoot 'apply-calls'
             $applyFails = Join-Path $hookRoot 'apply-fails.txt'
+            # While the slow marker exists each stub run takes a moment and records when it ran.
+            $applySlow = Join-Path $hookRoot 'apply-slow.txt'
+            $applySpans = Join-Path $hookRoot 'apply-spans'
             $fixtureStub = Join-Path $hookRoot 'fixtures'
-            New-Item -ItemType Directory -Path $applyCalls, $fixtureStub -Force | Out-Null
+            New-Item -ItemType Directory -Path $applyCalls, $applySpans, $fixtureStub -Force | Out-Null
             # Both file names the fixture tests take, a bundle file that isn't an APK, and a build
             # the catalog doesn't declare.
             foreach ($name in @('com.zhiliaoapp.musically_1.0.3-100_apkmirror.com.apk', 'tiktok-1.1.3.apk',
@@ -1790,12 +1835,17 @@ try {
                 'param([string]$Apk, [string]$DesktopJar, [string]$WorkDir, [string]$Bundle, [string]$PatchList)',
                 "Set-Content -LiteralPath (Join-Path '$applyCalls' ([guid]::NewGuid().ToString('N') + '.txt')) -Value (",
                 '    "apk=$(Split-Path -Leaf $Apk) jar=$DesktopJar bundle=$Bundle list=$PatchList")',
+                "if (Test-Path -LiteralPath '$applySlow') {",
+                '    $started = [DateTime]::UtcNow.Ticks',
+                '    Start-Sleep -Milliseconds 1500',
+                "    Set-Content -LiteralPath (Join-Path '$applySpans' ([guid]::NewGuid().ToString('N') + '.txt')) -Value `"`$started `$([DateTime]::UtcNow.Ticks)`"",
+                '}',
                 "if (Test-Path -LiteralPath '$applyFails') { Write-Host '[verify] FAILED stub'; exit 1 }",
                 'exit 0')
             function Get-ApplyCalls { return @(Get-ChildItem -LiteralPath $applyCalls -File | ForEach-Object { (Get-Content -LiteralPath $_.FullName -Raw).Trim() } | Sort-Object) }
             function Reset-Apply {
-                Remove-Item -LiteralPath $wrapperMarker, $applyFails -Force -ErrorAction SilentlyContinue
-                Get-ChildItem -LiteralPath $applyCalls -File | Remove-Item -Force
+                Remove-Item -LiteralPath $wrapperMarker, $applyFails, $applySlow -Force -ErrorAction SilentlyContinue
+                Get-ChildItem -LiteralPath $applyCalls, $applySpans -File | Remove-Item -Force
                 Remove-Item -LiteralPath (Join-Path $hookRoot 'patches') -Recurse -Force -ErrorAction SilentlyContinue
             }
             $patchSource = 'patches/src/main/kotlin/app/morphe/patches/tiktok/Any.kt'
@@ -1817,6 +1867,24 @@ try {
             Reset-Apply
             & $prePushScript -Root $hookRoot -ChangedPaths @('gradle/libs.versions.toml') 6> $null
             Assert-True ((Get-ApplyCalls).Count -eq 2) 'A patcher pin change applied nothing to the fixtures.'
+
+            # HUSHFEED_GATE_SERIAL=1 applies one build at a time: the second run starts only once the
+            # first has ended.
+            Reset-Apply
+            Set-Content -LiteralPath $applySlow -Value 'slow' -Encoding ASCII
+            $savedSerial = $env:HUSHFEED_GATE_SERIAL
+            $env:HUSHFEED_GATE_SERIAL = '1'
+            try {
+                & $prePushScript -Root $hookRoot -ChangedPaths @($patchSource) 6> $null
+            } finally {
+                $env:HUSHFEED_GATE_SERIAL = $savedSerial
+            }
+            Assert-True ($LASTEXITCODE -eq 0 -and (Get-ApplyCalls).Count -eq 2) `
+                "A serial gate did not apply the bundle to each declared build: $((Get-ApplyCalls) -join '; ')"
+            $spans = @(Get-ChildItem -LiteralPath $applySpans -File | ForEach-Object {
+                    , [long[]]((Get-Content -LiteralPath $_.FullName -Raw).Trim() -split ' ') } | Sort-Object { $_[0] })
+            Assert-True ($spans.Count -eq 2 -and $spans[1][0] -ge $spans[0][1]) `
+                ('A serial gate applied two builds at once: ' + (($spans | ForEach-Object { $_ -join '-' }) -join ', '))
 
             # A first push lists the branch's whole tree, which holds patches-bundle.json as well as
             # the patch sources. The release check's half of that is covered above; this is the

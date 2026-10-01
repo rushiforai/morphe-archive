@@ -1,5 +1,6 @@
 package app.spicetify.extension.spotify.privacy;
 
+import app.spicetify.extension.spotify.settings.PatchSettings;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -11,6 +12,10 @@ public final class SharingLinks {
             "si", "pi", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id"));
 
     private SharingLinks() {}
+
+    public static String onShareUrl(String url) {
+        return PatchSettings.cleanSharingEnabled() ? sanitizeUrl(url) : url;
+    }
 
     public static String sanitizeUrl(String url) {
         if (url == null) return null;

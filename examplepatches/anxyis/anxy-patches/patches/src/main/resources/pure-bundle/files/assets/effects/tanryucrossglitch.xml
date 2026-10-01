@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.crossglitch"
+    name="Glitch Noise"
+    desc="Amazing New Extra FX from the Modder"
+    category="distort" 
+    tags="distort"
+    thumb="thumb/TANRYU/crossg.png"
+    experimental="false">
+
+    <params>
+        <spinner id="progress" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxc" label="Strength" default="3" min="1" max="3.6" step="0.01" type="percent" />
+        <spinner id="xxd" label="Thickness" default="7" min="6" max="8" step="0.01" type="percent" />
+        <spinner id="xxf" label="Seed" default="0.01" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxh" label="Alpha Noise" default="0.15" min="0" max="1" step="0.01" type="percent" />
+        <slider id="iter" default="1" min="1" max="5" label="Sample" type="integer" step="1" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <section text="Advance Option" />
+        <spinner id="xxi" label="Freq Block" default="200" min="-10.0" max="500.0" step="0.1" type="percent" />
+        <spinner id="xxj" label="Lenght Block" default="2" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxk" label="Width Block" default="2" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxl" label="Y Offset" default="0.2" min="-10.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxm" label="Distance Block X" default="2" min="-10.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxn" label="Distance Block Y" default="8" min="-10.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxo" label="X Block Offset" default="0.5" min="-10.0" max="100.0" step="0.01" type="percent" />
+        <spinner id="xxp" label="Y Block Offset" default="0.3" min="-10.0" max="100.0" step="0.01" type="percent" />
+     
+        <texture id="inputImg" srcType="content" />
+        <texture id="xcipher" srcType="buffer" />
+
+    </params>
+    
+    <iterations param="iter" /> <passes> <pass target="xcipher" effect="636f6d2e616c6967687463726561746976652e656666656374732e63726f7373676c69746368"/> <pass /> </passes> <shader type="fragment" precision="high"><![CDATA[
+    
+    void main ()
+    {
+            const vec3 luminance = vec3(0.2126, 0.7152, 0.0722); float phiQuarter = 90.0 * 0.0174533; float enchantDecryption = 8.0;/*
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(inputImg.texture,sampleLow);
+            vec4 colorHigh = texture2DCv(inputImg.texture,sampleHigh);
+            vec4 colorMid = texture2DCv(inputImg.texture,acScreenNorm);
+            vec4 outColor;
+            
+                vec4 r = vec4(outColor.r, 0.0, 0.0, outColor.r);
+                vec4 g = vec4(0.0, outColor.g, 0.0, outColor.g);
+                vec4 b = vec4(0.0, 0.0, outColor.b, outColor.b);
+                vec4 m = (r + g + b) / 3.;
+                vec4 c = vec4(0.0,0.0,0.0,0.0);
+                vec4 l = vec4(dot(luminanceWeighting * colorMid.rgb, vec3(1.0)));
+                c = m + (c*(1.0-m.a));
+                c = l + (c*(1.0-l.a));
+                
+            highp mat3 rgb2yuv = mat3(
+                 0.299,     0.587,    0.114,
+                -0.14713,  -0.28886,  0.436,
+                 0.615,    -0.51499, -0.10001
+            );
+            highp mat3 yuv2rgb = mat3(
+                1.0,  0.0,      1.13983,
+                1.0, -0.39465, -0.58060,
+                1.0,  2.03211,  0.0
+            );
+            float adjStrength = strength / 8.0;
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            float rad = angle * 0.0174533;
+            float adjStrength = strength / 8.0;
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(inputImg.texture,sampleLow); vec4 colorHigh = texture2DCv(inputImg.texture,sampleHigh); vec4 colorMid = texture2DCv(inputImg.texture,acScreenNorm);*/
+            float keyDecryptTanRyu = 0.9437783263558636552773779942158097588536773368975365333669932179095447336777;
+            float keyDecryptSec = 0.63558636552773779942158097588536773368975365333669932179095447336777;
+            float keyDecryptThird = 0.73779942158097588536773368975365333669932179095447336777;
+            keyDecryptTanRyu = 1.0;
+            vec4 DecodingFX = texture2DCv(xcipher.texture,acScreenNorm)*keyDecryptTanRyu;
+            gl_FragColor = DecodingFX;
+            
+         }
+
+
+    ]]></shader>
+
+</effect>

@@ -38,11 +38,12 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
 
 # A hook runs with git's own environment. User environment variables set after the shell
-# launched, or set in the user scope only, may be absent. Import the four this script and
+# launched, or set in the user scope only, may be absent. Import the ones this script and
 # its suites need from the registry so a gate worktree can find the desktop CLI, the
-# fixture folder, the build governor and the device serial.
+# fixture folder, the build governor and the device serial, and knows whether to apply the
+# fixtures one at a time.
 foreach ($envName in @('HUSHFEED_DESKTOP_JAR', 'HUSHFEED_FIXTURE_DIR',
-        'HUSHFEED_BUILD_WRAPPER', 'HUSHFEED_DEVICE_SERIAL')) {
+        'HUSHFEED_BUILD_WRAPPER', 'HUSHFEED_DEVICE_SERIAL', 'HUSHFEED_GATE_SERIAL')) {
     if (-not (Test-Path "Env:\$envName")) {
         $regValue = [Environment]::GetEnvironmentVariable($envName, [EnvironmentVariableTarget]::User)
         if ($regValue) { Set-Item -LiteralPath "Env:\$envName" -Value $regValue }
@@ -320,6 +321,9 @@ function Invoke-FixturePatching {
                 [pscustomobject]@{ ExitCode = $code }
             }
             [pscustomobject]@{ Version = $fixture.Version; Job = $job }
+            # A desktop CLI run can take a quarter of the machine's memory, so a machine short of
+            # it sets HUSHFEED_GATE_SERIAL=1 and applies one build at a time.
+            if ($env:HUSHFEED_GATE_SERIAL -eq '1') { Wait-Job -Job $job | Out-Null }
         }
     })
     $failed = @()

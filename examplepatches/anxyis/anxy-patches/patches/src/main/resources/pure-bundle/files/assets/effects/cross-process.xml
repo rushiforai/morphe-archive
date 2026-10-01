@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.cross-process" name="@string/name" desc="@string/desc" category="color" thumb="thumb/cross-process.webp" tags="color,film,vintage,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Cross Process</string>
+            <string name="desc">Mimics film cross-processing: punchy contrast, shifted greens and crushed blues.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            vec3 x;
+            x.r = smoothstep(0.05, 0.95, c.r);
+            x.g = pow(c.g, 1.25);
+            x.b = mix(c.b, 0.45, 0.25);
+            x = (x-0.5)*1.15 + 0.5;
+            gl_FragColor = vec4(clamp(mix(c,x,amount),0.0,1.0),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

@@ -27,7 +27,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>Facebook fills every post's menu through one call, and the patch calls {@link #add} right
  * after that call returns. The item goes below Facebook's own and none of them changes, its own
  * Download video included on the posts where it offers one. With the switch off, paused, or
- * before the settings are ready, the menu is Facebook's own.
+ * before the settings are ready, the menu is Facebook's own. While links are sent instead of saved
+ * ({@link SendLink}), the item is Send to app and hands over the video's facebook.com link.
  *
  * <p>Nothing here names a class or member that Facebook renames. The post and its attachment are
  * kept GraphQL model classes, and the patch finds their getters by the GraphQL field each one
@@ -80,7 +81,7 @@ public final class VideoMenuItem {
             Video video = Video.of(media, postOf(item, attachedStoryGetter));
             if (!video.offered()) return;
 
-            MenuItem entry = menu.add(L10n.t("Download to phone"));
+            MenuItem entry = menu.add(SendLink.sending() ? L10n.t("Send to app") : L10n.t("Download to phone"));
             if (entry == null) return;
             if (icon != 0) entry.setIcon(icon);
             Context context = anchor == null ? null : anchor.getContext();
@@ -108,8 +109,20 @@ public final class VideoMenuItem {
                     () -> "Download to phone tapped after its switch went off");
                 return;
             }
-            Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "Download to phone tapped");
             Context application = context == null ? Utils.getContext() : context.getApplicationContext();
+            if (SendLink.sending()) {
+                Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "Send to app tapped");
+                String link = SendLink.videoLink(video.id);
+                if (link != null) {
+                    SendLink.send(application, link);
+                    return;
+                }
+                Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE,
+                    () -> "the video names no id, so it has no link", null);
+                Feedback.show(application, L10n.t(application, "Couldn't find this video's link"), true);
+                return;
+            }
+            Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "Download to phone tapped");
             if (MediaDownload.saveFeedVideo(application, video.details, video.hd, video.sd)) return;
 
             Feedback.show(application,

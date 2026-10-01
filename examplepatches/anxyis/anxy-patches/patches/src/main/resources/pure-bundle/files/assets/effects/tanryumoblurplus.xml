@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.moblurplus" 
+	name="Motion Blur+" 
+	desc="Amazing New Extra FX from the Modder" 
+	category="blur" 
+	tags="blur" 
+	thumb="thumb/TANRYU/moblur.png" 
+	experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="tune" default="1.0" min="0.0" max="4.0" label="Tune" step="0.1" snap="1.0" ticks="1.0" />
+        <point id="PANGLE" default="0.5,0.5" min="0.01,0.01" max="2.0, 2.0" label="Pivot Angle" step="0.01" />
+        <point id="PSCALE" default="0.5,0.5" min="0.01,0.01" max="2.0, 2.0" label="Pivot Scale" step="0.01" />
+        <switch id="usePos" default="true" label="Position" />
+        <switch id="useScale" default="true" label="Scale" />
+        <switch id="useAngle" default="true" label="Angle" />
+    </params>
+
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            if( p.usePos && (Math.abs(env.velocity.x) > 0.0001 || Math.abs(env.velocity.y) > 0.0001) ) {
+                groups.push(2);
+            }
+            if( p.useScale && Math.abs(env.scaleVelocity) > 0.0001 ) {
+                groups.push(1);
+            }
+            if( p.useAngle && Math.abs(env.angularVelocity) > 0.0001 ) {
+                groups.push(0);
+            }
+            //AM.log(`motionblur f=${env.frame} v=${env.velocity.x},${env.velocity.y} av=${env.angularVelocity} sv=${env.scaleVelocity} groups=${groups}`);
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+
+    <shader type="fragment" group="0" precision="high"><![CDATA[
+
+        void main() {
+            float angle = abs(acAngularVelocity*tune);
+            float cx = PANGLE.x + acLayerPivot.x/acLayerSize.x;
+            float cy = PANGLE.y - acLayerPivot.y/acLayerSize.y;
+            vec2 image_size = getTexSize(inputImg.size);
+            float maxF = max(acScreenSize.x, acScreenSize.y);
+            vec2 texelSize = 1.0 / vec2(maxF, maxF);
+            vec2 center = (vec4(cx,cy,0.0,1.0) * acLayerToScreen).xy;
+            vec2 v = acScreenNorm.st - center;
+            v.y *= image_size.y / image_size.x;
+            float r = length(v);
+            float d = 6.283185*r;
+            float l = d*angle/360.0;
+            float a = angle * 0.0174533;
+            float amin = a/2.0;
+            float speed = l/texelSize.x;
+            int nSamples = int(clamp(speed, 1.01, 100.01));
+            vec4 outColor = texture2DCv(inputImg.texture,acScreenNorm.st);
+            for(int i=1; i<nSamples; i++ ) {
+                float sampleAngle = -amin + a * float(i)/float(nSamples);
+                float s = sin(sampleAngle);
+                float c = cos(sampleAngle);
+                mat2 rot = mat2(c, -s, s, c);
+                vec2 temp = v*rot;
+                temp.y = temp.y * image_size.x / image_size.y;
+                outColor += texture2DCv(inputImg.texture, center + temp);
+            }
+            gl_FragColor = outColor/float(nSamples);
+        }
+
+    ]]></shader>
+
+    <shader type="fragment" group="1" precision="high"><![CDATA[
+
+        void main() {
+            vec2 image_size = getTexSize(inputImg.size);
+            float maxF = max(acScreenSize.x, acScreenSize.y);
+            vec2 texelSize = 1.0 / vec2(maxF, maxF);
+            float cx = PSCALE.x + acLayerPivot.x/acLayerSize.x;
+            float cy = PSCALE.y - acLayerPivot.y/acLayerSize.y;
+            vec2 center = vec2(cx,cy);
+            vec2 v = acScreenNorm.st - (vec4(center,0.0,1.0) * acLayerToScreen).xy;
+            v.y *= image_size.y / image_size.x;
+            float speed = abs(acScaleVelocity*tune) / 2.0;
+            speed *= length( acLayerNorm.st - center ); // Adaptive
+            int nSamples = int(clamp(speed, 1.01, 100.01));
+            vec4 outColor = texture2DCv(inputImg.texture,acScreenNorm.st);
+            vec2 vnorm = normalize(v)*length(texelSize)*speed;
+            for(int i=1; i<nSamples; i++ ) {
+                vec2 offset = vnorm * (float(i) / float(nSamples - 1) - 0.5);
+                offset.y = offset.y * image_size.x / image_size.y;
+                outColor += texture2DCv(inputImg.texture, acScreenNorm.st-offset);
+            }
+            gl_FragColor = outColor/float(nSamples);
+        }
+
+    ]]></shader>
+
+    <shader type="fragment" group="2" precision="high"><![CDATA[
+
+        void main() {
+            vec2 image_size = getTexSize(inputImg.size);
+            float maxF = max(acScreenSize.x, acScreenSize.y);
+            vec2 texelSize = 1.0 / vec2(maxF, maxF);
+            vec2 velocity = acVelocity*tune / acScreenSize;
+            float speed = length(velocity / texelSize);
+            int nSamples = int(clamp(speed, 1.01, 100.01));
+            vec4 outColor = texture2DCv(inputImg.texture,acScreenNorm.st);
+            for(int i=1; i<nSamples; i++ ) {
+                vec2 offset = velocity * (float(i) / float(nSamples - 1) - 0.5);
+                offset.y = offset.y * image_size.x / image_size.y;
+                outColor += texture2DCv(inputImg.texture, acScreenNorm.st-offset);
+            }
+            gl_FragColor = outColor/float(nSamples);
+        }
+
+    ]]></shader>
+
+</effect>

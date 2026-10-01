@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.invert" name="@string/name" desc="@string/desc" category="color" thumb="thumb/invert.webp" tags="color,invert,negative,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Invert</string>
+            <string name="desc">Inverts the colors of the layer like a photo negative, with a blend amount.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            gl_FragColor = vec4(mix(c, 1.0-c, amount),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

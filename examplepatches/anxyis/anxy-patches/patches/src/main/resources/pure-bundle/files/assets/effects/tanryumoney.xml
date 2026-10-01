@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.money"
+    name="Money Filter"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="other"
+    thumb="thumb/TANRYU/money.png"
+    experimental="false">
+
+    <params>
+        <spinner id="amplitud" label="Amplitude" default="0.01" min="-2.0" max="2.0" step="0.001" type="percent" />
+        <spinner id="frecuencia" label="Frequency" default="14.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="ryu" label="Balance" default="2.3" min="0" max="5.0" step="0.01" type="percent" />
+        <spinner id="nxnn" label="Threshold" default="0.15" min="0" max="5.0" step="0.01" type="percent" />
+        
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+      
+        <texture id="inputImg" srcType="content" />
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+   
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iRes = vec2(acScreenSize.x, acScreenSize.y);
+        
+        float maxF = max(acScreenSize.x, acScreenSize.y);
+        vec2 texelSize = 1.0 / vec2(maxF, maxF);
+        
+        vec2 TanRyu;
+        TanRyu = acScreenNorm; 
+
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            vec2 xy = TanRyu;
+            // vec2 xy = fragCoord.xy / iResolution.yy;
+            
+            // float amplitud = 0.03;
+            // float frecuencia = 10.0;
+            float gris = 1.0;
+            float divisor = ryu / acScreenSize.y;
+            float grosorInicial = divisor * nxnn;
+            
+            const int kNumPatrones = 6;
+            
+            // x: seno del angulo, y: coseno del angulo, z: factor de suavizado
+        	vec3 datosPatron[kNumPatrones];
+            datosPatron[0] = vec3(-0.7071, 0.7071, 3.0); // -45
+            datosPatron[1] = vec3(0.0, 1.0, 0.6); // 0
+            datosPatron[2] = vec3(0.0, 1.0, 0.5); // 0
+            datosPatron[3] = vec3(1.0, 0.0, 0.4); // 90
+            datosPatron[4] = vec3(1.0, 0.0, 0.3); // 90
+            datosPatron[5] = vec3(0.0, 1.0, 0.2); // 0
+        
+            vec4 color = texture2DCv(inputImg.texture, xy);
+            // vec4 color = texture2DCv(inputImg.texture, vec2(fragCoord.x / acScreenSize.x, xy.y));
+            fragColor = color;
+            
+            for(int i = 0; i < kNumPatrones; i++)
+            {
+                float coseno = datosPatron[i].x;
+                float seno = datosPatron[i].y;
+                
+                // RotaciÃ³n del patrÃ³n
+                vec2 punto = vec2(
+                    xy.x * coseno - xy.y * seno,
+                    xy.x * seno + xy.y * coseno
+                );
+        
+                float grosor = grosorInicial * float(i + 1);
+                float dist = mod(punto.y + grosor * 0.5 - sin(punto.x * frecuencia) * amplitud, divisor);
+                float brillo = 0.3 * color.r + 0.4 * color.g + 0.3 * color.b;
+        
+                if(dist < grosor && brillo < 0.75 - 0.12 * float(i))
+                {
+                    // Suavizado
+                    float k = datosPatron[i].z;
+                    float x = (grosor - dist) / grosor;
+                    float fx = abs((x - 0.5) / k) - (0.5 - k) / k; 
+                    gris = min(fx, gris);
+                }
+            }
+            
+            
+            fragColor = vec4(gris, gris, gris, 1.0);
+        
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+            // resultfinal = (newLayer(texColor, factor) * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha);
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

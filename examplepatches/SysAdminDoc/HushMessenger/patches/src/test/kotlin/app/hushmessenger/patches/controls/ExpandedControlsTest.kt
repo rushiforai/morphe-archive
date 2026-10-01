@@ -28,8 +28,8 @@ class ExpandedControlsTest {
         val patches = Class.forName("app.hushmessenger.patches.controls.MessengerControlsPatchKt").methods
             .filter { it.name.startsWith("get") && it.returnType == BytecodePatch::class.java }
             .map { it.invoke(null) as BytecodePatch }.filter { it.name != null }
-        assertEquals(25, patches.size)
-        assertEquals(25, patches.map { it.name }.toSet().size)
+        assertEquals(28, patches.size)
+        assertEquals(28, patches.map { it.name }.toSet().size)
         val shared = patches.map { it.dependencies.filterIsInstance<BytecodePatch>().single() }.toSet()
         assertEquals(1, shared.size)
         assertNull(shared.single().name)
@@ -229,6 +229,40 @@ class ExpandedControlsTest {
         assertFailsWith<PatchException> { fixtureMethod(id, "const/4 v0, 0x0\nreturn-object v0", registers = 20).injectOutgoingTyping() }
         assertFailsWith<PatchException> {
             fixtureMethod("LX/8eb;->A0I(Ljava/lang/String;)LX/325;", "const/4 v0, 0x0\nreturn-object v0").injectOutgoingTyping()
+        }
+    }
+
+    @Test fun originalPhotoHooksReturnTheExtensionsResultOrRunTheStockTranscode() {
+        for ((id, registers) in listOf(TRANSCODE_IMAGE to 22, TRANSCODE_IMAGE_ASYNC to 19)) {
+            val sync = id == TRANSCODE_IMAGE
+            val method = fixtureMethod(id, if (sync) "const/4 v0, 0x0\nreturn-object v0" else "return-void", registers = registers)
+            val original = method.implementation!!.instructions.toList()
+            method.injectOriginalPhoto()
+            val code = method.implementation!!.instructions.toList()
+            val call = code[0] as RegisterRangeInstruction
+            assertEquals(if (sync) "Lapp/hushmessenger/extension/OriginalPhoto;->sync(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;)[B"
+                else "Lapp/hushmessenger/extension/OriginalPhoto;->async(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Ljava/lang/Object;)Z",
+                (call as ReferenceInstruction).reference.toString())
+            // p1, the URL, is the register after `this`; the range runs through the extras map, or the callback for async.
+            val parameterWords = if (sync) 8 else 9
+            assertEquals(registers - parameterWords + 1, call.startRegister)
+            assertEquals(parameterWords - 1, call.registerCount)
+            assertEquals(if (sync) Opcode.MOVE_RESULT_OBJECT else Opcode.MOVE_RESULT, code[1].opcode)
+            assertEquals(Opcode.IF_EQZ, code[2].opcode)
+            assertEquals(0, (code[1] as OneRegisterInstruction).registerA)
+            assertEquals(0, (code[2] as OneRegisterInstruction).registerA)
+            assertEquals(if (sync) Opcode.RETURN_OBJECT else Opcode.RETURN_VOID, code[3].opcode)
+            // A declined photo branches to the untouched stock body.
+            assertEquals(code[2].codeUnits + code[3].codeUnits, (code[2] as OffsetInstruction).codeOffset)
+            assertEquals(original, code.drop(4))
+        }
+        assertFailsWith<PatchException> {
+            fixtureMethod(TRANSCODE_IMAGE, "const/4 v0, 0x0\nreturn-object v0", registers = 22,
+                flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value).injectOriginalPhoto()
+        }
+        assertFailsWith<PatchException> { fixtureMethod(TRANSCODE_IMAGE, "return-void", registers = 8).injectOriginalPhoto() }
+        assertFailsWith<PatchException> {
+            fixtureMethod(TRANSCODE_IMAGE.replace("transcodeImage", "transcodeVideo"), "return-void", registers = 22).injectOriginalPhoto()
         }
     }
 

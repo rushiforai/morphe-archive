@@ -5,6 +5,7 @@
 package app.morphe.patches.tiktok.misc.translation
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -38,6 +39,11 @@ internal object BaseCommentCellBindFingerprint : Fingerprint(
 
 internal object CommentListLoadedFingerprint : Fingerprint(
     returnType = "V",
+    // The filter repeats a reference the custom block requires, so the patcher reads only the
+    // classes that make it (#54).
+    filters = listOf(
+        fieldAccess(definingClass = "Lcom/ss/android/ugc/aweme/comment/model/CommentItemList;", name = "lazySplitItemsParseTask"),
+    ),
     custom = { method, _ ->
         val fields = method.implementation?.instructions?.mapNotNull { instruction ->
             instruction.getReference<FieldReference>()

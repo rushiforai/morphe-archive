@@ -20,6 +20,8 @@ import app.morphe.patcher.patch.bytecodePatch
  * not affected by #616).
  */
 private const val SOCIALPLUS_FEED_ADS_MANAGER = "Lcom/jazz/socialplus/core/ads/FeedAdsManager;"
+private const val REWARDED_AD = "Lcom/google/android/gms/ads/rewarded/RewardedAd;"
+private const val REWARDED_AD_LOAD_CALLBACK = "Lcom/google/android/gms/ads/rewarded/RewardedAdLoadCallback;"
 
 internal val feedAdsLoadTopBannerFingerprint = Fingerprint(
     returnType = "V",
@@ -32,12 +34,42 @@ internal val feedAdsLoadAdFingerprint = Fingerprint(
     custom = { m, c -> c.type == SOCIALPLUS_FEED_ADS_MANAGER && m.name == "loadAd" },
 )
 
+// Daily check-in MILESTONE ad (day 10 / 20 / 30 award claim): a Google AdManager RewardedAd, a
+// different ad system from both the SocialPlus feed ads above and the daily-reward interstitial in
+// "Remove ads & tracking". resolveCheckInAdLoadRequest picks a Rewarded (level key) when
+// days_to_next_level == 1 (= the milestone). Stub RewardedAd.load (both AdRequest + AdManagerAdRequest
+// overloads) to return-void: the load callback never fires, the singleton's RewardedAd stays null,
+// and the show path (showRewardedCheckInAd) then takes its own "ad is not loaded yet" branch which
+// invokes onAdFinished — so the award is still granted, with no ad shown. Anchored on the SDK type +
+// "load" (obfuscation-proof); the two overloads are disambiguated by their AdRequest param type.
+internal val rewardedAdLoadAdRequestFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Ljava/lang/String;",
+        "Lcom/google/android/gms/ads/AdRequest;",
+        REWARDED_AD_LOAD_CALLBACK,
+    ),
+    custom = { m, c -> c.type == REWARDED_AD && m.name == "load" },
+)
+internal val rewardedAdLoadAdManagerFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Ljava/lang/String;",
+        "Lcom/google/android/gms/ads/admanager/AdManagerAdRequest;",
+        REWARDED_AD_LOAD_CALLBACK,
+    ),
+    custom = { m, c -> c.type == REWARDED_AD && m.name == "load" },
+)
+
 @Suppress("unused")
 val removeCheckInAdsPatch = bytecodePatch(
     name = "Remove daily check-in ads",
     description = "Removes the SocialPlus daily check-in / in-feed ads (FeedAdsManager banner + " +
-        "native loaders). Separate from \"Remove ads & tracking\" to keep that patch Morphe-Manager-" +
-        "safe; enable this one when patching with the desktop CLI.",
+        "native loaders) and the day-10/20/30 milestone-claim RewardedAd (the award is still " +
+        "granted, just with no ad). Separate from \"Remove ads & tracking\" to keep that patch " +
+        "Morphe-Manager-safe; enable this one when patching with the desktop CLI.",
 ) {
     compatibleWith(COMPATIBILITY_SIMOSA)
 
@@ -51,5 +83,7 @@ val removeCheckInAdsPatch = bytecodePatch(
         }
         stub(feedAdsLoadTopBannerFingerprint)
         stub(feedAdsLoadAdFingerprint)
+        stub(rewardedAdLoadAdRequestFingerprint)
+        stub(rewardedAdLoadAdManagerFingerprint)
     }
 }

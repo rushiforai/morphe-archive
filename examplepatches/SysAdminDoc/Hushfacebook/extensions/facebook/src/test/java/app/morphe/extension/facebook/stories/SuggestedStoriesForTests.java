@@ -23,21 +23,41 @@ public final class SuggestedStoriesForTests {
     }
 
     /**
-     * Stands in for a bucket: its is_story_bucket_suggested flag, and its first label, or null for
-     * a bucket with none.
+     * Stands in for Facebook's bucket type enum, GraphQLCameraPostTypesEnum, with a few of its
+     * constants: only the names matter to the filter.
+     */
+    public enum Type {
+        UNSET_OR_UNRECOGNIZED_ENUM_VALUE, CONTACT_IMPORTER_STORY, FRIEND_REQUEST_STORY, NEW_FRIENDSHIP_STORY,
+        PAGE_STORY, PYMK_GENERATED_STORY, PYMK_PROFILE_FORWARD_STORY, PYMK_STORY, SC_INDIA_FRIENDING_CTA_STORY, STORY
+    }
+
+    /**
+     * Stands in for a bucket: its is_story_bucket_suggested flag, its first label, or null for a
+     * bucket with none, and its story_bucket_type, which is STORY unless a test says otherwise.
      */
     public static final class Bucket {
         public final boolean suggested;
         public final Object label;
+        public final Object type;
 
         public Bucket(boolean suggested, Object label) {
+            this(suggested, label, Type.STORY);
+        }
+
+        public Bucket(boolean suggested, Object label, Object type) {
             this.suggested = suggested;
             this.label = label;
+            this.type = type;
+        }
+
+        /** A bucket of [type] that no flag or label marks. */
+        public static Bucket of(Object type) {
+            return new Bucket(false, null, type);
         }
 
         @Override
         public String toString() {
-            return "Bucket(" + suggested + ", " + label + ")";
+            return "Bucket(" + suggested + ", " + label + ", " + type + ")";
         }
     }
 
@@ -52,13 +72,18 @@ public final class SuggestedStoriesForTests {
     }
 
     /**
-     * The stubs as the patch fills them: an instance-of the bucket interface, a read of its flag, a
-     * call of Facebook's label helper and ImmutableList.copyOf.
+     * The stubs as the patch fills them: an instance-of the bucket interface, reads of its type and
+     * its flag, a call of Facebook's label helper and ImmutableList.copyOf.
      */
     static final SuggestedStories.Buckets STAND_IN = new SuggestedStories.Buckets() {
         @Override
         public boolean isBucket(Object item) {
             return item instanceof Bucket;
+        }
+
+        @Override
+        public Object type(Object bucket) {
+            return ((Bucket) bucket).type;
         }
 
         @Override
@@ -83,6 +108,14 @@ public final class SuggestedStoriesForTests {
     }
 
     /**
+     * Says whether Hide suggested and promoted posts, the People you may know switch's patch, is in
+     * the build, or hands the answer back to SettingsStatus with null.
+     */
+    public static void peopleYouMayKnowInBuild(Boolean inBuild) {
+        SuggestedStories.peopleYouMayKnowInBuildForTests = inBuild;
+    }
+
+    /**
      * A tray of a friend's story, a suggested one and one labelled SUGGESTED, filtered the way the
      * patched tray data does. True when both suggestions came out, which is the switch changing
      * what Facebook would have drawn.
@@ -90,6 +123,31 @@ public final class SuggestedStoriesForTests {
     public static boolean hidesSuggestions() {
         Bucket friend = new Bucket(false, Label.NEWFRIEND);
         List<Bucket> tray = Arrays.asList(friend, new Bucket(true, null), new Bucket(false, Label.SUGGESTED));
+        Object kept = keptBuckets(tray);
+        return kept != tray && Collections.singletonList(friend).equals(kept);
+    }
+
+    /**
+     * A tray of a friend's story and the two kinds of People you may know card, in a build with
+     * that switch's patch. True when both cards came out.
+     */
+    public static boolean hidesPeopleYouMayKnow() {
+        Boolean before = SuggestedStories.peopleYouMayKnowInBuildForTests;
+        SuggestedStories.peopleYouMayKnowInBuildForTests = true;
+        try {
+            Bucket friend = new Bucket(false, Label.NEWFRIEND);
+            List<Bucket> tray = Arrays.asList(Bucket.of(Type.PYMK_STORY), friend, Bucket.of(Type.PYMK_PROFILE_FORWARD_STORY));
+            Object kept = keptBuckets(tray);
+            return kept != tray && Collections.singletonList(friend).equals(kept);
+        } finally {
+            SuggestedStories.peopleYouMayKnowInBuildForTests = before;
+        }
+    }
+
+    /** A tray of a friend's story and the "Find friends from contacts" card. True when the card came out. */
+    public static boolean hidesContactImportCard() {
+        Bucket friend = new Bucket(false, null);
+        List<Bucket> tray = Arrays.asList(Bucket.of(Type.CONTACT_IMPORTER_STORY), friend);
         Object kept = keptBuckets(tray);
         return kept != tray && Collections.singletonList(friend).equals(kept);
     }

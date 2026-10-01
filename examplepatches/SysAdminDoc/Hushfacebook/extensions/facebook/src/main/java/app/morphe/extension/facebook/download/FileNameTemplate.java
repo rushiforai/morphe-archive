@@ -16,11 +16,12 @@ import app.morphe.extension.shared.Utils;
  * The name a saved video gets, from a template the person can change.
  *
  * <p>The default is Facebook's own naming, {@code FB_VID_} and the date and time, so with the
- * template as it ships every video is named the way it always was. Four tokens fill in per save:
+ * template as it ships every video is named the way it always was. Five tokens fill in per save:
  * {@link #DATE} is the moment the file goes into the gallery, as {@code yyyyMMdd_HHmmss};
  * {@link #VIDEO_ID} is the video's number on Facebook; {@link #OWNER} is the name of whoever
- * posted it, cleaned the way the folder name is; and {@link #POSTED} is the day the post went up,
- * as {@code yyyyMMdd} in the phone's time zone. The last three fill in when the save knows them
+ * posted it, cleaned the way the folder name is; {@link #OWNER_ID} is their profile's or Page's
+ * number, which stays when a Page renames itself; and {@link #POSTED} is the day the post went up,
+ * as {@code yyyyMMdd} in the phone's time zone. The last four fill in when the save knows them
  * ({@link PostDetails}) and as nothing when it doesn't. Anything else in braces stays as written.
  *
  * <p>A template is typed by a person or read from a settings file, and MediaStore takes the name
@@ -67,11 +68,17 @@ public final class FileNameTemplate {
     /** Fills in as the name of whoever posted the video, or nothing when the save doesn't know it. */
     public static final String OWNER = "{owner}";
 
+    /**
+     * Fills in as the number of the profile or Page that posted the video, or nothing when the save
+     * doesn't know it. {@link #OWNER} isn't part of it: that one ends at "owner".
+     */
+    public static final String OWNER_ID = "{owner_id}";
+
     /** Fills in as the day the post went up, {@code yyyyMMdd} in the phone's time zone, or nothing when unknown. */
     public static final String POSTED = "{posted}";
 
     /** Every token, in the order the dialog names them. */
-    static final String[] TOKENS = {DATE, VIDEO_ID, OWNER, POSTED};
+    static final String[] TOKENS = {DATE, VIDEO_ID, OWNER, OWNER_ID, POSTED};
 
     /** What Facebook starts the name of a saved photo with. Photos keep it, whatever the template. */
     public static final String PHOTO_PREFIX = "FB_IMG_";
@@ -160,6 +167,11 @@ public final class FileNameTemplate {
         return template != null && template.contains(OWNER);
     }
 
+    /** Whether [template] asks for the poster's id. */
+    public static boolean usesOwnerId(String template) {
+        return template != null && template.contains(OWNER_ID);
+    }
+
     /** Whether [template] asks for the day the post went up. */
     public static boolean usesPosted(String template) {
         return template != null && template.contains(POSTED);
@@ -175,17 +187,19 @@ public final class FileNameTemplate {
 
     /**
      * Whether a name from the clean [template] tells one save from the next: the date and time
-     * are in it, or a video id it has, or the poster and the post day it has, each of those only
-     * when the template asks for it. Not when the template counts on something the save doesn't
-     * know: then {@link #videoName} puts the date and time on the end.
+     * are in it, or a video id it has, or the poster, their id and the post day it has, each of
+     * those only when the template asks for it. Not when the template counts on something the save
+     * doesn't know: then {@link #videoName} puts the date and time on the end.
      */
-    static boolean keepsApart(String template, boolean hasId, boolean hasOwner, boolean hasPosted) {
+    static boolean keepsApart(String template, boolean hasId, boolean hasOwner, boolean hasOwnerId,
+                              boolean hasPosted) {
         if (usesDate(template)) return true;
         if (usesVideoId(template) && hasId) return true;
         boolean owner = usesOwner(template);
+        boolean ownerId = usesOwnerId(template);
         boolean posted = usesPosted(template);
-        if (!owner && !posted) return false;
-        return (!owner || hasOwner) && (!posted || hasPosted);
+        if (!owner && !ownerId && !posted) return false;
+        return (!owner || hasOwner) && (!ownerId || hasOwnerId) && (!posted || hasPosted);
     }
 
     /**
@@ -228,6 +242,7 @@ public final class FileNameTemplate {
         boolean hasId = details.hasVideoId();
         String rest = clean.replace(DATE, stamp)
             .replace(VIDEO_ID, hasId ? details.videoId : "")
+            .replace(OWNER_ID, details.hasOwnerId() ? details.ownerId : "")
             .replace(POSTED, details.hasPosted() ? postedStamp(details.posted) : "");
         String owner = ownerFor(rest, details, MAX_NAME_BYTES);
         String name = filledIn(rest, owner);
@@ -235,7 +250,7 @@ public final class FileNameTemplate {
         // with neither) is nothing.
         if (!hasLetterOrDigit(name)) return taken ? null : VIDEO_PREFIX + stamp;
 
-        if (!keepsApart(clean, hasId, !owner.isEmpty(), details.hasPosted())) {
+        if (!keepsApart(clean, hasId, !owner.isEmpty(), details.hasOwnerId(), details.hasPosted())) {
             // Something this template counts on is missing, so the date and time keep the name apart.
             return taken ? null : joined(cut(name, MAX_NAME_BYTES - 1 - stamp.length()), stamp);
         }

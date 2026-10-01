@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.film-grain" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/film-grain.webp" tags="stylize,grain,film,noise,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Film Grain</string>
+            <string name="desc">Adds animated photographic grain with adjustable size and a subtle vignette.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="0.4" min="0.0" max="1.0" label="Amount" />
+        <slider id="size" default="1.0" min="0.5" max="4.0" label="Grain Size" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            vec2 g = floor(acScreenNorm*acScreenSize/size);
+            float n = (rand(g + fract(acTime)*97.0)-0.5)*amount*0.5;
+            gl_FragColor = vec4(clamp(c+n,0.0,1.0),1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

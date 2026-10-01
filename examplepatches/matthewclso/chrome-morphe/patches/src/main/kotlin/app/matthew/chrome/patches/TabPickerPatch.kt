@@ -9,6 +9,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 
 private const val PICKER = "Lapp/matthew/chrome/extension/TabPicker;"
 private const val MODEL = "Lorg/chromium/chrome/browser/tabmodel/TabModel;"
@@ -38,6 +40,31 @@ val tabPickerPatch = bytecodePatch(
         val closeBuilder = method("Ljkq;", "b", listOf(TAB), "Lhkq;")
         val closeParams = method("Lhkq;", "a", emptyList(), "Ljkq;")
         val icon = method(FAVICON, "getBitmapWithFallback", listOf(TAB, "Z"), "Landroid/graphics/Bitmap;")
+        val from = method(FAVICON, "from", listOf(TAB), FAVICON)
+        val url = method(TAB, "getUrl", emptyList(), "Lorg/chromium/url/GURL;")
+        val bindContents = method("Lmjr;", "u1", listOf(TAB), "V")
+        check(classDefBy("Lmjr;").superclass == "Lf49;")
+        check(classDefBy("Lmjr;").fields.any { it.name == "S" && it.type == "Lnjr;" })
+        // R8 inlined the public Promise-returning getFaviconOrFallback into its JNI
+        // wrapper. Expose that exact native prefix, omitting only JNI callback wiring.
+        // Its existing URL guard, same-profile DB lookup and destruction stay native.
+        val faviconClass = mutableClassDefBy(FAVICON)
+        val nativeFallback = faviconClass.methods.single {
+            it.name == "getFaviconOrFallback" && it.parameterTypes == listOf("Lorg/chromium/base/JniOnceCallback;")
+        }
+        val fallbackCode = nativeFallback.implementation!!.instructions.toList()
+        val callbackStart = fallbackCode.indexOfFirst {
+            it.opcode == Opcode.NEW_INSTANCE && (it as? ReferenceInstruction)?.reference.toString() == "Limq;"
+        }
+        check(nativeFallback.implementation!!.registerCount == 13 && nativeFallback.implementation!!.tryBlocks.isEmpty())
+        check(callbackStart > 0 && fallbackCode.take(callbackStart).sumOf { it.codeUnits } == 0x67)
+        check(nativeFallback.hasString("Failed to query DB") && nativeFallback.hasString("Not eligible for favicon"))
+        val requestName = "morpheFaviconOrFallback"
+        check(faviconClass.methods.none { it.name == requestName })
+        faviconClass.methods.add(MutableMethod(ImmutableMethod(FAVICON, requestName, emptyList(),
+            "Le8l;", 0x1, emptySet(), emptySet(), ImmutableMethodImplementation(12,
+                fallbackCode.take(callbackStart) + ImmutableInstruction11x(Opcode.RETURN_OBJECT, 2),
+                emptyList(), emptyList()))))
         check(classDefBy("Lukq;").methods.single { it.name == "I" && it.parameterTypes == listOf("I", "I") }
             .hasString("MobileTabSwitched")) // Native FROM_USER is 3 on this exact target.
         for ((type, name, fieldType) in listOf(
@@ -89,10 +116,48 @@ val tabPickerPatch = bytecodePatch(
         """)
         bridge("pickerIcon", """
             check-cast p0, $TAB
+            const/4 v0, 0x0
+            invoke-static {p0, v0}, $icon
+            move-result-object v0
+            if-nez v0, :done
             const/4 v0, 0x1
             invoke-static {p0, v0}, $icon
             move-result-object v0
+            :done
             return-object v0
+        """)
+        bridge("pickerUrl", """
+            check-cast p0, $TAB
+            invoke-interface {p0}, $url
+            move-result-object v0
+            return-object v0
+        """)
+        bridge("pickerRequestIcon", """
+            check-cast p0, $TAB
+            invoke-static {p0}, $from
+            move-result-object v0
+            if-eqz v0, :done
+            # The base constructor observes future contents changes only. Synchronize
+            # existing contents through that same native handler, without registering
+            # another observer. Its identity guard and native cleanup remain intact.
+            new-instance v1, Lmjr;
+            invoke-direct {v1}, Ljava/lang/Object;-><init>()V
+            iput-object v0, v1, Lmjr;->S:Lnjr;
+            invoke-virtual {v1, p0}, $bindContents
+            invoke-virtual {v0}, $FAVICON->$requestName()Le8l;
+            :done
+            return-void
+        """)
+        val phoneType = "Lorg/chromium/chrome/browser/toolbar/top/ToolbarPhone;"
+        check(classDefBy(phoneType).fields.any { it.name == "t1" && it.type == "Lick;" })
+        check(classDefBy(phoneType).methods.single { it.name == "C" && it.parameterTypes.isEmpty() }
+            .hasString("Android.TopToolbar.CaptureBlocked.StatusIconAnimationDuration"))
+        bridge("pickerInvalidateCapture", """
+            check-cast p0, $phoneType
+            const/4 v0, 0x0
+            iput-object v0, p0, $phoneType->t1:Lick;
+            invoke-virtual {p0}, Landroid/view/View;->invalidate()V
+            return-void
         """)
         bridge("pickerSelect", """
             check-cast p0, $MODEL
@@ -182,6 +247,25 @@ val tabPickerPatch = bytecodePatch(
         measure.addInstructions(superMeasure.index + 1,
             "invoke-super {p0, p1, p2}, Lorg/chromium/ui/widget/OptimizedFrameLayout;->onMeasure(II)V")
 
+        // Chrome makes the hairline visible again during compositor captures (including
+        // long-press menus). Paint the picker background in its slot without fighting
+        // those visibility changes or leaving a transparent gap in the compositor.
+        val hairline = mutableClassDefBy("Lorg/chromium/chrome/browser/toolbar/ToolbarHairlineView;")
+        check(hairline.superclass == "Landroidx/appcompat/widget/AppCompatImageView;")
+        check(hairline.methods.none { it.name == "onDraw" })
+        val drawHairline = MutableMethod(ImmutableMethod(hairline.type, "onDraw",
+            listOf(ImmutableMethodParameter("Landroid/graphics/Canvas;", emptySet(), null)), "V", 0x4,
+            emptySet(), emptySet(), ImmutableMethodImplementation(3, emptyList(), emptyList(), emptyList())))
+        drawHairline.addInstructions(0, """
+            invoke-static {p0, p1}, $PICKER->drawDividerBackground(Landroid/view/View;Landroid/graphics/Canvas;)Z
+            move-result v0
+            if-nez v0, :done
+            invoke-super {p0, p1}, Landroidx/appcompat/widget/AppCompatImageView;->onDraw(Landroid/graphics/Canvas;)V
+            :done
+            return-void
+        """.trimIndent())
+        hairline.methods.add(drawHairline)
+
         // Invalidate only when metadata or tab order changes. Count/selection changes are
         // also read before drawing; no background timer, URL persistence or icon network request.
         val tabImpl = mutableClassDefBy("Lorg/chromium/chrome/browser/tab/TabImpl;")
@@ -191,8 +275,16 @@ val tabPickerPatch = bytecodePatch(
                 (ins as ReferenceInstruction).reference.toString() == "${tabImpl.type}->g0:Ljava/lang/String;"
         }
         title.addInstructions(titleWrite.index + 1, "invoke-static {}, $PICKER->changed()V")
-        mutableClassDefBy(FAVICON).methods.single { it.name == "h" && it.parameterTypes.size == 3 }
-            .addInstructions(0, "invoke-static {}, $PICKER->changed()V")
+        val faviconUpdate = faviconClass.methods.single { it.name == "h" && it.parameterTypes.size == 3 }
+        val faviconReturn = faviconUpdate.implementation!!.instructions.withIndex().single { it.value.opcode == Opcode.RETURN_VOID }
+        faviconUpdate.replaceInstruction(faviconReturn.index, "invoke-static {}, $PICKER->changed()V")
+        faviconUpdate.addInstructions(faviconReturn.index + 1, "return-void")
+        // Native pages and frozen-tab navigations also broadcast an empty favicon.
+        val emptyIconNotifications = tabImpl.methods.filter { method -> method.implementation?.instructions?.any {
+            (it as? ReferenceInstruction)?.reference.toString() == "Lf49;->F1($TAB" + "Landroid/graphics/Bitmap;Lorg/chromium/url/GURL;)V"
+        } == true }
+        check(emptyIconNotifications.size == 2)
+        for (method in emptyIconNotifications) method.addInstructions(0, "invoke-static {}, $PICKER->changed()V")
         for (name in listOf("t0", "c2")) mutableClassDefBy("Lukq;").methods.single {
             it.name == name && it.parameterTypes == listOf("I", "I")
         }.addInstructions(0, "invoke-static {}, $PICKER->changed()V")

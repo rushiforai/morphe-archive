@@ -20,7 +20,22 @@ public final class SessionBudgetNotice {
     private SessionBudgetNotice() {
     }
 
-    public static void show() {
+    /** @param awemeId the video on screen as the budget ran out */
+    public static void show(String awemeId) {
+        // The hold waits for this video, so its panel can't carry the news yet. A banner can:
+        // nothing covers the feed until the video ends.
+        if (FinishLastVideo.begin(awemeId)) {
+            SessionLockOverlay.ensureRunning();
+            String message = spentMessage() + ". " + L10n.t("The feed stops when this video ends.");
+            Utils.runOnMainThread(() -> {
+                android.app.Activity activity = Utils.getActivity();
+                android.view.ViewGroup root = activity == null
+                        ? null : activity.findViewById(android.R.id.content);
+                app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay.showNoticeBanner(
+                        root, message);
+            });
+            return;
+        }
         if (Settings.SESSION_BUDGET_LOCK_MINUTES.get() > 0) {
             SessionLockOverlay.ensureRunning();
             return;

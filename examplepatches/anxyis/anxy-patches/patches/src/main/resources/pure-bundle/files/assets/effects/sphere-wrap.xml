@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.sphere-wrap" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/sphere-wrap.webp" tags="3d,sphere,globe,wrap,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Sphere</string>
+            <string name="desc">Maps the layer onto a rotating 3D globe with lighting on the front hemisphere.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="spin" default="0.0" min="-1080.0" max="1080.0" label="Spin" type="angle" step="1" />
+        <spinner id="tilt" default="0.0" min="-90.0" max="90.0" label="Tilt" type="angle" step="1" />
+        <slider id="light" default="0.6" min="0.0" max="1.0" label="Lighting" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        const float PI = 3.14159265;
+        mat3 mrotX(float a){ float s=sin(a),c=cos(a); return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c); }
+        mat3 mrotY(float a){ float s=sin(a),c=cos(a); return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c); }
+        mat3 mrotZ(float a){ float s=sin(a),c=cos(a); return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0); }
+        void main(){
+            vec2 p=acScreenNorm*2.0-1.0; float asp=acScreenSize.x/acScreenSize.y; p.x*=asp;
+            float r=length(p);
+            if(r>1.0){gl_FragColor=vec4(0.0);return;}
+            vec3 nrm=vec3(p, sqrt(1.0-r*r));
+            vec3 rn = mrotX(radians(tilt))*mrotY(radians(spin))*nrm;
+            float uu=0.5+atan(rn.x,rn.z)/(2.0*PI);
+            float vv=0.5-asin(clamp(rn.y,-1.0,1.0))/PI;
+            vec4 col=texture2DCv(inputImg.texture, vec2(fract(uu),clamp(vv,0.0,1.0)));
+            float diff=clamp(dot(normalize(nrm), normalize(vec3(-0.4,0.5,0.8))),0.0,1.0);
+            col.rgb *= mix(1.0, 0.3+0.7*diff, light);
+            gl_FragColor=col;
+        }
+    ]]></shader>
+
+</effect>

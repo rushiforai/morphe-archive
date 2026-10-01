@@ -394,6 +394,9 @@ dependencies {
     // Reads the signing certificate of every retained fixture. The patcher already brings this
     // exact version at run time; this puts it on the test compile classpath as well.
     testImplementation("com.android.tools.build:apksig:9.1.1")
+    // Runs the patcher over a fixture (ClassesCallingTest). The patcher brings this exact version
+    // at run time; this puts it on the test compile classpath as well.
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 }
 
 tasks {

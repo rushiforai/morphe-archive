@@ -63,16 +63,7 @@ val systemFontPatch = bytecodePatch(
         // load elsewhere and never reach this engine.
         val engines = mutableListOf<ClassDef>()
         classDefForEach { classDef ->
-            if (classDef.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
-            val hasVariation = classDef.methods.any { it.engineShape() == VARIATION_SHAPE }
-            val hasAsset = classDef.methods.any { it.engineShape() == ASSET_SHAPE }
-            if (!hasVariation || !hasAsset) return@classDefForEach
-            val namesTheFont = classDef.methods.any { method ->
-                method.implementation?.instructions?.any { instruction ->
-                    instruction.getReference<StringReference>()?.string == ENGINE_MARKER
-                } == true
-            }
-            if (namesTheFont) engines += classDef
+            if (isFontEngine(classDef)) engines += classDef
         }
         if (engines.isEmpty()) {
             throw PatchException(
@@ -94,8 +85,24 @@ val systemFontPatch = bytecodePatch(
     }
 }
 
+/**
+ * Whether [classDef] is one of TikTok's text font engines: it has both build methods and names the
+ * variable font. Shared with the fixture test, so the test holds the patch's own rule to each build.
+ */
+internal fun isFontEngine(classDef: ClassDef): Boolean {
+    if (classDef.type.startsWith("Lapp/morphe/extension/")) return false
+    val hasVariation = classDef.methods.any { it.engineShape() == VARIATION_SHAPE }
+    val hasAsset = classDef.methods.any { it.engineShape() == ASSET_SHAPE }
+    if (!hasVariation || !hasAsset) return false
+    return classDef.methods.any { method ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.getReference<StringReference>()?.string == ENGINE_MARKER
+        } == true
+    }
+}
+
 /** The parameter signature of an engine build method that returns a Typeface, else null-ish. */
-private fun Method.engineShape(): String? {
+internal fun Method.engineShape(): String? {
     if (returnType != TYPEFACE) return null
     return parameterTypes.joinToString("").takeIf { it == VARIATION_SHAPE || it == ASSET_SHAPE }
 }

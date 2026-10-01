@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.innerblurplus" name="Inner Blur+" desc="@am:string/effect_innerblur_desc" category="blur" tags="blur,raster" thumb="thumb/innerblur4.webp" overdraw="true" max-overdraw="0.1" >
+
+    <params>
+        <switch id="mode" default="false" label="Comp Mode" />
+        <spinner id="strength" default="0.0" min="0.0" max="2.0" label="@am:string/effect_param_strength" step="0.005" />
+        <spinner id="fill" default="0.0" min="0.0" max="1.0" label="Comp Fill" type="percent" step="0.01" ticks="0.5" />
+        <slider id="iter" default="2" min="1" max="6" label="@am:string/effect_param_iterations" type="integer" step="1" />
+        <tip text="@am:string/effect_boxblur_tip" />
+        <texture id="inputImg" srcType="content" />
+        <texture id="hblur" srcType="buffer" />
+        <texture id="comp" srcType="comp" />
+    </params>
+
+    <iterations param="iter" />
+
+    <passes>
+        <pass target="hblur" effect="com.alightcreative.effects.boxblurplus"/>
+        <pass />
+    </passes>
+
+    <shader type="fragment"><![CDATA[
+
+        void main() {
+            vec4 baseColor = texture2DCv(inputImg.texture,acScreenNorm.st);
+            vec4 compColor =  texture2DCv(hblur.texture, acScreenNorm.st);
+            gl_FragColor = vec4(compColor.rgb / compColor.a,1.) * baseColor.a;
+        }
+
+    ]]></shader>
+
+</effect>

@@ -1,3 +1,51 @@
+## [2.11.1](https://github.com/anxyis/anxy-patches/compare/v2.11.0...v2.11.1) (2026-09-30)
+
+
+### Reverts
+
+* Revert "feat: 3D layer rotation playback (X/Y engine + project import)" ([8621ab1](https://github.com/anxyis/anxy-patches/commit/8621ab12cb290b25dcf5b3a1c7a92b5fbb08d5e5))
+
+# [2.11.0](https://github.com/anxyis/anxy-patches/compare/v2.10.3...v2.11.0) (2026-09-30)
+
+
+### Features
+
+* 3D layer rotation playback (X/Y engine + project import) ([f26f1ab](https://github.com/anxyis/anxy-patches/commit/f26f1abaf0b94145cd722ecbc862bfb189506879))
+
+## [2.10.3](https://github.com/anxyis/anxy-patches/compare/v2.10.2...v2.10.3) (2026-09-30)
+
+
+### Bug Fixes
+
+* New effects pack off by default ([4fafdb1](https://github.com/anxyis/anxy-patches/commit/4fafdb189cbfc35c9e05fb791c65c9f60b43d1b2))
+
+## [2.10.2](https://github.com/anxyis/anxy-patches/compare/v2.10.1...v2.10.2) (2026-09-30)
+
+
+### Bug Fixes
+
+* point users to APKMirror for the original 5.0.270 APK ([b54946a](https://github.com/anxyis/anxy-patches/commit/b54946afdb2e2f3e5d484827d30c09a7d584f1da))
+
+## [2.10.1](https://github.com/anxyis/anxy-patches/compare/v2.10.0...v2.10.1) (2026-09-30)
+
+
+### Bug Fixes
+
+* plain-language patch names, app listed as Alight Motion ([9478f1d](https://github.com/anxyis/anxy-patches/commit/9478f1de5c43bac0034bd4c0422de29d9245e72a))
+
+# [2.10.0](https://github.com/anxyis/anxy-patches/compare/v2.9.0...v2.10.0) (2026-09-30)
+
+
+### Bug Fixes
+
+* remove stale RegressionTests referencing deleted popup suite ([840884b](https://github.com/anxyis/anxy-patches/commit/840884b64b414dca2c40d759f5963628eca61d65))
+
+
+### Features
+
+* Alight Motion Pro 5.0.270 unlock suite + effects bundle ([6f3faef](https://github.com/anxyis/anxy-patches/commit/6f3faef5d41f2313cb8176ae96ddca5d1a934993))
+* **release:** 2.9.0 - PairIP SignatureCheck verifySignatureMatches bypass ([5c4eed1](https://github.com/anxyis/anxy-patches/commit/5c4eed12d5af2da12a85e3db36ba7d440cab0afe))
+
 ## [2.1.1](https://github.com/anxyis/anxy-patches/compare/v2.1.0...v2.1.1) (2026-08-20)
 
 

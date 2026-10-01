@@ -51,6 +51,8 @@ COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO = ("Modern Android compatibility", 
 ALL_PATCHES = (COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO)
 MOVIE = "Lcom/glu/platform/android/GluMovieActivity;"
 INTRO_ONCE = "Lapp/ckzombies/extension/IntroOnce;"
+OBB_CHECK = "Lapp/ckzombies/extension/ObbCheck;"
+CENTERED_TEXT = "Lapp/ckzombies/extension/CenteredText;"
 failures = 0
 warnings = 0
 
@@ -84,6 +86,46 @@ def run(*args):
     # stdin closed: on Windows apktool.bat ends in a `pause` when run through `cmd /c`, which
     # waits forever for a key from a shell that leaves stdin open.
     return subprocess.run(args, capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL).stdout
+
+
+def obb_hook_at_loop_head(lines):
+    """
+    True when ResFileDownloadView.newState (stripped smali lines) starts its state loop with the
+    ObbCheck hook: the loop's label, which a goto jumps back to, sits right above the hook, and
+    the hook ends with Glu's own const/4 v1, -0x1 and if-ne p1, v1.
+    """
+    start = next((i for i, l in enumerate(lines) if "Lcom/glu/platform/android/resdl/ResDL;->getContext()" in l
+                  and any(f"{OBB_CHECK}->route(" in n for n in lines[i + 1:i + 6])), None)
+    if not start or not lines[start - 1].startswith(":"):
+        return False
+    label = lines[start - 1]
+    if not any(re.fullmatch(r"goto(/16|/32)? " + re.escape(label), l) for l in lines):
+        return False
+    end = next((j for j in range(start, len(lines) - 1)
+                if lines[j] == "const/4 v1, -0x1" and lines[j + 1].startswith("if-ne p1, v1")), None)
+    hook = lines[start:end or start]
+    flag = next((k for k, l in enumerate(hook) if "GameLet;->DO_NOT_UNPACK_GPK:Z" in l and l.startswith("sput-boolean")),
+                None)
+    return end is not None and any("->m_downloadError:" in l and l.startswith("iput-object") for l in hook) \
+        and flag is not None and flag >= 2 and hook[flag - 2] == "const/4 v1, 0x1" \
+        and hook[flag - 1].startswith("if-ne p1, v1")
+
+
+def exit_only_after_layout(lines):
+    """True when the error page, the only case reading m_downloadError, calls ObbCheck.exitOnly() right after its layout."""
+    read = next((i for i, l in enumerate(lines) if l.startswith("iget-object") and "->m_downloadError:" in l), None)
+    layout = next((i for i in range(read or 0, min((read or 0) + 12, len(lines)))
+                   if read is not None and "->createPromptLayout(" in lines[i]), None)
+    return layout is not None and lines[layout + 1].startswith("invoke-static") and f"{OBB_CHECK}->exitOnly(" in lines[layout + 1]
+
+
+def text_area_centred(lines):
+    """True when GluTextArea.draw asks CenteredText.begin() for its first line and calls end() before returning."""
+    begin = next((i for i, l in enumerate(lines) if f"{CENTERED_TEXT}->begin(" in l), None)
+    ends = [i for i, l in enumerate(lines) if f"{CENTERED_TEXT}->end(" in l]
+    returns = [i for i, l in enumerate(lines) if l == "return-void"]
+    return begin is not None and begin > 0 and lines[begin + 1].startswith("move-result ") \
+        and len(ends) == 1 and returns == [ends[0] + 1]
 
 
 def table(name):
@@ -129,7 +171,7 @@ def native_patches(abi, a, b, plan):
     """
     ea, wa = loaded_words(a)
     eb, wb = loaded_words(b)
-    groups = {COMPAT: table("TEXT_RELOCATION")[abi] + table("JNI_GUARDS")[abi],
+    groups = {COMPAT: table("TEXT_RELOCATION")[abi] + table("JNI_GUARDS")[abi] + table("JNI_ARGUMENTS")[abi],
               CURRENCY: plan["edits"], DEAD: table("GSERVE_STALL")[abi] + table("DEAD_SERVERS")[abi]}
     state = {}
     for name, edits in groups.items():
@@ -405,8 +447,11 @@ def main():
         check(first and first[0].startswith("invoke-static {p0}, Lapp/ckzombies/extension/ExternalStorage;->prepare"),
               "onCreate calls ExternalStorage.prepare first")
         # The extension is merged whole, so its classes are there even without the patches that use them.
-        for name in ("ExternalStorage", "SndCache", "ShimPlayer", "PoolPlayer", "SoundBudget", "IntroOnce"):
+        for name in ("ExternalStorage", "SndCache", "ShimPlayer", "PoolPlayer", "SoundBudget", "IntroOnce", "ObbCheck",
+                     "CenteredText"):
             check(smali_file(f"app/ckzombies/extension/{name}") is not None, f"extension class {name} merged into the dex")
+        check("Landroid/content/Context;->getObbDir()" in method("app/ckzombies/extension/ExternalStorage", "prepare"),
+              "ExternalStorage.prepare asks Android for the OBB folder, which creates it or hands it back to the game")
         body = method("com/glu/platform/android/GluPlatformActivity", "InitialiseSoundEvent")
         lines = [l.strip() for l in body.splitlines() if l.strip()]
         plain_player = any(l.startswith("new-instance") and "Landroid/media/MediaPlayer;" in l for l in lines)
@@ -474,6 +519,18 @@ def main():
             and getter[1:2] == ["return-object v0"]
         tapjoy = True if init and not connects and quiet else False if connects and not quiet else None
 
+        # Its missing-OBB half: ObbCheck.route() at the head of the resource screen's state loop,
+        # and no File.delete() left in findGPKFileInDir.
+        states = [l.strip() for l in method("com/glu/platform/android/resdl/ResFileDownloadView", "newState").splitlines()
+                  if l.strip()]
+        routes = any(f"{OBB_CHECK}->route(" in l for l in states)
+        deletes = "Ljava/io/File;->delete()Z" in method("com/glu/platform/android/resdl/GluDownloadResMgr",
+                                                         "findGPKFileInDir")
+        drawing = [l.strip() for l in method("com/glu/platform/android/resdl/ResFileDownloadView$GluTextArea",
+                                             "draw").splitlines() if l.strip()]
+        centred = any(f"{CENTERED_TEXT}->" in l for l in drawing)
+        obb = True if routes and centred and not deletes else False if deletes and not routes and not centred else None
+
         # Its OpenFeint half. A shell keeps a constructor exactly when it is not an interface and
         # its superclasses reach Object through other shells, the rule EmptyClasses.kt follows.
         shells = openfeint_shells(smali_trees)
@@ -508,11 +565,12 @@ def main():
                 check(f".super {parent}" in text and shapes.get(parent) == "constructor",
                       f"{cls.rsplit('/', 1)[1]} still extends {parent}, which keeps its constructor")
 
-        java = tapjoy if tapjoy is not None and tapjoy == openfeint else None
+        java = tapjoy if tapjoy is not None and tapjoy == openfeint == obb else None
         native = found.get(DEAD)
         if java is None:
             check(False, f"{DEAD}: Java part partly applied (Tapjoy connect call: {connects}, quiet getter: {quiet}; "
-                  f"OpenFeint: {'untouched' if untouched else f'{len(emptied)} of {len(shells)} classes shells, {expected} expected'})")
+                  f"OpenFeint: {'untouched' if untouched else f'{len(emptied)} of {len(shells)} classes shells, {expected} expected'}; "
+                  f"OBB route: {routes}, centred text: {centred}, wrong-size delete: {deletes})")
             found[DEAD] = None
         elif native is not None and native != java:
             check(False, f"{DEAD}: native part {'on' if native else 'off'}, Java part {'on' if java else 'off'}")
@@ -520,6 +578,12 @@ def main():
         elif java:
             check(True, "TapjoyInterface.initialize no longer connects, and the instance getter logs nothing")
             check("TapjoyInterface;->usedActivity" in init, "TapjoyInterface.initialize still stores the activity")
+            check(obb_hook_at_loop_head(states), "ResFileDownloadView.newState asks ObbCheck.route() where every state "
+                  "change lands, and turns the packed-OBB flag back on when its check starts")
+            check(exit_only_after_layout(states), "the error page calls ObbCheck.exitOnly() right after its layout")
+            check(text_area_centred(drawing), "GluTextArea.draw centres its lines with CenteredText, and restores "
+                  "the canvas before it returns")
+            check(True, "findGPKFileInDir no longer deletes wrong-size files")
     finally:
         shutil.rmtree(work, ignore_errors=True)
 

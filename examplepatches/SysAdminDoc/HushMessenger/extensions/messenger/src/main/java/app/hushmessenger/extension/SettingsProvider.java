@@ -9,7 +9,7 @@ import android.net.Uri;
 public final class SettingsProvider extends ContentProvider {
     @Override public boolean onCreate() {
         Settings.initialize(getContext());
-        CrashGuard.onProcessStart(getContext());
+        HostScreens.start(getContext());
         // Brings the icon back after a repatch without the Menu row or a lost preference.
         SettingsActivity.syncDrawerIcon(getContext());
         return true;

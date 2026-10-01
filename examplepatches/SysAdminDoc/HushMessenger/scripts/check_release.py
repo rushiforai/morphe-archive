@@ -1,16 +1,23 @@
 """Check locally built release evidence before publishing a patch bundle."""
 
 import argparse
+import base64
 import hashlib
 import json
 import re
+import shutil
+import subprocess
 import sys
 import zipfile
 import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 
-PATCH_COUNT = 27
+PATCH_COUNT = 31
+RELEASE_SIGNERS = Path("scripts/release_signers")
+RELEASE_SIGNER = "SysAdminDoc"
+SIGNATURE_NAMESPACE = "hushmessenger-release"
+KEY_TYPES = ("ssh-ed25519", "ssh-rsa", "ecdsa-sha2-")
 
 
 def require(condition, message):
@@ -162,7 +169,59 @@ def verify(root, bundle=None, evidence=None, release_tag=None, checksums=None):
             checksums.read_text(encoding="utf-8").strip() == f"{digest}  {filename}",
             "Release checksum file differs from built bundle",
         )
-    return f"Release metadata passed: v{version}, {PATCH_COUNT} patches, SHA-256 {digest}"
+    return (
+        f"Release metadata passed: v{version}, {PATCH_COUNT} patches, SHA-256 {digest}"
+    )
+
+
+def signer_fingerprints(path):
+    """SHA256 fingerprints, as ssh-keygen -l prints them, of the keys an allowed_signers file lists."""
+    prints = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        fields = line.split()
+        if not fields or fields[0].startswith("#"):
+            continue
+        at = next(i for i, f in enumerate(fields) if f.startswith(KEY_TYPES))
+        digest = hashlib.sha256(base64.b64decode(fields[at + 1])).digest()
+        prints.append("SHA256:" + base64.b64encode(digest).decode().rstrip("="))
+    return prints
+
+
+def verify_signature(root, checksums):
+    """Check <checksums>.sig with ssh-keygen against the committed release_signers file."""
+    signature = checksums.with_name(checksums.name + ".sig")
+    require(signature.is_file(), f"Missing signature file {signature.name}")
+    ssh_keygen = shutil.which("ssh-keygen")
+    require(
+        ssh_keygen is not None,
+        "ssh-keygen (OpenSSH 8.1 or newer) is needed to check the signature",
+    )
+    with checksums.open("rb") as data:
+        result = subprocess.run(
+            [
+                ssh_keygen,
+                "-Y",
+                "verify",
+                "-f",
+                str(root / RELEASE_SIGNERS),
+                "-I",
+                RELEASE_SIGNER,
+                "-n",
+                SIGNATURE_NAMESPACE,
+                "-s",
+                str(signature),
+            ],
+            stdin=data,
+            capture_output=True,
+            timeout=60,
+            check=False,
+        )
+    output = (result.stdout + result.stderr).decode("utf-8", "replace").strip()
+    require(
+        result.returncode == 0,
+        f"{checksums.name} isn't signed by the key in {RELEASE_SIGNERS.as_posix()}: {output}",
+    )
+    return output
 
 
 def main(argv=None):
@@ -174,13 +233,22 @@ def main(argv=None):
     parser.add_argument("--evidence", type=Path)
     parser.add_argument("--release-tag")
     parser.add_argument("--checksums", type=Path)
+    parser.add_argument(
+        "--verify-signature",
+        action="store_true",
+        help="also check <checksums>.sig against scripts/release_signers",
+    )
     args = parser.parse_args(argv)
+    if args.verify_signature and args.checksums is None:
+        parser.error("--verify-signature needs --checksums")
     try:
         print(
             verify(
                 args.root, args.bundle, args.evidence, args.release_tag, args.checksums
             )
         )
+        if args.verify_signature:
+            print(verify_signature(args.root, args.checksums))
         return 0
     except (
         OSError,
@@ -190,6 +258,7 @@ def main(argv=None):
         KeyError,
         zipfile.BadZipFile,
         zlib.error,
+        subprocess.SubprocessError,
     ) as error:
         print(f"CHECK FAILED: {error}", file=sys.stderr)
         return 1

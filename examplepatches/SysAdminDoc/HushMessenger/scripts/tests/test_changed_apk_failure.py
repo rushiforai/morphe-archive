@@ -16,7 +16,10 @@ from zipfile import ZipFile
 
 from scripts import verify_changed_apk_failure as checker
 
-REASON = "expected 6 permission loads, found 4; use version code 346013387 or 346013440 or 346013442"
+# The Kotlin message follows its own table order; the check accepts any order.
+SUPPORTED = " or ".join(str(code) for code in reversed(checker.BUILDS))
+LAST_BUILD = str(next(iter(checker.BUILDS)))
+REASON = f"expected 6 permission loads, found 4; use version code {SUPPORTED}"
 WRAPPED_REASON = (
     'app.morphe.patcher.patch.PatchException: The patch "Install beside Meta apps" '
     'depends on "ResourcePatch@1179093020", which raised an exception:\r\n'
@@ -24,7 +27,7 @@ WRAPPED_REASON = (
     'depends on "BytecodePatch@1727420902", which raised an exception:\r\n'
     "app.morphe.patcher.patch.PatchException: Install beside Meta apps: "
     "expected 6 permission loads, found 4. Use an unmodified arm64 Messenger "
-    "580.0.0.49.91 APK (version code 346013387 or 346013440 or 346013442).\r\r\n"
+    f"580.0.0.49.91 APK (version code {SUPPORTED}).\r\r\n"
     "\tat app.hushmessenger.patches.coexist.InstallBesideMetaAppsPatchKt.validateDexSites(InstallBesideMetaAppsPatch.kt:203)\r\n"
 )
 
@@ -123,12 +126,12 @@ class ChangedApkChecks(unittest.TestCase):
                         )
                     if case == "wrapped-build-prefix":
                         outcome["failedPatches"][0]["reason"] = WRAPPED_REASON.replace(
-                            "346013442)", "3460134420)"
+                            f"{LAST_BUILD})", f"{LAST_BUILD}0)"
                         )
                     if case == "split-reason":
                         outcome["failedPatches"][0]["reason"] = (
                             "expected 6 permission loads, found 4\n"
-                            "unrelated error on version code 346013387 or 346013440 or 346013442"
+                            f"unrelated error on version code {SUPPORTED}"
                         )
                     if case == "report-array":
                         outcome = []

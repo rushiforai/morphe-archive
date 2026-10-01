@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.lensblurobs"
+    name="BCC Lensblur"
+    desc="Lens Blur filter emulates a lens blur defocus/rackfocus effect where out of focus highlights of an image clip take on the shape of the lens diaphragm." category="blur" tags="blur, raster" thumb="thumb/TANRYU/bcc.png" overdraw="true" max-overdraw="0.1"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <tip text="　　　　　Iteration Level : Faster | Nice | Slower" />
+        <slider id="ITERATIONS" label="Iterations" default="100.0" min="10.0" max="200.0" step="1.0" type="integer" ticks="25,50,75,100,125,150,175" snap="25,50,75,100,125,150,175" />
+        <spinner id="progressa" label="Strength" default="0.0" min="0" max="5.0" step="0.005" type="percent" />
+        <spinner id="RADIUS" label="Radius" default="1.0" min="1" max="30" step="0.05" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+       
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord
+    
+   /////////////////////////
+   
+      #define GOLDEN_ANGLE 2.3999632
+      
+      mat2 rot = mat2(cos(GOLDEN_ANGLE), sin(GOLDEN_ANGLE), -sin(GOLDEN_ANGLE), cos(GOLDEN_ANGLE));
+      
+      //-------------------------------------------------------------------------------------------
+      vec3 Bokeh(sampler2D tex, vec2 uv, float radius)
+      {
+          vec3 acc = vec3(0), div = acc;
+          float r = RADIUS;
+          vec2 vangle = vec2(0.0,radius*.01 / sqrt(float(ITERATIONS)));
+          
+      	for (float j = 0.0; j < ITERATIONS; j++)
+          {  
+              r += 1. / r;
+      	    vangle = rot * vangle;
+              vec3 col = texture2DCv(tex, uv + (r-1.) * vangle).xyz; /// ... Sample the image
+      		vec3 bokeh = pow(col, vec3(4));
+      		acc += col * bokeh;
+      		div += bokeh;
+      	}
+      	return acc / div;
+      }
+
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        TanRyu = acScreenNorm; 
+
+    	vec4 fragColor;
+    	
+          vec2 uv = TanRyu; //... with correct aspect ratio
+          
+          
+      	float rad = .8 - .8*((progressa+0.15) * 6.283);
+
+          if (0.0 >= 1.0)
+          {
+          	rad = (0.0/acScreenSize.x)*3.0;
+      
+          }
+          
+           fragColor = vec4(Bokeh(inputImg.texture, uv, rad), 1.0);
+
+    	vec4 factor = mix(texColorX,fragColor,alpha);
+
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = resultfinal;
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

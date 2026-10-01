@@ -8,6 +8,7 @@ package app.morphe.extension.facebook.settings;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -27,6 +28,8 @@ import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+
+import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -56,6 +59,8 @@ import app.morphe.extension.facebook.navigation.ReelsTab;
 @SuppressWarnings("unused")
 public final class SettingsEntry {
     public static final String EXTRA_OPEN_SETTINGS = "app.morphe.extension.facebook.OPEN_SETTINGS";
+    /** With {@link #EXTRA_OPEN_SETTINGS}: the key of the setting whose row the screen opens at. */
+    public static final String EXTRA_SHOW_SETTING = "app.morphe.extension.facebook.SHOW_SETTING";
     static final String SHORTCUT_ID = "hushfacebook_settings";
 
     /**
@@ -70,6 +75,8 @@ public final class SettingsEntry {
 
     private static volatile boolean openPending;
     private static volatile long requestedAt;
+    /** The setting the pending request opens at, or null for the overview. */
+    private static volatile String requestedSetting;
     private static volatile boolean callbacksRegistered;
     /** The activity the screen was last shown over, while the person hasn't closed it. */
     private static WeakReference<Activity> host;
@@ -188,11 +195,29 @@ public final class SettingsEntry {
         return null;
     }
 
-    private static ShortcutInfo shortcut(Context app, CharSequence longLabel) {
-        Intent intent = new Intent(Intent.ACTION_VIEW)
+    /** What the launcher shortcut sends: Facebook's launcher entry, asked to show the screen. */
+    private static Intent openIntent(Context app) {
+        return new Intent(Intent.ACTION_VIEW)
                 .setComponent(new ComponentName(app.getPackageName(), LAUNCHER_ALIAS))
                 .putExtra(EXTRA_OPEN_SETTINGS, true)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    }
+
+    /** The same, opening the screen at [key]'s row, for a notification's button. */
+    public static Intent settingIntent(Context app, String key) {
+        return openIntent(app).putExtra(EXTRA_SHOW_SETTING, key);
+    }
+
+    /** The setting the request that opened the screen asked for, once, or null. */
+    @Nullable
+    static String takeRequestedSetting() {
+        String key = requestedSetting;
+        requestedSetting = null;
+        return key;
+    }
+
+    private static ShortcutInfo shortcut(Context app, CharSequence longLabel) {
+        Intent intent = openIntent(app);
         return new ShortcutInfo.Builder(app, SHORTCUT_ID)
                 .setShortLabel("Hushfacebook")
                 .setLongLabel(longLabel)
@@ -407,6 +432,7 @@ public final class SettingsEntry {
             return false;
         }
         requestedAt = SystemClock.elapsedRealtime();
+        requestedSetting = null;
         openPending = true;
         Logger.printInfo(() -> "Settings requested by a long press on the Facebook logo");
         OpenWhenResumed.openWhenSettled(activity);
@@ -473,6 +499,7 @@ public final class SettingsEntry {
                 if (!openPending) return;
                 if (SystemClock.elapsedRealtime() - requestedAt > REQUEST_LIFETIME_MS) {
                     openPending = false;
+                    requestedSetting = null;
                     Logger.printInfo(() -> "Settings request expired before a Facebook screen could show it");
                     return;
                 }
@@ -495,7 +522,12 @@ public final class SettingsEntry {
                 return false;
             }
             FragmentManager fragments = activity.getFragmentManager();
-            if (fragments.findFragmentByTag(DIALOG_TAG) != null) return true;
+            Fragment shown = fragments.findFragmentByTag(DIALOG_TAG);
+            if (shown != null) {
+                // Already up: a notification's button still takes it to the row it names.
+                if (shown instanceof SettingsDialog) ((SettingsDialog) shown).showRequestedSetting();
+                return true;
+            }
             if (fragments.isStateSaved()) {
                 Logger.printInfo(() -> "Settings wait: " + name + " has saved its state");
                 return false;
@@ -520,9 +552,15 @@ public final class SettingsEntry {
     private static void noteIntent(Intent intent) {
         if (intent != null && intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)) {
             intent.removeExtra(EXTRA_OPEN_SETTINGS);
+            String asked = intent.getStringExtra(EXTRA_SHOW_SETTING);
+            intent.removeExtra(EXTRA_SHOW_SETTING);
+            // The launcher entry is open to every app, so only a key's shape gets as far as the log.
+            String key = asked != null && asked.matches("[a-z0-9_]{1,64}") ? asked : null;
             requestedAt = SystemClock.elapsedRealtime();
+            requestedSetting = key;
             openPending = true;
-            Logger.printInfo(() -> "Settings requested by the launcher shortcut");
+            Logger.printInfo(() -> key == null ? "Settings requested by the launcher shortcut"
+                    : "Settings requested at " + key);
         }
     }
 

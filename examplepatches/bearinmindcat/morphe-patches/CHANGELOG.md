@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/bearinmindcat/morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-30)
+
+### ✨ New Features
+
+* add locally saved bookmarks & pins (also added timeline and recent searches) ([d6d4604](https://github.com/bearinmindcat/morphe-patches/commit/d6d460499327aa32b7de29c750d42313dec166ed))
+
 ## [1.2.0](https://github.com/bearinmindcat/morphe-patches/compare/v1.1.0...v1.2.0) (2026-09-26)
 
 ### ✨ New Features

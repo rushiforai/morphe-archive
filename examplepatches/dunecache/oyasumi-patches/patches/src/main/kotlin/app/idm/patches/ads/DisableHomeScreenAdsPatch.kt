@@ -19,7 +19,8 @@ private const val GONE = "0x8"
 @Suppress("unused")
 val disableHomeScreenAdsPatch = bytecodePatch(
     name = "Disable home screen ads",
-    description = "Keep 1DM's home screen banner from loading, rotating, or rendering.",
+    description = "Keep 1DM's home screen banner from loading, rotating, or rendering, " +
+        "including the built-in \"install 1DM+\" banner ad.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_1DM)
@@ -63,11 +64,40 @@ val disableHomeScreenAdsPatch = bytecodePatch(
             val firstFieldRead = fingerprint.instructionMatches[0]
             val receiver = firstFieldRead.getInstruction<TwoRegisterInstruction>().getRegisterB()
 
+            // `setVisibility(I)V` takes one argument, so the 35c register list holds the
+            // receiver *and* the visibility int. Passing only the receiver is not a
+            // narrower encoding, it is a different arity: the verifier rejects it with
+            // "expected 1 argument registers, method signature has 2 or more" and the
+            // class is rejected outright, taking the whole activity's layout down with
+            // it. The earlier braces-and-`v`-prefix fix satisfied smali's grammar but not
+            // the arity, so it compiled and still crashed on launch.
             fingerprint.method.addInstructions(
                 0,
                 "const/16 $VISIBILITY_REGISTER, $GONE\n" +
-                    "invoke-virtual {v$receiver}, Landroid/view/View;->setVisibility(I)V\n" +
+                    "invoke-virtual {v$receiver, $VISIBILITY_REGISTER}, " +
+                    "Landroid/view/View;->setVisibility(I)V\n" +
                     "return-void"
+            )
+        }
+
+        // The "install 1DM+" banner is not a view problem. 1DM builds it as an ordinary
+        // banner ad -- an `Li/ru;` object carrying the copy, the Play Store package id and
+        // a 30 s click-through -- from `Lidm/internet/download/manager/d;->ۦۜۡ()Li/ru;`.
+        // Suppressing that factory is what removes it, because the promo reaches the
+        // screen through four call sites and only one of them is `BannerManager.load()`:
+        // `getNewBannerInfo` feeds the rotation, and `Li/s82;->ۦۖۢ`/`ۦۖۦ` drive
+        // `manager/NewBannerView` directly. The first attempt hid a view instead and the
+        // prompt survived, because the class it patched was never the one on screen.
+        //
+        // Every one of those four sites null-checks the result and skips the banner, so
+        // returning null is a state the app already handles. The method is static with
+        // `.registers 3`, so `v0` is the return slot; `return-void` would be illegal on
+        // a reference-returning method.
+        IdmPlusBannerFingerprint.let { fingerprint ->
+            fingerprint.method.addInstructions(
+                0,
+                "const/4 v0, 0\n" +
+                    "return-object v0"
             )
         }
     }

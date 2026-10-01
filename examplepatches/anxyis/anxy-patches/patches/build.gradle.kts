@@ -45,7 +45,7 @@ kotlin {
     jvmToolchain(17)
     compilerOptions {
         freeCompilerArgs.addAll(
-            "-Xcontext-receivers",
+            "-Xcontext-parameters",
             "-opt-in=app.morphe.patcher.InternalApi"
         )
     }

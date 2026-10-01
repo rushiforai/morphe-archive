@@ -31,7 +31,7 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
 
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
-        return hasTracking() || hasDeviceAccess() || hasLinks();
+        return hasTracking() || hasDeviceAccess() || hasLinks() || SettingsStatus.storeIdentityEnabled;
     }
 
     private static boolean hasTracking() {
@@ -173,6 +173,18 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                             + "TikTok pages such as Activity center, Watch history, shop checkout "
                             + "and CAPTCHA keep working.",
                     Settings.BLOCK_WEBVIEW_JS_INTERFACES
+            ));
+        }
+
+        if (SettingsStatus.storeIdentityEnabled) {
+            addPreference(new SectionHeadingPreference(context, "App checks"));
+            addPreference(new TogglePreference(
+                    context,
+                    "Look like the store app to TikTok's checks",
+                    "Answer TikTok's own checks of how it was signed and installed the way the Play "
+                            + "Store app would. For follows or likes that undo themselves on a refresh. "
+                            + "TikTok can also check from native code this doesn't reach, so it may not help.",
+                    Settings.STORE_IDENTITY
             ));
         }
     }

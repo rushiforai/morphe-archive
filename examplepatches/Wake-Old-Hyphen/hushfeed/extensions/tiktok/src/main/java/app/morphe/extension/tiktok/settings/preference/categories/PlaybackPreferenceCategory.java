@@ -31,6 +31,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
         return SettingsStatus.playbackQualityEnabled || SettingsStatus.playbackSpeedEnabled
                 || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled
                 || SettingsStatus.fullScreenHoldEnabled || SettingsStatus.feedMuteEnabled
+                || SettingsStatus.backgroundPlayEnabled
                 // The comment sheet switch is a playback switch, and on a bundle with the
                 // comment tools and none of the players it is the only thing on this page.
                 || SettingsStatus.commentToolsEnabled;
@@ -85,6 +86,15 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             addPreference(new TogglePreference(context, "Show the mute button on videos",
                     "Add a button beside the block control that turns the feed's sound off and on.",
                     Settings.FEED_MUTE_BUTTON));
+        }
+        if (SettingsStatus.backgroundPlayEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Background play"));
+            addPreference(new TogglePreference(context, "Keep playing in the background",
+                    "The video you're watching keeps playing to its end after you leave "
+                            + "TikTok or turn the screen off, with TikTok's own media notification "
+                            + "to pause it. TikTok's background play switch stays on while this is "
+                            + "on. Restart TikTok to apply this.",
+                    Settings.BACKGROUND_PLAY));
         }
 
         if (SettingsStatus.playbackSpeedEnabled) {

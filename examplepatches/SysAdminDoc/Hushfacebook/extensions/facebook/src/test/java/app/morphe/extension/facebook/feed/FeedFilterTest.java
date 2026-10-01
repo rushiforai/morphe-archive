@@ -246,22 +246,64 @@ public class FeedFilterTest {
 
     /**
      * Facebook's own engagement cards, which is how the suggested groups row comes now (S22, 580,
-     * 2026-09-29: an ENGAGEMENT_QP CustomizedStory). The promos switch or the groups switch hides
-     * one; with both off it stays, and so does an ENGAGEMENT post, a friend's or a group's.
+     * 2026-09-29: an ENGAGEMENT_QP CustomizedStory). The promos switch hides every one. The groups
+     * switch alone hides only the card whose tracking names the groups promotion, and keeps the
+     * category's other cards (emulator, 580, 2026-09-30: a Meta AI discover unit), one it can't
+     * read, and one naming no promotion. With both off every card stays, and so does an ENGAGEMENT
+     * post, a friend's or a group's.
      */
     @Test
     public void facebooksEngagementCardsGoWithEitherSwitch() {
-        Object card = new TypedFeedUnit("CustomizedStory");
-        assertTrue(FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, false, true));
+        Object groups = engagementCard("CustomizedStory", FeedFilter.GROUPS_PROMOTION_ID);
+        Object metaAi = engagementCard("QuickPromotionNativeTemplateFeedUnit", "977392048680404");
+        Object unnamed = new BaseModelWithTree("CustomizedStory") { }.with("tracking", "{\"qid\":\"1\"}");
+        Object untyped = new TypedFeedUnit("CustomizedStory");
+        for (Object card : new Object[] {groups, metaAi, unnamed, untyped}) {
+            assertTrue(FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, false, true));
+        }
         assertFalse(FeedFilter.hideEdge(Category.ENGAGEMENT, new TypedFeedUnit("Story"), false, true));
-        assertFalse("without the patch the rule never runs", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, true, false));
+        assertFalse("without the patch the rule never runs", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, groups, true, false));
 
         Settings.HIDE_SUGGESTED_POSTS.save(false);
-        assertTrue("the groups switch alone kept the groups row", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, false, true));
+        assertTrue("the groups switch alone kept the groups row", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, groups, false, true));
+        assertFalse("the groups switch alone took another promotion", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, metaAi, false, true));
+        assertFalse("a card naming no promotion went", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, unnamed, false, true));
+        assertFalse("a card that isn't a tree model went", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, untyped, false, true));
         Settings.HIDE_SUGGESTED_GROUPS.save(false);
-        assertFalse("with both switches off the card went", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, false, true));
+        assertFalse("with both switches off the card went", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, groups, false, true));
         Settings.HIDE_SUGGESTED_POSTS.save(true);
-        assertTrue("the promos switch alone kept the card", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, false, true));
+        assertTrue("the promos switch alone kept the card", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, metaAi, false, true));
+    }
+
+    /**
+     * Facebook folds People you may know into the engagement cards too. With the promos switch off
+     * it goes only with its own switch: the groups switch alone keeps it.
+     */
+    @Test
+    public void peopleYouMayKnowInTheEngagementCardsFollowsItsOwnSwitch() {
+        Settings.HIDE_SUGGESTED_POSTS.save(false);
+        Settings.HIDE_PEOPLE_YOU_MAY_KNOW.save(false);
+        Object people = TypedFeedUnit.peopleYouMayKnow();
+        assertFalse(FeedFilter.hideEdge(Category.ENGAGEMENT_QP, people, false, true));
+        Settings.HIDE_PEOPLE_YOU_MAY_KNOW.save(true);
+        assertTrue(FeedFilter.hideEdge(Category.ENGAGEMENT_QP, people, false, true));
+    }
+
+    /** The promotion an engagement card's tracking names, as Facebook's feed fetch fills it in. */
+    @Test
+    public void promotionIdReadsTheTrackingJson() {
+        assertEquals("625620278343662", FeedFilter.promotionId(engagementCard("CustomizedStory", "625620278343662")));
+        assertNull(FeedFilter.promotionId(new BaseModelWithTree("CustomizedStory") { }));
+        assertNull(FeedFilter.promotionId(new BaseModelWithTree("CustomizedStory") { }
+                .with("tracking", "{\"quick_promotion_id\":\"")));
+        assertNull(FeedFilter.promotionId(new TypedFeedUnit("CustomizedStory")));
+        assertNull(FeedFilter.promotionId(null));
+    }
+
+    /** An ENGAGEMENT_QP card of [type] whose tracking names [promotion], the way the feed logs one. */
+    private static BaseModelWithTree engagementCard(String type, String promotion) {
+        return new BaseModelWithTree(type) { }.with("tracking", "{\"qid\":\"-6066084948626958425\",\"sty\":1351,"
+                + "\"quick_promotion_id\":\"" + promotion + "\",\"qp_log\":{\"" + promotion + "\":{\"nux_id\":\"2798\"}}}");
     }
 
     /**

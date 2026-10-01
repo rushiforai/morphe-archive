@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.denoise"
+    name="Noise Reduction"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="other"
+    thumb="thumb/TANRYU/denoise.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <tip text="　　　　　Iteration Level : Faster | Nice | Slower" />
+        <slider id="SAMPLES" label="Iterations" default="60.0" min="10.0" max="100.0" step="1.0" type="integer" ticks="10,20,30,40,50,60,70,80,90" snap="10,20,30,40,50,60,70,80,90" />
+        <spinner id="PIXEL_MULTIPLIER" label="Radius" default="1.5" min="0.1" max="3.0" step="0.01" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <float id="strength" value="0.0" />
+       
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord
+    
+   /////////////////////////
+   
+      // #define SAMPLES 80  // HIGHER = NICER = SLOWER
+      #define DISTRIBUTION_BIAS 0.6 // between 0. and 1.
+      // #define PIXEL_MULTIPLIER  1.5 // between 1. and 3. (keep low)
+      #define INVERSE_HUE_TOLERANCE 20.0 // (2. - 30.)
+      
+      #define GOLDEN_ANGLE 2.3999632 //3PI-sqrt(5)PI
+      
+      #define pow(a,b) pow(max(a,0.),b) // @morimea
+      
+      mat2 sample2D = mat2(cos(GOLDEN_ANGLE),sin(GOLDEN_ANGLE),-sin(GOLDEN_ANGLE),cos(GOLDEN_ANGLE));
+      
+      vec3 sirBirdDenoise(sampler2D imageTexture, in vec2 uv, in vec2 imageResolution) {
+          
+          vec3 denoisedColor           = vec3(0.);
+          
+          float sampleRadius     = sqrt(float(SAMPLES));
+          // const float sampleRadius     = sqrt(float(SAMPLES));
+          float sampleTrueRadius = 0.5/(sampleRadius*sampleRadius);
+          // const float sampleTrueRadius = 0.5/(sampleRadius*sampleRadius);
+          vec2        samplePixel      = vec2(1.0/imageResolution.x,1.0/imageResolution.y); 
+          vec3        sampleCenter     = texture2DCv(imageTexture, uv).rgb;
+          vec3        sampleCenterNorm = normalize(sampleCenter);
+          float       sampleCenterSat  = length(sampleCenter);
+          
+          float  influenceSum = 0.0;
+          float brightnessSum = 0.0;
+          
+          vec2 pixelRotated = vec2(0.,1.);
+          
+          for (float x = 0.0; x <= float(SAMPLES); x++) {
+              
+              pixelRotated *= sample2D;
+              
+              vec2  pixelOffset    = PIXEL_MULTIPLIER*pixelRotated*sqrt(x)*0.5;
+              float pixelInfluence = 1.0-sampleTrueRadius*pow(dot(pixelOffset,pixelOffset),DISTRIBUTION_BIAS);
+              pixelOffset *= samplePixel;
+                  
+              vec3 thisDenoisedColor = 
+                  texture2DCv(imageTexture, uv + pixelOffset).rgb;
+      
+              pixelInfluence      *= pixelInfluence*pixelInfluence;
+              /*
+                  HUE + SATURATION FILTER
+              */
+              pixelInfluence      *=   
+                  pow(0.5+0.5*dot(sampleCenterNorm,normalize(thisDenoisedColor)),INVERSE_HUE_TOLERANCE)
+                  * pow(1.0 - abs(length(thisDenoisedColor)-length(sampleCenterSat)),8.);
+                  
+              influenceSum += pixelInfluence;
+              denoisedColor += thisDenoisedColor*pixelInfluence;
+          }
+          
+          return denoisedColor/influenceSum;
+          
+      }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        // if (adaptive) { 
+        TanRyu = acScreenNorm; 
+        // }
+        // else { 
+        // TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        // TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        // }
+
+    	vec4 fragColor;
+    	
+          vec2 uv = TanRyu;
+          // vec2 uv = fragCoord/iResolution.xy;
+          
+          const vec2 iChannel0Resolution = vec2(512, 512);
+          
+          vec3 col = sirBirdDenoise(inputImg.texture, uv, iChannel0Resolution).rgb;
+      
+          fragColor = vec4(col,1.0);
+            
+    	gl_FragColor = mix(texColor,fragColor,alpha) * texColor.a;
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

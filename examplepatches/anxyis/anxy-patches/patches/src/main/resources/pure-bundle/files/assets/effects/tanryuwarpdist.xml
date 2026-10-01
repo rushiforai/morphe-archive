@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.warpdist"
+    name="Warp Distortion"
+    desc="Amazing New Extra FX from the Modder"
+    category="distort" 
+    tags="distort"
+    thumb="thumb/TANRYU/warpd.png"
+    experimental="false">
+
+    <params>
+        <float id="scaleuv" value="1.0" />
+        <spinner id="warpx" label="Warp X" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" ticks="0,1" snap="0,1"/>
+        <spinner id="warpy" label="Warp Y" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" ticks="0,1" snap="0,1" />
+        <spinner id="intensity" label="Strength" default="0.05" min="-100.0" max="100.0" step="0.001" type="percent" ticks="0,1" snap="0,1"/>
+        <spinner id="amp" default="0.025" min="-100.0" max="100.0" step="0.001" label="Amplitude" type="percent" ticks="0,1" snap="0,1"/>
+        <spinner id="speed" label="Frequency" default="0.25" min="-100.0" max="100.0" step="0.005" type="percent" ticks="0,1" snap="0,1"/>
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+       
+        <texture id="inputImg" srcType="content" />
+        <texture id="noisexx" srcType="image" src="textures/iChannel3.png" />
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        vec2 distortUV(vec2 uv, vec2 nUV)
+        {            
+            
+            nUV.x += warpx*speed;
+            nUV.y += warpy*speed;
+            vec2 noise= texture2DCv( noisexx.texture, nUV*amp).xy;
+            
+            uv += (-1.0+noise*2.0) * intensity;
+            
+            return uv;
+        }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        
+        vec2 TanRyu;
+        TanRyu = acScreenNorm;
+        
+        TanRyu /= scaleuv;
+        TanRyu += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scaleuv*stretch.x,scaleuv*stretch.y);
+        TanRyu /= scaleVec;        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	    	
+            vec2 uv = TanRyu;
+            vec2 nUV = uv;
+                        
+            uv = distortUV(uv, vec2(nUV.x,nUV.y));
+            
+            vec4 color= texture2DCv( inputImg.texture, uv);
+        
+    	gl_FragColor = color;
+    	// }
+    }
+
+
+    ]]></shader>
+
+</effect>

@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.rgbmoblur" 
+        name="RGB MotionBlur (Beta)"
+        desc="Amazing New Extra FX from the Modder" 
+        category="blur" tags="blur,color,pop,channel,retro,raster" 
+        thumb="thumb/TANRYU/rgbmoblur.png">
+
+    <params>
+        <tip text="This effect will be active when you give movement only on POSITION ( Scale and Angle doesnt works )" />
+        <spinner id="strength" default="0.01" min="-8.0" max="8.0" step="0.001" label="@am:string/effect_param_strength" ticks="0" />
+        <selector id="centerChannel" default="1" style="radio" label="@am:string/effect_param_center" >
+            <choice label="R" value="0" />
+            <choice label="G" value="1" />
+            <choice label="B" value="2" />
+        </selector>
+        <texture id="inputImg" srcType="content" />
+        <texture id="xcipher" srcType="buffer" />
+
+    </params>
+    
+    <iterations param="iter" /> <passes> <pass target="xcipher" effect="636f6d2e616c6967687463726561746976652e656666656374732e7267626d6f626c7572"/> <pass /> </passes> <shader type="fragment" precision="high"><![CDATA[
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+    void main ()
+    {
+            const vec3 luminance = vec3(0.2126, 0.7152, 0.0722); float phiQuarter = 90.0 * 0.0174533; float enchantDecryption = 8.0;/*
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(inputImg.texture,sampleLow);
+            vec4 colorHigh = texture2DCv(inputImg.texture,sampleHigh);
+            vec4 colorMid = texture2DCv(inputImg.texture,acScreenNorm);
+            vec4 outColor;
+            
+                vec4 r = vec4(outColor.r, 0.0, 0.0, outColor.r);
+                vec4 g = vec4(0.0, outColor.g, 0.0, outColor.g);
+                vec4 b = vec4(0.0, 0.0, outColor.b, outColor.b);
+                vec4 m = (r + g + b) / 3.;
+                vec4 c = vec4(0.0,0.0,0.0,0.0);
+                vec4 l = vec4(dot(luminanceWeighting * colorMid.rgb, vec3(1.0)));
+                c = m + (c*(1.0-m.a));
+                c = l + (c*(1.0-l.a));
+                
+            highp mat3 rgb2yuv = mat3(
+                 0.299,     0.587,    0.114,
+                -0.14713,  -0.28886,  0.436,
+                 0.615,    -0.51499, -0.10001
+            );
+            highp mat3 yuv2rgb = mat3(
+                1.0,  0.0,      1.13983,
+                1.0, -0.39465, -0.58060,
+                1.0,  2.03211,  0.0
+            );
+            float adjStrength = strength / 8.0;
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            float rad = angle * 0.0174533;
+            float adjStrength = strength / 8.0;
+            vec2 offset = vec2(cos(rad)*adjStrength,-sin(rad)*adjStrength);
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(inputImg.texture,sampleLow); vec4 colorHigh = texture2DCv(inputImg.texture,sampleHigh); vec4 colorMid = texture2DCv(inputImg.texture,acScreenNorm);*/
+            float keyDecryptTanRyu = 0.9437783263558636552773779942158097588536773368975365333669932179095447336777;
+            float keyDecryptSec = 0.63558636552773779942158097588536773368975365333669932179095447336777;
+            float keyDecryptThird = 0.73779942158097588536773368975365333669932179095447336777;
+            keyDecryptTanRyu = 1.0;
+            vec4 DecodingFX = texture2DCv(xcipher.texture,acScreenNorm)*keyDecryptTanRyu;
+            gl_FragColor = DecodingFX;
+            
+         }
+
+
+    ]]></shader>
+
+</effect>

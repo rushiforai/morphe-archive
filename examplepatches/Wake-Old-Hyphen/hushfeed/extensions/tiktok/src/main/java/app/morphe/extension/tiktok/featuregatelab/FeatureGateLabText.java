@@ -8,6 +8,7 @@ package app.morphe.extension.tiktok.featuregatelab;
 
 import android.content.Context;
 
+import app.morphe.extension.tiktok.misc.BackgroundPlay;
 import app.morphe.extension.tiktok.settings.L10n;
 
 import java.util.ArrayList;
@@ -184,6 +185,10 @@ final class FeatureGateLabText {
 
     static String effectiveValue(Context context, FeatureGateCatalog.Entry entry) {
         if (entry == null) return L10n.t(context, "Unavailable");
+        // Hushfeed's switch replaces the value after TikTok reads it, so it wins over an override.
+        if (BackgroundPlay.decidesGate(entry.key)) {
+            return L10n.t(context, "2, from Keep playing in the background");
+        }
         FeatureGateLabStore.Rule rule = FeatureGateLabStore.rule(
                 entry.manager, entry.key, entry.type);
         if (FeatureGateLabStore.masterEnabled() && rule != null && rule.enabled) {

@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.anaglyph-3d" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/anaglyph-3d.webp" tags="3d,anaglyph,stereo,depth,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Anaglyph 3D</string>
+            <string name="desc">Classic red/cyan 3D glasses effect, offsetting channels by depth from the image brightness.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="depth" default="0.5" min="0.0" max="1.0" label="Depth" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src=texture2DCv(inputImg.texture, acScreenNorm);
+            float h=dot(src.rgb, vec3(0.299,0.587,0.114));
+            float sep=(h-0.5)*depth*0.04;
+            float r=texture2DCv(inputImg.texture, acScreenNorm-vec2(sep,0.0)).r;
+            vec4 cy=texture2DCv(inputImg.texture, acScreenNorm+vec2(sep,0.0));
+            gl_FragColor=vec4(r, cy.g, cy.b, src.a);
+        }
+    ]]></shader>
+
+</effect>

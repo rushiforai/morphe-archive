@@ -3,9 +3,9 @@ package app.morphe.patches.chorkitv.content
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
 import app.morphe.patches.all.misc.hex.hexPatch
-import app.morphe.patches.all.stripnativelibraries.stripNonArm64NativeLibraryPatch
+import app.morphe.patches.all.misc.lib.stripNonArmNativeLibraryPatch
 import app.morphe.patches.chorkitv.shared.Constants.COMPATIBILITY_CHORKITV
-import app.morphe.patches.shared.requireArm64
+import app.morphe.patches.shared.requireArm
 
 @Suppress("unused")
 val contentAccessPatch = rawResourcePatch(
@@ -15,30 +15,33 @@ val contentAccessPatch = rawResourcePatch(
 ) {
     compatibleWith(COMPATIBILITY_CHORKITV)
 
-    availability(requireArm64)
+    availability(requireArm)
 
     dependsOn(
-        stripNonArm64NativeLibraryPatch, changePackageInstallerPatch(), hexPatch(block = {
-            val lib = "lib/arm64-v8a/libapp.so"
-            val pat = "60 23 40 91 00 88 46 f9"
-
-            // goplay_tv$data$models$content_model_ContentModel__toEntity
-            // ContentAccess.purchase_or_subscription -> ContentAccess.free
-            // add x0, x27, #8, lsl #12
-            // ldr x0, [x0, #0xce8] -> ldr x0, [x0, #0xd10]
-            "60 23 40 91 00 74 46 f9" asPatternTo pat inFile lib
-
-            // goplay_tv$data$models$content_model_ContentModel__toEntity
-            // ContentAccess.subscription -> ContentAccess.free
-            // add x0, x27, #8, lsl #12
-            // ldr x0, [x0, #0xcf8] -> ldr x0, [x0, #0xd10]
-            "60 23 40 91 00 7c 46 f9" asPatternTo pat inFile lib
-
-            // goplay_tv$data$models$content_model_ContentModel__toEntity
-            // ContentAccess.purchase -> ContentAccess.free
-            // add x0, x27, #8, lsl #12
-            // ldr x0, [x0, #0xd08] -> ldr x0, [x0, #0xd10]
-            "60 23 40 91 00 84 46 f9" asPatternTo pat inFile lib
+        stripNonArmNativeLibraryPatch, changePackageInstallerPatch(), hexPatch(true, block = {
+            // package:goplay_tv/data/models/content_model.dart -> ContentModel.toEntity
+            // content_access -> id
+            // ADD             R2, R5, #0x5000
+            // LDR             R2, [R2,#0x1E3]  -> LDR             R2, [R2,#0x1AF]
+            """
+                05 2a 85 e2
+                e3 21 92 e5
+            """ asPatternTo """
+                05 2a 85 e2
+                af 21 92 e5
+            """ inFile "lib/armeabi-v7a/libapp.so"
+        }), hexPatch(true, block = {
+            // package:goplay_tv/data/models/content_model.dart -> ContentModel.toEntity
+            // content_access -> id
+            // ADD             X0, X27, #8,LSL#12
+            // LDR             X0, [X0,#0xF00]    -> LDR             X0, [X0,#0xE98]
+            """
+                62 23 40 91
+                42 80 47 f9
+            """ asPatternTo """
+                62 23 40 91
+                42 4c 47 f9
+            """ inFile "lib/arm64-v8a/libapp.so"
         })
     )
 }

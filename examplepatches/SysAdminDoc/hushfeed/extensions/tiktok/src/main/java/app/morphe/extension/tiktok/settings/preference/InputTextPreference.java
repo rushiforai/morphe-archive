@@ -60,6 +60,10 @@ public class InputTextPreference extends EditTextPreference {
     /** The description, kept so the summary can be rebuilt when the value changes. */
     private final String baseSummary;
 
+    /** The summary as last built, so a line the page added after it can be told apart. */
+    @Nullable
+    private String built;
+
     /** How many characters of a value to show before truncating. */
     private static final int VALUE_DISPLAY_LIMIT = 60;
 
@@ -95,7 +99,15 @@ public class InputTextPreference extends EditTextPreference {
         String summary = baseSummary + "\n" + L10n.f(getContext(), "Current: %1$s", shown);
         String extra = note == null ? null : note.line(value == null ? "" : value);
         if (extra != null && !extra.isEmpty()) summary += "\n" + extra;
-        super.setSummary(summary);
+        // What the page added after the last build, its "Turn on X first." line, is kept. A row
+        // with a note rebuilds at every draw, which dropped that line from Who to message.
+        CharSequence current = getSummary();
+        String tail = "";
+        if (built != null && current != null && current.toString().startsWith(built)) {
+            tail = current.toString().substring(built.length());
+        }
+        built = summary;
+        super.setSummary(summary + tail);
     }
 
     /**

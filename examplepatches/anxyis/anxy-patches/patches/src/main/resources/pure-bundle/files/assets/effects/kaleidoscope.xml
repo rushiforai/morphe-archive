@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.kaleidoscope" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/kaleidoscope.webp" tags="mirror,symmetry,distort,raster,animated">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Kaleidoscope</string>
+            <string name="desc">Mirrors the image around the center into a set number of symmetric slices, with an adjustable rotation.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="sides" default="6" min="2" max="24" label="Segments" step="1" type="integer" />
+        <spinner id="rotation" default="0.0" min="-3600" max="3600" label="Rotation" type="angle" step="0.5" />
+        <slider id="zoom" default="1.0" min="0.2" max="3.0" label="Zoom" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 uv = acScreenNorm - 0.5;
+            uv.x *= acScreenSize.x/acScreenSize.y;
+            float ang = atan(uv.y, uv.x) + radians(rotation);
+            float rad = length(uv)/zoom;
+            float seg = 6.28318/sides;
+            ang = mod(ang, seg);
+            ang = abs(ang - seg*0.5);
+            vec2 nuv = vec2(cos(ang), sin(ang))*rad;
+            nuv.x /= acScreenSize.x/acScreenSize.y;
+            nuv += 0.5;
+            nuv = abs(fract(nuv*0.5)*2.0 - 1.0);
+            gl_FragColor = texture2DCv(inputImg.texture, nuv);
+        }
+    ]]></shader>
+
+</effect>

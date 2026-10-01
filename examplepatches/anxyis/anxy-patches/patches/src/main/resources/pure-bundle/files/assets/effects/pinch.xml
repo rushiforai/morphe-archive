@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.pinch" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/pinch.webp" tags="distort,pinch,warp,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Pinch</string>
+            <string name="desc">Pinches or punches the layer around a point within a chosen radius.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Center" />
+        <slider id="strength" default="0.5" min="-1.0" max="1.0" label="Strength" ticks="0" />
+        <slider id="radius" default="0.5" min="0.05" max="1.0" label="Radius" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 ctr = center/1000.0 + 0.5;
+            vec2 d = acScreenNorm - ctr;
+            float r = length(d);
+            float f = 1.0 - strength*(1.0 - smoothstep(0.0, radius, r));
+            vec2 uv = ctr + d*f;
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

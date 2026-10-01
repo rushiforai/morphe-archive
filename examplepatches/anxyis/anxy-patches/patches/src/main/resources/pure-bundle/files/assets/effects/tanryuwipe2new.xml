@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.wipe2new" name="[X] Wipe+" desc="@am:string/effect_wipe_desc" category="matte" tags="mask,matte,raster" thumb="thumb/TANRYU/wipe.png">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="start" default="0.0" min="-0.5" max="1.5" snap="0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4" ticks="0.0" step="0.001" label="@am:string/effect_param_start" type="percent" />
+        <slider id="end" default="1.0" min="-0.5" max="1.5" snap="0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4" ticks="1.0" step="0.001" label="@am:string/effect_param_end" type="percent" />
+        <slider id="angle" default="0.0" type="integer" min="0.0" max="360.0" label="@am:string/effect_param_angle" step="0.5" snap="45,90,135,180,225,270,315" />
+        <slider id="feather" default="0.0" min="0.0" max="100.0" snap="10,20,30,40,50,60,70,80,90" step="0.1" label="@am:string/effect_param_feather" />
+        
+        <!-- <slider id="angle" default="0.0" type="integer" min="0.0" max="360.0" label="@am:string/effect_param_angle" step="0.5" ticks="45,90,135,180,225,270,315" snap="45,90,135,180,225,270,315" /> -->
+        <!-- <slider id="feather" default="0.0" min="0.0" max="100.0" ticks="10,20,30,40,50,60,70,80,90" snap="10,20,30,40,50,60,70,80,90" step="0.1" label="@am:string/effect_param_feather" /> -->
+    </params>
+
+    <shader type="fragment"><![CDATA[
+
+        //vec2 projectAndClamp(vec2 a, vec2 b) {
+        //    return clamp(dot(a,b)/dot(b,b),0.0,1.0) * b;
+        //}
+        vec2 project(vec2 a, vec2 b) {
+            return (dot(a,b)/dot(b,b)) * b;
+        }
+
+        float smoothstepRev(float edge0, float edge1, float x) {
+            if(edge0 == edge1) return step(edge0, x);
+            else return smoothstep(edge0, edge1, x);
+        }
+
+        void main() {
+            float adjStart = start;
+            float adjEnd = end;
+            float adjFeather = feather/100.0;
+            float rad = angle * 0.0174533;
+            vec2 v = normalize(vec2(cos(rad),-sin(rad)));
+            //vec2 v = (vec4(normalize(vec2(cos(rad),-sin(rad))),0.0,1.0) * acLayerToScreen).xy;
+            //float p = length(projectAndClamp(acLayerNorm.st-vec2(0.5,0.5), v))/length(v)+0.5;
+            float p = dot(acLayerNorm.st-vec2(0.5,0.5), v)+0.5;
+
+            float p0 = smoothstepRev(adjStart-adjFeather,adjStart,p);
+            float p1 = 1. - smoothstepRev(adjEnd,adjEnd+adjFeather,p);
+            gl_FragColor = texture2DCv(inputImg.texture,acScreenNorm.st)*p0*p1;
+        }
+
+    ]]></shader>
+
+</effect>

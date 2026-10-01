@@ -38,6 +38,11 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * light mode every route leaves Facebook's colour. The system bars ask the window's theme instead,
  * see {@link #statusBar}.
  *
+ * <p>Black is the default. The patch's Background colour option can ask for another dark colour
+ * (issue #34), which {@link #backgroundColour} then answers: every route and both bars put it where
+ * they put black, and a raised surface sits the same step above it that it sits above black.
+ * Facebook's own black stays black on every route.
+ *
  * <p>{@link #apply} runs for each colour on each layout pass. Thus it makes no object and writes no
  * log. The one thing it adds is a count in Hook status, a hash lookup and an increment once the
  * first call has made the family's entry, which is what shows a report that the theme ran at all.
@@ -160,8 +165,11 @@ public final class AmoledTheme {
                     "BACKGROUND_BANNER",
                     "BACKGROUND_PRIMARY_UI")));
 
-    /** Opaque black, what route two writes over a dark grey. */
+    /** Opaque black, what route two writes over a dark grey unless the patch asks for another colour. */
     private static final int BLACK = 0xFF000000;
+
+    /** What a background turns into: {@link #backgroundColour} as the patch filled it in. */
+    private static int background = backgroundColour();
 
     /**
      * Route two's rewrites, sorted by resource id, and the colour Facebook had at each:
@@ -184,10 +192,11 @@ public final class AmoledTheme {
      * draws on a card (a translucent input, a chip) still shows against it.
      *
      * @param token an enum constant. Only its name is used.
-     * @return black for a background up to {@link #MAX_CHANNEL}, the near black of
-     * {@link #RAISED_SHIFT} for one up to {@link #MAX_RAISED_CHANNEL}, {@link #FILL_SHIFT} for an
-     * input or a pill's fill ({@link #FILL_TOKENS}), in Facebook's dark mode, or {@code color}
-     * unchanged.
+     * @return the background colour (black by default) for a background up to {@link #MAX_CHANNEL},
+     * the near black of {@link #RAISED_SHIFT} for one up to {@link #MAX_RAISED_CHANNEL},
+     * {@link #FILL_SHIFT} for an input or a pill's fill ({@link #FILL_TOKENS}), each that far above
+     * the background colour, in Facebook's dark mode, or {@code color} unchanged. The background
+     * colour itself comes back as it is, from route two's resources.
      */
     public static int apply(int color, Object token) {
         HookStatus.invoked(FamilyNames.AMOLED_THEME);
@@ -195,12 +204,13 @@ public final class AmoledTheme {
         if (!(token instanceof Enum) || !DarkMode.on()) return color;
         String name = ((Enum<?>) token).name();
         if (!BACKGROUND_TOKENS.contains(name)) return color;
+        if (color == BLACK || color == background) return color;
 
-        if (isDarkNeutral(color, MAX_CHANNEL)) return BLACK;
+        if (isDarkNeutral(color, MAX_CHANNEL)) return background;
         // Every channel of a grey above the black band is at least MAX_CHANNEL + 1 - MAX_SPREAD,
         // above either shift, so no channel borrows from the next.
         int shift = FILL_TOKENS.contains(name) ? FILL_SHIFT : RAISED_SHIFT;
-        return color - shift * 0x010101;
+        return raise(background, color - shift * 0x010101);
     }
 
     /**
@@ -221,9 +231,33 @@ public final class AmoledTheme {
      */
     public static int parseColor(String text) {
         HookStatus.invoked(FamilyNames.AMOLED_THEME);
-        int color = Color.parseColor(text);
-        if (!isDarkNeutral(color, MAX_SERVER_CARD_CHANNEL) || !DarkMode.on()) return color;
-        return isDarkNeutral(color, MAX_CHANNEL) ? BLACK : color - RAISED_SHIFT * 0x010101;
+        return withoutToken(Color.parseColor(text));
+    }
+
+    /**
+     * A background a React Native screen sets on a view (ReactColours), such as the strip behind
+     * Marketplace home's chips. It comes from the screen's JavaScript with no token, so it takes
+     * route four's rule.
+     */
+    static int react(int color) {
+        HookStatus.invoked(FamilyNames.AMOLED_THEME);
+        return withoutToken(color);
+    }
+
+    /**
+     * Whether route four's rule takes [color] as one of AMOLED's, black and the Background colour
+     * included, even where it gives the colour back as it came. With a Background colour of
+     * #212121 a card's #333334 comes back as #333334, so only this says AMOLED decided it.
+     */
+    static boolean ownsWithoutToken(int color) {
+        return isDarkNeutral(color, MAX_SERVER_CARD_CHANNEL) && DarkMode.on();
+    }
+
+    /** Route four's rule for a colour that comes with no token. */
+    private static int withoutToken(int color) {
+        if (!ownsWithoutToken(color)) return color;
+        if (color == BLACK || color == background) return color;
+        return isDarkNeutral(color, MAX_CHANNEL) ? background : raise(background, color - RAISED_SHIFT * 0x010101);
     }
 
     /**
@@ -259,12 +293,12 @@ public final class AmoledTheme {
      */
     public static int getColor(TypedArray array, int index, int fallback) {
         int color = array.getColor(index, fallback);
-        return color == BLACK && !DarkMode.on() ? lightMode(color, array.getResourceId(index, 0)) : color;
+        return color == background && !DarkMode.on() ? lightMode(color, array.getResourceId(index, 0)) : color;
     }
 
     /** Facebook's own colour for resource {@code id} when route two wrote {@code color} there in light mode. */
     static int lightMode(int color, int id) {
-        if (color != BLACK || DarkMode.on()) return color;
+        if (color != background || DarkMode.on()) return color;
         int at = Arrays.binarySearch(rewrittenIds, id);
         return at >= 0 ? facebookColours[at] : color;
     }
@@ -277,6 +311,24 @@ public final class AmoledTheme {
     @Nullable
     public static String routeTwoColours() {
         return null;
+    }
+
+    /** Filled in by the patch: the Background colour option's colour, black when it's blank. */
+    public static int backgroundColour() {
+        return BLACK;
+    }
+
+    /** Package-visible for tests: puts a background colour of {@link #backgroundColour}'s kind in use. */
+    static void useBackground(int colour) {
+        background = colour;
+    }
+
+    /** {@code base} with each channel of {@code step} added, as far as white. Both are opaque. */
+    static int raise(int base, int step) {
+        int red = Math.min(0xFF, ((base >> 16) & 0xFF) + ((step >> 16) & 0xFF));
+        int green = Math.min(0xFF, ((base >> 8) & 0xFF) + ((step >> 8) & 0xFF));
+        int blue = Math.min(0xFF, (base & 0xFF) + (step & 0xFF));
+        return BLACK | red << 16 | green << 8 | blue;
     }
 
     /** Package-visible for tests: puts a table of {@link #routeTwoColours}'s form in use. */
@@ -313,11 +365,12 @@ public final class AmoledTheme {
      * <p>Light mode asks the same token for the same {@code #333334}, so here the colour can't tell
      * the themes apart, and the patch passes Facebook's own answer for the window.
      *
-     * @return black for an opaque dark grey in the dark theme, or {@code color} unchanged.
+     * @return the background colour (black by default) for an opaque dark grey in the dark theme,
+     * or {@code color} unchanged.
      */
     public static int statusBar(int color, boolean dark) {
         HookStatus.invoked(FamilyNames.AMOLED_THEME);
-        return dark && isDarkNeutral(color, MAX_BAR_CHANNEL) ? 0xFF000000 : color;
+        return dark && color != BLACK && isDarkNeutral(color, MAX_BAR_CHANNEL) ? background : color;
     }
 
     /**
@@ -329,11 +382,12 @@ public final class AmoledTheme {
      * so light mode keeps it, and this hook turns it black in the dark theme. The band is route
      * three's own: the lighter greys Facebook gives the bar under a sheet keep theirs.
      *
-     * @return black for an opaque dark grey in the dark theme, or {@code color} unchanged.
+     * @return the background colour (black by default) for an opaque dark grey in the dark theme,
+     * or {@code color} unchanged.
      */
     public static int navigationBar(int color, boolean dark) {
         HookStatus.invoked(FamilyNames.AMOLED_THEME);
-        return dark && isDarkNeutral(color, MAX_CHANNEL) ? 0xFF000000 : color;
+        return dark && color != BLACK && isDarkNeutral(color, MAX_CHANNEL) ? background : color;
     }
 
     /** True for an opaque grey with each channel at or below {@code maxChannel}. */

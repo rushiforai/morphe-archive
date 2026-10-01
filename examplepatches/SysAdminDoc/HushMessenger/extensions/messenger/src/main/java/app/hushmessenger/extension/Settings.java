@@ -23,8 +23,9 @@ public final class Settings {
     static final ConcurrentHashMap<String, Long> activeAt = new ConcurrentHashMap<>();
 
     public static void initialize(Context context) {
-        appContext = context.getApplicationContext();
-        preferences = appContext.getSharedPreferences("hushmessenger", Context.MODE_PRIVATE);
+        Context app = context.getApplicationContext();
+        // Messenger's Application has no application context of its own until Android finishes attaching it.
+        appContext = app != null ? app : context;
         Set<String> features = new HashSet<>();
         preview = false;
         try {
@@ -36,15 +37,32 @@ public final class Settings {
         } catch (PackageManager.NameNotFoundException error) {
             android.util.Log.e("HushMessenger", "Can't read installed controls", error);
         }
+        // A Root Mount install keeps the stock manifest, so the controls come from the patched code instead.
+        features.addAll(bundled(HostScreens.bundledControls()));
         installed = Collections.unmodifiableSet(features);
+        // Set last: a hook that sees preferences also sees the installed controls.
+        preferences = appContext.getSharedPreferences("hushmessenger", Context.MODE_PRIVATE);
+    }
+
+    static Set<String> bundled(String list) {
+        Set<String> keys = new HashSet<>();
+        if (list != null) for (String key : list.split(",")) if (!key.isEmpty()) keys.add(key);
+        return keys;
     }
 
     public static boolean enabled(String key) {
-        SharedPreferences prefs = preferences;
-        boolean on = installed.contains(key) && prefs != null && !prefs.getBoolean("paused", false)
-                && !CrashGuard.isSafeMode() && prefs.getBoolean(key, false);
+        boolean on = wouldUse(key);
         if (on) activeAt.put(key, System.currentTimeMillis());
         return on;
+    }
+
+    /** Whether a control is in effect right now, without counting it as a use. */
+    static boolean wouldUse(String key) {
+        if (!HostScreens.started) HostScreens.initializeLate();
+        if (HostScreens.failed) return false;
+        SharedPreferences prefs = preferences;
+        return installed.contains(key) && prefs != null && !prefs.getBoolean("paused", false)
+                && !CrashGuard.isSafeMode() && prefs.getBoolean(key, false);
     }
 
     public static long lastActive(String key) {
@@ -52,9 +70,92 @@ public final class Settings {
         return ts != null ? ts : 0;
     }
 
+    /**
+     * Each control's last caught hook failure as "<exception class> at <first HushMessenger frame>|<time>".
+     * The exception's message is never kept, since it could hold chat content.
+     */
+    static final ConcurrentHashMap<String, String> hookErrors = new ConcurrentHashMap<>();
+    private static final String HOOK_ERROR = "hook_error_";
+
+    static void hookFailed(String key, String what, Throwable error) {
+        android.util.Log.e("HushMessenger", what, error);
+        recordHookError(key, error);
+    }
+
+    /** For hooks that handle file paths or chat content: logs only the error's type and where it happened. */
+    static void hookFailedPrivately(String key, String what, Throwable error) {
+        android.util.Log.e("HushMessenger", what + ": " + recordHookError(key, error));
+    }
+
+    private static String recordHookError(String key, Throwable error) {
+        StackTraceElement[] stack = error.getStackTrace();
+        StackTraceElement frame = stack.length == 0 ? null : stack[0];
+        for (StackTraceElement element : stack) {
+            if (element.getClassName().startsWith("app.hushmessenger.")) { frame = element; break; }
+        }
+        String where = frame == null ? "unknown" : frame.getClassName().substring(frame.getClassName().lastIndexOf('.') + 1)
+            + "." + frame.getMethodName() + (frame.getLineNumber() >= 0 ? ":" + frame.getLineNumber() : "");
+        String failure = error.getClass().getName() + " at " + where;
+        long now = System.currentTimeMillis();
+        String previous = hookErrors.put(key, failure + "|" + now);
+        SharedPreferences prefs = preferences;
+        // A hook can fail on every screen draw, so the saved copy changes only for a new failure or once a minute.
+        if (prefs != null && (previous == null || !previous.startsWith(failure + "|") || now - hookErrorTime(previous) >= 60_000))
+            prefs.edit().putString(HOOK_ERROR + key, failure + "|" + now).apply();
+        return failure;
+    }
+
+    static long hookErrorTime(String record) {
+        try {
+            return Long.parseLong(record.substring(record.lastIndexOf('|') + 1));
+        } catch (RuntimeException malformed) {
+            return 0;
+        }
+    }
+
+    /** When the control's hook last failed, this run or an earlier one, or 0 if it never did. */
+    static long hookErrorAt(String key) {
+        String record = hookErrors.get(key);
+        SharedPreferences prefs = preferences;
+        if (record == null && prefs != null) record = prefs.getString(HOOK_ERROR + key, null);
+        return record == null ? 0 : hookErrorTime(record);
+    }
+
+    /** Control key to its last failure record, with this run's failures over the saved ones. */
+    static Map<String, String> lastHookErrors() {
+        Map<String, String> errors = new java.util.TreeMap<>();
+        SharedPreferences prefs = preferences;
+        if (prefs != null) for (Map.Entry<String, ?> saved : prefs.getAll().entrySet()) {
+            if (saved.getKey().startsWith(HOOK_ERROR) && saved.getValue() instanceof String)
+                errors.put(saved.getKey().substring(HOOK_ERROR.length()), (String) saved.getValue());
+        }
+        errors.putAll(hookErrors);
+        return errors;
+    }
+
     public static boolean hideStories() { return enabled("stories"); }
     public static boolean hideFacebook() { return enabled("facebook"); }
     public static boolean hideMetaAi() { return enabled("meta_ai"); }
+
+    /** First answer this process gave for the Meta AI tab, or null before the bottom bar asked. */
+    static volatile Boolean metaAiTab;
+
+    /**
+     * The bottom bar keeps the tab list it counted first, but checks each tab again when it draws, the way Messenger's own
+     * kill switch never changes while it runs. So the tab keeps its first answer until a restart instead of following the
+     * switch mid-session and leaving the bar and its list out of step.
+     */
+    public static boolean hideMetaAiTab() {
+        Boolean hidden = metaAiTab;
+        if (hidden != null) return hidden;
+        // Its own lock, so two first askers can't get different answers if the switch flips between them.
+        synchronized (META_AI_TAB) {
+            if (metaAiTab == null) metaAiTab = hideMetaAi();
+            return metaAiTab;
+        }
+    }
+
+    private static final Object META_AI_TAB = new Object();
     public static boolean showSubtabs(boolean original) { return original && !enabled("subtabs"); }
     public static boolean hidePeopleSection(boolean original) { return original || enabled("people"); }
     public static boolean keepPeopleSection(boolean original) { return original && !enabled("people"); }
@@ -66,6 +167,71 @@ public final class Settings {
     public static boolean allowScreenshot() { return enabled("allow_screenshot"); }
     public static boolean hideReadReceipts() { return enabled("hide_read_receipts"); }
     public static boolean keepUnsent() { return enabled("keep_unsent"); }
+    public static boolean viewStoriesAnonymously() { return enabled("anonymous_stories"); }
+    public static boolean saveAnyStory() { return enabled("save_stories"); }
+
+    /** Story cards read on this phone, as "account:card:time kept". A story is up for a day; each entry lasts two. */
+    static final String SEEN_STORIES = "anonymous_seen_stories";
+    static final long SEEN_STORY_TTL = 48 * 60 * 60 * 1000L;
+    private static final Object SEEN_STORIES_LOCK = new Object();
+
+    /** Messenger's session hashes its user ID, so an account keeps its key across restarts and never shares it. */
+    static String storyAccount(Object session) { return session == null ? "-" : Integer.toHexString(session.hashCode()); }
+
+    /**
+     * Messenger just marked a story card read on this phone. With the switch on, the server never hears about it, so
+     * the card is kept for its account until the next launch can hand it back.
+     */
+    public static void markStorySeen(Object session, String cardId) {
+        if (cardId == null || cardId.isEmpty()) return;
+        try {
+            if (!enabled("anonymous_stories")) return;
+            String card = storyAccount(session) + ":" + cardId + ":";
+            long now = System.currentTimeMillis();
+            synchronized (SEEN_STORIES_LOCK) {
+                Set<String> kept = new HashSet<>();
+                for (String entry : preferences.getStringSet(SEEN_STORIES, Collections.emptySet())) {
+                    if (!entry.startsWith(card) && !seenStoryExpired(entry, now)) kept.add(entry);
+                }
+                kept.add(card + now);
+                preferences.edit().putStringSet(SEEN_STORIES, kept).apply();
+            }
+        } catch (RuntimeException error) {
+            hookFailed("anonymous_stories", "Can't keep a story marked seen", error);
+        }
+    }
+
+    /**
+     * Each session starts Messenger's set of cards read on this phone empty, and its story lists count a card in it
+     * as seen. This puts back the cards the session's account opened while the switch was on.
+     */
+    public static void seedSeenStories(Set<String> readOnPhone, Object session) {
+        if (readOnPhone == null) return;
+        try {
+            if (!wouldUse("anonymous_stories")) return;
+            String account = storyAccount(session) + ":";
+            long now = System.currentTimeMillis();
+            for (String entry : preferences.getStringSet(SEEN_STORIES, Collections.emptySet())) {
+                int time = entry.lastIndexOf(':');
+                if (entry.startsWith(account) && time > account.length() && !seenStoryExpired(entry, now)) {
+                    readOnPhone.add(entry.substring(account.length(), time));
+                }
+            }
+        } catch (RuntimeException error) {
+            hookFailed("anonymous_stories", "Can't restore stories marked seen", error);
+        }
+    }
+
+    static boolean seenStoryExpired(String entry, long now) {
+        int time = entry.lastIndexOf(':');
+        if (time < 0) return true;
+        try {
+            return now - Long.parseLong(entry.substring(time + 1)) > SEEN_STORY_TTL;
+        } catch (NumberFormatException error) {
+            return true;
+        }
+    }
+
     /** The icon stays hidden only while the Menu row that replaces it exists. */
     static boolean drawerIconHidden() {
         SharedPreferences prefs = preferences;
@@ -101,13 +267,21 @@ public final class Settings {
         return original;
     }
 
-    private static android.graphics.Typeface systemEmoji;
+    /** Where Android keeps its color emoji font. Tests point this at a missing file. */
+    static String systemEmojiFont = "/system/fonts/NotoColorEmoji.ttf";
+    static android.graphics.Typeface systemEmoji;
+    static boolean systemEmojiMissing;
     public static android.graphics.Typeface systemEmojiTypeface() {
-        if (!enabled("use_system_emoji")) return null;
+        // Checked before enabled(), so a font that failed to load doesn't count as a use.
+        if (systemEmojiMissing || !enabled("use_system_emoji")) return null;
         if (systemEmoji != null) return systemEmoji;
         try {
-            systemEmoji = android.graphics.Typeface.createFromFile("/system/fonts/NotoColorEmoji.ttf");
-        } catch (Exception ignored) { }
+            systemEmoji = android.graphics.Typeface.createFromFile(systemEmojiFont);
+        } catch (Exception error) {
+            // The font file won't appear later, so Messenger's own emoji stay without retrying on every draw.
+            systemEmojiMissing = true;
+            hookFailed("use_system_emoji", "Can't load the system emoji font", error);
+        }
         return systemEmoji;
     }
 
@@ -143,7 +317,7 @@ public final class Settings {
         try {
             ((java.util.Collection<?>) tabs).removeIf(Settings::opensAvatarTab);
         } catch (RuntimeException error) {
-            android.util.Log.e("HushMessenger", "Can't filter the sticker keyboard tabs", error);
+            hookFailed("avatar_stickers", "Can't filter the sticker keyboard tabs", error);
         }
     }
 
@@ -216,7 +390,7 @@ public final class Settings {
             title.set(clone, "HushMessenger");
             list.add(clone);
         } catch (Exception e) {
-            android.util.Log.e("HushMessenger", "addMenuSettingsEntry failed", e);
+            hookFailed("menu_row", "addMenuSettingsEntry failed", e);
         }
     }
 
@@ -236,13 +410,10 @@ public final class Settings {
                 else if (value != null && value.getClass().getName().endsWith("SettingsFolderKey")) settingsKey = true;
             }
             if (!titled || !settingsKey || context == null) return item;
-            android.content.Intent intent = new android.content.Intent();
-            intent.setClassName(context.getPackageName(), "app.hushmessenger.extension.SettingsActivity");
-            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
+            HostScreens.open(context, HostScreens.SETTINGS);
             return null;
         } catch (Exception e) {
-            android.util.Log.e("HushMessenger", "drawerFolderClicked failed", e);
+            hookFailed("menu_row", "drawerFolderClicked failed", e);
             return item;
         }
     }
@@ -274,7 +445,7 @@ public final class Settings {
             result.add(clone);
             return result;
         } catch (Exception e) {
-            android.util.Log.e("HushMessenger", "addMenuDrawerEntry failed", e);
+            hookFailed("menu_row", "addMenuDrawerEntry failed", e);
             return list;
         }
     }
@@ -297,14 +468,14 @@ public final class Settings {
             android.view.View itemView = (android.view.View) viewField.get(viewHolder);
             if (itemView == null) return;
             itemView.setOnClickListener(v -> {
-                android.content.Context ctx = v.getContext();
-                android.content.Intent intent = new android.content.Intent();
-                intent.setClassName(ctx.getPackageName(), "app.hushmessenger.extension.SettingsActivity");
-                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-                ctx.startActivity(intent);
+                try {
+                    HostScreens.open(v.getContext(), HostScreens.SETTINGS);
+                } catch (RuntimeException e) {
+                    hookFailed("menu_row", "Opening settings failed", e);
+                }
             });
         } catch (Exception e) {
-            android.util.Log.e("HushMessenger", "handleMenuItemBound failed", e);
+            hookFailed("menu_row", "handleMenuItemBound failed", e);
         }
     }
 
@@ -330,7 +501,7 @@ public final class Settings {
             }
             return dst;
         } catch (Exception e) {
-            android.util.Log.e("HushMessenger", "shallowClone failed", e);
+            hookFailed("menu_row", "shallowClone failed", e);
             return null;
         }
     }

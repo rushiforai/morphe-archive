@@ -6,6 +6,7 @@ import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Looper;
+import android.view.DisplayCutout;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
@@ -278,6 +279,29 @@ public class SettingsReliabilityTest {
                 controls.scrollTo(0, 0);
                 layout(screen.get(), 320, 360);
                 assertEquals("Later manual scrolling is preserved", 0, controls.getScrollY());
+            }
+        }
+    }
+
+    @Test @Config(sdk = {29, 36}) public void cutoutInsetsKeepTheScreenClearOnEitherSide() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View content = ((ViewGroup) screen.get().findViewById(android.R.id.content)).getChildAt(0);
+            // System bars, cutout safe insets, then the padding the root should take.
+            int[][] cases = {
+                {0, 24, 0, 24, 0, 0, 0, 0, 0, 24, 0, 24},
+                {0, 24, 0, 24, 80, 0, 0, 0, 80, 24, 0, 24},
+                {0, 24, 0, 24, 0, 0, 80, 0, 0, 24, 80, 24},
+                {0, 24, 0, 24, 0, 90, 0, 0, 0, 90, 0, 24},
+                {0, 24, 0, 254, 0, 0, 80, 40, 0, 24, 80, 254},
+            };
+            for (int[] c : cases) {
+                WindowInsets.Builder insets = new WindowInsets.Builder().setSystemWindowInsets(Insets.of(c[0], c[1], c[2], c[3]));
+                if (c[4] + c[5] + c[6] + c[7] > 0)
+                    insets.setDisplayCutout(new DisplayCutout(Insets.of(c[4], c[5], c[6], c[7]), null, null, null, null));
+                WindowInsets left = content.dispatchApplyWindowInsets(insets.build());
+                assertArrayEquals(java.util.Arrays.toString(c), new int[] {c[8], c[9], c[10], c[11]},
+                    new int[] {content.getPaddingLeft(), content.getPaddingTop(), content.getPaddingRight(), content.getPaddingBottom()});
+                assertNull("The cutout is handled here, not passed on", left.getDisplayCutout());
             }
         }
     }

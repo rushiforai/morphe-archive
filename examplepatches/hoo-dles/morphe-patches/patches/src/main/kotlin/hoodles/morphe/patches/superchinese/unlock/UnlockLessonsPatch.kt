@@ -8,9 +8,9 @@ package hoodles.morphe.patches.superchinese.unlock
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.all.misc.fix.spoofsignature.spoofSignaturePatch
 import app.morphe.util.returnEarly
 import hoodles.morphe.compatibility.Compat
+import hoodles.morphe.patches.superchinese.shared.signature.spoofSignaturePatch
 import hoodles.morphe.util.returnBoxedIntegerEarly
 
 enum class SmaliType {

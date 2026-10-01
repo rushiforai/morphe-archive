@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.skegradientdisplace" 
+		name="Gradient Displace" 
+		desc="Amazing New Extra FX from the Modder" 
+		category="other" 
+		thumb="thumb/TANRYU/efek.png" 
+		experimental="false" 
+		deprecated="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="comp" srcType="comp" />
+        <spinner id="strength" default="0.1" min="-100" max="100" step="0.001" label="strength" ticks="0." />
+        <spinner id="smoothing" default="1." min="0.125" max="5." step="0.01" label="smoothing" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+
+        const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+
+        void main() {
+
+            vec2 st = acScreenNorm;
+            vec2 fragSize = vec2(1.)/getTexSize(inputImg.size) * (smoothing*24.);
+            vec4 leftColor = texture2DCv(inputImg.texture, vec2(acScreenNorm.x - fragSize.x, acScreenNorm.y) );
+            vec4 rightColor = texture2DCv(inputImg.texture, vec2(acScreenNorm.x + fragSize.x, acScreenNorm.y) );
+            vec4 topColor = texture2DCv(inputImg.texture, vec2(acScreenNorm.x, acScreenNorm.y + fragSize.y) );
+            vec4 bottomColor = texture2DCv(inputImg.texture, vec2(acScreenNorm.x, acScreenNorm.y - fragSize.y) );
+
+            float left   = length(leftColor.rgb*luminanceWeighting);
+            float right  = length(rightColor.rgb*luminanceWeighting);
+            float top    = length(topColor.rgb*luminanceWeighting);
+            float bottom = length(bottomColor.rgb*luminanceWeighting);
+
+            vec2 gradient = normalize(vec2((right - left) / (2.*fragSize.x), (top - bottom) / (2.*fragSize.y)));
+
+            float alpha = 1.0;
+            alpha = min(alpha,leftColor.a);
+            alpha = min(alpha,rightColor.a);
+            alpha = min(alpha,topColor.a);
+            alpha = min(alpha,bottomColor.a);
+
+            gl_FragColor = texture2DCv(comp.texture,st+gradient*strength)*alpha;
+
+        }
+
+    ]]></shader>
+
+</effect>

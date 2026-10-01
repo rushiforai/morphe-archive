@@ -1,0 +1,272 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.extrudepoint"
+    name="3D Extrude PointLight"
+    desc="@am:string/effect_raster_extrude_desc"
+    category="other"
+    tags="3d,lighting,raster,membersOnly"
+    thumb="thumb/TANRYU/3d.png"
+    overdraw="true"
+    maxOverdraw="0.2"
+    experimental="false"
+    deprecated="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <!-- <texture id="xDistBuf" srcType="buffer" /> -->
+        <tip text="Export on between 48-60 fps to avoid orientation bug" />
+        <orient id="orient" label="@am:string/effect_param_orientation" invert="true" />
+        <xyz id="rotate" label="@am:string/effect_param_rotation" type="rotate" />
+        <xyz id="position" default="0.,100.,500." label="@am:string/effect_param_position" step="0.01" ticks="1.0" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="depth" default="0.005" min="0.0" max="10" label="@am:string/effect_param_depth" step="0.001" ticks="1" multiplier="100" />
+        <spinner id="scale" default="1.0" min="0" max="10.0" label="@am:string/effect_param_scale" step="0.01" ticks="1.0" />
+        <spinner id="lightIntensity" default="1.0" min="0" max="2" step="0.001" label="@am:string/effect_param_intensity" type="percent" />
+        <spinner id="shine" default="0.8" min="0.0" max="1.0" label="@am:string/effect_param_shine" step="0.01" ticks="0.5" />
+        <spinner id="spec" default="30.0" min="1.0" max="150.0" label="@am:string/effect_param_specularity" step="0.5" ticks="30.0" />
+        <spinner id="ambient" default="0.1" min="0.0" max="1.0" label="@am:string/effect_param_ambient" step="0.01" />
+        <color id="lightColor" default="#FFFFFFFF" label="@am:string/effect_param_color" alpha="false" />
+        <point id="lightDir" default="75,-75" label="@am:string/effect_param_direction" />
+        <spinner id="lightDepth" default="100" min="-100" max="800" label="@am:string/effect_param_elevation" step="0.5" ticks="1,100"  />
+        <slider id="MAX_ITER" default="300" min="200" max="400" label="@am:string/effect_param_raymarch_iter" type="integer" step="1" ticks="250,300,350" snap="250,300,350" />
+        <switch id="inton" default="false" label="Interior Color" />
+        <color id="interiorColor" default="#FF000000" label="@am:string/effect_param_interior_color" alpha="false" />
+        <spinner id="interiorBlend" default="1.0" min="0.0" max="1" label="@am:string/effect_param_interior" type="percent" step="0.01" />
+        <color id="fadeColor" default="#FF434343" label="@am:string/effect_param_fade_color" alpha="false" />
+        <spinner id="fadeBlend" default="1.0" min="0.0" max="1" label="@am:string/effect_param_fade" type="percent" step="0.01" />
+        <!-- <selector id="sMode" style="radio" default="0" label="Type"> -->
+            <!-- <choice label="FLAT" value="0" /> -->
+            <!-- <choice label="POINT LIGHT" value="1" /> -->
+        <!-- </selector> -->
+        
+
+    </params>
+    
+       <!-- <passes> -->
+        <!-- <pass target="xDistBuf" effect="com.alightcreative.internal.smoothbevel"/> -->
+        <!-- <pass /> -->
+       <!-- </passes> -->
+    
+      <shader type="vertex" ><![CDATA[
+
+        varying mat4 rotateAndOrient;
+
+        mat4 rotationAxisAngle( vec3 v, float angle )
+        {
+            float s = sin( angle );
+            float c = cos( angle );
+            float ic = 1.0 - c;
+
+            return mat4( v.x*v.x*ic + c,     v.y*v.x*ic - s*v.z, v.z*v.x*ic + s*v.y, 0.0,
+                         v.x*v.y*ic + s*v.z, v.y*v.y*ic + c,     v.z*v.y*ic - s*v.x, 0.0,
+                         v.x*v.z*ic - s*v.y, v.y*v.z*ic + s*v.x, v.z*v.z*ic + c,     0.0,
+                         0.0,                0.0,                0.0,                1.0 );
+        }
+
+        void main() {
+            vertShaderInit();
+            vec3 r = rotate * 0.0174533;
+            mat4 rx = rotationAxisAngle(vec3(1.,0.,0.),r.x);
+            mat4 ry = rotationAxisAngle(vec3(0.,1.,0.),r.y);
+            mat4 rz = rotationAxisAngle(vec3(0.,0.,1.),r.z);
+            rotateAndOrient = orient * rz * rx * ry;
+        }
+
+    ]]></shader>
+
+    <shader type="fragment" ><![CDATA[
+
+        varying mat4 rotateAndOrient;
+
+        #define OBJECT_CENTER (position/100.)
+        #define width (stretch.x*0.5*acLayerSize.x/max(acLayerSize.x,acLayerSize.y) )
+        #define height (stretch.y*0.5*acLayerSize.y/max(acLayerSize.x,acLayerSize.y) )
+
+        float sdBox( vec3 p, vec3 b )
+        {
+          vec3 d = abs(p) - b;
+          return length(max(d,0.0))
+                 + min(max(d.x,max(d.y,d.z)),0.0); // remove this line for an only partially signed sdf
+        }
+
+        mat2 rot(float a) {
+            float c = cos(a);
+            float s = sin(a);
+            return mat2(
+                c, -s,
+                s, c
+            );
+        }
+        
+        
+        vec2 l2s( vec2 v ) {
+            return (vec4(v,0.,1.)*acLayerToScreen).xy;
+        }
+
+        vec2 sdExtrude( vec3 p, vec3 r, vec3 rd ) {
+            vec2 st = (((p.xy/r.xy)*vec2(1.,1.))+1.)/2.;
+            
+                    // vec4 sss = texture2DCv(xDistBuf.texture, l2s(st) );
+                    // vec4 ooo = texture2DCv(inputImg.texture, l2s(st) );
+                    
+                    // vec4 texColor = bevelfx? sss : ooo;
+            
+            vec4 texColor = texture2DCv(inputImg.texture, l2s(st) );
+            vec4 blurColor = vec4(1.,1.,1.,texColor.a);
+            
+            float t = max(saturate(blurColor.a*1.5),texColor.a); ///
+            // float t = max(saturate(blurColor.a*2.),texColor.a);
+            float z = ((p.z/r.z) + 1.)/2.;
+            float maxdim = length(r);
+            float td = (1.-t) * (maxdim*2.*(1.0))/MAX_ITER;
+            return vec2( max(td,sdBox(p,r*vec3(2.,2.,1.))), z);
+        }
+
+
+        vec2 dist(vec3 p, vec3 rd) {
+            p = p-OBJECT_CENTER;
+            p = (vec4(p,1.) * rotateAndOrient).xyz;
+            return sdExtrude(p,vec3(width,height,depth),rd);
+        }
+
+        vec2 march(vec3 ro, vec3 rd) {
+            float d = 0.0;
+            float dz = -1.0;
+            for( int i=0; i<int(MAX_ITER); i++ ) {
+                vec3 p = ro + rd*d;
+                vec2 dinf = dist(p,rd);
+                float dd = dinf.x;
+                d += dd;
+                if( dd < 0.0000001 || d > 10000.0 ) {
+                    dz = dinf.y;
+                    break;
+                }
+            }
+            return vec2(d,dz);
+        }
+
+        mat4 rotationAxisAngle( vec3 v, float angle )
+        {
+            float s = sin( angle );
+            float c = cos( angle );
+            float ic = 1.0 - c;
+
+            return mat4( v.x*v.x*ic + c,     v.y*v.x*ic - s*v.z, v.z*v.x*ic + s*v.y, 0.0,
+                         v.x*v.y*ic + s*v.z, v.y*v.y*ic + c,     v.z*v.y*ic - s*v.x, 0.0,
+                         v.x*v.z*ic - s*v.y, v.y*v.z*ic + s*v.x, v.z*v.z*ic + c,     0.0,
+                         0.0,                0.0,                0.0,                1.0 );
+        }
+
+        mat4 vecToVec( vec3 from, vec3 to ) {
+            vec3 w = cross(normalize(from),normalize(to));
+            vec3 axis = normalize(w);
+            float angle = asin(length(w));
+            return rotationAxisAngle(axis,angle);
+        }
+
+        vec3 calcNormal(vec3 p, vec3 rd) {
+            float d = dist(p,rd).x;
+            vec2 e = vec2(0.01,0.);
+            return normalize(d - vec3(
+                dist(p-e.xyy,rd).x,
+                dist(p-e.yxy,rd).x,
+                dist(p-e.yyx,rd).x));
+        }
+        
+        float lighting(vec3 p, vec3 n) {
+            vec3 lightPos = vec3(lightDir.x/2.0, -lightDir.y/2.0, -lightDepth*2.0);
+            vec3 l = normalize(lightPos-p);
+            return dot(n,l);
+        }
+        
+        vec4 applyShading(vec4 texColor, vec3 p, vec3 n, float d ) {
+            vec4 result = vec4(0.);
+            float a = smoothstep(30.0,9.,d);
+            a *= smoothstep(0.3,0.2,n.z);
+            // if(sMode == 0) {
+                   // result = texColor * a;
+            // } else if(sMode == 1) {
+            float l = lighting(p,n);
+            vec3 tc = texColor.rgb;
+            vec3 surface = tc * ambient + tc * lightColor.rgb * l * (1.-ambient);
+            surface *= lightIntensity;
+            float s = pow(l,spec);
+            surface = mix(surface*(1.-shine*0.1),vec3(1.),shine*s);
+            result = vec4(surface, texColor.a) * a;
+            // }
+                
+            return result;
+        }
+
+        void main() {
+
+            vec2 st = acLayerNorm;
+            st -= 0.5;
+            if( acLayerSize.x < acLayerSize.y ) {
+                st.x *= acLayerSize.x/acLayerSize.y;
+            } else {
+                st.y *= acLayerSize.y/acLayerSize.x;
+            }
+
+            st /= scale;
+            st /= 6.0;
+
+            vec3 ro = vec3(0., 1., -1.);
+            vec3 rd = normalize(vec3(st, 1.));
+
+            vec2 dinf = march(ro,rd);
+            float d = dinf.x;
+            float dz = dinf.y;
+            vec3 p = ro + rd * d;
+
+            vec3 n = calcNormal(p,rd);
+            vec3 nn = n;
+
+            vec4 localCoord = vec4(p-OBJECT_CENTER, 1.);
+            n = (vec4(n,0.) * rotateAndOrient).xyz;
+            localCoord *= rotateAndOrient;
+            vec4 pp = localCoord;
+            vec4 qq = pp * (vecToVec(n,pp.xyz*vec3(0.,1.,0.)));
+
+            pp /= vec4(width,height,depth,1.);
+
+            vec2 texCoord;
+            float a;
+            
+            ///
+            texCoord = (pp.xy+1.)/2.;
+            a = width<0.0105 || height<0.0105 ? 0.0 : 1.0;
+            ///
+
+            vec2 tc = l2s(texCoord);
+            
+            vec4 baseColor = texture2DCv(inputImg.texture, tc);
+            vec4 blurColor = texture2DCv(inputImg.texture, tc);
+            
+            vec4 texColor;
+            if( blurColor.a > baseColor.a && blurColor.a > 0.25 ) {
+                texColor = blurColor / blurColor.a;
+            } else if( baseColor.a > 0.25 ) {
+                texColor = baseColor / baseColor.a;
+            } else {
+                texColor = baseColor;
+            }
+            
+                if(inton) {
+                if( dz > 0.001 && dz < 0.999 ) {
+                if( interiorBlend > 0.0 ) {
+                    texColor = mix(texColor,interiorColor*texColor.a,interiorBlend);
+                }
+                if( fadeBlend > 0.0 ) {
+                    texColor = mix(texColor,fadeColor*texColor.a,fadeBlend*dz);
+                }
+            }
+         }
+            
+            gl_FragColor = applyShading(texColor, p, nn, d) * a;
+
+        }
+
+    ]]></shader>
+
+</effect>

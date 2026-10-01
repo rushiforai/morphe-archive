@@ -24,7 +24,8 @@
     it describes. They default to 577 and 580, the builds the bundled list names methods of.
 
     An APK argument is a path to an .apk or .apkm, or a version that names exactly one fixture in the
-    folder HUSHFACEBOOK_FIXTURE_DIR names, such as 577 or 580.0.0.51.74.
+    folder HUSHFACEBOOK_FIXTURE_DIR names, such as 577 or 580.0.0.51.74. When a version names a split
+    bundle beside other APKs, such as the emulator's -minapi28.apk, the bundle is the one it reads.
 
 .EXAMPLE
     scripts/fingerprint-candidates.ps1 -OldApk 577 -Method 'LX/7f5;->A0g(LX/7ej;I)J' -NewApk 580
@@ -82,13 +83,13 @@ function Assert-OutsidePatches {
     return $full
 }
 
-# An .apk or .apkm path, or a version naming exactly one fixture.
+# An .apk or .apkm path, or a version naming exactly one fixture, or one split bundle among the
+# files it names.
 function Resolve-Build {
     param([string]$Value, [string]$What)
     if (Test-Path -LiteralPath $Value -PathType Leaf) { return (Resolve-FullPath $Value) }
     $fixtures = if ($env:HUSHFACEBOOK_FIXTURE_DIR) { $env:HUSHFACEBOOK_FIXTURE_DIR } else { Join-Path $Root 'fixtures' }
-    $matching = @(Get-ChildItem -LiteralPath $fixtures -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.Extension -in '.apk', '.apkm' -and $_.Name.Contains($Value) })
+    $matching = @(Select-FixtureBuild -Folder $fixtures -Version $Value)
     if ($matching.Count -ne 1) {
         throw ("The $What '$Value' is not a file, and it names $($matching.Count) fixtures in $fixtures, not one. " +
             'Pass a path to an .apk or .apkm, or set HUSHFACEBOOK_FIXTURE_DIR.')

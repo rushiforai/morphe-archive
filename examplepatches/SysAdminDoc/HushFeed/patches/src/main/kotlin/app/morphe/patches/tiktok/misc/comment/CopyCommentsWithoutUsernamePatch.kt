@@ -5,6 +5,7 @@
 package app.morphe.patches.tiktok.misc.comment
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
 import app.morphe.util.addInstruction
 import app.morphe.util.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -29,7 +30,7 @@ private const val COMMENT_CLASS_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/comment/
 private const val CLIP_DATA_CLASS_DESCRIPTOR = "Landroid/content/ClipData;"
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/comment/CommentCopySanitizer;"
 
-private val clipboardTextHelperFingerprint = Fingerprint(
+internal val clipboardTextHelperFingerprint = Fingerprint(
     returnType = "V",
     parameters = listOf(
         "Ljava/lang/String;",
@@ -37,6 +38,9 @@ private val clipboardTextHelperFingerprint = Fingerprint(
         "Landroid/content/Context;",
         "Lcom/bytedance/bpea/basics/Cert;",
     ),
+    // The filter repeats a reference the custom block requires, so the patcher reads only the
+    // classes that make it (#54).
+    filters = listOf(methodCall(definingClass = CLIP_DATA_CLASS_DESCRIPTOR, name = "newPlainText")),
     custom = { method, _ ->
         method.implementation?.instructions?.any { instruction ->
             instruction.getReference<MethodReference>()?.isClipDataNewPlainText() == true
@@ -50,10 +54,13 @@ private val clipboardTextHelperFingerprint = Fingerprint(
  * "copy_label" or, with emoji encoding on, one built from the spans. The menu never calls the
  * helper above any more, so on 47.0.3 that route only reached Favorites > Comments (issue #28).
  */
-private val commentClipDataBuilderFingerprint = Fingerprint(
+internal val commentClipDataBuilderFingerprint = Fingerprint(
     returnType = CLIP_DATA_CLASS_DESCRIPTOR,
     parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;"),
     strings = listOf("copy_label"),
+    // The filter repeats a reference the custom block requires, so the patcher reads only the
+    // classes that make it (#54).
+    filters = listOf(methodCall(definingClass = CLIP_DATA_CLASS_DESCRIPTOR, name = "newPlainText")),
     // Static is checked here rather than through accessFlags, which the patcher compares as one
     // exact value: the builder is public static final on 47.0.3, and the rest may move.
     custom = { method, _ ->

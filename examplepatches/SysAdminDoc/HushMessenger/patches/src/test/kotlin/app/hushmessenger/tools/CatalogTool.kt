@@ -14,6 +14,8 @@ import org.xml.sax.InputSource
 
 /** Local tooling only. This class is excluded from the distributed bundle. */
 object CatalogTool {
+    private const val CONTROL_KEYS = 28
+
     private fun dependency(patch: Patch<*>, ancestors: Set<Patch<*>> = emptySet()): JsonObject {
         require(patch !in ancestors) { "Cyclic patch dependency" }
         require(!patch.name.isNullOrBlank() || !patch.description.isNullOrBlank()) {
@@ -63,8 +65,11 @@ object CatalogTool {
     ))
 
     fun validateDefinitions(patchSource: String, uiSource: String, manifest: String, names: Set<String>) {
-        val declarations = Regex("""controlPatch\("([a-z_]+)",\s*"([^"]+)"""").findAll(patchSource)
-            .map { it.groupValues[1] to it.groupValues[2] }.toList()
+        val declarations = (Regex("""controlPatch\("([a-z_]+)",\s*"([^"]+)"""").findAll(patchSource)
+            .map { it.groupValues[1] to it.groupValues[2] } +
+            // Standalone patches that use recordControl directly instead of controlPatch:
+            sequenceOf("material_you" to "Material You theme", "anonymous_stories" to "View stories anonymously",
+                "save_stories" to "Save any story")).toList()
         val uiKeys = Regex("""^\s*\{"([a-z_]+)",""", RegexOption.MULTILINE).findAll(uiSource)
             .map { it.groupValues[1] }.toList()
         val factory = DocumentBuilderFactory.newInstance().apply {
@@ -77,10 +82,10 @@ object CatalogTool {
                 it.getAttribute("android:name").removePrefix("hush.feature.")
             }
         val keys = declarations.map { it.first }
-        require(keys.size == 24 && keys.distinct().size == keys.size) { "Expected 24 distinct patch control keys" }
+        require(keys.size == CONTROL_KEYS && keys.distinct().size == keys.size) { "Expected $CONTROL_KEYS distinct patch control keys" }
         require(uiKeys.size == keys.size && uiKeys.toSet() == keys.toSet()) { "Extension control keys differ from patches" }
         require(manifestKeys.size == keys.size && manifestKeys.toSet() == keys.toSet()) { "Manifest capabilities differ from patches" }
-        require(declarations.map { it.second }.toSet().size == 24 &&
+        require(declarations.map { it.second }.toSet().size == CONTROL_KEYS &&
             names == declarations.map { it.second }.toSet() + "Install beside Meta apps" + "Open settings from menu" + "Restore screens on re-signed builds") { "Built patch names differ from control declarations" }
     }
 
@@ -99,7 +104,7 @@ object CatalogTool {
         require(version == properties.getProperty("version")) { "Bundle version differs from source" }
         val patches = loadPatchesFromJar(setOf(bundle))
         val patchNames = patches.map { requireNotNull(it.name) }.toSet()
-        require(patches.size == 27 && patchNames.size == 27) { "Expected 27 distinct visible patches but found ${patches.size} (names: ${patchNames.joinToString()})" }
+        require(patches.size == 31 && patchNames.size == 31) { "Expected 31 distinct visible patches but found ${patches.size} (names: ${patchNames.joinToString()})" }
         validateDefinitions(
             root.resolve("patches/src/main/kotlin/app/hushmessenger/patches/controls/MessengerControlsPatch.kt").readText(),
             root.resolve("extensions/messenger/src/main/java/app/hushmessenger/extension/SettingsActivity.java").readText(),
@@ -116,6 +121,6 @@ object CatalogTool {
         else require(published.isFile && Json.parseToJsonElement(published.readText()) == document) {
             "Public catalog differs from the built MPP; run :patches:generatePatchCatalog"
         }
-        println("Catalog ${args[0]} passed: ${patches.size} patches, 24 control keys, built bundle $version")
+        println("Catalog ${args[0]} passed: ${patches.size} patches, $CONTROL_KEYS control keys, built bundle $version")
     }
 }

@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.polar-coords" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/polar-coords.webp" tags="distort,polar,warp,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Polar Coordinates</string>
+            <string name="desc">Wraps the image into polar space (or back), great for tiny-planet and tunnel looks.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <selector id="mode" style="dropdown" default="0" label="Mode">
+            <choice label="Rect to Polar" value="0" />
+            <choice label="Polar to Rect" value="1" />
+        </selector>
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 uv;
+            if(mode==0){
+                vec2 p = acScreenNorm - 0.5;
+                float r = length(p)*2.0;
+                float a = (atan(p.y,p.x)+3.14159)/6.28318;
+                uv = vec2(a, r);
+            } else {
+                float a = acScreenNorm.x*6.28318 - 3.14159;
+                float r = acScreenNorm.y*0.5;
+                uv = vec2(0.5+cos(a)*r, 0.5+sin(a)*r);
+            }
+            gl_FragColor = texture2DCv(inputImg.texture, clamp(uv,0.0,1.0));
+        }
+    ]]></shader>
+
+</effect>

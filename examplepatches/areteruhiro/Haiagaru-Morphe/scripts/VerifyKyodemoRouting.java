@@ -19,7 +19,7 @@ public class VerifyKyodemoRouting {
                 "VIP service board");
         check("3shuchaku".equals(KyodemoRouting.boardSlug("aoi.bbspink.com", "3shuchaku")),
                 "BBSPINK board");
-        check("https://www.kyodemo.net/sdemo/b/pinkplus/?hi=OS74kLJn&key=1790301489&date=20260927"
+        check("https://www.kyodemo.net/sdemo/b/pinkplus/?bs=hi&k=OS74kLJn&fr=2026-09-27&to=2026-09-27"
                         .equals(KyodemoRouting.idSearchUrl("phoebe.bbspink.com", "pinkplus",
                                 "OS74kLJn", "1790301489", "20260927")),
                 "BBSPINK result must use Kyodemo's unprefixed board URL");
@@ -46,10 +46,13 @@ public class VerifyKyodemoRouting {
         check(KyodemoRouting.sourceThreadUrl("5chan.jp", "5ch_newsplus",
                 "https://evil.example/sdemo/r/i_5chnewsplus/1684812738/") == null,
                 "External lookalike result links must not be rewritten");
-        check("https://www.kyodemo.net/sdemo/b/e_e_liveedge/?hi=op3na4RR%2F&key=1707378532&date=20240208"
+        check("https://www.kyodemo.net/sdemo/b/e_e_liveedge/?bs=hi&k=op3na4RR%2F&fr=2024-02-08&to=2024-02-08"
                         .equals(KyodemoRouting.idSearchUrl("bbs.eddibb.cc", "liveedge",
                                 "op3na4RR/", "1707378532", "20240208")),
                 "ID must be safely encoded with board, thread, and date context");
+        check("https://www.kyodemo.net/sdemo/b/news4vip/?bs=hi&k=abcd"
+                        .equals(KyodemoRouting.wacchoiSearchUrl("egg.5ch.io", "news4vip", "ﾜｯﾁｮｲ abcd-EFGH")),
+                "Wacchoi must use the prefix accepted by Kyodemo's ID/ﾜｯﾁｮｲ search");
         check(KyodemoRouting.boardSlug("talk.jp", "newsplus") == null,
                 "Unsupported sites must not be given a false result");
         check(KyodemoRouting.boardSlug("evil.bbs.eddibb.cc", "liveedge") == null,

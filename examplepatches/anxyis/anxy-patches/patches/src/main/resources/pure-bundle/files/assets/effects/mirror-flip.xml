@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra.mirror-flip" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/mirror-flip.webp" tags="mirror,symmetry,reflect,distort,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Mirror</string>
+            <string name="desc">Mirrors one half of the layer onto the other across a movable axis, with horizontal, vertical or quad modes.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <selector id="mode" style="dropdown" default="0" label="Mode">
+            <choice label="Left to Right" value="0" />
+            <choice label="Right to Left" value="1" />
+            <choice label="Top to Bottom" value="2" />
+            <choice label="Bottom to Top" value="3" />
+            <choice label="Four Way" value="4" />
+        </selector>
+        <slider id="axis" default="0.5" min="0.0" max="1.0" label="Axis Position" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec2 uv = acScreenNorm;
+            if(mode==0){ if(uv.x>axis) uv.x = 2.0*axis-uv.x; }
+            else if(mode==1){ if(uv.x<axis) uv.x = 2.0*axis-uv.x; }
+            else if(mode==2){ if(uv.y>axis) uv.y = 2.0*axis-uv.y; }
+            else if(mode==3){ if(uv.y<axis) uv.y = 2.0*axis-uv.y; }
+            else { if(uv.x>0.5) uv.x=1.0-uv.x; if(uv.y>0.5) uv.y=1.0-uv.y; }
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    ]]></shader>
+
+</effect>

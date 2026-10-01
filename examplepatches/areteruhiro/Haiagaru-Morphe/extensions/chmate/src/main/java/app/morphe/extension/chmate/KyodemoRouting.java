@@ -5,7 +5,7 @@ import java.net.URLEncoder;
 import java.net.URI;
 import java.util.Locale;
 
-/** Maps ChMate board identities to Kyodemo's board-scoped ID search. */
+/** Maps ChMate board identities to Kyodemo's board-scoped ID/ﾜｯﾁｮｲ search. */
 public final class KyodemoRouting {
     private KyodemoRouting() {}
 
@@ -60,10 +60,40 @@ public final class KyodemoRouting {
         String slug = boardSlug(host, board);
         if (slug == null || id == null || id.isEmpty()) return null;
         StringBuilder url = new StringBuilder("https://www.kyodemo.net/sdemo/b/")
-                .append(slug).append("/?hi=").append(encode(id));
-        if (key != null && key.matches("[0-9]{9,}")) url.append("&key=").append(key);
-        if (date != null && date.matches("[0-9]{8}")) url.append("&date=").append(date);
+                .append(slug).append("/?bs=hi&k=").append(encode(id));
+        if (date != null && date.matches("[0-9]{8}")) {
+            String day = date.substring(0, 4) + "-" + date.substring(4, 6)
+                    + "-" + date.substring(6, 8);
+            url.append("&fr=").append(day).append("&to=").append(day);
+        }
         return url.toString();
+    }
+
+    public static String wacchoiSearchUrl(String host, String board, String wacchoi) {
+        if (wacchoi == null) return null;
+        String value = stripWacchoiLabel(wacchoi);
+        java.util.regex.Matcher token = wacchoiTokenMatcher(value);
+        if (token.matches()) {
+            // Kyodemo's ID/ﾜｯﾁｮｲ endpoint rejects the hyphenated full token.
+            // Search its four-character prefix, which is a broader match.
+            value = token.group(1);
+        }
+        if (value.isEmpty() || value.length() > 80) return null;
+        return idSearchUrl(host, board, value, null, null);
+    }
+
+    public static boolean isWacchoiToken(String query) {
+        return query != null && wacchoiTokenMatcher(stripWacchoiLabel(query)).matches();
+    }
+
+    private static String stripWacchoiLabel(String value) {
+        return value.trim().replaceFirst(
+                "(?i)^(?:ﾜｯﾁｮｲw?|ワッチョイ)\\s*[:：]?\\s*", "");
+    }
+
+    private static java.util.regex.Matcher wacchoiTokenMatcher(String value) {
+        return java.util.regex.Pattern.compile(
+                "(?i)^([a-z0-9]{4})[-‐‑–—][a-z0-9]{4,}$").matcher(value);
     }
 
     /** Restores a result link for the current board to its original ChMate URL. */

@@ -63,6 +63,11 @@ final class DashFile {
     private static final int UNPACED_READ_CHUNK_BYTES = 256 * 1024;
     private static final int PACED_READ_CHUNK_BYTES = 48 * 1024;
     private static final int READ_AHEAD_BYTES = 3 * 1024 * 1024;
+    private static final long TRANSFER_REPORT_MS = 5000L;
+    private static final long NANOS_PER_MS = 1000000L;
+    private static final int BYTES_PER_KIB = 1024;
+    private static final double BYTES_PER_MB = 1e6;
+    private static final TransferLog TRANSFER = new TransferLog();
     private static final int CONNECT_TIMEOUT_MS = 15000;
     private static final int READ_TIMEOUT_MS = 30000;
     private static final int CDN_ATTEMPTS = 5;
@@ -96,6 +101,7 @@ final class DashFile {
     private static final int SIDX_REFERENCE_ID = 4;
     private static final int SIDX_TIMESCALE = 8;
     private static final int SIDX_EARLIEST_TIME = 12;
+    private static final int SIDX_FIRST_OFFSET = 16;
     private static final int SIDX_REFERENCE_COUNT = 22;
     private static final int SIDX_REFERENCE_BYTES = 12;
     private static final int REFERENCE_SIZE_AT = 0;
@@ -198,6 +204,62 @@ final class DashFile {
         }
     }
 
+    private static final class TransferLog {
+        private long windowStart = System.nanoTime();
+        private long served;
+        private long reads;
+        private long readBytes;
+        private long headerNanos;
+        private long bodyNanos;
+        private long retries;
+        private int activeRanges;
+
+        synchronized void rangeStarted() {
+            if (activeRanges++ == 0) restart(System.nanoTime());
+        }
+
+        synchronized int rangeEnded() {
+            return --activeRanges;
+        }
+
+        synchronized void read(long bytes, long headerNanos, long bodyNanos) {
+            reads++;
+            readBytes += bytes;
+            this.headerNanos += headerNanos;
+            this.bodyNanos += bodyNanos;
+        }
+
+        synchronized void retry() {
+            retries++;
+        }
+
+        synchronized void served(long bytes) {
+            served += bytes;
+            long now = System.nanoTime();
+            if (now - windowStart >= TRANSFER_REPORT_MS * NANOS_PER_MS) {
+                double seconds = (now - windowStart) / (double) (MS_PER_SECOND * NANOS_PER_MS);
+                Log.i(TAG, String.format(Locale.ROOT,
+                        "DASH served %.1f MB in %.1f s = %.1f MB/s over %d ranges, %d CDN reads of %d KiB avg, "
+                                + "headers %d ms avg, body %d ms avg, %d retries",
+                        served / BYTES_PER_MB, seconds, served / BYTES_PER_MB / seconds, activeRanges, reads,
+                        reads == 0 ? 0 : readBytes / reads / BYTES_PER_KIB,
+                        reads == 0 ? 0 : headerNanos / reads / NANOS_PER_MS,
+                        reads == 0 ? 0 : bodyNanos / reads / NANOS_PER_MS, retries));
+                restart(now);
+            }
+        }
+
+        private void restart(long now) {
+            windowStart = now;
+            served = 0;
+            reads = 0;
+            readBytes = 0;
+            headerNanos = 0;
+            bodyNanos = 0;
+            retries = 0;
+        }
+    }
+
     private static final class Piece {
         final long offset;
         final long length;
@@ -248,42 +310,31 @@ final class DashFile {
         int videoId = trackId(videoInit);
         int audioId = videoId + 1;
         long templateTimescale = video.template.timescale;
-        long videoTimescale = mediaTimescale(videoInit);
         long durationUnits = 0;
         for (Segment segment : videoSegments) durationUnits += segment.duration;
         long durationMs = durationUnits * MS_PER_SECOND / templateTimescale;
 
         List<Segment> ordered = new ArrayList<>();
         List<Integer> trackIds = new ArrayList<>();
-        List<Reference> references = new ArrayList<>();
         int nextAudio = 0;
         double audioScale = (double) templateTimescale / audio.template.timescale;
-        long firstStart = videoSegments.get(0).startTime;
-        long elapsed = firstStart;
-        long indexedEnd = firstStart * videoTimescale / templateTimescale;
         for (int i = 0; i < videoSegments.size(); i++) {
-            Segment videoSegment = videoSegments.get(i);
-            long groupBytes = videoSegment.byteLength - videoSegment.prefixBytes;
-            ordered.add(videoSegment);
+            ordered.add(videoSegments.get(i));
             trackIds.add(videoId);
             boolean last = i + 1 == videoSegments.size();
             long until = last ? Long.MAX_VALUE : videoSegments.get(i + 1).startTime;
             while (nextAudio < audioSegments.size()
                     && (last || audioSegments.get(nextAudio).startTime * audioScale < until)) {
-                Segment audioSegment = audioSegments.get(nextAudio++);
-                ordered.add(audioSegment);
+                ordered.add(audioSegments.get(nextAudio++));
                 trackIds.add(audioId);
-                groupBytes += audioSegment.byteLength - audioSegment.prefixBytes;
             }
-            elapsed += videoSegment.duration;
-            long end = elapsed * videoTimescale / templateTimescale;
-            references.add(new Reference(groupBytes, end - indexedEnd));
-            indexedEnd = end;
         }
 
         byte[] moov = moov(videoInit, audioInit, audioId, durationMs);
-        byte[] sidx = sidx(videoId, videoTimescale, firstStart * videoTimescale / templateTimescale, references);
-        byte[] head = concat(slice(videoInit, child(videoInit, 0, videoInit.length, "ftyp")), moov, sidx);
+        byte[] audioSidx = trackIndex(ordered, trackIds, audioId, mediaTimescale(audioInit), audio.template.timescale, 0);
+        byte[] videoSidx = trackIndex(ordered, trackIds, videoId, mediaTimescale(videoInit), templateTimescale,
+                audioSidx.length);
+        byte[] head = concat(slice(videoInit, child(videoInit, 0, videoInit.length, "ftyp")), moov, videoSidx, audioSidx);
         Piece[] pieces = new Piece[ordered.size()];
         long offset = head.length;
         for (int i = 0; i < pieces.length; i++) {
@@ -297,12 +348,31 @@ final class DashFile {
         return UNPACED_CDN_HOST.equals(Uri.parse(manifestUrl).getHost());
     }
 
+    String readPattern() {
+        return parallelReads + " x " + readChunkBytes / BYTES_PER_KIB + " KiB reads";
+    }
+
     void write(OutputStream out, long start, long end) throws IOException {
+        long begun = System.nanoTime();
+        long[] served = {0};
+        TRANSFER.rangeStarted();
+        try {
+            writeRange(out, start, end, served);
+        } finally {
+            int others = TRANSFER.rangeEnded();
+            double seconds = (System.nanoTime() - begun) / (double) (MS_PER_SECOND * NANOS_PER_MS);
+            Log.i(TAG, String.format(Locale.ROOT, "DASH range %d-%d: %.1f MB in %.1f s = %.1f MB/s, %d ranges still open",
+                    start, end, served[0] / BYTES_PER_MB, seconds, served[0] / BYTES_PER_MB / seconds, others));
+        }
+    }
+
+    private void writeRange(OutputStream out, long start, long end, long[] served) throws IOException {
         long at = start;
         if (at < head.length) {
             int count = (int) (Math.min(end + 1, head.length) - at);
             out.write(head, (int) at, count);
             at += count;
+            served[0] += count;
         }
         out.flush();
         ExecutorService pool = Executors.newFixedThreadPool(parallelReads);
@@ -327,7 +397,10 @@ final class DashFile {
                 }
                 Future<byte[]> next = pending.poll();
                 if (next == null) return;
-                out.write(await(next));
+                byte[] chunk = await(next);
+                out.write(chunk);
+                served[0] += chunk.length;
+                TRANSFER.served(chunk.length);
             }
         } finally {
             reads.close();
@@ -370,6 +443,7 @@ final class DashFile {
                 boolean cancelled = failure instanceof InterruptedIOException
                         && !(failure instanceof SocketTimeoutException);
                 if (attempt == CDN_ATTEMPTS || cancelled) throw failure;
+                TRANSFER.retry();
                 Log.w(TAG, "CDN read attempt " + attempt + " of " + CDN_ATTEMPTS + " failed", failure);
                 try {
                     Thread.sleep(CDN_RETRY_DELAY_MS);
@@ -386,6 +460,8 @@ final class DashFile {
         long end = piece.prefixBytes + to;
         byte[] bytes = new byte[(int) (to - from + 1)];
         HttpURLConnection connection = null;
+        long requested = System.nanoTime();
+        long answered;
         try {
             connection = connect(piece.url, "bytes=" + start + "-" + end, cookies, reads);
             String contentRange = connection.getHeaderField("Content-Range");
@@ -393,6 +469,7 @@ final class DashFile {
                     || contentRange == null || !contentRange.startsWith("bytes " + start + "-" + end + "/")) {
                 throw new IOException("expected bytes " + start + "-" + end + ", got " + contentRange + " for " + piece.url);
             }
+            answered = System.nanoTime();
             try (InputStream in = connection.getInputStream()) {
                 for (int got = 0; got < bytes.length; ) {
                     int count = in.read(bytes, got, bytes.length - got);
@@ -407,6 +484,7 @@ final class DashFile {
         } finally {
             if (connection != null) reads.remove(connection);
         }
+        TRANSFER.read(bytes.length, answered - requested, System.nanoTime() - answered);
         for (int k = 0; k < TRACK_ID_BYTES; k++) {
             long index = piece.trackIdOffset + k - from;
             if (index >= 0 && index < bytes.length) {
@@ -739,12 +817,41 @@ final class DashFile {
         return trak;
     }
 
-    private static byte[] sidx(int referenceId, long timescale, long earliestTime, List<Reference> references) {
+    private static byte[] trackIndex(List<Segment> ordered, List<Integer> trackIds, int trackId, long mediaTimescale,
+                                     long templateTimescale, long bytesAfterIndex) {
+        List<Segment> segments = new ArrayList<>();
+        List<Long> starts = new ArrayList<>();
+        long position = 0;
+        for (int i = 0; i < ordered.size(); i++) {
+            Segment segment = ordered.get(i);
+            if (trackIds.get(i) == trackId) {
+                segments.add(segment);
+                starts.add(position);
+            }
+            position += segment.byteLength - segment.prefixBytes;
+        }
+        List<Reference> references = new ArrayList<>();
+        long elapsed = segments.get(0).startTime;
+        long earliestTime = elapsed * mediaTimescale / templateTimescale;
+        long indexedEnd = earliestTime;
+        for (int i = 0; i < segments.size(); i++) {
+            long next = i + 1 < starts.size() ? starts.get(i + 1) : position;
+            elapsed += segments.get(i).duration;
+            long end = elapsed * mediaTimescale / templateTimescale;
+            references.add(new Reference(next - starts.get(i), end - indexedEnd));
+            indexedEnd = end;
+        }
+        return sidx(trackId, mediaTimescale, earliestTime, bytesAfterIndex + starts.get(0), references);
+    }
+
+    private static byte[] sidx(int referenceId, long timescale, long earliestTime, long firstOffset,
+                               List<Reference> references) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         byte[] fixed = new byte[SIDX_FIXED_BYTES];
         putU32(fixed, SIDX_REFERENCE_ID, referenceId);
         putU32(fixed, SIDX_TIMESCALE, timescale);
         putU32(fixed, SIDX_EARLIEST_TIME, earliestTime);
+        putU32(fixed, SIDX_FIRST_OFFSET, firstOffset);
         putU16(fixed, SIDX_REFERENCE_COUNT, references.size());
         out.write(fixed, 0, fixed.length);
         byte[] entry = new byte[SIDX_REFERENCE_BYTES];

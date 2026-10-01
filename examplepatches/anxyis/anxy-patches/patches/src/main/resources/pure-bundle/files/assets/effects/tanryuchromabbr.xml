@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.chromabbr" name="Chromatic Abberation" desc="Create a fish lens effect with an RGB glitch effect" category="color" tags="color" deprecated="false" thumb="thumb/TANRYU/chroo.png">
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <spinner id="amp" default="-0.15" min="-10.0" max="10.0" label="Amplitude" step="0.0025" />
+        <spinner id="rgbsplit" default="0.0" min="-10.0" max="10.0" label="RGB Split" step="0.001" />
+        <spinner id="alphaa" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+
+        <switch id="new" default="true" label="New Fisheye" />
+        <texture id="xdist" srcType="buffer" downsample="2" />
+      
+
+    </params>
+    
+    <passes>
+        <pass target="xdist" />
+        <pass />
+    </passes>
+    
+    <script lang="js"><![CDATA[
+
+        function animate(env,el,p) {
+            let groups = [];
+            if( p.alphaa > 0.0001 ) {
+                groups.push(0);
+            }
+            el.shaderGroups = groups;
+            return el;
+        }
+
+    ]]></script>
+
+    <shader type="fragment"><![CDATA[
+        
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+        
+        vec2 computeUVnew( vec2 uv, float k, float kcube){
+    
+                vec2 offsetScale = vec2(1., 1.);
+                if( acScreenSize.y > acScreenSize.x ) {
+                    offsetScale.x *= acScreenSize.x / acScreenSize.y;
+                } else {
+                    offsetScale.y *= acScreenSize.y / acScreenSize.x;
+                }
+        uv *= offsetScale;
+    
+        vec2 t = uv - (offsetScale * 0.5);
+        float r2 = t.x * t.x + t.y * t.y;
+    	float f = 0.;
+        
+        if( kcube == 0.0){
+            f = 1. + r2 * k;
+        }else{
+            f = 1. + r2 * ( k + kcube * sqrt( r2 ) );
+        }
+        
+        vec2 nUv = f * t + (offsetScale * 0.5);
+        //nUv.y = nUv.y;
+        return nUv/offsetScale;
+    
+    }
+    
+        vec2 computeUV( vec2 uv, float k, float kcube){
+    
+        vec2 t = uv - .5;
+        float r2 = t.x * t.x + t.y * t.y;
+    	float f = 0.;
+        
+        if( kcube == 0.0){
+            f = 1. + r2 * k;
+        }else{
+            f = 1. + r2 * ( k + kcube * sqrt( r2 ) );
+        }
+        
+        vec2 nUv = f * t + .5;
+        nUv.y = nUv.y;
+     
+        return nUv;
+        
+    }
+    
+    void main() {
+    
+        if( acPass == 0 ) {
+            gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st);
+            }
+        else if( acPass==1 ) {
+    
+        vec4 result;
+    	vec2 uv = acScreenNorm;
+        // uv += position*vec2(-1.,1.)/500.;
+        // uv *= scalex;
+        // uv *= rot2m(angle*0.0174533);
+
+    	
+    	//vec2 uv = vec2(gl_FragCoord.x / resolution.x, gl_FragCoord.y / resolution.y);
+        float k = 0.0;
+        float kcube = amp;
+        if (kcube < -1.0) {
+        kcube = kcube * kcube *-1.;
+    }
+        
+        float offset = rgbsplit;
+    
+        result = vec4(0.0);
+    if (new) {
+        float red = (texture2DCv(inputImg.texture, computeUVnew( vec2(uv.x, uv.y), k + offset, kcube ) ).r); 
+        float green = (texture2DCv(inputImg.texture, computeUVnew( vec2(uv.x, uv.y), k, kcube) ).g); 
+        float blue = (texture2DCv(inputImg.texture, computeUVnew( vec2(uv.x, uv.y), k - offset, kcube) ).b); 
+        result = vec4( red, green,blue, 1.);
+    } else {
+        float red = texture2DCv(inputImg.texture, computeUV( vec2(uv.x, uv.y), k + offset, kcube ) ).r; 
+        float green = texture2DCv(inputImg.texture, computeUV( vec2(uv.x, uv.y), k, kcube) ).g; 
+        float blue = texture2DCv(inputImg.texture, computeUV( vec2(uv.x, uv.y), k - offset, kcube) ).b; 
+        result = vec4( red, green,blue, 1.);
+    }
+    
+    vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+    gl_FragColor = mix(texColor,result,alphaa) * texColor.a;
+      
+      }
+    }
+        ]]></shader>
+
+</effect>

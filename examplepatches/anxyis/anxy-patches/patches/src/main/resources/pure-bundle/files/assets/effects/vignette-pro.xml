@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.vignette-pro" name="@string/name" desc="@string/desc" category="drawing" thumb="thumb/vignette-pro.webp" tags="drawing,vignette,frame,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Vignette Pro</string>
+            <string name="desc">Smooth customizable vignette that can darken or tint the edges of the frame.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Center" />
+        <color id="color" default="#FF000000" label="Color" alpha="false" />
+        <slider id="size" default="0.7" min="0.1" max="1.5" label="Size" />
+        <slider id="softness" default="0.5" min="0.05" max="1.0" label="Softness" />
+        <slider id="amount" default="0.8" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a>0.0? src.rgb/src.a : src.rgb;
+            vec2 ctr = center/1000.0 + 0.5;
+            vec2 d = (acScreenNorm - ctr);
+            d.x *= acScreenSize.x/acScreenSize.y;
+            float r = length(d)*1.4142;
+            float v = smoothstep(size, size-softness, r);
+            vec3 outc = mix(color.rgb, c, mix(1.0, v, amount));
+            gl_FragColor = vec4(outc,1.0)*src.a;
+        }
+    ]]></shader>
+
+</effect>

@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra2.crystallize" name="@string/name" desc="@string/desc" category="stylize" thumb="thumb/crystallize.webp" tags="stylize,voronoi,crystal,mosaic,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">Crystallize</string>
+            <string name="desc">Shatters the image into faceted crystal cells using a Voronoi pattern.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="size" default="20.0" min="5.0" max="80.0" label="Cell Count" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            float sc = size;
+            vec2 g = acScreenNorm*sc;
+            vec2 ip = floor(g);
+            vec2 fp = fract(g);
+            float md = 9.0;
+            vec2 best = ip;
+            for(int y=-1;y<=1;y++){
+                for(int x=-1;x<=1;x++){
+                    vec2 nb = vec2(float(x),float(y));
+                    vec2 o = vec2(rand(ip+nb), rand(ip+nb+3.3));
+                    vec2 diff = nb + o - fp;
+                    float dd = dot(diff,diff);
+                    if(dd<md){ md=dd; best = ip+nb+o; }
+                }
+            }
+            gl_FragColor = texture2DCv(inputImg.texture, clamp(best/sc,0.0,1.0));
+        }
+    ]]></shader>
+
+</effect>

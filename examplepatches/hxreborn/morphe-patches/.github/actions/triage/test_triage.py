@@ -116,7 +116,7 @@ https://proton-mail.en.softonic.com/android
 {LONG}
 """),
     "no issue form used": ("close", "the app doesnt open pls fix it\n"),
-    "too short": ("close", """### App name
+    "too short": ("flag", """### App name
 
 Proton Mail
 
@@ -128,7 +128,7 @@ Proton Mail
 
 app not open
 """),
-    "unknown app": ("close", f"""### App name
+    "unknown app": ("flag", f"""### App name
 
 Duolingo
 
@@ -162,6 +162,159 @@ Patching failed
 ### Applying patches
 app.morphe.patcher.patch.PatchException: Failed to match
 ```
+"""),
+    "short description with the error report attached": ("pass", """### App and version
+
+Proton Mail 7.10.4
+
+### Other version
+
+_No response_
+
+### What happened
+
+Patching failed
+
+### Bug description
+
+Fail to patch giving this error below.
+Thanks!
+
+### Error logs
+
+Manager: 1.32.0
+Patcher: 1.14.1
+
+app.morphe.patcher.patch.PatchException: no native library found
+"""),
+    "markdown heading inside the description": ("pass", f"""### App and version
+
+Proton Mail 7.10.4
+
+### Bug description
+
+Install fails.
+## Steps
+{LONG}
+"""),
+    "unclosed code fence in another field": ("pass", f"""### APK source
+
+```apkmirror
+
+### App and version
+
+Proton Mail 7.10.4
+
+### Bug description
+
+{LONG}
+"""),
+    "tilde fence around the log": ("pass", """### App and version
+
+Proton Mail 7.10.4
+
+### Bug description
+
+Fail to patch giving this error below.
+
+### Error logs
+
+~~~
+### Applying patches
+app.morphe.patcher.patch.PatchException: no native library found
+~~~
+"""),
+    "repackager named in the description only": ("pass", f"""### App and version
+
+Proton Mail 7.10.4
+
+### APK source
+
+https://www.apkmirror.com/apk/proton-technologies-ag/
+
+### Bug description
+
+{LONG} I did not use softonic.
+"""),
+    "source host that merely ends like a repackager": ("pass", f"""### App and version
+
+Proton Mail 7.10.4
+
+### APK source
+
+https://titan1.com/proton-mail
+
+### Bug description
+
+{LONG}
+"""),
+    "bare logcat with a short description": ("pass", """### App and version
+
+Proton Mail 7.10.4
+
+### Bug description
+
+Crashes on start.
+
+### Error logs
+
+09-30 10:00:01 E/AndroidRuntime: FATAL EXCEPTION: main
+java.lang.NullPointerException
+\tat app.x.Y.z(Y.java:1)
+"""),
+    "localized manager report without a marker word": ("pass", """### App and version
+
+Proton Mail 7.10.4
+
+### Bug description
+
+Не удалось пропатчить.
+
+### Error logs
+
+Менеджер: 1.32.0
+Android: 16 (API 36)
+Память: 2.01 GB / 7.85 GB
+"""),
+    "long description in a script without spaces": ("pass", """### App and version
+
+Proton Mail 7.10.4
+
+### Bug description
+
+修补过程在中途停止并且显示一个错误对话框，最终没有生成任何输出文件，我已经尝试了多次并且每次都是同样的结果，请帮忙看看。
+"""),
+    "junk in the log field": ("flag", """### App and version
+
+Proton Mail 7.10.4
+
+### Bug description
+
+it broke
+
+### Error logs
+
+asdf
+"""),
+    "dropdown version made of two words": ("pass", f"""### App and version
+
+RISE Sleep Tracker Android V1.78.47
+
+### Bug description
+
+{LONG}
+"""),
+    "bare number for a target that carries a platform word": ("pass", f"""### App name
+
+RISE Sleep Tracker
+
+### App version
+
+v1.78.47
+
+### Bug description
+
+{LONG}
 """),
     "patching failed without a report": ("flag", f"""### App name
 
@@ -223,7 +376,7 @@ I have not tried the unpatched app
 
 {LONG}
 """),
-    "unpatched app fails the same way": ("close", f"""### App name
+    "unpatched app fails the same way": ("flag", f"""### App name
 
 Showly
 

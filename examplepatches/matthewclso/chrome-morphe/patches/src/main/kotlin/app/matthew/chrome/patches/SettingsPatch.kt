@@ -16,6 +16,12 @@ private const val SETTINGS = "Lapp/matthew/chrome/extension/PatchSettings;"
 private const val THEME_PICKER = "Lapp/matthew/chrome/extension/ThemePicker;"
 private const val BLACK_THEME = "Lapp/matthew/chrome/extension/BlackTheme;"
 private const val SETTINGS_ACTIVITY = "app.matthew.chrome.extension.MorpheSettingsActivity"
+// These are the Drawable owners used by this exact Chrome build. Icon lives in
+// the same package but is not a Drawable, and its tint methods return Icon.
+private val DRAWABLE_TINT_OWNERS = setOf(
+    "Landroid/graphics/drawable/Drawable;",
+    "Landroid/graphics/drawable/LayerDrawable;",
+)
 
 private val settingsResources = resourcePatch {
     execute {
@@ -134,6 +140,25 @@ val settingsPatch = bytecodePatch(
             }
         }
 
+        // The scrolling compositor draws its own toolbar and URL-field surfaces.
+        // TopToolbarSceneLayer.bind is inlined here; normalize only its two color
+        // arguments, preserving resource IDs, offsets and visibility.
+        val compositor = mutableClassDefBy("Lzns;").methods.single { it.name == "d" }
+        val toolbarJni = "LJ/N;->VFFFIIIIJOOZZZ(FFFIIIIJLjava/lang/Object;Ljava/lang/Object;ZZZ)V"
+        val toolbarCall = compositor.implementation!!.instructions.withIndex().single {
+            (it.value as? ReferenceInstruction)?.reference.toString() == toolbarJni
+        }
+        check(compositor.implementation!!.registerCount == 26)
+        check((toolbarCall.value as RegisterRangeInstruction).startRegister == 4 &&
+            (toolbarCall.value as RegisterRangeInstruction).registerCount == 14)
+        compositor.replaceInstruction(toolbarCall.index, "invoke-static {v8}, $BLACK_THEME->background(I)I")
+        compositor.addInstructions(toolbarCall.index + 1, """
+            move-result v8
+            invoke-static {v10}, $BLACK_THEME->background(I)I
+            move-result v10
+            invoke-static/range {v4 .. v17}, $toolbarJni
+        """.trimIndent())
+
         var backgrounds = 0
         var feedDraws = 0
         classDefForEach { cls ->
@@ -170,9 +195,9 @@ val settingsPatch = bytecodePatch(
                             ref.name == "setBackgroundTintList" && ref.parameterTypes == listOf("Landroid/content/res/ColorStateList;") &&
                                 (ref.definingClass == "Landroid/view/View;" || ref.definingClass.startsWith("Landroid/widget/")) ->
                                 "setBackgroundTint(Landroid/view/View;Landroid/content/res/ColorStateList;)V"
-                            ref.definingClass.startsWith("Landroid/graphics/drawable/") && ref.name == "setTint" && ref.parameterTypes == listOf("I") ->
+                            ref.definingClass in DRAWABLE_TINT_OWNERS && ref.returnType == "V" && ref.name == "setTint" && ref.parameterTypes == listOf("I") ->
                                 "setDrawableTint(Landroid/graphics/drawable/Drawable;I)V"
-                            ref.definingClass.startsWith("Landroid/graphics/drawable/") && ref.name == "setTintList" && ref.parameterTypes == listOf("Landroid/content/res/ColorStateList;") ->
+                            ref.definingClass in DRAWABLE_TINT_OWNERS && ref.returnType == "V" && ref.name == "setTintList" && ref.parameterTypes == listOf("Landroid/content/res/ColorStateList;") ->
                                 "setDrawableTintList(Landroid/graphics/drawable/Drawable;Landroid/content/res/ColorStateList;)V"
                             cls.type == "Lorg/chromium/chrome/browser/toolbar/top/ToolbarPhone;" && ref.definingClass == "Landroid/graphics/Paint;" && ref.name == "setColor" ->
                                 "setPaintColor(Landroid/graphics/Paint;I)V"

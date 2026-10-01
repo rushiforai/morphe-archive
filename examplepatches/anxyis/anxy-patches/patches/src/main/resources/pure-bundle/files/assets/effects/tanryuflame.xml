@@ -1,0 +1,154 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.flame"
+    name="Flame"
+    desc="Amazing New Extra FX from the Modder"
+    category="other" 
+    tags="other"
+    thumb="thumb/TANRYU/flame.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <!-- <texture id="black" srcType="image" src="textures/black.png" /> -->
+        <!-- <color id="color1" default="#FFE51900" label="@am:string/effect_param_color" alpha="true" /> -->
+        <point id="position" label="@am:string/effect_param_offset" />
+        <spinner id="progress" label="Progress" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
+        <spinner id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <!-- <switch id="adaptive" default="false" label="Adaptive to Layer" /> -->
+        <color id="color1" default="#FF000000" label="Color BG" alpha="true" />
+        <color id="color2" default="#FF00FF00" label="Color FG" alpha="true" />
+         <slider id="alphab" default="0.0" min="0.0" max="1.0" step="0.01" label="Alpha Blend" type="percent" />
+
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+        <!-- <tip text="A" /> -->
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+   float rand(vec2 n) {
+        return fract(sin(cos(dot(n, vec2(12.9898,12.1414)))) * 83758.5453);
+    }
+    
+    float noise(vec2 n) {
+        const vec2 d = vec2(0.0, 1.0);
+        vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));
+        return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
+    }
+    
+    float fbm(vec2 n) {
+        float total = 0.0, amplitude = 1.0;
+        for (int i = 0; i <5; i++) {
+            total += noise(n) * amplitude;
+            n += n*1.7;
+            amplitude *= 0.47;
+        }
+        return total;
+    }
+    
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        // if (adaptive) { TanRyu = acScreenNorm; }
+        // else { 
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        TanRyu.x = 1.-TanRyu.x;
+
+        // }
+
+        TanRyu /= scale;
+        TanRyu *= rot2m((180.0+angle)*0.0174533);
+        TanRyu += vec2(position.x, (180.0+position.y))*vec2(-1.,1.)/500.;
+        
+        /////////////////////////
+
+    	vec4 result;
+    	
+    	const vec3 c1 = vec3(0.5, 0.0, 0.1);
+        const vec3 c2 = vec3(0.9, 0.1, 0.0);
+        const vec3 c3 = vec3(0.2, 0.1, 0.7);
+        const vec3 c4 = vec3(1.0, 0.9, 0.1);
+        const vec3 c5 = vec3(0.1);
+        const vec3 c6 = vec3(0.9);
+    
+        vec2 speed = vec2(0.1, 0.9);
+        float shift = 1.327+sin(progress*2.0)/2.4;        
+    	float dist = 3.5-sin(progress*0.4)/1.89;
+        
+        vec2 uv = TanRyu;
+        vec2 p = TanRyu * dist;
+        // vec2 p = TanRyu * dist / acScreenSize.xx;
+        p += sin(p.yx*4.0+vec2(.2,-.3)*progress)*0.04;
+        p += sin(p.yx*8.0+vec2(.6,+.1)*progress)*0.01;
+        
+        p.x -= progress/1.1;
+        float q = fbm(p - progress * 0.3+1.0*sin(progress+0.5)/2.0);
+        float qb = fbm(p - progress * 0.4+0.1*cos(progress)/2.0);
+        float q2 = fbm(p - progress * 0.44 - 5.0*cos(progress)/2.0) - 6.0;
+        float q3 = fbm(p - progress * 0.9 - 10.0*cos(progress)/15.0)-4.0;
+        float q4 = fbm(p - progress * 1.4 - 20.0*sin(progress)/14.0)+2.0;
+        q = (q + qb - .4 * q2 -2.0*q3  + .6*q4)/3.8;
+        vec2 r = vec2(fbm(p + q /2.0 + progress * speed.x - p.x - p.y), fbm(p + q - progress * speed.y));
+        vec3 c = mix(c1, c2, fbm(p + r)) + mix(c3, c4, r.x) - mix(c5, c6, r.y);
+        vec3 color = vec3(1.0/(pow(c+1.61,vec3(4.0))) * cos(shift * acScreenSize.y));
+        
+        color=vec3(1.0,.2,.05)/(pow((r.y+r.y)* max(.0,p.y)+0.1, 4.0));;
+        color += (vec4(0.,0.,0.,uv*0.6+vec2(.5,.1)).xyz*0.01*pow((r.y+r.y)*.65,5.0)+0.055)*mix( vec3(.9,.4,.3),vec3(.7,.5,.2), uv.y);
+        color = color/(1.0+max(vec3(0),color));
+        result = vec4(color.x, color.y, color.z, 1.0);
+        
+    	    const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            vec4 gradmap;
+            float luminance = dot(result.rgb, luminanceWeighting);
+            gradmap = mix(color1,color2,luminance)*result.a;
+        
+    	// vec4 factor = mix(texColorX,gradmap,alpha);
+    	vec4 factorx = mix(result,gradmap,alphab);
+    	vec4 factor = mix(texColorX,factorx,alpha);
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = resultfinal;
+    }
+
+
+    ]]></shader>
+
+</effect>

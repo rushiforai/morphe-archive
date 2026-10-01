@@ -64,10 +64,10 @@ public final class ShareSheetTools {
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     /** One family for everything that touches the sheet, so an export reads as one surface. */
     private static final String FAMILY = ShareModelFilter.FAMILY;
-    private static final String[] CONTACTS_SECTION_IDS = {"47.0.3:ip5", "47.1.3:iql"};
-    private static final String[] CONTACTS_LIST_IDS = {"47.0.3:v3j", "47.1.3:v71"};
-    private static final String[] CHANNELS_LIST_IDS = {"47.0.3:dwr", "47.1.3:dxb"};
-    private static final String[] ACTIONS_LIST_IDS = {"47.0.3:a5t", "47.1.3:a5u"};
+    private static final String[] CONTACTS_SECTION_IDS = {"47.0.3:ip5", "47.1.3:iql", "47.1.4:iql"};
+    private static final String[] CONTACTS_LIST_IDS = {"47.0.3:v3j", "47.1.3:v71", "47.1.4:v71"};
+    private static final String[] CHANNELS_LIST_IDS = {"47.0.3:dwr", "47.1.3:dxb", "47.1.4:dxb"};
+    private static final String[] ACTIONS_LIST_IDS = {"47.0.3:a5t", "47.1.3:a5u", "47.1.4:a5u"};
 
     /**
      * How long a first tap stays armed before a second tap is needed again. The settings row

@@ -1223,6 +1223,75 @@ try {
             $atAllowlist.Note -like "*allowlist at its own commit $($allowlistCommit.Substring(0, 8)) reviews*") `
             "The receipt was not held to the allowlist its own commit carried (byte order mark: $bom): $(@($atAllowlist.Entries) -join ', ') / $($atAllowlist.Note)"
     }
+    # The one with a byte order mark again, under a console on code page 437, which a hook's pwsh
+    # gets when the push starts in Git Bash. PowerShell decoded git's UTF-8 with it, the mark came
+    # back as U+2229 U+2557 U+2510, and the allowlist's first line was refused as malformed. The
+    # console's own encoding has to be back once the read is done.
+    $consoleEncoding = [Console]::OutputEncoding
+    try {
+        [Console]::OutputEncoding = [System.Text.Encoding]::GetEncoding(437)
+        $allowlistCommit = Save-FixtureAllowlist @('# reviewed at the release', $reviewed) -Bom -Commit
+        Save-FixtureAllowlist @('# added since, never committed', $unreviewed) | Out-Null
+        $oemAllowlist = $null
+        $oemFailure = $null
+        try {
+            $oemAllowlist = Resolve-ReceiptManifestAllowlist -Root $toolchainRoot -Commit $allowlistCommit -WorkingPath $allowlistFile
+        } catch {
+            $oemFailure = $_.Exception.Message
+        }
+        $oemAfter = [Console]::OutputEncoding.CodePage
+    } finally {
+        [Console]::OutputEncoding = $consoleEncoding
+    }
+    Assert-True ($null -eq $oemFailure -and (@($oemAllowlist.Entries) -join ',') -ceq $reviewed) `
+        "An allowlist with a byte order mark was misread under a code page 437 console: $oemFailure $(@($oemAllowlist.Entries) -join ', ')"
+    Assert-True ($oemAfter -eq 437) "Reading git's output left the console on code page $oemAfter instead of putting 437 back."
+    # The same helper in a process with no console, a detached start or a service. There Windows
+    # PowerShell 5.1's setter throws "The handle is invalid." before git runs, while pwsh 7 keeps
+    # the value. Each edition installed here gets a child that detaches from its console and runs
+    # the helper. The child starts no program of its own after that: Windows gives a console
+    # program started from a process with no console a console window of its own. So it checks the
+    # encoding PowerShell decodes a native command's output with, inside the block and after it.
+    $noConsoleChild = Join-Path $toolchainRoot 'no-console-child.ps1'
+    Set-Content -LiteralPath $noConsoleChild -Encoding UTF8 -Value @'
+param([string]$Common, [string]$Result)
+$ErrorActionPreference = 'Stop'
+. $Common
+Add-Type -Namespace ContractNoConsole -Name Kernel -MemberDefinition '[System.Runtime.InteropServices.DllImport("kernel32.dll")] public static extern bool FreeConsole();'
+$lines = @('detached ' + [ContractNoConsole.Kernel]::FreeConsole())
+$before = [Console]::OutputEncoding.CodePage
+try {
+    $inside = Use-Utf8ConsoleOutput { [Console]::OutputEncoding.CodePage }
+    $lines += 'inside ' + $inside
+} catch {
+    $lines += 'threw ' + $_.Exception.Message
+}
+$lines += 'after ' + [Console]::OutputEncoding.CodePage + ' before ' + $before
+Set-Content -LiteralPath $Result -Value $lines
+'@
+    $noConsoleShells = @((Get-Process -Id $PID).Path)
+    $otherEdition = if ($PSVersionTable.PSEdition -eq 'Core') {
+        Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    } else {
+        (Get-Command pwsh -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+    }
+    if ($otherEdition -and (Test-Path -LiteralPath $otherEdition)) { $noConsoleShells += $otherEdition }
+    foreach ($noConsoleShell in $noConsoleShells) {
+        $noConsoleResult = Join-Path $toolchainRoot ('no-console-' + [guid]::NewGuid().ToString('N') + '.txt')
+        $preference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            & $noConsoleShell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $noConsoleChild `
+                -Common (Join-Path $PSScriptRoot 'common.ps1') -Result $noConsoleResult 2>&1 | Out-Null
+        } finally {
+            $ErrorActionPreference = $preference
+        }
+        $noConsole = if (Test-Path -LiteralPath $noConsoleResult) { @(Get-Content -LiteralPath $noConsoleResult) } else { @() }
+        $noConsoleBefore = if ($noConsole.Count -eq 3 -and $noConsole[2] -match ' before (\d+)$') { $Matches[1] } else { '?' }
+        Assert-True ($noConsole.Count -eq 3 -and $noConsole[0] -eq 'detached True' -and $noConsole[1] -eq 'inside 65001' -and
+            $noConsole[2] -eq "after $noConsoleBefore before $noConsoleBefore") `
+            "Use-Utf8ConsoleOutput with no console under $noConsoleShell did not read UTF-8 and put the encoding back: $($noConsole -join ' / ')"
+    }
     $atNoAllowlist = Resolve-ReceiptManifestAllowlist -Root $toolchainRoot -Commit $releaseCommitSha -WorkingPath $allowlistFile
     Assert-True ((@($atNoAllowlist.Entries) -join ',') -ceq $unreviewed -and $atNoAllowlist.Note -like '*has no manifest delta allowlist*') `
         "A commit with no allowlist did not fall back to the working one, saying so: $($atNoAllowlist.Note)"

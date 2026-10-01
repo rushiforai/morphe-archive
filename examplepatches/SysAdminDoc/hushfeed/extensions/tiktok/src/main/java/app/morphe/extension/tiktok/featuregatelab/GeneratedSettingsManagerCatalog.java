@@ -7,13 +7,13 @@
 package app.morphe.extension.tiktok.featuregatelab;
 
 /**
- * Generated from TikTok 47.0.3 (version code 2024700030) and TikTok 47.1.3 (version code 2024701030), from SettingsManager reads with a key, a model class and a default.
+ * Generated from TikTok 47.0.3 (version code 2024700030) and TikTok 47.1.3 (version code 2024701030) and TikTok 47.1.4 (version code 2024701040), from SettingsManager reads with a key, a model class and a default.
  * The rows every build has are stored once; each build's other rows follow, in
  * GeneratedGateCatalogBuilds.BUILDS order, and a build's rows are the shared ones then its own.
  * Do not edit: ./gradlew :patches:generateGateCatalog writes it again.
  */
 final class GeneratedSettingsManagerCatalog {
-    static final int[] ENTRY_COUNTS = {1554, 1570};
+    static final int[] ENTRY_COUNTS = {1554, 1570, 1570};
     static final String[] SHARED_GZIP_BASE64 = {
             "H4sIAAAAAAAA/+y9a3PjyJUo+Ln3X2xvjbd9xya7q6d953rC4aUoqUrdUokWVVUz155AgECSzBYIYPCQxN7Y/e17HpmJTBBPkmV77k6E3SXm42TmQT7O+3y3",
             "k7FXZP56LQMvzZK1jIQXJPFabr4Kkt0kzyd+HGaJDCflJpj4L2InJmshwkkE5Xngp2Kiuss4EHEhn0U+uY/FnYzLQjxy1Y2pWoqikPEmf1NvsuCx5zz0//21",
@@ -944,6 +944,32 @@ final class GeneratedSettingsManagerCatalog {
                     "1khpN9wBu+no8/ujboprl3+zCEF7NLiC85O5zejcboVskpFGl/steXlBpAdcTr7atIL95UuGll2DnAx2ZaAlQG83SG4pcEm+ygNuU9lqJF1+sOhgpeB10rdH",
                     "2XK7T7aG/WowbWeNKCovsB64piIRulZ8VNUW9z6XJ83tp8an+PvXyn8yO332TgZ51pkJavsxcRiK3ETfs20dNg2nrSj05e+oGQ1e/hVm5MA/fTfuHjRl+k8d",
                     "tmiIWbNvSfa36c5E2pu62zZM6jyp8wH1OKBj7Tl1yv8Bi5UINC0bAAA="
+            },
+            {
+                    "H4sIAAAAAAAA/61ZS3PbOBI+e3+Gao5TQDaHPSQnW7YnSsm2yvIkrpkDCgIhCiMQYABQEmtr//t2A6ReJiVrMqdYQPfXQKMfXzO8qLwSLJeBBe6XzPEgr4Qt",
+                    "iPeEm8xZlZEqF4RHOaKKUhM+I9cP+HNitR5aM1f51X8HjAnNvR98GoxBn3pPG30K+jTpU9SnfEaP9T8Pfh0UfJMWKhMGnz78Oijh18gE6VZcPwDwh/9d5dJI",
+                    "PGLGnMyVD67+V+Z4wZkysDGXsKFrsxHcZSyTWgbJ4t/WMOmcdUyk476SD89TcXjqV4preJLx6I/BpznXXsa/8ZeptO40LwUrs5L5YJ2EVbh6IQ2cwuK+Eh7c",
+                    "msNurSUa/eP19Y1RWPs86MG2BbO+ZJVRcwU7cPrAFcgxL0NQJvedb7WWhSTpKE5IMuNeEoAhclNKp+B8gdzB7pMvf0/Awxb3va+JFujWAkULFCzQnQV60gJ6",
+                    "WRo+0/J4v3F8pz/i+zrJdQATbC55qMDp6UnZ6mO/L1CRNPKeRGQIZi9/VNKAgxICeW6Q75PgRb5AC7S1QBsLtLVAkwXaaQF90Qr6E5GmCuatUFwzvuKBO6ZV",
+                    "vggQ+ZAhXAQFMd5Ed68fFKxDUC6lI7xUkMhB+kBGD9OIex1hx4g62oFe5AYF68kABQM0GaDvMbCLiGybe3OlQWoqILViQQDXLuy6LQl9BaFQRrG9qsDm2q4Z",
+                    "Rwlwsg+s5LDpGdewrkHn6s/xX+BSornJyTQ4yKvPV/gMfeigm27OZlU+V5t+h0dp0iYrecCf10nqJqpOm61f3m5d5PhoiLaG6N8whA/AhcDqO1yAJ+RQS26q",
+                    "8u7oUaJnv9gwhacMj3ylco6veK82x5LKwCupDARD5YdcLPogtcy5qCfL3EeBe+vGvDJi0S03XVgXRAUh9CznEEIWagouHUt7Po8G3RREeC4P9ztDx8g1K/ic",
+                    "GRugKol4sbbUYg+Zz0us4k+uflPFYW3bOj5s20b662tfqIId6ZmooHsUbVgGy+AEUBM1dBGMzt7g0rKwhlyX5a1aSecxlSLSJAK92Ov7e0R5ZwRFNHoWLYbJ",
+                    "PC2mYrX7/cA3Y2nysGg30s2i3lbY2wpaxhhudqLWJccoM7dna1rywiMq3EAbGoHORZmT7t2hnziJW8rwu9Pt6ePBwEmj7HjlkRfyYO0WorPSYQpxX/CDnScD",
+                    "9zfLgzWI/jcIHappCUqgs2fdlzhJCaHfOvHP8QXB9Ju1uZYTzetbCb1Z99dETBchG4blZAnJmEL3lfz77uuP41zBtUtplp3PNdADVthMAqVyQFgxJ88FR6OG",
+                    "Wvvs5yktP8DyS4t1UdDs4e5znn5cvC8wF7G4sQFS4rsymV1DKa6C7GW2pSotVB9RORXqyP2c1SdIDpTuLJYsZOgTUJ42usOkisfS7+UzWzCk631gsRhgG/1i",
+                    "fdildLM44WGxvzjTViyPJePisWQiAtvggPgaGVS8blv2kJvDXUTo2O33awgeUqPGZ0N6DazAYQyDlp5xsTwbWR30uoFrvf8S/CStAMcNE4S/b9C3zbhP4Gd5",
+                    "eHOU9u1+/ig7etbI4XM9S19a4+ULMDl5+HZHaGChQ+hZwnMMuV8omAuEagQnQPOQ4GHwHcpPYaIT8JSTVnSUTWsjWqFyzxCWckzFKYeJUz5DAKSRck8EutW1",
+                    "sQXX9d0Kjuq7BOAa2vLspj6VplAh8XQM2OUPxS2bOZVBzf17/LI0ns2sDe1YczDoWTerCNLhdmS5Acm+WEFhisLt9LETjnnbVKZtr7bgKcVhCIEHAFa4n4+5",
+                    "FEuLKXaoEhbKZdD6Y1HoXG+D6PZ+dHuiupfOAteXbMYbx6VZ+VvHrPytZ1Yuq2LGeaySchOYz5YtST9FHXI7KkqCXz5IAvhIJvHfYcKZZrsEuZBVRGiK0LSB",
+                    "pmegdzl2snpFEPAYVCy7qZt+K9tPGz9164mzEwR9bjD/8bufMRDjEsiVuYGYyR32oDg3vJks/GMMZQ952yHQ6beGl8RQxuiIAYcMM3pqBhmeYfCTKLAhpdVK",
+                    "1KQA6kNQlOBQZKS+V1i3IK2y9uxvvbIFowmMJjCKYBTBaC9Y1xgsN0JXmbxebjk0YlwLIb2/d+nLQduW2+EYurU1Wapp862VCTI7H27lDFwLBS7tw0AYsJ33",
+                    "FTgPM5RYwGBSsjSRM1ticfZnm2TSJEhBPYGyDnSYYLMCipKQUjFDGqXJU7n7GpDmiXfGW7JCoxWarNBkhSYrqQpGK/StlTT4BrUCcvNSlzJJQJ2uxLYAwigI",
+                    "Qe3qrr1ko3PHYguQ7hFiv1vChoV0WG+li59/ksyuocWy6PFUvksdOyXePe3tV+y0joq7ucuFvuutVCbtbeViz90/Q3c8LGIkOA9lVjgpTTu6Nr3q1Jixo02F",
+                    "2iTqFK8fxCK9xnOl5SjIor9D4lhTs3Xt1brGCWC1rX0nAhF19icA/CZQf08YQ4S4qMJFuH3i3wO3y+ZH64BpfEM/7/I6kZqPvnMZHAmeKCCoT1W1EJgqOr4E",
+                    "yg1Q2i13gG46/PKfN90U1i7/ZhGC9mBwJc9P5lbgud0K2CRBjTb3G/LyAkhjWE6+2raCw+VLhpZ9gxQNtmWgIUDvN4huyWGJr/kRtyltOeQuO1p0cqXketK1",
+                    "h9lyc0i2+v1qIG1nNctLz6AeuLpEEbxWfFTVFPculyfN3afGx/j7t9Lfmb0+e8sDP+vMBLX7mNgPhW7C79m2CtuG01QU/PL3phn1Xn4tZ+jAv3w77h41ZfxP",
+                    "HbKokVmT70n263RvIu1M3V0bRnWa1GmPehzQofacOuX/AWdqAigtGwAA"
             }
     };
 

@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect id="com.alightcreative.effects.extra3d.shatter-3d" name="@string/name" desc="@string/desc" category="distort" thumb="thumb/shatter-3d.webp" tags="3d,shatter,explode,tiles,raster">
+
+    <strings>
+        <locale lang="en">
+            <string name="name">3D Shatter</string>
+            <string name="desc">Explodes the layer into 3D tiles that fly toward the camera with depth scaling and shading.</string>
+        </locale>
+    </strings>
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="grid" default="10.0" min="3.0" max="30.0" label="Tile Count" />
+        <slider id="amount" default="0.4" min="0.0" max="1.0" label="Explosion" />
+        <slider id="dark" default="0.4" min="0.0" max="1.0" label="Edge Shade" />
+    </params>
+
+    <shader type="fragment" precision="high"><![CDATA[
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec2 g=acScreenNorm*grid;
+            vec2 id=floor(g);
+            float h=rand(id);
+            float h2=rand(id+3.7);
+            vec2 cellC=(id+0.5)/grid;
+            float depth=mix(1.0, 1.0 - amount*(0.4+0.6*h), 1.0);
+            vec2 dir=vec2(h-0.5, h2-0.5);
+            vec2 uv = cellC + (acScreenNorm-cellC)/depth - dir*amount*0.15;
+            vec2 lc=floor(uv*grid);
+            if(lc!=id){ gl_FragColor=vec4(0.0); return; }
+            vec4 col=texture2DCv(inputImg.texture, clamp(uv,0.0,1.0));
+            col.rgb *= 1.0 - dark*amount*h;
+            gl_FragColor=col;
+        }
+    ]]></shader>
+
+</effect>

@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<effect
+    id="com.alightcreative.effects.metaltexture"
+    name="Metal Texture+"
+    desc="Amazing New Extra FX from the Modder"
+    category="procedural" 
+    tags="other"
+    thumb="thumb/TANRYU/metal.png"
+    experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="noise" srcType="image" src="textures/iChannel1.png" />
+        <texture id="dots" srcType="image" src="textures/dots.png" />
+        <texture id="t11" srcType="image" src="textures/t1.png" />
+        <selector id="texC" style="radio" default="0" label="Texture">
+            <choice label="TYPE 1" value="0" />
+            <choice label="TYPE 2" value="1" />
+            <choice label="TYPE 3" value="2" />
+        </selector>
+        <!-- <spinner id="progressa" label="A" default="1.0" min="-10.0" max="100.0" step="0.01" type="percent" /> -->
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <spinner id="scale" default="1.0" min="0.1" max="5.0" step="0.01" label="Scale" type="percent" />
+        <spinner id="bright" default="1.0" min="1.0" max="10.0" step="0.01" label="Brightness" type="percent" />
+        <spinner id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <spinner id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <switch id="grad" default="false" label="Gradient Map" />
+        <color id="color1" default="#FF000000" label="Color BG" alpha="true" />
+        <color id="color2" default="#FFFFFFFF" label="Color FG" alpha="true" />
+
+        <selector id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <choice label="NORMAL" value="0" />
+            <choice label="MULTIPLY" value="1" />
+            <choice label="SCREEN" value="2" />
+        </selector>
+        <!-- <tip text="A" /> -->
+
+    </params>
+    
+    <shader type="fragment" precision="high"><![CDATA[
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   /////////////////////////
+    
+    
+    
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 TanRyu;
+        // if (adaptive) { TanRyu = acScreenNorm; }
+        // else { 
+        TanRyu = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        TanRyu.y*=acLayerSize.y/acLayerSize.x;
+        // }
+
+        TanRyu /= scale;
+        TanRyu *= rot2m(angle*0.0174533);
+        TanRyu += position*vec2(-1.,1.)/500.;
+        
+        vec2 scaleVec;
+        vec2 fragSize = vec2(1.)/inputImg.size;
+        
+        if(acScreenSize.x > acScreenSize.y) { scaleVec = vec2(scale*(stretch.x+1.0),scale*stretch.y); }
+        else if(acScreenSize.x < acScreenSize.y) { scaleVec = vec2(scale*stretch.x,scale*(stretch.y+1.0)); }
+        else { scaleVec = vec2(scale*stretch.x,scale*stretch.y); }
+        TanRyu /= scaleVec;
+        
+        /////////////////////////
+
+      vec4 result;
+      vec2 uv = TanRyu;
+    
+      float g = 0., l=0.;
+      const float N = 16.;
+      for (float i=0.; i<N; i++) {
+        g+=sqrt(1./N)*(-.5+texture2DCv(noise.texture, uv*vec2(.06,4.18)+i*vec2((7.+1./N)/256.)).x);
+        l+=sqrt(1./N)*(-.5+texture2DCv(noise.texture, vec2(0.,.5)+uv*vec2(.04,0.004)+i*vec2((10.+1./N)/256.)).x);
+      }
+      l = exp(4.*l-1.5);
+      g = exp(1.2*g-1.5);
+      float v = .1*g+.2*l+2.*g*l;
+      
+      vec3 col = vec3(v);
+    
+      result = vec4(pow(col,vec3(1./2.2)),1.0);
+      
+        vec4 factorr;
+        if(texC==0) { factorr = result * texColor.a; }
+        else if(texC==1) { TanRyu *= 70.0; factorr = texture2DCv(dots.texture,TanRyu); }
+    	else if(texC==2) { TanRyu *= 3.5; factorr = texture2DCv(t11.texture,TanRyu); }
+        
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            vec4 gradmap;
+            float luminance = dot(factorr.rgb, luminanceWeighting);
+            gradmap = mix(color1,color2,luminance)*factorr.a;
+        
+    	vec4 factor = grad? mix(texColorX,gradmap,1.0) : mix(texColorX,factorr,1.0);
+    	// vec4 factor = mix(texColorX,result,alpha);
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+    }
+
+
+    ]]></shader>
+
+</effect>

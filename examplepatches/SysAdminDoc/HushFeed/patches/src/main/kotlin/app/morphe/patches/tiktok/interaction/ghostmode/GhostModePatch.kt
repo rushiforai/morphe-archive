@@ -17,11 +17,18 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.guardAtEntry
+import app.morphe.util.matchAllInDefiningClasses
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 
-/** Reports that a story was seen, opened or interacted with. */
-private object StoryViewReportFingerprint : Fingerprint(
+/**
+ * Reports that a story was seen, opened or interacted with.
+ *
+ * <p>definingClass repeats what the custom block checks so the search reads only the classes it
+ * names (matchAllInDefiningClasses); without it every method of TikTok was tried (#54).
+ */
+internal object StoryViewReportFingerprint : Fingerprint(
+    definingClass = "/StoryApi;",
     custom = { method, classDef ->
         classDef.endsWith("/StoryApi;") &&
             method.name in setOf("reportStoryViewed", "reportUserInteraction", "reportStoryReveal")
@@ -29,14 +36,16 @@ private object StoryViewReportFingerprint : Fingerprint(
 )
 
 /** Records a profile visit against the profile's viewer list. */
-private object ProfileViewReportFingerprint : Fingerprint(
+internal object ProfileViewReportFingerprint : Fingerprint(
+    definingClass = "/ProfileViewerApiService;",
     custom = { method, classDef ->
         classDef.endsWith("/ProfileViewerApiService;") && method.name == "reportView"
     },
 )
 
 /** Pushes the "typing…" indicator into a conversation. */
-private object TypingStatusSenderFingerprint : Fingerprint(
+internal object TypingStatusSenderFingerprint : Fingerprint(
+    definingClass = "/TypingStatusSenderTimer;",
     custom = { method, classDef ->
         classDef.endsWith("/TypingStatusSenderTimer;") &&
             method.parameterTypes.size == 1 &&
@@ -126,7 +135,7 @@ val ghostModePatch = bytecodePatch(
             TypingStatusSenderFingerprint to "shouldBlockTypingStatus",
         ).forEach { (fingerprint, guard) ->
             // Retrofit declarations have no body. Every concrete reporting method is mandatory.
-            val reporters = fingerprint.matchAll().map { it.method }.filter { it.implementation != null }
+            val reporters = matchAllInDefiningClasses(fingerprint).map { it.method }.filter { it.implementation != null }
             if (reporters.isEmpty()) {
                 throw PatchException("Ghost mode: no concrete reporter for $guard.")
             }
