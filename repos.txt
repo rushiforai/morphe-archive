@@ -1,4 +1,5 @@
 0-BlackSpectrum-0/channel-blacklist-patch
+0x0day-0wl/morphe-patches
 6ixfalls/revanced-patches
 ARHCOS/arhcos-patches
 Adish08/morphe-patches
@@ -21,6 +22,7 @@ BholeyKaBhakt/android-patches-xtra
 BlazeFTL/FTL-Patches
 BlazeFTL/Morphe-Portal-Patches-New
 BlueDragon4251/tiktok-patches-for-morphe
+Bugg4/bugg4s-patches
 Burhanverse/test
 Canic/twitch-morphe-patch
 CasketPizza/morphe-waze-system-tts
@@ -102,6 +104,7 @@ RoundSalmon4/morphe-patches-template
 Santodan/santodan-patches
 SapitoSucio/FroggoMorphePatches
 SatanMerde/D-moniakPatches
+Satwik-Miyyapuram/morphe-patches
 Seobject/Seobject-patches
 Sfehhrths/ekispert-morphe-patches
 ShuhaibNC/morphe-patches

@@ -2385,6 +2385,38 @@
                 "sortOrder": 316,
                 "createdAt": 1790742177011,
                 "updatedAt": 1790742177011
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/0x0day-0wl/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 317,
+                "createdAt": 1790828572931,
+                "updatedAt": 1790828572931
+            },
+            {
+                "name": "bugg4s-patches",
+                "source": "https://raw.githubusercontent.com/Bugg4/bugg4s-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 318,
+                "createdAt": 1790828573685,
+                "updatedAt": 1790828573685
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Satwik-Miyyapuram/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 319,
+                "createdAt": 1790828575971,
+                "updatedAt": 1790828575971
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/spicetify/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 320,
+                "createdAt": 1790828581442,
+                "updatedAt": 1790828581442
             }
         ]
     }
