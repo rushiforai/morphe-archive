@@ -9,10 +9,11 @@
     it has to be uninstalled first; that is what -Replace does, and it wipes TikTok's data on
     that phone.
 
-    The signing password comes from HUSHFEED_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
-    local test keystore's documented password, sideload, is used. The Morphe arguments travel
-    through a temporary Java argument file so the password value is not in the child process
-    command line. The file is deleted when patching exits.
+    Store and entry passwords can be supplied independently, including an empty store password
+    for an exported BKS key. Unset passwords retain the local test-key defaults. Morphe produces
+    an unsigned APK, then SDK apksigner signs it without copying or converting the key. Passwords
+    travel through temporary process environment references and never through argument files.
+    The key, output and installed APK certificates are checked before an in-place installation.
 
     The vendor APK defaults to the build of the target version in the folder
     HUSHFEED_FIXTURE_DIR names. The desktop CLI is found through -DesktopJar,
@@ -40,8 +41,12 @@ param(
     [string]$Apk,
     [string]$DesktopJar,
     [string]$Java,
+    [string]$Sdk = "$env:LOCALAPPDATA\Android\Sdk",
     [string]$Keystore = "$HOME\.android\sideload-release.jks",
     [string]$KeyAlias = 'sideload',
+    [ValidateSet('BKS', 'JKS', 'PKCS12')][string]$KeystoreType,
+    [AllowEmptyString()][string]$KeystorePassword,
+    [AllowEmptyString()][string]$KeyPassword,
     [string]$OutDir = (Join-Path $env:TEMP 'hushfeed-device')
 )
 
@@ -51,6 +56,8 @@ $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
+. (Join-Path $PSScriptRoot 'apk-signing.ps1')
+. (Join-Path $PSScriptRoot 'device-install.ps1')
 $Java = Resolve-Java -Explicit $Java
 $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $root -Required
 $catalogPath = Join-Path $root 'patches-list.json'
@@ -65,13 +72,6 @@ if (-not $Apk -and $env:HUSHFEED_FIXTURE_DIR -and (Test-Path -LiteralPath $env:H
 if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
     throw ("No vendor APK. Pass -Apk with a $(Format-VersionList -Versions @($target.PackageVersions)) build, or set " +
         'HUSHFEED_FIXTURE_DIR to the folder that holds one.')
-}
-$passwordVariable = 'HUSHFEED_SIDELOAD_KEYSTORE_PASSWORD'
-$keystorePassword = [Environment]::GetEnvironmentVariable(
-    $passwordVariable, [EnvironmentVariableTarget]::Process)
-if ([string]::IsNullOrEmpty($keystorePassword)) {
-    $keystorePassword = 'sideload'
-    Write-Host "[device] $passwordVariable is unset; using the documented local test-key fallback"
 }
 $version = Get-BundleVersion -Root $root
 $bundle = Get-ReleaseBundlePath -Root $root -Version $version
@@ -95,17 +95,21 @@ $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedName
 
 New-Item -ItemType Directory -Force $OutDir | Out-Null
 $out = Join-Path $OutDir "hushfeed-$version-signed.apk"
+$unsigned = Join-Path $OutDir "hushfeed-$version-unsigned.apk"
 $temp = Join-Path $OutDir 'tmp'
 $result = Join-Path $OutDir 'result.json'
 if (Test-Path $out) { Remove-Item $out -Force }
+if (Test-Path -LiteralPath $unsigned) { Remove-Item -LiteralPath $unsigned -Force }
+$argumentFile = Join-Path $OutDir 'morphe-patch.args'
+$signingSession = $null
+try {
+$signingSession = New-ApkSigningSession -BoundParameters $PSBoundParameters -Root $root -Sdk $Sdk `
+    -Java $Java -Keystore $Keystore -KeyAlias $KeyAlias -KeystoreType $KeystoreType
 
 Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
 $enable = @()
 foreach ($name in $names) { $enable += '-e'; $enable += $name }
-$arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result,
-    '--keystore', $Keystore, '--keystore-password', $keystorePassword,
-    '--keystore-entry-alias', $KeyAlias, '--keystore-entry-password', $keystorePassword) + $enable + @($Apk)
-$argumentFile = Join-Path $OutDir 'morphe-patch.args'
+$arguments = @('patch', '--exclusive', '--unsigned', '-p', $bundle, '-o', $unsigned, '-t', $temp, '-r', $result) + $enable + @($Apk)
 $argumentFileLines = @($arguments | ForEach-Object {
     $value = [string]$_
     if ($value.IndexOfAny([char[]]"`r`n") -ge 0) {
@@ -139,9 +143,10 @@ try {
 $report = $null
 if (Test-Path -LiteralPath $result -PathType Leaf) { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json }
 $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
-    -AllowedDependencyNames $dependencyNames -OutputPath $out `
+    -AllowedDependencyNames $dependencyNames -OutputPath $unsigned `
     -ExpectedPackageName $target.PackageName -ExpectedPackageVersion (Get-DeclaredReportVersion -Report $report -Target $target)
 if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
+Invoke-ApkSigning -Session $signingSession -InputApk $unsigned -OutputApk $out
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
 Write-Host "[device] $out"
 
@@ -150,8 +155,9 @@ $adb = (Get-Command adb -ErrorAction SilentlyContinue).Source
 if (-not $adb) { $adb = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter adb.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName }
 if (-not $adb) { throw 'No adb found. Put it on the PATH or install the platform tools.' }
 if ($Replace) {
-    . (Join-Path $PSScriptRoot 'device-install.ps1')
     [void](Remove-AndroidPackageIfInstalled -Adb $adb -Serial $Serial -PackageName $target.PackageName)
+} else {
+    Assert-InstalledApkSigner -Adb $adb -Serial $Serial -PackageName $target.PackageName -SigningSession $signingSession
 }
 Write-Host "[device] installing on $Serial"
 # adb prints Failure [...] and exits non-zero on a refused install; without this the script
@@ -166,3 +172,8 @@ try {
 }
 if ($installStatus -ne 0) { throw "adb install failed on $Serial. The output above says why." }
 & $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
+} finally {
+    Close-ApkSigningSession -Session $signingSession
+    Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
+    if (Test-Path -LiteralPath $unsigned) { Remove-Item -LiteralPath $unsigned -Force }
+}

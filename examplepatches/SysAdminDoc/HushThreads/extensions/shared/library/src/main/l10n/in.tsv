@@ -67,7 +67,11 @@ The app holding the last settings file still hasn't answered. Try again later.	A
 The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushThreads berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
-The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.	Log penggunaan dan peristiwa yang dikirim Threads ke Meta diarahkan ke alamat yang tidak merespons. Feed, postingan, dan balasan Anda tetap berfungsi seperti biasa.
+Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.	Alamat analitik yang ditemukan dialihkan ke alamat yang tidak merespons. Telemetri lain mungkin masih ada. Nonaktifkan ini untuk menggunakan alamat asli.
+Analytics address coverage	Cakupan alamat analitik
+Patched: %1$s. Missing: %2$s.	Dipatch: %1$s. Tidak ditemukan: %2$s.
+Coverage wasn't recorded in this build. Patch again to see the matched address kinds.	Cakupan tidak dicatat dalam build ini. Terapkan patch lagi untuk melihat jenis alamat yang ditemukan.
+none	tidak ada
 Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads tidak dapat membaca ID iklan ponsel Anda. Izin untuk itu sudah dihapus dari build ini.
 Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushThreads menjeda dirinya sendiri.
 Threads' web addresses are selected for this app in Android's settings, so their links open here.	Alamat web Threads dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.

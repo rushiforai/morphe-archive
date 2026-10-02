@@ -8,12 +8,32 @@ Independent patches for the [Morphe](https://morphe.software/) patcher.
 https://github.com/Santodan/santodan-patches
 ```
 
+MEO 5.7.0 patches provide a separately installable clone and compatibility handling for unverified Android TV hardware. The side-by-side patch renames the package, launcher label, task affinity, app-owned permission, and every provider authority. The device patch reports a Sagemcom DIW3930 during provisioning and skips only MEO's non-fatal equipment-verification warning; authentication and fatal provisioning errors remain unchanged.
+
 Recent NuvioTV additions include merged tracking progress, an optional remaining-episode counter for Continue Watching, and side-by-side installation with the official app. Merged progress preserves the last successful Continue Watching snapshot during startup and replaces it after connected providers refresh. The side-by-side patch lets you choose a unique Android package name and launcher app name, so multiple patched test installations can coexist on the same device.
+
+Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Banner/Light mode, it keeps fullscreen alarms while the device is locked and uses banner notifications while the device is unlocked.
 
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.5.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v0.6.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+<details open>
+<summary>📦 MEO (Android TV)&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.7.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [MEO - Side-by-side installation](#meo-side-by-side-installation) | Installs a separately named MEO clone using a configurable package name and app name. | • Package name<br>• App name |
+| [MEO - Spoof supported device](#meo-spoof-supported-device) | Reports a Sagemcom DIW3930 to MEO provisioning and skips the server's non-blocking device-verification warning. |  |
+
+</details>
+
 <details open>
 <summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -52,8 +72,8 @@ Recent NuvioTV additions include merged tracking progress, an optional remaining
 
 **🎯 Supported versions:**
 
-| 0.6.19 |
-| :---: |
+| 0.6.20 | 0.6.19 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -112,9 +132,10 @@ The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `
 
 | App | Package | Supported version | Patch |
 | --- | --- | --- | --- |
+| MEO (Android TV) | `com.alticelabs.meo.androidtv` | `5.7.0` | Side-by-side installation; Spoof supported device |
 | NuvioTV | `com.nuvio.tv` | `1.1.0-beta.2` | Merge tracking progress; Remaining episodes in Continue Watching; Side-by-side installation |
 | Reddit | `com.reddit.frontpage` | `2026.37.0` | Content filters (Experimental); Show flairs in home feed (Experimental); Start as guest |
 | Peafowl Theme Maker for EMUI | `h7.hamzio.emuithemeotg` | `GMS_27.5.1` | Unlock Theme Ownership (Experimental) |
-| Pillo | `xyz.rtrvr.pillo` | `0.6.19` | Hybrid Lock-Screen Notifications |
+| Pillo | `xyz.rtrvr.pillo` | `0.6.19`, `0.6.20` | Hybrid Lock-Screen Notifications |
 
 See [AI_Guide.md](AI_Guide.md) for implementation details and device-testing notes.

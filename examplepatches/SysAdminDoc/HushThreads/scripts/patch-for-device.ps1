@@ -5,9 +5,9 @@
 .DESCRIPTION
     verify-all-patches.ps1 answers whether the patches apply and throws its APK away. This
     keeps one, signed with the sideload keystore so it installs on a phone, and installs it
-    over adb when a serial is given. The stock Threads on the phone has a different signer, so
-    it has to be uninstalled first; that is what -Replace does, and it wipes Threads' data on
-    that phone.
+    over adb when a serial is given. Device actions require an owned shared-pool lease and its
+    expected model (physical devices) or AVD name (emulators). A signer conflict is refused;
+    apps, accounts and installed signing keys are preserved. -Replace is no longer supported.
 
     The signing password comes from HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
     local test keystore's documented password, sideload, is used. The Morphe arguments travel
@@ -22,7 +22,7 @@
     -Aapt2, HUSHTHREADS_AAPT2 or the SDK. None of them has a machine-specific default.
 
 .EXAMPLE
-    scripts/patch-for-device.ps1 -Serial $env:HUSHTHREADS_DEVICE_SERIAL -Replace
+    scripts/patch-for-device.ps1 -Serial $env:HUSHTHREADS_DEVICE_SERIAL
 #>
 [CmdletBinding()]
 param(
@@ -50,6 +50,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if ($Replace) { throw 'Replacement uninstall is disabled. Repatch with the installed signing key to preserve apps, accounts and data.' }
 # Not a parameter default: Windows PowerShell leaves $PSScriptRoot empty while it evaluates the
 # defaults of an advanced script started with -File. $root below is this same variable.
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
@@ -137,22 +138,25 @@ if (Test-Path $out) { Remove-Item $out -Force }
 Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
 $enable = @()
 foreach ($name in $names) { $enable += '-e'; $enable += $name }
-$arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result,
-    '--keystore', $Keystore, '--keystore-password', $keystorePassword,
-    '--keystore-entry-alias', $KeyAlias, '--keystore-entry-password', $keystorePassword) + $enable + @($Apk)
 $argumentFile = Join-Path $OutDir 'morphe-patch.args'
-$argumentFileLines = @($arguments | ForEach-Object {
-    $value = [string]$_
-    if ($value.IndexOfAny([char[]]"`r`n") -ge 0) {
-        throw 'A Morphe command argument contains a newline and cannot be written safely.'
-    }
-    '"' + $value.Replace('\', '\\').Replace('"', '\"') + '"'
-})
-[System.IO.File]::WriteAllLines(
-    $argumentFile,
-    $argumentFileLines,
-    (New-Object System.Text.UTF8Encoding($false)))
+$mergedInput = Join-Path $OutDir 'stock-merged.apk'
+$mergeRequired = [IO.Path]::GetExtension($Apk).TrimStart('.').ToLowerInvariant() -in @('apkm', 'apks', 'xapk')
 try {
+    $patchInput = Get-MergedApk -Apk $Apk -Destination $mergedInput -Java $Java -DesktopJar $DesktopJar
+    $arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result,
+        '--keystore', $Keystore, '--keystore-password', $keystorePassword,
+        '--keystore-entry-alias', $KeyAlias, '--keystore-entry-password', $keystorePassword) + $enable + @($patchInput)
+    $argumentFileLines = @($arguments | ForEach-Object {
+        $value = [string]$_
+        if ($value.IndexOfAny([char[]]"`r`n") -ge 0) {
+            throw 'A Morphe command argument contains a newline and cannot be written safely.'
+        }
+        '"' + $value.Replace('\', '\\').Replace('"', '\"') + '"'
+    })
+    [System.IO.File]::WriteAllLines(
+        $argumentFile,
+        $argumentFileLines,
+        (New-Object System.Text.UTF8Encoding($false)))
     # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
     # PowerShell 5.1 turns into a terminating error under Stop. The exit code decides.
     $preference = $ErrorActionPreference
@@ -170,6 +174,7 @@ try {
     if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode" }
 } finally {
     Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
+    if ($mergeRequired) { Remove-Item -LiteralPath $mergedInput -Force -ErrorAction SilentlyContinue }
     # The CLI unpacks the whole APK here and a run against Threads leaves gigabytes behind.
     if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }
 }
@@ -188,13 +193,19 @@ if (-not $Serial) { return }
 $adb = (Get-Command adb -ErrorAction SilentlyContinue).Source
 if (-not $adb) { $adb = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter adb.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName }
 if (-not $adb) { throw 'No adb found. Put it on the PATH or install the platform tools.' }
-if ($Replace) {
-    . (Join-Path $PSScriptRoot 'device-install.ps1')
-    [void](Remove-AndroidPackageIfInstalled -Adb $adb -Serial $Serial -PackageName $target.PackageName)
-}
+. (Join-Path $PSScriptRoot 'device-install.ps1')
+Assert-HushThreadsDeviceLease -Adb $adb -Serial $Serial
 Write-Host "[device] installing on $Serial"
 # adb prints Failure [...] and exits non-zero on a refused install; without this the script
 # went on to print the version of whatever was already on the phone, as if it were this build.
-& $adb -s $Serial install -r -g $out | Out-Host
-if ($LASTEXITCODE -ne 0) { throw "adb install failed on $Serial. The output above says why." }
-& $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
+$install = Invoke-HushThreadsAdbCommand -Adb $adb -RequireLease -Arguments @('-s', $Serial, 'install', '-r', '-g', $out)
+$install.Output | Out-Host
+if ($install.ExitCode -ne 0) {
+    if (($install.Output -join ' ') -match 'INSTALL_FAILED_UPDATE_INCOMPATIBLE') {
+        throw "Signing key conflict on $Serial. Repatch with the installed key. No app was uninstalled or cleared."
+    }
+    throw "adb install failed on $Serial. The output above says why."
+}
+$installed = Invoke-HushThreadsAdbCommand -Adb $adb -RequireLease -Arguments @('-s', $Serial, 'shell', 'dumpsys', 'package', $target.PackageName)
+if ($installed.ExitCode -ne 0) { throw "Could not read the installed package on $Serial." }
+$installed.Output | Select-String 'versionName' | Out-Host

@@ -11,6 +11,7 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -88,6 +89,16 @@ final class EddiArchiveSearchUi {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(background);
         root.setPadding(dp(16), dp(12), dp(16), dp(8));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // This native search screen returns before HissiMenuActivity installs
+            // its WebView insets handler. Keep the heading below the status bar.
+            activity.getWindow().setDecorFitsSystemWindows(false);
+            root.setOnApplyWindowInsetsListener((view, insets) -> {
+                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+                view.setPadding(dp(16), dp(12) + bars.top, dp(16), dp(8) + bars.bottom);
+                return insets;
+            });
+        }
         TextView heading = text("エッヂ過去ログ検索", 21, foreground);
         heading.setOnClickListener(view -> activity.finish());
         root.addView(heading);
@@ -162,6 +173,7 @@ final class EddiArchiveSearchUi {
         });
         root.addView(original);
         activity.setContentView(root);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) root.requestApplyInsets();
 
         restoreQuery(source);
         search(page);

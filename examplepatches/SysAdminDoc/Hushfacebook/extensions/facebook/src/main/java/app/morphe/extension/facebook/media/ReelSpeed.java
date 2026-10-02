@@ -24,9 +24,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *
  * <p>The Reels menu offers its speeds in two pickers, and a pick in either sets the speed on the
  * reel's own FbGrootPlayer and shows Facebook's speed toast a moment later; nothing else shows that
- * toast. Facebook remembers a speed per video, so the next reel's player starts at normal speed.
- * The patch hands this class every speed set on a player ({@link #speedSet}), the toast's speed
- * ({@link #picked}) and each start of playback ({@link #started}).
+ * toast. Some accounts get the gear menu's speed sheet in a reel's More menu instead, which sets
+ * the speed the same way and shows no toast; Watch videos have that sheet in their gear menu. Facebook
+ * remembers a speed per video, so the next reel's player starts at normal speed. The patch hands this
+ * class every speed set on a player ({@link #speedSet}), the toast's speed ({@link #picked}), the
+ * gear sheet's ({@link #gearPicked}), which is kept only when it's picked on a reel, and each start
+ * of playback ({@link #started}).
  *
  * <p>A picked speed is kept for the viewer the reel was playing in, its PlayerOrigin's origin:
  * fb_shorts_viewer for the Reels viewer, video_home where an account's Reels live in the Video
@@ -192,11 +195,39 @@ public final class ReelSpeed {
      * the viewer of the player the pick just set it on; normal speed forgets that viewer's speed.
      */
     public static void picked(float speed) {
+        pick(speed, false, "speed picked");
+    }
+
+    /**
+     * The hook straight after each speed the gear menu's sheet sets, which shows no toast. Kept like
+     * a pick in the Reels menu when the player's video is a reel; a speed picked on any other video,
+     * in a Watch video's gear menu for one, stays with that video.
+     */
+    public static void gearPicked(float speed) {
+        pick(speed, true, "gear speed picked");
+    }
+
+    private static void pick(float speed, boolean reelsOnly, String where) {
         try {
             HookStatus.invoked(FAMILY);
             if (!on()) return;
-            HookStatus.bound(FAMILY, "speed picked");
+            HookStatus.bound(FAMILY, where);
             Object player = pickedPlayer(speed, SystemClock.uptimeMillis());
+            if (reelsOnly) {
+                if (player == null) {
+                    Logger.printDebug(() -> "Reel speed: " + speed + "x picked in the gear menu, but no player found that was just set to it, so it isn't kept");
+                    return;
+                }
+                Object video = access.params(player);
+                if (video == null) {
+                    Logger.printDebug(() -> "Reel speed: " + speed + "x picked in the gear menu, but its player's video couldn't be read, so it isn't kept");
+                    return;
+                }
+                if (!access.reel(video)) {
+                    Logger.printDebug(() -> "Reel speed: " + speed + "x picked in the gear menu on a video that isn't a reel, it stays with that video");
+                    return;
+                }
+            }
             String origin = player == null ? null : originName(player);
             if (origin == null) {
                 if (same(speed, NORMAL)) {
@@ -234,7 +265,7 @@ public final class ReelSpeed {
                     ? "Reel speed: normal speed picked, reels in " + origin + " start as Facebook starts them"
                     : "Reel speed: keeping " + speed + "x for " + origin);
         } catch (Throwable failure) {
-            HookStatus.threw(FAMILY, "speed picked", failure);
+            HookStatus.threw(FAMILY, where, failure);
         }
     }
 

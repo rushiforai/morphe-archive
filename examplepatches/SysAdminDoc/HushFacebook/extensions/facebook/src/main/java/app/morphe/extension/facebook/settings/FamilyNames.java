@@ -29,6 +29,9 @@ public final class FamilyNames {
     public static final String AI_DETECTED_REELS = "Hide AI-detected posts (Reels and Watch)";
     public static final String POST_WORDS = "Hide posts by words";
     public static final String POST_PROMPTS = "Hide post prompts";
+    public static final String META_AI_QUESTIONS = "Hide Meta AI questions under posts";
+    public static final String POST_DATES = "Keep post dates";
+    public static final String FEEDS_HEADER = "Hide the Feeds header";
     public static final String STORIES_TRAY = "Hide Stories tray";
     public static final String FEED_REELS = "Hide Reels in the feed";
     public static final String RETURN_REFRESH = "Block background-return feed refresh";
@@ -64,6 +67,7 @@ public final class FamilyNames {
     public static final String MARKETPLACE_ONLY = "Marketplace only";
     public static final String REELS_TAB = "Hide the Reels tab";
     public static final String REELS_TAB_DOT = "Hide the Reels tab dot";
+    public static final String BOTTOM_TAB_BAR = "Tab bar at the bottom";
     public static final String MESSENGER_CARD = "Hide the Get Messenger card";
     public static final String MESSENGER_ICON = "Open Messenger from the top bar";
     public static final String MENU_PROMOTIONS = "Hide Menu promotions";

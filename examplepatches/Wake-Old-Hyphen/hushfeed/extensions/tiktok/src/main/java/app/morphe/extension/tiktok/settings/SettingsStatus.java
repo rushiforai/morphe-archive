@@ -38,6 +38,8 @@ public class SettingsStatus {
     public static boolean confirmInteractionsEnabled;
     public static void enableConfirmInteractions() { confirmInteractionsEnabled = true; }
     public static boolean feedFilterEnabled = false;
+    /** The LIVE feed's page handler was found, so its rows have something to act on. */
+    public static boolean liveFeedFilterEnabled = false;
     public static boolean feedNavigationEnabled = false;
     public static boolean commentTranslationEnabled = false;
     public static boolean hideCommentQuickReactionsEnabled = false;
@@ -47,6 +49,7 @@ public class SettingsStatus {
     public static boolean simSpoofEnabled = false;
     public static boolean captchaPopupSuppressionEnabled = false;
     public static boolean promotionalBannersEnabled = false;
+    public static boolean profileShortcutsEnabled = false;
     public static boolean longPressSpeedLockEnabled = false;
     public static boolean disableLongPressQuickShareEnabled = false;
     public static boolean disableLongPressRepostEnabled = false;
@@ -149,6 +152,10 @@ public class SettingsStatus {
         feedFilterEnabled = true;
     }
 
+    public static void enableLiveFeedFilter() {
+        liveFeedFilterEnabled = true;
+    }
+
     public static void enableFeedNavigation() {
         feedNavigationEnabled = true;
     }
@@ -185,6 +192,10 @@ public class SettingsStatus {
 
     public static void enablePromotionalBanners() {
         promotionalBannersEnabled = true;
+    }
+
+    public static void enableProfileShortcuts() {
+        profileShortcutsEnabled = true;
     }
 
     public static void enableLongPressSpeedLock() {

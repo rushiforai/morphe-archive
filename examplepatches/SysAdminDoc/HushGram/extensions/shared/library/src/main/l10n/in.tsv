@@ -1,0 +1,266 @@
+# Indonesian for HushGram: the English key, a tab, the translation. One row per string.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$s of %2$s	%1$s dari %2$s
+%1$s so far	%1$s terunduh
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
+A diagnostic report is already being saved.	Sudah ada laporan diagnostik yang sedang disimpan.
+A file named %1$s in %2$s paused HushGram.	File bernama %1$s di %2$s menjeda HushGram.
+About	Tentang
+Ads and privacy	Iklan dan privasi
+Back	Kembali
+Before you sign in	Sebelum Anda masuk
+Cancel	Batal
+Changing these	Mengubah pilihan ini
+Clear diagnostic data	Hapus data diagnostik
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
+Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
+Copy quick report	Salin laporan singkat
+Copying to the gallery	Menyalin ke galeri
+Couldn't put back the diagnostic data. Try again.	Data diagnostik tidak dapat dikembalikan. Coba lagi.
+Couldn't start the report export. Try again shortly.	Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.
+Couldn't turn HushGram back on. Try again.	HushGram tidak dapat diaktifkan lagi. Coba lagi.
+Debug logging	Pencatatan debug
+Diagnostic data cleared. Tap again to put it back.	Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
+Diagnostic data put back.	Data diagnostik dikembalikan.
+Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
+Disable analytics	Nonaktifkan analitik
+Download failed	Unduhan gagal
+Downloading	Mengunduh
+Empties the log and the hook counts a report would include.	Mengosongkan log dan hitungan hook yang akan dimasukkan ke laporan.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
+Export diagnostic report	Ekspor laporan diagnostik
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
+Full report saved to %1$s	Laporan lengkap disimpan ke %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya
+Hide ads	Sembunyikan iklan
+How far a photo or video you're saving has got, with a button to cancel it	Progres foto atau video yang sedang Anda simpan, dengan tombol untuk membatalkannya
+HushGram %1$s on Instagram %2$s	HushGram %1$s di Instagram %2$s
+HushGram is on	HushGram aktif
+HushGram is paused	HushGram dijeda
+HushGram pauses when Instagram restarts.	HushGram dijeda saat Instagram dimulai ulang.
+HushGram saves	Penyimpanan HushGram
+HushGram settings	Pengaturan HushGram
+HushGram settings couldn't open	Pengaturan HushGram tidak dapat dibuka
+HushGram turns back on when Instagram restarts.	HushGram aktif lagi saat Instagram dimulai ulang.
+Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.	Instagram berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushGram menjeda dirinya sendiri.
+Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.	Instagram berhenti menampilkan layar yang menyatakan versi ini terlalu lama. Build yang ditambal tidak memperbarui dirinya sendiri, jadi ini membuatnya tetap bisa dipakai.
+Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.	Pemeriksaan tanda tangan milik Instagram sendiri melihat sertifikat aslinya, jadi tetap lolos pada build yang ditandatangani ulang ini.
+Instagram's usage events and crash reports go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.	Peristiwa penggunaan dan laporan error Instagram dikirim ke alamat di ponsel ini yang menolaknya, bukan ke Instagram dan Facebook. Mulai ulang Instagram setelah mengubahnya.
+Joining the picture and sound	Menggabungkan gambar dan suara
+Licenses	Lisensi
+Link expired. Reopen the item and try again	Tautan kedaluwarsa. Buka ulang kontennya lalu coba lagi
+Nobody outside Meta knows what gets an account suspended. A re-signed Instagram can't pass Google's check that it's the Play Store app, and no patch changes that. If you'd rather not risk your account, try a spare one first. Installing updates over the top with the same key keeps Instagram's data and your sign-in, and on a rooted phone a Root Mount install keeps the sign-in you already have.	Tidak ada yang di luar Meta tahu apa yang membuat akun ditangguhkan. Instagram yang ditandatangani ulang tidak bisa lolos pemeriksaan Google bahwa ini aplikasi dari Play Store, dan tidak ada patch yang mengubahnya. Kalau tidak mau mempertaruhkan akunmu, coba dulu dengan akun cadangan. Memasang pembaruan di atasnya dengan kunci yang sama menjaga data Instagram dan sesi masukmu, dan di ponsel yang di-root, instalasi Root Mount mempertahankan sesi masuk yang sudah ada.
+No app on this phone can open the link. The address is %1$s.	Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.
+Not saved: that isn't an Instagram photo or video	Tidak disimpan: itu bukan foto atau video Instagram
+Not saved: the file is over 512 MB	Tidak disimpan: file lebih dari 512 MB
+OK	Oke
+Pause HushGram	Jeda HushGram
+Pause and diagnostics	Jeda dan diagnostik
+Re-signed build fix	Perbaikan build yang ditandatangani ulang
+Record patch activity and show errors for a bug report. Leave off during normal use.	Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.
+Remove build expired popup	Hapus popup build kedaluwarsa
+Retry	Coba lagi
+Sanitize sharing links	Bersihkan tautan berbagi
+Save cancelled	Penyimpanan dibatalkan
+Save full report	Simpan laporan lengkap
+Save the full report in Download/Morphe.	Simpan laporan lengkap di Download/Morphe.
+Saved to %1$s	Disimpan ke %1$s
+Saved to %1$s in lower quality than on Instagram	Disimpan ke %1$s dengan kualitas lebih rendah daripada di Instagram
+Saved to the gallery	Disimpan ke galeri
+Saved to the gallery in lower quality than on Instagram	Disimpan ke galeri dengan kualitas lebih rendah daripada di Instagram
+Saved. Restart Instagram to apply this change.	Tersimpan. Mulai ulang Instagram untuk menerapkan perubahan ini.
+Saving a photo	Menyimpan foto
+Saving a video	Menyimpan video
+Saving...	Menyimpan...
+Saving... Cancel: Downloads in HushGram.	Menyimpan... Batal: Unduhan di HushGram.
+Set when you patched	Diatur saat Anda menambal
+Settings couldn't open	Pengaturan tidak dapat dibuka
+Settings couldn't refresh completely. Reopen settings and try again.	Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.
+Source code and issues	Kode sumber dan laporan masalah
+Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.	Postingan, reel, dan story bersponsor. Instagram diberi tahu bahwa tidak ada iklan yang dimasukkan, jadi tidak ada celah yang tersisa.
+Stays in while paused	Tetap aktif saat dijeda
+Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.	Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.
+Tap to hide this.	Ketuk untuk menyembunyikan ini.
+Tap to turn it back on.	Ketuk untuk mengaktifkan HushGram lagi.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.
+The diagnostic report couldn't be saved. Try again.	Laporan diagnostik tidak dapat disimpan. Coba lagi.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushGram lagi.
+The setting couldn't finish updating. Its saved value is shown.	Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.
+There's no diagnostic data to clear.	Tidak ada data diagnostik yang dapat dihapus.
+There's no diagnostic data to put back.	Tidak ada data diagnostik yang dapat dikembalikan.
+They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	Semua ini dipilih di Morphe Manager saat Anda menambal, dan Jeda tidak mematikannya. Tambal ulang untuk mengubahnya.
+Try again, or go back to Instagram.	Coba lagi, atau kembali ke Instagram.
+Updates	Pembaruan
+Version	Versi
+Version %1$s for Instagram %2$s	Versi %1$s untuk Instagram %2$s
+You paused HushGram.	Anda menjeda HushGram.
+the re-signed build fix	perbaikan build yang ditandatangani ulang
+Don't send reel watch history	Jangan kirim riwayat tontonan reel
+Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.	Instagram tidak diberi tahu reel mana yang Anda tonton atau sampai mana. Instagram memakainya untuk mengurutkan Reels Anda, dan tidak ada orang lain yang melihatnya. Reel yang sudah Anda tonton bisa muncul lagi.
+Reels	Reels
+Stop Story auto-advance	Hentikan cerita maju otomatis
+A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.	Cerita yang sudah selesai tetap di layar sampai Anda mengetuk atau menggeser. Matikan ini untuk memakai waktu Instagram.
+Stories	Cerita
+Hide Reels in the feed	Sembunyikan Reels di feed
+The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.	Deretan reel yang disarankan di antara postingan di feed beranda Anda. Reel yang diposting orang yang Anda ikuti tetap ada.
+Hide the Follow button	Sembunyikan tombol Ikuti
+The Follow button beside a reel's author. Their profile still has one.	Tombol Ikuti di samping pembuat reel. Profilnya tetap punya tombol itu.
+Hide creation and promotion pills	Sembunyikan label ajakan membuat dan promosi
+Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.	Label seperti Edits, Gunakan template, Meta AI, dan kacamata Ray-Ban Meta. Lencana siaran langsung dan label media yang dikendalikan negara tetap ada.
+Hide friends' activity and comment previews	Sembunyikan aktivitas teman dan pratinjau komentar
+The bubbles of friends who liked or commented, the Followed by and Liked by lines with their faces, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.	Gelembung teman yang menyukai atau berkomentar, baris Diikuti oleh dan Disukai oleh beserta foto mereka, komentar yang tampil di bawah reel, dan deretan teman yang melihatnya. Komentar tetap bisa dibuka dengan sekali ketuk.
+Downloads	Unduhan
+Save videos other apps can open	Simpan video yang bisa dibuka aplikasi lain
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Untuk WhatsApp, editor video seperti CapCut dan InShot, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.
+Download quality	Kualitas unduhan
+Best	Terbaik
+Smallest	Terkecil
+Each video saves at the best quality the player streams.	Setiap video disimpan dengan kualitas streaming terbaik dari pemutar.
+Each video saves at its lowest quality, for the smallest file.	Setiap video disimpan dengan kualitas terendahnya, agar ukuran filenya sekecil mungkin.
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Setiap video disimpan dalam %1$s atau kualitas terdekat di bawahnya. Video yang tidak memiliki kualitas serendah itu disimpan dalam kualitas terdekat di atasnya.
+Save folder	Folder simpan
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Pilih nama folder di Movies dan Pictures. Karakter yang tidak valid menjadi garis bawah. Kosongkan untuk memakai folder bawaan, %1$s.
+Save	Simpan
+Folder name	Nama folder
+Folder set to %1$s.	Folder diatur menjadi %1$s.
+Video file name	Nama file video
+%1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s diganti dengan tanggal dan waktu penyimpanan, %2$s dengan nomor video di Instagram, %3$s dengan nama pengunggahnya, dan %4$s dengan tanggal unggahnya. Yang tidak diketahui saat menyimpan akan dihilangkan, dan nama tanpa satu pun di antaranya akan ditambahi tanggal. Jika nama itu sudah ada di folder, waktu penyimpanan ditambahkan di akhir. Karakter yang tidak valid menjadi garis bawah. Kosongkan untuk memakai nama bawaan, %5$s.
+File name	Nama file
+File name set to %1$s.	Nama file diatur menjadi %1$s.
+Videos go to %1$s and photos to %2$s.	Video disimpan ke %1$s dan foto ke %2$s.
+Example without post details	Contoh tanpa detail postingan
+Cancel saving this video	Batalkan penyimpanan video ini
+Cancel saving this photo	Batalkan penyimpanan foto ini
+Download on reels	Unduh di reel
+Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.	Menambahkan Unduh ke menu lainnya di setiap reel, disimpan dengan kualitas unduhan Anda. Saat nonaktif atau dijeda, menu asli Instagram kembali.
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Video diberi nama %1$s. Foto selalu diberi nama %2$s diikuti tanggal dan waktu.
+Download	Unduh
+Download on stories	Unduh di cerita
+Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	Menambahkan Unduh ke menu cerita siapa pun, foto atau video, disimpan dengan kualitas unduhan Anda. Saat nonaktif atau dijeda, menu asli Instagram kembali.
+Download feed videos	Unduh video feed
+Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Menambahkan Unduh ke menu postingan berisi video di feed kamu. Memakai kualitas di bawah. Saat nonaktif atau dijeda, menu Instagram sendiri kembali.
+Playback	Pemutaran
+Tap to play	Ketuk untuk memutar
+Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.	Video, reels, dan cerita menunggu ketukan Anda. Video di feed menampilkan tombol putar, seperti saat Anda menghemat data seluler.
+Resume long videos	Lanjutkan video panjang
+Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Video dan reel lebih dari dua menit dilanjutkan dari posisi terakhir. Geser bilah untuk posisi lain. Video langsung dan iklan mulai seperti biasa.
+Default playback quality	Kualitas pemutaran default
+Videos, reels and stories play at the quality below, starting with the next one you open.	Video, reels, dan cerita diputar dengan kualitas di bawah, mulai dari yang berikutnya Anda buka.
+Playback quality	Kualitas pemutaran
+Auto	Otomatis
+Data saver	Penghemat data
+Up to %1$s	Hingga %1$s
+Highest	Tertinggi
+Instagram picks the quality as each video plays, from your connection.	Instagram memilih kualitas saat setiap video diputar, sesuai koneksi Anda.
+Videos play at the lowest quality Instagram offers for each.	Video diputar dengan kualitas terendah yang ditawarkan Instagram untuk masing-masing.
+Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.	Video diputar dengan kualitas terbaik hingga %1$s yang ditawarkan Instagram untuk masing-masing, atau yang terdekat di atasnya.
+Videos play at the highest quality Instagram offers for each.	Video diputar dengan kualitas tertinggi yang ditawarkan Instagram untuk masing-masing.
+View stories anonymously	Lihat cerita secara anonim
+Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.	Instagram tidak diberi tahu cerita mana yang kamu tonton, jadi kamu tidak masuk daftar penontonnya. Membalas atau memberi reaksi tetap menunjukkan dirimu, dan cerita yang sudah kamu tonton tetap tampil sebagai cerita baru.
+Advertising ID removed	ID iklan dihapus
+Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.	Instagram tidak dapat membaca ID iklan ponselmu atau memberi tahu layanan iklan Android iklan mana yang kamu lihat atau ketuk. Izin untuk itu sudah dihapus dari build ini.
+the removed advertising ID permissions	izin ID iklan yang dihapus
+Turn off double tap to like	Matikan ketuk dua kali untuk menyukai
+A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.	Mengetuk dua kali postingan atau reel tidak lagi menyukainya atau menampilkan hati. Satu ketukan dan tombol Suka tetap berfungsi seperti biasa.
+On posts	Di postingan
+A double tap on a post doesn't like it. Turn this off to keep double tap to like on posts.	Mengetuk dua kali postingan tidak menyukainya. Matikan ini agar tetap bisa menyukai postingan dengan ketuk dua kali.
+On reels	Di reel
+A double tap on a reel doesn't like it. Turn this off to keep double tap to like on reels.	Mengetuk dua kali reel tidak menyukainya. Matikan ini agar tetap bisa menyukai reel dengan ketuk dua kali.
+Hide the Reels tab	Sembunyikan tab Reels
+Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.	Menghapus Reels dari bilah tab. Reels di feed kamu dan reels yang dikirim orang lain tetap bisa dibuka. Mulai ulang Instagram setelah mengubahnya.
+Keep the reel speed	Pertahankan kecepatan reel
+Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Kunci reel di 2x (tahan tepinya, lalu geser ke bawah) dan reels berikutnya juga diputar di 2x. Geser kuncinya untuk melepasnya, atau tahan tepinya lalu lepaskan, untuk kembali ke kecepatan normal.
+Open links in external browser	Buka tautan di browser eksternal
+Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.	Tautan web terbuka di browser default kamu, tanpa pelacak klik Instagram. Halaman Instagram dan layanan Meta lainnya, serta iklan, tetap terbuka di aplikasi.
+Feed	Feed
+Hide suggested accounts	Sembunyikan akun yang disarankan
+The rows of accounts, shops and hashtags Instagram suggests you follow.	Deretan akun, toko, dan tagar yang disarankan Instagram untuk kamu ikuti.
+Hide suggested posts	Sembunyikan postingan yang disarankan
+Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.	Postingan dan reel dari akun yang tidak kamu ikuti, bertanda Disarankan untuk kamu. Postingan dari akun yang kamu ikuti tetap ada.
+Hide Threads posts	Sembunyikan postingan Threads
+The posts, accounts and communities from Threads that Instagram mixes into your feed.	Postingan, akun, dan komunitas dari Threads yang dicampur Instagram ke feed kamu.
+Meta AI	Meta AI
+Hide Meta AI in search and Home's bar	Sembunyikan Meta AI di pencarian dan bilah Beranda
+The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.	Tab Cari dan bagian atas pesan kamu mendapat bilah pencarian biasa, tanpa Meta AI, hasil pencarian kehilangan bilah pertanyaan lanjutannya, dan bilah atas Beranda kehilangan tombol Meta AI. Mulai ulang Instagram setelah mengubahnya.
+Hide Meta AI posts	Sembunyikan postingan Meta AI
+Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.	Video, chat, dan gambar dirimu dari Meta AI yang dimasukkan Instagram ke feed beranda kamu.
+Explore	Jelajahi
+Hide the Explore grid	Sembunyikan kisi Jelajahi
+The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.	Postingan dan reel di bawah bilah tab Cari. Pencarian, pencarian terbaru kamu, dan hasil pencarian tetap ada.
+Start Home on Following	Buka Beranda di Mengikuti
+Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.	Beranda terbuka dengan postingan dari akun yang kamu ikuti. Ketuk Mengikuti di bagian atas untuk beralih ke Untuk Anda, dan Beranda mengingat pilihanmu. Mulai ulang Instagram setelah mengubahnya.
+Hide suggested stories	Sembunyikan cerita yang disarankan
+Stories in the row at the top of Home from accounts you don't follow, and the accounts Instagram suggests there. Stories from accounts you follow stay.	Cerita di baris atas Beranda dari akun yang tidak kamu ikuti, dan akun yang disarankan Instagram di sana. Cerita dari akun yang kamu ikuti tetap ada.
+Hide the Stories tray	Sembunyikan baris Cerita
+Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.	Menghapus seluruh baris cerita di atas Beranda, termasuk Cerita Anda. Cerita tetap bisa dibuka dari profil atau pesan.
+Download feed photos	Unduh foto feed
+The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.	Opsi Unduh yang sama di postingan foto, dan di carousel yang sedang menampilkan foto. Menyimpan ukuran terbesar yang dimiliki Instagram.
+the start-up fix for x86 devices	perbaikan saat mulai untuk perangkat x86
+Developer	Pengembang
+Developer options on a long press of Home	Opsi pengembang saat Beranda ditekan lama
+Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.	Membuka opsi pengembang milik Instagram sendiri, tempat flag servernya bisa dilihat dan diubah. Flag yang salah bisa merusak sebagian Instagram sampai kamu mengaturnya ulang di sana.
+Pure black dark mode	Mode gelap hitam pekat
+Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.	Mode gelap Instagram memakai hitam pekat, bukan abu-abu yang hampir hitam. Menu, lembar, dan tombol tetap memakai abu-abunya sendiri.
+the pure black dark mode	mode gelap hitam pekat
+Sharing	Berbagi
+Hide group buttons	Sembunyikan tombol grup
+Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.	Menghapus Grup baru dari lembar bagikan, juga tombol yang mengirim ke orang-orang yang kamu pilih sebagai grup. Kirim terpisah tetap ada, dan kamu tetap bisa membuat grup dari pesanmu.
+Story ring size	Ukuran lingkaran cerita
+The rings in the stories row at the top of Home are drawn at the size below. Restart Instagram after changing it.	Lingkaran di baris cerita di atas Beranda ditampilkan dengan ukuran di bawah. Mulai ulang Instagram setelah mengubahnya.
+Ring size	Ukuran lingkaran
+Much smaller	Jauh lebih kecil
+Smaller	Lebih kecil
+Instagram's size	Ukuran Instagram
+Larger	Lebih besar
+Much larger	Jauh lebih besar
+The rings are the size Instagram picks for your screen.	Lingkaran berukuran sesuai pilihan Instagram untuk layar Anda.
+The rings are %1$s of the size Instagram picks for your screen.	Lingkaran berukuran %1$s dari ukuran yang dipilih Instagram untuk layar Anda.
+Hide the Repost button	Sembunyikan tombol Posting ulang
+Takes Repost and its count off posts and reels, so nothing gets reposted to your followers by mistake. Share still sends a post or reel to someone.	Menghapus Posting ulang dan jumlahnya dari postingan dan reel, agar tidak ada yang terposting ulang ke pengikut Anda secara tidak sengaja. Bagikan tetap mengirim postingan atau reel ke seseorang.
+Layout	Tata letak
+Remove the empty space at the bottom	Hapus ruang kosong di bagian bawah
+Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.	Instagram bisa menyisakan ruang kosong di bawah bilah tab untuk bilah navigasi yang tidak ada, saat ponsel Anda menyembunyikan bilah navigasinya atau Instagram berada di jendela pop-up. Ini menghapus ruang tersebut. Mulai ulang Instagram setelah mengubahnya.
+Only accounts you follow	Hanya akun yang kamu ikuti
+Takes For you out of the picker at the top of Home, so Home stays on Following or Favorites. Works with Start Home on Following on. Restart Instagram after changing it.	Menghapus Untuk Anda dari pemilih di bagian atas Beranda, jadi Beranda tetap di Mengikuti atau Favorit. Berfungsi saat Buka Beranda di Mengikuti aktif. Mulai ulang Instagram setelah mengubahnya.
+Profiles	Profil
+Show if a profile follows you	Tampilkan apakah profil mengikuti kamu
+Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Menambahkan Mengikuti kamu atau Tidak mengikuti kamu di samping nama di profil seseorang, setelah kata ganti mereka jika ada. Tidak ada yang muncul sampai Instagram memeriksanya.
+Follows you	Mengikuti kamu
+Doesn't follow you	Tidak mengikuti kamu
+Turn on Start Home on Following to use this choice.	Aktifkan Mulai Beranda di Mengikuti untuk menggunakan pilihan ini.
+Turn on Story ring size to use this choice.	Aktifkan Ukuran lingkaran cerita untuk menggunakan pilihan ini.
+Turn on Default playback quality to use this choice.	Aktifkan Kualitas pemutaran default untuk menggunakan pilihan ini.
+Updating remembered positions...	Memperbarui posisi tersimpan...
+Undo cleared positions	Pulihkan posisi yang dihapus
+Clear remembered positions	Hapus posisi tersimpan
+You can restore the cleared positions once within 10 seconds.	Kamu dapat memulihkan posisi yang dihapus satu kali dalam 10 detik.
+Up to 200 positions, kept for 30 days. Tap to clear them from this device.	Hingga 200 posisi disimpan selama 30 hari. Ketuk untuk menghapusnya dari perangkat ini.
+Remembered playback positions restored.	Posisi pemutaran tersimpan dipulihkan.
+Undo has expired.	Waktu untuk memulihkan telah habis.
+You cleared the remembered playback positions.	Kamu menghapus posisi pemutaran tersimpan.
+Could not update the remembered playback positions.	Tidak dapat memperbarui posisi pemutaran tersimpan.
+Settings backup	Cadangan pengaturan
+Export HushGram settings	Ekspor pengaturan HushGram
+Choose a file for your installed patches' settings. Accounts and history stay on this device.	Pilih file untuk pengaturan patch yang terpasang. Akun dan riwayat tetap di perangkat ini.
+Import HushGram settings	Impor pengaturan HushGram
+Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Pilih file pengaturan. Pilihan yang valid diterapkan bersama; kunci yang tidak didukung dilewati. Pembatalan berlaku selama 10 detik.
+Undo settings import	Batalkan impor pengaturan
+Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Pulihkan pilihan sebelumnya satu kali dalam 10 detik. Memulai ulang Instagram menghapus opsi pembatalan.
+No settings import to undo.	Tidak ada impor pengaturan yang dapat dibatalkan.
+No document picker is available. Your settings haven't changed.	Pemilih dokumen tidak tersedia. Pengaturan Anda tidak berubah.
+Couldn't use that settings file. Your settings haven't changed.	File pengaturan tersebut tidak dapat digunakan. Pengaturan Anda tidak berubah.
+HushGram settings exported.	Pengaturan HushGram diekspor.
+Couldn't export HushGram settings. Try another file.	Pengaturan HushGram tidak dapat diekspor. Coba file lain.
+Settings restored.	Pengaturan dipulihkan.
+Imported %1$d settings. Skipped %2$d unsupported keys.	%1$d pengaturan diimpor. %2$d kunci yang tidak didukung dilewati.
+Restart Instagram to apply these choices.	Mulai ulang Instagram untuk menerapkan pilihan ini.
+Couldn't save the settings. The previous values were restored.	Pengaturan tidak dapat disimpan. Nilai sebelumnya dipulihkan.
+Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Pembatalan tidak dapat memulihkan semua pengaturan. Periksa nilai yang ditampilkan; opsi pembatalan sudah digunakan.
+Couldn't save or fully restore the settings. Check the shown values and try Undo.	Pengaturan tidak dapat disimpan atau dipulihkan sepenuhnya. Periksa nilai yang ditampilkan dan coba batalkan.
+Couldn't start the settings operation. Try again.	Operasi pengaturan tidak dapat dimulai. Coba lagi.
+A save stopped. Reopen the media and save again.	Penyimpanan terhenti. Buka kembali media dan simpan lagi.
+%1$d saves stopped. Reopen the media and save again.	%1$d penyimpanan terhenti. Buka kembali media dan simpan lagi.
+A save was interrupted	Penyimpanan terputus
+%1$d saves were interrupted	%1$d penyimpanan terputus
+Reopen the media and save again.	Buka kembali media dan simpan lagi.

@@ -25,13 +25,9 @@ internal object RiskControlServiceExecuteFingerprint : Fingerprint(
 )
 
 /**
- * The risk control dialog is a different path from the browsing CAPTCHA that
- * `Hide CAPTCHA popups` covers, so it needs its own hook. It answers the same setting and
- * refuses to touch the two service types that carry account security verification.
- *
- * Off by default on purpose: TikTok raises a real risk check here as well. The gate never
- * hides one that arrived over a write the user just asked for, and logs every suppression,
- * but a check this service raises for some other reason still has consequences.
+ * BdTuring has a separate entry point from SecApiImpl and oecverify. Its hook uses the
+ * same gate and diagnostic record. No reviewed browsing scene is available, so the
+ * current gate preserves every challenge, including SMS and two-factor verification.
  */
 @Suppress("unused")
 val bdTuringCaptchaPopupPatch = bytecodePatch(
@@ -39,18 +35,10 @@ val bdTuringCaptchaPopupPatch = bytecodePatch(
     // nothing to anyone reading that list; it is kept in the description, where somebody
     // searching for it will still find it.
     name = "Hide the risk control CAPTCHA",
-    description = "Hides TikTok's risk control CAPTCHA dialog, raised by its BdTuring service, " +
-        "which the browsing CAPTCHA " +
-        "patch does not cover. Answers the Hide CAPTCHA popups setting, never touches SMS or " +
-        "two factor verification, and never hides a check the server raised over a follow, " +
-        "like, comment or repost. Off by default.",
+    description = "Records TikTok's BdTuring risk-control decisions through the shared CAPTCHA gate. All verification dialogs remain visible because no browsing scene has been validated. Off by default.",
     default = false,
 ) {
-    // The recorder is what lets the gate tell a browsing puzzle from one raised over a write.
-    // Selecting this patch without it would hide both.
-    // It answers the Hide CAPTCHA popups setting, whose switch only exists when that
-    // patch is selected. Selected on its own it would install a hook reading a setting
-    // with nowhere to turn it on, so it brings the switch with it.
+    // Retain the request attribution and the legacy setting's unavailable row together.
     dependsOn(sharedExtensionPatch, captchaRequestRecorderPatch, hideCaptchaPopupsPatch)
     // Beside Hide CAPTCHA popups, whose switch it answers.
     category("Feed")

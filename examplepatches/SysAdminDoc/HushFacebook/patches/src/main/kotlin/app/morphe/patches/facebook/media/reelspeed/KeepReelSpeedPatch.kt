@@ -22,11 +22,15 @@ import app.morphe.patches.facebook.media.taptoplay.GROOT_PLAY
 import app.morphe.patches.facebook.media.taptoplay.grootPlays
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.settings.settingsPatch
+import app.morphe.patches.facebook.reels.hold.reelLiftGuardPatch
+import app.morphe.patches.facebook.reels.hold.SPEED_SET as GUARD_SPEED_SET
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 internal const val PATCH = "Keep the reel speed"
@@ -36,7 +40,8 @@ internal const val PATCH = "Keep the reel speed"
  * Facebook sets, announces and forgets a reel's speed, and the extension's ReelSpeed for the rule.
  *
  * FbGrootPlayer's speed setter and its maybeTrackVideoStart tell the extension about themselves
- * first thing, and so does the Reels menu's speed toast, which follows a pick. The
+ * first thing, and so does the Reels menu's speed toast, which follows a pick. The gear menu's speed
+ * sheet shows no toast, so its pick tells the extension straight after it sets the speed. The
  * extension's stubs are filled with the player's speed setter, its PlayerOrigin getter, its
  * VideoPlayerParams getter and the params' isFbShorts, isSponsored and isLiveNow.
  */
@@ -49,7 +54,8 @@ val keepReelSpeedPatch = bytecodePatch(
     default = true,
 ) {
     category("Interface")
-    dependsOn(settingsPatch)
+    // The guard keeps a tap from undoing a picked speed on accounts Facebook gives its own hold.
+    dependsOn(settingsPatch, reelLiftGuardPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {
@@ -68,13 +74,14 @@ internal class ReelSpeedAnchors(
     val origin: Method,
     val start: Method,
     val toast: Method,
+    val gearPick: Method,
     val params: Method,
     val flags: Map<String, FieldReference>,
 )
 
 /**
  * FbGrootPlayer's setter, origin getter, start and params getter, the params' fields the rule
- * reads, and the Reels menu's speed toast. Changes nothing.
+ * reads, the Reels menu's speed toast and the gear menu's speed pick. Changes nothing.
  */
 internal fun BytecodePatchContext.findReelSpeedAnchors(): ReelSpeedAnchors {
     val plays = classDefByStrings(GROOT_PLAY, StringComparisonType.EQUALS)
@@ -97,6 +104,15 @@ internal fun BytecodePatchContext.findReelSpeedAnchors(): ReelSpeedAnchors {
         .flatMap { holder -> holder.methods.filter(::isSpeedToast) }
     val toast = toasts.singleOrNull()
         ?: refuse("expected one static (Context, float) speed toast holding \"$SPEED_TOAST\", found ${toasts.size}")
+
+    val gearPicks = classDefByStrings(GEAR_PICK, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { holder ->
+            holder.methods.filter { holdsString(it, GEAR_PICK) && setterCalls(it, owner.type, setter).isNotEmpty() }
+        }
+    val gearPick = gearPicks.singleOrNull()
+        ?: refuse("expected one gear menu speed pick holding \"$GEAR_PICK\" and setting the speed with ${setter.name}, " +
+            "found ${gearPicks.size}")
 
     val paramsClass = classDefByOrNull(VIDEO_PLAYER_PARAMS) ?: refuse("this build has no $VIDEO_PLAYER_PARAMS")
     val dumps = paramsClass.methods.filter { method -> REEL_PARAM_STUBS.keys.all { holdsString(method, it) } }
@@ -121,21 +137,37 @@ internal fun BytecodePatchContext.findReelSpeedAnchors(): ReelSpeedAnchors {
             refuse("${owner.type}->${method.name} isn't public, so the extension can't call it")
         }
     }
-    return ReelSpeedAnchors(owner, setter, origin, start, toast, params, flags)
+    return ReelSpeedAnchors(owner, setter, origin, start, toast, gearPick, params, flags)
 }
 
 /**
  * Each hook goes first in its method and hands the extension the method's own arguments through
  * the range form, which names any register and borrows none: the player and the speed for the
- * setter, the player for the start, and the speed, the toast's second argument.
+ * setter, the player for the start, and the speed, the toast's second argument. In the setter the
+ * release guard's hook, which this patch brings and so runs first, stays ahead of it, so the speed
+ * logged is the one the player gets. The gear pick tells the extension after each of its setter
+ * calls, with the speed that call handed over; the branches that land after a call come from paths
+ * that set nothing, so they skip it.
  */
 internal fun BytecodePatchContext.applyReelSpeedAnchors(anchors: ReelSpeedAnchors) {
     val owner = mutableClassDefBy(anchors.owner.type)
-    owner.findMutableMethodOf(anchors.setter).addInstruction(0, "invoke-static/range { p0 .. p1 }, $SPEED_SET")
+    val setter = owner.findMutableMethodOf(anchors.setter)
+    setter.addInstruction(afterGuard(setter), "invoke-static/range { p0 .. p1 }, $SPEED_SET")
     owner.findMutableMethodOf(anchors.start).addInstruction(0, "invoke-static/range { p0 .. p0 }, $STARTED")
     mutableClassDefBy(anchors.toast.definingClass).findMutableMethodOf(anchors.toast)
         .addInstruction(0, "invoke-static/range { p1 .. p1 }, $PICKED")
+    val gear = mutableClassDefBy(anchors.gearPick.definingClass).findMutableMethodOf(anchors.gearPick)
+    setterCalls(gear, anchors.owner.type, anchors.setter).asReversed().forEach { (call, speed) ->
+        gear.addInstruction(call + 1, "invoke-static/range { v$speed .. v$speed }, $GEAR_PICKED")
+    }
     fillStubs(anchors)
+}
+
+/** 2 when [setter] starts with the release guard's hook and its move-result, else 0. */
+private fun afterGuard(setter: MutableMethod): Int {
+    val code = setter.implementation!!.instructions
+    val first = code.firstOrNull() as? ReferenceInstruction ?: return 0
+    return if (first.reference.toString() == GUARD_SPEED_SET && code.getOrNull(1)?.opcode == Opcode.MOVE_RESULT) 2 else 0
 }
 
 /** Fills the extension's stubs. Each reads only its parameter registers, cast to the player's or the params' own type. */

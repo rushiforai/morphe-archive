@@ -18,6 +18,7 @@ import android.widget.FrameLayout;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.interaction.narrowed.NarrowedResult;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.categories.PlaybackPreferenceCategory;
@@ -483,6 +484,177 @@ public class VideoFitTest {
             assertEquals(900, ((NarrowedResult) remade).getHeight());
         } finally {
             Settings.FIT_VIDEO_TO_SCREEN.save(false);
+        }
+    }
+
+    /** Stands in for the pager the feed's pages sit in, which the report knows by its class name. */
+    public static final class PagesViewPager extends FrameLayout {
+        PagesViewPager(Context context) { super(context); }
+    }
+
+    @Test public void theReportKeepsEachDecisionWithTheSizesAboveTheVideo() {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            VideoFit.resetReportForTests();
+            // #29's shape: the page is 2213 tall, the frame right above the video was 1500 tall
+            // when the fit was worked out, and the video came out 844x1500 with bars all round.
+            PagesViewPager pager = new PagesViewPager(activity);
+            FrameLayout page = new FrameLayout(activity);
+            FrameLayout frame = new FrameLayout(activity);
+            View video = new View(activity);
+            pager.addView(page);
+            page.addView(frame);
+            frame.addView(video);
+            pager.layout(0, 0, 1080, 2213);
+            page.layout(0, 0, 1080, 2213);
+            frame.layout(0, 0, 1080, 1500);
+            video.setLayoutParams(new FrameLayout.LayoutParams(1245, 2213));
+            Settings.FIT_VIDEO_TO_SCREEN.save(true);
+
+            Result cropped = new Result(1245, 2213, -82.5f, 0f, null);
+            VideoFit.fitted(video, cropped);
+            // The feed asks again to compare, and the same answer counts on the same line.
+            VideoFit.fitted(video, cropped);
+            VideoFit.fitted(video, new Result(800, 1400, 0f, 0f, null));
+
+            java.util.List<String> lines = VideoFit.Report.INSTANCE.lines();
+            assertEquals("Fit the video to the screen: on", lines.get(0));
+            assertEquals("Fill the screen with the video: off", lines.get(1));
+            assertEquals("Fit checks since TikTok started: 2 resized the video, 1 left it at TikTok's size", lines.get(2));
+            assertEquals("The last 2, oldest first:", lines.get(3));
+            String above = ". Above the video: FrameLayout 1080x1500, FrameLayout 1080x2213 (the page); window 1080x2213";
+            assertEquals("Fit, feed: TikTok's size 1245x2213, space 1080x1500, made 844x1500" + above + " (2 in a row)",
+                    lines.get(4));
+            assertEquals("Fit, feed: TikTok's size 800x1400, space 1080x1500, left as it was" + above, lines.get(5));
+            assertEquals(6, lines.size());
+        } finally {
+            Settings.FIT_VIDEO_TO_SCREEN.save(false);
+            VideoFit.resetReportForTests();
+        }
+    }
+
+    /** Under Pause both switches read off; the report keeps the choice and says why nothing fits. */
+    @Test public void aPausedReportKeepsTheChoiceAndSaysItIsPaused() {
+        VideoFit.resetReportForTests();
+        Settings.FILL_VIDEO_TO_SCREEN.save(true);
+        PausedProcess.set(true);
+        try {
+            assertEquals(java.util.List.of("Fit the video to the screen: off",
+                    "Fill the screen with the video: on",
+                    "Hushfeed is paused, so videos keep TikTok's size",
+                    "Fit checks since TikTok started: 0 resized the video, 0 left it at TikTok's size"),
+                    VideoFit.Report.INSTANCE.lines());
+        } finally {
+            PausedProcess.set(false);
+            Settings.FILL_VIDEO_TO_SCREEN.save(false);
+        }
+        // Not paused, the line goes.
+        Settings.FIT_VIDEO_TO_SCREEN.save(true);
+        try {
+            assertFalse(VideoFit.Report.INSTANCE.lines().contains("Hushfeed is paused, so videos keep TikTok's size"));
+        } finally {
+            Settings.FIT_VIDEO_TO_SCREEN.save(false);
+        }
+    }
+
+    @Test public void aFitIsWorkedOutAgainWhenItsSpaceIsLaidOutAtANewSize() {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout page = new FrameLayout(activity);
+            FrameLayout space = new FrameLayout(activity);
+            View video = new View(activity);
+            page.addView(space);
+            space.addView(video);
+            page.layout(0, 0, 1080, 2213);
+            // #29: the space read at an old size while TikTok handed over its result for the new one.
+            space.layout(0, 0, 1080, 1500);
+            video.setLayoutParams(new FrameLayout.LayoutParams(1245, 2213));
+            Settings.FIT_VIDEO_TO_SCREEN.save(true);
+
+            Result copy = (Result) VideoFit.fitted(video, new Result(1245, 2213, -82.5f, 0f, null));
+            assertEquals(844, copy.getWidth());
+            assertEquals(1500, copy.getHeight());
+            // TikTok writes the copy's size into the view.
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) video.getLayoutParams();
+            params.width = 844;
+            params.height = 1500;
+            video.setLayoutParams(params);
+
+            // The layout catches up. TikTok hands nothing over again, and the fit follows anyway.
+            space.layout(0, 0, 1080, 2213);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals(1080, video.getLayoutParams().width);
+            assertEquals(1920, video.getLayoutParams().height);
+            assertEquals(android.view.Gravity.CENTER,
+                    ((FrameLayout.LayoutParams) video.getLayoutParams()).gravity);
+
+            // A size the video was given by anything else since is that one's, and stays.
+            params = (FrameLayout.LayoutParams) video.getLayoutParams();
+            params.width = 500;
+            params.height = 500;
+            video.setLayoutParams(params);
+            space.layout(0, 0, 1080, 1700);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals(500, video.getLayoutParams().width);
+            assertEquals(500, video.getLayoutParams().height);
+
+            // Turned off between the fit and the new size: TikTok's next pass decides, not this.
+            copy = (Result) VideoFit.fitted(video, new Result(1245, 2213, -82.5f, 0f, null));
+            assertEquals(956, copy.getWidth());
+            assertEquals(1700, copy.getHeight());
+            params = (FrameLayout.LayoutParams) video.getLayoutParams();
+            params.width = 956;
+            params.height = 1700;
+            video.setLayoutParams(params);
+            Settings.FIT_VIDEO_TO_SCREEN.save(false);
+            space.layout(0, 0, 1080, 2213);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals(956, video.getLayoutParams().width);
+            assertEquals(1700, video.getLayoutParams().height);
+        } finally {
+            Settings.FIT_VIDEO_TO_SCREEN.save(false);
+            VideoFit.resetReportForTests();
+        }
+    }
+
+    public static final class RecordingSpace extends FrameLayout {
+        int removed;
+        RecordingSpace(Context context) { super(context); }
+        @Override public void removeOnLayoutChangeListener(OnLayoutChangeListener listener) {
+            removed++;
+            super.removeOnLayoutChangeListener(listener);
+        }
+    }
+
+    /** A space whose video has gone lets go of its watch on its next pass, at any size. */
+    @Test public void aWatchLetsGoOnceItsVideoLeavesEvenAtTheSameSize() {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout page = new FrameLayout(activity);
+            RecordingSpace space = new RecordingSpace(activity);
+            View video = new View(activity);
+            page.addView(space);
+            space.addView(video);
+            page.layout(0, 0, 1080, 2213);
+            space.layout(0, 0, 1080, 1500);
+            video.setLayoutParams(new FrameLayout.LayoutParams(1245, 2213));
+            Settings.FIT_VIDEO_TO_SCREEN.save(true);
+            VideoFit.fitted(video, new Result(1245, 2213, -82.5f, 0f, null));
+            assertEquals(0, space.removed);
+
+            // The page is recycled: the video goes, and the space is laid out again at its size.
+            space.removeView(video);
+            int exactly = View.MeasureSpec.EXACTLY;
+            space.measure(View.MeasureSpec.makeMeasureSpec(1080, exactly),
+                    View.MeasureSpec.makeMeasureSpec(1500, exactly));
+            space.layout(0, 0, 1080, 1500);
+            assertEquals(1, space.removed);
+        } finally {
+            Settings.FIT_VIDEO_TO_SCREEN.save(false);
+            VideoFit.resetReportForTests();
         }
     }
 

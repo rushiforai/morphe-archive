@@ -43,6 +43,8 @@ public class ReelHoldTest {
     public void start() {
         ReelHold.forget();
         HookStatus.clear();
+        // A build with Hold a reel for 2x, as its patch's status says in one.
+        ReelHold.holdInBuildForTests = true;
     }
 
     @After

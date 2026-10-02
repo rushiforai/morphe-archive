@@ -1,0 +1,318 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ *
+ * Modified for HushGram (Instagram), 2026.
+ */
+package app.morphe.patches.instagram.misc.settings
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.RepoFiles
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * Instagram's shortcut calls go through SettingsEntry, which puts the HushGram shortcut back in
+ * front after each one. The newest push goes first, so without this the HushGram shortcut could
+ * end up last, where a launcher showing a few cuts it off.
+ */
+class ShortcutCallsTest {
+    private fun call(name: String): ImmutableMethodReference {
+        val shape = SHORTCUT_CALLS[name] ?: "(Ljava/util/List;)V"
+        val parameters = Regex("""L[^;]+;""").findAll(shape.substringBefore(')')).map { it.value }.toList()
+        return ImmutableMethodReference(SHORTCUT_MANAGER, name, parameters, shape.substringAfter(')'))
+    }
+
+    private fun method(registers: Int, vararg instructions: Instruction): MutableMethod = MutableMethod(
+        ImmutableMethod(
+            "Lcom/example/Shortcuts;",
+            "publish",
+            emptyList(),
+            "V",
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+            null,
+            null,
+            ImmutableMethodImplementation(registers, instructions.toList(), null, null),
+        ),
+    )
+
+    @Test
+    fun aCallGoesToTheStandInWithTheSameRegisters() {
+        val method = method(
+            3,
+            ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 2, 0, 0, 0, call("pushDynamicShortcut")),
+            ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 0, 0, 0, 0, call("updateShortcuts")),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+        )
+
+        assertEquals(2, method.rerouteShortcutCalls())
+
+        val (push, update, result) = method.implementation!!.instructions.take(3)
+        assertEquals(Opcode.INVOKE_STATIC, push.opcode)
+        assertEquals(
+            "Lapp/hushgram/extension/instagram/settings/SettingsEntry;->pushDynamicShortcut(" +
+                "Landroid/content/pm/ShortcutManager;Landroid/content/pm/ShortcutInfo;)V",
+            (push as ReferenceInstruction).reference.toString(),
+        )
+        assertEquals(listOf(1, 2), (push as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+        assertEquals(
+            "Lapp/hushgram/extension/instagram/settings/SettingsEntry;->updateShortcuts(" +
+                "Landroid/content/pm/ShortcutManager;Ljava/util/List;)Z",
+            (update as ReferenceInstruction).reference.toString(),
+        )
+        assertEquals(listOf(1, 0), (update as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+        assertEquals("the answer is read where it was", Opcode.MOVE_RESULT, result.opcode)
+        assertEquals(0, (result as OneRegisterInstruction).registerA)
+    }
+
+    @Test
+    fun aRangeCallStaysARangeCall() {
+        val method = method(
+            20,
+            ImmutableInstruction3rc(Opcode.INVOKE_VIRTUAL_RANGE, 17, 2, call("setDynamicShortcuts")),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+            ImmutableInstruction3rc(Opcode.INVOKE_VIRTUAL_RANGE, 19, 1, call("removeAllDynamicShortcuts")),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+        )
+
+        assertEquals(2, method.rerouteShortcutCalls())
+
+        val instructions = method.implementation!!.instructions.toList()
+        val set = instructions[0] as RegisterRangeInstruction
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, instructions[0].opcode)
+        assertEquals(17 to 2, set.startRegister to set.registerCount)
+        val clear = instructions[2] as RegisterRangeInstruction
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, instructions[2].opcode)
+        assertEquals(19 to 1, clear.startRegister to clear.registerCount)
+        assertEquals(
+            "Lapp/hushgram/extension/instagram/settings/SettingsEntry;->removeAllDynamicShortcuts(" +
+                "Landroid/content/pm/ShortcutManager;)V",
+            (instructions[2] as ReferenceInstruction).reference.toString(),
+        )
+    }
+
+    @Test
+    fun callsThatCanOnlyMoveItUpStay() {
+        val remove = ImmutableMethodReference(SHORTCUT_MANAGER, "removeDynamicShortcuts", listOf("Ljava/util/List;"), "V")
+        val elsewhere = ImmutableMethodReference(
+            "Landroidx/core/content/pm/ShortcutManagerCompat;", "pushDynamicShortcut",
+            listOf("Landroid/content/pm/ShortcutInfo;"), "V",
+        )
+        val method = method(
+            3,
+            ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 2, 0, 0, 0, remove),
+            ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 2, 0, 0, 0, elsewhere),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+        )
+
+        assertEquals(0, method.rerouteShortcutCalls())
+        method.implementation!!.instructions.take(2).forEach { assertEquals(Opcode.INVOKE_VIRTUAL, it.opcode) }
+        assertNull(ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 2, 0, 0, 0, remove).shortcutCall())
+    }
+
+    /**
+     * Each call sent has its stand-in in the SettingsEntry the bundle ships, public and static, with
+     * exactly the descriptor the rewrite writes: the manager, then the framework call's own
+     * parameters, then its answer. Read from the compiled extension, so a Java parameter that
+     * compiles to another type fails here. A match on the source's name and first parameter let
+     * that through to a NoSuchMethodError in Instagram's notification code.
+     */
+    @Test
+    fun everyCallSentHasAStandIn() {
+        val declared = ExtensionDex.classDef(ENTRY).methods
+            .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "$ENTRY->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+            .toSet()
+        SHORTCUT_CALLS.forEach { (name, shape) ->
+            val descriptor = "$ENTRY->$name($SHORTCUT_MANAGER${shape.substringAfter('(')}"
+            assertEquals("what the rewrite writes for $name", descriptor, standIn(call(name)))
+            assertTrue(
+                "SettingsEntry declares no public static $descriptor. Its methods of that name: " +
+                    declared.filter { it.contains("->$name(") },
+                descriptor in declared,
+            )
+        }
+    }
+
+    /**
+     * The settings patch itself, run over an application, a main activity and two classes that make
+     * all five calls: Instagram's, where every call goes to its stand-in, and the
+     * extension's, whose calls are the real ones the stand-ins make and stay. Sending those would
+     * make each stand-in call itself.
+     */
+    @Test
+    fun theSettingsPatchSendsEveryCallOutsideTheExtension() {
+        val instagram = "Lfixture/ShortcutPublisher;"
+        val context = PatchContexts.of(SettingsPatchHosts.all() + publisher(instagram) + publisher(ENTRY))
+
+        settingsPatch.execute(context)
+
+        val sent = context.mutableClassDefBy(instagram).methods.single().instructions()
+        assertEquals("framework calls left in Instagram's code", emptyList<String>(), sent.mapNotNull { it.frameworkCall() })
+        assertEquals("stand-ins in Instagram's code", SHORTCUT_CALLS.keys.sorted(), sent.mapNotNull { it.standInCall() }.sorted())
+        val kept = context.mutableClassDefBy(ENTRY).methods.single().instructions()
+        assertEquals("the extension's own calls", SHORTCUT_CALLS.keys.sorted(), kept.mapNotNull { it.frameworkCall() }.sorted())
+        assertEquals("stand-ins in the extension", emptyList<String>(), kept.mapNotNull { it.standInCall() })
+    }
+
+    /**
+     * The declared build pushes, adds, sets, updates and clears its own dynamic shortcuts from a
+     * handful of places. The settings patch, run over the build's classes that make those calls,
+     * sends every one to its stand-in with the registers it had, the instruction count unchanged,
+     * and leaves none behind. The application and main activity the patch's other hooks go into are
+     * stand-ins here, since this reads only the shortcut calls.
+     */
+    @Test
+    fun eachDeclaredBuildSendsEveryCallThatRanksItsShortcuts() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                val callers = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex ->
+                    if (dex.methodSection.none { it.definingClass == SHORTCUT_MANAGER && it.name in SHORTCUT_CALLS }) {
+                        return@forEach
+                    }
+                    for (classDef in dex.classes) {
+                        if (classDef.methods.any { method -> method.instructions().any { it.frameworkCall() != null } }) {
+                            callers += ImmutableClassDef.of(classDef)
+                        }
+                    }
+                }
+                val found = callers.flatMap { it.methods }.flatMap { it.instructions() }
+                    .mapNotNull { it.frameworkCall() }.groupingBy { it }.eachCount()
+                assertEquals(
+                    "${bundle.name}: shortcut calls in the stock build",
+                    mapOf("pushDynamicShortcut" to 1, "addDynamicShortcuts" to 3, "setDynamicShortcuts" to 1,
+                        "updateShortcuts" to 2, "removeAllDynamicShortcuts" to 3),
+                    found,
+                )
+                val hosts = SettingsPatchHosts.all()
+                assertTrue(
+                    "${bundle.name}: a class making the calls is one the test stands in for",
+                    callers.none { caller -> hosts.any { it.type == caller.type } },
+                )
+
+                val context = PatchContexts.of(hosts + callers)
+                settingsPatch.execute(context)
+
+                val sent = mutableMapOf<String, Int>()
+                for (before in callers) {
+                    val after = context.mutableClassDefBy(before.type).methods
+                    for (original in before.methods) {
+                        val was = original.instructions()
+                        if (was.none { it.frameworkCall() != null }) continue
+                        val where = "${bundle.name}: ${original.definingClass}->${original.name}"
+                        val now = after.single { it.sameSignatureAs(original) }.instructions()
+                        assertEquals("$where: instruction count", was.size, now.size)
+                        assertEquals("$where: framework calls left", emptyList<String>(), now.mapNotNull { it.frameworkCall() })
+                        was.forEachIndexed { index, instruction ->
+                            val framework = instruction.shortcutCall() ?: return@forEachIndexed
+                            val replacement = now[index]
+                            assertEquals(
+                                "$where at $index",
+                                standIn(framework),
+                                (replacement as ReferenceInstruction).reference.toString(),
+                            )
+                            assertEquals(
+                                "$where at $index: the static form of ${instruction.opcode}",
+                                if (instruction is RegisterRangeInstruction) Opcode.INVOKE_STATIC_RANGE else Opcode.INVOKE_STATIC,
+                                replacement.opcode,
+                            )
+                            assertEquals("$where at $index: registers", instruction.registers(), replacement.registers())
+                            sent.merge(framework.name, 1, Int::plus)
+                        }
+                    }
+                }
+                assertEquals("${bundle.name}: calls sent to their stand-ins", found, sent)
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    /** Parameters compared as text: dexlib2's lists of two kinds don't equal each other. */
+    private fun Method.sameSignatureAs(other: Method) = name == other.name && returnType == other.returnType &&
+        parameterTypes.map { it.toString() } == other.parameterTypes.map { it.toString() }
+
+    /** The [SHORTCUT_CALLS] name this instruction calls on ShortcutManager, by name alone, or null. */
+    private fun Instruction.frameworkCall(): String? {
+        val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return null
+        return reference.name.takeIf { reference.definingClass == SHORTCUT_MANAGER && it in SHORTCUT_CALLS }
+    }
+
+    /** The [SHORTCUT_CALLS] name of the SettingsEntry stand-in this instruction calls statically, or null. */
+    private fun Instruction.standInCall(): String? {
+        if (opcode != Opcode.INVOKE_STATIC && opcode != Opcode.INVOKE_STATIC_RANGE) return null
+        val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return null
+        return reference.name.takeIf { reference.definingClass == ENTRY && it in SHORTCUT_CALLS }
+    }
+
+    private fun Instruction.registers(): List<Int> = when (this) {
+        is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+        is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+        else -> emptyList()
+    }
+
+    private fun parameters(vararg types: String) = types.map { ImmutableMethodParameter(it, null, null) }
+
+    private fun body(registers: Int, vararg instructions: Instruction) =
+        ImmutableMethodImplementation(registers, instructions.toList(), null, null)
+
+    /**
+     * A class of [type] whose one static method makes all five calls the way Instagram's code does:
+     * v1 the manager, v2 a list, v3 a shortcut, each boolean answer read into v0, and the set as a
+     * range call.
+     */
+    private fun publisher(type: String): ClassDef = ImmutableClassDef(
+        type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
+        listOf(
+            ImmutableMethod(
+                type, "publish", parameters(SHORTCUT_MANAGER, "Ljava/util/List;", "Landroid/content/pm/ShortcutInfo;"), "V",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+                body(
+                    4,
+                    ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 3, 0, 0, 0, call("pushDynamicShortcut")),
+                    ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 2, 0, 0, 0, call("addDynamicShortcuts")),
+                    ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                    ImmutableInstruction3rc(Opcode.INVOKE_VIRTUAL_RANGE, 1, 2, call("setDynamicShortcuts")),
+                    ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                    ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 2, 0, 0, 0, call("updateShortcuts")),
+                    ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                    ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 1, 0, 0, 0, 0, call("removeAllDynamicShortcuts")),
+                    ImmutableInstruction10x(Opcode.RETURN_VOID),
+                ),
+            ),
+        ),
+    )
+}

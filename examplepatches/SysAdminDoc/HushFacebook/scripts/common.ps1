@@ -125,7 +125,8 @@ function Get-SourcesNewerThanBundle {
 
     $built = (Get-Item -LiteralPath $Bundle).LastWriteTimeUtc
     $sourceRoots = @()
-    $gradleFiles = @('gradle.properties', 'settings.gradle.kts', 'build.gradle.kts', 'gradle/libs.versions.toml', 'NOTICE') |
+    $gradleFiles = @('gradle.properties', 'settings.gradle.kts', 'build.gradle.kts', 'gradle/libs.versions.toml',
+        'gradle/tooling-scopes.txt', 'NOTICE') |
         ForEach-Object { Join-Path $Root $_ }
     $ruleDirs = @()
     $patches = Join-Path $Root 'patches'

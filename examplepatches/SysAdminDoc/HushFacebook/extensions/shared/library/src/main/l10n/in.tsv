@@ -74,6 +74,10 @@ The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	F
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.
 Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.	Gunakan emoji ponsel. Reaksi dan stiker tetap sama. Mulai ulang Facebook setelah mengubahnya.
+# context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
+Tab bar at the bottom	Bilah tab di bawah
+# context: description of that switch; Facebook shows the tab bar at the top of the screen on some accounts and at the bottom on others
+Put Facebook's tab bar at the bottom of the screen on accounts that have it at the top. Restart Facebook after changing it.	Memindahkan bilah tab Facebook ke bagian bawah layar pada akun yang menampilkannya di atas. Mulai ulang Facebook setelah mengubahnya.
 Use your phone's font or a file chosen below. Restart Facebook after changing it.	Gunakan font ponsel atau file yang dipilih di bawah. Mulai ulang Facebook setelah mengubahnya.
 Font file	File font
 Use your phone's font	Gunakan font ponsel
@@ -216,7 +220,7 @@ the re-signed build fix	perbaikan build yang ditandatangani ulang
 the start-up fix for x86 devices	perbaikan saat mulai untuk perangkat x86
 the recoloured dark mode	mode gelap yang diwarnai ulang
 The row of friend suggestions between posts, and the one on your own profile.	Deretan saran pertemanan di antara postingan, dan deretan di profilmu sendiri.
-The row of stories at the top of the feed, Create story included.	Deretan cerita di bagian atas Kabar Beranda, termasuk “Buat cerita”.
+The row of stories at the top of the feed, Create story included, and the rows of stories between posts.	Deretan cerita di bagian atas Kabar Beranda, termasuk “Buat cerita”, dan deretan cerita di antara postingan.
 The rows of reels between posts, and the reels Facebook adds where your feed ends.	Deretan Reels di antara postingan, dan Reels yang ditambahkan Facebook di akhir Kabar Beranda Anda.
 The setting couldn't finish updating. Its saved value is shown.	Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.
 There's no diagnostic data to clear.	Tidak ada data diagnostik yang dapat dihapus.
@@ -617,6 +621,18 @@ Open the setting	Buka pengaturan
 Hide post prompts	Sembunyikan pertanyaan di bawah postingan
 # context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
 The strip on some posts, like "Are you interested in this post?", "Show less" or who recently commented, and the follow and chat suggestions in the same place. The post stays.	Strip pada beberapa postingan, seperti “Apakah Anda tertarik dengan postingan ini?”, “Tampilkan lebih sedikit” atau siapa yang baru saja berkomentar, serta saran untuk mengikuti dan mengobrol di tempat yang sama. Postingannya tetap ada.
+# context: switch title under News feed; Meta AI is the name of Meta's assistant, and the questions are the row of suggested questions for it that Facebook puts under some posts
+Hide Meta AI questions under posts	Sembunyikan pertanyaan Meta AI di bawah postingan
+# context: description of that switch; a link card is the preview of a shared link inside a post
+The row of Meta AI questions under some posts. The post, its link card and its buttons stay.	Baris pertanyaan Meta AI di bawah beberapa postingan. Postingan, kartu tautannya, dan tombolnya tetap ada.
+# context: switch title under News feed; it keeps the date shown under the name of whoever posted
+Keep post dates	Pertahankan tanggal postingan
+# context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
+The line under the poster's name keeps the post's date instead of Facebook's rotating details, which go blank on some phones.	Baris di bawah nama orang yang memposting tetap menampilkan tanggal postingan, bukan detail yang bergantian dari Facebook, yang di beberapa ponsel menjadi kosong.
+# context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
+Hide the Feeds header	Sembunyikan bagian atas Feed
+# context: description of that switch; the Feeds tab is where Facebook lists posts by those filters, and the title row is the one with the tab's name
+Open the Feeds tab on its posts, without the title row or the filters under it. Restart Facebook after changing it.	Membuka tab Feed langsung di postingannya, tanpa baris judul dan filter di bawahnya. Mulai ulang Facebook setelah mengubahnya.
 # context: switch title under Reels and Watch; the prompt is Facebook's "Are you interested in this reel?" question on a reel
 Hide reel interest prompts	Sembunyikan pertanyaan minat di reel
 # context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it

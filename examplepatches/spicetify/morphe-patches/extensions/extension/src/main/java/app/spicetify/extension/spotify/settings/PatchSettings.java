@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import app.spicetify.extension.spotify.home.HomePins;
 import app.spicetify.extension.spotify.localserver.ServerConfig;
+import app.spicetify.extension.spotify.localserver.ServerProcess;
+import app.spicetify.extension.spotify.localserver.ServerIndex;
 import app.spicetify.extension.spotify.theme.ThemeOverlay;
 
 public final class PatchSettings {
@@ -24,11 +26,15 @@ public final class PatchSettings {
     private PatchSettings() {}
 
     public static void initialize(Context context) {
+        if (InstalledPatches.serverFiles() && ServerProcess.skipApplication(context)) return;
         preferences = context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
         startupState = restartState();
         restartMarked = false;
         if (InstalledPatches.homePins()) HomePins.initialize(context);
-        if (InstalledPatches.serverFiles()) ServerConfig.initialize(context);
+        if (InstalledPatches.serverFiles()) {
+            ServerConfig.initialize(context);
+            ServerIndex.scanAsync();
+        }
         if (InstalledPatches.themeColors() && context instanceof Application) ThemeOverlay.install((Application) context);
     }
 

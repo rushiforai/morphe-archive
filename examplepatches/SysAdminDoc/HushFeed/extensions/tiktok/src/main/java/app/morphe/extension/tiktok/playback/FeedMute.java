@@ -11,6 +11,7 @@ import android.os.Bundle;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.feedfilter.LiveFilter;
@@ -26,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Mute feed videos: the feed plays silent until the reader turns the sound back on, without
@@ -100,6 +102,9 @@ public final class FeedMute {
      */
     private static volatile boolean focusOwed;
     private static WeakReference<Application> followed = new WeakReference<>(null);
+    /** Feed engines this silenced, and focus requests it turned down, since TikTok started. */
+    private static final AtomicLong SILENCED = new AtomicLong();
+    private static final AtomicLong FOCUS_HELD = new AtomicLong();
 
     private FeedMute() {
     }
@@ -109,6 +114,7 @@ public final class FeedMute {
         if (activity == null) return;
         feedActivity = activity.getClass();
         feedInFront = true;
+        LogBufferManager.registerReportSection(Report.INSTANCE);
         Application application = activity.getApplication();
         if (application == null || followed.get() == application) return;
         followed = new WeakReference<>(application);
@@ -421,6 +427,7 @@ public final class FeedMute {
                     if (before == null) {
                         before = engineIsMute(engine);
                         MUTED.put(engine, before);
+                        SILENCED.incrementAndGet();
                     }
                     setEngineMute(engine, true);
                 } else if (before != null) {
@@ -453,6 +460,7 @@ public final class FeedMute {
 
     private static boolean holdBack(String what) {
         if (!Settings.FEED_MUTED.get()) return false;
+        FOCUS_HELD.incrementAndGet();
         HookStatus.bound(HOOK_FAMILY, what);
         return true;
     }
@@ -465,6 +473,33 @@ public final class FeedMute {
     private static List<Object> keys(WeakHashMap<Object, ?> map) {
         synchronized (map) {
             return new ArrayList<>(map.keySet());
+        }
+    }
+
+    /**
+     * The FEED MUTE section of the diagnostic report. A report of a silent feed (#58) couldn't say
+     * whether Mute feed videos was on, and with the feed's mute button turned off nothing on the
+     * screen says so either.
+     */
+    static final class Report implements LogBufferManager.ReportSection {
+        static final Report INSTANCE = new Report();
+
+        @Override public String title() {
+            return "FEED MUTE";
+        }
+
+        @Override public List<String> lines() {
+            List<String> lines = new ArrayList<>();
+            boolean saved = Settings.FEED_MUTED.savedValue();
+            lines.add("Mute feed videos: " + (saved ? "on" : "off"));
+            if (saved && !Settings.FEED_MUTED.get()) lines.add("Hushfeed is paused, so the feed plays with its sound");
+            // The saved choice, like the line above: Pause reads every switch as off, which would
+            // report a button the reader never turned off.
+            lines.add("Mute button on the feed: " + (Settings.FEED_MUTE_BUTTON.savedValue() ? "shown" : "turned off"));
+            // One player plays many videos, so this counts players, not videos.
+            lines.add("Feed players muted since TikTok started: " + SILENCED.get());
+            lines.add("Audio focus requests turned down: " + FOCUS_HELD.get());
+            return lines;
         }
     }
 
@@ -540,5 +575,7 @@ public final class FeedMute {
         focusOwed = false;
         feedActivity = null;
         nativeForTests = null;
+        SILENCED.set(0);
+        FOCUS_HELD.set(0);
     }
 }

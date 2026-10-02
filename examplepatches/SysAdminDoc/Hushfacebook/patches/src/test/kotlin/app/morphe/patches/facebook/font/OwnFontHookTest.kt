@@ -12,8 +12,11 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableExceptionHandler
@@ -22,12 +25,15 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.ImmutableTryBlock
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Locale
 
 /**
  * What the font swap's return hooks read and borrow at each object return: the resolver reads the
@@ -299,8 +305,459 @@ class OwnFontHookTest {
         assertTrue(refused.message, refused.message.orEmpty().contains("found 0"))
     }
 
+    private val roboto = "Lfixture/Roboto;"
+    private val paint = "Landroid/graphics/Paint;"
+
     /**
-     * The four calls the patch writes are in the OwnFont the bundle ships, public and static, with
+     * Facebook's Roboto builder, (Context, weight)Typeface, cut down from 580's `LX/2do;->A01`: the
+     * typeface built for the weight, and when there's none, the log, with a jump past it to the one
+     * return. The answer sits in v3, the Context's register, as in 580.
+     */
+    private fun robotoBuilder(type: String = roboto, name: String = "A01", static: Boolean = true): MutableMethod =
+        MutableMethod(
+            ImmutableMethod(
+                type, name, listOf(CONTEXT, "Lfixture/Weight;").map { ImmutableMethodParameter(it, null, null) },
+                TYPEFACE, AccessFlags.PUBLIC.value or (if (static) AccessFlags.STATIC.value else 0), null, null,
+                ImmutableMethodImplementation(5, emptyList(), null, null),
+            ),
+        ).apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { v3, v4 }, Lfixture/Robotos;->build(${CONTEXT}Lfixture/Weight;)$TYPEFACE
+                    move-result-object v3
+                    if-nez v3, :built
+                    const-string v0, "$NO_ROBOTO"
+                    invoke-static { v0 }, Lfixture/Log;->w($STRING)V
+                    :built
+                    return-object v3
+                """,
+            )
+        }
+
+    private fun robotoClass(type: String, vararg methods: MutableMethod) =
+        ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null, methods.toList())
+
+    /**
+     * Through the patcher: the one Roboto builder hands its answer to the extension at its return's
+     * own label, so the way past the log goes through the hook too, and returns what comes back in
+     * the same register. The extension's own class doesn't count.
+     */
+    @Test
+    fun `the Roboto builder's answer goes through the extension`() {
+        val extension = "Lapp/morphe/extension/facebook/font/Stub;"
+        val context = PatchContexts.of(
+            listOf(robotoClass(roboto, robotoBuilder()), robotoClass(extension, robotoBuilder(type = extension))),
+        )
+        context.hookRobotoBuilder()
+
+        val body = context.mutableClassDefBy(roboto).methods.single().implementation!!.instructions.toList()
+        val call = body.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == REPLACE_PHONE_FONT }
+        assertEquals(listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
+            body.subList(call, call + 3).map { it.opcode })
+        assertEquals(listOf(3, 1), (body[call] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+        assertEquals(3, (body[call + 1] as OneRegisterInstruction).registerA)
+        assertEquals(3, (body[call + 2] as OneRegisterInstruction).registerA)
+        val addresses = body.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+        assertEquals("the jump past the log lands on the hook", call,
+            addresses.indexOf(addresses[2] + (body[2] as OffsetInstruction).codeOffset))
+        assertEquals("the extension's copy was hooked", 0, context.mutableClassDefBy(extension).methods.single()
+            .implementation!!.instructions.count { (it as? ReferenceInstruction)?.reference?.toString() == REPLACE_PHONE_FONT })
+    }
+
+    /** One builder that logs the refusal, static and answering a Typeface for a Context, or the patch stops. */
+    @Test
+    fun `a build without one Roboto builder stops the patch`() {
+        fun refusal(vararg methods: MutableMethod) = assertThrows(PatchException::class.java) {
+            PatchContexts.of(listOf(robotoClass(roboto, *methods))).hookRobotoBuilder()
+        }.message.orEmpty()
+        val none = refusal(robotoBuilder(static = false))
+        assertTrue(none, "expected one Roboto builder logging \"$NO_ROBOTO\", found 0" in none)
+        val two = refusal(robotoBuilder(), robotoBuilder(name = "A02"))
+        assertTrue(two, "found 2" in two)
+    }
+
+    /**
+     * A span's draw that reads both of Android's default typefaces on two ways that join, then asks
+     * defaultFromStyle in both call forms. The Paint is p0 (v3) and the style p1 (v4).
+     */
+    private fun defaultsReader(type: String): MutableMethod = MutableMethod(
+        ImmutableMethod(
+            type, "updateDrawState", listOf(paint, "I").map { ImmutableMethodParameter(it, null, null) },
+            TYPEFACE, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+            ImmutableMethodImplementation(5, emptyList(), null, null),
+        ),
+    ).apply {
+        addInstructionsWithLabels(
+            0,
+            """
+                if-eqz v4, :plain
+                sget-object v0, $TYPEFACE->DEFAULT_BOLD:$TYPEFACE
+                goto :set
+                :plain
+                sget-object v0, $TYPEFACE->DEFAULT:$TYPEFACE
+                :set
+                invoke-virtual { v3, v0 }, $paint->setTypeface($TYPEFACE)$TYPEFACE
+                invoke-static/range { v4 .. v4 }, $DEFAULT_FROM_STYLE
+                move-result-object v1
+                invoke-static { v4 }, $DEFAULT_FROM_STYLE
+                move-result-object v2
+                return-object v2
+            """,
+        )
+    }
+
+    private fun reference(instruction: Instruction) =
+        (instruction as? ReferenceInstruction)?.reference?.toString()
+
+    /**
+     * Through the patcher: each read of DEFAULT or DEFAULT_BOLD becomes the extension's getter with
+     * its answer moved into the read's register, and each defaultFromStyle call the extension's, in
+     * the same form on the same register. The jump to the second read lands on its getter, and the
+     * jump past it still lands on what followed the read, skipping the move. The extension's own
+     * class keeps its reads.
+     */
+    @Test
+    fun `each read of Android's default typefaces goes to the extension`() {
+        val span = "Lfixture/NameSpan;"
+        val extension = "Lapp/morphe/extension/facebook/font/Stub;"
+        val context = PatchContexts.of(listOf(robotoClass(span, defaultsReader(span)), robotoClass(extension, defaultsReader(extension))))
+        assertEquals(4, context.hookDefaultTypefaces())
+
+        val body = context.mutableClassDefBy(span).methods.single().implementation!!.instructions.toList()
+        assertEquals(
+            listOf(
+                Opcode.IF_EQZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.GOTO,
+                Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_VIRTUAL,
+                Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
+                Opcode.RETURN_OBJECT,
+            ),
+            body.map { it.opcode },
+        )
+        assertEquals("$OWN_FONT->defaultBold()$TYPEFACE", reference(body[1]))
+        assertEquals("$OWN_FONT->defaultTypeface()$TYPEFACE", reference(body[4]))
+        assertEquals(0, (body[2] as OneRegisterInstruction).registerA)
+        assertEquals(0, (body[5] as OneRegisterInstruction).registerA)
+        assertEquals(OWN_DEFAULT_FROM_STYLE, reference(body[7]))
+        assertEquals(listOf(4, 1), (body[7] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+        assertEquals(OWN_DEFAULT_FROM_STYLE, reference(body[9]))
+        assertEquals(listOf(4, 1), (body[9] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerCount) })
+
+        val addresses = body.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+        fun target(index: Int) = addresses.indexOf(addresses[index] + (body[index] as OffsetInstruction).codeOffset)
+        assertEquals("the jump to the second read lands on its getter", 4, target(0))
+        assertEquals("the jump past the second read lands on setTypeface", 6, target(3))
+
+        val kept = context.mutableClassDefBy(extension).methods.single().implementation!!.instructions.count { defaultRead(it) != null }
+        assertEquals("the extension's reads were sent", 4, kept)
+    }
+
+    private fun staticMethod(type: String, registers: Int, params: List<String>, body: String) = MutableMethod(
+        ImmutableMethod(
+            type, "run", params.map { ImmutableMethodParameter(it, null, null) }, TYPEFACE,
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+            ImmutableMethodImplementation(registers, emptyList(), null, null),
+        ),
+    ).apply { addInstructionsWithLabels(0, body.trimIndent()) }
+
+    /**
+     * A field read whose every use compares it with another typeface, by equals or by identity,
+     * stays Android's, so the check still asks whether a typeface is the phone's default. Litho's
+     * text asks that before it sets a typeface on its paint. A read that's also drawn with is sent.
+     */
+    @Test
+    fun `a default read only compared with another typeface stays Android's`() {
+        val type = "Lfixture/TextPaints;"
+        val method = staticMethod(
+            type, registers = 3, params = listOf(TYPEFACE),
+            body = """
+                sget-object v0, $TYPEFACE->DEFAULT:$TYPEFACE
+                invoke-virtual { p0, v0 }, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
+                move-result v1
+                if-nez v1, :done
+                sget-object v0, $TYPEFACE->DEFAULT_BOLD:$TYPEFACE
+                if-eq p0, v0, :done
+                sget-object v0, $TYPEFACE->SANS_SERIF:$TYPEFACE
+                return-object v0
+                :done
+                sget-object v0, $TYPEFACE->DEFAULT:$TYPEFACE
+                if-eq p0, v0, :same
+                :same
+                return-object v0
+            """,
+        )
+        assertEquals(listOf(true, true, false, false), listOf(0, 4, 6, 8).map(method::onlyCompared))
+        val context = PatchContexts.of(listOf(robotoClass(type, method)))
+        assertEquals("the drawn SANS_SERIF and DEFAULT", 2, context.hookDefaultTypefaces())
+        val body = context.mutableClassDefBy(type).methods.single().implementation!!.instructions.toList()
+        assertEquals(listOf("$TYPEFACE->DEFAULT:$TYPEFACE", "$TYPEFACE->DEFAULT_BOLD:$TYPEFACE"),
+            body.mapNotNull(::defaultRead))
+        assertEquals(listOf("$OWN_FONT->sansSerif()$TYPEFACE", "$OWN_FONT->defaultTypeface()$TYPEFACE"),
+            body.mapNotNull(::reference).filter { it.startsWith(OWN_FONT) })
+    }
+
+    /**
+     * Kotlin's areEqual, a static call on two objects answering a boolean under whatever name R8
+     * gave it, is a check too: the post text asks it whether its typeface is Typeface.DEFAULT. A
+     * static call taking a typeface along with something else isn't one, so a read handed to it is
+     * sent.
+     */
+    @Test
+    fun `a default read only handed to Kotlin's areEqual stays Android's`() {
+        val type = "Lfixture/PostText;"
+        val method = staticMethod(
+            type, registers = 3, params = listOf(TYPEFACE),
+            body = """
+                sget-object v0, $TYPEFACE->DEFAULT:$TYPEFACE
+                invoke-static { p0, v0 }, LX/0bL;->areEqual(Ljava/lang/Object;Ljava/lang/Object;)Z
+                move-result v1
+                if-eqz v1, :other
+                sget-object v0, $TYPEFACE->DEFAULT:$TYPEFACE
+                invoke-static { v0, p0 }, LX/GMb;->A0V(${TYPEFACE}Ljava/lang/Object;)Z
+                move-result v1
+                :other
+                return-object p0
+            """,
+        )
+        assertEquals(listOf(true, false), listOf(0, 4).map(method::onlyCompared))
+        val context = PatchContexts.of(listOf(robotoClass(type, method)))
+        assertEquals("the read handed to the builder", 1, context.hookDefaultTypefaces())
+        val body = context.mutableClassDefBy(type).methods.single().implementation!!.instructions.toList()
+        assertEquals(listOf("$TYPEFACE->DEFAULT:$TYPEFACE"), body.mapNotNull(::defaultRead))
+        assertEquals("the check's read is still first", "$TYPEFACE->DEFAULT:$TYPEFACE", defaultRead(body[0]))
+    }
+
+    /**
+     * Each Typeface.create Facebook makes goes to the extension's create of the same arguments, on
+     * the same registers in the same form: by family name, plain and range, from a typeface at a
+     * style, and at a weight.
+     */
+    @Test
+    fun `each create call goes to the extension on its own registers`() {
+        val type = "Lfixture/Medium;"
+        val method = staticMethod(
+            type, registers = 4, params = emptyList(),
+            body = """
+                const-string v0, "sans-serif-medium"
+                const/4 v1, 0x1
+                invoke-static { v0, v1 }, $CREATE_FROM_NAME
+                move-result-object v2
+                invoke-static/range { v0 .. v1 }, $CREATE_FROM_NAME
+                move-result-object v2
+                invoke-static { v2, v1 }, $CREATE_FROM_TYPEFACE
+                move-result-object v2
+                const/16 v3, 0x1f4
+                invoke-static { v2, v3, v1 }, $CREATE_AT_WEIGHT
+                move-result-object v2
+                return-object v2
+            """,
+        )
+        val context = PatchContexts.of(listOf(robotoClass(type, method)))
+        assertEquals(4, context.hookDefaultTypefaces())
+        val body = context.mutableClassDefBy(type).methods.single().implementation!!.instructions.toList()
+        val calls = body.filter { it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE }
+        assertEquals(listOf(CREATE_FROM_NAME, CREATE_FROM_NAME, CREATE_FROM_TYPEFACE, CREATE_AT_WEIGHT).map(::ownCall),
+            calls.map(::reference))
+        assertEquals(listOf(listOf(0, 1), listOf(0, 1), listOf(2, 1), listOf(2, 3, 1)), calls.map { call ->
+            when (call) {
+                is RegisterRangeInstruction -> (call.startRegister until call.startRegister + call.registerCount).toList()
+                else -> (call as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD, it.registerE).take(it.registerCount) }
+            }
+        })
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, calls[1].opcode)
+        assertEquals("nothing else moved", method.implementation!!.instructions.size, body.size)
+    }
+
+    /**
+     * A try block over the read alone covers its getter and the move after it, and one that starts
+     * right after the read leaves both out, as it left the read out.
+     */
+    @Test
+    fun `a try block's edges on a read stay where they were`() {
+        val type = "Lfixture/Header;"
+        val reader = MutableMethod(
+            ImmutableMethod(
+                type, "bold", emptyList(), TYPEFACE, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+                ImmutableMethodImplementation(
+                    2,
+                    listOf(
+                        // 0: address 0, 2 units, the read, alone in the first try
+                        ImmutableInstruction21c(Opcode.SGET_OBJECT, 0, ImmutableFieldReference(TYPEFACE, "DEFAULT_BOLD", TYPEFACE)),
+                        // 1: address 2, in the second try
+                        ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+                        // 2: address 3, the handler
+                        ImmutableInstruction11x(Opcode.MOVE_EXCEPTION, 1),
+                        // 3: address 4
+                        ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+                    ),
+                    listOf(
+                        ImmutableTryBlock(0, 2, listOf(ImmutableExceptionHandler(null, 3))),
+                        ImmutableTryBlock(2, 1, listOf(ImmutableExceptionHandler(null, 3))),
+                    ),
+                    null,
+                ),
+            ),
+        )
+        val context = PatchContexts.of(listOf(robotoClass(type, reader)))
+        assertEquals(1, context.hookDefaultTypefaces())
+
+        val implementation = context.mutableClassDefBy(type).methods.single().implementation!!
+        assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT, Opcode.MOVE_EXCEPTION, Opcode.RETURN_OBJECT),
+            implementation.instructions.map { it.opcode })
+        // The getter is 3 units and the move 1, so the return is at 4 and the handler at 5.
+        assertEquals(listOf(listOf(0, 4, 5), listOf(4, 1, 5)), implementation.tryBlocks.map { block ->
+            listOf(block.startCodeAddress, block.codeUnitCount, block.exceptionHandlers.single().handlerCodeAddress)
+        })
+    }
+
+    private val inflater = "Landroid/view/LayoutInflater;"
+
+    /** A constructor, <init>(Context)V, of [type], whose body is [smali] with this in v0. */
+    private fun constructor(type: String, smali: String) = MutableMethod(
+        ImmutableMethod(
+            type, "<init>", listOf(ImmutableMethodParameter(CONTEXT, null, null)), "V",
+            AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value, null, null,
+            ImmutableMethodImplementation(2, emptyList(), null, null),
+        ),
+    ).apply { addInstructionsWithLabels(0, smali.trimIndent()) }
+
+    /** Builds a Button, an EditText by range and an ImageView, and asks an inflater for a view twice. */
+    private fun rows(type: String) = MutableMethod(
+        ImmutableMethod(
+            type, "rows", listOf(ImmutableMethodParameter(CONTEXT, null, null), ImmutableMethodParameter(inflater, null, null)),
+            VIEW, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+            ImmutableMethodImplementation(8, emptyList(), null, null),
+        ),
+    ).apply {
+        addInstructionsWithLabels(
+            0,
+            """
+                if-eqz v6, :built
+                new-instance v0, Landroid/widget/Button;
+                invoke-direct { v0, v6 }, Landroid/widget/Button;-><init>($CONTEXT)V
+                :built
+                new-instance v4, Landroid/widget/EditText;
+                move-object v5, v6
+                invoke-direct/range { v4 .. v5 }, Landroid/widget/EditText;-><init>($CONTEXT)V
+                new-instance v1, Landroid/widget/ImageView;
+                invoke-direct { v1, v6 }, Landroid/widget/ImageView;-><init>($CONTEXT)V
+                const-string v1, "TextView"
+                const-string v2, "android.widget."
+                const/4 v3, 0x0
+                invoke-virtual { v7, v1, v2, v3 }, $CREATE_VIEW
+                move-result-object v0
+                invoke-virtual { v7, v1, v2, v3 }, $CREATE_VIEW
+                return-object v0
+            """.trimIndent(),
+        )
+    }
+
+    /**
+     * Through the patcher: each of Android's text views a method builds goes to the extension right
+     * after its constructor, on the register the constructor got, by `new` in either form and as a
+     * view's super call, and so does each view an inflater's createView answers. The jump past the
+     * Button still lands on what followed its constructor, so a path where it was never built skips
+     * the hook. A view of another kind, a super call to a view that isn't Android's, an answer
+     * nothing keeps and the extension's own classes are left alone.
+     */
+    @Test
+    fun `each text view Facebook builds goes to the extension right after it's built`() {
+        val rowsType = "Lfixture/Rows;"
+        val label = "Lfixture/Label;"
+        val compat = "Lfixture/CompatLabel;"
+        val extension = "Lapp/morphe/extension/facebook/font/Stub;"
+        val context = PatchContexts.of(
+            listOf(
+                robotoClass(rowsType, rows(rowsType)),
+                ImmutableClassDef(label, AccessFlags.PUBLIC.value, TEXT_VIEW, null, null, null, null, listOf(
+                    constructor(label, """
+                        invoke-direct { p0, p1 }, $TEXT_VIEW-><init>($CONTEXT)V
+                        return-void
+                    """),
+                )),
+                ImmutableClassDef(compat, AccessFlags.PUBLIC.value, "Landroidx/appcompat/widget/AppCompatTextView;", null, null, null, null, listOf(
+                    constructor(compat, """
+                        invoke-direct { p0, p1 }, Landroidx/appcompat/widget/AppCompatTextView;-><init>($CONTEXT)V
+                        return-void
+                    """),
+                )),
+                robotoClass(extension, rows(extension)),
+            ),
+        )
+        assertEquals("the Button, the EditText, the inflated view and Label's super call", 4, context.hookTextViews())
+
+        val body = context.mutableClassDefBy(rowsType).methods.single().implementation!!.instructions.toList()
+        assertEquals(
+            listOf(
+                Opcode.IF_EQZ, Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT, Opcode.INVOKE_STATIC_RANGE,
+                Opcode.NEW_INSTANCE, Opcode.MOVE_OBJECT, Opcode.INVOKE_DIRECT_RANGE, Opcode.INVOKE_STATIC_RANGE,
+                Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT, Opcode.CONST_STRING, Opcode.CONST_STRING, Opcode.CONST_4,
+                Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_STATIC_RANGE, Opcode.INVOKE_VIRTUAL,
+                Opcode.RETURN_OBJECT,
+            ),
+            body.map { it.opcode },
+        )
+        val hooks = listOf(3, 7, 15).map { body[it] as RegisterRangeInstruction }
+        assertEquals(listOf(OWN_TEXT_VIEW, OWN_TEXT_VIEW, OWN_INFLATED), hooks.map(::reference))
+        assertEquals("the Button's, the EditText's and the answer's register, one each",
+            listOf(listOf(0, 1), listOf(4, 1), listOf(0, 1)), hooks.map { listOf(it.startRegister, it.registerCount) })
+        val addresses = body.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+        assertEquals("the jump past the Button lands on the EditText's new-instance", 4,
+            addresses.indexOf(addresses[0] + (body[0] as OffsetInstruction).codeOffset))
+
+        val built = context.mutableClassDefBy(label).methods.single().implementation!!.instructions.toList()
+        assertEquals(listOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_STATIC_RANGE, Opcode.RETURN_VOID), built.map { it.opcode })
+        assertEquals(listOf(OWN_TEXT_VIEW, "0"), (built[1] as RegisterRangeInstruction).let { listOf(reference(it), "${it.startRegister}") })
+        assertEquals(2, context.mutableClassDefBy(compat).methods.single().implementation!!.instructions.count())
+        assertTrue("the extension's views were sent", context.mutableClassDefBy(extension).methods.single().implementation!!
+            .instructions.none { reference(it)?.startsWith(OWN_FONT) == true })
+    }
+
+    /**
+     * Morphe Manager patches on the phone, in the phone's language. On one whose language writes
+     * numbers in digits of its own, like Egyptian Arabic, the hooks still name their registers in
+     * the digits the assembler reads, so they go in.
+     */
+    @Test
+    fun `the text view hooks go in on a phone whose language writes other digits`() {
+        val rowsType = "Lfixture/Rows;"
+        val was = Locale.getDefault()
+        Locale.setDefault(Locale.forLanguageTag("ar-EG"))
+        try {
+            assertEquals("the language writes digits of its own", "\u0661\u0662", "%d".format(12))
+            val context = PatchContexts.of(listOf(robotoClass(rowsType, rows(rowsType))))
+            assertEquals("the Button, the EditText and the inflated view", 3, context.hookTextViews())
+            val body = context.mutableClassDefBy(rowsType).methods.single().implementation!!.instructions.toList()
+            assertEquals(listOf(0, 4, 0), body.filter { reference(it)?.startsWith(OWN_FONT) == true }
+                .map { (it as RegisterRangeInstruction).startRegister })
+        } finally {
+            Locale.setDefault(was)
+        }
+    }
+
+    /** A build where nothing outside the extension builds one of Android's text views stops the patch. */
+    @Test
+    fun `a build that builds no text view stops the patch`() {
+        val extension = "Lapp/morphe/extension/facebook/font/Stub;"
+        val refused = assertThrows(PatchException::class.java) {
+            PatchContexts.of(listOf(robotoClass(extension, rows(extension)))).hookTextViews()
+        }
+        assertTrue(refused.message, "found no text view Facebook builds" in refused.message.orEmpty())
+    }
+
+    /** A build where nothing outside the extension reads Android's defaults stops the patch. */
+    @Test
+    fun `a build reading none of Android's default typefaces stops the patch`() {
+        val extension = "Lapp/morphe/extension/facebook/font/Stub;"
+        val refused = assertThrows(PatchException::class.java) {
+            PatchContexts.of(listOf(robotoClass(extension, defaultsReader(extension)), robotoClass(roboto, robotoBuilder())))
+                .hookDefaultTypefaces()
+        }
+        assertTrue(refused.message, "found no read of Android's default typefaces outside the extension" in refused.message.orEmpty())
+    }
+
+    /**
+     * The calls the patch writes are in the OwnFont the bundle ships, public and static, with
      * exactly the descriptors the patch writes. Read from the compiled extension, so a Java
      * parameter that compiles to another type fails here rather than as a NoSuchMethodError when
      * Facebook first draws text.
@@ -310,7 +767,11 @@ class OwnFontHookTest {
         val declared = ExtensionDex.classDef(OWN_FONT).methods
             .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
             .map { "$OWN_FONT->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
-        for (call in listOf(REPLACE, REMEMBER_VARIATION, REPLACE_BUILT, REPLACE_REACT_NATIVE)) {
+        val getters = DEFAULT_TYPEFACES.values.map { "$OWN_FONT->$it()$TYPEFACE" }
+        val calls = DEFAULT_CALLS.map(::ownCall)
+        assertTrue(OWN_DEFAULT_FROM_STYLE in calls)
+        val views = listOf(OWN_TEXT_VIEW, OWN_INFLATED)
+        for (call in listOf(REPLACE, REMEMBER_VARIATION, REPLACE_BUILT, REPLACE_REACT_NATIVE, REPLACE_PHONE_FONT) + getters + calls + views) {
             assertTrue("OwnFont declares no public static $call: $declared", call in declared)
         }
     }

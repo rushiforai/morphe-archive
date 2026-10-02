@@ -66,7 +66,7 @@ public final class FeedAds {
             }
             if (kept == null) return items;
             int removed = items.size() - kept.size();
-            HookStatus.counted(FamilyNames.HIDE_ADS, "ad posts taken out");
+            HookStatus.counted(FamilyNames.HIDE_ADS, "ad posts taken out", removed);
             Logger.printDebug(() -> "Hide ads: took " + removed + " of " + items.size() + " feed items out");
             return kept;
         } catch (Throwable t) {

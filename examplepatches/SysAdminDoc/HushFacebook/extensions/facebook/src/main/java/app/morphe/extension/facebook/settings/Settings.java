@@ -484,6 +484,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_reels_tab_dot", TRUE);
 
     /**
+     * The tab bar goes to the bottom of the screen on accounts Facebook gives it at the top
+     * ({@link app.morphe.extension.facebook.navigation.BottomTabBar}). Facebook places the bar as
+     * its main screen starts, so a change waits for a restart.
+     */
+    public static final BooleanSetting BOTTOM_TAB_BAR =
+            new BooleanSetting("hushfacebook_bottom_tab_bar", FALSE, true);
+
+    /**
      * The strip some posts carry ("Are you interested in this post?", "Show less", who recently
      * commented, follow and chat suggestions) goes, and so does the room kept for it
      * ({@link app.morphe.extension.facebook.feed.PostPrompts}). A change shows on the posts drawn
@@ -491,6 +499,30 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_POST_PROMPTS =
             new BooleanSetting("hushfacebook_hide_post_prompts", TRUE);
+
+    /**
+     * Posts come without the row of Meta AI questions Facebook adds under some of them
+     * ({@link app.morphe.extension.facebook.feed.MetaAiQuestions}). A change shows on the posts
+     * drawn after it.
+     */
+    public static final BooleanSetting HIDE_META_AI_QUESTIONS =
+            new BooleanSetting("hushfacebook_hide_meta_ai_questions", TRUE);
+
+    /**
+     * Post headers keep the one line with the date instead of Facebook's rotating subtitle
+     * ({@link app.morphe.extension.facebook.feed.PostDates}). A change shows on the headers drawn
+     * after it.
+     */
+    public static final BooleanSetting KEEP_POST_DATES =
+            new BooleanSetting("hushfacebook_keep_post_dates", TRUE);
+
+    /**
+     * The Feeds tab opens on its posts, without the title row or the filters under it
+     * ({@link app.morphe.extension.facebook.feed.FeedsHeader}). Facebook settles both as the tab is
+     * built, so a change waits for a restart.
+     */
+    public static final BooleanSetting HIDE_FEEDS_HEADER =
+            new BooleanSetting("hushfacebook_hide_feeds_header", FALSE, true);
 
     /**
      * Reels come without the "Are you interested in this reel?" prompt

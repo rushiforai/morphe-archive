@@ -1,0 +1,493 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.metaai
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.feed.FeedItemStandIns
+import app.morphe.patches.instagram.feed.FeedItemStandIns.assertFilteredBeforeReturn
+import app.morphe.patches.instagram.feed.FeedItemStandIns.instructions
+import app.morphe.patches.instagram.feed.filterParsedFeedItems
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction51l
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class HideMetaAiHookTest {
+    /** Both hooks the patch writes are in the MetaAi the bundle ships, public and static. */
+    @Test
+    fun theHooksAreInTheExtension() {
+        for (hook in listOf(SEARCH_FLAG, META_AI_FILTER, FOLLOW_UP_BAR, HOME_BUTTON)) {
+            val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
+                .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+                .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+            assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->") in declared)
+        }
+    }
+
+    /** Each read, through the config interface or a static wrapper, answers through the extension. */
+    @Test
+    fun everyReadOfASearchFlagAnswersThroughTheExtension() {
+        val context = PatchContexts.of(
+            listOf(gate(SEARCH, SEARCH_FLAGS[0]), wrapped(INBOX, SEARCH_FLAGS[1]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3])),
+        )
+
+        val reads = context.findSearchFlagReads()
+        context.answerSearchFlagReads(reads)
+
+        assertEquals(4, reads.size)
+        for (type in listOf(SEARCH, INBOX, RING, HOME)) {
+            assertAnsweredAfterEveryRead(type, context.mutableClassDefBy(type).methods.single { it.name == "A00" })
+        }
+    }
+
+    @Test
+    fun aFlagNobodyReadsFailsThePatch() {
+        val context = PatchContexts.of(listOf(gate(SEARCH, SEARCH_FLAGS[0]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3])))
+        assertThrows(PatchException::class.java) { context.findSearchFlagReads() }
+    }
+
+    /** A flag's id going anywhere but a boolean read is an update the patch hasn't seen. */
+    @Test
+    fun aFlagReadAsSomethingElseFailsThePatch() {
+        val context = PatchContexts.of(
+            listOf(
+                gate(SEARCH, SEARCH_FLAGS[0]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3]),
+                gate(INBOX, SEARCH_FLAGS[1], returns = "J", result = Opcode.MOVE_RESULT_WIDE),
+            ),
+        )
+        assertThrows(PatchException::class.java) { context.findSearchFlagReads() }
+    }
+
+    @Test
+    fun aFlagReadWithItsAnswerDroppedFailsThePatch() {
+        val context = PatchContexts.of(
+            listOf(
+                gate(SEARCH, SEARCH_FLAGS[0]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3]),
+                gate(INBOX, SEARCH_FLAGS[1], result = null),
+            ),
+        )
+        assertThrows(PatchException::class.java) { context.findSearchFlagReads() }
+    }
+
+    /** The extension's own code may name the flags; only the app's reads are answered. */
+    @Test
+    fun theExtensionIsLeftAlone() {
+        val own = gate("Lapp/hushgram/extension/instagram/metaai/Probe;", SEARCH_FLAGS[0])
+        val context = PatchContexts.of(
+            listOf(own, gate(SEARCH, SEARCH_FLAGS[0]), wrapped(INBOX, SEARCH_FLAGS[1]), gate(RING, SEARCH_FLAGS[2]), gate(HOME, SEARCH_FLAGS[3])),
+        )
+
+        val reads = context.findSearchFlagReads()
+
+        assertEquals(setOf(SEARCH, INBOX, RING, HOME), reads.map { it.type }.toSet())
+        assertEquals(4, reads.size)
+    }
+
+    /** The bar's stub check answers through the extension; the pills' stub inside the bar is left alone. */
+    @Test
+    fun theFollowUpBarsStubCheckAnswersThroughTheExtension() {
+        val context = PatchContexts.of(listOf(barSetup(RESULTS)))
+
+        context.dropFollowUpBar(context.findFollowUpBarCheck())
+
+        assertDroppedAfterTheCheck(RESULTS, context.mutableClassDefBy(RESULTS).methods.single { it.name == "A06" })
+    }
+
+    @Test
+    fun twoBarSetupsFailThePatch() {
+        val context = PatchContexts.of(listOf(barSetup(RESULTS), barSetup("Lfixture/OtherResults;")))
+        assertThrows(PatchException::class.java) { context.findFollowUpBarCheck() }
+    }
+
+    @Test
+    fun aBarSetupWithoutTheCheckFailsThePatch() {
+        val context = PatchContexts.of(listOf(barSetup(RESULTS, checked = 1)))
+        assertThrows(PatchException::class.java) { context.findFollowUpBarCheck() }
+    }
+
+    /** A check of one view before inflating another is an update the patch hasn't seen. */
+    @Test
+    fun aCheckOfAnotherViewFailsThePatch() {
+        val context = PatchContexts.of(listOf(barSetup(RESULTS, checkedId = 6)))
+        assertThrows(PatchException::class.java) { context.findFollowUpBarCheck() }
+    }
+
+    @Test
+    fun theExtensionsOwnBarSetupIsLeftAlone() {
+        val context = PatchContexts.of(listOf(barSetup("Lapp/hushgram/extension/instagram/metaai/Probe;"), barSetup(RESULTS)))
+        assertEquals(RESULTS, context.findFollowUpBarCheck().type)
+    }
+
+    /** In each declared build the bar setup is found and its stub check answers through the extension. */
+    @Test
+    fun eachDeclaredBuildDropsTheFollowUpBar() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        var checked = 0
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                val holders = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex ->
+                    for (classDef in dex.classes) {
+                        if (classDef.methods.any { it.holdsAll(FOLLOW_UP_SETUP) }) holders += ImmutableClassDef.of(classDef)
+                    }
+                }
+                val context = PatchContexts.of(holders)
+
+                val check = context.findFollowUpBarCheck()
+                context.dropFollowUpBar(check)
+
+                val method = context.mutableClassDefBy(check.type).methods.single {
+                    it.name == check.name && it.parameterTypes.map(CharSequence::toString) == check.parameters
+                }
+                assertDroppedAfterTheCheck("${bundle.name} ${check.type}->${check.name}", method)
+                checked++
+            }
+        }
+        assertTrue("no fixture of a declared build", checked > 0)
+    }
+
+    /** Each button name the bar takes from the server's list answers through the extension; the later loop is left alone. */
+    @Test
+    fun homesButtonNamesAnswerThroughTheExtension() {
+        val context = PatchContexts.of(listOf(homeBar(HOME_BAR)))
+
+        context.dropHomeButton(context.findHomeButtonNames())
+
+        assertNamesPassedThrough(HOME_BAR, context.mutableClassDefBy(HOME_BAR).methods.single { it.name == "AdW" })
+    }
+
+    @Test
+    fun twoHomeBarsFailThePatch() {
+        val context = PatchContexts.of(listOf(homeBar(HOME_BAR), homeBar("Lfixture/OtherHomeBar;")))
+        assertThrows(PatchException::class.java) { context.findHomeButtonNames() }
+    }
+
+    /** A "meta_ai" compared with some other register means the loop isn't the one the patch knows. */
+    @Test
+    fun aHomeBarComparingAnotherNameFailsThePatch() {
+        val context = PatchContexts.of(listOf(homeBar(HOME_BAR, compared = 0)))
+        assertThrows(PatchException::class.java) { context.findHomeButtonNames() }
+    }
+
+    @Test
+    fun aHomeBarWithoutTheNullTestFailsThePatch() {
+        val context = PatchContexts.of(listOf(homeBar(HOME_BAR, tested = 0)))
+        assertThrows(PatchException::class.java) { context.findHomeButtonNames() }
+    }
+
+    @Test
+    fun eachDeclaredBuildDropsHomesMetaAiButton() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        var checked = 0
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                val holders = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex ->
+                    for (classDef in dex.classes) {
+                        if (classDef.methods.any { it.holdsAll(HOME_BAR_SETUP) }) holders += ImmutableClassDef.of(classDef)
+                    }
+                }
+                val context = PatchContexts.of(holders)
+
+                val names = context.findHomeButtonNames()
+                context.dropHomeButton(names)
+
+                val method = context.mutableClassDefBy(names.type).methods.single {
+                    it.name == names.name && it.parameterTypes.map(CharSequence::toString) == names.parameters
+                }
+                assertNamesPassedThrough("${bundle.name} ${names.type}->${names.name}", method)
+                checked++
+            }
+        }
+        assertTrue("no fixture of a declared build", checked > 0)
+    }
+
+    @Test
+    fun theFeedParseHelperAnswersThroughTheMetaAiFilter() {
+        val context = PatchContexts.of(FeedItemStandIns.classes(listOf("MEDIA", "AD", "CLIPS_NETEGO") + META_AI_UNITS))
+
+        context.filterParsedFeedItems("Hide Meta AI", META_AI_FILTER, META_AI_UNITS)
+
+        val helper = context.mutableClassDefBy(FeedItemStandIns.ITEM).methods.single { it.name == "A02" }
+        assertFilteredBeforeReturn("helper", helper, META_AI_FILTER)
+    }
+
+    @Test
+    fun aKindEnumMissingAMetaAiUnitFailsThePatch() {
+        val context = PatchContexts.of(FeedItemStandIns.classes(listOf("MEDIA", "AD") + META_AI_UNITS.drop(1)))
+        assertThrows(PatchException::class.java) {
+            context.filterParsedFeedItems("Hide Meta AI", META_AI_FILTER, META_AI_UNITS)
+        }
+    }
+
+    /**
+     * In each declared build every flag is read, every read is a boolean whose answer is kept, and
+     * after the patch each answer goes through the extension. On 449 that's seven reads.
+     */
+    @Test
+    fun eachDeclaredBuildAnswersEveryReadOfEveryFlag() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        var checked = 0
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                val holders = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex ->
+                    for (classDef in dex.classes) {
+                        if (classDef.methods.any { method -> method.loadsAFlag() }) holders += ImmutableClassDef.of(classDef)
+                    }
+                }
+                val context = PatchContexts.of(holders)
+
+                val reads = context.findSearchFlagReads()
+                context.answerSearchFlagReads(reads)
+
+                assertEquals("${bundle.name}: flags read", SEARCH_FLAGS.toSet(), reads.map { it.flag }.toSet())
+                if (version == "449.0.0.52.84") assertEquals("${bundle.name}: reads", 7, reads.size)
+                for (read in reads) {
+                    val method = context.mutableClassDefBy(read.type).methods.single {
+                        it.name == read.name && it.parameterTypes.map(CharSequence::toString) == read.parameters
+                    }
+                    assertAnsweredAfterEveryRead("${bundle.name} ${read.type}->${read.name}", method)
+                }
+                checked++
+            }
+        }
+        assertTrue("no fixture of a declared build", checked > 0)
+    }
+
+    private fun Method.loadsAFlag(): Boolean = implementation?.instructions?.any {
+        it.opcode == Opcode.CONST_WIDE && (it as WideLiteralInstruction).wideLiteral in SEARCH_FLAGS
+    } == true
+
+    /** After each flag load, its read's move-result is followed by the extension call and a move-result into the same register. */
+    private fun assertAnsweredAfterEveryRead(what: String, method: Method) {
+        val code = method.instructions()
+        val loads = code.indices.filter { code[it].opcode == Opcode.CONST_WIDE && (code[it] as WideLiteralInstruction).wideLiteral in SEARCH_FLAGS }
+        assertTrue("$what loads no flag", loads.isNotEmpty())
+        for (load in loads) {
+            val result = (load + 1 until code.size).first { code[it].opcode == Opcode.MOVE_RESULT }
+            val register = (code[result] as OneRegisterInstruction).registerA
+            val call: Instruction = code[result + 1]
+            assertEquals("$what: the call", Opcode.INVOKE_STATIC_RANGE, call.opcode)
+            assertEquals("$what: the hook", SEARCH_FLAG, (call as ReferenceInstruction).reference.toString())
+            assertEquals("$what: the answer", Opcode.MOVE_RESULT, code[result + 2].opcode)
+            assertEquals("$what: the register", register, (code[result + 2] as OneRegisterInstruction).registerA)
+        }
+    }
+
+    private fun Method.holdsAll(strings: List<String>): Boolean {
+        val held = implementation?.instructions
+            ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string } ?: return false
+        return held.containsAll(strings)
+    }
+
+    /**
+     * The stub check's move-result is followed by the extension call on the same register, its
+     * move-result into it, and the null test; the method has exactly one call to the extension.
+     */
+    private fun assertDroppedAfterTheCheck(what: String, method: Method) {
+        val code = method.instructions()
+        val hooks = code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == FOLLOW_UP_BAR }
+        assertEquals("$what: hooks", 1, hooks.size)
+        val hook = hooks.single()
+        val find = code[hook - 2]
+        assertEquals("$what: the check", "Landroid/view/View;->findViewById(I)Landroid/view/View;", (find as ReferenceInstruction).reference.toString())
+        val register = (code[hook - 1] as OneRegisterInstruction).registerA
+        assertEquals("$what: the check's result", Opcode.MOVE_RESULT_OBJECT, code[hook - 1].opcode)
+        assertEquals("$what: the call", Opcode.INVOKE_STATIC_RANGE, code[hook].opcode)
+        assertEquals("$what: the answer", Opcode.MOVE_RESULT_OBJECT, code[hook + 1].opcode)
+        assertEquals("$what: the register", register, (code[hook + 1] as OneRegisterInstruction).registerA)
+        assertEquals("$what: the test", Opcode.IF_EQZ, code[hook + 2].opcode)
+        assertEquals("$what: the tested register", register, (code[hook + 2] as OneRegisterInstruction).registerA)
+    }
+
+    /** The name's cast is followed by the extension call on its register, the answer back in it, and the null test; one call in all. */
+    private fun assertNamesPassedThrough(what: String, method: Method) {
+        val code = method.instructions()
+        val hooks = code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == HOME_BUTTON }
+        assertEquals("$what: hooks", 1, hooks.size)
+        val hook = hooks.single()
+        assertEquals("$what: the cast", Opcode.CHECK_CAST, code[hook - 1].opcode)
+        val register = (code[hook - 1] as OneRegisterInstruction).registerA
+        assertEquals("$what: the call", Opcode.INVOKE_STATIC_RANGE, code[hook].opcode)
+        assertEquals("$what: the answer", Opcode.MOVE_RESULT_OBJECT, code[hook + 1].opcode)
+        assertEquals("$what: the register", register, (code[hook + 1] as OneRegisterInstruction).registerA)
+        assertEquals("$what: the test", Opcode.IF_EQZ, code[hook + 2].opcode)
+        assertEquals("$what: the tested register", register, (code[hook + 2] as OneRegisterInstruction).registerA)
+    }
+
+    private companion object {
+        const val HOME_BAR = "Lfixture/MainFeedActionBar;"
+        const val RESULTS = "Lfixture/SearchResultsBar;"
+        const val SEARCH = "Lfixture/SearchGate;"
+        const val INBOX = "Lfixture/InboxScreen;"
+        const val RING = "Lfixture/InboxRingGate;"
+        const val HOME = "Lfixture/HomeBarGate;"
+        const val CONFIG = "Lfixture/MobileConfig;"
+        const val SESSION = "Lfixture/UserSession;"
+
+        /** Shaped like 449's search gate: the id, a cast of the config, and the interface's boolean read. */
+        fun gate(type: String, flag: Long, returns: String = "Z", result: Opcode? = Opcode.MOVE_RESULT) = holder(
+            type,
+            listOfNotNull(
+                ImmutableInstruction51l(Opcode.CONST_WIDE, 0, flag),
+                ImmutableInstruction21c(Opcode.CHECK_CAST, 2, ImmutableTypeReference(CONFIG)),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_INTERFACE, 3, 2, 0, 1, 0, 0, ImmutableMethodReference(CONFIG, "BXd", listOf("J"), returns),
+                ),
+                result?.let { ImmutableInstruction11x(it, 0) },
+                ImmutableInstruction11x(Opcode.RETURN, 0),
+            ),
+        )
+
+        /** Shaped like 449's inbox: the id passed to a static wrapper after the config. */
+        fun wrapped(type: String, flag: Long) = holder(
+            type,
+            listOf(
+                ImmutableInstruction51l(Opcode.CONST_WIDE, 0, flag),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_STATIC, 3, 2, 0, 1, 0, 0,
+                    ImmutableMethodReference("Lfixture/Config;", "A1A", listOf("Ljava/lang/Object;", "J"), "Z"),
+                ),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                ImmutableInstruction11x(Opcode.RETURN, 0),
+            ),
+        )
+
+        /**
+         * Shaped like 449's search results bottom bar setup: its two strings, a findViewById of the
+         * bar's stub whose answer is tested for null, a static lookup of the same id handing the stub
+         * to inflate(), and then the pills' stub, found inside the bar and cast, inflated too.
+         * [checked] is the register the null test reads and [checkedId] the id register the check
+         * passes; the lookup always passes v7.
+         */
+        fun barSetup(type: String, checked: Int = 0, checkedId: Int = 7): ClassDef {
+            val view = "Landroid/view/View;"
+            val stub = "Landroid/view/ViewStub;"
+            val findView = ImmutableMethodReference(view, "findViewById", listOf("I"), view)
+            val inflate = ImmutableMethodReference(stub, "inflate", emptyList(), view)
+            val code = listOf(
+                ImmutableInstruction21c(Opcode.CONST_STRING, 2, ImmutableStringReference("keyboardHeightChangeDetector")),
+                ImmutableInstruction21c(Opcode.CONST_STRING, 2, ImmutableStringReference("bottomSearchSuggestionPillsHelper")),
+                ImmutableInstruction31i(Opcode.CONST, 7, 0x7f0b22bd),
+                ImmutableInstruction31i(Opcode.CONST, 6, 0x7f0b22be),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 3, checkedId, 0, 0, 0, findView),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                ImmutableInstruction21t(Opcode.IF_EQZ, checked, 23),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_STATIC, 2, 3, 7, 0, 0, 0,
+                    ImmutableMethodReference("Lfixture/Views;", "A0C", listOf(view, "I"), stub),
+                ),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 0, 0, 0, 0, 0, inflate),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                ImmutableInstruction31i(Opcode.CONST, 5, 0x7f0b06a7),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 0, 5, 0, 0, 0, findView),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+                ImmutableInstruction21c(Opcode.CHECK_CAST, 1, ImmutableTypeReference(stub)),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 1, 0, 0, 0, 0, inflate),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+                ImmutableInstruction10x(Opcode.RETURN_VOID),
+            )
+            return ImmutableClassDef(
+                type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
+                listOf(
+                    ImmutableMethod(
+                        type, "A06", listOf(ImmutableMethodParameter("Lkotlin/jvm/functions/Function1;", null, null)), "V",
+                        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+                        ImmutableMethodImplementation(10, code, null, null),
+                    ),
+                ),
+            )
+        }
+
+        /**
+         * Shaped like 449's Home top bar setup: its strings, a name taken from the server's list
+         * (next(), cast, a null test, then length()), the "meta_ai" case comparing that name, and a
+         * later loop over names cast without a null test. [tested] is the register the null test
+         * reads and [compared] the one compared with "meta_ai"; the name is in v9.
+         */
+        fun homeBar(type: String, tested: Int = 9, compared: Int = 9): ClassDef {
+            val next = ImmutableMethodReference("Ljava/util/Iterator;", "next", emptyList(), "Ljava/lang/Object;")
+            val string = ImmutableTypeReference("Ljava/lang/String;")
+            val code = listOf(
+                ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference("MainFeedActionBarDelegate:configureActionBar")),
+                ImmutableInstruction35c(Opcode.INVOKE_INTERFACE, 1, 1, 0, 0, 0, 0, next),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 9),
+                ImmutableInstruction21c(Opcode.CHECK_CAST, 9, string),
+                ImmutableInstruction21t(Opcode.IF_EQZ, tested, 22),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_VIRTUAL, 1, 9, 0, 0, 0, 0, ImmutableMethodReference("Ljava/lang/String;", "length", emptyList(), "I"),
+                ),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                ImmutableInstruction21c(Opcode.CONST_STRING, 8, ImmutableStringReference("meta_ai")),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_VIRTUAL, 2, compared, 8, 0, 0, 0,
+                    ImmutableMethodReference("Ljava/lang/String;", "equals", listOf("Ljava/lang/Object;"), "Z"),
+                ),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                ImmutableInstruction35c(Opcode.INVOKE_INTERFACE, 1, 1, 0, 0, 0, 0, next),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                ImmutableInstruction21c(Opcode.CHECK_CAST, 0, string),
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0, ImmutableMethodReference("Lfixture/Bar;", "A00", listOf("Ljava/lang/String;"), "Z"),
+                ),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                ImmutableInstruction10x(Opcode.RETURN_VOID),
+            )
+            return ImmutableClassDef(
+                type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
+                listOf(
+                    ImmutableMethod(
+                        type, "AdW", listOf(ImmutableMethodParameter("Lfixture/ActionBar;", null, null)), "V",
+                        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+                        ImmutableMethodImplementation(12, code, null, null),
+                    ),
+                ),
+            )
+        }
+
+        fun holder(type: String, code: List<Instruction>): ClassDef {
+            val flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value
+            return ImmutableClassDef(
+                type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
+                listOf(
+                    ImmutableMethod(
+                        type, "A00", listOf(ImmutableMethodParameter(SESSION, null, null)), "Z", flags, null, null,
+                        ImmutableMethodImplementation(3, code, null, null),
+                    ),
+                ),
+            )
+        }
+    }
+}

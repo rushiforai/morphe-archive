@@ -26,6 +26,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.graphics.drawable.Drawable;
@@ -48,7 +50,13 @@ public final class SettingsActivity extends Activity {
     private boolean compact, scrollHeader, binding, lightTheme, recreatingTheme;
     private int restoreControlsScroll = -1, restoreAppScroll = -1;
     private final List<Switch> switches = new ArrayList<>();
-    private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener = (preferences, key) -> refreshChoices();
+    private final List<RadioButton> bubbleModes = new ArrayList<>();
+    private final Map<String, TextView> activityLabels = new java.util.HashMap<>();
+    private final Map<Switch, CharSequence> switchDescriptions = new java.util.HashMap<>();
+    private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener = (preferences, key) -> {
+        refreshChoices();
+        if (key == null || "check_updates".equals(key)) syncUpdateChoice(true);
+    };
     private String category = "all", page = "controls";
     private final List<View> controlRows = new ArrayList<>();
     private final List<String[]> installedControls = new ArrayList<>();
@@ -57,7 +65,16 @@ public final class SettingsActivity extends Activity {
     private final List<Button> tabs = new ArrayList<>();
     private final List<View> tabLines = new ArrayList<>();
     private TextView searchStatus, enabledCount, setupNote;
+    private Button safeModeAction;
+    private Button drawerSearchLink;
+    private TextView updateStatus;
+    private Button updateCheckNow, updateRelease;
+    private volatile long updateGeneration;
+    private java.net.HttpURLConnection updateConnection;
     private LinearLayout emptyState;
+    static final int SAVE_CHOICES = 7101, READ_CHOICES = 7102;
+    private String documentExport;
+    private boolean documentImport;
     // Process-wide so a page recreated by the theme switch can still replace the last toast.
     private static Toast toast;
     static final String[][] CONTROLS = {
@@ -82,10 +99,10 @@ public final class SettingsActivity extends Activity {
         {"use_system_emoji", "Use system emoji", "Renders emoji with your phone's own font instead of Messenger's built-in set.", "conversations"},
         {"original_photo", "Send photos at original quality", "With HD on, sends a JPEG photo's own image data instead of Messenger's re-encoded copy. Its metadata, such as location and camera details, is left out, as it is from Messenger's copy, except the tag that turns a sideways photo upright. Photos over 20 MB and videos still get Messenger's compression.", "conversations"},
         {"external_browser", "Open web links externally", "Uses your default browser for HTTP and HTTPS links. Other link types keep their original behavior.", "links_bubbles"},
-        {"bubbles", "Allow chat bubbles", "Removes the low-memory restriction on Android 11 or newer. Enable bubbles in Android notification settings too.", "links_bubbles"},
+        {"bubbles", "Allow chat bubbles", "Choose Stock, Chat Heads or Native Bubbles below. Native Bubbles needs Android 11, account support and notification permissions. Restart Messenger after changing modes.", "links_bubbles"},
         {"allow_screenshot", "Allow screenshots", "Lets you screenshot photos, media and video Messenger protects in a chat, and stops screenshot notices. View-once media stays protected.", "privacy"},
-        {"hide_read_receipts", "Hide read receipts", "Stops your read receipt from being sent. In end-to-end encrypted chats, chats you open stay unread until you reply.", "privacy"},
-        {"keep_unsent", "Keep unsent messages", "Keeps messages other people remove for everyone, except in end-to-end encrypted chats. Your own unsend ability may be limited.", "privacy"},
+        {"hide_read_receipts", "Hide read receipts", "Stops sending read receipts. Opened encrypted chats can stay unread on this phone. Replying or switching this off may notify the sender. Group coverage isn't verified.", "privacy"},
+        {"keep_unsent", "Keep unsent messages", "Keeps messages on verified legacy unsend routes. End-to-end encrypted chats aren't supported, and group coverage isn't verified. Activity records intercepted legacy unsends, not whether a chat is supported. Your own unsend may be limited.", "privacy"},
         {"anonymous_stories", "View stories anonymously", "Opens other people's stories without adding you to their viewer list. Stories you open this way are still marked as seen on your side.", "privacy"},
         {"save_stories", "Save any story", "Adds Save to the More options menu on other people's stories. The photo or video goes to your phone the same way Messenger saves your own.", "privacy"},
         {"material_you", "Material You theme", "Tints Messenger's dark mode with the colors Android takes from your wallpaper on Android 12 and newer. Android 11 gets a fixed blue palette. Turn on dark mode in Messenger first.", "theme"},
@@ -227,11 +244,17 @@ public final class SettingsActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         refreshChoices();
+        syncUpdateChoice(false);
     }
 
     @Override protected void onStop() {
         Settings.preferences.unregisterOnSharedPreferenceChangeListener(preferenceListener);
         super.onStop();
+    }
+
+    @Override protected void onDestroy() {
+        cancelUpdateCheck();
+        super.onDestroy();
     }
 
     private void refreshChoices() {
@@ -244,7 +267,11 @@ public final class SettingsActivity extends Activity {
         }
         binding = true;
         try {
-            for (Switch control : switches) control.setChecked(Settings.preferences.getBoolean((String) control.getTag(), false));
+            for (Switch control : switches) {
+                control.setChecked(Settings.preferences.getBoolean((String) control.getTag(), false));
+                refreshStatus(control);
+            }
+            for (RadioButton mode : bubbleModes) mode.setChecked(mode.getTag().equals("bubble_" + Settings.selectedBubbleMode()));
         } finally { binding = false; }
         updateSetup();
     }
@@ -364,6 +391,15 @@ public final class SettingsActivity extends Activity {
         ui.add(setup, enabledCount, 8);
         setupNote = ui.text("", 13, ui.muted, false);
         ui.add(setup, setupNote, 6);
+        safeModeAction = ui.button("");
+        safeModeAction.setTag("resume_safe_mode");
+        safeModeAction.setOnClickListener(view -> {
+            boolean paused = Settings.preferences.getBoolean("paused", false);
+            CrashGuard.clearSafeMode();
+            refreshChoices();
+            feedback(text.get(paused ? "safe_mode_cleared" : "changes_resumed"), Toast.LENGTH_SHORT);
+        });
+        ui.add(setup, safeModeAction, 8);
         ui.rule(setup, 12);
         ui.add(setup, controlRow("paused", text.format("paused"), "", false), 0);
         ui.add(content, setup, 0);
@@ -401,6 +437,10 @@ public final class SettingsActivity extends Activity {
         searchStatus.setTag("search_status");
         searchStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         ui.add(content, searchStatus, 8);
+        drawerSearchLink = ui.button(text.get("drawer_search"));
+        drawerSearchLink.setTag("find_drawer_icon");
+        drawerSearchLink.setOnClickListener(view -> showPage("app"));
+        ui.add(content, drawerSearchLink, 8);
         LinearLayout group = null;
         String last = "";
         for (String[] spec : CONTROLS) {
@@ -418,6 +458,12 @@ public final class SettingsActivity extends Activity {
                 groups.add(group);
             }
             LinearLayout row = controlRow(spec[0], text.control(spec, 1), text.control(spec, 2), true);
+            if ("bubbles".equals(spec[0])) {
+                LinearLayout wrapper = ui.column();
+                ui.add(wrapper, row, 0);
+                addBubbleModes(wrapper);
+                row = wrapper;
+            }
             row.setTag(spec[3]);
             ui.add(group, row, 0);
             controlRows.add(row);
@@ -448,10 +494,66 @@ public final class SettingsActivity extends Activity {
         });
     }
 
+    private void addBubbleModes(LinearLayout content) {
+        RadioGroup modes = new RadioGroup(this);
+        modes.setOrientation(LinearLayout.VERTICAL);
+        for (String mode : new String[] {"stock", "chat_heads", "native"}) {
+            RadioButton choice = new RadioButton(this);
+            choice.setId(View.generateViewId());
+            choice.setTag("bubble_" + mode);
+            choice.setText(text.get("bubble_" + mode));
+            choice.setTextColor(ui.text);
+            choice.setTextSize(16);
+            choice.setMinHeight(ui.dp(48));
+            choice.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
+            choice.setButtonTintList(new android.content.res.ColorStateList(
+                new int[][] {new int[] {android.R.attr.state_checked}, new int[] {}}, new int[] {ui.accent, ui.muted}));
+            choice.setChecked(mode.equals(Settings.selectedBubbleMode()));
+            choice.setEnabled(Settings.available("bubbles") || "stock".equals(mode));
+            if (!choice.isEnabled()) choice.setAlpha(0.4f);
+            choice.setOnClickListener(view -> {
+                Settings.preferences.edit().putBoolean("bubbles", !"stock".equals(mode))
+                    .putBoolean(Settings.BUBBLE_CHAT_HEADS, "chat_heads".equals(mode)).apply();
+                refreshChoices();
+                feedback(text.get("bubble_changed", text.base("bubble_" + mode)), Toast.LENGTH_SHORT);
+            });
+            modes.addView(choice, new RadioGroup.LayoutParams(-1, -2));
+            bubbleModes.add(choice);
+        }
+        ui.add(content, modes, 8);
+        ui.add(content, ui.text(text.get(Settings.available("bubbles") ? "bubble_help" :
+            Build.VERSION.SDK_INT >= 30 ? "bubble_unsupported" : "unavailable"), 13, ui.muted, false), 8);
+        Button notifications = ui.button(text.get("bubble_notifications"));
+        notifications.setTag("bubble_notifications");
+        notifications.setOnClickListener(view -> openNotificationSettings(false));
+        ui.add(content, notifications, 8);
+        if (Build.VERSION.SDK_INT >= 30) {
+            Button conversations = ui.button(text.get("bubble_conversations"));
+            conversations.setTag("bubble_conversations");
+            conversations.setOnClickListener(view -> openNotificationSettings(true));
+            ui.add(content, conversations, 8);
+        }
+    }
+
+    private void openNotificationSettings(boolean conversations) {
+        // AOSP exposes this action to system apps; vendor phones may omit its activity.
+        Intent intent = new Intent(conversations ? "android.settings.CONVERSATION_SETTINGS" :
+            android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+        if (!conversations) intent.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName());
+        // Samsung's settings homepage can otherwise reuse an unrelated screen for a new deep link.
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        try {
+            if (getPackageManager().resolveActivity(intent, 0) == null) throw new android.content.ActivityNotFoundException();
+            startActivity(intent);
+        } catch (RuntimeException unavailable) {
+            feedback(text.get("bubble_settings_missing"), Toast.LENGTH_LONG);
+        }
+    }
+
     @SuppressWarnings("deprecation")
     private LinearLayout controlRow(String key, String title, String description, boolean divided) {
         boolean available = Settings.available(key);
-        if (!available) description += " " + text.format("unavailable");
+        if (!available) description += " " + text.format("bubbles".equals(key) && Build.VERSION.SDK_INT >= 30 ? "bubble_unsupported" : "unavailable");
         LinearLayout row = ui.row();
         LinearLayout labels = ui.column();
         labels.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
@@ -472,33 +574,30 @@ public final class SettingsActivity extends Activity {
         // A failure newer than the last use means the switch isn't doing its job, so that shows instead.
         TextView activeLabel = null;
         if (divided) {
-            long lastActive = Settings.lastActive(key);
-            long failedAt = Settings.hookErrorAt(key);
-            boolean failed = failedAt > 0 && failedAt >= lastActive;
-            String status = failed ? formatSince(failedAt, "error_now", "error_ago")
-                : lastActive == 0 ? text.get("not_active") : formatSince(lastActive, "active_now", "active_ago");
-            activeLabel = ui.text(status, 12, failed ? ui.warning : lastActive > 0 ? ui.accent : ui.muted, false);
-            activeLabel.setAlpha(0.7f);
+            activeLabel = ui.text("", 12, ui.muted, false);
             activeLabel.setTag("active_" + key);
-            activeLabel.setVisibility(Settings.preferences.getBoolean(key, false) ? View.VISIBLE : View.GONE);
+            activityLabels.put(key, activeLabel);
             ui.add(labels, activeLabel, 4);
         }
-        TextView usage = activeLabel;
         row.addView(labels, new LinearLayout.LayoutParams(0, -2, 1));
         Switch control = ui.toggle(key, text.display(title), text.display(("ads".equals(key) ? text.format("experimental") + ". " : "") + description), Settings.preferences.getBoolean(key, false));
         LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(ui.dp(48), -2);
         switchParams.setMarginStart(ui.dp(12));
         row.addView(control, switchParams);
         switches.add(control);
+        if (divided) {
+            switchDescriptions.put(control, control.getContentDescription());
+            refreshStatus(control);
+        }
         control.setEnabled(available);
         // The custom track has no disabled state, so dim it; the description says why.
         if (!available) control.setAlpha(0.4f);
         control.setOnCheckedChangeListener((button, checked) -> {
-            if (usage != null) usage.setVisibility(checked ? View.VISIBLE : View.GONE);
+            refreshStatus(control);
             if (binding) return;
             Settings.preferences.edit().putBoolean(key, checked).apply();
             if ("paused".equals(key) && !checked && CrashGuard.isSafeMode()) CrashGuard.clearSafeMode();
-            updateSetup();
+            refreshChoices();
             feedback("paused".equals(key) ? text.get(checked ? "changes_paused" : "changes_resumed")
                 : text.get(checked ? "choice_on" : "choice_off", title), Toast.LENGTH_SHORT);
             if ("light".equals(key)) refreshChoices();
@@ -518,6 +617,23 @@ public final class SettingsActivity extends Activity {
         return row;
     }
 
+    private void refreshStatus(Switch control) {
+        String key = (String) control.getTag();
+        TextView label = activityLabels.get(key);
+        if (label == null) return;
+        long used = Settings.lastActive(key), failedAt = Settings.hookErrorAt(key);
+        boolean paused = Settings.preferences.getBoolean("paused", false) || CrashGuard.isSafeMode();
+        boolean failed = failedAt > 0 && failedAt >= used;
+        String status = paused ? text.get("changes_paused") : failed ? formatSince(failedAt, "error_now", "error_ago")
+            : used == 0 ? text.get("keep_unsent".equals(key) ? "unsent_not_active" : "not_active") : formatSince(used, "active_now", "active_ago");
+        if (!status.contentEquals(label.getText())) label.setText(status);
+        label.setTextColor(!paused && failed ? ui.warning : !paused && used > 0 ? ui.accent : ui.muted);
+        label.setVisibility(control.isChecked() ? View.VISIBLE : View.GONE);
+        // The labels' parent hides its descendants from accessibility. The existing switch speaks the status once.
+        String description = switchDescriptions.get(control).toString() + (control.isChecked() ? " " + status : "");
+        if (!description.contentEquals(control.getContentDescription())) control.setContentDescription(description);
+    }
+
     private void buildApp(LinearLayout content) {
         ui.add(content, ui.heading(text.get("quick_access")), 4);
         LinearLayout access = ui.panel();
@@ -525,7 +641,14 @@ public final class SettingsActivity extends Activity {
         boolean menuRow = Settings.installed.contains("menu_row");
         // A Root Mount install has no drawer entry to mention or hide.
         boolean hosted = HostScreens.hosted(this);
-        TextView accessHelp = ui.text(text.get((hosted ? "access_help_hosted" : "access_help") + (menuRow ? "_menu" : "")), 14, ui.muted, false);
+        boolean drawerAlias = false;
+        if (!hosted) try {
+            getPackageManager().getActivityInfo(new ComponentName(getPackageName(), DRAWER_ALIAS), PackageManager.MATCH_DISABLED_COMPONENTS);
+            drawerAlias = true;
+        } catch (PackageManager.NameNotFoundException | SecurityException unavailable) {
+            // Some bundles have settings activities but omit the launcher alias.
+        }
+        TextView accessHelp = ui.text(text.get((hosted ? "access_help_hosted" : drawerAlias ? "access_help" : "access_help_missing") + (menuRow ? "_menu" : "")), 14, ui.muted, false);
         accessHelp.setTag("access_help");
         ui.add(access, accessHelp, 0);
         Button restart = ui.button(text.get("restart"));
@@ -533,9 +656,13 @@ public final class SettingsActivity extends Activity {
         restart.setOnClickListener(view -> HostScreens.open(this, HostScreens.RESTART));
         ui.add(access, restart, 14);
         // Without the Menu row, a launcher that has no app shortcuts would leave no way back in.
-        if (menuRow && !hosted) {
+        if (menuRow && drawerAlias && !hosted) {
             ui.rule(access, 14);
             ui.add(access, controlRow("hide_drawer_icon", text.format("hide_drawer_icon"), text.format("hide_drawer_icon_help"), false), 14);
+        } else {
+            TextView drawerHelp = ui.text(text.get(hosted ? "drawer_root" : !drawerAlias ? "drawer_missing" : "drawer_requires_menu"), 14, ui.muted, false);
+            drawerHelp.setTag("drawer_help");
+            ui.add(access, drawerHelp, 14);
         }
         ui.add(content, access, 12);
         ui.add(content, ui.heading(text.get("appearance")), 22);
@@ -567,15 +694,51 @@ public final class SettingsActivity extends Activity {
         importBtn.setOnClickListener(view -> importChoices());
         ui.add(about, importBtn, 8);
         ui.add(about, ui.text(text.get("import_help"), 13, ui.muted, false), 8);
+        ui.rule(about, 12);
+        Button saveFile = ui.button(text.get("save_choices_file"));
+        saveFile.setTag("save_choices_file");
+        saveFile.setOnClickListener(view -> {
+            if (documentImport || documentExport != null) return;
+            documentImport = false;
+            documentExport = ChoiceCodec.encode(Settings.preferences, Settings.installed);
+            Intent picker = new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("text/plain").putExtra(Intent.EXTRA_TITLE, "HushMessenger-choices.txt");
+            try { startActivityForResult(picker, SAVE_CHOICES); }
+            catch (android.content.ActivityNotFoundException | SecurityException error) {
+                documentExport = null;
+                feedback(text.get("export_failed"), Toast.LENGTH_LONG);
+            }
+        });
+        ui.add(about, saveFile, 8);
+        Button readFile = ui.button(text.get("read_choices_file"));
+        readFile.setTag("read_choices_file");
+        readFile.setOnClickListener(view -> {
+            if (documentImport || documentExport != null) return;
+            documentExport = null;
+            documentImport = true;
+            Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/*");
+            try { startActivityForResult(picker, READ_CHOICES); }
+            catch (android.content.ActivityNotFoundException | SecurityException error) {
+                documentImport = false;
+                feedback(text.get("import_invalid"), Toast.LENGTH_LONG);
+            }
+        });
+        ui.add(about, readFile, 8);
+        ui.add(about, ui.text(text.get("choices_file_help"), 13, ui.muted, false), 8);
         ui.add(content, about, 12);
         LinearLayout updates = ui.panel();
         ui.add(updates, controlRow("check_updates", text.format("check_updates"), text.format("check_updates_help"), false), 0);
-        TextView updateStatus = ui.text("", 13, ui.muted, false);
+        updateStatus = ui.text("", 13, ui.muted, false);
         updateStatus.setTag("update_status");
+        updateStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         updateStatus.setVisibility(View.GONE);
         ui.add(updates, updateStatus, 8);
+        updateCheckNow = ui.button(text.get("check_now"));
+        updateCheckNow.setTag("check_now");
+        updateCheckNow.setOnClickListener(view -> checkForUpdates());
+        ui.add(updates, updateCheckNow, 8);
         ui.add(content, updates, 12);
-        if (Settings.preferences.getBoolean("check_updates", false)) checkForUpdates(updateStatus);
+        syncUpdateChoice(true);
         ui.add(content, ui.heading(text.get("usage")), 22);
         ui.add(content, ui.text(text.get("save_help"), 14, ui.muted, false), 16);
         ui.add(content, ui.text(text.get("pause_help"), 14, ui.muted, false), 14);
@@ -652,24 +815,31 @@ public final class SettingsActivity extends Activity {
 
     /**
      * Compares release numbers part by part as integers, so 0.10.0 is newer than 0.9.0. A leading "v"
-     * is ignored and a missing or non-numeric part counts as 0. A pre-release suffix after "-" (0.7.0-dev.1)
-     * sorts before the same number without one, and two suffixes compare as text.
+     * is ignored and a missing or non-numeric part counts as 0. Build metadata is ignored. Numeric
+     * pre-release identifiers sort numerically and before text; a release sorts after its pre-releases.
      */
     static int compareVersions(String a, String b) {
-        String[] left = a.trim().replaceFirst("^v", "").split("-", 2);
-        String[] right = b.trim().replaceFirst("^v", "").split("-", 2);
+        String[] left = a.trim().replaceFirst("^v", "").split("\\+", 2)[0].split("-", 2);
+        String[] right = b.trim().replaceFirst("^v", "").split("\\+", 2)[0].split("-", 2);
         String[] x = left[0].split("\\."), y = right[0].split("\\.");
         for (int i = 0; i < Math.max(x.length, y.length); i++) {
-            int diff = Integer.compare(versionPart(x, i), versionPart(y, i));
+            int diff = versionPart(x, i).compareTo(versionPart(y, i));
             if (diff != 0) return diff;
         }
         if (left.length != right.length) return left.length > right.length ? -1 : 1;
-        return left.length == 1 ? 0 : left[1].compareTo(right[1]);
+        if (left.length == 1) return 0;
+        x = left[1].split("\\."); y = right[1].split("\\.");
+        for (int i = 0; i < Math.min(x.length, y.length); i++) {
+            boolean numericX = x[i].matches("[0-9]+"), numericY = y[i].matches("[0-9]+");
+            int diff = numericX && numericY ? versionPart(x, i).compareTo(versionPart(y, i))
+                : numericX != numericY ? (numericX ? -1 : 1) : x[i].compareTo(y[i]);
+            if (diff != 0) return diff;
+        }
+        return Integer.compare(x.length, y.length);
     }
 
-    private static int versionPart(String[] parts, int index) {
-        if (index >= parts.length) return 0;
-        try { return Integer.parseInt(parts[index]); } catch (NumberFormatException e) { return 0; }
+    private static java.math.BigInteger versionPart(String[] parts, int index) {
+        return index < parts.length && parts[index].matches("[0-9]+") ? new java.math.BigInteger(parts[index]) : java.math.BigInteger.ZERO;
     }
 
     /** The release page to offer, or "" when the response points anywhere but this project's releases. */
@@ -679,11 +849,44 @@ public final class SettingsActivity extends Activity {
             && !htmlUrl.contains("..") ? htmlUrl : "";
     }
 
-    private void checkForUpdates(TextView status) {
+    private void syncUpdateChoice(boolean check) {
+        if (updateStatus == null) return;
+        boolean enabled = Settings.preferences.getBoolean("check_updates", false);
+        updateCheckNow.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        if (!enabled) {
+            cancelUpdateCheck();
+            updateStatus.setVisibility(View.GONE);
+        } else if (check) checkForUpdates();
+    }
+
+    private synchronized void cancelUpdateCheck() {
+        updateGeneration++;
+        if (updateConnection != null) {
+            updateConnection.disconnect();
+            updateConnection = null;
+        }
+        if (updateRelease != null) {
+            ((ViewGroup) updateRelease.getParent()).removeView(updateRelease);
+            updateRelease = null;
+        }
+    }
+
+    private void checkForUpdates() {
+        cancelUpdateCheck();
+        if (!Settings.preferences.getBoolean("check_updates", false) || isDestroyed()) return;
+        long generation = updateGeneration;
+        updateStatus.setText(text.get("update_loading"));
+        updateStatus.setTextColor(ui.muted);
+        updateStatus.setVisibility(View.VISIBLE);
         new Thread(() -> {
             java.net.HttpURLConnection conn = null;
             try {
                 conn = (java.net.HttpURLConnection) new java.net.URL(releasesUrl).openConnection();
+                synchronized (this) {
+                    if (generation != updateGeneration || !Settings.preferences.getBoolean("check_updates", false)) return;
+                    updateConnection = conn;
+                }
+                conn.setInstanceFollowRedirects(false);
                 conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
                 conn.setConnectTimeout(updateTimeoutMillis);
                 conn.setReadTimeout(updateTimeoutMillis);
@@ -692,51 +895,77 @@ public final class SettingsActivity extends Activity {
                 try (java.io.InputStream stream = conn.getInputStream()) {
                     byte[] bytes = new byte[4096];
                     int read;
-                    while ((read = stream.read(bytes)) != -1) response.write(bytes, 0, read);
+                    while ((read = stream.read(bytes)) != -1) {
+                        if (response.size() + read > 256 * 1024) throw new java.io.IOException("Release response exceeds 256 KiB");
+                        response.write(bytes, 0, read);
+                    }
                 }
-                String body = response.toString("UTF-8");
-                int tagStart = body.indexOf("\"tag_name\"");
-                if (tagStart < 0) throw new java.io.IOException("No tag_name");
-                int valueStart = body.indexOf('"', tagStart + 10) + 1;
-                int valueEnd = body.indexOf('"', valueStart);
-                String tag = body.substring(valueStart, valueEnd);
+                String body = java.nio.charset.StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT).onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+                    .decode(java.nio.ByteBuffer.wrap(response.toByteArray())).toString();
+                String tag = null, htmlUrl = null;
+                try (android.util.JsonReader reader = new android.util.JsonReader(new java.io.StringReader(body))) {
+                    reader.setLenient(false);
+                    reader.beginObject();
+                    while (reader.hasNext()) {
+                        String name = reader.nextName();
+                        if ("tag_name".equals(name) || "html_url".equals(name)) {
+                            if (reader.peek() != android.util.JsonToken.STRING) throw new java.io.IOException("Invalid release field type");
+                            if ("tag_name".equals(name)) {
+                                if (tag != null) throw new java.io.IOException("Duplicate release tag");
+                                tag = reader.nextString();
+                            } else {
+                                if (htmlUrl != null) throw new java.io.IOException("Duplicate release URL");
+                                htmlUrl = reader.nextString();
+                            }
+                        } else reader.skipValue();
+                    }
+                    reader.endObject();
+                    if (reader.peek() != android.util.JsonToken.END_DOCUMENT) throw new java.io.IOException("Trailing release data");
+                }
+                if (tag == null || !tag.matches("v?(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?"))
+                    throw new java.io.IOException("Invalid release tag");
+                String[] version = tag.split("\\+", 2)[0].split("-", 2);
+                if (version.length == 2) for (String identifier : version[1].split("\\."))
+                    if (identifier.matches("0[0-9]+")) throw new java.io.IOException("Invalid numeric pre-release identifier");
                 String latest = tag.startsWith("v") ? tag.substring(1) : tag;
                 boolean newer = compareVersions(latest, BuildConfig.VERSION_NAME) > 0;
-                String htmlUrl = "";
-                int urlStart = body.indexOf("\"html_url\"");
-                if (urlStart >= 0) {
-                    int us = body.indexOf('"', urlStart + 10) + 1;
-                    int ue = body.indexOf('"', us);
-                    htmlUrl = body.substring(us, ue);
-                }
-                String releaseUrl = releasePage(htmlUrl);
+                String releaseUrl = htmlUrl == null ? "" : releasePage(htmlUrl);
+                if (releaseUrl.isEmpty()) throw new java.io.IOException("Invalid release URL");
                 runOnUiThread(() -> {
+                    if (generation != updateGeneration || isDestroyed() || !Settings.preferences.getBoolean("check_updates", false)) return;
                     if (newer) {
-                        status.setText(text.get("update_available", latest));
-                        status.setTextColor(ui.accent);
+                        updateStatus.setText(text.get("update_available", latest));
+                        updateStatus.setTextColor(ui.accent);
                         if (!releaseUrl.isEmpty()) {
                             Button view = ui.button(text.get("update_action"));
                             view.setTag("update_release");
+                            updateRelease = view;
                             view.setOnClickListener(v -> {
                                 try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(releaseUrl))); }
                                 catch (android.content.ActivityNotFoundException e) { feedback(text.get("no_browser"), Toast.LENGTH_LONG); }
                             });
-                            ViewGroup parent = (ViewGroup) status.getParent();
-                            int idx = parent.indexOfChild(status);
+                            ViewGroup parent = (ViewGroup) updateStatus.getParent();
+                            int idx = parent.indexOfChild(updateStatus);
                             parent.addView(view, idx + 1);
                         }
                     } else {
-                        status.setText(text.get("up_to_date"));
+                        updateStatus.setText(text.get("up_to_date"));
                     }
-                    status.setVisibility(View.VISIBLE);
+                    updateStatus.setVisibility(View.VISIBLE);
                 });
-            } catch (Exception error) {
-                android.util.Log.e("HushMessenger", "Update check failed", error);
-                runOnUiThread(() -> { status.setText(text.get("update_error")); status.setVisibility(View.VISIBLE); });
+            } catch (java.io.IOException | IllegalArgumentException | IllegalStateException | SecurityException error) {
+                if (generation == updateGeneration) android.util.Log.e("HushMessenger", "Update check failed", error);
+                runOnUiThread(() -> {
+                    if (generation != updateGeneration || isDestroyed() || !Settings.preferences.getBoolean("check_updates", false)) return;
+                    updateStatus.setText(text.get("update_error"));
+                    updateStatus.setVisibility(View.VISIBLE);
+                });
             } finally {
                 if (conn != null) conn.disconnect();
+                synchronized (this) { if (updateConnection == conn) updateConnection = null; }
             }
-        }).start();
+        }, "HushUpdateCheck").start();
     }
 
     private String formatSince(long timestamp, String now, String ago) {
@@ -749,19 +978,9 @@ public final class SettingsActivity extends Activity {
         return text.get(ago, text.format("hours_short", hours));
     }
 
-    private static final String EXPORT_HEADER = "hushmessenger:choices";
-
     private void exportChoices() {
         try {
-            StringBuilder export = new StringBuilder(EXPORT_HEADER).append('\n');
-            export.append("paused=").append(Settings.preferences.getBoolean("paused", false)).append('\n');
-            for (String[] spec : CONTROLS) {
-                String key = spec[0];
-                if (Settings.installed.contains(key)) {
-                    export.append(key).append('=').append(Settings.preferences.getBoolean(key, false)).append('\n');
-                }
-            }
-            ClipData clip = ClipData.newPlainText(text.get("clipboard"), export.toString());
+            ClipData clip = ClipData.newPlainText(text.get("clipboard"), ChoiceCodec.encode(Settings.preferences, Settings.installed));
             PersistableBundle extras = new PersistableBundle();
             extras.putBoolean(Build.VERSION.SDK_INT >= 33 ? ClipDescription.EXTRA_IS_SENSITIVE : "android.content.extra.IS_SENSITIVE", true);
             clip.getDescription().setExtras(extras);
@@ -788,32 +1007,70 @@ public final class SettingsActivity extends Activity {
                 return;
             }
             CharSequence raw = clip.getItemAt(0).getText();
-            if (raw == null || !raw.toString().startsWith(EXPORT_HEADER)) {
-                feedback(text.get("import_invalid"), Toast.LENGTH_LONG);
-                return;
-            }
-            java.util.Set<String> knownKeys = new java.util.HashSet<>();
-            for (String[] spec : CONTROLS) knownKeys.add(spec[0]);
-            knownKeys.add("paused");
-            SharedPreferences.Editor editor = Settings.preferences.edit();
-            int restored = 0;
-            for (String line : raw.toString().split("\n")) {
-                int eq = line.indexOf('=');
-                if (eq < 1) continue;
-                String key = line.substring(0, eq);
-                String value = line.substring(eq + 1);
-                if (!knownKeys.contains(key)) continue;
-                if (!"true".equals(value) && !"false".equals(value)) continue;
-                editor.putBoolean(key, "true".equals(value));
-                restored++;
-            }
-            editor.apply();
-            feedback(text.count("imported", restored), Toast.LENGTH_SHORT);
-            recreate();
+            restoreChoices(ChoiceCodec.parse(raw == null ? null : raw.toString()));
         } catch (Exception error) {
             android.util.Log.e("HushMessenger", "Can't import choices", error);
             feedback(text.get("import_invalid"), Toast.LENGTH_LONG);
         }
+    }
+
+    private void restoreChoices(Map<String, Boolean> choices) {
+        java.util.Set<String> known = new java.util.HashSet<>();
+        for (String[] spec : CONTROLS) known.add(spec[0]);
+        known.add(Settings.BUBBLE_CHAT_HEADS);
+        Map<String, Boolean> supported = new java.util.LinkedHashMap<>();
+        int unknown = 0, unavailable = 0;
+        for (Map.Entry<String, Boolean> choice : choices.entrySet()) {
+            String key = choice.getKey();
+            if ("paused".equals(key) || (known.contains(key) && Settings.installed.contains(
+                Settings.BUBBLE_CHAT_HEADS.equals(key) ? "bubbles" : key))) supported.put(key, choice.getValue());
+            else if (known.contains(key)) unavailable++;
+            else unknown++;
+        }
+        String skipped = (unknown == 0 ? "" : " " + text.count("import_unknown", unknown)) +
+            (unavailable == 0 ? "" : " " + text.count("import_unavailable", unavailable));
+        if (supported.isEmpty()) {
+            feedback(text.get("import_no_choices") + skipped, Toast.LENGTH_LONG);
+            return;
+        }
+        SharedPreferences.Editor editor = Settings.preferences.edit();
+        for (Map.Entry<String, Boolean> choice : supported.entrySet()) editor.putBoolean(choice.getKey(), choice.getValue());
+        editor.apply();
+        refreshChoices();
+        feedback(text.count("imported", supported.size()) + skipped, Toast.LENGTH_LONG);
+    }
+
+    @Override protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != SAVE_CHOICES && request != READ_CHOICES) return;
+        String export = documentExport;
+        boolean importing = documentImport;
+        documentExport = null;
+        documentImport = false;
+        // Pending document operations deliberately don't survive recreation. A returned URI alone isn't authorization.
+        if (result != RESULT_OK || data == null || data.getData() == null ||
+            (request == SAVE_CHOICES ? export == null : !importing)) return;
+        android.net.Uri uri = data.getData();
+        new Thread(() -> {
+            try {
+                if (request == SAVE_CHOICES) {
+                    try (java.io.OutputStream stream = getContentResolver().openOutputStream(uri, "wt")) {
+                        if (stream == null) throw new java.io.IOException("No writable document");
+                        stream.write(export.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    }
+                    runOnUiThread(() -> { if (!isDestroyed()) feedback(text.get("choices_file_saved"), Toast.LENGTH_SHORT); });
+                } else {
+                    Map<String, Boolean> choices;
+                    try (java.io.InputStream stream = getContentResolver().openInputStream(uri)) {
+                        choices = ChoiceCodec.parse(ChoiceCodec.read(stream));
+                    }
+                    runOnUiThread(() -> { if (!isDestroyed()) restoreChoices(choices); });
+                }
+            } catch (java.io.IOException | IllegalArgumentException | SecurityException error) {
+                android.util.Log.e("HushMessenger", "Can't use choices document", error);
+                runOnUiThread(() -> { if (!isDestroyed()) feedback(text.get(request == SAVE_CHOICES ? "export_failed" : "import_invalid"), Toast.LENGTH_LONG); });
+            }
+        }, "HushChoicesDocument").start();
     }
 
     private void infoRow(LinearLayout parent, String title, String value) {
@@ -854,9 +1111,11 @@ public final class SettingsActivity extends Activity {
         }
         boolean safeMode = CrashGuard.isSafeMode();
         boolean paused = Settings.preferences.getBoolean("paused", false);
+        safeModeAction.setVisibility(safeMode ? View.VISIBLE : View.GONE);
+        safeModeAction.setText(text.get(paused ? "clear_safe_mode" : "resume"));
         if (safeMode) {
             enabledCount.setText(text.get("safe_mode"));
-            setupNote.setText(text.get("safe_mode_help"));
+            setupNote.setText(text.get(paused ? "safe_mode_help_paused" : "safe_mode_help"));
         } else if (paused) {
             enabledCount.setText(text.get("changes_paused"));
             setupNote.setText(text.count("saved", saved));
@@ -868,6 +1127,8 @@ public final class SettingsActivity extends Activity {
 
     private void filterControls(String query) {
         String needle = query.trim().toLowerCase(Locale.ROOT);
+        String drawerWords = "hide app drawer icon launcher settings " + text.get("hide_drawer_icon");
+        drawerSearchLink.setVisibility(controlRows.isEmpty() || (!needle.isEmpty() && drawerWords.toLowerCase(Locale.ROOT).contains(needle)) ? View.VISIBLE : View.GONE);
         int visible = 0;
         for (int i = 0; i < controlRows.size(); i++) {
             String[] spec = installedControls.get(i);
@@ -916,13 +1177,17 @@ public final class SettingsActivity extends Activity {
     private void openMessenger() {
         Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage(getPackageName());
         for (android.content.pm.ResolveInfo match : getPackageManager().queryIntentActivities(query, 0)) {
-            if (match.activityInfo.name.equals(getClass().getName())) continue;
+            var activity = match.activityInfo;
+            if (activity == null || !getPackageName().equals(activity.packageName) ||
+                activity.name == null || !activity.enabled ||
+                activity.name.startsWith("app.hushmessenger.extension.") ||
+                (activity.targetActivity != null && activity.targetActivity.startsWith("app.hushmessenger.extension."))) continue;
             try {
                 startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
-                    .setComponent(new ComponentName(getPackageName(), match.activityInfo.name)));
+                    .setComponent(new ComponentName(getPackageName(), activity.name)));
                 return;
-            } catch (android.content.ActivityNotFoundException error) {
+            } catch (android.content.ActivityNotFoundException | SecurityException error) {
                 android.util.Log.e("HushMessenger", "Messenger launcher is unavailable", error);
             }
         }

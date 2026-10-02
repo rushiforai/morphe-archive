@@ -17,6 +17,7 @@ import android.os.SystemClock;
 import android.text.format.DateFormat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -94,6 +95,11 @@ public final class AutoStreak {
         long activeSince;
         /** The uid of the account the recipient was entered on, or empty until one is seen. */
         String owner = "";
+        /**
+         * The handles {@link #sentDay}'s messages went to, lowercase, comma separated. Empty on a
+         * row written before this was kept, which reads as whoever is entered now.
+         */
+        String sentTo = "";
 
         static State parse(String text) {
             State state = new State();
@@ -108,6 +114,7 @@ public final class AutoStreak {
                 state.resultAt = Long.parseLong(parts[5]);
                 state.activeSince = Long.parseLong(parts[6]);
                 state.owner = parts[7];
+                if (parts.length > 8) state.sentTo = parts[8];
             } catch (RuntimeException unreadable) {
                 // A row this build cannot read starts over rather than guessing at a field.
                 return new State();
@@ -117,11 +124,30 @@ public final class AutoStreak {
 
         String format() {
             return "1|" + sentDay + "|" + tryDay + "|" + tries + "|" + result.name() + "|"
-                    + resultAt + "|" + activeSince + "|" + owner;
+                    + resultAt + "|" + activeSince + "|" + owner + "|" + sentTo;
         }
 
         int triesOn(String day) {
             return day.equals(tryDay) ? tries : 0;
+        }
+
+        /** Whether {@code handle} has had a message on {@code day}. */
+        boolean sentOn(String day, String handle) {
+            if (!day.equals(sentDay)) return false;
+            if (sentTo.isEmpty()) return true;
+            return Arrays.asList(sentTo.split(",")).contains(handle.toLowerCase(Locale.ROOT));
+        }
+
+        /** Records that {@code handle} had a message on {@code day}. */
+        void markSent(String day, String handle) {
+            if (!day.equals(sentDay)) {
+                sentDay = day;
+                sentTo = "";
+            }
+            String key = handle.toLowerCase(Locale.ROOT);
+            if (!Arrays.asList(sentTo.split(",")).contains(key)) {
+                sentTo = sentTo.isEmpty() ? key : sentTo + "," + key;
+            }
         }
     }
 
@@ -164,9 +190,17 @@ public final class AutoStreak {
         return now >= today - EARLY_MILLIS && counts(state, now, today);
     }
 
-    /** Whether today's time is one this setup covers and today's message has not gone. */
+    /**
+     * Whether today's time is one this setup covers and the person entered now hasn't had
+     * today's message.
+     */
     private static boolean counts(State state, long now, long today) {
-        return today >= state.activeSince && !day(now).equals(state.sentDay);
+        return today >= state.activeSince && !state.sentOn(day(now), recipient());
+    }
+
+    /** The handle entered now, or empty. */
+    private static String recipient() {
+        return StreakMessenger.handleOf(Settings.AUTO_STREAK_RECIPIENT.get());
     }
 
     /**
@@ -252,12 +286,16 @@ public final class AutoStreak {
         State state = state();
         String self = SignedInUser.id();
         state.owner = self == null ? "" : self;
-        // A different person hasn't had today's message, and starts like a switch turned on:
-        // today if the time is still ahead, tomorrow if it has passed. The same person typed
-        // again has had it, and clearing the day would send them a second one.
-        String handle = StreakMessenger.handleOf(Settings.AUTO_STREAK_RECIPIENT.get());
-        boolean different = !handle.equalsIgnoreCase(StreakMessenger.handleOf(before));
-        if (different) state.sentDay = "";
+        // A different person starts like a switch turned on: today if the time is still ahead,
+        // tomorrow if it has passed. Whoever already had today's message stays on the day's
+        // list, so typing them again, or going back to them, doesn't send a second one.
+        String handle = recipient();
+        String previous = StreakMessenger.handleOf(before);
+        boolean different = !handle.equalsIgnoreCase(previous);
+        if (state.sentTo.isEmpty() && !state.sentDay.isEmpty() && !previous.isEmpty()) {
+            // A row from before the list was kept: its message went to the person entered then.
+            state.sentTo = previous.toLowerCase(Locale.ROOT);
+        }
         save(state);
         settingsChanged(context, different);
     }
@@ -277,8 +315,8 @@ public final class AutoStreak {
         onSendThread(() -> {
             Result result;
             try {
-                result = attempt(app, OPEN_BUDGET_MILLIS, false);
-                finish(result);
+                result = attempt(app, OPEN_BUDGET_MILLIS, false, true);
+                if (result != Result.NONE) finish(result);
                 reconcile(app);
             } finally {
                 sending.set(false);
@@ -327,9 +365,10 @@ public final class AutoStreak {
         if (!sending.compareAndSet(false, true)) return;
         try {
             // An alarm counts its tries; opening the app or tapping the row is a try of its own.
-            Result result = attempt(context, budget, fromAlarm);
-            if (fromAlarm || result == Result.SENT) finish(result);
-            else note(result);
+            Result result = attempt(context, budget, fromAlarm, false);
+            // NONE is a try called off on the way, which neither went nor counts.
+            if (result == Result.SENT || (fromAlarm && result != Result.NONE)) finish(result);
+            else if (result != Result.NONE) note(result);
             reconcile(context);
         } finally {
             sending.set(false);
@@ -348,7 +387,13 @@ public final class AutoStreak {
         state.tries++;
         state.result = result;
         state.resultAt = now;
-        if (result == Result.SENT) state.sentDay = today;
+        save(state);
+    }
+
+    /** Adds {@code handle} to today's list the moment its message is handed over. */
+    private static void markSent(String handle) {
+        State state = state();
+        state.markSent(day(now()), handle);
         save(state);
     }
 
@@ -359,8 +404,12 @@ public final class AutoStreak {
         save(state);
     }
 
-    private static Result attempt(Context context, long budget, boolean fromAlarm) {
-        String handle = StreakMessenger.handleOf(Settings.AUTO_STREAK_RECIPIENT.get());
+    /**
+     * One try at today's message. {@code manual} is Send it now, which goes whether or not the
+     * switch is on.
+     */
+    private static Result attempt(Context context, long budget, boolean fromAlarm, boolean manual) {
+        String handle = recipient();
         if (handle.isEmpty()) return Result.NO_RECIPIENT;
         long deadline = SystemClock.elapsedRealtime() + budget;
         try {
@@ -389,7 +438,15 @@ public final class AutoStreak {
                     : openedAt + LAUNCH_SETTLE_MILLIS - SystemClock.elapsedRealtime();
             long left = deadline - SystemClock.elapsedRealtime() - StreakMessenger.settleMillis;
             SystemClock.sleep(Math.max(0, Math.min(wait, left)));
+            // The wait can be most of a minute: a switch turned off or a person changed in it
+            // calls this one off.
+            if ((!manual && !Settings.AUTO_STREAK.get()) || !handle.equals(recipient())) {
+                return Result.NONE;
+            }
             StreakMessenger.deliver(context, StreakMessenger.conversationId(self, peer.uid), message());
+            // Saved before the wait below, so a process that dies in it doesn't leave a message
+            // that went out unrecorded, to go again on the next open.
+            markSent(handle);
             // The quick reply hands the message to TikTok's own sender and returns. The wait
             // keeps a process the alarm started alive until that has put it on the network. An
             // open app stays alive by itself, and Send it now answered eight seconds late.
@@ -511,7 +568,7 @@ public final class AutoStreak {
         long next = nextAlarm(state, now, minute);
         String today = day(now);
         boolean triedToday = today.equals(day(state.resultAt)) && state.resultAt > 0;
-        if (today.equals(state.sentDay)) {
+        if (state.sentOn(today, recipient())) {
             return L10n.f(context, "Sent today at %1$s. The next one goes tomorrow at %2$s.",
                     time(context, state.resultAt), time(context, next));
         }
@@ -550,18 +607,38 @@ public final class AutoStreak {
         }
     }
 
+    /**
+     * The last contact lookup for the recipient row, as {@code self TAB handle}, and what it
+     * found. The row is drawn again on every scroll, and the lookup opens a database.
+     */
+    private static String noteKey;
+    private static StreakMessenger.Contact notePeer;
+    private static long noteAt;
+    /** How long a lookup that found nobody is kept, so a chat opened since turns up. */
+    private static final long NOTE_MISS_MILLIS = 5_000L;
+
     /** The line under the recipient row: who the handle turned out to be, or that nobody did. */
     public static String recipientNote(Context context, String typed) {
         String handle = StreakMessenger.handleOf(typed);
         if (handle.isEmpty()) return null;
         String self = SignedInUser.id();
         if (self == null) return null;
-        StreakMessenger.Contact peer = StreakMessenger.findContact(context, self, handle);
+        StreakMessenger.Contact peer = lookUp(context, self, handle);
         if (peer == null) {
             return L10n.f(context, "No chat with @%1$s turned up on this account. "
                     + "Open your chat with them once, then try again.", handle);
         }
         String name = peer.name == null || peer.name.isEmpty() ? "@" + handle : peer.name;
         return L10n.f(context, "Found %1$s in your chats.", name);
+    }
+
+    private static synchronized StreakMessenger.Contact lookUp(Context context, String self, String handle) {
+        String key = self + '\t' + handle.toLowerCase(Locale.ROOT);
+        long now = SystemClock.elapsedRealtime();
+        if (key.equals(noteKey) && (notePeer != null || now - noteAt < NOTE_MISS_MILLIS)) return notePeer;
+        notePeer = StreakMessenger.findContact(context, self, handle);
+        noteKey = key;
+        noteAt = now;
+        return notePeer;
     }
 }

@@ -1,5 +1,6 @@
 package mightymich.morphe.patches.voicechanger.voiceeffects.soundeffects.voiceavatar
 
+import mightymich.morphe.patches.voicechanger.voiceeffects.soundeffects.voiceavatar.VoiceChangerCompatibility
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
@@ -14,7 +15,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium Features",
-    description = "Forces the purchase verification method to always return true, unlocking premium features in Voice Changer."
+    description = "Forces the purchase verification method to always return true, unlocking premium features in Voice Changer. "
 ) {
     compatibleWith(VoiceChangerCompatibility.VOICE_CHANGER)
 
@@ -28,9 +29,7 @@ val unlockPremiumPatch = bytecodePatch(
 
     execute {
         purchaseCheckFingerprint.let { fingerprint ->
-
             val moveResultMatch = fingerprint.instructionMatches[2]
-
             val resultRegister = moveResultMatch
                 .getInstruction<OneRegisterInstruction>()
                 .registerA

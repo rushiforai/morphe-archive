@@ -1,8 +1,14 @@
+## [1.2.0](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.1.2...v1.2.0) (2026-10-01)
+
+### ✨ New Features
+
+* Add Render at 720p for high resolution screens ([25821d3](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/25821d3417e3d2a31f28c203578829f009f09500))
+
 ## [1.1.2](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.1.1...v1.1.2) (2026-09-30)
 
 ### 🐛 Bug Fixes
 
-* Say what is wrong with the OBB instead of a failed download ([a12e83e](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/a12e83ec03de374f5e1b7eda874534e825b3a386))
+* Say what is wrong with the OBB instead of showing the game's original "Download failed" message ([e42f047](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/e42f047b27f38217cd6390bb96138f3f9b97252e))
 
 ## [1.1.1](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.1.0...v1.1.1) (2026-09-30)
 

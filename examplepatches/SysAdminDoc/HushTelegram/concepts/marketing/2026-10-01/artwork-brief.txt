@@ -1,0 +1,19 @@
+HushTelegram README artwork
+
+Explored five logo directions: minimal glyph, app tile, wordmark, circular
+emblem, and abstract folded H. The circular emblem is selected. Its bright
+ring and folded plane give Telegram a distinct mark within the Hush family.
+The other four directions and the earlier hero are in alternates/.
+
+Logo
+Circular cobalt emblem with a luminous cyan ring and a bold white H. A folded
+cyan paper plane crosses the H. Keep it distinct from Telegram's official mark.
+The canvas outside the circle is transparent with real alpha. The mark must read
+at 36 pixels on light and dark backgrounds. No words or version number.
+
+Hero
+Wide, dark navy banner in the Hush family layout. Place the selected emblem
+and wordmark on the left, with a blue-to-cyan rule and the line MORPHE PATCHES
+FOR TELEGRAM. The headline reads KEEP THE CHAT. on the first line and CUT THE
+NOISE. on the second. On the right, abstract channel cards and a paper plane
+follow a cyan light trail. Use no real messages, accounts, or version number.

@@ -542,6 +542,7 @@ if (-not $SkipDescriptionTestCount) {
 # receipt check downloads goes the same way.
 $hostedArtifact = $null
 $hostedSbom = $null
+$hostedToolingDir = $null
 $hostedReceiptDir = $null
 try {
 if ($VerifyPublishedAsset) {
@@ -979,6 +980,10 @@ function Test-ReleaseReceiptHere {
     # commit, so a release cut before there was an SBOM is read as it was written.
     $schema = Resolve-ReceiptSchema -Root $rootPath -Commit $receiptCommit
     if ($schema.Note) { Write-Host "[release] $($schema.Note)" }
+    $publicationCheck = $VerifyPublishedAsset -or -not $AllowPublishedIndexLag
+    if ($schema.Version -ge 3 -and $publicationCheck -and $SkipAdvisoryCheck) {
+        throw '-SkipAdvisoryCheck cannot satisfy schema-3 tooling publication checks.'
+    }
 
     # On a release the SBOM is fetched from beside the published bundle, the copy people can
     # download, under the one name a receipt for this version may give it: SHA256SUMS.txt has to
@@ -1011,6 +1016,27 @@ function Test-ReleaseReceiptHere {
         }
     }
 
+    $toolingForComparison = $null
+    $toolingScopeText = $null
+    if ($schema.Version -ge 3) {
+        $toolingScopeText = @(Invoke-RepoGit -Root $rootPath -Arguments @('show', "${receiptCommit}:gradle/tooling-scopes.txt")) -join "`n"
+        if (-not $toolingScopeText) { throw 'The receipt commit has no tooling scope manifest.' }
+        if ($VerifyPublishedAsset) {
+            $toolingName = "patches-$releaseVersion.tooling.json"
+            $script:hostedToolingDir = Join-Path ([IO.Path]::GetTempPath()) ("hushfacebook-$([Guid]::NewGuid())")
+            New-Item -ItemType Directory -Path $script:hostedToolingDir -Force | Out-Null
+            $toolingForComparison = Join-Path $script:hostedToolingDir $toolingName
+            try {
+                $toolingResponse = Invoke-WebRequest -Uri ([Uri]::new($assetUri, $toolingName)) -OutFile $toolingForComparison `
+                    -MaximumRedirection 5 -TimeoutSec 60 -PassThru -UseBasicParsing
+            } catch { throw "Could not download the hosted ${toolingName}: $($_.Exception.Message)" }
+            if ($toolingResponse.StatusCode -ne 200) { throw "The hosted $toolingName returned HTTP $($toolingResponse.StatusCode)." }
+            $toolingHash = Get-Sha256Hex -Path $toolingForComparison
+            $listedTooling = [regex]::Match($checksumText, "(?im)^\s*([0-9a-f]{64})\s+\*?$([regex]::Escape($toolingName))\s*$")
+            if (-not $listedTooling.Success) { throw "SHA256SUMS.txt has no entry for $toolingName." }
+            if ($listedTooling.Groups[1].Value -ne $toolingHash) { throw "SHA256SUMS.txt lists another hash for $toolingName." }
+        }
+    }
     $receiptCheck = Test-ReleaseReceipt -Receipt $receiptDocument -ExpectedVersion $releaseVersion `
         -ExpectedPatchNames @($resolvedList.PatchList.patches | ForEach-Object { [string]$_.name }) `
         -ExpectedPatcherVersion $expectedToolchain.PatcherVersion `
@@ -1019,9 +1045,17 @@ function Test-ReleaseReceiptHere {
         -ExpectedPackageVersionCodes $receiptTarget.PackageVersionCodes `
         -BundlePath $BundleForComparison -ApprovedManifestDelta $approvedDelta `
         -ActualCommitTimestamp $actualEpoch -ExpectedCommit $expectedCommit `
-        -ExpectedSchemaVersion $schema.Version -SbomPath $sbomForComparison
+        -ExpectedSchemaVersion $schema.Version -SbomPath $sbomForComparison -ToolingPath $toolingForComparison `
+        -ToolingScopeManifestText $toolingScopeText -RequireToolingAudit:$publicationCheck
     if (-not $receiptCheck.Valid) {
         throw "The release provenance receipt does not describe this release: $($receiptCheck.Reason)"
+    }
+    if ($toolingForComparison) {
+        $toolingDocument = Read-ReleaseTooling -Path $toolingForComparison
+        $toolingStatus = Invoke-ToolingAdvisoryGate -Tooling $toolingDocument `
+            -ExceptionsPath (Join-Path $PSScriptRoot 'tooling-advisory-exceptions.txt')
+        if ($toolingStatus -cne 'checked') { throw 'Publication requires a fresh tooling advisory check.' }
+        Write-Host '[release] the hosted tooling graph matches the receipt, bundle and source scope manifest'
     }
     $proved = @($receiptDocument.targets | ForEach-Object { "$($_.source.versionName)" })
     Write-Host ("[release] the receipt proves $($receiptDocument.release.patchCount) patches on " +
@@ -1128,5 +1162,6 @@ exit 0
 } finally {
     if ($hostedArtifact) { Remove-Item -LiteralPath $hostedArtifact -Force -ErrorAction SilentlyContinue }
     if ($hostedSbom) { Remove-Item -LiteralPath $hostedSbom -Recurse -Force -ErrorAction SilentlyContinue }
+    if ($hostedToolingDir) { Remove-GeneratedPath -Path $hostedToolingDir -Root ([IO.Path]::GetTempPath()) }
     if ($hostedReceiptDir) { Remove-Item -LiteralPath $hostedReceiptDir -Recurse -Force -ErrorAction SilentlyContinue }
 }

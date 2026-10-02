@@ -1,0 +1,80 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+import groovy.json.JsonOutput
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult
+
+// Run with -I, so the settings plugin's own classpath is observed before project scripts.
+def describeGraph = { scope, owner, configuration ->
+    def result = configuration.incoming.resolutionResult
+    def unresolved = result.allDependencies.findAll { it instanceof UnresolvedDependencyResult }
+    if (!unresolved.empty) {
+        throw new GradleException("${owner}:${configuration.name} has unresolved dependencies: " +
+                unresolved.collect { it.attempted.displayName }.sort().join(', '))
+    }
+    def modules = result.allComponents.findAll { it.id instanceof ModuleComponentIdentifier }
+            .collect { component ->
+                def id = component.id
+                [group: id.group, name: id.module, version: id.version,
+                 purl: 'pkg:maven/' + URLEncoder.encode(id.group, 'UTF-8') + '/' +
+                         URLEncoder.encode(id.module, 'UTF-8') + '@' + URLEncoder.encode(id.version, 'UTF-8')]
+            }.unique { it.purl }.sort { it.purl }
+    [scope: scope, owner: owner, configuration: configuration.name, libraries: modules]
+}
+
+def settingsClasspath
+gradle.settingsEvaluated { settings ->
+    settingsClasspath = settings.buildscript.configurations.getByName('classpath')
+}
+
+gradle.projectsEvaluated {
+    def reports = []
+    def producers = []
+    gradle.rootProject.allprojects.each { module ->
+        def report = module.layout.buildDirectory.file('reports/dependencies/resolved-graphs.json')
+        def configurations = module.configurations
+        def scriptConfigurations = module.buildscript.configurations
+        def owner = module.path
+        def isRoot = module == gradle.rootProject
+        reports.add(report)
+        producers.add(module.tasks.register('resolvedDependencyGraphs') {
+            group = 'verification'
+            description = 'Reports resolved dependency coordinates, failing on unresolved edges.'
+            outputs.file(report)
+            outputs.upToDateWhen { false }
+            doLast {
+                def graphs = []
+                if (isRoot) graphs.add(describeGraph('settings-plugin', 'settings', settingsClasspath))
+                scriptConfigurations.findAll { it.canBeResolved }.sort { it.name }.each { configuration ->
+                    graphs.add(describeGraph('project-plugin', owner, configuration))
+                }
+                configurations.findAll { it.canBeResolved }.sort { it.name }.each { configuration ->
+                    def scope = configuration.name == 'patcherProvidedClasspath' ? 'host-contract' :
+                            configuration.name.toLowerCase(Locale.ROOT).contains('test') ? 'test' : 'build'
+                    graphs.add(describeGraph(scope, owner, configuration))
+                }
+                def output = report.get().asFile
+                output.parentFile.mkdirs()
+                output.setText(JsonOutput.prettyPrint(JsonOutput.toJson([schemaVersion: 1, graphs: graphs])), 'UTF-8')
+            }
+        })
+    }
+    // The root's report shares the filename, so the aggregate uses a distinct name.
+    def aggregate = gradle.rootProject.layout.buildDirectory.file('reports/dependencies/all-graphs.json')
+    gradle.rootProject.tasks.register('dependencyGraphReport') {
+        group = 'verification'
+        description = 'Combines separately resolved settings, plugin, build, test and host-contract graphs.'
+        dependsOn(producers)
+        outputs.file(aggregate)
+        outputs.upToDateWhen { false }
+        doLast {
+            def graphs = reports.collectMany { new groovy.json.JsonSlurper().parse(it.get().asFile, 'UTF-8').graphs }
+            def output = aggregate.get().asFile
+            output.parentFile.mkdirs()
+            output.setText(JsonOutput.prettyPrint(JsonOutput.toJson([schemaVersion: 1, graphs: graphs])), 'UTF-8')
+            logger.lifecycle('Resolved dependency graphs: ' + output)
+        }
+    }
+}

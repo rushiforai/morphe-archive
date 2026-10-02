@@ -1,0 +1,6 @@
+# Copyright 2026 HushGram contributors. https://github.com/SysAdminDoc/HushGram
+# Tooling-scope exceptions only. Shipped-payload exceptions stay in advisory-exceptions.txt.
+# Format: <scope> <advisory> <group>:<name> <YYYY-MM-DD> <reason of at least three words>
+# Scope: settings-plugin, project-plugin, build, test or host-contract (one per line).
+# Dates may be at most 90 days ahead. Expired or unmatched exceptions fail the audit.
+# No tooling advisory is accepted.

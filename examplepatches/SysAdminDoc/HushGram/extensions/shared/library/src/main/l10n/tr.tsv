@@ -1,0 +1,266 @@
+# Turkish for HushGram: the English key, a tab, the translation. One row per string.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$s of %2$s	%1$s / %2$s
+%1$s so far	Şimdiye kadar %1$s
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Yamaladığında ayarlandığı için Duraklatma bunu kapatamaz. Bunu elemek için yeniden yamala ve o yamayı dışarıda bırak.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Yamaladığında ayarlandıkları için Duraklatma bunları kapatamaz. Birini elemek için yeniden yamala ve onun ardından parantez içinde yazan yamayı dışarıda bırak.
+A diagnostic report is already being saved.	Bir tanılama raporu zaten kaydediliyor.
+A file named %1$s in %2$s paused HushGram.	%2$s içindeki %1$s adlı bir dosya HushGram'u duraklattı.
+About	Hakkında
+Ads and privacy	Reklamlar ve gizlilik
+Back	Geri
+Before you sign in	Giriş yapmadan önce
+Cancel	İptal
+Changing these	Bunları değiştirmek
+Clear diagnostic data	Tanılama verilerini temizle
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
+Copy a short report to the clipboard.	Kısa raporu panoya kopyalar.
+Copy quick report	Hızlı raporu kopyala
+Copying to the gallery	Galeriye kopyalanıyor
+Couldn't put back the diagnostic data. Try again.	Tanılama verileri geri getirilemedi. Tekrar dene.
+Couldn't start the report export. Try again shortly.	Rapor dışa aktarımı başlatılamadı. Birazdan tekrar dene.
+Couldn't turn HushGram back on. Try again.	HushGram yeniden açılamadı. Tekrar dene.
+Debug logging	Hata ayıklama günlüğü
+Diagnostic data cleared. Tap again to put it back.	Tanılama verileri temizlendi. Geri getirmek için tekrar dokun.
+Diagnostic data put back.	Tanılama verileri geri getirildi.
+Diagnostic report copied to the clipboard.	Tanılama raporu panoya kopyalandı.
+Disable analytics	Analitiği devre dışı bırak
+Download failed	İndirme başarısız oldu
+Downloading	İndiriliyor
+Empties the log and the hook counts a report would include.	Bir raporun içereceği günlüğü ve kanca sayaçlarını boşaltır.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır, yamaladığında ayarlananlar ise devrede kalır. Ayarların olduğu gibi kalır.
+Export diagnostic report	Tanılama raporunu dışa aktar
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Sonraki açılıştan itibaren Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır ve tercihlerin kayıtlı kalır.
+Full report saved to %1$s	Tam rapor şuraya kaydedildi: %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, üzerine kurulduğu projelerin lisans bildirimleriyle
+Hide ads	Reklamları gizle
+How far a photo or video you're saving has got, with a button to cancel it	Kaydettiğin fotoğraf veya videonun ilerleme durumu ve iptal etmek için bir düğme
+HushGram %1$s on Instagram %2$s	Instagram %2$s üzerinde HushGram %1$s
+HushGram is on	HushGram açık
+HushGram is paused	HushGram duraklatıldı
+HushGram pauses when Instagram restarts.	HushGram, Instagram yeniden başladığında duraklatılır.
+HushGram saves	HushGram kaydetme işlemleri
+HushGram settings	HushGram ayarları
+HushGram settings couldn't open	HushGram ayarları açılamadı
+HushGram turns back on when Instagram restarts.	HushGram, Instagram yeniden başladığında tekrar açılır.
+Instagram crashed or froze within a minute of starting three times in a row, so HushGram paused itself.	Instagram açıldıktan sonraki bir dakika içinde üst üste üç kez çöktü veya dondu, bu yüzden HushGram kendini duraklattı.
+Instagram stops showing the screen that says this version is too old. A patched build doesn't update on its own, so this keeps it usable.	Instagram bu sürümün çok eski olduğunu söyleyen ekranı artık göstermez. Yamalanmış bir sürüm kendi kendine güncellenmez, bu yüzden bu onu kullanılabilir tutar.
+Instagram's own signature checks see its original certificates, so they keep passing on this re-signed build.	Instagram'ın kendi imza denetimleri orijinal sertifikalarını görür, bu yüzden yeniden imzalanmış bu sürümde de geçmeye devam eder.
+Instagram's usage events and crash reports go to an address on this phone that refuses them, instead of to Instagram and Facebook. Restart Instagram after changing it.	Instagram'ın kullanım olayları ve çökme raporları, Instagram ve Facebook yerine bu telefonda onları reddeden bir adrese gider. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Joining the picture and sound	Görüntü ve ses birleştiriliyor
+Licenses	Lisanslar
+Link expired. Reopen the item and try again	Bağlantının süresi doldu. Öğeyi yeniden açıp tekrar dene
+Nobody outside Meta knows what gets an account suspended. A re-signed Instagram can't pass Google's check that it's the Play Store app, and no patch changes that. If you'd rather not risk your account, try a spare one first. Installing updates over the top with the same key keeps Instagram's data and your sign-in, and on a rooted phone a Root Mount install keeps the sign-in you already have.	Bir hesabın neden askıya alındığını Meta dışında kimse bilmiyor. Yeniden imzalanmış bir Instagram, Google'ın bunun Play Store uygulaması olduğuna dair kontrolünü geçemez ve hiçbir yama bunu değiştirmez. Hesabını riske atmak istemiyorsan önce yedek bir hesapla dene. Güncellemeleri aynı anahtarla üzerine kurmak Instagram'ın verilerini ve oturumunu korur, root'lu bir telefonda ise Root Mount kurulumu zaten açık olan oturumunu korur.
+No app on this phone can open the link. The address is %1$s.	Bu telefondaki hiçbir uygulama bağlantıyı açamıyor. Adres: %1$s.
+Not saved: that isn't an Instagram photo or video	Kaydedilmedi: Bu bir Instagram fotoğrafı veya videosu değil
+Not saved: the file is over 512 MB	Kaydedilmedi: Dosya 512 MB'tan büyük
+OK	Tamam
+Pause HushGram	HushGram'u duraklat
+Pause and diagnostics	Duraklatma ve tanılama
+Re-signed build fix	Yeniden imzalanmış sürüm düzeltmesi
+Record patch activity and show errors for a bug report. Leave off during normal use.	Hata raporu için yama etkinliğini kaydeder ve hataları gösterir. Normal kullanımda kapalı bırakın.
+Remove build expired popup	Süresi dolan sürüm uyarısını kaldır
+Retry	Yeniden dene
+Sanitize sharing links	Paylaşım bağlantılarını temizle
+Save cancelled	Kaydetme iptal edildi
+Save full report	Tam raporu kaydet
+Save the full report in Download/Morphe.	Tam raporu Download/Morphe konumuna kaydeder.
+Saved to %1$s	Şuraya kaydedildi: %1$s
+Saved to %1$s in lower quality than on Instagram	Şuraya Instagram'dakinden düşük kalitede kaydedildi: %1$s
+Saved to the gallery	Galeriye kaydedildi
+Saved to the gallery in lower quality than on Instagram	Galeriye Instagram'dakinden düşük kalitede kaydedildi
+Saved. Restart Instagram to apply this change.	Kaydedildi. Bu değişikliği uygulamak için Instagram'u yeniden başlat.
+Saving a photo	Fotoğraf kaydediliyor
+Saving a video	Video kaydediliyor
+Saving...	Kaydediliyor...
+Saving... Cancel: Downloads in HushGram.	Kaydediliyor... İptal: HushGram'da İndirmeler.
+Set when you patched	Yamaladığında ayarlananlar
+Settings couldn't open	Ayarlar açılamadı
+Settings couldn't refresh completely. Reopen settings and try again.	Ayarlar tamamen yenilenemedi. Ayarları yeniden açıp tekrar dene.
+Source code and issues	Kaynak kodu ve sorunlar
+Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap is left.	Sponsorlu gönderiler, reels ve hikâyeler. Instagram'a hiç reklam eklenmediği söylenir, böylece boşluk kalmaz.
+Stays in while paused	Duraklatılsa da devrede kalır
+Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.	Kopyaladığın veya paylaştığın bağlantılardan stkn, igsh, utm_source ve diğer izleme anahtarlarını kaldırır, biyografi bağlantılarını Instagram'ın tıklama izleyicisinden geçmeden açar. Bir bağlantının açtığı gönderi, reel veya profil aynı kalır.
+Tap to hide this.	Gizlemek için dokun.
+Tap to turn it back on.	Yeniden açmak için dokun.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Tanılama raporu henüz kaydedilemedi. Birazdan tekrar dene.
+The diagnostic report couldn't be saved. Try again.	Tanılama raporu kaydedilemedi. Tekrar dene.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.	%1$s dosyası kaldırılamadı. HushGram'u yeniden açmak için onu %2$s içinden sil.
+The setting couldn't finish updating. Its saved value is shown.	Ayarın güncellenmesi tamamlanamadı. Kayıtlı değeri gösteriliyor.
+There's no diagnostic data to clear.	Temizlenecek tanılama verisi yok.
+There's no diagnostic data to put back.	Geri getirilecek tanılama verisi yok.
+They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	Bunlar yamalarken Morphe Manager'da seçilir ve Duraklatma bunları kapatmaz. Değiştirmek için yeniden yamala.
+Try again, or go back to Instagram.	Tekrar dene veya Instagram'a geri dön.
+Updates	Güncellemeler
+Version	Sürüm
+Version %1$s for Instagram %2$s	Instagram %2$s için %1$s sürümü
+You paused HushGram.	HushGram'u duraklattın.
+the re-signed build fix	yeniden imzalanmış sürüm düzeltmesi
+Don't send reel watch history	Reel izleme geçmişini gönderme
+Instagram isn't told which reels you watched or how far into them you got. It ranks your Reels with that, and nobody else sees it. Reels you've watched may come back.	Instagram hangi reelleri izlediğini ve ne kadarını izlediğini öğrenmez. Reels akışını buna göre sıralar ve bunu başka kimse görmez. İzlediğin reeller yeniden karşına çıkabilir.
+Reels	Reels
+Stop Story auto-advance	Hikayelerin otomatik geçişini durdur
+A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.	Biten bir hikaye, dokunana veya kaydırana kadar ekranda kalır. Instagram'ın zamanlaması için bunu kapat.
+Stories	Hikayeler
+Hide Reels in the feed	Akıştaki reelleri gizle
+The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.	Ana akışındaki gönderiler arasına giren önerilen reel sıraları. Takip ettiğin birinin paylaştığı reel kalır.
+Hide the Follow button	Takip Et düğmesini gizle
+The Follow button beside a reel's author. Their profile still has one.	Bir reelin sahibinin yanındaki Takip Et düğmesi. Profilinde hâlâ var.
+Hide creation and promotion pills	Oluşturma ve tanıtım etiketlerini gizle
+Pills such as Edits, Use template, Meta AI and Ray-Ban Meta glasses. A live badge and a state-controlled media label stay.	Edits, Şablonu kullan, Meta AI ve Ray-Ban Meta gözlükleri gibi etiketler. Canlı yayın rozeti ve devlet kontrolündeki medya etiketi kalır.
+Hide friends' activity and comment previews	Arkadaş etkinliğini ve yorum önizlemesini gizle
+The bubbles of friends who liked or commented, the Followed by and Liked by lines with their faces, the comment shown under a reel and the row of friends who saw it. Comments are still a tap away.	Beğenen ya da yorum yapan arkadaşların baloncukları, fotoğraflarıyla birlikte takip eden ve beğenen arkadaş satırları, reelin altında gösterilen yorum ve onu gören arkadaşların sırası. Yorumlar hâlâ bir dokunuş uzakta.
+Downloads	İndirmeler
+Save videos other apps can open	Videoları diğer uygulamaların açabileceği biçimde kaydet
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	WhatsApp, CapCut ve InShot gibi video düzenleyiciler ya da kaydedilen videoları sessiz oynatan bir galeri veya oynatıcı için. Kaliteyi düşürebilir.
+Download quality	İndirme kalitesi
+Best	En iyi
+Smallest	En küçük
+Each video saves at the best quality the player streams.	Her video, oynatıcının sunduğu en iyi kalitede kaydedilir.
+Each video saves at its lowest quality, for the smallest file.	Her video en düşük kalitesinde kaydedilir, böylece dosya en küçük olur.
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Her video %1$s kalitesinde ya da bunun altındaki en yakın kalitede kaydedilir. Bu kadar düşük kalitesi olmayan video, bunun üstündeki en yakın kalitede kaydedilir.
+Save folder	Kayıt klasörü
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Movies ve Pictures altında bir klasör adı seç. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %1$s klasörünü kullanmak için boş bırak.
+Save	Kaydet
+Folder name	Klasör adı
+Folder set to %1$s.	Klasör %1$s olarak ayarlandı.
+Video file name	Video dosya adı
+%1$s becomes the date and time of the save, %2$s the video's number on Instagram, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s kaydetme tarihine ve saatine, %2$s videonun Instagram'daki numarasına, %3$s paylaşan kişinin adına, %4$s ise paylaşıldığı güne dönüşür. Kaydederken bilinmeyenler dışarıda bırakılır ve bunların hiçbirini içermeyen bir ada tarih eklenir. Ad klasörde zaten varsa sonuna kaydetme saati eklenir. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %5$s adını kullanmak için boş bırak.
+File name	Dosya adı
+File name set to %1$s.	Dosya adı %1$s olarak ayarlandı.
+Videos go to %1$s and photos to %2$s.	Videolar %1$s klasörüne, fotoğraflar %2$s klasörüne kaydedilir.
+Example without post details	Gönderi ayrıntıları olmadan örnek
+Cancel saving this video	Bu videonun kaydedilmesini iptal et
+Cancel saving this photo	Bu fotoğrafın kaydedilmesini iptal et
+Download on reels	Reels'te indir
+Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.	Her reelin diğer seçenekler menüsüne İndir ekler, indirme kalitende kaydedilir. Kapalıyken veya duraklatıldığında Instagram'ın kendi menüsü geri gelir.
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Videoların adı %1$s olur. Fotoğrafların adı her zaman %2$s ile başlar, ardından tarih ve saat gelir.
+Download	İndir
+Download on stories	Hikayelerde indir
+Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	Herkesin hikayesinin menüsüne İndir ekler, fotoğraf ya da video, indirme kalitende kaydedilir. Kapalıyken veya duraklatıldığında Instagram'ın kendi menüsü geri gelir.
+Download feed videos	Akıştaki videoları indir
+Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Akışındaki videolu bir gönderinin menüsüne İndir ekler. Aşağıdaki kaliteyi kullanır. Kapalıyken veya duraklatıldığında Instagram'ın kendi menüsü geri gelir.
+Playback	Oynatma
+Tap to play	Oynatmak için dokun
+Videos, reels and stories wait for your tap. Feed videos show a play button, as they do when you use less mobile data.	Videolar, reels ve hikayeler dokunmanı bekler. Akıştaki videolar, daha az mobil veri kullandığındaki gibi bir oynat düğmesi gösterir.
+Resume long videos	Uzun videolara kaldığın yerden devam et
+Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	İki dakikadan uzun videolar ve reels kaldığın yerden devam eder. Başka bir yerden başlatmak için çubuğu kaydır. Canlı videolar ve reklamlar normal başlar.
+Default playback quality	Varsayılan oynatma kalitesi
+Videos, reels and stories play at the quality below, starting with the next one you open.	Videolar, reels ve hikayeler, açacağın bir sonrakinden itibaren aşağıdaki kalitede oynatılır.
+Playback quality	Oynatma kalitesi
+Auto	Otomatik
+Data saver	Veri tasarrufu
+Up to %1$s	En fazla %1$s
+Highest	En yüksek
+Instagram picks the quality as each video plays, from your connection.	Instagram, her video oynatılırken kaliteyi bağlantına göre seçer.
+Videos play at the lowest quality Instagram offers for each.	Videolar, Instagram'ın her biri için sunduğu en düşük kalitede oynatılır.
+Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.	Videolar, Instagram'ın her biri için sunduğu en fazla %1$s olan en iyi kalitede ya da hemen üstündekinde oynatılır.
+Videos play at the highest quality Instagram offers for each.	Videolar, Instagram'ın her biri için sunduğu en yüksek kalitede oynatılır.
+View stories anonymously	Hikayeleri anonim olarak izle
+Instagram isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep showing as new.	Instagram hangi hikayeleri izlediğini öğrenmez, bu yüzden izleyici listelerinde yer almazsın. Yanıt vermek veya tepki bırakmak yine de seni gösterir. İzlediğin hikayeler yeni gibi görünmeye devam eder.
+Advertising ID removed	Reklam kimliği kaldırıldı
+Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are gone from this build.	Instagram telefonunun reklam kimliğini okuyamaz ve Android'in reklam hizmetlerine hangi reklamları gördüğünü veya dokunduğunu bildiremez. Bunlar için gereken izinler bu sürümden kaldırıldı.
+the removed advertising ID permissions	kaldırılan reklam kimliği izinleri
+Turn off double tap to like	Beğenmek için çift dokunmayı kapat
+A double tap on a post or reel no longer likes it or shows a heart. A single tap and the Like button work as before.	Bir gönderiye veya reel'e çift dokunmak artık onu beğenmez ve kalp göstermez. Tek dokunuş ve Beğen düğmesi eskisi gibi çalışır.
+On posts	Gönderilerde
+A double tap on a post doesn't like it. Turn this off to keep double tap to like on posts.	Bir gönderiye çift dokunmak onu beğenmez. Gönderileri çift dokunarak beğenmeye devam etmek için bunu kapat.
+On reels	Reel'lerde
+A double tap on a reel doesn't like it. Turn this off to keep double tap to like on reels.	Bir reel'e çift dokunmak onu beğenmez. Reel'leri çift dokunarak beğenmeye devam etmek için bunu kapat.
+Hide the Reels tab	Reels sekmesini gizle
+Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.	Reels'i sekme çubuğundan kaldırır. Akışındaki reels'ler ve sana gönderilen reels'ler açılmaya devam eder. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Keep the reel speed	Reel hızını koru
+Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Bir reel'i 2x'te kilitle (kenarını basılı tut, sonra aşağı kaydır), sonraki reels'ler de 2x oynar. Normal hıza dönmek için kilidi kaydırıp kaldır ya da kenarı basılı tutup bırak.
+Open links in external browser	Bağlantıları harici tarayıcıda aç
+Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.	Web bağlantıları, Instagram'ın tıklama izleyicisi olmadan varsayılan tarayıcında açılır. Instagram ve diğer Meta sayfaları ile reklamlar uygulamada açılmaya devam eder.
+Feed	Akış
+Hide suggested accounts	Önerilen hesapları gizle
+The rows of accounts, shops and hashtags Instagram suggests you follow.	Instagram'ın takip etmeni önerdiği hesap, mağaza ve hashtag sıraları.
+Hide suggested posts	Önerilen gönderileri gizle
+Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.	Takip etmediğin hesaplardan gelen, Senin için önerilenler olarak işaretli gönderiler ve reel'ler. Takip ettiğin hesapların gönderileri kalır.
+Hide Threads posts	Threads gönderilerini gizle
+The posts, accounts and communities from Threads that Instagram mixes into your feed.	Instagram'ın akışına karıştırdığı Threads gönderileri, hesapları ve toplulukları.
+Meta AI	Meta AI
+Hide Meta AI in search and Home's bar	Aramada ve Ana Sayfa çubuğunda Meta AI'ı gizle
+The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.	Ara sekmesi ve mesajlarının üstü, Meta AI olmadan sade bir arama çubuğu alır, arama sonuçları takip sorusu çubuğunu kaybeder ve Ana Sayfa'nın üst çubuğu Meta AI düğmelerini kaybeder. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Hide Meta AI posts	Meta AI gönderilerini gizle
+Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.	Instagram'ın ana akışına koyduğu Meta AI videoları, sohbetleri ve senin görsellerin.
+Explore	Keşfet
+Hide the Explore grid	Keşfet ızgarasını gizle
+The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.	Ara sekmesinin çubuğu altındaki gönderiler ve reels videoları. Arama, son aramaların ve arama sonuçları kalır.
+Start Home on Following	Ana Sayfa'yı Takip Edilenler ile aç
+Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.	Ana Sayfa, takip ettiğin hesapların gönderileriyle açılır. Senin için'e geçmek için üstteki Takip Edilenler'e dokun, Ana Sayfa seçimini hatırlar. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Hide suggested stories	Önerilen hikayeleri gizle
+Stories in the row at the top of Home from accounts you don't follow, and the accounts Instagram suggests there. Stories from accounts you follow stay.	Ana Sayfa'nın üstündeki sırada, takip etmediğin hesapların hikayeleri ve Instagram'ın orada önerdiği hesaplar. Takip ettiğin hesapların hikayeleri kalır.
+Hide the Stories tray	Hikaye sırasını gizle
+Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.	Ana Sayfa'nın üstündeki hikaye sırasını, Hikayen dahil tamamen kaldırır. Hikayeler bir profilden veya mesajdan açılmaya devam eder.
+Download feed photos	Akıştaki fotoğrafları indir
+The same Download on a photo post, and on a carousel showing a photo. Saves the largest size Instagram has.	Aynı İndir seçeneği bir fotoğraf gönderisinde ve fotoğraf gösteren bir kaydırmalı gönderide de çıkar. Instagram'daki en büyük boyutu kaydeder.
+the start-up fix for x86 devices	x86 cihazlar için açılış düzeltmesi
+Developer	Geliştirici
+Developer options on a long press of Home	Ana Sayfa'ya uzun basınca geliştirici seçenekleri
+Opens Instagram's own developer options, where its server flags can be looked at and changed. A wrong flag can break parts of Instagram until you reset it there.	Instagram'ın kendi geliştirici seçeneklerini açar. Orada sunucu bayrakları görülebilir ve değiştirilebilir. Yanlış bir bayrak, sen orada sıfırlayana kadar Instagram'ın bazı bölümlerini bozabilir.
+Pure black dark mode	Saf siyah karanlık mod
+Instagram's dark mode uses pure black instead of its near-black gray. Menus, sheets and buttons keep their own grays.	Instagram'ın karanlık modu, siyaha yakın grisi yerine saf siyah kullanır. Menüler, sayfalar ve düğmeler kendi gri tonlarını korur.
+the pure black dark mode	saf siyah karanlık mod
+Sharing	Paylaşım
+Hide group buttons	Grup düğmelerini gizle
+Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.	Paylaşım menüsünden Yeni grup düğmesini ve seçtiğin kişilere grup olarak gönderen düğmeyi kaldırır. Ayrı ayrı gönder kalır ve mesajlarından yine grup oluşturabilirsin.
+Story ring size	Hikâye halkası boyutu
+The rings in the stories row at the top of Home are drawn at the size below. Restart Instagram after changing it.	Ana sayfanın üstündeki hikâye satırındaki halkalar aşağıdaki boyutta gösterilir. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Ring size	Halka boyutu
+Much smaller	Çok daha küçük
+Smaller	Daha küçük
+Instagram's size	Instagram boyutu
+Larger	Daha büyük
+Much larger	Çok daha büyük
+The rings are the size Instagram picks for your screen.	Halkalar, Instagram'ın ekranın için seçtiği boyuttadır.
+The rings are %1$s of the size Instagram picks for your screen.	Halkalar, Instagram'ın ekranın için seçtiği boyutun %1$s kadarıdır.
+Hide the Repost button	Yeniden paylaş düğmesini gizle
+Takes Repost and its count off posts and reels, so nothing gets reposted to your followers by mistake. Share still sends a post or reel to someone.	Gönderilerden ve reels videolarından Yeniden paylaş düğmesini ve sayısını kaldırır, böylece hiçbir şey yanlışlıkla takipçilerine yeniden paylaşılmaz. Paylaş ile bir gönderiyi veya reels videosunu birine göndermeye devam edebilirsin.
+Layout	Düzen
+Remove the empty space at the bottom	Alttaki boş alanı kaldır
+Instagram can leave empty room under its tab bar for a navigation bar that isn't there, when your phone hides its navigation bar or Instagram is in a pop-up window. This takes that room away. Restart Instagram after changing it.	Telefonun gezinme çubuğunu gizlediğinde veya Instagram açılır pencerede olduğunda, Instagram sekme çubuğunun altında olmayan bir gezinme çubuğu için boş yer bırakabilir. Bu, o alanı kaldırır. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Only accounts you follow	Yalnızca takip ettiğin hesaplar
+Takes For you out of the picker at the top of Home, so Home stays on Following or Favorites. Works with Start Home on Following on. Restart Instagram after changing it.	Senin için'i Ana Sayfa'nın üstündeki seçiciden kaldırır, böylece Ana Sayfa Takip Edilenler'de veya Favoriler'de kalır. Ana Sayfa'yı Takip Edilenler ile aç açıkken çalışır. Değiştirdikten sonra Instagram'ı yeniden başlat.
+Profiles	Profiller
+Show if a profile follows you	Bir profilin seni takip edip etmediğini göster
+Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Birinin profilinde adının yanına, zamirleri varsa onlardan sonra, Seni takip ediyor ya da Seni takip etmiyor ekler. Instagram kontrol edene kadar hiçbir şey görünmez.
+Follows you	Seni takip ediyor
+Doesn't follow you	Seni takip etmiyor
+Turn on Start Home on Following to use this choice.	Bu seçimi kullanmak için Ana sayfayı Takip edilenler ile başlat seçeneğini açın.
+Turn on Story ring size to use this choice.	Bu seçimi kullanmak için Hikâye halkası boyutu seçeneğini açın.
+Turn on Default playback quality to use this choice.	Bu seçimi kullanmak için Varsayılan oynatma kalitesi seçeneğini açın.
+Updating remembered positions...	Kaydedilen konumlar güncelleniyor...
+Undo cleared positions	Silinen konumları geri yükle
+Clear remembered positions	Kaydedilen konumları sil
+You can restore the cleared positions once within 10 seconds.	Silinen konumları 10 saniye içinde bir kez geri yükleyebilirsiniz.
+Up to 200 positions, kept for 30 days. Tap to clear them from this device.	En fazla 200 konum 30 gün saklanır. Bu cihazdan silmek için dokunun.
+Remembered playback positions restored.	Kaydedilen oynatma konumları geri yüklendi.
+Undo has expired.	Geri yükleme süresi doldu.
+You cleared the remembered playback positions.	Kaydedilen oynatma konumlarını sildiniz.
+Could not update the remembered playback positions.	Kaydedilen oynatma konumları güncellenemedi.
+Settings backup	Ayar yedeği
+Export HushGram settings	HushGram ayarlarını dışa aktar
+Choose a file for your installed patches' settings. Accounts and history stay on this device.	Yüklü yamaların ayarları için bir dosya seçin. Hesaplar ve geçmiş bu cihazda kalır.
+Import HushGram settings	HushGram ayarlarını içe aktar
+Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Bir ayar dosyası seçin. Geçerli seçimler birlikte uygulanır; desteklenmeyen anahtarlar atlanır. Geri alma 10 saniye boyunca kullanılabilir.
+Undo settings import	Ayarları içe aktarmayı geri al
+Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Önceki seçimleri 10 saniye içinde bir kez geri yükleyin. Instagram yeniden başlatıldığında geri alma seçeneği silinir.
+No settings import to undo.	Geri alınacak ayar içe aktarma işlemi yok.
+No document picker is available. Your settings haven't changed.	Belge seçici kullanılamıyor. Ayarlarınız değişmedi.
+Couldn't use that settings file. Your settings haven't changed.	Bu ayar dosyası kullanılamadı. Ayarlarınız değişmedi.
+HushGram settings exported.	HushGram ayarları dışa aktarıldı.
+Couldn't export HushGram settings. Try another file.	HushGram ayarları dışa aktarılamadı. Başka bir dosya deneyin.
+Settings restored.	Ayarlar geri yüklendi.
+Imported %1$d settings. Skipped %2$d unsupported keys.	%1$d ayar içe aktarıldı. Desteklenmeyen %2$d anahtar atlandı.
+Restart Instagram to apply these choices.	Bu seçimleri uygulamak için Instagram'ı yeniden başlatın.
+Couldn't save the settings. The previous values were restored.	Ayarlar kaydedilemedi. Önceki değerler geri yüklendi.
+Undo couldn't fully restore the settings. Check the shown values; Undo has been consumed.	Geri alma, ayarların tamamını geri yükleyemedi. Gösterilen değerleri kontrol edin; geri alma seçeneği kullanıldı.
+Couldn't save or fully restore the settings. Check the shown values and try Undo.	Ayarlar kaydedilemedi veya tamamen geri yüklenemedi. Gösterilen değerleri kontrol edip geri almayı deneyin.
+Couldn't start the settings operation. Try again.	Ayar işlemi başlatılamadı. Tekrar deneyin.
+A save stopped. Reopen the media and save again.	Bir kaydetme işlemi durdu. Medyayı yeniden açıp tekrar kaydet.
+%1$d saves stopped. Reopen the media and save again.	%1$d kaydetme işlemi durdu. Medyayı yeniden açıp tekrar kaydet.
+A save was interrupted	Bir kaydetme işlemi kesildi
+%1$d saves were interrupted	%1$d kaydetme işlemi kesildi
+Reopen the media and save again.	Medyayı yeniden açıp tekrar kaydet.

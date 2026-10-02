@@ -49,6 +49,7 @@ public class FeedFilterTest {
         Settings.HIDE_STORIES_YOU_MIGHT_LIKE.resetToDefault();
         Settings.HIDE_STORIES_TRAY.resetToDefault();
         Settings.HIDE_FEED_REELS.resetToDefault();
+        FeedFilter.storiesTrayInBuildForTests = null;
         FeedFilterCounters.clear();
     }
 
@@ -379,16 +380,91 @@ public class FeedFilterTest {
 
     /**
      * The Stories tray is never an edge on a real feed: the feed's adapter list adds it as an
-     * adapter of its own (StoriesTrayTest). A unit answering its type name, should one ever come
-     * through, is left to Facebook like any other unit no rule claims, with the tray's switch on.
+     * adapter of its own (StoriesTrayTest). Without Hide Stories tray in the build, a unit answering
+     * its type name, should one ever come through, is left to Facebook like any other unit no rule
+     * claims, with the tray's switch on. With that patch in, it goes with the rows of Stories
+     * (theStoriesTraySwitchTakesTheRowsOfStoriesBetweenPosts).
      */
     @Test
     public void aStoriesTrayEdgeIsNotHiddenByTheGuard() {
+        FeedFilter.storiesTrayInBuildForTests = false;
         assertTrue(Settings.HIDE_STORIES_TRAY.get());
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, TypedFeedUnit.storiesTray(), true, true));
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, TypedFeedUnit.storiesTray()));
         assertTrue(String.join("\n", FeedFilterCounters.report()),
                 String.join("\n", FeedFilterCounters.report()).contains(FeedFilter.FEED_ROUTE + ": 2 lists, 2 items, 0 removed"));
+    }
+
+    /**
+     * A row of Stories between posts with a Create story card, seen with the tray hidden (issue #45),
+     * goes with the tray while Hide Stories tray is in the build and its switch is on: a row of your
+     * friends' Stories, one from people you aren't connected to, and the tray itself as an edge. A
+     * post stays, and every row comes back with the switch off or without the patch.
+     */
+    @Test
+    public void theStoriesTraySwitchTakesTheRowsOfStoriesBetweenPosts() {
+        FeedFilter.storiesTrayInBuildForTests = true;
+        assertTrue(Settings.HIDE_STORIES_TRAY.get());
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(false), false, false));
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(true), false, false));
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, TypedFeedUnit.storiesTray(), false, false));
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit("Story"), false, false));
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit.Unreadable(), false, false));
+
+        String report = String.join("\n", FeedFilterCounters.report());
+        assertTrue(report, report.contains(FeedFilter.FEED_ROUTE + ": 5 lists, 5 items, 3 removed. "
+                + "Last reason: StoriesTrayFeedUnit:stories tray. Removed: DiscoverFeedUnit:stories tray 2, "
+                + "StoriesTrayFeedUnit:stories tray 1."));
+
+        Settings.HIDE_STORIES_TRAY.save(false);
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(false), false, false));
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, TypedFeedUnit.storiesTray(), false, false));
+        Settings.HIDE_STORIES_TRAY.resetToDefault();
+        FeedFilter.storiesTrayInBuildForTests = false;
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(false), false, false));
+    }
+
+    /**
+     * The model's other two kinds of Stories between posts, one large tile and one person's Stories
+     * in a viewer, go under the same switch and come back with it off. A unit of the model's reels
+     * showcase type is the control: the tray's switch leaves it to Hide Reels in the feed.
+     */
+    @Test
+    public void theStoriesTraySwitchTakesTheSingleTilesAndViewersOfStories() {
+        FeedFilter.storiesTrayInBuildForTests = true;
+        assertTrue(Settings.HIDE_STORIES_TRAY.get());
+        TypedFeedUnit tile = new TypedFeedUnit("StoriesOneColumnOneRowLargeTileFeedUnit");
+        TypedFeedUnit viewer = new TypedFeedUnit("StoriesSingleBucketInlineViewerFeedUnit");
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, tile, false, false));
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, viewer, false, false));
+        assertNull(FeedFilter.storiesRowReason("ShowcaseFeedUnit"));
+
+        String report = String.join("\n", FeedFilterCounters.report());
+        assertTrue(report, report.contains(FeedFilter.FEED_ROUTE + ": 2 lists, 2 items, 2 removed. "
+                + "Last reason: StoriesSingleBucketInlineViewerFeedUnit:stories tray. "
+                + "Removed: StoriesOneColumnOneRowLargeTileFeedUnit:stories tray 1, "
+                + "StoriesSingleBucketInlineViewerFeedUnit:stories tray 1."));
+
+        Settings.HIDE_STORIES_TRAY.save(false);
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, tile, false, false));
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, viewer, false, false));
+        Settings.HIDE_STORIES_TRAY.resetToDefault();
+        FeedFilter.storiesTrayInBuildForTests = false;
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, tile, false, false));
+    }
+
+    /**
+     * With "Stories you might like" on as well, a row from people you aren't connected to keeps that
+     * rule's reason, which runs first, and a row of your friends' Stories goes under the tray's.
+     */
+    @Test
+    public void storiesYouMightLikeKeepsItsReasonBesideTheTraySwitch() {
+        FeedFilter.storiesTrayInBuildForTests = true;
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(true), false, true));
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(false), false, true));
+
+        String report = String.join("\n", FeedFilterCounters.report());
+        assertTrue(report, report.contains("Removed: DiscoverFeedUnit:is_unconnected_mbsu 1, DiscoverFeedUnit:stories tray 1."));
     }
 
     /** A type name that can't be read, or isn't text, keeps the unit: the rules fail open. */

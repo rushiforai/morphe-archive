@@ -13,7 +13,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/Plyrs1/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
+> **[v1.5.0-dev.1](https://github.com/Plyrs1/morphe-patches/releases/tag/v1.5.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
 <details open>
 <summary>📦 E-Ujian Browser&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
 <br>
@@ -43,6 +43,21 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Remove Auto-Pin App](#remove-auto-pin-app) | Disables automatic screen pinning / lock task mode so the app is not pinned to the screen. |  |
 | [Remove Screenshot Protection](#remove-screenshot-protection) | Removes FLAG_SECURE so screenshots and screen recording work normally during the exam. |  |
 | [Suppress WebView Exam Events](#suppress-webview-exam-events) | Injects a JavaScript monkeypatch into the exam WebView on every page load that freezes the Page Visibility API (document.hidden, document.visibilityState, document.hasFocus) and silently drops blur/visibilitychange/focusout event listeners. This prevents the web-side exam platform from detecting when the browser loses focus or is backgrounded. |  |
+
+</details>
+
+<details open>
+<summary>📦 Android Auto&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 17.7.663654-release |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Allow sideloaded apps](#allow-sideloaded-apps) | Bypasses Play Store installation checks, allowing sideloaded third-party apps to appear and run on the Android Auto car head unit. |  |
 
 </details>
 

@@ -7,6 +7,7 @@ package app.morphe.extension.facebook.reels;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.ToDoubleFunction;
 
 /** What tests outside this package need of Hold a reel for 2x: a hold on a reel and its lift. */
@@ -19,12 +20,27 @@ public final class ReelHoldForTests {
     }
 
     /**
-     * A hold on [player] and its lift, as Facebook makes them: a long press that goes to the speed-up
-     * sets 2x through [setter], and on the lift the release listener, when both its flags say yes,
-     * sets [facebooks], the speed it noted when the reel was drawn. [speeds] reads a player's speed
-     * as FbGrootPlayer's getter does.
+     * Runs [probe] in a build that carries Hold a reel for 2x, as its patch's status says in one, and
+     * gives back what it answered. The build is as it was before once it returns.
+     */
+    public static boolean withHold(BooleanSupplier probe) {
+        Boolean build = ReelHold.holdInBuildForTests;
+        ReelHold.holdInBuildForTests = true;
+        try {
+            return probe.getAsBoolean();
+        } finally {
+            ReelHold.holdInBuildForTests = build;
+        }
+    }
+
+    /**
+     * A hold on [player] and its lift, as Facebook makes them in a build with Hold a reel for 2x: a
+     * long press that goes to the speed-up sets 2x through [setter], and on the lift the release
+     * listener, when both its flags say yes, sets [facebooks], the speed it noted when the reel was
+     * drawn. [speeds] reads a player's speed as FbGrootPlayer's getter does.
      */
     public static void holdAndLift(Object player, ToDoubleFunction<Object> speeds, Setter setter, float facebooks) {
+        ReelHold.holdInBuildForTests = true;
         ReelHold.speeds = held -> (float) speeds.applyAsDouble(held);
         finger(MotionEvent.ACTION_DOWN);
         // No, and Facebook opens its long-press menu.
@@ -41,6 +57,7 @@ public final class ReelHoldForTests {
      */
     public static boolean putsBackTheSpeedBeforeAHold() {
         ReelHold.forget();
+        ReelHold.holdInBuildForTests = true;
         Object reel = new Object();
         ReelHold.speeds = player -> 1.5f;
         try {

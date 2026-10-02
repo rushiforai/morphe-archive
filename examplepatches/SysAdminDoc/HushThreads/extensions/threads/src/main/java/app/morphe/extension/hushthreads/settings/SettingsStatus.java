@@ -12,7 +12,7 @@ package app.morphe.extension.hushthreads.settings;
 /**
  * Which patches were selected for this build.
  *
- * <p>Every method answers false here. A patch that adds a feature rewrites its method to answer
+ * <p>Every feature method answers false here. A patch that adds a feature rewrites its method to answer
  * true, so the settings screen offers only the switches this APK backs and the diagnostic report
  * lists only the patches it carries.
  */
@@ -31,6 +31,11 @@ public final class SettingsStatus {
 
     public static boolean disableAnalytics() {
         return false;
+    }
+
+    /** Patched address kinds: PIGEON=1, DEFAULT=2, MQTT=4. Zero means coverage wasn't recorded. */
+    public static int analyticsAddressMask() {
+        return 0;
     }
 
     public static boolean removeAdId() {

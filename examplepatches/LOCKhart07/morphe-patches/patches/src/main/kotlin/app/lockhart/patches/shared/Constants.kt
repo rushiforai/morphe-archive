@@ -12,7 +12,7 @@ object Constants {
         // Bright blue of the app icon background.
         appIconColor = 0x1CB0F6,
         targets = listOf(
-            // Native ownership patch verified against this build (arm64-v8a split).
+            // Native ownership patch verified against this build (arm64-v8a and armeabi-v7a splits).
             AppTarget(
                 version = "4.15.11",
                 minSdk = 26,

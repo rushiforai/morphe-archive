@@ -8,6 +8,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import com.facebook.graphql.model.GraphQLStory;
+
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,6 +57,44 @@ public class ReelsAdFilterTest {
 
     private static final String AD = AdBase.class.getName();
 
+    /** A Reels item the way the stand-in reader sees one: an ordinary reel around the story it holds. */
+    public static final class StoryReel {
+        final GraphQLStory story;
+
+        StoryReel(GraphQLStory story) {
+            this.story = story;
+        }
+    }
+
+    /** A story Facebook delivered as an ad: the stand-in reader finds sponsored data on it. */
+    public static final class SponsoredStory extends GraphQLStory {
+    }
+
+    /** Reads the stand-in items the way the stubs the patch fills in read Facebook's. */
+    private static final ReelsAdFilter.Items ITEMS = new ReelsAdFilter.Items() {
+        @Override
+        public boolean isItem(Object item) {
+            return item instanceof StoryReel;
+        }
+
+        @Override
+        public Object story(Object item) {
+            return ((StoryReel) item).story;
+        }
+
+        @Override
+        public Object sponsoredData(Object story) {
+            return story instanceof SponsoredStory ? new Object() : null;
+        }
+    };
+
+    private static String counterLine(String route) {
+        for (String line : FeedFilterCounters.report()) {
+            if (line.startsWith(route + ":")) return line;
+        }
+        return null;
+    }
+
     @After
     public void restoreSwitch() {
         Settings.HIDE_SPONSORED_REELS.resetToDefault();
@@ -90,6 +130,143 @@ public class ReelsAdFilterTest {
         assertSame(mixed, kept.get(0));
         assertEquals(Collections.singletonList(reel), mixed.items);
         assertTrue("an immutable list is replaced rather than edited", adsOnly.items.isEmpty());
+    }
+
+    /**
+     * Facebook builds an ad's own item only when the unit's ad details pass a check, and a unit that
+     * fails it can come as an ordinary reel around the ad's story (issues #47 and #35). The story's
+     * sponsored data gives it away, at both levels, and the report counts it apart.
+     */
+    @Test
+    public void anOrdinaryReelAroundASponsoredStoryComesOffAtBothLevels() {
+        StoryReel first = new StoryReel(new GraphQLStory());
+        StoryReel second = new StoryReel(new GraphQLStory());
+        Collection<?> kept = ReelsAdFilter.withoutAds(Arrays.asList(first, new StoryReel(new SponsoredStory()), second),
+                AD, ITEMS);
+        assertEquals(Arrays.asList(first, second), new ArrayList<>(kept));
+
+        Section section = new Section(new ArrayList<>(Arrays.asList(first, new StoryReel(new SponsoredStory()))));
+        assertSame(section, ReelsAdFilter.withoutAdSections(Collections.singletonList(section), AD, ITEMS).get(0));
+        assertEquals(Collections.singletonList(first), section.items);
+
+        assertEquals(ReelsAdFilter.PAGES_ROUTE + ": 1 lists, 3 items, 1 removed. Last reason: sponsored story. "
+                + "Removed: sponsored story 1. Kinds: story 2, sponsored story 1", counterLine(ReelsAdFilter.PAGES_ROUTE));
+        assertEquals(ReelsAdFilter.SECTIONS_ROUTE + ": 1 lists, 1 items, 1 removed. Last reason: sponsored story in a section. "
+                + "Removed: sponsored story in a section 1. Kinds: sponsored story 1, story 1",
+                counterLine(ReelsAdFilter.SECTIONS_ROUTE));
+    }
+
+    /**
+     * The mutation control for the story rule: a reel whose story has no sponsored data, a reel with
+     * no story and something that isn't an item all stay, and the page comes back as the same object.
+     */
+    @Test
+    public void reelsWithoutSponsoredDataStay() {
+        List<Object> page = Collections.unmodifiableList(Arrays.asList(
+                new StoryReel(new GraphQLStory()), new StoryReel(null), new Reel()));
+
+        assertSame(page, ReelsAdFilter.withoutAds(page, AD, ITEMS));
+        assertEquals(ReelsAdFilter.PAGES_ROUTE + ": 1 lists, 3 items, 0 removed. Kinds: no story 1, not a reel item 1, story 1",
+                counterLine(ReelsAdFilter.PAGES_ROUTE));
+    }
+
+    @Test
+    public void theSwitchKeepsAReelAroundASponsoredStory() {
+        Settings.HIDE_SPONSORED_REELS.save(false);
+        List<Object> page = Arrays.asList(new StoryReel(new GraphQLStory()), new StoryReel(new SponsoredStory()));
+        Section section = new Section(new ArrayList<>(page));
+        List<Object> sections = Collections.singletonList(section);
+
+        assertSame(page, ReelsAdFilter.withoutAds(page, AD, ITEMS));
+        assertSame(sections, ReelsAdFilter.withoutAdSections(sections, AD, ITEMS));
+        assertEquals(page, section.items);
+    }
+
+    /**
+     * Until the patch fills the stubs in, every reel stays: the item check answers no, and a reader
+     * whose story getter or sponsored data accessor isn't filled in is named in Hook status.
+     */
+    @Test
+    public void unfilledStubsKeepTheReelsAndSaySo() {
+        HookStatus.clear();
+        try {
+            List<Object> page = Collections.singletonList(new StoryReel(new SponsoredStory()));
+            assertSame(page, ReelsAdFilter.withoutAds(page, AD));
+            assertEquals("the unfilled item check named something missing", "[]",
+                    HookStatus.missing("Hide sponsored reels").toString());
+
+            ReelsAdFilter.Items noStory = new ReelsAdFilter.Items() {
+                @Override
+                public boolean isItem(Object item) {
+                    return true;
+                }
+
+                @Override
+                public Object story(Object item) {
+                    return ReelsAdFilter.UNPATCHED;
+                }
+
+                @Override
+                public Object sponsoredData(Object story) {
+                    return new Object();
+                }
+            };
+            ReelsAdFilter.Items noData = new ReelsAdFilter.Items() {
+                @Override
+                public boolean isItem(Object item) {
+                    return true;
+                }
+
+                @Override
+                public Object story(Object item) {
+                    return ((StoryReel) item).story;
+                }
+
+                @Override
+                public Object sponsoredData(Object story) {
+                    return ReelsAdFilter.UNPATCHED;
+                }
+            };
+            assertSame(page, ReelsAdFilter.withoutAds(page, AD, noStory));
+            assertSame(page, ReelsAdFilter.withoutAds(page, AD, noData));
+
+            String missing = HookStatus.missing("Hide sponsored reels").toString();
+            assertTrue(missing, missing.contains("method reel item#story"));
+            assertTrue(missing, missing.contains("method GraphQLStory#sponsored_data"));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /** A story the reader can't get keeps its reel, and the report says which read threw. */
+    @Test
+    public void aStoryThatCantBeReadKeepsItsReel() {
+        HookStatus.clear();
+        try {
+            ReelsAdFilter.Items failing = new ReelsAdFilter.Items() {
+                @Override
+                public boolean isItem(Object item) {
+                    return true;
+                }
+
+                @Override
+                public Object story(Object item) {
+                    throw new IllegalStateException("story read under the filter");
+                }
+
+                @Override
+                public Object sponsoredData(Object story) {
+                    return new Object();
+                }
+            };
+            List<Object> page = Collections.singletonList(new StoryReel(new SponsoredStory()));
+
+            assertSame(page, ReelsAdFilter.withoutAds(page, AD, failing));
+            String missing = HookStatus.missing("Hide sponsored reels").toString();
+            assertTrue(missing, missing.contains("a working 'item story' hook (it threw java.lang.IllegalStateException)"));
+        } finally {
+            HookStatus.clear();
+        }
     }
 
     @Test

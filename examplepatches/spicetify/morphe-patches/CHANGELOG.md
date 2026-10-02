@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/spicetify/morphe-patches/compare/v1.0.0...v1.0.1) (2026-10-01)
+
+### 🐛 Bug Fixes
+
+* serve server tracks from their own process so Spotify never wedges ([0ec5e69](https://github.com/spicetify/morphe-patches/commit/0ec5e693e6f1015875809c1673467589c2db2eb2))
+
 ## 1.0.0 (2026-09-30)
 
 ### 🐛 Bug Fixes

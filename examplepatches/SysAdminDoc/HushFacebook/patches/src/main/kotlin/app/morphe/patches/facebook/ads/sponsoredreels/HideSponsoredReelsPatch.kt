@@ -60,7 +60,11 @@ val hideSponsoredReelsPatch = bytecodePatch(
         // ad item base are found. Replace the incoming page with one that has no ads in it, at
         // both levels a page enters.
         val pages = reelPages(PATCH)
+        // An ad can also come as an ordinary item around a story with sponsored data, so the
+        // filters ask each item for its story too: see ReelItemStory.kt.
+        val items = reelItemStory(pages.adBase)
         val adBase = pages.adBase.toBinaryName()
+        fillReelItemStubs(items)
         listOf(pages.insertPage, pages.announcePage).forEach { it.filterPageFirst(adBase) }
         pages.addPage.filterSectionsFirst(adBase)
 

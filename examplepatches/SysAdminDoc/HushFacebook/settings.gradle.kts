@@ -1,4 +1,5 @@
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 
 rootProject.name = "hushfacebook"
 
@@ -60,6 +61,11 @@ buildscript {
             if (requested.group == "org.bouncycastle") {
                 useVersion("1.86")
             }
+            when ("${requested.group}:${requested.name}") {
+                "com.google.guava:guava" -> useVersion("33.7.2-jre")
+                "org.apache.commons:commons-lang3" -> useVersion("3.18.0")
+                "org.bitbucket.b_c:jose4j" -> useVersion("0.9.6")
+            }
         }
     }
 }
@@ -70,6 +76,38 @@ val allowMavenLocal = providers.gradleProperty("allowMavenLocal")
 
 plugins {
     id("app.morphe.patches") version "1.3.4"
+}
+
+// The plugin is resolved here, before any project's build script. A project buildEnvironment
+// report cannot see this graph. Hand its providers to typed task inputs during configuration,
+// rather than reconstructing a second classpath or retaining Settings in a task action.
+val settingsClasspath = buildscript.configurations.named("classpath")
+val settingsLibraries = settingsClasspath.map { configuration ->
+    configuration.incoming.artifactView { componentFilter { it is ModuleComponentIdentifier } }.artifacts
+}
+gradle.rootProject {
+    extensions.extraProperties["hushSettingsTooling"] = mapOf(
+        "graph" to settingsClasspath.flatMap { it.incoming.resolutionResult.rootComponent },
+        "artifacts" to settingsLibraries.flatMap { it.resolvedArtifacts }.map { resolved ->
+            resolved.map { artifact ->
+                val id = artifact.id.componentIdentifier as ModuleComponentIdentifier
+                "${id.group}:${id.module}:${id.version}\t${artifact.file.absolutePath}"
+            }.sorted()
+        },
+        "files" to settingsLibraries.map { it.artifactFiles },
+    )
+}
+
+gradle.beforeProject {
+    buildscript.configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            when ("${requested.group}:${requested.name}") {
+                "com.google.guava:guava" -> useVersion("33.7.2-jre")
+                "org.apache.commons:commons-lang3" -> useVersion("3.18.0")
+                "org.bitbucket.b_c:jose4j" -> useVersion("0.9.6")
+            }
+        }
+    }
 }
 
 settings {

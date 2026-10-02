@@ -38,6 +38,124 @@ public class SettingsReliabilityTest {
         Settings.preferences.edit().clear().commit();
     }
 
+    @Test @Config(sdk = {28, 36}) public void statusRefreshesInPlaceAndSpeaksOnlyItsSafeLabel() {
+        Settings.activeAt.clear();
+        Settings.hookErrors.clear();
+        CrashGuard.resetForTests();
+        for (boolean light : new boolean[] {false, true}) {
+            Settings.preferences.edit().clear().putBoolean("light", light).putBoolean("people", true).commit();
+            Settings.activeAt.clear();
+            Settings.hookErrors.clear();
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = layout(screen.get(), 411, 891);
+                Switch choice = root.findViewWithTag("people");
+                TextView label = root.findViewWithTag("active_people");
+                EditText search = root.findViewWithTag("find_control");
+                assertTrue(search.requestFocus());
+                ScrollView list = scroll(root.findViewWithTag("controls_page"));
+                list.scrollTo(0, 100);
+                int position = list.getScrollY();
+                assertTrue(position > 0);
+                SettingsUi palette = new SettingsUi(screen.get(), light);
+                long now = System.currentTimeMillis();
+                for (String state : new String[] {"unused", "used", "failed", "paused"}) {
+                    screen.pause();
+                    if ("used".equals(state)) Settings.activeAt.put("people", now);
+                    if ("failed".equals(state)) Settings.hookErrors.put("people", "java.lang.IllegalStateException at Settings.test|" + (now + 1));
+                    if ("paused".equals(state)) Settings.preferences.edit().putBoolean("paused", true).commit();
+                    screen.resume();
+                    String expected = "paused".equals(state) ? "Changes paused" : "failed".equals(state) ? "Stopped with an error just now"
+                        : "used".equals(state) ? "Used just now" : "Nothing to change yet since restart";
+                    assertSame(choice, root.findViewWithTag("people"));
+                    assertSame(label, root.findViewWithTag("active_people"));
+                    assertEquals(expected, label.getText().toString());
+                    assertTrue(choice.isChecked());
+                    assertTrue(search.hasFocus());
+                    assertEquals(position, list.getScrollY());
+                    String spoken = choice.getContentDescription().toString();
+                    assertTrue(spoken.contains(expected));
+                    assertEquals(spoken.indexOf(expected), spoken.lastIndexOf(expected));
+                    assertFalse(spoken.contains("IllegalStateException"));
+                    assertFalse(spoken.contains("Settings.test"));
+                    AccessibilityNodeInfo node = choice.createAccessibilityNodeInfo();
+                    assertEquals(spoken, node.getContentDescription().toString());
+                    // API 28 adds the ordinary ON/OFF switch text. Status must still be spoken once.
+                    assertFalse(node.getText() != null && node.getText().toString().contains(expected));
+                    if (android.os.Build.VERSION.SDK_INT >= 30)
+                        assertFalse(node.getStateDescription() != null && node.getStateDescription().toString().contains(expected));
+                    assertEquals(0, node.getChildCount());
+                    assertTrue(node.isCheckable());
+                    assertTrue(node.isChecked());
+                    assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS,
+                        ((View) label.getParent()).getImportantForAccessibility());
+                    assertEquals(1f, label.getAlpha(), 0f);
+                    // WCAG relative luminance of the actual rendered label over its row background.
+                    double[] luminance = new double[2];
+                    int[] colors = {label.getCurrentTextColor(), palette.background};
+                    double[] weights = {0.2126, 0.7152, 0.0722};
+                    for (int color = 0; color < 2; color++) for (int channel = 0; channel < 3; channel++) {
+                        double value = ((colors[color] >>> (16 - 8 * channel)) & 255) / 255.0;
+                        luminance[color] += weights[channel] * (value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4));
+                    }
+                    assertTrue(state + " contrast", (Math.max(luminance[0], luminance[1]) + 0.05) /
+                        (Math.min(luminance[0], luminance[1]) + 0.05) >= 4.5);
+                }
+                choice.setChecked(false);
+                assertEquals(View.GONE, label.getVisibility());
+                assertFalse(choice.getContentDescription().toString().contains("Changes paused"));
+            }
+        }
+    }
+
+    @Test @Config(sdk = {28, 36}, qualifiers = "w411dp-h1200dp-mdpi")
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void statusContrastUsesPixelsRenderedByTheWholeViewHierarchy() {
+        CrashGuard.resetForTests();
+        for (boolean light : new boolean[] {false, true}) {
+            Settings.preferences.edit().clear().putBoolean("light", light).putBoolean("people", true).commit();
+            Settings.activeAt.clear();
+            Settings.hookErrors.clear();
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                for (String state : new String[] {"unused", "used", "failed", "paused"}) {
+                    screen.pause();
+                    long now = System.currentTimeMillis();
+                    if ("used".equals(state)) Settings.activeAt.put("people", now);
+                    if ("failed".equals(state)) Settings.hookErrors.put("people", "Error at Settings.test|" + (now + 1));
+                    if ("paused".equals(state)) Settings.preferences.edit().putBoolean("paused", true).commit();
+                    screen.resume();
+                    View root = layout(screen.get(), 411, 1200);
+                    TextView label = root.findViewWithTag("active_people");
+                    Rect bounds = new Rect();
+                    label.getDrawingRect(bounds);
+                    ((ViewGroup) root).offsetDescendantRectToMyCoords(label, bounds);
+                    assertTrue(bounds + " in " + root.getWidth() + "x" + root.getHeight(), bounds.top >= 0 && bounds.bottom <= root.getHeight());
+                    android.graphics.Bitmap pixels = android.graphics.Bitmap.createBitmap(root.getWidth(), root.getHeight(), android.graphics.Bitmap.Config.ARGB_8888);
+                    root.draw(new android.graphics.Canvas(pixels));
+                    int background = pixels.getPixel(bounds.right - 1, bounds.bottom - 1);
+                    int foreground = background, nearest = Integer.MAX_VALUE;
+                    // Find the most fully covered glyph pixel; edge antialiasing is not the WCAG text color.
+                    for (int y = bounds.top; y < bounds.bottom; y++) for (int x = bounds.left; x < bounds.right; x++) {
+                        int color = pixels.getPixel(x, y), distance = 0;
+                        for (int shift : new int[] {0, 8, 16}) {
+                            int difference = ((color >>> shift) & 255) - ((label.getCurrentTextColor() >>> shift) & 255);
+                            distance += difference * difference;
+                        }
+                        if (distance < nearest) { foreground = color; nearest = distance; }
+                    }
+                    double[] luminance = new double[2], weights = {0.2126, 0.7152, 0.0722};
+                    int[] colors = {foreground, background};
+                    for (int color = 0; color < 2; color++) for (int channel = 0; channel < 3; channel++) {
+                        double value = ((colors[color] >>> (16 - 8 * channel)) & 255) / 255.0;
+                        luminance[color] += weights[channel] * (value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4));
+                    }
+                    assertTrue(state + " rendered contrast", (Math.max(luminance[0], luminance[1]) + 0.05) /
+                        (Math.min(luminance[0], luminance[1]) + 0.05) >= 4.5);
+                    pixels.recycle();
+                }
+            }
+        }
+    }
+
     @Test @Config(sdk = {28, 29}) public void savedUnsupportedBubblesAreNotCountedAsEffective() {
         Settings.preferences.edit().putBoolean("bubbles", true).commit();
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {

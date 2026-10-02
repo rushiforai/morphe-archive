@@ -45,7 +45,10 @@ feed/VideoOverlayHider.java|MUSIC_IDS|videomusiccoverblock|app|com.by.andInflate
 feed/VideoOverlayHider.java|ACTION_BAR_IDS|47.0.3:liy,47.1.3:llj,47.1.4:llj|app|com.ss.android.ugc.feed.platform.cell.interact.InteractAreaComponent|on:View#4
 feed/VideoOverlayHider.java|SURVEY_IDS|47.0.3:f7u,47.1.3:f98,47.1.4:f98|app|layout:com.by.andInflater.common_feed_item_feed|tag:RelativeLayout#1
 feed/VideoOverlayHider.java|TAB_STRIP_IDS|47.0.3:uvy,47.1.3:uzf,47.1.4:uzf|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.top.TopTabLayoutAbility|on:View
+feed/VideoOverlayHider.java|DETAIL_COMMENT_BAR_IDS|47.0.3:qo4,47.1.3:qqw,47.1.4:qqw|app|com.ss.android.ugc.aweme.comment.service.CommentDetailInputLayoutIdsImpl|at:2
+feed/VideoOverlayHider.java|DETAIL_COMMENT_STRIP_IDS|47.0.3:cn8,47.1.3:cnk,47.1.4:cnk|app|com.by.andInflater.common_feed_fragment_feed_base_opt|on:View#2
 feed/VideoOverlayHider.java|CELL_ROOT_ID|view_rootview|app|com.ss.android.ugc.aweme.feed.adapter.VideoViewCell|at:3
+feed/VideoOverlayHider.java|PAGER_COLUMN_ID|viewpager_container|app|com.by.andInflater.common_feed_fragment_feed_base_opt|on:LinearLayout
 feed/VideoOverlayHider.java|LIKE_COUNT_ROW_IDS|47.0.3:g6t,47.1.3:g87,47.1.4:g87|app|com.by.andInflater.common_feed_layout_video_digg|on:InteractRelativeLayout
 feed/VideoOverlayHider.java|COMMENT_COUNT_ROW_IDS|47.0.3:ej_,47.1.3:ek6,47.1.4:ek6|app|com.by.andInflater.common_feed_layout_video_comment_count|on:InteractRelativeLayout
 feed/VideoOverlayHider.java|FAVORITE_COUNT_ROW_IDS|47.0.3:i6r,47.1.3:i83,47.1.4:i83|app|com.by.andInflater.common_feed_layout_video_favorite|on:InteractRelativeLayout

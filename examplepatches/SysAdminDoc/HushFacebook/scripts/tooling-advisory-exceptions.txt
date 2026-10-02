@@ -1,0 +1,3 @@
+# Tooling only. Payload exceptions stay in advisory-exceptions.txt.
+# <advisory> <group>:<name> <YYYY-MM-DD> <dated reachability/applicability reason>
+# An exception must match a current finding and expire within 90 days.

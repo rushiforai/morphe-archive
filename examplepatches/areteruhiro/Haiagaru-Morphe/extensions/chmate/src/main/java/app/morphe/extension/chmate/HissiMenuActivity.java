@@ -58,6 +58,7 @@ public final class HissiMenuActivity extends Activity {
     private String sourceBoard;
     private Uri incomingUri;
     private boolean eddiArchiveMode;
+    private WebView viewerWebView;
     private String hissiTarget;
     private String kyodemoTarget;
     private boolean currentUsesKyodemo;
@@ -68,24 +69,52 @@ public final class HissiMenuActivity extends Activity {
     private long lastPostDialogAt;
     private float lastTouchX;
     private float lastTouchY;
+    private float historySwipeStartX;
+    private float historySwipeStartY;
+    private String initialWacchoiQuery;
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         Uri incoming = getIntent() == null ? null : getIntent().getData();
         incomingUri = incoming;
+        boolean wacchoiSearchLaunch = getIntent() != null
+                && getIntent().getBooleanExtra("haiagaru.wacchoi.search", false);
+        initialWacchoiQuery = getIntent() == null ? null
+                : getIntent().getStringExtra("haiagaru.wacchoi.query");
         eddiArchiveMode = isEddiArchiveUri(incoming);
         if (eddiArchiveMode && !getIntent().getBooleanExtra("haiagaru.eddi.web", false)) {
             EddiArchiveSearchUi.show(this, incoming, this::openThreadInChMate);
             return;
         }
-        sourceHost = incoming == null ? null : incoming.getQueryParameter("haiagaru_host");
-        sourceBoard = incoming == null ? null : boardFromMenuPath(incoming);
+        sourceHost = getIntent() == null ? null
+                : getIntent().getStringExtra("haiagaru.wacchoi.host");
+        if ((sourceHost == null || sourceHost.trim().isEmpty()) && incoming != null) {
+            sourceHost = incoming.getQueryParameter("haiagaru_host");
+        }
+        // ChMate's built-in long-press action can launch a plain Hissi URL
+        // without the source-host query parameter. Hissi is the 5ch checker;
+        // use the current 5ch.io host so Kyodemo links return to the live board.
+        if ((sourceHost == null || sourceHost.trim().isEmpty())
+                && incoming != null && "hissi.org".equalsIgnoreCase(incoming.getHost())) {
+            sourceHost = "5ch.io";
+        }
+        sourceBoard = getIntent() == null ? null
+                : getIntent().getStringExtra("haiagaru.wacchoi.board");
+        if ((sourceBoard == null || sourceBoard.trim().isEmpty()) && incoming != null) {
+            sourceBoard = boardFromMenuPath(incoming);
+        }
         // Read the current setting again here. ChMate may cache an expanded
         // menu template, so the mode embedded in its URL can be stale.
         int checkerMode = Haiagaru.hissiCheckerMode();
         String target;
-        if (eddiArchiveMode) {
+        if (wacchoiSearchLaunch) {
+            currentUsesKyodemo = true;
+            hissiTarget = null;
+            kyodemoTarget = KyodemoRouting.wacchoiSearchUrl(sourceHost, sourceBoard,
+                    initialWacchoiQuery);
+            target = kyodemoTarget;
+        } else if (eddiArchiveMode) {
             // The archive is a normal HTML search site. Keep its query intact
             // so a saved search can be opened directly in ChMate as well.
             currentUsesKyodemo = false;
@@ -111,7 +140,11 @@ public final class HissiMenuActivity extends Activity {
             error.setText(currentUsesKyodemo
                     ? "この板のID検索先を特定できませんでした"
                     : "必死チェッカーのURLを開けませんでした");
-            error.setTextColor(Color.WHITE);
+            int theme = Haiagaru.hissiViewerTheme();
+            boolean dark = isDarkTheme(theme);
+            error.setTextColor(dark ? Color.rgb(235, 235, 240) : Color.rgb(30, 30, 30));
+            error.setBackgroundColor(theme == 2 ? Color.BLACK
+                    : dark ? Color.rgb(30, 30, 32) : Color.WHITE);
             error.setPadding(32, 32, 32, 32);
             setContentView(error);
             return;
@@ -169,11 +202,29 @@ public final class HissiMenuActivity extends Activity {
         layout.addView(countView, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         WebView webView = new WebView(this);
+        viewerWebView = webView;
         webView.addJavascriptInterface(new ViewerBridge(), "HaiagaruBridge");
         webView.setOnTouchListener((view, event) -> {
             if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
                 lastTouchX = event.getX();
                 lastTouchY = event.getY();
+                historySwipeStartX = lastTouchX;
+                historySwipeStartY = lastTouchY;
+            } else if (event.getActionMasked() == MotionEvent.ACTION_UP
+                    && Haiagaru.hissiViewerSwipeHistory() != 0
+                    && event.getPointerCount() == 1) {
+                float dx = event.getX() - historySwipeStartX;
+                float dy = event.getY() - historySwipeStartY;
+                float minimum = 96 * getResources().getDisplayMetrics().density;
+                if (Math.abs(dx) >= minimum && Math.abs(dy) < Math.abs(dx) * 0.45f) {
+                    boolean goForward = (dx > 0) == (Haiagaru.hissiViewerSwipeHistory() == 1);
+                    if (goForward && webView.canGoForward()) {
+                        webView.goForward();
+                    } else if (!goForward && webView.canGoBack()) {
+                        webView.goBack();
+                    }
+                    return true;
+                }
             }
             return false;
         });
@@ -367,6 +418,9 @@ public final class HissiMenuActivity extends Activity {
         if (!fullscreen && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             layout.requestApplyInsets();
         }
+        if (wacchoiSearchLaunch) {
+            webView.post(() -> showKyodemoSearch(webView, initialWacchoiQuery));
+        }
     }
 
     private LinearLayout createViewerToolbar(final WebView webView) {
@@ -375,6 +429,13 @@ public final class HissiMenuActivity extends Activity {
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
         toolbar.setPadding(8, 2, 8, 2);
         toolbar.setBackgroundColor(Haiagaru.hissiViewerTheme() == 2 ? Color.BLACK : Color.TRANSPARENT);
+
+        Button refresh = toolbarButton("更新");
+        refresh.setContentDescription("表示中のページを再読み込み");
+        refresh.setOnClickListener(view -> {
+            if (webView.getUrl() != null) webView.reload();
+        });
+        toolbar.addView(refresh, buttonParams());
 
         Button copyUrl = toolbarButton("URL");
         copyUrl.setOnClickListener(view -> copyToClipboard("URL", webView.getUrl()));
@@ -404,7 +465,7 @@ public final class HissiMenuActivity extends Activity {
 
         if (!eddiArchiveMode && kyodemoTarget != null) {
             Button search = toolbarButton("ID/ﾜｯﾁｮｲ");
-            search.setOnClickListener(view -> showKyodemoSearch(webView));
+            search.setOnClickListener(view -> showKyodemoSearch(webView, null));
             toolbar.addView(search, buttonParams());
         }
 
@@ -451,17 +512,20 @@ public final class HissiMenuActivity extends Activity {
         return tabs;
     }
 
-    private void showKyodemoSearch(WebView webView) {
+    private void showKyodemoSearch(WebView webView, String initialValue) {
         EditText input = new EditText(this);
         input.setSingleLine(true);
         input.setHint("IDまたはﾜｯﾁｮｲ");
-        String selectedId = incomingUri == null ? null
-                : incomingUri.getQueryParameter("haiagaru_id");
+        String selectedId = selectedCheckerId(incomingUri);
         if ((selectedId == null || selectedId.trim().isEmpty()) && incomingUri != null) {
             List<String> path = incomingUri.getPathSegments();
             if (!path.isEmpty()) selectedId = decodeHissiId(path.get(path.size() - 1));
         }
-        if (selectedId != null && !selectedId.trim().isEmpty()) input.setText(selectedId);
+        if (initialValue != null && !initialValue.trim().isEmpty()) {
+            input.setText(initialValue.trim());
+        } else if (selectedId != null && !selectedId.trim().isEmpty()) {
+            input.setText(selectedId);
+        }
         int padding = (int) (20 * getResources().getDisplayMetrics().density);
         input.setPadding(padding, input.getPaddingTop(), padding, input.getPaddingBottom());
         new AlertDialog.Builder(this)
@@ -475,10 +539,6 @@ public final class HissiMenuActivity extends Activity {
                     if (url == null) {
                         Toast.makeText(this, "ID/ﾜｯﾁｮｲと板を確認してください", Toast.LENGTH_SHORT).show();
                         return;
-                    }
-                    if (KyodemoRouting.isWacchoiToken(query)) {
-                        Toast.makeText(this, "Kyodemoはﾜｯﾁｮｲ前半4文字で検索します。結果に別の投稿が混ざる場合があります。",
-                                Toast.LENGTH_LONG).show();
                     }
                     currentUsesKyodemo = true;
                     webView.loadUrl(url);
@@ -756,6 +816,7 @@ public final class HissiMenuActivity extends Activity {
         String number = post.optString("number", "");
         String name = post.optString("name", "");
         String id = post.optString("id", "");
+        String wacchoi = post.optString("wacchoi", "");
         String body = post.optString("body", "");
         String header = post.optString("header", "");
         String url = post.optString("url", "");
@@ -768,10 +829,12 @@ public final class HissiMenuActivity extends Activity {
         if (!number.isEmpty()) addCopyChoice(labels, values, "レス番号", ">>" + number);
         if (!name.isEmpty()) addCopyChoice(labels, values, "名前", name);
         if (!id.isEmpty()) addCopyChoice(labels, values, "ID", id);
+        final boolean hasWacchoiSearch = !wacchoi.isEmpty() && kyodemoTarget != null;
         addCopyChoice(labels, values, "本文", body);
         if (!url.isEmpty()) addCopyChoice(labels, values, "レスのURL", url);
         addCopyChoice(labels, values, "ヘッダー＋本文", full);
         final int copyCount = values.size();
+        if (hasWacchoiSearch) labels.add("ﾜｯﾁｮｲを検索");
         if (!url.isEmpty()) labels.add("リンクをChMateで開く");
         labels.add("追加コピー");
         labels.add("クリップボード確認");
@@ -785,6 +848,13 @@ public final class HissiMenuActivity extends Activity {
                         copyToClipboard(labels.get(which), values.get(which));
                     } else {
                         int action = which - copyCount;
+                        if (hasWacchoiSearch) {
+                            if (action == 0) {
+                                showKyodemoSearch(viewerWebView, wacchoi);
+                                return;
+                            }
+                            action--;
+                        }
                         if (!postUrl.isEmpty()) {
                             if (action == 0) {
                                 openThreadInChMate(postUrl);
@@ -945,6 +1015,12 @@ public final class HissiMenuActivity extends Activity {
                     + "body[data-haiagaru-kyodemo] #blist .haiagaru-kyodemo-item{padding:12px;margin:8px 0;"
                     + "background:" + (dark ? "#1c1c1f" : "#f7f7fa") + ";border-radius:10px;}"
                     + "header,.navbar,.footer,.right-column,.d-panel{display:none !important;}"
+                    // Kyodemo puts empty-result and request errors in this header.
+                    + "#b>.left-column>header{display:block !important;}"
+                    + "#b>.left-column>header>.breadcrumb{display:none !important;}"
+                    + "#b>.left-column>header .message{display:block !important;background:" + bg
+                    + " !important;color:" + fg + " !important;}"
+                    + "#b>.left-column>header .message *{color:" + fg + " !important;}"
                     + "#rlist{padding:8px 4px !important;}"
                     + "#rlist .post,.post{background:" + (dark ? "#1c1c1f" : "#f7f7fa") + ";"
                     + "border:1px solid " + (dark ? "#36363b" : "#e1e1e6") + ";border-radius:12px;"
@@ -1015,6 +1091,18 @@ public final class HissiMenuActivity extends Activity {
                     + "text-decoration:none;line-height:1.5;}"
                     + "body[data-haiagaru-eddi] a[href*=\"bbs.eddibb.cc\"]:active{background:"
                     + (dark ? "#30343b" : "#e9eefb") + ";}"
+                    // The source archive uses fixed light-theme colors on some
+                    // pages. Override descendant text as well as the body so
+                    // dark mode remains readable when its inline styles win.
+                    + "body[data-haiagaru-eddi] *{color:" + fg + " !important;"
+                    + "border-color:" + (dark ? "#41454c" : "#d8d8de") + " !important;}"
+                    + "body[data-haiagaru-eddi] a,body[data-haiagaru-eddi] a *{color:" + link + " !important;}"
+                    + "body[data-haiagaru-eddi] input,body[data-haiagaru-eddi] select,"
+                    + "body[data-haiagaru-eddi] textarea{background:" + (dark ? "#1c1c1f" : "#ffffff")
+                    + " !important;color:" + fg + " !important;}"
+                    + "body[data-haiagaru-eddi] input::placeholder,body[data-haiagaru-eddi] textarea::placeholder{color:"
+                    + (dark ? "#a6a6ad" : "#707078") + " !important;}"
+                    + "body[data-haiagaru-eddi] pre{white-space:pre-wrap;overflow-wrap:anywhere;}"
                     + (dark ? "body[data-haiagaru-hissi] table,body[data-haiagaru-hissi] tr,"
                     + "body[data-haiagaru-hissi] td,body[data-haiagaru-hissi] th{background:#24272b !important;"
                     + "color:#ebebf0 !important;border-color:#41454c !important;}"
@@ -1033,7 +1121,9 @@ public final class HissiMenuActivity extends Activity {
                     + "var header=(h.innerText||h.textContent||'').trim();"
                     + "var body=b?(b.innerText||b.textContent||'').trim():(n.innerText||n.textContent||'').trim();"
                     + "if(!b&&body.indexOf(header)===0)body=body.substring(header.length).trim();"
-                    + "if(!body)return '';var number='',name='',id='',url='';"
+                    + "if(!body)return '';var number='',name='',id='',url='',wacchoi='';"
+                    + "var wm=(header+' '+body).match(/(?:ﾜｯﾁｮｲW?|ワッチョイ)\\s*[:：]?\\s*([a-z0-9]{4}[-‐‑–—][a-z0-9]{4,})/i);"
+                    + "if(wm)wacchoi=wm[1];"
                     + "if(n.tagName==='DL'){var m=header.match(/(?:^|\\n)\\s*(\\d+)\\s*[：:]/);number=m?m[1]:'';"
                     + "var first=h.querySelector('b');name=first?(first.innerText||first.textContent||'').trim():'';"
                     + "m=header.match(/ID:([^\\s]+)/i);id=m?m[1]:'';"
@@ -1046,7 +1136,7 @@ public final class HissiMenuActivity extends Activity {
                     + "q=n.querySelector('.r-head strong a[href]');if(q)url=q.href;"
                     + "var p=location.pathname.split('/');if(p[1]==='sdemo'&&p[2]==='r'&&p[4]&&number)"
                     + "url=location.origin+'/'+p.slice(1,5).join('/')+'/'+number;}"
-                    + "return JSON.stringify({number:number,name:name,id:id,body:body,url:url,header:header});}"
+                    + "return JSON.stringify({number:number,name:name,id:id,wacchoi:wacchoi,body:body,url:url,header:header});}"
                     + "window.haiagaruPostDataAt=function(x,y){"
                     + "var e=document.elementFromPoint(x,y);return e?postData(e):'';};"
                     + "document.addEventListener('click',function(e){"
@@ -1182,7 +1272,7 @@ public final class HissiMenuActivity extends Activity {
         if (uri == null || !"hissi.org".equalsIgnoreCase(uri.getHost())) return null;
         List<String> path = uri.getPathSegments();
         if (path.size() < 4 || !"read.php".equals(path.get(0))) return null;
-        String id = uri.getQueryParameter("haiagaru_id");
+        String id = selectedCheckerId(uri);
         if (id == null || id.trim().isEmpty()) id = decodeHissiId(path.get(path.size() - 1));
         if (id == null || id.trim().isEmpty()) return null;
         return KyodemoRouting.idSearchUrl(sourceHost, boardFromMenuPath(uri), id,
@@ -1199,6 +1289,19 @@ public final class HissiMenuActivity extends Activity {
         } catch (IllegalArgumentException error) {
             return null;
         }
+    }
+
+    /** ChMate expands {$id} into a raw query value; Uri.getQueryParameter treats '+' as a space. */
+    private static String selectedCheckerId(Uri uri) {
+        if (uri == null || uri.getEncodedQuery() == null) return null;
+        for (String part : uri.getEncodedQuery().split("&")) {
+            int separator = part.indexOf('=');
+            if (separator < 0 || !"haiagaru_id".equals(Uri.decode(part.substring(0, separator)))) {
+                continue;
+            }
+            return Uri.decode(part.substring(separator + 1).replace("+", "%2B"));
+        }
+        return null;
     }
 
     private static String boardFromMenuPath(Uri uri) {

@@ -76,6 +76,20 @@ object Constants {
     )
 
     /**
+     * Compatibility definition for Android Auto (com.google.android.projection.gearhead).
+     */
+    val COMPATIBILITY_ANDROID_AUTO = Compatibility(
+        name = "Android Auto",
+        packageName = "com.google.android.projection.gearhead",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x1A73E8,
+        targets = listOf(
+            AppTarget(version = "17.7.663654-release"),
+            AppTarget(version = null, isExperimental = true)
+        )
+    )
+
+    /**
      * Generic example compatibility target.
      */
     val COMPATIBILITY_EXAMPLE = Compatibility(

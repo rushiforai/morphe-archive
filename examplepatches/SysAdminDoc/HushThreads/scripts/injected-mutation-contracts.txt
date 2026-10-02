@@ -23,3 +23,11 @@ no-call Landroid/content/pm/ShortcutManager;->addDynamicShortcuts(Ljava/util/Lis
 no-call Landroid/content/pm/ShortcutManager;->setDynamicShortcuts(Ljava/util/List;)Z outside Lapp/morphe/extension/
 no-call Landroid/content/pm/ShortcutManager;->updateShortcuts(Ljava/util/List;)Z outside Lapp/morphe/extension/
 no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outside Lapp/morphe/extension/
+
+# These compare the final host operations and branch graph against the stock fixture. A selected
+# feature's status must agree with the CLI selection when supplied; omitted families are skipped.
+# Analytics is checked per recorded address bit, including every default-address answer.
+threads-feature hideAds
+threads-feature sanitizeSharingLinks
+threads-feature disableAnalytics
+threads-feature restoreTrust

@@ -14,8 +14,9 @@ What it proves, per ABI and for the whole archive:
   * the native library differs from Glu's only in the words NativeEdits.kt lists for the
     patches found, plus, for "Unlimited currency", the cave, program headers and splice its
     plan describes; DT_TEXTREL is gone and no relocation targets a read-only segment
-  * with --expect-libs DIR every patch must be on, and each library must be byte-identical to
-    DIR/<abi>/libandroidplatformjni.so, the output of the separate Python patch chain
+  * with --expect-libs DIR every patch that is on by default must be on, and each library must
+    be byte-identical to DIR/<abi>/libandroidplatformjni.so, the output of the separate Python
+    patch chain
   * the manifest targets API 25, keeps minSdkVersion 7, declares org.apache.http.legacy as
     optional, and declares exactly Glu's permissions and components, or exactly those less
     the ones "Remove unused permissions" lists in UnusedPermissionsPatch.kt
@@ -24,7 +25,8 @@ What it proves, per ABI and for the whole archive:
     resources.arsc is the exception: a manifest edit makes the patcher re-encode it, so it is
     compared through aapt2 instead, and only the PUBLIC flag on id resources may differ
   * each bytecode edit of the patches found is present in the decoded smali, whichever dex
-    file holds it; with "Stop requests to dead servers", every OpenFeint class is an empty
+    file holds it, the missing-OBB message of "Modern Android compatibility" among them;
+    with "Stop requests to dead servers", every OpenFeint class is an empty
     shell, and exactly the ones whose superclasses reach Object through other shells keep a
     no-arg constructor that only calls super()
   * the APK carries v1 and v2 signatures (v1 is what Android before 7.0 checks)
@@ -45,14 +47,18 @@ UNUSED_KT = os.path.join(os.path.dirname(EDITS_KT), "..", "compat", "UnusedPermi
 EMPTY_KT = os.path.join(os.path.dirname(EDITS_KT), "..", "compat", "EmptyClasses.kt")
 LIB = "libandroidplatformjni.so"
 WORD_EDIT = r"WordEdit\(0x([0-9A-F]+), 0x([0-9A-F]+)L, 0x([0-9A-F]+)L\)"
-COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO = ("Modern Android compatibility", "Unlimited currency",
-                                                "Smooth sound", "Remove unused permissions",
-                                                "Stop requests to dead servers", "Play intro once")
-ALL_PATCHES = (COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO)
+COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO, FIT = ("Modern Android compatibility", "Unlimited currency",
+                                                     "Smooth sound", "Remove unused permissions",
+                                                     "Stop requests to dead servers", "Play intro once",
+                                                     "Render at 720p")
+ALL_PATCHES = (COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO, FIT)
 MOVIE = "Lcom/glu/platform/android/GluMovieActivity;"
 INTRO_ONCE = "Lapp/ckzombies/extension/IntroOnce;"
 OBB_CHECK = "Lapp/ckzombies/extension/ObbCheck;"
 CENTERED_TEXT = "Lapp/ckzombies/extension/CenteredText;"
+SCREEN_FIT = "Lapp/ckzombies/extension/ScreenFit;"
+ACTIVITY = "Lcom/glu/platform/android/GluPlatformActivity;"
+TOUCH_METHODS = ("touchBegan", "touchMoved", "touchEnded", "touchCancelled")
 failures = 0
 warnings = 0
 
@@ -126,6 +132,30 @@ def text_area_centred(lines):
     returns = [i for i, l in enumerate(lines) if l == "return-void"]
     return begin is not None and begin > 0 and lines[begin + 1].startswith("move-result ") \
         and len(ends) == 1 and returns == [ends[0] + 1]
+
+
+def screen_fit_parts(code):
+    """
+    Which edits of "Render at 720p" GluPlatformActivity carries. code(name) gives a method's
+    stripped instruction lines. The view goes to ScreenFit.attach() right after it is stored in
+    m_MainView, each touch method starts by scaling its x and y in place, and touchBegan passes
+    the drag threshold through ScreenFit.threshold() between reading and storing it.
+    """
+    build, began = code("iOnResDLDone"), code("touchBegan")
+    store = next((i for i, l in enumerate(build) if l.startswith("iput-object ") and "->m_MainView:" in l), None)
+    view = build[store].split()[1].rstrip(",") if store is not None else None
+    parts = {"attach": store is not None and build[store + 1] ==
+             f"invoke-static {{{view}}}, {SCREEN_FIT}->attach(Landroid/view/SurfaceView;)V"}
+    scaled = [f"invoke-static {{p1}}, {SCREEN_FIT}->x(I)I", "move-result p1",
+              f"invoke-static {{p2}}, {SCREEN_FIT}->y(I)I", "move-result p2"]
+    for name in TOUCH_METHODS:
+        parts[name] = code(name)[:4] == scaled
+    read = next((i for i, l in enumerate(began) if l.startswith("iget ") and "->TOUCH_MOVE_THRESHOLD:I" in l), None)
+    reg = began[read].split()[1].rstrip(",") if read is not None else None
+    parts["threshold"] = read is not None and began[read + 1:read + 3] == [
+        f"invoke-static {{{reg}}}, {SCREEN_FIT}->threshold(I)I", f"move-result {reg}"] \
+        and began[read + 3].startswith(f"iput {reg}, ") and "->m_MoveThreshold:I" in began[read + 3]
+    return parts
 
 
 def table(name):
@@ -448,7 +478,7 @@ def main():
               "onCreate calls ExternalStorage.prepare first")
         # The extension is merged whole, so its classes are there even without the patches that use them.
         for name in ("ExternalStorage", "SndCache", "ShimPlayer", "PoolPlayer", "SoundBudget", "IntroOnce", "ObbCheck",
-                     "CenteredText"):
+                     "CenteredText", "ScreenFit"):
             check(smali_file(f"app/ckzombies/extension/{name}") is not None, f"extension class {name} merged into the dex")
         check("Landroid/content/Context;->getObbDir()" in method("app/ckzombies/extension/ExternalStorage", "prepare"),
               "ExternalStorage.prepare asks Android for the OBB folder, which creates it or hands it back to the game")
@@ -519,17 +549,20 @@ def main():
             and getter[1:2] == ["return-object v0"]
         tapjoy = True if init and not connects and quiet else False if connects and not quiet else None
 
-        # Its missing-OBB half: ObbCheck.route() at the head of the resource screen's state loop,
-        # and no File.delete() left in findGPKFileInDir.
+        # The compatibility patch's missing-OBB message: ObbCheck.route() at the head of the
+        # resource screen's state loop, and no File.delete() left in findGPKFileInDir.
         states = [l.strip() for l in method("com/glu/platform/android/resdl/ResFileDownloadView", "newState").splitlines()
                   if l.strip()]
-        routes = any(f"{OBB_CHECK}->route(" in l for l in states)
         deletes = "Ljava/io/File;->delete()Z" in method("com/glu/platform/android/resdl/GluDownloadResMgr",
                                                          "findGPKFileInDir")
         drawing = [l.strip() for l in method("com/glu/platform/android/resdl/ResFileDownloadView$GluTextArea",
                                              "draw").splitlines() if l.strip()]
-        centred = any(f"{CENTERED_TEXT}->" in l for l in drawing)
-        obb = True if routes and centred and not deletes else False if deletes and not routes and not centred else None
+        check(obb_hook_at_loop_head(states), "ResFileDownloadView.newState asks ObbCheck.route() where every state "
+              "change lands, and turns the packed-OBB flag back on when its check starts")
+        check(exit_only_after_layout(states), "the error page calls ObbCheck.exitOnly() right after its layout")
+        check(text_area_centred(drawing), "GluTextArea.draw centres its lines with CenteredText, and restores "
+              "the canvas before it returns")
+        check(not deletes, "findGPKFileInDir no longer deletes wrong-size files")
 
         # Its OpenFeint half. A shell keeps a constructor exactly when it is not an interface and
         # its superclasses reach Object through other shells, the rule EmptyClasses.kt follows.
@@ -565,12 +598,11 @@ def main():
                 check(f".super {parent}" in text and shapes.get(parent) == "constructor",
                       f"{cls.rsplit('/', 1)[1]} still extends {parent}, which keeps its constructor")
 
-        java = tapjoy if tapjoy is not None and tapjoy == openfeint == obb else None
+        java = tapjoy if tapjoy is not None and tapjoy == openfeint else None
         native = found.get(DEAD)
         if java is None:
             check(False, f"{DEAD}: Java part partly applied (Tapjoy connect call: {connects}, quiet getter: {quiet}; "
-                  f"OpenFeint: {'untouched' if untouched else f'{len(emptied)} of {len(shells)} classes shells, {expected} expected'}; "
-                  f"OBB route: {routes}, centred text: {centred}, wrong-size delete: {deletes})")
+                  f"OpenFeint: {'untouched' if untouched else f'{len(emptied)} of {len(shells)} classes shells, {expected} expected'})")
             found[DEAD] = None
         elif native is not None and native != java:
             check(False, f"{DEAD}: native part {'on' if native else 'off'}, Java part {'on' if java else 'off'}")
@@ -578,12 +610,20 @@ def main():
         elif java:
             check(True, "TapjoyInterface.initialize no longer connects, and the instance getter logs nothing")
             check("TapjoyInterface;->usedActivity" in init, "TapjoyInterface.initialize still stores the activity")
-            check(obb_hook_at_loop_head(states), "ResFileDownloadView.newState asks ObbCheck.route() where every state "
-                  "change lands, and turns the packed-OBB flag back on when its check starts")
-            check(exit_only_after_layout(states), "the error page calls ObbCheck.exitOnly() right after its layout")
-            check(text_area_centred(drawing), "GluTextArea.draw centres its lines with CenteredText, and restores "
-                  "the canvas before it returns")
-            check(True, "findGPKFileInDir no longer deletes wrong-size files")
+
+        # "Render at 720p": all of its edits to GluPlatformActivity, or no trace of ScreenFit there.
+        activity = io.open(smali_file(ACTIVITY[1:-1]), encoding="utf-8").read()
+        parts = screen_fit_parts(lambda name: [l.strip() for l in method(ACTIVITY[1:-1], name).splitlines()[1:]
+                                               if l.strip() and not l.strip().startswith(".")])
+        if all(parts.values()):
+            found[FIT] = True
+            check(True, "the game's view goes to ScreenFit.attach() right after it is built")
+            check(True, "each of the four touch methods scales its x and y first, and touchBegan its drag threshold")
+        elif SCREEN_FIT not in activity:
+            found[FIT] = False
+        else:
+            found[FIT] = None
+            check(False, f"{FIT}: partly applied ({', '.join(f'{k}: {v}' for k, v in parts.items())})")
     finally:
         shutil.rmtree(work, ignore_errors=True)
 
@@ -593,7 +633,7 @@ def main():
     check("Verified using v2 scheme (APK Signature Scheme v2): true" in sig, "v2 signature")
     if expect_libs:
         for name in (SOUND, UNUSED, DEAD, INTRO):
-            check(found.get(name), f"{name} applied, as --expect-libs means every patch is on")
+            check(found.get(name), f"{name} applied, as --expect-libs means every default patch is on")
 
     print("[patches found]")
     for name in ALL_PATCHES:

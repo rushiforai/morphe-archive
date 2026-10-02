@@ -8,6 +8,8 @@ import app.morphe.patcher.patch.ResourcePatch
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.resource.ResourceMode
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import java.nio.file.Path
 import java.nio.file.Files
 import org.junit.jupiter.api.io.TempDir
@@ -100,6 +102,86 @@ class ControlFailureTest {
     }
 
     private fun ResourcePatchContext.hasPeopleFeature(): Boolean = hasFeature("people")
+
+    @Test fun menuTargetsAreAtomicAcrossAllMappingGroups(@TempDir temporary: Path) {
+        val originalProfile = activeProfile
+        val record = menuSettingsPatch.dependencies.filterIsInstance<ResourcePatch>().single()
+        val discovery = menuSettingsPatch.dependencies.filterIsInstance<BytecodePatch>().single()
+        try {
+            assertEquals(5, controlProfiles.values.distinct().size)
+            for ((group, profile) in controlProfiles.values.distinct().withIndex()) {
+                activeProfile = profile
+                val ids = profile.hooks.getValue("menu_settings")
+                val binder = ids.single { it.contains(";I)V") }.substringBefore("->")
+                for (broken in listOf("none", "add", "bind", "drawer", "click", "bind-registers", "drawer-registers")) {
+                    val methods = ids.map { id ->
+                        val kind = when {
+                            id.endsWith("Ljava/util/ArrayList;") -> "add"
+                            id.contains("Ljava/util/List;") -> "drawer"
+                            id.contains("onClick") -> "click"
+                            else -> "bind"
+                        }
+                        val body = when (kind) {
+                            "add" -> "const-string v0, \"settingsfolder.folderitem.SettingsFolderItem\"\nnew-instance v1, LX/MenuRow;\n" +
+                                if (broken == "add") "throw v0" else "const/4 v0, 0x0\nreturn-object v0"
+                            "bind" -> "const-string v0, \"Unknown ViewHolder\"\n" + if (broken == "bind") "throw v0" else "return-void"
+                            "drawer" -> "new-instance v0, $binder\nreturn-void"
+                            else -> (if (broken == "click") "check-cast v1, LX/WrongRow;" else "check-cast v1, LX/MenuRow;") +
+                                "\nconst-string v0, \"$DRAWER_FOLDER_SELECTED\"\nreturn-void"
+                        }
+                        val registers = when {
+                            broken == "bind-registers" && kind == "bind" -> 2
+                            broken == "drawer-registers" && kind == "drawer" -> 1
+                            broken == "drawer" && kind == "drawer" -> 300
+                            else -> 8
+                        }
+                        val method = fixtureMethod(id, body, registers = maxOf(registers, 8))
+                        if (registers >= 8) method else MutableMethod(ImmutableMethod(method.definingClass, method.name,
+                            method.parameters, method.returnType, method.accessFlags, null, null,
+                            ImmutableMethodImplementation(registers, method.implementation!!.instructions, null, null)))
+                    }
+                    val classes = methods.groupBy { it.definingClass }.map { (type, groupMethods) -> fixtureClass(type, groupMethods) }
+                        .plus(screenHostClasses()).toSet()
+                    withResourceContext(temporary.resolve("$group-$broken")) { resources, config ->
+                        val context = BytecodePatchContext::class.java.declaredConstructors.single()
+                            .newInstance(config, resources.packageMetadata) as BytecodePatchContext
+                        val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
+                        BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", patchClasses)
+                            .invoke(context, patchClasses.getConstructor(Set::class.java).newInstance(classes))
+                        context.use {
+                            record.execute(resources)
+                            discoveredControls = findControls(classes)
+                            validateControls(discoveredControls, setOf("menu_settings"))
+                            bundledControls.clear()
+                            val targets = classes.flatMap { it.methods }.filter { it.hookId() in ids }
+                            val before = targets.map { it.implementation!!.instructions.toList() }
+                            if (broken == "none") {
+                                menuSettingsPatch.execute(context)
+                                assertTrue(targets.all { method -> method.implementation!!.instructions.any {
+                                    (it as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)
+                                        ?.reference.toString().startsWith("$SETTINGS->")
+                                } })
+                            } else {
+                                assertFailsWith<PatchException>("$group $broken") { menuSettingsPatch.execute(context) }
+                                assertEquals(before, targets.map { it.implementation!!.instructions.toList() }, "$group $broken")
+                            }
+                            record.finalize(resources)
+                            assertEquals(broken == "none", resources.hasFeature("menu_row"))
+                            assertEquals(if (broken == "none") setOf("menu_row") else emptySet(), bundledControls.toSet())
+                        }
+                    }
+                }
+            }
+        } finally {
+            activeProfile = originalProfile
+            // Reset the shared run state as the real discovery dependency does.
+            withResourceContext(temporary.resolve("reset")) { resources, config ->
+                val context = BytecodePatchContext::class.java.declaredConstructors.single()
+                    .newInstance(config, resources.packageMetadata) as BytecodePatchContext
+                context.use { discovery.finalize(context) }
+            }
+        }
+    }
 
     private fun ResourcePatchContext.hasFeature(key: String): Boolean = document("AndroidManifest.xml").use { document ->
         val metadata = document.getElementsByTagName("meta-data")

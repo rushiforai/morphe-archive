@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import android.app.Activity;
 import android.content.Context;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
@@ -146,6 +147,43 @@ public class FeedMuteTest {
         calls.clear();
         FeedMute.onEnginePlay(engine);
         assertEquals("an unmuted feed engine is left alone", List.of(), calls);
+    }
+
+    /** A report of a silent feed says whether the mute was on and what it did (#58). */
+    @Test public void theReportSaysWhetherTheFeedIsMutedAndWhatItSilenced() {
+        assertEquals("FEED MUTE", FeedMute.Report.INSTANCE.title());
+        assertEquals(List.of("Mute feed videos: off", "Mute button on the feed: shown",
+                "Feed players muted since TikTok started: 0", "Audio focus requests turned down: 0"),
+                FeedMute.Report.INSTANCE.lines());
+
+        Settings.FEED_MUTED.save(true);
+        FeedMute.onControllerPlay(new Controller(feed.get()), video("501"));
+        Object engine = engine("A", "501");
+        FeedMute.onEnginePlay(engine);
+        FeedMute.onEnginePlay(engine);
+        assertTrue(FeedMute.holdSessionFocus("helper"));
+
+        assertEquals(List.of("Mute feed videos: on", "Mute button on the feed: shown",
+                "Feed players muted since TikTok started: 1", "Audio focus requests turned down: 1"),
+                FeedMute.Report.INSTANCE.lines());
+    }
+
+    /**
+     * Under Pause every switch reads off. The report keeps the reader's choices and says the
+     * pause is why the feed has its sound, rather than calling the button turned off.
+     */
+    @Test public void aPausedReportKeepsTheChoicesAndSaysItIsPaused() {
+        Settings.FEED_MUTED.save(true);
+        PausedProcess.set(true);
+        try {
+            assertEquals(List.of("Mute feed videos: on",
+                    "Hushfeed is paused, so the feed plays with its sound",
+                    "Mute button on the feed: shown",
+                    "Feed players muted since TikTok started: 0", "Audio focus requests turned down: 0"),
+                    FeedMute.Report.INSTANCE.lines());
+        } finally {
+            PausedProcess.set(false);
+        }
     }
 
     /**

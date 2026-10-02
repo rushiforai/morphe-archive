@@ -17,15 +17,25 @@ public final class ServerFileProvider extends ContentProvider {
     private static Handler handler;
 
     @Override public boolean onCreate() {
-        ServerConfig.initialize(getContext());
-        ServerIndex.scanAsync();
+        if (ServerProcess.isCurrent(getContext())) {
+            ServerConfig.loadForServer(getContext());
+        } else {
+            ServerConfig.initialize(getContext());
+            ServerIndex.scanAsync();
+        }
         return true;
     }
     static Uri uriFor(RemoteTrack track) {
         return new Uri.Builder().scheme("content").authority(ServerConfig.context().getPackageName() + SUFFIX)
                 .appendPath("track").appendPath(track.id).build();
     }
-    private RemoteTrack trackOf(Uri uri) { return trackOf(ServerConfig.snapshot(), uri); }
+    private RemoteTrack trackOf(Uri uri) { return trackOf(current(), uri); }
+
+    /** The current settings; the track server process first reloads what the main process saved. */
+    private ServerConfig.Snapshot current() {
+        if (ServerProcess.isCurrent(getContext())) ServerProcess.refresh(getContext());
+        return ServerConfig.snapshot();
+    }
     private RemoteTrack trackOf(ServerConfig.Snapshot snapshot, Uri uri) {
         if (!"content".equals(uri.getScheme()) || !(getContext().getPackageName() + SUFFIX).equals(uri.getAuthority())
                 || uri.getQuery() != null || uri.getFragment() != null || uri.getPathSegments().size() != 2
@@ -53,7 +63,7 @@ public final class ServerFileProvider extends ContentProvider {
     }
     @Override public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
         if (!"r".equals(mode)) throw new FileNotFoundException("Server tracks are read only.");
-        ServerConfig.Snapshot snapshot = ServerConfig.snapshot();
+        ServerConfig.Snapshot snapshot = current();
         RemoteTrack track = trackOf(snapshot, uri);
         if (track == null || !ServerConfig.isCurrent(snapshot)) throw new FileNotFoundException("Server track is unavailable.");
         try { return openTrack(getContext(), snapshot, track); }

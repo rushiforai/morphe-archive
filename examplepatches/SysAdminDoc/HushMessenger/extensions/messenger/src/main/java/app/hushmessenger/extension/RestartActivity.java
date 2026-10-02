@@ -48,6 +48,7 @@ public class RestartActivity extends Activity {
         for (ResolveInfo match : context.getPackageManager().queryIntentActivities(query, 0)) {
             var activity = match.activityInfo;
             if (activity == null || !packageName.equals(activity.packageName) ||
+                activity.name == null || !activity.enabled ||
                 activity.name.startsWith("app.hushmessenger.extension.") ||
                 (activity.targetActivity != null && activity.targetActivity.startsWith("app.hushmessenger.extension."))) continue;
             return Intent.makeRestartActivityTask(new ComponentName(packageName, activity.name)).setPackage(packageName);

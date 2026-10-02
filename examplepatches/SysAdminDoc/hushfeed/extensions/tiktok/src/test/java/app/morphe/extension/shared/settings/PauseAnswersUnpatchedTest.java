@@ -69,6 +69,8 @@ public class PauseAnswersUnpatchedTest {
             "local_hide_button_position", "block_sound_button_position",
             "not_interested_button_position", "feed_mute_button_position", "share_action_catalog",
             "diagnostic_report_salt",
+            // The profile shortcuts TikTok has sent, recorded for the checklist like share actions.
+            "profile_shortcut_catalog",
             // The budget's day is worked out from this hour, paused or not.
             "session_budget_reset_hour",
             // The day the streak's message last went, so a pause can't send a second one.

@@ -37,7 +37,7 @@ Pixel 8 with a 35,000-track Jellyfin library.
 | Local files from a server | Disabled | Streams an HTTPS WebDAV folder or Jellyfin library into Local Files and Your Library, with its own filter chip. Requires Android 8 or later, byte-range support, and Spotify's Local audio files setting; configure the server in Spotify's Spicetify settings. |
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/spicetify/morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.0.1](https://github.com/spicetify/morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 Spotify&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>

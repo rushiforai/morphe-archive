@@ -50,7 +50,7 @@ SPOOFED_VERSION_CODE = 2**31 - 1
 SPOOFED_HELP = (
     " That's the highest version code Android allows, which usually means a Messenger build from "
     'another patch set with "Spoof package version" on. See "INSTALL_FAILED_VERSION_DOWNGRADE" '
-    """under "If something doesn't work" in the README to remove it."""
+    """under "If something doesn't work" in the README for data-preserving options."""
 )
 
 
@@ -290,7 +290,7 @@ def conflicts(
             + (
                 SPOOFED_HELP
                 if leftover == SPOOFED_VERSION_CODE
-                else " Android refuses anything lower until that leftover data is removed."
+                else " Android refuses anything lower. Preserve the retained data and signing key. An in-place update needs an equal or higher version code."
             )
         )
     for permission in sorted(candidate.permissions):
@@ -548,7 +548,7 @@ def check(args: argparse.Namespace) -> int:
             print(
                 f"NOTE: {candidate.package} was uninstalled with its data kept (version code {leftover}). "
                 "This check can't read that copy's signing key, and Android may refuse a different key "
-                "until the leftover data is removed."
+                "on install. Preserve the retained data and signing key while resolving that conflict."
             )
     required = {owners[name] for name in candidate.permissions if name in owners}
     required.update(packages.keys() & {candidate.package, "com.facebook.katana"})

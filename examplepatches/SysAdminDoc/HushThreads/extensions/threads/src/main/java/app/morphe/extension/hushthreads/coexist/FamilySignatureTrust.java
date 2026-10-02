@@ -116,26 +116,21 @@ public final class FamilySignatureTrust {
         String caller = callerInfo.packageName;
         if (caller == null || !FAMILY_PACKAGES.contains(caller)) return false;
 
-        Context context = Utils.getContext();
-        // The caller's identity is read while a guarded component runs, well after the application
-        // has a context. Without one there's nothing to check the caller against, so leave it.
-        if (context == null) return false;
-        PackageManager packages = context.getPackageManager();
-        if (packages == null) return false;
-
-        // The signers read runs for this app itself, for the app calling a component over Binder, and
-        // for packages Threads looks up for other reasons. Only the current IPC's caller is widened:
-        // the family package has to be the one the calling uid owns, and that uid can't be our own.
-        int callingUid = Binder.getCallingUid();
-        if (callingUid == Process.myUid()) return false;
-        if (!owns(packages, callingUid, caller)) return false;
-
-        // From here the family package is the app now calling in. Count the check under Restore
-        // screens, the patch that carries the hook, and record why it was or wasn't treated as
-        // carrying Meta's certificate: a count a report shows without Debug logging, and a line that
-        // says which caller and why when Debug logging is on.
-        HookStatus.invoked(FamilyNames.RESTORE_TRUST);
         try {
+            Context context = Utils.getContext();
+            // Without a context there's nothing to check the caller against.
+            if (context == null) return false;
+            PackageManager packages = context.getPackageManager();
+            if (packages == null) return false;
+
+            // Only the current IPC's caller is widened: the family package has to be the one the
+            // calling uid owns, and that uid can't be our own. Framework lookups may throw too.
+            int callingUid = Binder.getCallingUid();
+            if (callingUid == Process.myUid()) return false;
+            if (!owns(packages, callingUid, caller)) return false;
+
+            // Count only a verified family caller, under the patch that carries the hook.
+            HookStatus.invoked(FamilyNames.RESTORE_TRUST);
             Set<String> ours = ownSigners;
             if (ours == null) {
                 ours = currentSigners(packages, context.getPackageName());

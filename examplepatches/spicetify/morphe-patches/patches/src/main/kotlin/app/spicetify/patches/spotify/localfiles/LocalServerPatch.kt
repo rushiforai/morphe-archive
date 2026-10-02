@@ -20,6 +20,7 @@ private const val HOOK = "Lapp/spicetify/extension/spotify/localserver/LocalServ
 private const val ROWS = "Lapp/spicetify/extension/spotify/localserver/LibraryRows;"
 private const val OBSERVABLE = "Lio/reactivex/rxjava3/core/Observable;"
 private const val PLAYBACK = "Lapp/spicetify/extension/spotify/localserver/ServerPlayback;"
+private const val SERVER_PROCESS = "Lapp/spicetify/extension/spotify/localserver/ServerProcess;"
 private const val ARTWORK = "Lapp/spicetify/extension/spotify/localserver/ServerArtwork;"
 private const val ANDROID = "http://schemas.android.com/apk/res/android"
 
@@ -31,6 +32,7 @@ private val serverResourcesPatch = resourcePatch {
             provider.setAttributeNS(ANDROID, "android:authorities", "com.spotify.music.spicetify.localserver")
             provider.setAttributeNS(ANDROID, "android:exported", "false")
             provider.setAttributeNS(ANDROID, "android:grantUriPermissions", "false")
+            provider.setAttributeNS(ANDROID, "android:process", ":spicetify_server")
             manifest.getElementsByTagName("application").item(0).appendChild(provider)
             val browser = manifest.createElement("activity")
             browser.setAttributeNS(ANDROID, "android:name", "app.spicetify.extension.spotify.settings.ServerMusicActivity")
@@ -102,6 +104,29 @@ val localFilesFromServerPatch = bytecodePatch(
             if (method.implementation!!.registerCount <= parameterRegisters)
                 throw PatchException("${method.definingClass}->${method.name} has no free register for its hook.")
         }
+
+        // Track files are served from their own process; there, Spotify's own start-up is skipped.
+        val application = mutableClassDefBy("Lcom/spotify/music/SpotifyApplication;").methods.single {
+            it.name == "onCreate" && it.parameterTypes.isEmpty() && it.returnType == "V"
+        }
+        requireScratchRegister(application)
+        application.addInstructionsWithLabels(0, """
+            invoke-static/range {p0 .. p0}, $SERVER_PROCESS->skipApplication(Landroid/content/Context;)Z
+            move-result v0
+            if-eqz v0, :spotify
+            return-void
+        """.trimIndent(), ExternalLabel("spotify", application.getInstruction(0)))
+        // Spotify's memory callback reads state its skipped start-up would have created.
+        val trimMemory = mutableClassDefBy("Lcom/spotify/music/SpotifyApplication;").methods.single {
+            it.name == "onTrimMemory" && it.parameterTypes == listOf("I") && it.returnType == "V"
+        }
+        requireScratchRegister(trimMemory)
+        trimMemory.addInstructionsWithLabels(0, """
+            invoke-static/range {p0 .. p0}, $SERVER_PROCESS->isCurrent(Landroid/content/Context;)Z
+            move-result v0
+            if-eqz v0, :spotify
+            return-void
+        """.trimIndent(), ExternalLabel("spotify", trimMemory.getInstruction(0)))
 
         // Your Library requests one window of rows at a time; the extension appends server rows to each window.
         val request = mutableClassDefBy("Lp/ub21;").methods.single {

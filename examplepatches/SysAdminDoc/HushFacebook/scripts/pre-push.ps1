@@ -466,6 +466,7 @@ try {
         # the reviewed release, and they only run on the way to a test task; a push that moved
         # the pin alone ran the release facts check, which knows nothing about them.
         $_ -eq 'gradle/libs.versions.toml' -or $_ -eq 'gradle/verification-metadata.xml' -or
+        $_ -eq 'gradle/tooling-scopes.txt' -or
         $_ -eq 'settings.gradle.kts' -or $_ -eq 'build.gradle.kts' -or
         $_ -in $runtimeTestInputs
     }).Count -gt 0
@@ -478,6 +479,7 @@ try {
     # the README's hero and links. A push of only artwork or only the README ran no check of them.
     $touchesContracts = $touchesScripts -or @($paths | Where-Object {
         $_ -eq 'patches-list.json' -or $_ -eq 'patches/build.gradle.kts' -or
+        $_ -eq 'gradle/tooling-scopes.txt' -or
         $_ -like 'assets/*' -or $_ -eq 'README.md'
     }).Count -gt 0
     $injectedRegisterVerifierPaths = @(
@@ -546,6 +548,7 @@ try {
         # only one of these ran no gate at all.
         $_ -eq 'gradle/libs.versions.toml' -or $_ -eq 'settings.gradle.kts' -or
         $_ -eq 'gradle/verification-metadata.xml' -or
+        $_ -eq 'gradle/tooling-scopes.txt' -or
         $_ -eq 'gradle/wrapper/gradle-wrapper.properties' -or
         # The receipt is the file the release check holds a release to, and the allowlist is
         # what decides which manifest changes it accepts. A push that moved only one of those

@@ -70,6 +70,7 @@ public class AutoStreakTest {
         StreakMessenger.readyForTests = null;
         StreakMessenger.settleMillis = 8_000L;
         StreakMessenger.warmUpMillis = 10_000L;
+        StreakMessenger.handOffMillis = 10_000L;
         SignedInUser.idForTests = null;
         AutoStreak.nowForTests = null;
     }
@@ -95,6 +96,7 @@ public class AutoStreakTest {
         state.result = AutoStreak.Result.NOT_READY;
         state.resultAt = 99L;
         state.owner = "200";
+        state.sentTo = "matt,friend.one";
         AutoStreak.State read = AutoStreak.State.parse(state.format());
         assertEquals("2026-09-29", read.sentDay);
         assertEquals("2026-09-30", read.tryDay);
@@ -103,6 +105,10 @@ public class AutoStreakTest {
         assertEquals(99L, read.resultAt);
         assertEquals(1234L, read.activeSince);
         assertEquals("200", read.owner);
+        assertEquals("matt,friend.one", read.sentTo);
+        // A row written before the list was kept still reads, with nobody on it.
+        assertEquals("2026-09-29", AutoStreak.State.parse("1|2026-09-29||0|SENT|0|0|200").sentDay);
+        assertEquals("", AutoStreak.State.parse("1|2026-09-29||0|SENT|0|0|200").sentTo);
     }
 
     @Test public void aStateThisBuildCannotReadStartsOver() {
@@ -165,6 +171,8 @@ public class AutoStreakTest {
         assertEquals("some.name_1", StreakMessenger.handleOf("  @some.name_1 "));
         assertEquals("friend", StreakMessenger.handleOf("friend"));
         assertEquals("some.name", StreakMessenger.handleOf("https://www.tiktok.com/@some.name?lang=en"));
+        // A short link doesn't say who it is, and its scheme isn't a handle.
+        assertEquals("", StreakMessenger.handleOf("https://vm.tiktok.com/ZMabc123/"));
         assertEquals("", StreakMessenger.handleOf("  "));
         assertEquals("", StreakMessenger.handleOf(null));
     }
@@ -222,9 +230,30 @@ public class AutoStreakTest {
         AutoStreak.recipientChanged(context, "@Matt");
         Utils.awaitBackgroundTasksForTests();
         AutoStreak.State after = AutoStreak.state();
-        assertEquals("", after.sentDay);
         assertEquals(AutoStreak.now(), after.activeSince);
         assertTrue(AutoStreak.isDue(after, at(2026, Calendar.SEPTEMBER, 30, 12, 0), NOON));
+
+        // Going back to the person who already had today's message doesn't send another.
+        Settings.AUTO_STREAK_RECIPIENT.save("matt");
+        AutoStreak.recipientChanged(context, "@someone");
+        Utils.awaitBackgroundTasksForTests();
+        assertFalse(AutoStreak.isDue(AutoStreak.state(), at(2026, Calendar.SEPTEMBER, 30, 12, 0), NOON));
+    }
+
+    @Test public void everyoneMessagedTodayStaysOnTheDaysList() {
+        AutoStreak.State state = active(0);
+        state.markSent("2026-09-30", "Matt");
+        state.markSent("2026-09-30", "friend.one");
+        state.markSent("2026-09-30", "matt");
+        assertEquals("matt,friend.one", state.sentTo);
+        assertTrue(state.sentOn("2026-09-30", "MATT"));
+        assertTrue(state.sentOn("2026-09-30", "friend.one"));
+        assertFalse(state.sentOn("2026-09-30", "someone"));
+        assertFalse(state.sentOn("2026-10-01", "matt"));
+        // A new day starts a new list.
+        state.markSent("2026-10-01", "someone");
+        assertEquals("someone", state.sentTo);
+        assertFalse(state.sentOn("2026-10-01", "matt"));
     }
 
     @Test public void theReportSaysHowTheLastTryWentWithoutNamingAnyone() {
@@ -287,7 +316,26 @@ public class AutoStreakTest {
         assertEquals("2026-09-30", state.sentDay);
         assertEquals(AutoStreak.Result.SENT, state.result);
         assertEquals("200", state.owner);
+        assertEquals("friend.one", state.sentTo);
         assertFalse(AutoStreak.isDue(state, at(2026, Calendar.SEPTEMBER, 30, 13, 0), NOON));
+    }
+
+    @Test public void aHandOffTheMainThreadNeverTookIsCalledOffNotSentLate() throws Exception {
+        StreakMessenger.handOffMillis = 200L;
+        AtomicReference<Throwable> failure = new AtomicReference<>();
+        Thread sender = new Thread(() -> {
+            try {
+                StreakMessenger.deliver(context, "0:1:100:200", "hi");
+            } catch (Throwable thrown) {
+                failure.set(thrown);
+            }
+        });
+        sender.start();
+        sender.join(5_000);
+        assertNotNull("the hand-off should have timed out", failure.get());
+        // The main thread gets to the queued hand-off only now, after the try was counted as failed.
+        shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(PushQuickActionReceiver.RECEIVED.isEmpty());
     }
 
     @Test public void someoneWithNoChatIsNotMessaged() throws Exception {

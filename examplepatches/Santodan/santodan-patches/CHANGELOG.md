@@ -1,3 +1,13 @@
+## [0.6.0](https://github.com/Santodan/santodan-patches/compare/v0.5.0...v0.6.0) (2026-10-01)
+
+### ✨ New Features
+
+* **meo:** add side-by-side and device compatibility patches [skip ci] ([cd28017](https://github.com/Santodan/santodan-patches/commit/cd28017e4f3890ee27d99e917a9d0668cda0d274))
+
+### 🚀 Updated App Support
+
+* **pillo:** support version 0.6.20 ([33da858](https://github.com/Santodan/santodan-patches/commit/33da8586e0cbe7fadbf5dae595fee8512f438794))
+
 ## [0.5.0](https://github.com/Santodan/santodan-patches/compare/v0.4.1...v0.5.0) (2026-09-28)
 
 ### 🐛 Bug Fixes
@@ -25,11 +35,18 @@
 
 ### New Features
 
+* **meo:** add configurable side-by-side installation for MEO Android TV 5.7.0
+* **meo:** spoof a supported provisioning identity and skip the non-fatal device-verification warning
 * **nuviotv:** add selectable merged tracking progress for Continue Watching
 * **nuviotv:** make the side-by-side package and app names configurable for multiple test installations
 
+### Updated App Support
+
+* **pillo:** support version 0.6.20 while retaining 0.6.19 compatibility
+
 ### Bug Fixes
 
+* **meo:** rename the app-owned permission, task affinity, and all provider authorities, including the bare package authority
 * **nuviotv:** preserve merged Continue Watching during startup and refresh providers before publishing updates
 
 ## [0.3.2](https://github.com/Santodan/santodan-patches/compare/v0.3.1...v0.3.2) (2026-09-24)

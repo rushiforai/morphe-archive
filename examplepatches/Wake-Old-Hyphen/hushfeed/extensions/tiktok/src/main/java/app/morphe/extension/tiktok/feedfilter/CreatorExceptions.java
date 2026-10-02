@@ -132,6 +132,12 @@ public final class CreatorExceptions {
         }
     }
 
+    /** Whether {@code who}, a creator read off something other than a feed item, is on the list. */
+    static boolean excepted(CreatorIdentity who) {
+        Set<String> names = names(Settings.CREATOR_FILTER_EXCEPTIONS.get());
+        return !names.isEmpty() && who.namedIn(names);
+    }
+
     /**
      * A token for the filter mask, so a list that changed rescans a page the filter has seen.
      * Empty while there are no exceptions, which keeps every mask as it was.

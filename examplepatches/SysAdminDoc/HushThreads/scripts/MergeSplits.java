@@ -1,6 +1,11 @@
 import app.morphe.patcher.apk.ApkMerger;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 /**
  * Merges a split bundle (.apkm, .apks or .xapk) into one APK with the desktop CLI's own merger,
@@ -30,11 +35,22 @@ public final class MergeSplits {
             System.err.println("[merge] no bundle at " + bundle.getPath());
             System.exit(2);
         }
-        new ApkMerger().merge(bundle, merged, true, null, true, null, false);
-        // The merger answers nothing, so the file is the only evidence it worked.
-        if (!merged.isFile() || merged.length() == 0) {
-            System.err.println("[merge] the merge of " + bundle.getName() + " wrote no APK at " + merged.getPath());
-            System.exit(1);
+        Path outputParent = merged.toPath().toAbsolutePath().getParent();
+        Files.createDirectories(outputParent);
+        // ApkMerger derives its unpacking directory from the input parent and basename. An
+        // atomically allocated parent isolates simultaneous callers even for the same archive.
+        Path inputDirectory = Files.createTempDirectory(outputParent, ".hushthreads-merge-input-");
+        try {
+            Path input = Files.copy(bundle.toPath(), inputDirectory.resolve(bundle.getName()));
+            new ApkMerger().merge(input.toFile(), merged, true, null, true, null, false);
+            // The merger answers nothing, so the file is the only evidence it worked.
+            if (!merged.isFile() || merged.length() == 0) {
+                throw new IOException("[merge] the merge of " + bundle.getName() + " wrote no APK at " + merged.getPath());
+            }
+        } finally {
+            try (Stream<Path> paths = Files.walk(inputDirectory)) {
+                for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) Files.delete(path);
+            }
         }
         System.out.println("[merge] " + bundle.getName() + " -> " + merged.getName() + ", " + merged.length() + " bytes");
     }

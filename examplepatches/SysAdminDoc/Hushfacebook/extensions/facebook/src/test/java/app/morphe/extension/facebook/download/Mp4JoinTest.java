@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -410,8 +411,78 @@ public class Mp4JoinTest {
 
     // ---------------------------------------------------------------- FFmpeg, where it's installed
 
-    private static final File FFMPEG = new File("C:\\Users\\--\\tools\\ffmpeg-9.0.1-full_build\\bin\\ffmpeg.exe");
-    private static final File FFPROBE = new File("C:\\Users\\--\\tools\\ffmpeg-9.0.1-full_build\\bin\\ffprobe.exe");
+    private static File codecTool(String name) {
+        return findTool(name, System.getenv("HUSHFACEBOOK_TEST_" + name.toUpperCase(Locale.ROOT)),
+                System.getenv("PATH"), System.getProperty("os.name").startsWith("Windows"));
+    }
+
+    private static File findTool(String name, String configured, String path, boolean windows) {
+        if (configured != null && !configured.isBlank()) {
+            File file = new File(configured).getAbsoluteFile();
+            assertTrue("HUSHFACEBOOK_TEST_" + name.toUpperCase(Locale.ROOT)
+                    + " must name an executable file: " + file, file.isFile() && file.canExecute());
+            return file;
+        }
+        if (path == null) return null;
+        String executable = name + (windows ? ".exe" : "");
+        for (String directory : path.split(File.pathSeparator, -1)) {
+            // An empty PATH entry implicitly searches the working directory. Do not pick a
+            // checkout's arbitrary executable when a maintainer hasn't configured a tool.
+            if (directory.isEmpty()) continue;
+            if (directory.startsWith("\"") && directory.endsWith("\"")) {
+                directory = directory.substring(1, directory.length() - 1);
+            }
+            File file = new File(directory, executable).getAbsoluteFile();
+            if (file.isFile() && file.canExecute()) return file;
+        }
+        return null;
+    }
+
+    @Test
+    public void explicitCodecToolWinsOverPathIncludingDirectoriesWithSpaces() throws Exception {
+        File configured = temp.newFile("configured encoder.exe");
+        assertTrue(configured.setExecutable(true));
+        File directory = temp.newFolder("path with spaces");
+        File onPath = new File(directory, "ffmpeg.exe");
+        assertTrue(onPath.createNewFile());
+        assertTrue(onPath.setExecutable(true));
+        assertEquals(configured, findTool("ffmpeg", configured.getPath(), directory.getPath(), true));
+        assertEquals(onPath, findTool("ffmpeg", null, "\"" + directory.getPath() + "\"", true));
+    }
+
+    @Test
+    public void explicitMissingCodecToolFailsInsteadOfFallingBack() throws Exception {
+        File directory = temp.newFolder("available");
+        File available = new File(directory, "ffprobe.exe");
+        assertTrue(available.createNewFile());
+        assertTrue(available.setExecutable(true));
+        File missing = new File(temp.getRoot(), "missing.exe");
+        AssertionError failure = assertThrows(AssertionError.class,
+                () -> findTool("ffprobe", missing.getPath(), directory.getPath(), true));
+        assertTrue(failure.getMessage(), failure.getMessage().contains("HUSHFACEBOOK_TEST_FFPROBE"));
+        assertTrue(failure.getMessage(), failure.getMessage().contains(missing.getPath()));
+        assertThrows(AssertionError.class,
+                () -> findTool("ffmpeg", directory.getPath(), directory.getPath(), true));
+    }
+
+    @Test
+    public void codecDiscoveryUsesPathOrderAndBothExecutableNames() throws Exception {
+        File first = temp.newFolder("first");
+        File second = temp.newFolder("second");
+        File firstProbe = new File(first, "ffprobe.exe");
+        File secondProbe = new File(second, "ffprobe.exe");
+        File unixEncoder = new File(second, "ffmpeg");
+        for (File file : Arrays.asList(firstProbe, secondProbe, unixEncoder)) {
+            assertTrue(file.createNewFile());
+            assertTrue(file.setExecutable(true));
+        }
+        String path = first.getPath() + File.pathSeparator + second.getPath();
+        assertEquals(firstProbe, findTool("ffprobe", "", path, true));
+        assertEquals(unixEncoder, findTool("ffmpeg", null, path, false));
+        assertNull(findTool("ffmpeg", null, path, true));
+        assertNull(findTool("ffprobe", null, null, true));
+        assertNull(findTool("ffprobe", null, File.pathSeparator, true));
+    }
 
     /**
      * Real VP9, AV1 and H.264 with B-frames, each beside real AAC, fragmented as a DASH packager
@@ -427,9 +498,14 @@ public class Mp4JoinTest {
      */
     @Test
     public void ffmpegReadsAndDecodesTheJoinOfRealTracks() throws Exception {
-        Assume.assumeTrue("FFmpeg isn't installed here", FFMPEG.isFile() && FFPROBE.isFile());
+        File ffmpeg = codecTool("ffmpeg");
+        File ffprobe = codecTool("ffprobe");
+        Assume.assumeTrue("Codec verification skipped (1 test): "
+                + (ffmpeg == null ? "ffmpeg " : "") + (ffprobe == null ? "ffprobe " : "")
+                + "not found. Set HUSHFACEBOOK_TEST_FFMPEG and HUSHFACEBOOK_TEST_FFPROBE or add both to PATH.",
+                ffmpeg != null && ffprobe != null);
         File folder = temp.newFolder("ffmpeg");
-        File sound = encode(folder, "sound.mp4", "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=44100", "-t", "3",
+        File sound = encode(ffmpeg, folder, "sound.mp4", "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=44100", "-t", "3",
                 "-c:a", "aac", "-b:a", "64k", "-f", "mp4", "-movflags", "+dash+global_sidx");
         String[][] pictures = {
             {"vp9", "-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", "-b:v", "300k", "-g", "30",
@@ -445,14 +521,14 @@ public class Mp4JoinTest {
             List<String> args = new ArrayList<>(Arrays.asList("-f", "lavfi", "-i", "testsrc2=size=320x240:rate=30",
                     "-t", "3"));
             args.addAll(Arrays.asList(kind).subList(1, kind.length));
-            File picture = encode(folder, kind[0] + ".mp4", args.toArray(new String[0]));
+            File picture = encode(ffmpeg, folder, kind[0] + ".mp4", args.toArray(new String[0]));
             File out = new File(folder, kind[0] + "-joined.mp4");
             assertTrue(Mp4Join.join(picture, sound, out, Downloader.SILENT));
 
             PlainMp4ForTests.Movie movie = PlainMp4ForTests.read(Files.readAllBytes(out.toPath()));
             assertEquals(kind[0], Arrays.asList("ftyp", "moov", "mdat"), movie.topLevel);
-            String before = packets(picture, "v:0");
-            String after = packets(out, "v:0");
+            String before = packets(ffprobe, picture, "v:0");
+            String after = packets(ffprobe, out, "v:0");
             if (kind[0].equals("h264-negative")) {
                 long[] shownBefore = column(before, 0);
                 long[] shownAfter = column(after, 0);
@@ -467,11 +543,11 @@ public class Mp4JoinTest {
                 after = after.replaceAll("(?m)^-?\\d+,", "");
             }
             assertEquals(kind[0], before, after);
-            assertEquals(kind[0], packets(sound, "a:0"), packets(out, "a:0"));
-            String streams = run(FFPROBE.getPath(), "-v", "error", "-show_entries", "stream=codec_name,width,height",
+            assertEquals(kind[0], packets(ffprobe, sound, "a:0"), packets(ffprobe, out, "a:0"));
+            String streams = run(ffprobe.getPath(), "-v", "error", "-show_entries", "stream=codec_name,width,height",
                     "-of", "csv=p=0", out.getPath());
             assertEquals(kind[0], kind[0].replace("-negative", "") + ",320,240\naac\n", streams.replace("\r", ""));
-            assertEquals(kind[0] + " didn't decode cleanly", "", run(FFMPEG.getPath(), "-v", "error", "-xerror", "-i",
+            assertEquals(kind[0] + " didn't decode cleanly", "", run(ffmpeg.getPath(), "-v", "error", "-xerror", "-i",
                     out.getPath(), "-f", "null", "-"));
         }
     }
@@ -484,9 +560,9 @@ public class Mp4JoinTest {
         return values;
     }
 
-    private static File encode(File folder, String name, String... args) throws Exception {
+    private static File encode(File ffmpeg, File folder, String name, String... args) throws Exception {
         File out = new File(folder, name);
-        List<String> command = new ArrayList<>(Arrays.asList(FFMPEG.getPath(), "-v", "error", "-y"));
+        List<String> command = new ArrayList<>(Arrays.asList(ffmpeg.getPath(), "-v", "error", "-y"));
         command.addAll(Arrays.asList(args));
         command.add(out.getPath());
         // SVT-AV1 prints its settings whatever FFmpeg's log level, so only the exit code counts here.
@@ -500,8 +576,8 @@ public class Mp4JoinTest {
      * adds to a plain file's last AAC packet, whose short duration (the same one the fragment gave)
      * it reads as padding to discard.
      */
-    private static String packets(File file, String stream) throws Exception {
-        return run(FFPROBE.getPath(), "-v", "error", "-select_streams", stream, "-show_entries",
+    private static String packets(File ffprobe, File file, String stream) throws Exception {
+        return run(ffprobe.getPath(), "-v", "error", "-select_streams", stream, "-show_entries",
                 "packet=pts,size,flags", "-of", "csv=p=0", file.getPath()).replaceAll(",+(\\r?\\n)", "$1");
     }
 

@@ -10,6 +10,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 
@@ -18,6 +22,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -121,6 +126,161 @@ public class TapToPlayTest {
             assertFalse(trigger.name(), TapToPlay.allowLegacyStart(new Object(), trigger));
         }
         assertEquals("a held start arms nothing", 0, TapToPlay.armedCount());
+    }
+
+    /**
+     * #59: a video a browser hands Facebook opens in a player that starts it with BY_USER and no
+     * tap, and has no play button. The link lets that one start play, arming its player.
+     */
+    @Test
+    public void aLinkFromAnotherAppPlaysTheFirstByUserStartOnly() {
+        long now = 100_000;
+        Object opened = new Object();
+        TapToPlay.linkOpened(now - 3_000);
+        assertTrue("the start the link asked for", decide(opened, Trigger.BY_USER, now));
+        assertTrue(TapToPlay.armed(opened));
+        assertTrue("the opened video's own restarts", decide(opened, Trigger.BY_PLAYER, now + 500));
+        assertFalse("the next player's BY_USER start", decide(new Object(), Trigger.BY_USER, now + 600));
+        assertFalse("an unrelated player's BY_USER start, an ad say", decide(new Object(), Trigger.BY_USER, now + 650));
+        assertFalse("an unrelated player, an ad say", decide(new Object(), Trigger.BY_AUTOPLAY, now + 700));
+        assertEquals(1, TapToPlay.armedCount());
+    }
+
+    /**
+     * Only a BY_USER start takes the link. Starts Facebook makes for something coming into view or
+     * coming back, an ad's autoplay among them, are held as ever and leave it for that start.
+     */
+    @Test
+    public void aLinkLetsNothingButByUserThrough() {
+        long now = 100_000;
+        TapToPlay.linkOpened(now - 100);
+        for (Trigger trigger : Trigger.values()) {
+            if (trigger == Trigger.BY_USER || TapToPlay.CONTROLS.contains(trigger.name())) continue;
+            assertFalse(trigger.name(), decide(new Object(), trigger, now));
+        }
+        assertFalse("no trigger at all", TapToPlay.decide(new Object(), null, now, ""));
+        assertEquals("a held start arms nothing", 0, TapToPlay.armedCount());
+        assertTrue("the link is still there for its start", decide(new Object(), Trigger.BY_USER, now + 200));
+    }
+
+    @Test
+    public void aLinkCountsForFifteenSeconds() {
+        long now = 100_000;
+        TapToPlay.linkOpened(now - TapToPlay.LINK_WINDOW_MS);
+        assertTrue("a link exactly fifteen seconds ago", decide(new Object(), Trigger.BY_USER, now));
+        TapToPlay.linkOpened(now - TapToPlay.LINK_WINDOW_MS - 1);
+        assertFalse("a link just over fifteen seconds ago", decide(new Object(), Trigger.BY_USER, now));
+        assertFalse("and it's gone after that", decide(new Object(), Trigger.BY_USER, now - 2));
+        TapToPlay.linkOpened(now + 5);
+        assertFalse("a link the clock hasn't reached yet", decide(new Object(), Trigger.BY_USER, now));
+    }
+
+    /**
+     * A link waiting goes to no player after a swipe, a tap or a control: the person moved on or
+     * started something themselves, and the next player's BY_USER start is held.
+     */
+    @Test
+    public void aSwipeATapOrAControlDropsAWaitingLink() {
+        long now = 100_000;
+        TapToPlay.linkOpened(now - 100);
+        TapToPlay.nonTapGesture();
+        assertFalse("the next item after a swipe", decide(new Object(), Trigger.BY_USER, now));
+
+        TapToPlay.linkOpened(now - 100);
+        tapAt(now - 10);
+        assertTrue(decide(new Object(), Trigger.BY_AUTOPLAY, now));
+        assertFalse("another player after a tapped start", decide(new Object(), Trigger.BY_USER, now + 2_000));
+
+        TapToPlay.linkOpened(now + 3_000);
+        assertTrue(decide(new Object(), Trigger.BY_MEDIA_SESSION_CONTROLS, now + 3_100));
+        assertFalse("another player after a control", decide(new Object(), Trigger.BY_USER, now + 3_200));
+    }
+
+    /**
+     * An armed player's own BY_USER restart leaves the link for the player it opened, and a start
+     * whose clock was read before the link came doesn't take it.
+     */
+    @Test
+    public void onlyAHeldStartTakesTheLink() {
+        long now = 100_000;
+        Object playing = new Object();
+        tapAt(now - 10);
+        assertTrue(decide(playing, Trigger.BY_USER, now));
+        TapToPlay.linkOpened(now + 2_000);
+        assertTrue("the armed player's restart", decide(playing, Trigger.BY_USER, now + 2_100));
+        assertFalse("a start from before the link", decide(new Object(), Trigger.BY_USER, now + 1_999));
+        assertTrue("the opened player still gets it", decide(new Object(), Trigger.BY_USER, now + 2_200));
+    }
+
+    /** A start a tap let through takes the link too, so a later start can't use it. */
+    @Test
+    public void aTappedStartTakesTheLink() {
+        long now = 100_000;
+        TapToPlay.linkOpened(now - 1_000);
+        tapAt(now - 10);
+        assertTrue(decide(new Object(), Trigger.BY_USER, now));
+        assertFalse("a second later, past the tap", decide(new Object(), Trigger.BY_USER, now + TapToPlay.TAP_WINDOW_MS + 100));
+    }
+
+    /** The video after the one a link opened, in the same player, waits for its own tap. */
+    @Test
+    public void aLinkDoesntReachTheNextVideo() {
+        Object player = new Object();
+        TapToPlay.linkOpened(SystemClock.uptimeMillis());
+        assertTrue(TapToPlay.allowStart(player, Trigger.BY_USER));
+        SystemClock.sleep(TapToPlay.BIND_GRACE_MS + 1);
+        TapToPlay.rebound(player);
+        assertFalse(TapToPlay.allowStart(player, Trigger.BY_SHORT_FORM_VIDEO_FULLY_VISIBLE));
+        assertFalse(TapToPlay.allowStart(player, Trigger.BY_USER));
+    }
+
+    private static Activity screen(Intent intent) {
+        return Robolectric.buildActivity(Activity.class, intent).create().get();
+    }
+
+    private static Intent link(String referrer) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/watch/?v=1"));
+        if (referrer != null) intent.putExtra(Intent.EXTRA_REFERRER, Uri.parse("android-app://" + referrer));
+        return intent;
+    }
+
+    /** Whether a BY_USER start with no tap plays right now, which takes any link waiting. */
+    private static boolean byUserPlays() {
+        return TapToPlay.allowStart(new Object(), Trigger.BY_USER);
+    }
+
+    @Test
+    public void aLinkFromABrowserOrAnAppThatDoesntSayCounts() {
+        TapToPlay.activityCreated(screen(link("com.android.chrome")), null);
+        assertTrue("a browser's link", byUserPlays());
+        assertFalse("once", byUserPlays());
+        TapToPlay.activityCreated(screen(link(null)), null);
+        assertTrue("a link with no referrer", byUserPlays());
+    }
+
+    /**
+     * Facebook opening its own screens, a screen brought back, a screen that isn't a link's, and a
+     * link while the switch is off or Hushfacebook is paused record nothing.
+     */
+    @Test
+    public void onlyAFreshScreenForAnotherAppsLinkCounts() {
+        Activity own = screen(link(null));
+        TapToPlay.activityCreated(screen(link(own.getPackageName())), null);
+        assertFalse("Facebook's own link", byUserPlays());
+        TapToPlay.activityCreated(screen(link("com.android.chrome")), new Bundle());
+        assertFalse("a screen brought back", byUserPlays());
+        TapToPlay.activityCreated(screen(new Intent(Intent.ACTION_MAIN)), null);
+        assertFalse("the launcher", byUserPlays());
+        TapToPlay.activityCreated(screen(new Intent(Intent.ACTION_VIEW)), null);
+        assertFalse("a view with no link", byUserPlays());
+        Settings.TAP_TO_PLAY.save(false);
+        TapToPlay.activityCreated(screen(link("com.android.chrome")), null);
+        Settings.TAP_TO_PLAY.save(true);
+        assertFalse("a link while the switch was off", byUserPlays());
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        TapToPlay.activityCreated(screen(link("com.android.chrome")), null);
+        PauseForTests.resume();
+        assertFalse("a link while paused", byUserPlays());
     }
 
     @Test

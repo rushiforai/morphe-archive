@@ -938,3 +938,31 @@ internal object ShareGuideFingerprint : Fingerprint(
     parameters = listOf("I", "Lcom/ss/android/ugc/aweme/feed/model/Aweme;", "Ljava/lang/String;"),
     strings = listOf("share_guide"),
 )
+
+/**
+ * The LIVE feed's page handler (issue #57): the draw list, TikTok's vertical pager of LIVE rooms,
+ * hands each page of /webcast/feed/ items to this static Kotlin default-argument bridge, which
+ * turns them into rooms. {@code LX/0KGC;->LJJLIL} on 47.0.3, {@code LX/0KJ1;->LJJLIIIJLLLLLLLZ} on
+ * 47.1.3, {@code LX/0KJ5;} on 47.1.4. A class initializer holds the same two strings, so the
+ * shape is pinned too: the provider itself first, then the page and its FeedExtra.
+ */
+internal object LiveDrawRoomPageFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(
+        "L",
+        "Ljava/util/List;",
+        "Lcom/bytedance/android/live/base/model/feed/FeedExtra;",
+        "Ljava/lang/String;",
+        "I",
+        "Z",
+        "Z",
+        "Z",
+        "Z",
+        "I",
+    ),
+    strings = listOf("following_window_live_cell_loadmore", "tiktok_message_inner_loadmore"),
+    custom = { method, classDef ->
+        AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.parameterTypes.firstOrNull()?.toString() == classDef.type
+    },
+)

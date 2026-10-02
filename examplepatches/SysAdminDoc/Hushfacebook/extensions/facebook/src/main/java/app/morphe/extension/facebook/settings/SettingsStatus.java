@@ -198,7 +198,23 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean bottomTabBar() {
+        return false;
+    }
+
     public static boolean postPrompts() {
+        return false;
+    }
+
+    public static boolean metaAiQuestions() {
+        return false;
+    }
+
+    public static boolean postDates() {
+        return false;
+    }
+
+    public static boolean feedsHeader() {
         return false;
     }
 

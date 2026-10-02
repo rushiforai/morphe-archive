@@ -23,6 +23,7 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22t;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c;
@@ -636,6 +637,206 @@ public class BadDexFixture {
         return withStaticHost(new ImmutableMethodImplementation(6, instructions, null, null));
     }
 
+    private static final String FEATURE_STATUS = "Lapp/morphe/extension/hushthreads/settings/SettingsStatus;";
+    private static final String FEATURE_ADS = "Lapp/morphe/extension/hushthreads/ads/FeedAds;";
+    private static final String FEATURE_MEDIA = "Lcom/instagram/feed/media/Media;";
+    private static final String FEATURE_ITEM = "Lfixture/FeedItem;";
+    private static final String FEATURE_CACHE = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCache;";
+    private static final String FEATURE_LAMBDA = FEATURE_CACHE.substring(0, FEATURE_CACHE.length() - 1) + "$addAndSaveItemsFromFeedFetchSuccess$2$1;";
+    private static final String FEATURE_RESPONSE = "Lfixture/Permalink;";
+    private static final String FEATURE_PARENT = "Lfixture/GraphResponse;";
+    private static final String FEATURE_ANALYTICS = "Lapp/morphe/extension/hushthreads/misc/Analytics;";
+    private static final String FEATURE_LINKS = "Lapp/morphe/extension/hushthreads/misc/LinkCleaner;";
+    private static final String FEATURE_TRUST = "Lapp/morphe/extension/hushthreads/misc/ThreadsSignature;";
+    private static final String PACKAGE_INFO = "Landroid/content/pm/PackageInfo;";
+    private static final String SIGNER_HOST = "Lfixture/Signers;";
+    private static final String SIGNER_RESULT = "Lfixture/SignerResult;";
+    private static final ImmutableMethodReference PAGE_FILTER = method(FEATURE_ADS, "filter", SHORTCUT_LIST, SHORTCUT_LIST);
+    private static final ImmutableMethodReference LINK_SANITIZER = method(FEATURE_LINKS, "sanitizeShared", "Ljava/lang/String;", "Ljava/lang/String;");
+    private static final ImmutableMethodReference ANALYTICS_ENDPOINT = method(FEATURE_ANALYTICS, "endpoint", "Ljava/lang/String;", "Ljava/lang/String;");
+    private static final ImmutableMethodReference ORIGINAL_SIGNERS = method(FEATURE_TRUST, "originalSigners", SHORTCUT_LIST, PACKAGE_INFO);
+    private static final ImmutableMethodReference ITEM_MEDIA = method(FEATURE_ITEM, "media", FEATURE_MEDIA);
+    private static final ImmutableMethodReference MEDIA_AD = method(FEATURE_MEDIA, "sponsored", "Z");
+    private static final ImmutableMethodReference INJECTED_AD = method("Lfixture/AdFlag;", "injected", "Z", OBJECT);
+
+    private static Instruction virtual(ImmutableMethodReference callee, int... registers) {
+        int[] r = Arrays.copyOf(registers, 5);
+        return new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, registers.length, r[0], r[1], r[2], r[3], r[4], callee);
+    }
+
+    private static Instruction direct(ImmutableMethodReference callee, int... registers) {
+        int[] r = Arrays.copyOf(registers, 5);
+        return new ImmutableInstruction35c(Opcode.INVOKE_DIRECT, registers.length, r[0], r[1], r[2], r[3], r[4], callee);
+    }
+
+    private static Instruction string(int register, String value) {
+        return new ImmutableInstruction21c(Opcode.CONST_STRING, register, new ImmutableStringReference(value));
+    }
+
+    private static Instruction type(Opcode opcode, int register, String owner) {
+        return new ImmutableInstruction21c(opcode, register, new ImmutableTypeReference(owner));
+    }
+
+    private static Instruction objectField(Opcode opcode, int value, int receiver, String owner, String name, String fieldType) {
+        return new ImmutableInstruction22c(opcode, value, receiver, new ImmutableFieldReference(owner, name, fieldType));
+    }
+
+    private static ClassDef featureClass(String owner, String parent, List<ImmutableField> fields, Method... methods) {
+        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue(), parent, null, null, null, fields, Arrays.asList(methods));
+    }
+
+    private static ImmutableField featureField(String owner, String name, String type) {
+        return new ImmutableField(owner, name, type, AccessFlags.PUBLIC.getValue(), null, null, null);
+    }
+
+    /** Independent small host shapes. Every faulty build still passes all structural checks. */
+    private static List<ClassDef> featureBuild(boolean patched, Set<String> selected, int mask, String fault) {
+        List<ClassDef> classes = new ArrayList<>(patched ? good() : clean(cleanHost()));
+        boolean ads = patched && selected.contains("hideAds");
+        boolean links = patched && selected.contains("sanitizeSharingLinks");
+        boolean analytics = patched && selected.contains("disableAnalytics");
+        boolean trust = patched && selected.contains("restoreTrust");
+        List<Instruction> merge = new ArrayList<>();
+        if (ads && !fault.equals("feed-missing")) {
+            merge.add(invoke(fault.equals("feed-replaced") ? method("Ljava/util/Collections;", "unmodifiableList", SHORTCUT_LIST, SHORTCUT_LIST) : PAGE_FILTER,
+                    fault.equals("feed-register") ? 2 : 6));
+            merge.add(op(Opcode.MOVE_RESULT_OBJECT, fault.equals("feed-register") ? 2 : 6));
+        }
+        merge.add(type(Opcode.CHECK_CAST, 2, FEATURE_ITEM));
+        merge.add(virtual(ITEM_MEDIA, 2));
+        merge.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+        merge.add(type(Opcode.NEW_INSTANCE, 0, FEATURE_LAMBDA));
+        merge.add(direct(method(FEATURE_LAMBDA, "<init>", "V"), 0));
+        merge.add(op(Opcode.RETURN_OBJECT, 0));
+        classes.add(featureClass(FEATURE_CACHE, OBJECT, List.of(), define(FEATURE_CACHE, "merge", OBJECT, false,
+                body(10, merge.toArray(new Instruction[0])), SHORTCUT_LIST, "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;",
+                SHORTCUT_LIST, OBJECT, "Lkotlin/jvm/functions/Function3;", "Z")));
+        classes.add(featureClass(FEATURE_LAMBDA, OBJECT, List.of(), define(FEATURE_LAMBDA, "<init>", "V", false,
+                body(1, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)))));
+        classes.add(featureClass(FEATURE_ITEM, OBJECT, List.of(), define(FEATURE_ITEM, "media", FEATURE_MEDIA, false,
+                body(2, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0)))));
+        classes.add(featureClass("Lfixture/AdFlag;", OBJECT, List.of(), define("Lfixture/AdFlag;", "injected", "Z", true,
+                body(2, new ImmutableInstruction31i(Opcode.CONST, 0, 0x8669a9b0),
+                        new ImmutableInstruction31i(Opcode.CONST, 0, "injected".hashCode()),
+                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)), OBJECT)));
+        classes.add(featureClass(FEATURE_MEDIA, OBJECT, List.of(),
+                define(FEATURE_MEDIA, "sponsored", "Z", false, body(2,
+                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), invoke(INJECTED_AD, 0), op(Opcode.MOVE_RESULT, 0), op(Opcode.RETURN, 0))),
+                define(FEATURE_MEDIA, "other", "Z", false, body(2, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)))));
+
+        List<Instruction> parser = new ArrayList<>(List.of(string(2, "permalink"), string(0, "XDTPermalinkResponse"),
+                type(Opcode.NEW_INSTANCE, 1, FEATURE_RESPONSE),
+                direct(method(FEATURE_PARENT, "<init>", "V", "Ljava/lang/String;"), 1, 0)));
+        if (links && !fault.equals("link-missing")) {
+            parser.add(invoke(fault.equals("link-replaced") ? method("Ljava/lang/String;", "valueOf", "Ljava/lang/String;", OBJECT) : LINK_SANITIZER,
+                    fault.equals("link-register") ? 0 : 2));
+            parser.add(op(Opcode.MOVE_RESULT_OBJECT, fault.equals("link-register") ? 0 : 2));
+        }
+        parser.add(objectField(Opcode.IPUT_OBJECT, 2, 1, FEATURE_RESPONSE, "url", "Ljava/lang/String;"));
+        parser.add(op(Opcode.RETURN_OBJECT, 1));
+        classes.add(featureClass("Lfixture/PermalinkParser;", OBJECT, List.of(), define("Lfixture/PermalinkParser;", "unsafeParseFromJson", OBJECT, true,
+                body(3, parser.toArray(new Instruction[0])))));
+        classes.add(featureClass(FEATURE_RESPONSE, FEATURE_PARENT, List.of(featureField(FEATURE_RESPONSE, "url", "Ljava/lang/String;"))));
+        classes.add(featureClass(FEATURE_PARENT, OBJECT, List.of(), define(FEATURE_PARENT, "<init>", "V", false,
+                body(2, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)), "Ljava/lang/String;")));
+
+        List<Instruction> pigeon = new ArrayList<>(List.of(string(0, "/pigeon_nest"), string(1, "/logging_client_events"),
+                ifEqz(3, fault.equals("pigeon-bypass") ? 6 : 2)));
+        if (fault.equals("default-coverage-missing")) {
+            pigeon.add(2, string(1, "https://graph.facebook.com/logging_client_events"));
+            pigeon.add(3, op(Opcode.NOP));
+        }
+        if (analytics && (mask & 1) != 0 && !fault.equals("pigeon-missing")) {
+            pigeon.add(invoke(fault.equals("pigeon-replaced") ? method("Ljava/lang/String;", "valueOf", "Ljava/lang/String;", OBJECT) : ANALYTICS_ENDPOINT, 0));
+            pigeon.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+        }
+        pigeon.add(op(Opcode.RETURN_OBJECT, 0));
+        classes.add(featureClass("Lfixture/Pigeon;", OBJECT, List.of(), define("Lfixture/Pigeon;", "address", "Ljava/lang/String;", true,
+                body(4, pigeon.toArray(new Instruction[0])), "Ljava/lang/String;", "Z")));
+        List<Instruction> defaults = new ArrayList<>(List.of(string(0, "https://graph.facebook.com/logging_client_events")));
+        if (fault.equals("default-coverage-missing")) defaults.add(op(Opcode.NOP));
+        if (analytics && (mask & 2) != 0 && !fault.equals("default-missing") && !fault.equals("default-coverage-missing")) {
+            defaults.add(invoke(ANALYTICS_ENDPOINT, 0));
+            defaults.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+        }
+        defaults.add(op(Opcode.RETURN_OBJECT, 0));
+        classes.add(featureClass("Lfixture/DefaultAddress;", OBJECT, List.of(), define("Lfixture/DefaultAddress;", "get", "Ljava/lang/String;", true,
+                body(1, defaults.toArray(new Instruction[0])))));
+        List<Instruction> mqtt = new ArrayList<>(List.of(direct(method(OBJECT, "<init>", "V"), 2),
+                string(0, "analytics_endpoint"), string(1, "https://graph.facebook.com/logging_client_events"),
+                virtual(method("Lorg/json/JSONObject;", "optString", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"), 3, 0, 1),
+                op(Opcode.MOVE_RESULT_OBJECT, 0)));
+        if (analytics && (mask & 4) != 0 && !fault.equals("mqtt-missing")) {
+            mqtt.add(invoke(ANALYTICS_ENDPOINT, 0));
+            mqtt.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+        }
+        mqtt.add(objectField(Opcode.IPUT_OBJECT, 0, 2, "Lfixture/Mqtt;", "endpoint", "Ljava/lang/String;"));
+        mqtt.add(op(Opcode.RETURN_VOID));
+        classes.add(featureClass("Lfixture/Mqtt;", OBJECT, List.of(featureField("Lfixture/Mqtt;", "endpoint", "Ljava/lang/String;")),
+                define("Lfixture/Mqtt;", "<init>", "V", false, body(4, mqtt.toArray(new Instruction[0])), "Lorg/json/JSONObject;")));
+
+        List<Instruction> signers = new ArrayList<>();
+        if (trust && !fault.equals("trust-missing")) {
+            signers.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, 5));
+            signers.add(objectField(Opcode.IGET_OBJECT, 0, 0, SIGNER_HOST, "info", PACKAGE_INFO));
+            signers.add(invoke(fault.equals("trust-replaced") ? method("Ljava/util/Collections;", "singletonList", SHORTCUT_LIST, OBJECT) : ORIGINAL_SIGNERS, 0));
+            signers.add(op(Opcode.MOVE_RESULT_OBJECT, 1));
+            signers.add(ifEqz(1, fault.equals("trust-fallback") ? 27 : 9));
+            signers.add(type(Opcode.NEW_INSTANCE, 0, SIGNER_RESULT));
+            signers.add(new ImmutableInstruction11n(Opcode.CONST_4, 2, 0));
+            signers.add(direct(method(SIGNER_RESULT, "<init>", "V", SHORTCUT_LIST, "Z", "Z"), 0, 1, 2, 2));
+            signers.add(op(Opcode.RETURN_OBJECT, 0));
+        }
+        signers.addAll(List.of(objectField(Opcode.IGET_OBJECT, 0, 5, SIGNER_HOST, "info", PACKAGE_INFO),
+                objectField(Opcode.IGET_OBJECT, 1, 0, PACKAGE_INFO, "signingInfo", "Landroid/content/pm/SigningInfo;"),
+                virtual(method("Landroid/content/pm/SigningInfo;", "getApkContentsSigners", "[Landroid/content/pm/Signature;"), 1),
+                op(Opcode.MOVE_RESULT_OBJECT, 1),
+                objectField(Opcode.IGET_OBJECT, 0, 5, SIGNER_HOST, "info", PACKAGE_INFO),
+                objectField(Opcode.IGET_OBJECT, 1, 0, PACKAGE_INFO, "signingInfo", "Landroid/content/pm/SigningInfo;"),
+                virtual(method("Landroid/content/pm/SigningInfo;", "getSigningCertificateHistory", "[Landroid/content/pm/Signature;"), 1),
+                op(Opcode.MOVE_RESULT_OBJECT, 1),
+                objectField(Opcode.IGET_OBJECT, 1, 0, PACKAGE_INFO, "signatures", "[Landroid/content/pm/Signature;"),
+                type(Opcode.NEW_INSTANCE, 0, SIGNER_RESULT), new ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+                new ImmutableInstruction11n(Opcode.CONST_4, 2, 0),
+                direct(method(SIGNER_RESULT, "<init>", "V", SHORTCUT_LIST, "Z", "Z"), 0, 1, 2, 2), op(Opcode.RETURN_OBJECT, 0)));
+        classes.add(featureClass(SIGNER_HOST, OBJECT, List.of(featureField(SIGNER_HOST, "info", PACKAGE_INFO)),
+                define(SIGNER_HOST, "read", SIGNER_RESULT, false, body(6, signers.toArray(new Instruction[0])))));
+        classes.add(featureClass(SIGNER_RESULT, OBJECT, List.of(), define(SIGNER_RESULT, "<init>", "V", false,
+                body(4, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)), SHORTCUT_LIST, "Z", "Z")));
+        if (!patched) return classes;
+
+        List<Method> flags = new ArrayList<>();
+        for (String flag : List.of("hideAds", "sanitizeSharingLinks", "disableAnalytics", "restoreTrust")) {
+            if (fault.equals("status-missing") && flag.equals("hideAds")) continue;
+            boolean enabled = selected.contains(flag) && !(fault.equals("status-false") && flag.equals("hideAds"));
+            List<Instruction> status = new ArrayList<>();
+            if (enabled) status.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 1), op(Opcode.RETURN, 0)));
+            status.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)));
+            flags.add(define(FEATURE_STATUS, flag, "Z", true, body(1, status.toArray(new Instruction[0]))));
+        }
+        flags.add(define(FEATURE_STATUS, "analyticsAddressMask", "I", true, body(1,
+                new ImmutableInstruction21s(Opcode.CONST_16, 0, analytics ? mask : 0), op(Opcode.RETURN, 0))));
+        classes.add(featureClass(FEATURE_STATUS, OBJECT, List.of(), flags.toArray(new Method[0])));
+        ImmutableMethodImplementation getter = body(2, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0));
+        if (ads && !fault.equals("item-stub")) getter = body(2,
+                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 1, new ImmutableTypeReference(FEATURE_ITEM)), ifEqz(0, 9),
+                type(Opcode.CHECK_CAST, 1, FEATURE_ITEM), virtual(ITEM_MEDIA, 1), op(Opcode.MOVE_RESULT_OBJECT, 0),
+                op(Opcode.RETURN_OBJECT, 0), new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0));
+        ImmutableMethodImplementation adCheck = ads ? body(2, type(Opcode.CHECK_CAST, 1, FEATURE_MEDIA),
+                virtual(fault.equals("ad-target") ? method(FEATURE_MEDIA, "other", "Z") : MEDIA_AD, 1), op(Opcode.MOVE_RESULT, 0), op(Opcode.RETURN, 0))
+                : body(2, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0));
+        classes.add(featureClass(FEATURE_ADS, OBJECT, List.of(),
+                define(FEATURE_ADS, "filter", SHORTCUT_LIST, true, body(1, op(Opcode.RETURN_OBJECT, 0)), SHORTCUT_LIST),
+                define(FEATURE_ADS, "itemMedia", OBJECT, true, getter, OBJECT), define(FEATURE_ADS, "isAd", "Z", true, adCheck, OBJECT)));
+        classes.add(featureClass(FEATURE_ANALYTICS, OBJECT, List.of(), define(FEATURE_ANALYTICS, "endpoint", "Ljava/lang/String;", true,
+                body(1, op(Opcode.RETURN_OBJECT, 0)), "Ljava/lang/String;")));
+        classes.add(featureClass(FEATURE_LINKS, OBJECT, List.of(), define(FEATURE_LINKS, "sanitizeShared", "Ljava/lang/String;", true,
+                body(1, op(Opcode.RETURN_OBJECT, 0)), "Ljava/lang/String;")));
+        classes.add(featureClass(FEATURE_TRUST, OBJECT, List.of(), define(FEATURE_TRUST, "originalSigners", SHORTCUT_LIST, true,
+                body(2, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0)), PACKAGE_INFO)));
+        return classes;
+    }
+
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             System.err.println("usage: BadDexFixture <outDir>");
@@ -645,6 +846,22 @@ public class BadDexFixture {
         if (!out.isDirectory() && !out.mkdirs()) throw new IllegalStateException("Cannot create " + out);
 
         Map<String, List<ClassDef>> dexes = new LinkedHashMap<>();
+        Set<String> allFeatures = Set.of("hideAds", "sanitizeSharingLinks", "disableAnalytics", "restoreTrust");
+        dexes.put("features-clean", featureBuild(false, Set.of(), 0, ""));
+        dexes.put("features-good", featureBuild(true, allFeatures, 7, ""));
+        dexes.put("features-omitted", featureBuild(true, Set.of(), 0, ""));
+        for (String feature : allFeatures) dexes.put("features-only-" + feature, featureBuild(true, Set.of(feature), 7, ""));
+        for (int mask = 1; mask <= 7; mask++) dexes.put("features-mask-" + mask, featureBuild(true, Set.of("disableAnalytics"), mask, ""));
+        for (String fault : List.of("feed-missing", "feed-replaced", "feed-register", "item-stub", "ad-target",
+                "link-missing", "link-replaced", "link-register", "pigeon-missing", "pigeon-replaced", "pigeon-bypass",
+                "default-missing", "mqtt-missing", "trust-missing", "trust-replaced", "trust-fallback", "status-missing", "status-false")) {
+            dexes.put("features-bad-" + fault, featureBuild(true, allFeatures, 7, fault));
+        }
+        dexes.put("features-bad-zero-mask", featureBuild(true, allFeatures, 0, ""));
+        dexes.put("features-bad-unknown-mask", featureBuild(true, allFeatures, 8, ""));
+        dexes.put("features-no-default-clean", featureBuild(false, Set.of(), 0, "default-coverage-missing"));
+        dexes.put("features-no-default-pigeon", featureBuild(true, Set.of("disableAnalytics"), 1, "default-coverage-missing"));
+        dexes.put("features-bad-default-coverage", featureBuild(true, Set.of("disableAnalytics"), 3, "default-coverage-missing"));
         dexes.put("clean", clean(cleanHost()));
         // The clean build with one host method fewer, so its classes.dex isn't the clean one byte
         // for byte: what a merge that changed the base's code would hand over.

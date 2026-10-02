@@ -41,6 +41,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.facebook.download.SaveLeftovers;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.media.ResumePlayback;
+import app.morphe.extension.facebook.media.TapToPlay;
 import app.morphe.extension.facebook.navigation.ReelsTab;
 
 /**
@@ -465,7 +466,11 @@ public final class SettingsEntry {
             if (resumed != null && resumed.get() == activity) resumed = null;
         }
 
-        @Override public void onActivityCreated(Activity activity, Bundle state) { }
+        @Override
+        public void onActivityCreated(Activity activity, Bundle state) {
+            TapToPlay.activityCreated(activity, state);
+        }
+
         @Override public void onActivityStarted(Activity activity) { }
         @Override public void onActivityStopped(Activity activity) { }
         @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }

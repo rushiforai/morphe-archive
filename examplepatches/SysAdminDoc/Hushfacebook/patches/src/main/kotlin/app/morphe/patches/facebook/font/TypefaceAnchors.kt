@@ -5,11 +5,15 @@
 package app.morphe.patches.facebook.font
 
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.util.literalReads
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -51,6 +55,113 @@ private const val CREATE_FROM_ASSET = "createFromAsset"
 internal const val REACT_FAMILY = 2
 
 /**
+ * What Facebook logs when it can't build the Roboto its own text engine gives text that asks for
+ * none of Meta's fonts. The builder, a static method answering a Typeface for a Context and a
+ * weight, is the one method that keeps it (580 `LX/2do;->A01`).
+ */
+internal const val NO_ROBOTO = "Unable to create roboto typeface: %s"
+
+/**
+ * Android's default typefaces as a read of the framework's fields names them, each with the name
+ * of the extension getter that read becomes. The spans that bold a name in a post's header or a
+ * notification read DEFAULT_BOLD themselves (580 `LX/MEz;->updateDrawState`).
+ */
+internal val DEFAULT_TYPEFACES = mapOf(
+    "$TYPEFACE->DEFAULT:$TYPEFACE" to "defaultTypeface",
+    "$TYPEFACE->DEFAULT_BOLD:$TYPEFACE" to "defaultBold",
+    "$TYPEFACE->SANS_SERIF:$TYPEFACE" to "sansSerif",
+)
+
+/** The framework call answering Android's default typeface for a style. */
+internal const val DEFAULT_FROM_STYLE = "$TYPEFACE->defaultFromStyle(I)$TYPEFACE"
+
+/** The framework calls answering a typeface of a family by name, and of a typeface at a style or a weight. */
+internal const val CREATE_FROM_NAME = "$TYPEFACE->create(Ljava/lang/String;I)$TYPEFACE"
+internal const val CREATE_FROM_TYPEFACE = "$TYPEFACE->create(${TYPEFACE}I)$TYPEFACE"
+internal const val CREATE_AT_WEIGHT = "$TYPEFACE->create(${TYPEFACE}IZ)$TYPEFACE"
+
+/**
+ * The framework calls that can answer one of the phone's typefaces. Each goes to the extension's
+ * static method of the same name and arguments ([ownCall]), which makes the call itself first.
+ * The "sans-serif-medium" Facebook asks for by name (580 `LX/3st;-><clinit>` among twenty) and the
+ * spans that bold a word with Typeface.create(paint's typeface, style) go through these.
+ */
+internal val DEFAULT_CALLS = setOf(DEFAULT_FROM_STYLE, CREATE_FROM_NAME, CREATE_FROM_TYPEFACE, CREATE_AT_WEIGHT)
+
+/** The extension's stand-in for [call], one of [DEFAULT_CALLS]. */
+internal fun ownCall(call: String): String = call.replaceFirst("$TYPEFACE->", "$OWN_FONT->")
+
+/**
+ * Whether every use of the typeface the field read at [index] loads is a comparison with another
+ * typeface: an if-eq or if-ne, an equals call it's handed to, or Kotlin's areEqual, a static call
+ * on two objects answering a boolean under whatever name R8 gave it. Each such check asks whether
+ * a typeface is Android's own default, and keeps asking that. Litho's text sets a typeface on its
+ * paint only when it isn't Typeface.DEFAULT (580 `LX/3qU;->A00`), so with both sides of that
+ * check the picked font, plain text would never get it. The post text takes its own default
+ * branch only for Typeface.DEFAULT itself (580 `LX/302;->A0k`), and on the other one it sets the
+ * typeface it holds, which can be Android's from a caller. A read nothing uses isn't one.
+ */
+internal fun Method.onlyCompared(index: Int): Boolean {
+    val code = implementation!!.instructions.toList()
+    val uses = literalReads(index)
+    return uses.isNotEmpty() && uses.all { at ->
+        when (code[at].opcode) {
+            Opcode.IF_EQ, Opcode.IF_NE -> true
+            else -> ((code[at] as? ReferenceInstruction)?.reference as? MethodReference)?.let { call ->
+                call.returnType == "Z" && call.parameterTypes.all { it.toString() == OBJECT } && when (code[at].opcode) {
+                    Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE -> call.parameterTypes.size == 2
+                    else -> call.name == "equals"
+                }
+            } == true
+        }
+    }
+}
+
+/** The field or call [instruction] reads one of Android's default typefaces through, or null when it reads none. */
+internal fun defaultRead(instruction: Instruction): String? = when (instruction.opcode) {
+    Opcode.SGET_OBJECT -> (instruction as ReferenceInstruction).reference.toString().takeIf { it in DEFAULT_TYPEFACES }
+    Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE ->
+        (instruction as ReferenceInstruction).reference.toString().takeIf { it in DEFAULT_CALLS }
+    else -> null
+}
+
+/**
+ * Android's text views, the ones Facebook builds with `new` or extends. Each one's constructor
+ * reads its typeface from the layout or leaves it unset, and Android's own code does that, where
+ * no rewrite of Facebook's reaches.
+ */
+internal val FRAMEWORK_TEXT_VIEWS = setOf(
+    "TextView", "EditText", "Button", "AutoCompleteTextView", "MultiAutoCompleteTextView", "CheckedTextView",
+    "CompoundButton", "CheckBox", "RadioButton", "Switch", "ToggleButton",
+).map { "Landroid/widget/$it;" }.toSet()
+
+internal const val TEXT_VIEW = "Landroid/widget/TextView;"
+internal const val VIEW = "Landroid/view/View;"
+
+/** How Facebook's layout inflaters make a view of one of Android's classes from a layout's tag. */
+internal const val CREATE_VIEW = "Landroid/view/LayoutInflater;->createView($STRING${STRING}Landroid/util/AttributeSet;)$VIEW"
+
+/**
+ * The register holding the text view [instruction] builds, when it's the constructor call of one
+ * of [FRAMEWORK_TEXT_VIEWS], as `new` or as a view's super call. Null for anything else.
+ */
+internal fun builtTextView(instruction: Instruction): Int? {
+    if (instruction.opcode != Opcode.INVOKE_DIRECT && instruction.opcode != Opcode.INVOKE_DIRECT_RANGE) return null
+    val called = (instruction as ReferenceInstruction).reference as? MethodReference ?: return null
+    if (called.name != "<init>" || called.definingClass !in FRAMEWORK_TEXT_VIEWS) return null
+    return when (instruction) {
+        is RegisterRangeInstruction -> instruction.startRegister
+        is FiveRegisterInstruction -> instruction.registerC
+        else -> null
+    }
+}
+
+/** Whether [instruction] is a layout inflater's call of [CREATE_VIEW]. */
+internal fun makesView(instruction: Instruction): Boolean =
+    (instruction.opcode == Opcode.INVOKE_VIRTUAL || instruction.opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
+        (instruction as ReferenceInstruction).reference.toString() == CREATE_VIEW
+
+/**
  * The family constants the extension swaps: Meta's interface families, by the names the enum
  * keeps. OwnFont.isInterfaceFamily is the same rule on the phone.
  */
@@ -75,6 +186,15 @@ internal fun typefaceResolvers(owner: ClassDef): List<Method> = owner.methods.fi
     method.isStatic() && method.returnType == TYPEFACE && holdsString(method, NO_BACKING_SOURCE) &&
         method.parameterTypes.size >= 2 && method.parameterTypeNames().last() == "I" &&
         method.parameterTypeNames().first().startsWith("L")
+}
+
+/**
+ * The static methods of [owner] that answer a Typeface for a Context and end in the [NO_ROBOTO]
+ * log: Facebook's Roboto builder. The patch wants exactly one.
+ */
+internal fun robotoBuilders(owner: ClassDef): List<Method> = owner.methods.filter { method ->
+    method.isStatic() && method.returnType == TYPEFACE && method.parameterTypeNames().firstOrNull() == CONTEXT &&
+        holdsString(method, NO_ROBOTO)
 }
 
 /** The font family type [resolver] takes: its first parameter. */

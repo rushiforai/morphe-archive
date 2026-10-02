@@ -59,6 +59,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -71,6 +72,7 @@ import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
@@ -767,6 +769,110 @@ public class SettingsBackupTest {
         assertEquals("my team", back.kept);
         state.putString("hidden_words", "spoiler\nSPOILER");
         assertNull(SettingsBackup.Snapshot.fromBundle(state).hidden);
+    }
+
+    /**
+     * The longest lists the row keeps, 50 phrases of 60 characters that each take two chars, go
+     * out and come back whole, both at once, in a file inside the size limit.
+     */
+    @Test
+    public void theLongestWordListsRoundTripWhole() throws Exception {
+        String hidden = longestList(0x1F600);
+        String kept = longestList(0x20000);
+        assertEquals(PostWords.MAX_STORED_CHARS, hidden.length());
+        assertEquals(PostWords.MAX_STORED_CHARS, kept.length());
+        assertTrue(PostWords.isClean(hidden));
+        assertTrue(PostWords.isClean(kept));
+        assertEquals(PostWords.MAX_PHRASES, PostWords.count(hidden));
+        Settings.HIDDEN_WORDS.save(hidden);
+        Settings.KEPT_WORDS.save(kept);
+        String file = SettingsBackup.create();
+        assertTrue("a file of " + file.getBytes(StandardCharsets.UTF_8).length + " bytes",
+                file.getBytes(StandardCharsets.UTF_8).length <= SettingsBackup.MAX_BYTES);
+        Settings.HIDDEN_WORDS.resetToDefault();
+        Settings.KEPT_WORDS.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals(hidden, snapshot.hiddenChange());
+        assertEquals(kept, snapshot.keptChange());
+        assertEquals(2, SettingsBackup.apply(snapshot));
+        assertEquals(hidden, Settings.HIDDEN_WORDS.savedValue());
+        assertEquals(kept, Settings.KEPT_WORDS.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+    }
+
+    /** Lists of 1,024 and 1,025 chars, the most a file's string could be before, both come back. */
+    @Test
+    public void listsEitherSideOfTheOldStringLimitComeBack() throws Exception {
+        for (int length : new int[]{1024, 1025}) {
+            String list = asciiList(length);
+            assertEquals(length, list.length());
+            assertTrue(PostWords.isClean(list));
+            Settings.HIDDEN_WORDS.save(list);
+            String file = SettingsBackup.create();
+            Settings.HIDDEN_WORDS.resetToDefault();
+            SettingsBackup.apply(SettingsBackup.parse(file));
+            assertEquals(length + " chars", list, Settings.HIDDEN_WORDS.savedValue());
+        }
+    }
+
+    /**
+     * A string past the longest list, as a list, an unknown value or a name, or one that never
+     * ends, is refused before anything is read into a setting, and every setting stays as it was.
+     */
+    @Test
+    public void aStringPastTheLongestListIsRefusedAndChangesNothing() throws Exception {
+        assertEquals(PostWords.MAX_STORED_CHARS, SettingsBackup.MAX_STRING_CHARS);
+        Settings.HIDDEN_WORDS.save("spoiler");
+        Settings.KEPT_WORDS.save("my team");
+        Settings.SAVE_FOLDER.save("Clips");
+        Settings.HIDE_SUGGESTED_POSTS.save(!Settings.HIDE_SUGGESTED_POSTS.defaultValue);
+        String file = SettingsBackup.create();
+        Map<String, ?> before = store();
+        String past = longestList(0x1F600) + "x";
+
+        JSONObject asList = new JSONObject(file);
+        asList.getJSONObject("settings").put(SettingsBackup.HIDDEN.key, past);
+        JSONObject asUnknown = new JSONObject(file);
+        asUnknown.getJSONObject("settings").put("later", past);
+        JSONObject asName = new JSONObject(file);
+        asName.getJSONObject("settings").put(past, true);
+        String endless = file.substring(0, file.lastIndexOf('}')) + ",\"later\":\"" + repeat('x', SettingsBackup.MAX_STRING_CHARS + 1);
+        for (String refused : new String[]{asList.toString(), asUnknown.toString(), asName.toString(), endless}) {
+            assertTrue(refused.getBytes(StandardCharsets.UTF_8).length <= SettingsBackup.MAX_BYTES);
+            assertEquals(SettingsBackup.Reason.DAMAGED, reasonFor(refused));
+        }
+        String oversized = file.substring(0, file.lastIndexOf('}')) + ",\"later\":\"" + repeat('x', SettingsBackup.MAX_BYTES);
+        assertEquals(SettingsBackup.Reason.SIZE, reasonFor(oversized));
+        assertEquals(SettingsBackup.Reason.SIZE, readReason(new ByteArrayInputStream(oversized.getBytes(StandardCharsets.UTF_8))));
+
+        // The longest list itself still comes in.
+        JSONObject longest = new JSONObject(file);
+        longest.getJSONObject("settings").put(SettingsBackup.HIDDEN.key, longestList(0x1F600));
+        assertEquals(longestList(0x1F600), SettingsBackup.parse(longest.toString()).hiddenChange());
+        assertEquals("a refused file wrote something", before, store());
+    }
+
+    /** {@link PostWords#MAX_PHRASES} phrases of {@link PostWords#MAX_LENGTH} copies of a code point from [first] on. */
+    private static String longestList(int first) {
+        StringBuilder list = new StringBuilder();
+        for (int phrase = 0; phrase < PostWords.MAX_PHRASES; phrase++) {
+            if (phrase > 0) list.append('\n');
+            for (int i = 0; i < PostWords.MAX_LENGTH; i++) list.appendCodePoint(first + phrase);
+        }
+        return list.toString();
+    }
+
+    /** A clean list of plain letters exactly [length] chars long. */
+    private static String asciiList(int length) {
+        StringBuilder list = new StringBuilder();
+        for (int phrase = 0; list.length() < length; phrase++) {
+            if (phrase > 0) list.append('\n');
+            String start = String.format(Locale.ROOT, "p%02d", phrase);
+            int room = Math.min(PostWords.MAX_LENGTH, length - list.length());
+            list.append(start).append(repeat('x', room - start.length()));
+        }
+        return list.toString();
     }
 
     /** The preview and the toast say how many phrases each list will hold, never which. */

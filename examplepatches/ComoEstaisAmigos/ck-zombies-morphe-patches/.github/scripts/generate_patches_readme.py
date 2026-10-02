@@ -95,6 +95,8 @@ def patches_table(patches):
         else:
             opts_cell = ""
         desc = (p.get("description") or "").replace("\n", "<br>")
+        if not p.get("default", True):
+            desc += " *Off by default.*"
         name = f"[{p['name']}](#{a})" if a in README_ANCHORS else p["name"]
         rows.append(f"| {name} | {desc} | {opts_cell} |")
     return "\n".join(rows)

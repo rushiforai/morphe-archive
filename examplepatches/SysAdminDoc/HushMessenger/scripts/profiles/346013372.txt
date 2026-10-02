@@ -23,6 +23,7 @@ hook anonymous_stories LX/Ncx;->C1W(Lcom/facebook/messaging/montage/model/Montag
 hook avatar_stickers LX/PT6;->A01(LX/PT6;)Z
 hook avatar_tabs Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6U(LX/5n3;)V
 hook browser Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0M(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z
+hook bubble_mode LX/2ZV;->A01(Lcom/facebook/auth/usersession/FbUserSession;)Z
 hook bubbles LX/2ZV;->A00()Z
 hook business_suggestions LX/7R8;->A05(LX/7R8;)Z
 hook business_suggestions LX/7S6;->A04(LX/7S6;)Z
@@ -100,6 +101,9 @@ browserPreferenceKey LX/1D1;->A1U:LX/1BL;
 browserPreferenceIndex 54
 adFilterSize 934
 adFilterExits 915 930
+bubbleCapabilityGetter LX/1hx;->A03(Lcom/facebook/auth/usersession/FbUserSession;I)Z
+bubbleRolloutGetter Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->AhB(J)Z
+nativeBubbleRoutes LX/8pO;->A02(Landroid/graphics/Bitmap;LX/0MX;Lcom/facebook/auth/usersession/FbUserSession;LX/8pT;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/6dR;Lcom/facebook/push/constants/PushProperty;Z)V|LX/8pR;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/messaging/model/threadkey/ThreadKey;Ljava/lang/String;)LX/8pT;|LX/PSx;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/auth/usersession/FbUserSession;LX/PSx;Lcom/facebook/messaging/model/threads/ThreadSummary;)Z
 dexSite LX/0iY;->A04(Landroid/app/Application;)V@18 com.facebook.permission.%s.FB_APP_COMMUNICATION
 dexSite LX/15l;->A03()V@25 com.facebook.permission.prod.FB_APP_COMMUNICATION
 dexSite LX/1f3;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f3;Ljava/lang/String;Ljava/lang/String;)V@36 com.facebook.permission.prod.FB_APP_COMMUNICATION

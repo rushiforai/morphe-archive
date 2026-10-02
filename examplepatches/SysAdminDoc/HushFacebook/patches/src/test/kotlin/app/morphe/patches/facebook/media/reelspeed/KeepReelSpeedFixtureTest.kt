@@ -19,6 +19,8 @@ import app.morphe.patches.facebook.media.taptoplay.GROOT_PLAY
 import app.morphe.patches.facebook.media.taptoplay.grootPlays
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.reels.hold.hookSpeedSetter
+import app.morphe.patches.facebook.reels.hold.SPEED_SET as GUARD_SPEED_SET
 import app.morphe.patches.facebook.shared.redexOriginalName
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -131,14 +133,18 @@ class KeepReelSpeedFixtureTest {
                     callerClasses.map { it.type + " " + redexOriginalName(it) },
                     callerClasses.all { redexOriginalName(it)?.startsWith("FbShortsInlinePlaybackSpeedUtil\$") == true })
 
-                // The gear menu's speed sheet sets a pick through the same setter.
-                val gear = FixtureDex.classesHolding(bundle, GEAR_PICK).flatMap { it.methods }.filter { holdsString(it, GEAR_PICK) }
+                // The gear menu's speed sheet sets a pick through the same setter, and shows no toast.
+                val gearHolders = FixtureDex.classesHolding(bundle, GEAR_PICK)
+                val gear = gearHolders.flatMap { it.methods }.filter { holdsString(it, GEAR_PICK) }
                 assertTrue("$name: the gear menu's speed pick doesn't set the speed with ${setter.name}", gear.any { method ->
                     method.code().any { it.call?.let(::key) == "${owner.type}->${setter.name}(F)V" }
                 })
+                val gearPick = gear.single { setterCalls(it, owner.type, setter).isNotEmpty() }
+                val gearCalls = setterCalls(gearPick, owner.type, setter)
+                val gearClass = gearHolders.single { it.type == gearPick.definingClass }
 
                 val toastClass = toastHolders.single { it.type == toast.definingClass }
-                val context = PatchContexts.of(listOf(owner, toastClass, paramsClass,
+                val context = PatchContexts.of(listOf(owner, toastClass, gearClass, paramsClass,
                     ExtensionDex.classDef(REEL_SPEED), ExtensionDex.classDef(SETTINGS_STATUS)))
                 keepReelSpeedPatch.execute(context)
 
@@ -157,6 +163,17 @@ class KeepReelSpeedFixtureTest {
                 assertFirst("speed setter", setter, SPEED_SET, listOf(self, self + 1))
                 assertFirst("start", starts.single(), STARTED, listOf(starts.single().localRegisterCount()))
                 assertFirst("toast", toast, PICKED, listOf(toast.localRegisterCount() + 1))
+
+                // Straight after each of the gear pick's setter calls, the pick, with the speed that call handed over.
+                val gearCode = patched(gearPick.definingClass, gearPick)
+                val hooked = gearCode.withIndex().filter { it.value.call?.toString() == GEAR_PICKED }
+                assertEquals("$name: the gear pick's hooks", gearCalls.size, hooked.size)
+                for ((index, instruction) in hooked) {
+                    assertEquals("$name: the gear pick's hook doesn't follow a setter call",
+                        "${owner.type}->${setter.name}(F)V", gearCode[index - 1].call?.let(::key))
+                    assertEquals("$name: the speed the gear pick's hook gets", gearCode[index - 1].registers().last(),
+                        instruction.registers().single())
+                }
 
                 val stubs = context.mutableClassDefBy(REEL_SPEED)
                 val setStub = stubs.methods.single { it.name == SET_SPEED_STUB }.code()
@@ -184,13 +201,23 @@ class KeepReelSpeedFixtureTest {
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "keepReelSpeed" }
                 assertEquals("$name: SettingsStatus.keepReelSpeed() isn't switched on", 1,
                     (status.code()[0] as NarrowLiteralInstruction).narrowLiteral)
+
+                // As the patcher runs it, after the release guard it brings: the guard's answer stays
+                // first in the setter, and the hook after it reads the speed the player gets.
+                val guarded = PatchContexts.of(listOf(owner, toastClass, gearClass, paramsClass,
+                    ExtensionDex.classDef(REEL_SPEED), ExtensionDex.classDef(SETTINGS_STATUS)))
+                guarded.hookSpeedSetter(setter)
+                keepReelSpeedPatch.execute(guarded)
+                val chain = guarded.mutableClassDefBy(owner.type).methods.single {
+                    it.name == setter.name && it.parameterTypes.map(CharSequence::toString) == listOf("F")
+                }.code()
+                assertEquals("$name: the guard's hook isn't first in the setter", GUARD_SPEED_SET, chain[0].call.toString())
+                assertEquals("$name: the guard's answer isn't taken", Opcode.MOVE_RESULT, chain[1].opcode)
+                assertEquals("$name: the hook after the guard's answer", SPEED_SET, chain[2].call.toString())
+                assertEquals("$name: the registers the hook after the guard hands over", listOf(self, self + 1), chain[2].registers())
                 checked += version
             }
         }
         assertEquals("a declared build has no fixture", declaredBundles().keys, checked)
-    }
-
-    private companion object {
-        const val GEAR_PICK = "gear_playback_speed_selection_tap"
     }
 }

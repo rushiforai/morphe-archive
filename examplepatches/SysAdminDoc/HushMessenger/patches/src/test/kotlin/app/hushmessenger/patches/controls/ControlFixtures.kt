@@ -32,12 +32,13 @@ internal fun fixtureClass(
     methods: List<Method> = emptyList(),
     originalName: String? = null,
     interfaces: List<String> = emptyList(),
+    superclass: String = "Ljava/lang/Object;",
 ): MutableClass {
     val fields = originalName?.let {
         listOf(ImmutableField(type, "__redex_internal_original_name", "Ljava/lang/String;",
             AccessFlags.STATIC.value, ImmutableStringEncodedValue(it), null, null))
     }.orEmpty()
-    return MutableClass(ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;",
+    return MutableClass(ImmutableClassDef(type, AccessFlags.PUBLIC.value, superclass,
         interfaces, null, emptySet(), fields, methods))
 }
 
@@ -59,10 +60,62 @@ internal fun factoryApplication(body: String = """
 internal fun bundledControlsMethod(body: String = "const-string v0, \"\"\nreturn-object v0") =
     fixtureMethod(BUNDLED_CONTROLS, body, 1, AccessFlags.STATIC.value)
 
+internal fun nativeBubbleRoutesMethod(body: String = "const/4 v0, 0x0\nreturn v0") =
+    fixtureMethod(NATIVE_BUBBLE_ROUTES, body, 1, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
+
+/** Native A00/A01 bodies from build 346013440, with the profile's mapped references. */
+internal fun bubbleEligibilityMethod(body: String? = null) = fixtureMethod(activeProfile.hooks.getValue("bubbles").single(), body ?: """
+    sget v1, Landroid/os/Build${'$'}VERSION;->SDK_INT:I
+    const/16 v0, 0x1e
+    if-lt v1, v0, :not_eligible
+    iget-object v0, p0, ${activeProfile.hooks.getValue("bubbles").single().substringBefore("->")}->A02:LX/17Z;
+    iget-object v0, v0, LX/17Z;->A00:LX/0LV;
+    invoke-interface {v0}, LX/0LV;->get()Ljava/lang/Object;
+    move-result-object v0
+    check-cast v0, Landroid/app/ActivityManager;
+    invoke-virtual {v0}, Landroid/app/ActivityManager;->isLowRamDevice()Z
+    move-result v0
+    if-nez v0, :not_eligible
+    const/4 v0, 0x1
+    return v0
+    :not_eligible
+    const/4 v0, 0x0
+    return v0
+""".trimIndent(), 3)
+
+internal fun nativeBubbleModeMethod(body: String? = null) = fixtureMethod(activeProfile.hooks.getValue("bubble_mode").single(), body ?: """
+    const/4 v2, 0x0
+    invoke-static {p1, v2}, LX/33W;->A0j(Ljava/lang/Object;I)V
+    invoke-virtual {p0}, ${activeProfile.hooks.getValue("bubbles").single()}
+    move-result v0
+    if-eqz v0, :not_native
+    iget-object v0, p0, ${activeProfile.hooks.getValue("bubbles").single().substringBefore("->")}->A01:LX/17Z;
+    iget-object v0, v0, LX/17Z;->A00:LX/0LV;
+    invoke-interface {v0}, LX/0LV;->get()Ljava/lang/Object;
+    move-result-object v1
+    check-cast v1, ${activeProfile.bubbleCapabilityGetter.substringBefore("->")}
+    const/16 v0, 0x1c
+    invoke-virtual {v1, p1, v0}, ${activeProfile.bubbleCapabilityGetter}
+    move-result v0
+    if-eqz v0, :not_native
+    iget-object v0, p0, ${activeProfile.hooks.getValue("bubbles").single().substringBefore("->")}->A03:LX/17Z;
+    iget-object v0, v0, LX/17Z;->A00:LX/0LV;
+    invoke-interface {v0}, LX/0LV;->get()Ljava/lang/Object;
+    invoke-static {}, LX/1Aa;->A0A()LX/5V6;
+    move-result-object v2
+    const-wide v0, ${BUBBLE_ROLLOUT}L
+    check-cast v2, Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;
+    invoke-interface {v2, v0, v1}, ${activeProfile.bubbleRolloutGetter}
+    move-result v0
+    return v0
+    :not_native
+    return v2
+""".trimIndent(), 5)
+
 /** The factory and the extension class every settings run touches, as a supported APK plus the extension has them. */
 internal fun screenHostClasses() = listOf(
     fixtureClass(FACTORY_TYPE, listOf(factoryActivity(), factoryApplication())),
-    fixtureClass(HOST_SCREENS, listOf(bundledControlsMethod())),
+    fixtureClass(HOST_SCREENS, listOf(bundledControlsMethod(), nativeBubbleRoutesMethod())),
 )
 
 internal const val PEOPLE_JEWEL_HOOK = "LX/HAR;->A01(LX/HAR;)Z"

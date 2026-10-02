@@ -188,7 +188,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 
 [MorpheへHaiagaruを追加](https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe&name=Haiagaru)
 
-通常版URLは `1.5.7`、プレリリースURLは `1.6.0` を取得します。
+通常版URLは `1.5.7`、プレリリースURLは `1.6.1` を取得します。
 配布物はAndroid拡張を内包したMPPです。
 
 現在の配布版（1.5.7）を取得するパッチソースです。
@@ -197,7 +197,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle.json
 ```
 
-プレリリース版（1.6.0）を取得するパッチソースです。
+プレリリース版（1.6.1）を取得するパッチソースです。
 
 ```text
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle-pre.json
@@ -208,6 +208,14 @@ URV Manager / Morphe Managerが更新を検出できるようにJSON上の配布
 更新が表示されない場合は、パッチソース画面から手動で更新を実行してください。
 
 ## 更新履歴
+
+### 1.6.1（プレリリース）
+
+- スレの4種類のフィルタをツールバーの「フィルタ」ボタンにまとめる設定を追加（191 dev／242 devでは旧フィルタ行も非表示）
+- ID・ﾜｯﾁｮｲの長押しメニューを拡張し、Kyodemo検索でﾜｯﾁｮｲ全体を引き継ぐよう改善
+- 必死チェッカー専用ビュワーに更新ボタンと、向きを選べる履歴スワイプ設定を追加
+- ID中の `+` が検索欄で空白に変わる問題と、エッヂ過去ログ検索画面がステータスバーに重なる問題を修正
+- 191 devのTalk投稿確認フォームで、改行を含む本文が失われる場合を修正
 
 ### 1.6.0（プレリリース）
 
@@ -590,7 +598,7 @@ URV Manager / Morphe Managerが更新を検出できるようにJSON上の配布
 生成物:
 
 ```text
-patches\build\libs\patches-1.6.0.mpp
+patches\build\libs\patches-1.6.1.mpp
 ```
 
 公開には`:patches:buildAndroid`で生成したMPPを使用し、`classes.dex`が含まれることを確認してください。

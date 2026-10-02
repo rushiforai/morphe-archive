@@ -18,6 +18,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.morphe.extension.shared.Logger;
@@ -62,6 +63,11 @@ final class StreakMessenger {
      */
     static volatile long warmUpMillis = 10_000L;
     private static final long POLL_MILLIS = 500L;
+    /**
+     * How long the main thread gets to take the message before the hand-off is called off. Not
+     * final so a test can shorten it.
+     */
+    static volatile long handOffMillis = 10_000L;
 
     /** So a test can answer {@link #messagingReady} without TikTok. */
     static volatile Boolean readyForTests;
@@ -86,7 +92,12 @@ final class StreakMessenger {
         if (typed == null) return "";
         String text = typed.trim();
         int at = text.lastIndexOf('@');
-        if (at >= 0) text = text.substring(at + 1);
+        if (at >= 0) {
+            text = text.substring(at + 1);
+        } else if (text.indexOf('/') >= 0) {
+            // A link with no @ in it, like a vm.tiktok.com short link, doesn't name anyone.
+            return "";
+        }
         int end = 0;
         while (end < text.length()) {
             char c = text.charAt(end);
@@ -285,6 +296,10 @@ final class StreakMessenger {
     /**
      * Hands the message to the quick reply, called directly on the main thread the way Android
      * would call it. A broadcast would queue behind the alarm this is still answering.
+     *
+     * <p>When the main thread doesn't get to it in time the hand-off is called off, not left
+     * queued: a reply that ran late, after this attempt was counted as failed, would go out and
+     * then the retry would send a second one.
      */
     static void deliver(Context context, String conversationId, String text) throws Exception {
         Class<?> type = Class.forName(QUICK_REPLY_RECEIVER);
@@ -293,7 +308,9 @@ final class StreakMessenger {
                 .putExtra(REPLY_EXTRA, replyLink(conversationId, text));
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<Throwable> failure = new AtomicReference<>();
+        AtomicBoolean claimed = new AtomicBoolean();
         Utils.runOnMainThread(() -> {
+            if (!claimed.compareAndSet(false, true)) return;
             try {
                 receiver.onReceive(context, intent);
             } catch (Throwable thrown) {
@@ -302,8 +319,12 @@ final class StreakMessenger {
                 done.countDown();
             }
         });
-        if (!done.await(10, TimeUnit.SECONDS)) {
-            throw new IllegalStateException("The main thread didn't take the message");
+        if (!done.await(handOffMillis, TimeUnit.MILLISECONDS)) {
+            if (claimed.compareAndSet(false, true)) {
+                throw new IllegalStateException("The main thread didn't take the message");
+            }
+            // It started just as time ran out. The message is on its way, so wait it out.
+            done.await();
         }
         Throwable thrown = failure.get();
         if (thrown instanceof Exception) throw (Exception) thrown;

@@ -1,0 +1,50 @@
+# Required scopes come from the configured source/test projects, not the shipped payload.
+# A conditional scope may be absent only when its matching test task is also absent.
+required settings/buildscript/classpath
+required :/buildscript/classpath
+required :extensions/buildscript/classpath
+required :extensions:facebook/buildscript/classpath
+required :extensions:shared/buildscript/classpath
+required :extensions:shared:library/buildscript/classpath
+required :patches/buildscript/classpath
+required :patches:stub/buildscript/classpath
+required :patches/configuration/compileClasspath
+required :patches/configuration/runtimeClasspath
+required :patches/configuration/testCompileClasspath
+required :patches/configuration/testRuntimeClasspath
+required :patches/configuration/patcherProvidedClasspath
+required :patches/configuration/extensionConfiguration
+required :patches:stub/configuration/compileClasspath
+required :patches:stub/configuration/runtimeClasspath
+required :patches:stub/configuration/testCompileClasspath
+required :patches:stub/configuration/testRuntimeClasspath
+required :extensions:facebook/configuration/debugCompileClasspath
+required :extensions:facebook/configuration/debugRuntimeClasspath
+required :extensions:facebook/configuration/releaseCompileClasspath
+required :extensions:facebook/configuration/releaseRuntimeClasspath
+required :extensions:facebook/configuration/debugUnitTestCompileClasspath
+required :extensions:facebook/configuration/debugUnitTestRuntimeClasspath
+required :extensions:facebook/configuration/debugAndroidTestCompileClasspath
+required :extensions:facebook/configuration/debugAndroidTestRuntimeClasspath
+required :extensions:shared/configuration/debugCompileClasspath
+required :extensions:shared/configuration/debugRuntimeClasspath
+required :extensions:shared/configuration/releaseCompileClasspath
+required :extensions:shared/configuration/releaseRuntimeClasspath
+required :extensions:shared/configuration/debugUnitTestCompileClasspath
+required :extensions:shared/configuration/debugUnitTestRuntimeClasspath
+required :extensions:shared/configuration/debugAndroidTestCompileClasspath
+required :extensions:shared/configuration/debugAndroidTestRuntimeClasspath
+required :extensions:shared:library/configuration/debugCompileClasspath
+required :extensions:shared:library/configuration/debugRuntimeClasspath
+required :extensions:shared:library/configuration/releaseCompileClasspath
+required :extensions:shared:library/configuration/releaseRuntimeClasspath
+required :extensions:shared:library/configuration/debugUnitTestCompileClasspath
+required :extensions:shared:library/configuration/debugUnitTestRuntimeClasspath
+required :extensions:shared:library/configuration/debugAndroidTestCompileClasspath
+required :extensions:shared:library/configuration/debugAndroidTestRuntimeClasspath
+conditional :extensions:facebook/configuration/releaseUnitTestCompileClasspath testReleaseUnitTest
+conditional :extensions:facebook/configuration/releaseUnitTestRuntimeClasspath testReleaseUnitTest
+conditional :extensions:shared/configuration/releaseUnitTestCompileClasspath testReleaseUnitTest
+conditional :extensions:shared/configuration/releaseUnitTestRuntimeClasspath testReleaseUnitTest
+conditional :extensions:shared:library/configuration/releaseUnitTestCompileClasspath testReleaseUnitTest
+conditional :extensions:shared:library/configuration/releaseUnitTestRuntimeClasspath testReleaseUnitTest

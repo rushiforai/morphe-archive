@@ -244,6 +244,7 @@ public class HostScreensTest {
         PackageInfo info = Shadows.shadowOf(app.getPackageManager()).getInternalMutablePackageInfo(app.getPackageName());
         info.applicationInfo.metaData = new Bundle();
         info.applicationInfo.metaData.putBoolean("hush.feature.menu_row", true);
+        Shadows.shadowOf(app.getPackageManager()).addActivityIfNotPresent(new ComponentName(app.getPackageName(), SettingsActivity.DRAWER_ALIAS));
         for (boolean mounted : new boolean[] {false, true}) {
             var controller = Robolectric.buildActivity(SettingsActivity.class);
             // Building the activity registers it with PackageManager again, so the mount comes after.

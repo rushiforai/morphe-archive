@@ -13,21 +13,28 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Looper;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.PausedProcess;
+import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Robolectric;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
+import org.robolectric.shadows.ShadowLog;
 
 /**
  * A risk check is classified by the request it gates. A check that arrives over a follow,
@@ -40,6 +47,20 @@ import org.robolectric.shadows.ShadowToast;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class CaptchaGateTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    public static final class SignedInAccount {
+        public boolean isLogin() { return true; }
+    }
+
+    public static final class ThrowingScene {
+        public String LJIIJ() { throw new IllegalStateException("unreadable scene"); }
+    }
+
+    public static final class WrongTypeScene {
+        public int LJIIJ() { return 1; }
+    }
+
     /** Stands in for a retrofit request. The gate reads the path off it reflectively. */
     public static final class Request {
         private final String path;
@@ -74,12 +95,15 @@ public class CaptchaGateTest {
         Utils.setContext(context);
         HookStatus.clear();
         CaptchaGate.resetForTests();
+        PausedProcess.set(false);
         Settings.HIDE_CAPTCHA_POPUPS.save(true);
         now = CaptchaGate.now();
     }
 
     @After
     public void tearDown() {
+        CaptchaGate.resetForTests();
+        PausedProcess.set(false);
         HookStatus.clear();
     }
 
@@ -250,6 +274,86 @@ public class CaptchaGateTest {
     public void smsAndTwoFactorChecksAreNeverHidden() {
         assertFalse(CaptchaGate.shouldHideTuringCaptchaPopup(null, "sms"));
         assertFalse(CaptchaGate.shouldHideTuringCaptchaPopup(null, "twice_verify"));
+    }
+
+    @Test
+    public void aSignedInAccountDoesNotMakeAnUnclassifiedSceneSafeToHide() {
+        CaptchaGate.accountServiceForTests = new SignedInAccount();
+        String[] details = {null, "", " ", "{", "unknown", "slide", "slide_captcha",
+                "common_verify", "{\"subtype\":\"slide\"}", "{\"scene\":\"feed\"}"};
+        ShadowToast.reset();
+        for (String detail : details) {
+            ShadowLog.clear();
+            assertEquals("its scene has no reviewed browsing contract",
+                    CaptchaGate.showReason(null, detail, afterEveryWrite()));
+            assertFalse(CaptchaGate.shouldHideCaptchaPopup(null, detail));
+            assertFalse(CaptchaGate.shouldHideOecCaptchaPopup(new VerifyRequest(detail)));
+            assertFalse(CaptchaGate.shouldHideTuringDialog(null, new VerifyRequest(detail)));
+            assertFalse(CaptchaGate.shouldHideTuringCaptchaPopup(null, detail));
+            assertTrue(ShadowLog.getLogs().stream().anyMatch(log ->
+                    log.msg.contains("Showing risk check")
+                            && log.msg.contains("no reviewed browsing contract")));
+        }
+        assertFalse(CaptchaGate.shouldHideLegacyCaptchaPopup(null, 2148));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertNull(CaptchaGate.recentlySuppressedCheckId());
+        assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    @Test
+    public void unreadableRequestsStillReachTheShownDecisionAndDiagnosticRecord() {
+        CaptchaGate.accountServiceForTests = new SignedInAccount();
+        Object[] requests = {null, new Object(), new VerifyRequest(null),
+                new VerifyRequest(""), new ThrowingScene(), new WrongTypeScene()};
+        for (Object request : requests) {
+            HookStatus.clear();
+            ShadowLog.clear();
+            assertFalse(CaptchaGate.shouldHideOecCaptchaPopup(request));
+            assertFalse(CaptchaGate.shouldHideTuringDialog(null, request));
+            assertTrue(String.join(" ", HookStatus.report())
+                    .contains("CAPTCHA account state: 3 found, 0 missing"));
+            assertTrue(ShadowLog.getLogs().stream().anyMatch(log ->
+                    log.msg.contains("Showing risk check scene unknown")));
+            assertNull(CaptchaGate.recentlySuppressedCheckId());
+        }
+    }
+
+    @Test
+    public void signedInAccountAndRecoveryRoutesStayVisible() {
+        CaptchaGate.accountServiceForTests = new SignedInAccount();
+        for (String detail : new String[]{"login", "passport", "sms", "twice_verify",
+                "/passport/mobile/recover", "{\"scene\":\"login\"}"}) {
+            assertEquals("it is account verification",
+                    CaptchaGate.showReason(null, detail, afterEveryWrite()));
+            assertFalse(CaptchaGate.shouldHideCaptchaPopup(null, detail));
+            assertFalse(CaptchaGate.shouldHideTuringCaptchaPopup(null, detail));
+        }
+        try (var owner = Robolectric.buildActivity(android.app.Activity.class).setup()) {
+            owner.get().setIntent(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("aweme://account/passport/mobile/recover")));
+            assertEquals("it is account verification",
+                    CaptchaGate.showReason(owner.get(), "slide", afterEveryWrite()));
+            assertFalse(CaptchaGate.shouldHideTuringDialog(owner.get(), new VerifyRequest("slide")));
+        }
+        assertNull(CaptchaGate.recentlySuppressedCheckId());
+    }
+
+    @Test
+    public void offPauseAndWriteExpiryCannotTurnUnknownChallengesIntoBrowsingOnes() {
+        CaptchaGate.accountServiceForTests = new SignedInAccount();
+        CaptchaGate.recordRequest(new Request("/aweme/v1/commit/item/digg/"));
+        assertEquals("it gates a like", CaptchaGate.showReason(null, "slide",
+                now + CaptchaGate.WRITE_WINDOW_MS));
+        assertEquals("its scene has no reviewed browsing contract",
+                CaptchaGate.showReason(null, "slide", afterEveryWrite()));
+        Settings.HIDE_CAPTCHA_POPUPS.save(false);
+        assertEquals("the setting is off", CaptchaGate.showReason(null, "slide", now));
+        assertFalse(CaptchaGate.shouldHideCaptchaPopup(null, "slide"));
+        Settings.HIDE_CAPTCHA_POPUPS.save(true);
+        PausedProcess.set(true);
+        assertEquals("the setting is off", CaptchaGate.showReason(null, "slide", now));
+        assertFalse(CaptchaGate.shouldHideLegacyCaptchaPopup(null, 2148));
+        assertNull(CaptchaGate.recentlySuppressedCheckId());
     }
 
     @Test

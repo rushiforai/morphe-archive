@@ -33,7 +33,6 @@ import java.util.Locale;
  * the feed's prefetch.
  */
 public final class AuthorRegion {
-    private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     private static final String NAME_ID = "title";
     private static final String POST_TIME_ID = "tv_post_time";
 
@@ -85,8 +84,9 @@ public final class AuthorRegion {
                 Logger.printInfo(() -> "Author region found no content view to watch");
                 return;
             }
-            nameViewId = activity.getResources().getIdentifier(NAME_ID, "id", APP_PACKAGE);
-            postTimeViewId = activity.getResources().getIdentifier(POST_TIME_ID, "id", APP_PACKAGE);
+            // The running package, not TikTok's: a cloned build renames it, resource table and all (#59).
+            nameViewId = activity.getResources().getIdentifier(NAME_ID, "id", activity.getPackageName());
+            postTimeViewId = activity.getResources().getIdentifier(POST_TIME_ID, "id", activity.getPackageName());
             if (nameViewId == 0 || postTimeViewId == 0) {
                 LAYOUT_HOOK.detach();
                 restore();

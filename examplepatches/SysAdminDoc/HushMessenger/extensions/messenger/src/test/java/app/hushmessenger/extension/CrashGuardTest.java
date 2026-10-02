@@ -1,6 +1,8 @@
 package app.hushmessenger.extension;
 
 import android.content.SharedPreferences;
+import android.app.ActivityManager;
+import android.app.ApplicationExitInfo;
 import java.io.File;
 import org.junit.After;
 import org.junit.Before;
@@ -8,6 +10,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
+import org.robolectric.util.ReflectionHelpers;
+import org.robolectric.util.ReflectionHelpers.ClassParameter;
 import org.robolectric.annotation.Config;
 import static org.junit.Assert.*;
 
@@ -146,5 +151,105 @@ public class CrashGuardTest {
             android.widget.TextView count = root.findViewWithTag("enabled_count");
             assertTrue(count.getText().toString().contains("Safe mode"));
         }
+    }
+
+    @Test public void safeModeActionPreservesChoicesAndIntentionalPause() {
+        for (boolean paused : new boolean[] {false, true}) {
+            prefs.edit().putBoolean("stories", true).putBoolean("paused", paused).commit();
+            for (int i = 0; i < CrashGuard.THRESHOLD; i++) {
+                CrashGuard.write(new File(dir, CrashGuard.START_RECORD),
+                    "999 " + System.currentTimeMillis() + " crashed");
+                CrashGuard.write(new File(dir, CrashGuard.CRASH_STREAK), Integer.toString(i));
+                CrashGuard.resetForTests();
+                CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+            }
+            assertTrue(CrashGuard.isSafeMode());
+            try (var screen = org.robolectric.Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                android.view.View root = screen.get().getWindow().getDecorView();
+                android.widget.Button action = root.findViewWithTag("resume_safe_mode");
+                assertNotNull("Safe mode must provide its advertised recovery action", action);
+                assertEquals(android.view.View.VISIBLE, action.getVisibility());
+                assertEquals(paused ? "Clear safe mode" : "Resume", action.getText().toString());
+                action.performClick();
+                assertFalse(CrashGuard.isSafeMode());
+                assertFalse(prefs.getBoolean("safe_mode", true));
+                assertEquals(paused, prefs.getBoolean("paused", false));
+                assertTrue(prefs.getBoolean("stories", false));
+                assertEquals("0", CrashGuard.read(new File(dir, CrashGuard.CRASH_STREAK)));
+                assertEquals(android.view.View.GONE, action.getVisibility());
+                assertEquals(!paused, Settings.wouldUse("stories"));
+            }
+            CrashGuard.resetForTests();
+            CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+            assertFalse(CrashGuard.isSafeMode());
+            assertEquals(paused, prefs.getBoolean("paused", false));
+        }
+    }
+
+    @Test @Config(sdk = {30, 36, 37}) public void osExitReasonsOnlyCountEarlyCrashesAndAnrs() {
+        int[] reasons = {ApplicationExitInfo.REASON_CRASH, ApplicationExitInfo.REASON_CRASH_NATIVE,
+            ApplicationExitInfo.REASON_ANR, ApplicationExitInfo.REASON_LOW_MEMORY,
+            ApplicationExitInfo.REASON_USER_REQUESTED, ApplicationExitInfo.REASON_USER_STOPPED,
+            ApplicationExitInfo.REASON_PACKAGE_UPDATED, ApplicationExitInfo.REASON_OTHER};
+        int pid = 90000;
+        for (int reason : reasons) {
+            long started = System.currentTimeMillis() - 2000;
+            addExit(++pid, reason, started + 1000, "MemoryLimiter:AnonSwap");
+            prefs.edit().putBoolean("safe_mode", false).putBoolean("stories", true).putBoolean("paused", true).commit();
+            CrashGuard.write(new File(dir, CrashGuard.START_RECORD), pid + " " + started + " crashed");
+            CrashGuard.write(new File(dir, CrashGuard.CRASH_STREAK), "2");
+            CrashGuard.resetForTests();
+            CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+            boolean qualifies = reason == ApplicationExitInfo.REASON_CRASH || reason == ApplicationExitInfo.REASON_CRASH_NATIVE || reason == ApplicationExitInfo.REASON_ANR;
+            assertEquals("OS reason " + reason, qualifies, CrashGuard.isSafeMode());
+            assertEquals(qualifies, prefs.getBoolean("safe_mode", false));
+            assertTrue(prefs.getBoolean("stories", false));
+            assertTrue(prefs.getBoolean("paused", false));
+        }
+    }
+
+    @Test @Config(sdk = {30, 36, 37}) public void oldAndLateOsRecordsDoNotCount() {
+        long started = System.currentTimeMillis() - 2 * CrashGuard.WINDOW_MS;
+        int pid = 91000;
+        for (long offset : new long[] {-1, CrashGuard.WINDOW_MS, CrashGuard.WINDOW_MS + 1}) {
+            addExit(++pid, ApplicationExitInfo.REASON_CRASH, started + offset, "Crash");
+            assertEquals("Exit offset " + offset, offset == CrashGuard.WINDOW_MS,
+                CrashGuard.diedYoungFromACrash(RuntimeEnvironment.getApplication(), pid + " " + started));
+        }
+    }
+
+    @Test @Config(sdk = {30, 36, 37}) public void duplicateHistoryAndRepeatedStartsDoNotAdvanceTheSameFailureTwice() {
+        long started = System.currentTimeMillis() - 2000;
+        addExit(92000, ApplicationExitInfo.REASON_CRASH, started + 1000, "Crash");
+        addExit(92000, ApplicationExitInfo.REASON_CRASH, started + 1000, "Crash duplicate");
+        CrashGuard.write(new File(dir, CrashGuard.START_RECORD), "92000 " + started);
+        CrashGuard.write(new File(dir, CrashGuard.CRASH_STREAK), "0");
+        CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+        assertEquals("1", CrashGuard.read(new File(dir, CrashGuard.CRASH_STREAK)));
+        CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+        assertEquals("1", CrashGuard.read(new File(dir, CrashGuard.CRASH_STREAK)));
+        CrashGuard.resetForTests();
+        CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+        assertEquals("0", CrashGuard.read(new File(dir, CrashGuard.CRASH_STREAK)));
+        assertFalse(CrashGuard.isSafeMode());
+    }
+
+    @Test @Config(sdk = {30, 36, 37}) public void earliestMatchingExitWinsOverReusedPidsAndTheHandlerMarker() {
+        long started = System.currentTimeMillis() - 2000;
+        addExit(93001, ApplicationExitInfo.REASON_CRASH, started + 1, "Different process");
+        addExit(93000, ApplicationExitInfo.REASON_CRASH, started - 1, "Older process");
+        addExit(93000, ApplicationExitInfo.REASON_USER_STOPPED, started + 500, "Stopped");
+        addExit(93000, ApplicationExitInfo.REASON_CRASH, started + 1000, "Later PID reuse");
+        assertFalse(CrashGuard.diedYoungFromACrash(RuntimeEnvironment.getApplication(), "93000 " + started + " crashed"));
+    }
+
+    private void addExit(int pid, int reason, long timestamp, String description) {
+        ApplicationExitInfo exit = ReflectionHelpers.callConstructor(ApplicationExitInfo.class);
+        ReflectionHelpers.callInstanceMethod(exit, "setPid", ClassParameter.from(int.class, pid));
+        ReflectionHelpers.callInstanceMethod(exit, "setReason", ClassParameter.from(int.class, reason));
+        ReflectionHelpers.callInstanceMethod(exit, "setTimestamp", ClassParameter.from(long.class, timestamp));
+        ReflectionHelpers.callInstanceMethod(exit, "setDescription", ClassParameter.from(String.class, description));
+        ActivityManager manager = RuntimeEnvironment.getApplication().getSystemService(ActivityManager.class);
+        Shadows.shadowOf(manager).addApplicationExitInfo(exit);
     }
 }

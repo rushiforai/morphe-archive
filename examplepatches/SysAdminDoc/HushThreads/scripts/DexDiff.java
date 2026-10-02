@@ -22,6 +22,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.formats.ArrayPayload;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
 import com.android.tools.smali.dexlib2.iface.reference.Reference;
 import com.android.tools.smali.dexlib2.iface.reference.StringReference;
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference;
@@ -95,7 +96,8 @@ import java.util.TreeSet;
  * methods may answer that: five held "FeedRefreshTriggerController" on the Facebook sibling's 580,
  * so a rule naming that string alone passed a hook in any of them, and its logo rule named one
  * string and counted calls in any method holding it. The device verifier stays the authority;
- * these catch the known shapes without a phone.
+ * these catch the known shapes without a phone. A threads-feature rule also checks the selected
+ * patch's exact host mutations and generated helpers against the stock APK.
  *
  *   java -cp &lt;cli jar&gt; DexDiff.java &lt;cleanApk&gt; &lt;patchedApk&gt; &lt;reportFile&gt;
  *       &lt;removalAllowlist&gt; [&lt;contracts&gt;]
@@ -194,6 +196,8 @@ public class DexDiff {
     private static final String TYPED_FIRST_CALL = "first-call-typed";
     /** The kind a first-call rule that asks only for a call leaving a class prefix is read into. */
     private static final String OUTSIDE_FIRST_CALL = "first-call-outside";
+    private static final Set<String> THREADS_FEATURES = Set.of(
+            "hideAds", "sanitizeSharingLinks", "disableAnalytics", "restoreTrust");
 
     private static final class Contract {
         final String kind;
@@ -314,6 +318,10 @@ public class DexDiff {
             String line = raw.trim();
             if (line.isEmpty() || line.startsWith("#")) continue;
             String[] parts = line.split("\\s+");
+            if (parts.length == 2 && parts[0].equals("threads-feature") && THREADS_FEATURES.contains(parts[1])) {
+                contracts.add(new Contract(parts[0], parts[1], ""));
+                continue;
+            }
             String form = PICKED_FORMS.get(parts[0]);
             if (form != null) {
                 Contract picked = readPicked(parts);
@@ -1236,6 +1244,7 @@ public class DexDiff {
         Map<String, String> noCallInside = new HashMap<>();
         Map<String, List<String>> noCallSites = new LinkedHashMap<>();
         for (Contract contract : contracts) {
+            if (contract.kind.equals("threads-feature")) continue;
             if (contract.kind.equals("single-call")) callSites.put(contract.callee, new ArrayList<>());
             else if (contract.kind.equals("first-call")) firstCallTargets.put(contract.callee, contract.target);
             else if (contract.kind.equals(TYPED_FIRST_CALL)) {
@@ -1291,6 +1300,7 @@ public class DexDiff {
         }
         List<String> contractFindings = new ArrayList<>();
         for (Contract contract : contracts) {
+            if (contract.kind.equals("threads-feature")) continue;
             if (contract.picks()) {
                 checkPicked(contract, holders.get(contract), hookCallers.get(contract.callee), clean, contractFindings);
                 continue;
@@ -1914,9 +1924,418 @@ public class DexDiff {
         return b.append(" |maxreg=").append(maxReg).toString();
     }
 
+    private static final String STATUS = "Lapp/morphe/extension/hushthreads/settings/SettingsStatus;->";
+    private static final String FEED = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCache;";
+    private static final String MEDIA = "Lcom/instagram/feed/media/Media;";
+    private static final String ADS = "Lapp/morphe/extension/hushthreads/ads/FeedAds;->";
+    private static final String FILTER_PAGE = ADS + "filter(Ljava/util/List;)Ljava/util/List;";
+    private static final String CLEAN_LINK = "Lapp/morphe/extension/hushthreads/misc/LinkCleaner;->sanitizeShared(Ljava/lang/String;)Ljava/lang/String;";
+    private static final String ENDPOINT = "Lapp/morphe/extension/hushthreads/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String;";
+    private static final String SIGNERS = "Lapp/morphe/extension/hushthreads/misc/ThreadsSignature;->originalSigners(Landroid/content/pm/PackageInfo;)Ljava/util/List;";
+    private static final String LOGGING_URL = "https://graph.facebook.com/logging_client_events";
+
+    /** Keep duplicate definitions visible: choosing whichever dex was visited last hides corruption. */
+    private static Map<String, List<Method>> featureMethods(File apk, Map<String, String> parents) throws Exception {
+        Map<String, List<Method>> methods = new HashMap<>();
+        MultiDexContainer<? extends DexFile> dex = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
+        for (String entry : dex.getDexEntryNames()) for (ClassDef cd : dex.getEntry(entry).getDexFile().getClasses()) {
+            if (parents != null) parents.put(cd.getType(), cd.getSuperclass());
+            for (Method m : cd.getMethods()) methods.computeIfAbsent(sig(cd, m), k -> new ArrayList<>()).add(m);
+        }
+        return methods;
+    }
+
+    private static void requireFeature(boolean condition, String detail) {
+        if (!condition) throw new IllegalArgumentException(detail);
+    }
+
+    private static Method featureMethod(Map<String, List<Method>> methods, String signature) {
+        List<Method> found = methods.getOrDefault(signature, List.of());
+        requireFeature(found.size() == 1, "expected one definition of " + signature + ", found " + found.size());
+        return found.get(0);
+    }
+
+    private static Method featureTarget(Map<String, List<Method>> methods,
+            java.util.function.Predicate<Method> predicate, String label) {
+        Method target = null;
+        int count = 0;
+        for (List<Method> definitions : methods.values()) for (Method m : definitions) {
+            if (predicate.test(m)) { target = m; count++; }
+        }
+        requireFeature(count == 1, label + " has " + count + " stock candidates");
+        return target;
+    }
+
+    private static String featureSig(MethodReference m) {
+        return m.getDefiningClass() + "->" + m.getName() + "("
+                + String.join("", m.getParameterTypes()) + ")" + m.getReturnType();
+    }
+
+    private static String reference(Instruction i) {
+        return i instanceof ReferenceInstruction ? ((ReferenceInstruction) i).getReference().toString() : "";
+    }
+
+    private static boolean holds(Method m, String... strings) {
+        Set<String> wanted = new HashSet<>(Arrays.asList(strings));
+        for (Instruction i : instructions(m)) if (i instanceof ReferenceInstruction
+                && ((ReferenceInstruction) i).getReference() instanceof StringReference) {
+            wanted.remove(((StringReference) ((ReferenceInstruction) i).getReference()).getString());
+        }
+        return wanted.isEmpty();
+    }
+
+    private static int featureConstant(Map<String, List<Method>> methods, String name, String returns) {
+        Method m = featureMethod(methods, STATUS + name + "()" + returns);
+        List<Instruction> body = instructions(m);
+        requireFeature(AccessFlags.STATIC.isSet(m.getAccessFlags()) && body.size() >= 2
+                && (returns.equals("Z") || body.size() == 2)
+                && body.get(0) instanceof WideLiteralInstruction && body.get(0) instanceof OneRegisterInstruction
+                && body.get(0).getOpcode().name.startsWith("const")
+                && body.get(1).getOpcode() == Opcode.RETURN
+                && ((OneRegisterInstruction) body.get(0)).getRegisterA() == ((OneRegisterInstruction) body.get(1)).getRegisterA(),
+                name + " is not a constant status stub");
+        return Math.toIntExact(((WideLiteralInstruction) body.get(0)).getWideLiteral());
+    }
+
+    private static void featureCall(List<Instruction> body, int at, String callee, int input, int output) {
+        requireFeature(at >= 0 && at + 1 < body.size() && isStaticInvoke(body.get(at).getOpcode())
+                && reference(body.get(at)).equals(callee)
+                && Arrays.equals(invokeRegisters(body.get(at)), new int[]{input})
+                && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                && ((OneRegisterInstruction) body.get(at + 1)).getRegisterA() == output,
+                "missing or miswired " + callee + " at instruction " + at);
+    }
+
+    /** Compare original operations separately from offsets, then check the relocated branch graph. */
+    private static String featureInstruction(Instruction i) {
+        if (i instanceof SwitchPayload) {
+            StringBuilder keys = new StringBuilder(i.getOpcode().name);
+            for (SwitchElement e : ((SwitchPayload) i).getSwitchElements()) keys.append(' ').append(e.getKey());
+            return keys.toString();
+        }
+        String key = render(i);
+        if (i instanceof OffsetInstruction) key = key.replaceFirst(java.util.regex.Pattern.quote(
+                ", " + String.format("%+d", ((OffsetInstruction) i).getCodeOffset())), "");
+        return key.replace("const-string/jumbo ", "const-string ").replaceFirst("^goto(?:/16|/32)?", "goto");
+    }
+
+    /**
+     * The original body must survive with exactly the declared call/result insertions. Branches
+     * aimed at a wrapped instruction must reach the hook first, including switch cases.
+     */
+    private static void featureBody(Method stock, Method patched, int prefix,
+            Map<Integer, Integer> insertions, String callee) {
+        Layout old = new Layout(stock.getImplementation()), now = new Layout(patched.getImplementation());
+        requireFeature(stock.getImplementation().getRegisterCount() == patched.getImplementation().getRegisterCount(),
+                featureSig(stock) + " changed its register allocation");
+        int[] operations = new int[old.instructions.size()];
+        Map<Integer, Integer> relocated = new HashMap<>();
+        int at = prefix;
+        for (int k = 0; k < old.instructions.size(); k++) {
+            requireFeature(at < now.instructions.size(), featureSig(stock) + " lost original instruction " + k);
+            relocated.put(old.addresses.get(k), now.addresses.get(at));
+            Integer register = insertions.get(k);
+            if (register != null) {
+                featureCall(now.instructions, at, callee, register, register);
+                at += 2;
+            }
+            requireFeature(at < now.instructions.size()
+                    && featureInstruction(old.instructions.get(k)).equals(featureInstruction(now.instructions.get(at))),
+                    featureSig(stock) + " changed original instruction " + k);
+            operations[k] = at++;
+        }
+        relocated.put(old.size, now.size);
+        requireFeature(at == now.instructions.size(), featureSig(stock) + " contains undeclared operations");
+        for (int k = 0; k < old.instructions.size(); k++) {
+            Instruction before = old.instructions.get(k), after = now.instructions.get(operations[k]);
+            if (!(before instanceof OffsetInstruction)) continue;
+            int oldTarget = old.addresses.get(k) + ((OffsetInstruction) before).getCodeOffset();
+            int newTarget = now.addresses.get(operations[k]) + ((OffsetInstruction) after).getCodeOffset();
+            requireFeature(java.util.Objects.equals(relocated.get(oldTarget), newTarget),
+                    featureSig(stock) + " bypasses a hook or changes a branch target");
+            if (old.byAddress.get(oldTarget) instanceof SwitchPayload) {
+                List<? extends SwitchElement> oldCases = ((SwitchPayload) old.byAddress.get(oldTarget)).getSwitchElements();
+                List<? extends SwitchElement> newCases = ((SwitchPayload) now.byAddress.get(newTarget)).getSwitchElements();
+                for (int n = 0; n < oldCases.size(); n++) {
+                    int oldCase = old.addresses.get(k) + oldCases.get(n).getOffset();
+                    int newCase = now.addresses.get(operations[k]) + newCases.get(n).getOffset();
+                    requireFeature(java.util.Objects.equals(relocated.get(oldCase), newCase),
+                            featureSig(stock) + " bypasses a hook or changes a switch target");
+                }
+            }
+        }
+    }
+
+    private static void featureHostCalls(Map<String, List<Method>> methods, String callee, Map<String, Integer> expected) {
+        Map<String, Integer> found = new TreeMap<>();
+        for (List<Method> definitions : methods.values()) for (Method m : definitions) {
+            if (m.getDefiningClass().startsWith(OWN)) continue;
+            int count = callSites(instructions(m), callee).size();
+            if (count > 0) found.merge(featureSig(m), count, Integer::sum);
+        }
+        requireFeature(found.equals(expected), callee + " host calls differ: expected " + expected + ", found " + found);
+    }
+
+    private static void featureFeed(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
+        Method merge = featureTarget(clean, m -> m.getDefiningClass().equals(FEED)
+                && m.getReturnType().equals("Ljava/lang/Object;") && m.getParameterTypes().size() == 8
+                && m.getParameterTypes().get(4).equals("Ljava/util/List;")
+                && instructions(m).stream().anyMatch(i -> reference(i).startsWith(FEED.substring(0, FEED.length() - 1)
+                        + "$addAndSaveItemsFromFeedFetchSuccess$2$1;-><init>(")), "feed merge");
+        int parameter = merge.getImplementation().getRegisterCount() - merge.getParameterTypes().stream().mapToInt(DexDiff::slots).sum();
+        for (int n = 0; n < 4; n++) parameter += slots(merge.getParameterTypes().get(n).toString());
+        Method actual = featureMethod(patched, featureSig(merge));
+        featureCall(instructions(actual), 0, FILTER_PAGE, parameter, parameter);
+        featureBody(merge, actual, 2, Map.of(), FILTER_PAGE);
+        featureHostCalls(patched, FILTER_PAGE, Map.of(featureSig(merge), 1));
+
+        Method getter = featureMethod(patched, ADS + "itemMedia(Ljava/lang/Object;)Ljava/lang/Object;");
+        List<Instruction> g = instructions(getter);
+        requireFeature(g.size() == 8 && g.get(0).getOpcode() == Opcode.INSTANCE_OF
+                && g.get(1).getOpcode() == Opcode.IF_EQZ && g.get(2).getOpcode() == Opcode.CHECK_CAST
+                && g.get(3).getOpcode() == Opcode.INVOKE_VIRTUAL
+                && g.get(4).getOpcode() == Opcode.MOVE_RESULT_OBJECT && g.get(5).getOpcode() == Opcode.RETURN_OBJECT
+                && g.get(6).getOpcode() == Opcode.CONST_4 && g.get(7).getOpcode() == Opcode.RETURN_OBJECT,
+                "itemMedia is still a stub or has a different typed-accessor shape");
+        MethodReference mediaGetter = (MethodReference) ((ReferenceInstruction) g.get(3)).getReference();
+        String owner = mediaGetter.getDefiningClass();
+        requireFeature(mediaGetter.getParameterTypes().isEmpty() && mediaGetter.getReturnType().equals(MEDIA)
+                && !owner.equals(MEDIA) && reference(g.get(0)).equals(owner) && reference(g.get(2)).equals(owner)
+                && callSites(instructions(merge), featureSig(mediaGetter)).size() > 0,
+                "itemMedia does not call the feed item's stock Media getter");
+        Method declared = featureMethod(clean, featureSig(mediaGetter));
+        requireFeature(!AccessFlags.STATIC.isSet(declared.getAccessFlags()), "itemMedia's getter is not an instance method");
+        int input = getter.getImplementation().getRegisterCount() - 1;
+        requireFeature(((TwoRegisterInstruction) g.get(0)).getRegisterA() == 0
+                && ((TwoRegisterInstruction) g.get(0)).getRegisterB() == input
+                && ((OneRegisterInstruction) g.get(1)).getRegisterA() == 0
+                && ((OneRegisterInstruction) g.get(2)).getRegisterA() == input
+                && Arrays.equals(invokeRegisters(g.get(3)), new int[]{input})
+                && ((OneRegisterInstruction) g.get(4)).getRegisterA() == 0
+                && ((OneRegisterInstruction) g.get(5)).getRegisterA() == 0
+                && ((WideLiteralInstruction) g.get(6)).getWideLiteral() == 0
+                && ((OneRegisterInstruction) g.get(6)).getRegisterA() == 0
+                && ((OneRegisterInstruction) g.get(7)).getRegisterA() == 0, "itemMedia uses the wrong registers");
+        Layout getterLayout = new Layout(getter.getImplementation());
+        requireFeature(getterLayout.addresses.get(1) + ((OffsetInstruction) g.get(1)).getCodeOffset()
+                == getterLayout.addresses.get(6), "itemMedia's non-item branch does not return null");
+        Method ad = featureMethod(patched, ADS + "isAd(Ljava/lang/Object;)Z");
+        List<Instruction> a = instructions(ad);
+        requireFeature(a.size() == 4 && a.get(0).getOpcode() == Opcode.CHECK_CAST && reference(a.get(0)).equals(MEDIA)
+                && a.get(1).getOpcode() == Opcode.INVOKE_VIRTUAL && a.get(2).getOpcode() == Opcode.MOVE_RESULT
+                && a.get(3).getOpcode() == Opcode.RETURN, "isAd is still a stub or lacks the Media check");
+        MethodReference adCall = (MethodReference) ((ReferenceInstruction) a.get(1)).getReference();
+        Method adMethod = featureMethod(clean, featureSig(adCall));
+        requireFeature(adCall.getDefiningClass().equals(MEDIA) && adCall.getParameterTypes().isEmpty()
+                && adCall.getReturnType().equals("Z") && !AccessFlags.STATIC.isSet(adMethod.getAccessFlags()),
+                "isAd calls a different Media method");
+        Method injected = featureTarget(clean, m -> AccessFlags.STATIC.isSet(m.getAccessFlags())
+                && m.getReturnType().equals("Z") && m.getParameterTypes().size() == 1
+                && instructions(m).stream().anyMatch(i -> i instanceof WideLiteralInstruction
+                        && (int) ((WideLiteralInstruction) i).getWideLiteral() == 0x8669a9b0)
+                && instructions(m).stream().anyMatch(i -> i instanceof WideLiteralInstruction
+                        && (int) ((WideLiteralInstruction) i).getWideLiteral() == "injected".hashCode()), "injected ad check");
+        requireFeature(!callSites(instructions(adMethod), featureSig(injected)).isEmpty(), "isAd doesn't ask the injected ad check");
+        int adInput = ad.getImplementation().getRegisterCount() - 1;
+        requireFeature(((OneRegisterInstruction) a.get(0)).getRegisterA() == adInput
+                && Arrays.equals(invokeRegisters(a.get(1)), new int[]{adInput})
+                && ((OneRegisterInstruction) a.get(2)).getRegisterA() == ((OneRegisterInstruction) a.get(3)).getRegisterA(),
+                "isAd uses the wrong receiver or result");
+    }
+
+    private static int ownedPermalinkStore(Method parser, Map<String, String> parents) {
+        List<Instruction> body = instructions(parser);
+        Set<Integer> stores = new HashSet<>();
+        for (int t = 0; t < body.size(); t++) {
+            if (!reference(body.get(t)).equals("XDTPermalinkResponse")) continue;
+            int nameRegister = ((OneRegisterInstruction) body.get(t)).getRegisterA();
+            for (int n = t + 1; n < body.size(); n++) {
+                if (body.get(n).getOpcode() != Opcode.NEW_INSTANCE) continue;
+                String owner = reference(body.get(n));
+                Set<String> constructorOwners = new HashSet<>();
+                String ancestor = owner;
+                while (ancestor != null && constructorOwners.size() < 20 && constructorOwners.add(ancestor)) ancestor = parents.get(ancestor);
+                Set<Integer> aliases = new HashSet<>(Set.of(((OneRegisterInstruction) body.get(n)).getRegisterA()));
+                boolean named = false, nameAlive = true;
+                for (int k = t + 1; k <= n; k++) if (body.get(k).getOpcode().setsRegister()
+                        && (((OneRegisterInstruction) body.get(k)).getRegisterA() == nameRegister
+                        || body.get(k).getOpcode().setsWideRegister() && ((OneRegisterInstruction) body.get(k)).getRegisterA() == nameRegister - 1)) nameAlive = false;
+                for (int k = n + 1; k < body.size() && !aliases.isEmpty(); k++) {
+                    Instruction i = body.get(k);
+                    if (i instanceof OffsetInstruction || !i.getOpcode().canContinue()) break;
+                    if ((i.getOpcode() == Opcode.INVOKE_DIRECT || i.getOpcode() == Opcode.INVOKE_DIRECT_RANGE)
+                            && ((ReferenceInstruction) i).getReference() instanceof MethodReference) {
+                        MethodReference call = (MethodReference) ((ReferenceInstruction) i).getReference();
+                        int[] registers = invokeRegisters(i);
+                        int word = 1;
+                        for (CharSequence p : call.getParameterTypes()) {
+                            if (call.getName().equals("<init>") && constructorOwners.contains(call.getDefiningClass())
+                                    && call.getReturnType().equals("V") && aliases.contains(registers[0]) && nameAlive
+                                    && p.toString().equals("Ljava/lang/String;") && registers[word] == nameRegister) named = true;
+                            word += slots(p.toString());
+                        }
+                    }
+                    if (named && i.getOpcode() == Opcode.IPUT_OBJECT) {
+                        FieldReference field = (FieldReference) ((ReferenceInstruction) i).getReference();
+                        if (field.getDefiningClass().equals(owner) && field.getType().equals("Ljava/lang/String;")
+                                && aliases.contains(((TwoRegisterInstruction) i).getRegisterB())) stores.add(k);
+                    }
+                    if (i.getOpcode().setsRegister()) {
+                        int dest = ((OneRegisterInstruction) i).getRegisterA();
+                        boolean carries = (i.getOpcode() == Opcode.MOVE_OBJECT || i.getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                                || i.getOpcode() == Opcode.MOVE_OBJECT_16) && aliases.contains(((TwoRegisterInstruction) i).getRegisterB());
+                        if (i.getOpcode() == Opcode.CHECK_CAST) carries = aliases.contains(dest);
+                        aliases.remove(dest);
+                        if (i.getOpcode().setsWideRegister()) aliases.remove(dest + 1);
+                        if (carries) aliases.add(dest);
+                        if (dest == nameRegister || i.getOpcode().setsWideRegister() && dest + 1 == nameRegister) nameAlive = false;
+                    }
+                }
+            }
+        }
+        requireFeature(stores.size() == 1, "permalink has " + stores.size() + " owned String stores");
+        return stores.iterator().next();
+    }
+
+    private static void featureLinks(Map<String, List<Method>> clean, Map<String, List<Method>> patched, Map<String, String> parents) {
+        Method parser = featureTarget(clean, m -> m.getName().equals("unsafeParseFromJson")
+                && m.getReturnType().equals("Ljava/lang/Object;") && holds(m, "permalink", "XDTPermalinkResponse"), "permalink parser");
+        int store = ownedPermalinkStore(parser, parents);
+        int link = ((TwoRegisterInstruction) instructions(parser).get(store)).getRegisterA();
+        featureBody(parser, featureMethod(patched, featureSig(parser)), 0, Map.of(store, link), CLEAN_LINK);
+        featureHostCalls(patched, CLEAN_LINK, Map.of(featureSig(parser), 1));
+    }
+
+    private static void featureAnalytics(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
+        int mask = featureConstant(patched, "analyticsAddressMask", "I");
+        requireFeature(mask > 0 && (mask & ~7) == 0, "analytics has no valid recorded address coverage");
+        Map<Method, Map<Integer, Integer>> wraps = new LinkedHashMap<>();
+        if ((mask & 1) != 0) {
+            Method pigeon = featureTarget(clean, m -> AccessFlags.STATIC.isSet(m.getAccessFlags())
+                    && m.getReturnType().equals("Ljava/lang/String;") && m.getParameterTypes().equals(List.of("Ljava/lang/String;", "Z"))
+                    && holds(m, "/pigeon_nest", "/logging_client_events"), "PIGEON");
+            Map<Integer, Integer> returns = new TreeMap<>();
+            List<Instruction> body = instructions(pigeon);
+            for (int k = 0; k < body.size(); k++) if (body.get(k).getOpcode() == Opcode.RETURN_OBJECT)
+                returns.put(k, ((OneRegisterInstruction) body.get(k)).getRegisterA());
+            requireFeature(!returns.isEmpty(), "PIGEON has no address returns");
+            wraps.put(pigeon, returns);
+        }
+        if ((mask & 2) != 0) {
+            int sites = 0;
+            for (List<Method> definitions : clean.values()) for (Method m : definitions) {
+                List<Instruction> body = instructions(m);
+                for (int k = 1; k < body.size(); k++) if (body.get(k).getOpcode() == Opcode.RETURN_OBJECT
+                        && reference(body.get(k - 1)).equals(LOGGING_URL)
+                        && (body.get(k - 1).getOpcode() == Opcode.CONST_STRING || body.get(k - 1).getOpcode() == Opcode.CONST_STRING_JUMBO)
+                        && ((OneRegisterInstruction) body.get(k - 1)).getRegisterA() == ((OneRegisterInstruction) body.get(k)).getRegisterA()) {
+                    wraps.computeIfAbsent(m, key -> new TreeMap<>()).put(k, ((OneRegisterInstruction) body.get(k)).getRegisterA());
+                    sites++;
+                }
+            }
+            requireFeature(sites > 0, "DEFAULT has no literal address answers");
+        }
+        if ((mask & 4) != 0) {
+            Method mqtt = featureTarget(clean, m -> m.getName().equals("<init>")
+                    && m.getParameterTypes().equals(List.of("Lorg/json/JSONObject;"))
+                    && holds(m, "analytics_endpoint", LOGGING_URL), "MQTT");
+            List<Instruction> body = instructions(mqtt);
+            int key = -1, read = -1;
+            for (int k = 0; k < body.size(); k++) {
+                if (reference(body.get(k)).equals("analytics_endpoint") && key < 0) key = k;
+                if (key >= 0 && body.get(k).getOpcode() == Opcode.MOVE_RESULT_OBJECT) { read = k; break; }
+            }
+            requireFeature(read >= 0 && read + 1 < body.size(), "MQTT never reads its analytics address");
+            wraps.computeIfAbsent(mqtt, unused -> new TreeMap<>()).put(read + 1, ((OneRegisterInstruction) body.get(read)).getRegisterA());
+        }
+        Map<String, Integer> calls = new TreeMap<>();
+        for (Map.Entry<Method, Map<Integer, Integer>> e : wraps.entrySet()) {
+            featureBody(e.getKey(), featureMethod(patched, featureSig(e.getKey())), 0, e.getValue(), ENDPOINT);
+            calls.put(featureSig(e.getKey()), e.getValue().size());
+        }
+        featureHostCalls(patched, ENDPOINT, calls);
+    }
+
+    private static void featureTrust(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
+        Method stock = featureTarget(clean, m -> m.getParameterTypes().isEmpty() && !AccessFlags.STATIC.isSet(m.getAccessFlags())
+                && !callSites(instructions(m), "Landroid/content/pm/SigningInfo;->getApkContentsSigners()[Landroid/content/pm/Signature;").isEmpty()
+                && !callSites(instructions(m), "Landroid/content/pm/SigningInfo;->getSigningCertificateHistory()[Landroid/content/pm/Signature;").isEmpty()
+                && instructions(m).stream().anyMatch(i -> reference(i).equals("Landroid/content/pm/PackageInfo;->signatures:[Landroid/content/pm/Signature;")),
+                "signature wrapper");
+        Method actual = featureMethod(patched, featureSig(stock));
+        List<Instruction> body = instructions(actual);
+        requireFeature(body.size() >= 9 && body.get(0).getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                && body.get(1).getOpcode() == Opcode.IGET_OBJECT && body.get(4).getOpcode() == Opcode.IF_EQZ
+                && body.get(5).getOpcode() == Opcode.NEW_INSTANCE && body.get(6).getOpcode() == Opcode.CONST_4
+                && body.get(7).getOpcode() == Opcode.INVOKE_DIRECT && body.get(8).getOpcode() == Opcode.RETURN_OBJECT,
+                "signature wrapper prefix is missing");
+        FieldReference info = (FieldReference) ((ReferenceInstruction) body.get(1)).getReference();
+        requireFeature(info.getDefiningClass().equals(stock.getDefiningClass()) && info.getType().equals("Landroid/content/pm/PackageInfo;")
+                && instructions(stock).stream().anyMatch(i -> reference(i).equals(info.toString())), "signature wrapper reads the wrong PackageInfo");
+        int self = actual.getImplementation().getRegisterCount() - 1;
+        requireFeature(((TwoRegisterInstruction) body.get(0)).getRegisterA() == 0
+                && ((TwoRegisterInstruction) body.get(0)).getRegisterB() == self
+                && ((TwoRegisterInstruction) body.get(1)).getRegisterA() == 0 && ((TwoRegisterInstruction) body.get(1)).getRegisterB() == 0,
+                "signature wrapper uses the wrong PackageInfo receiver");
+        featureCall(body, 2, SIGNERS, 0, 1);
+        requireFeature(((OneRegisterInstruction) body.get(4)).getRegisterA() == 1
+                && ((OneRegisterInstruction) body.get(5)).getRegisterA() == 0 && reference(body.get(5)).equals(stock.getReturnType())
+                && ((OneRegisterInstruction) body.get(6)).getRegisterA() == 2 && ((WideLiteralInstruction) body.get(6)).getWideLiteral() == 0
+                && reference(body.get(7)).equals(stock.getReturnType() + "-><init>(Ljava/util/List;ZZ)V")
+                && Arrays.equals(invokeRegisters(body.get(7)), new int[]{0, 1, 2, 2})
+                && ((OneRegisterInstruction) body.get(8)).getRegisterA() == 0, "signature wrapper changes result flags or constructor");
+        Layout layout = new Layout(actual.getImplementation());
+        requireFeature(layout.addresses.get(4) + ((OffsetInstruction) body.get(4)).getCodeOffset() == layout.addresses.get(9),
+                "null signers do not fall back to the original body");
+        featureBody(stock, actual, 9, Map.of(), SIGNERS);
+        featureHostCalls(patched, SIGNERS, Map.of(featureSig(stock), 1));
+    }
+
+    private static List<String> checkThreadsFeatures(File cleanApk, File patchedApk, Set<String> rules,
+            Set<String> selected) throws Exception {
+        Map<String, List<Method>> patched = featureMethods(patchedApk, null);
+        Map<String, List<Method>> clean = null;
+        Map<String, String> parents = new HashMap<>();
+        boolean hasPayload = patched.keySet().stream().anyMatch(s -> s.startsWith(ADS)
+                || s.startsWith(ENDPOINT.substring(0, ENDPOINT.indexOf("->") + 2))
+                || s.startsWith(CLEAN_LINK.substring(0, CLEAN_LINK.indexOf("->") + 2))
+                || s.startsWith(SIGNERS.substring(0, SIGNERS.indexOf("->") + 2)));
+        List<String> findings = new ArrayList<>();
+        if (selected != null) for (String feature : selected) if (!rules.contains(feature))
+            findings.add("contract: selected feature has no contract: " + feature);
+        for (String feature : rules) {
+            try {
+                boolean hasStatus = patched.containsKey(STATUS + feature + "()Z");
+                if (!hasStatus && selected == null && !hasPayload) {
+                    System.out.println("[diff] threads-feature " + feature + ": no feature payload");
+                    continue;
+                }
+                int flag = featureConstant(patched, feature, "Z");
+                requireFeature(flag == 0 || flag == 1, feature + " status is not boolean");
+                if (selected != null) requireFeature((flag == 1) == selected.contains(feature), feature + " status disagrees with the selected patches");
+                if (flag == 0) {
+                    System.out.println("[diff] threads-feature " + feature + ": omitted");
+                    continue;
+                }
+                if (clean == null) clean = featureMethods(cleanApk, parents);
+                switch (feature) {
+                    case "hideAds": featureFeed(clean, patched); break;
+                    case "sanitizeSharingLinks": featureLinks(clean, patched, parents); break;
+                    case "disableAnalytics": featureAnalytics(clean, patched); break;
+                    case "restoreTrust": featureTrust(clean, patched); break;
+                    default: throw new IllegalArgumentException("Unknown feature " + feature);
+                }
+                System.out.println("[diff] threads-feature " + feature + ": verified");
+            } catch (IllegalArgumentException | ClassCastException | IndexOutOfBoundsException ex) {
+                findings.add("contract: " + feature + ": " + ex.getMessage());
+            }
+        }
+        return findings;
+    }
+
     public static void main(String[] args) throws Exception {
-        if (args.length < 4 || args.length > 6) {
-            System.err.println("usage: DexDiff <cleanApk> <patchedApk> <reportFile> <removalAllowlist> [<contracts> [<signedBase>]]");
+        if (args.length < 4 || args.length > 7) {
+            System.err.println("usage: DexDiff <cleanApk> <patchedApk> <reportFile> <removalAllowlist> [<contracts> [<signedBase|-> [<selectedFeatures|none>]]]");
             System.exit(2);
         }
         File clean = new File(args[0]);
@@ -1926,7 +2345,12 @@ public class DexDiff {
         File contractFile = args.length > 4 ? new File(args[4]) : null;
         List<Contract> contracts = readContracts(contractFile);
         // The base.apk whose signer was checked, when the clean side is the bundle's merge.
-        File signedBase = args.length > 5 ? new File(args[5]) : null;
+        File signedBase = args.length > 5 && !args[5].equals("-") ? new File(args[5]) : null;
+        Set<String> selectedFeatures = null;
+        if (args.length > 6) {
+            selectedFeatures = args[6].equals("none") ? Set.of() : new HashSet<>(Arrays.asList(args[6].split(",", -1)));
+            if (!THREADS_FEATURES.containsAll(selectedFeatures)) throw new IllegalArgumentException("Unknown selected feature: " + args[6]);
+        }
         List<String> baseMismatch = signedBase == null ? List.of() : rootDexMismatch(signedBase, clean);
 
         System.out.println("[diff] fingerprinting clean " + clean.getName());
@@ -2040,6 +2464,12 @@ public class DexDiff {
         Map<String, List<String>> fresh = new HashMap<>();
         for (String s : structuralWanted) fresh.put(s, without(prints(after.get(s)), prints(before.get(s))));
         Map<String, List<String>> structural = structuralPass(patched, clean, structuralWanted, fresh, contracts);
+        Set<String> featureRules = new TreeSet<>();
+        for (Contract contract : contracts) if (contract.kind.equals("threads-feature")) featureRules.add(contract.callee);
+        if (!featureRules.isEmpty() || selectedFeatures != null) {
+            List<String> featureFindings = checkThreadsFeatures(clean, patched, featureRules, selectedFeatures);
+            if (!featureFindings.isEmpty()) structural.computeIfAbsent("contract", k -> new ArrayList<>()).addAll(featureFindings);
+        }
         int structuralCount = 0;
         for (Map.Entry<String, List<String>> e : structural.entrySet()) {
             for (String finding : e.getValue()) {

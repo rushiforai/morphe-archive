@@ -19,7 +19,10 @@
     switch targets, invoke registers, the static and wide parameter layout, move-result
     placement and try ranges, and the whole APK is held to
     scripts/injected-mutation-contracts.txt: none of the ShortcutManager calls the settings patch
-    sends to SettingsEntry may be left anywhere outside the extension.
+    sends to SettingsEntry may be left anywhere outside the extension. Selected Threads features
+    must retain their feed helpers, owned permalink hook, recorded analytics address mutations
+    and signature wrapper with its stock fallback. -SelectedPatches supplies the independent
+    validated CLI selection; a standalone check uses the patched SettingsStatus flags.
 
     On a device. The Android runtime's own verifier is the authority, so with -Serial the
     clean APK and the patched APK are both put through dex2oat with the verify filter and the
@@ -45,7 +48,7 @@
     base.apk's code: the Facebook sibling's 580 in-app browser shipped its own dex in
     split_heliumcore.apk, and against base.apk its methods read as some 12,000 added and 212
     changed. The merge carries no signature, so Meta's signer is checked on base.apk, DexDiff
-    holds the merge to base.apk's classes*.dex byte for byte (handed base.apk as its last
+    holds the merge to base.apk's classes*.dex byte for byte (handed base.apk as its sixth
     argument), and it fails a clean side that holds any of the bundle's own code. The device half
     runs base.apk, the same app code.
 
@@ -70,7 +73,9 @@ param(
     [string]$ReportPath,
     [string]$Java,
     [string]$DesktopJar,
-    [string]$Aapt2
+    [string]$Aapt2,
+    # Validated desktop CLI patch names. Without them, a standalone check reads SettingsStatus.
+    [string[]]$SelectedPatches
 )
 
 $ErrorActionPreference = 'Stop'
@@ -122,10 +127,21 @@ function Get-SignerDigests {
 function Invoke-DexDiff {
     $ErrorActionPreference = 'Continue'
     $global:LASTEXITCODE = -1
-    $output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'DexDiff.java') `
-        $CleanMerged $PatchedApk $ReportPath `
-        (Join-Path $PSScriptRoot 'injected-register-removal-allowlist.txt') `
-        (Join-Path $PSScriptRoot 'injected-mutation-contracts.txt') $cleanBase 2>&1 | ForEach-Object { "$_" })
+    $selectionArguments = @()
+    if ($null -ne $SelectedPatches) {
+        $featureNames = [ordered]@{
+            'Hide ads' = 'hideAds'
+            'Sanitize sharing links' = 'sanitizeSharingLinks'
+            'Disable analytics' = 'disableAnalytics'
+            'Restore screens on re-signed builds' = 'restoreTrust'
+        }
+        foreach ($name in $SelectedPatches) {
+            if ($name -cnotin @($catalog.patches | ForEach-Object { $_.name })) { throw "Unknown selected patch: $name" }
+        }
+        $selected = @($featureNames.Keys | Where-Object { $_ -cin $SelectedPatches } | ForEach-Object { $featureNames[$_] }) -join ','
+        $selectionArguments += $(if ($selected) { $selected } else { 'none' })
+    }
+    $output = @(& $Java '-Xmx8g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'DexDiff.java') $CleanMerged $PatchedApk $ReportPath (Join-Path $PSScriptRoot 'injected-register-removal-allowlist.txt') (Join-Path $PSScriptRoot 'injected-mutation-contracts.txt') $cleanBase @selectionArguments 2>&1 | ForEach-Object { "$_" })
     [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
 }
 
@@ -144,11 +160,16 @@ $completed = $false
 try {
 
 $adbPath = $null
-if ($FromDevice -or $Serial) { $adbPath = Resolve-Adb -Explicit $Adb }
+if ($FromDevice -and -not $Serial) { throw '-FromDevice needs -Serial so it cannot pull from somebody else''s phone.' }
+if ($FromDevice -or $Serial) {
+    $adbPath = Resolve-Adb -Explicit $Adb
+    Assert-HushThreadsDeviceLease -Adb $adbPath -Serial $Serial
+}
 
 if ($FromDevice) {
-    if (-not $Serial) { throw '-FromDevice needs -Serial so it cannot pull from somebody else''s phone.' }
-    $paths = @(& $adbPath -s $Serial shell pm path $package 2>&1 |
+    $installedPaths = Invoke-HushThreadsAdbCommand -Adb $adbPath -RequireLease -Arguments @('-s', $Serial, 'shell', 'pm', 'path', $package)
+    if ($installedPaths.ExitCode -ne 0) { throw "Could not read installed package paths on $Serial." }
+    $paths = @($installedPaths.Output |
         ForEach-Object { "$_" } | Where-Object { $_ -match '^package:' })
     if ($paths.Count -eq 0) { throw "Threads ($package) is not installed on $Serial." }
     if ($paths.Count -ne 1) {
@@ -159,8 +180,8 @@ if ($FromDevice) {
     $onDevice = ($paths[0] -replace '^package:', '').Trim()
     $PatchedApk = Join-Path $work 'patched-installed.apk'
     Write-Host "[registers] pulling $onDevice"
-    & $adbPath -s $Serial pull $onDevice $PatchedApk | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Could not pull the installed APK from $Serial." }
+    $pull = Invoke-HushThreadsAdbCommand -Adb $adbPath -RequireLease -Arguments @('-s', $Serial, 'pull', $onDevice, $PatchedApk)
+    if ($pull.ExitCode -ne 0) { throw "Could not pull the installed APK from $Serial." }
 }
 
 if (-not $PatchedApk -or -not (Test-Path -LiteralPath $PatchedApk -PathType Leaf)) {

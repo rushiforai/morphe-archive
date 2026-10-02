@@ -1,0 +1,127 @@
+name: 🐞 Bug report
+description: Something in HushGram doesn't work the way it should.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # HushGram bug report
+
+        Thanks for taking the time to report this. Before you start:
+
+        - **Check whether it's already reported.** Search the [open and closed bug reports](https://github.com/SysAdminDoc/HushGram/issues?q=is%3Aissue%20label%3Abug). If yours was closed and it still happens, comment on it and we'll reopen it. GitHub doesn't let the person who reported something reopen it.
+        - **Not sure it's a bug?** Ask in [Discussions](https://github.com/SysAdminDoc/HushGram/discussions) instead.
+        - **Patching stopped with an error?** That usually means Instagram moved something in a new build. Say which Instagram version you picked, and paste the error.
+  - type: input
+    id: versions
+    attributes:
+      label: HushGram and Instagram versions
+      description: Long-press Instagram's icon and tap HushGram settings. Copy what the Version row under About says.
+      placeholder: HushGram 0.0.3 on Instagram 449.0.0.52.84
+    validations:
+      required: true
+  - type: input
+    id: variant
+    attributes:
+      label: Which Instagram file did you patch?
+      description: The APKMirror variant and build number, if you know them. Most bugs on a build that should work come from a different variant.
+      placeholder: arm64-v8a, 640dpi, Android 9.0+, build 385511871
+  - type: dropdown
+    id: manager
+    attributes:
+      label: What did you patch Instagram with?
+      options:
+        - Morphe Manager (the Android app)
+        - morphe-desktop (on a computer)
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: manager_version
+    attributes:
+      label: Its version
+      description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
+      placeholder: Morphe Manager 1.32.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: How was it installed?
+      options:
+        - Standard install (re-signed)
+        - Root Mount
+        - I don't know
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone and Android version
+      description: Both are in your phone's Settings, under About phone.
+      placeholder: Samsung Galaxy S22, Android 16
+    validations:
+      required: true
+  - type: textarea
+    id: selected_patches
+    attributes:
+      label: Which patches did you select?
+      description: If you kept the manager's own selection, just say so. Otherwise list what you added or removed.
+      placeholder: The default selection, without Disable analytics.
+    validations:
+      required: true
+  - type: dropdown
+    id: affected_surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - Feed
+        - Stories
+        - Reels
+        - Sharing and links
+        - The "this version is too old" screen
+        - HushGram settings
+        - Patching (Morphe Manager)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: What went wrong?
+      description: What happened, and what did you expect to happen instead? A screenshot or a screen recording helps a lot. Cover names and private messages first.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: What did you tap, in order?
+      description: Start from opening Instagram. Include every HushGram switch you changed before it went wrong, and say whether it still happens after you close Instagram and open it again.
+      placeholder: |
+        1. Opened Instagram
+        2. Scrolled the feed
+        3. A sponsored post showed after about ten posts
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostic_report
+    attributes:
+      label: Diagnostic report
+      description: |
+        This answers most of our questions, so please add it if you can. Long-press Instagram's icon, tap HushGram settings, turn on Debug logging, do the thing that goes wrong, then come back, tap Export diagnostic report and pick Save full report. That saves a text file in Download/Morphe on your phone (on Android 9, the message says which folder). Drag it into this box. If you can't get the file off your phone, pick Copy quick report instead and paste the shorter report here.
+        The report leaves out links, IDs, cookies and sign-in tokens. It can't spot a name or message written anywhere else, so read it and remove anything private before you post it.
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Anything else?
+      description: A workaround you found, an older version where it still worked, or anything else that might help.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before you send it
+      options:
+        - label: I searched the open and closed bug reports and this isn't one of them.
+          required: true
+        - label: I answered every question above as well as I could.
+          required: true

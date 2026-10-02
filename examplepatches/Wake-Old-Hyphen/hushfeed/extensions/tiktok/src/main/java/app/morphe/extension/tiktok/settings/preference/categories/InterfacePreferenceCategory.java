@@ -233,6 +233,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide the \"Search this image\" prompt shown over videos. The feed search button and suggestions above comments are separate settings.",
                     Settings.HIDE_VISUAL_SEARCH
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the comment bar on opened videos",
+                    "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.",
+                    Settings.HIDE_DETAIL_COMMENT_BAR
+            ));
         }
         // Feed filter rows that hide things drawn around a video rather than videos.
         // They were the tail of the Feed filter page under "Feed elements", a page about

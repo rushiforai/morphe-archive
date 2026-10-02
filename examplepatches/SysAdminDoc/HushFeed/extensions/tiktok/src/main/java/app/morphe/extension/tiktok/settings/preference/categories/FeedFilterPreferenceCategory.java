@@ -64,6 +64,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         if (SettingsStatus.feedFilterEnabled) addLimits(context);
         addCreatorsAndSounds(context);
         if (SettingsStatus.feedFilterEnabled) addWordsAndCountries(context);
+        if (SettingsStatus.feedFilterEnabled && SettingsStatus.liveFeedFilterEnabled) addLiveFeed(context);
         if (SettingsStatus.seenVideoFilterEnabled) addSeenVideoRules(context);
         if (SettingsStatus.feedFilterEnabled) addAdvanced(context);
     }
@@ -282,6 +283,42 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 Settings.CAPTION_LANGUAGES)
                 .withCheck(app.morphe.extension.tiktok.feedfilter.CaptionLanguageFilter::languageProblem)
                 .withNameKeyboard());
+    }
+
+    /** The LIVE feed you swipe through, a page of rooms at a time (issue #57). */
+    private void addLiveFeed(Context context) {
+        addPreference(new SectionHeadingPreference(context, "LIVE feed"));
+        addPreference(new TogglePreference(context, "Filter the LIVE feed",
+                "Hide rooms in the LIVE feed you swipe through, using the rules below. Blocked creators "
+                        + "and Creators hidden on this phone apply here too, Blocked caption words are "
+                        + "matched against each LIVE's title, and Creator exceptions works the way it "
+                        + "does for videos. The LIVE button picks the first room itself, so the rules "
+                        + "start with the next one. If they hide every room for a while, one gets "
+                        + "through so the feed keeps loading.",
+                Settings.LIVE_FEED_FILTER));
+        addPreference(new TogglePreference(context, "Hide gaming LIVEs",
+                "Hide LIVEs that TikTok tags with a game or a gaming category.",
+                Settings.LIVE_HIDE_GAMING));
+        addPreference(new TogglePreference(context, "Hide shopping LIVEs",
+                "Hide LIVEs that sell products or carry a TikTok Shop tag.",
+                Settings.LIVE_HIDE_SHOPPING));
+        addPreference(new TogglePreference(context, "Hide sponsored LIVEs",
+                "Hide LIVEs that TikTok labels as a paid partnership or promotional content.",
+                Settings.LIVE_HIDE_SPONSORED));
+        addPreference(new TogglePreference(context, "Hide verified creators' LIVEs",
+                "Hide LIVEs hosted by verified accounts.",
+                Settings.LIVE_HIDE_VERIFIED));
+        addPreference(new InputTextPreference(context, "Hidden LIVE categories",
+                "Comma separated words, like music, chat. A LIVE is hidden when its category, topic "
+                        + "tags or game name contains one. Case doesn't matter.",
+                Settings.LIVE_HIDDEN_CATEGORIES)
+                .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem));
+        addPreference(new RangeValuePreference(context, "LIVE viewers range",
+                "Show only LIVEs with this many people watching.",
+                Settings.LIVE_MIN_MAX_VIEWERS));
+        addPreference(new RangeValuePreference(context, "LIVE followers range",
+                "Show only LIVEs from creators with this many followers.",
+                Settings.LIVE_MIN_MAX_FOLLOWERS));
     }
 
     private void addSeenVideoRules(Context context) {

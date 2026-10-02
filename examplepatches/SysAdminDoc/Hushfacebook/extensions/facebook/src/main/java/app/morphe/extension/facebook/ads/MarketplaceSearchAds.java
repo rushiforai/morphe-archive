@@ -57,8 +57,13 @@ final class MarketplaceSearchAds {
     /** Where a deferred part of an ad goes: its own index past this, which no list reaches. */
     static final int NOWHERE = 1_000_000;
 
-    /** An unfinished payload longer than this stops the reading, and the answer goes on as it is. */
-    static final int MAX_WAITING_CHARS = 8 * 1024 * 1024;
+    /** Maximum characters across an entire response, before any payload tree is built. */
+    static final int MAX_RESPONSE_CHARS = 8 * 1024 * 1024;
+    static final int MAX_PARSE_DEPTH = 64;
+    static final int MAX_PARSE_NODES = 65_536;
+    static final String CHARACTER_BUDGET = "search character budget";
+    static final String DEPTH_BUDGET = "search depth budget";
+    static final String NODE_BUDGET = "search node budget";
 
     /** What an ad story's type name ends with in Facebook's schema. */
     static final String AD_STORY = "AdStory";
@@ -92,8 +97,8 @@ final class MarketplaceSearchAds {
          * out, and later indices only move past the ads already taken out.
          */
         private boolean removing = true;
-        /** The payload coming in grew too long to wait for, and goes on as it comes. */
-        private boolean passing;
+        private int characters;
+        @Nullable private MarketplacePathRemapper remapping;
         private final StringBuilder waiting = new StringBuilder();
         private int depth;
         private boolean inString;
@@ -119,15 +124,24 @@ final class MarketplaceSearchAds {
                 failNextPieceForTests = null;
                 throw failure;
             }
-            // What earlier pieces left waiting stays there until this piece has been read through, so
-            // a failure can still pass it on (giveUp).
             boolean held = waiting.length() > 0;
-            boolean used = false;
-            boolean same = !held;
             StringBuilder out = new StringBuilder(piece.length());
             int from = 0;
-            int length = piece.length();
-            for (int i = 0; i < length; i++) {
+            for (int i = 0; i < piece.length(); i++) {
+                if (remapping != null) {
+                    remapping.read(piece, from, piece.length(), out);
+                    from = piece.length();
+                    break;
+                }
+                if (++characters > MAX_RESPONSE_CHARS) {
+                    refuse(CHARACTER_BUDGET);
+                    if (held) remapping.read(waiting, 0, waiting.length(), out);
+                    waiting.setLength(0);
+                    waiting.trimToSize();
+                    remapping.read(piece, from, piece.length(), out);
+                    from = piece.length();
+                    break;
+                }
                 char c = piece.charAt(i);
                 if (depth == 0) {
                     if (c == '{' || c == '[') {
@@ -144,59 +158,50 @@ final class MarketplaceSearchAds {
                 } else if (c == '{' || c == '[') {
                     depth++;
                 } else if ((c == '}' || c == ']') && --depth == 0) {
-                    if (passing) {
-                        // The end of a payload too long to wait for, which went on as it came.
-                        passing = false;
-                        continue;
-                    }
                     String text = held ? waiting + piece.substring(from, i + 1) : piece.substring(from, i + 1);
-                    used |= held;
                     held = false;
+                    waiting.setLength(0);
+                    if (waiting.capacity() > 65_536) waiting.trimToSize();
                     Map<String, TreeSet<Integer>> before = new HashMap<>();
                     for (Map.Entry<String, TreeSet<Integer>> list : taken.entrySet()) {
                         before.put(list.getKey(), new TreeSet<>(list.getValue()));
                     }
-                    String read;
                     try {
-                        read = payload(text);
+                        out.append(payload(text));
+                    } catch (BudgetExceeded budget) {
+                        refuse(budget.reason);
+                        remapping.read(text, 0, text.length(), out);
                     } catch (Throwable failed) {
-                        // It goes on as it came, so nothing it took out counts as taken out.
                         taken.clear();
                         taken.putAll(before);
                         removing = false;
+                        remapping = new MarketplacePathRemapper(taken);
                         HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, MarketplaceAdFilter.SEARCH_ANSWER, failed);
                         log(query + " answer: a payload failed to be read (" + failed.getClass().getSimpleName()
-                                + ") and went on as it came. Nothing more comes out of this answer.");
-                        read = text;
+                                + "). Nothing more comes out of this answer; known indices still move.");
+                        remapping.read(text, 0, text.length(), out);
                     }
-                    if (read != text) same = false;
-                    out.append(read);
                     from = i + 1;
                 }
             }
-            if (used) waiting.setLength(0);
-            if (depth > 0 && !passing) {
-                waiting.append(piece, from, length);
-                same = false;
-                if (waiting.length() > MAX_WAITING_CHARS) {
-                    log(query + " answer: a payload after part " + parts + " is too long to wait for and goes on as it comes."
-                            + " Nothing more comes out of this answer.");
-                    out.append(waiting);
-                    waiting.setLength(0);
-                    passing = true;
-                    removing = false;
-                }
-            } else {
-                out.append(piece, from, length);
-            }
-            return same ? piece : out.toString();
+            if (remapping == null && depth > 0) waiting.append(piece, from, piece.length());
+            else out.append(piece, from, piece.length());
+            String result = out.toString();
+            return result.equals(piece) ? piece : result;
+        }
+
+        private void refuse(String reason) {
+            removing = false;
+            remapping = new MarketplacePathRemapper(taken);
+            HookStatus.counted(FamilyNames.SPONSORED_MARKETPLACE, reason);
+            log(query + " answer: " + reason + ". Nothing more comes out; known indices still move.");
         }
 
         /** What waits for a payload to finish, as it came, for the end of a whole answer. */
         String rest() {
             String rest = waiting.toString();
             waiting.setLength(0);
-            return rest;
+            return remapping == null ? rest : rest + remapping.rest();
         }
 
         /**
@@ -222,7 +227,7 @@ final class MarketplaceSearchAds {
          * [text], one whole payload or a list of them, with its ads taken out, or once nothing more
          * comes out, only its indices moved. The same string when nothing changed.
          */
-        private String payload(String text) {
+        private String payload(String text) throws BudgetExceeded {
             if (!removing && !moved()) return text;
             Value root;
             try {
@@ -562,6 +567,15 @@ final class MarketplaceSearchAds {
         }
     }
 
+    private static final class BudgetExceeded extends Exception {
+        final String reason;
+
+        BudgetExceeded(String reason) {
+            super(null, null, false, false);
+            this.reason = reason;
+        }
+    }
+
     /** A payload that isn't one JSON value. */
     static final class Malformed extends Exception {
         Malformed() {
@@ -572,23 +586,28 @@ final class MarketplaceSearchAds {
     /** Just enough of a JSON reader to find a payload's values and where each lies. */
     static final class Parser {
         private static final Malformed MALFORMED = new Malformed();
+        private static final BudgetExceeded TOO_DEEP = new BudgetExceeded(DEPTH_BUDGET);
+        private static final BudgetExceeded TOO_WIDE = new BudgetExceeded(NODE_BUDGET);
         private final String s;
         private int i;
+        private int nodes;
 
         private Parser(String s) {
             this.s = s;
         }
 
         /** The one value [s] holds, or Malformed when it holds anything else. */
-        static Value whole(String s) throws Malformed {
+        static Value whole(String s) throws Malformed, BudgetExceeded {
             Parser parser = new Parser(s);
-            Value value = parser.value(null);
+            Value value = parser.value(null, 1);
             parser.space();
             if (parser.i != s.length()) throw MALFORMED;
             return value;
         }
 
-        private Value value(@Nullable Value parent) throws Malformed {
+        private Value value(@Nullable Value parent, int depth) throws Malformed, BudgetExceeded {
+            if (depth > MAX_PARSE_DEPTH) throw TOO_DEEP;
+            if (++nodes > MAX_PARSE_NODES) throw TOO_WIDE;
             space();
             if (i >= s.length()) throw MALFORMED;
             char c = s.charAt(i);
@@ -607,7 +626,7 @@ final class MarketplaceSearchAds {
                         if (next() != ':') throw MALFORMED;
                         i++;
                         value.names.add(new int[] {name, nameEnd});
-                        value.items.add(value(value));
+                        value.items.add(value(value, depth + 1));
                         space();
                         char after = next();
                         if (after == ',') {
@@ -624,7 +643,7 @@ final class MarketplaceSearchAds {
                 space();
                 if (next() != ']') {
                     while (true) {
-                        value.items.add(value(value));
+                        value.items.add(value(value, depth + 1));
                         space();
                         char after = next();
                         if (after == ',') {

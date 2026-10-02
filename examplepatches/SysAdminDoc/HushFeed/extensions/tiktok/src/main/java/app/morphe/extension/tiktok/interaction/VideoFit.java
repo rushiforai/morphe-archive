@@ -14,13 +14,19 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
 
@@ -102,14 +108,20 @@ public final class VideoFit {
             int containerWidth = containerWidth(view);
             int containerHeight = containerHeight(view);
             if (containerWidth <= 0 || containerHeight <= 0) return untouched(view, result);
-            if (!wants(mode, videoWidth, videoHeight, containerWidth, containerHeight)) return untouched(view, result);
+            if (!wants(mode, videoWidth, videoHeight, containerWidth, containerHeight)) {
+                note("feed", mode, view, videoWidth, videoHeight, containerWidth, containerHeight, LEAVE, LEAVE);
+                return untouched(view, result);
+            }
             int width = widthFor(mode, videoWidth, videoHeight, containerWidth, containerHeight);
             int height = heightFor(mode, videoWidth, videoHeight, containerWidth, containerHeight);
             // Centred by the layout when the container can do it, and by the offsets otherwise.
-            float[] offsets = centre(view)
+            boolean centred = centre(view);
+            float[] offsets = centred
                     ? new float[]{0f, 0f} : offsets(width, height, containerWidth, containerHeight);
             Object copy = copyOf(result, width, height, offsets);
             if (copy == null) return untouched(view, result);
+            note("feed", mode, view, videoWidth, videoHeight, containerWidth, containerHeight, width, height);
+            if (centred) watch(view, videoWidth, videoHeight, width, height);
             return copy;
         } catch (Exception exception) {
             Logger.printException(() -> "Could not fit the video to the window", exception);
@@ -220,14 +232,124 @@ public final class VideoFit {
 
     /** TikTok's own result for the feed cell, on a view with its own gravity. */
     private static Object untouched(View view, Object result) {
+        unwatch(view);
         uncentre(view);
         return result;
     }
 
     /** {@link #LEAVE} for the story cell, on a view with its own gravity. */
     private static int leave(View view) {
+        unwatch(view);
         uncentre(view);
         return LEAVE;
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // A fit worked out against a space that then changed size. TikTok works its result out for
+    // the space it means to give the video and can hand it over before that space has been laid
+    // out at the new size, so the size read here is the old one. #29's Pixel 9 showed a video
+    // fitted to 1500 pixels of height and centred in about 2213. TikTok doesn't hand the result
+    // over again once the layout catches up, because its own result hasn't changed, so the space
+    // around a fitted video is watched, and a new size works the fit out again from TikTok's size.
+
+    /** What a fitted video was given, and the space and TikTok size it was worked out from. */
+    static final class Watch implements View.OnLayoutChangeListener {
+        // Both weak: the watch is kept in a map keyed weakly by the video, and the space holds
+        // the video, so a strong reference to either would keep the entry alive for good.
+        final WeakReference<View> video;
+        final WeakReference<View> space;
+        final int videoWidth;
+        final int videoHeight;
+        int width;
+        int height;
+        int spaceWidth;
+        int spaceHeight;
+
+        Watch(View video, View space, int videoWidth, int videoHeight, int width, int height) {
+            this.video = new WeakReference<>(video);
+            this.space = new WeakReference<>(space);
+            this.videoWidth = videoWidth;
+            this.videoHeight = videoHeight;
+            this.width = width;
+            this.height = height;
+            this.spaceWidth = space.getWidth();
+            this.spaceHeight = space.getHeight();
+        }
+
+        @Override
+        public void onLayoutChange(View space, int left, int top, int right, int bottom,
+                                   int oldLeft, int oldTop, int oldRight, int oldBottom) {
+            // A watch whose video left this space goes first, whatever size the pass reported:
+            // a recycled page that never changes size again would keep it forever otherwise.
+            View view = video.get();
+            if (view == null || view.getParent() != space) {
+                space.removeOnLayoutChangeListener(this);
+                return;
+            }
+            int width = right - left;
+            int height = bottom - top;
+            if (width <= 0 || height <= 0 || (width == spaceWidth && height == spaceHeight)) return;
+            // After the layout pass that reported the size, not inside it.
+            Utils.runOnMainThread(() -> refit(view, this));
+        }
+    }
+
+    private static final Map<View, Watch> WATCHES = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /** Watches the space a centred video was just fitted in, in place of any earlier watch on it. */
+    private static void watch(View view, int videoWidth, int videoHeight, int width, int height) {
+        ViewParent parent = view.getParent();
+        if (!(parent instanceof View)) return;
+        unwatch(view);
+        View space = (View) parent;
+        Watch watch = new Watch(view, space, videoWidth, videoHeight, width, height);
+        space.addOnLayoutChangeListener(watch);
+        WATCHES.put(view, watch);
+    }
+
+    private static void unwatch(View view) {
+        if (WATCHES.isEmpty()) return;
+        Watch watch = WATCHES.remove(view);
+        if (watch == null) return;
+        View space = watch.space.get();
+        if (space != null) space.removeOnLayoutChangeListener(watch);
+    }
+
+    /**
+     * Works the fit out again for the space's new size and gives the video that size. Only while
+     * a switch is still on and the video still has exactly the size this gave it: a size anyone
+     * else has given it since is theirs, and TikTok's next pass over the video decides again.
+     */
+    static void refit(View view, Watch watch) {
+        try {
+            if (WATCHES.get(view) != watch) return;
+            Mode mode = mode();
+            ViewGroup.LayoutParams params = view.getLayoutParams();
+            if (mode == Mode.LEAVE_ALONE || !(params instanceof FrameLayout.LayoutParams)
+                    || params.width != watch.width || params.height != watch.height
+                    || ((FrameLayout.LayoutParams) params).gravity != Gravity.CENTER) {
+                unwatch(view);
+                return;
+            }
+            int spaceWidth = containerWidth(view);
+            int spaceHeight = containerHeight(view);
+            if (spaceWidth <= 0 || spaceHeight <= 0) return;
+            watch.spaceWidth = spaceWidth;
+            watch.spaceHeight = spaceHeight;
+            boolean change = wants(mode, watch.videoWidth, watch.videoHeight, spaceWidth, spaceHeight);
+            int width = change ? widthFor(mode, watch.videoWidth, watch.videoHeight, spaceWidth, spaceHeight) : watch.videoWidth;
+            int height = change ? heightFor(mode, watch.videoWidth, watch.videoHeight, spaceWidth, spaceHeight) : watch.videoHeight;
+            if (width == params.width && height == params.height) return;
+            params.width = width;
+            params.height = height;
+            view.setLayoutParams(params);
+            watch.width = width;
+            watch.height = height;
+            note("after the space changed", mode, view, watch.videoWidth, watch.videoHeight,
+                    spaceWidth, spaceHeight, width, height);
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Could not fit the video to its new space", failure);
+        }
     }
 
     /** The offsets that centre a video of this size in the container: half the difference, each way. */
@@ -258,13 +380,19 @@ public final class VideoFit {
             int containerHeight = containerHeight(view);
             if (containerWidth <= 0 || containerHeight <= 0) return leave(view);
             // Already inside the window, or already covering it: nothing to bring back or add.
-            if (!wants(mode, videoWidth, videoHeight, containerWidth, containerHeight)) return leave(view);
+            if (!wants(mode, videoWidth, videoHeight, containerWidth, containerHeight)) {
+                note("story", mode, view, videoWidth, videoHeight, containerWidth, containerHeight, LEAVE, LEAVE);
+                return leave(view);
+            }
 
             int width = widthFor(mode, videoWidth, videoHeight, containerWidth, containerHeight);
             int height = heightFor(mode, videoWidth, videoHeight, containerWidth, containerHeight);
-            float[] offsets = centre(view)
+            boolean centred = centre(view);
+            float[] offsets = centred
                     ? new float[]{0f, 0f} : offsets(width, height, containerWidth, containerHeight);
             LAST.set(new Fitted(result, height, offsets));
+            note("story", mode, view, videoWidth, videoHeight, containerWidth, containerHeight, width, height);
+            if (centred) watch(view, videoWidth, videoHeight, width, height);
             return width;
         } catch (Exception exception) {
             Logger.printException(() -> "Could not fit the video to the window", exception);
@@ -421,5 +549,142 @@ public final class VideoFit {
         if (context == null) return 0;
         DisplayMetrics display = context.getResources().getDisplayMetrics();
         return horizontal ? display.widthPixels : display.heightPixels;
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // The diagnostic report. A screenshot shows that a fit went wrong but not what it was
+    // measured against: #29's Pixel 9 showed a 9:16 video fitted to 1500 pixels of height and
+    // centred in about 2213, so something above the video was 1500 tall when the fit was worked
+    // out. The last few decisions are kept with the size of every view above the video.
+
+    /** How many decisions the report keeps. */
+    static final int KEPT = 8;
+    /** How far up the report walks, which reaches past the levels the fit itself looks at. */
+    private static final int CHAIN_LEVELS = 8;
+
+    /** One decision line and how many times in a row it came out the same. */
+    private static final class Decision {
+        final String line;
+        int times = 1;
+
+        Decision(String line) {
+            this.line = line;
+        }
+    }
+
+    private static final ArrayDeque<Decision> DECISIONS = new ArrayDeque<>();
+    private static final AtomicLong RESIZED = new AtomicLong();
+    private static final AtomicLong LEFT = new AtomicLong();
+    private static volatile boolean reporting;
+
+    /**
+     * Keeps one decision made with a switch on. {@code width} is {@link #LEAVE} for a video left
+     * at TikTok's size. The feed asks twice for every video it binds, once to apply and once to
+     * compare, so a decision the same as the one before it adds to that one's count.
+     */
+    private static void note(String cell, Mode mode, View view, int videoWidth, int videoHeight,
+                             int spaceWidth, int spaceHeight, int width, int height) {
+        try {
+            if (!reporting) {
+                reporting = true;
+                LogBufferManager.registerReportSection(Report.INSTANCE);
+            }
+            String line = (mode == Mode.FIT ? "Fit" : "Fill") + ", " + cell + ": TikTok's size "
+                    + videoWidth + "x" + videoHeight + ", space " + spaceWidth + "x" + spaceHeight
+                    + (width == LEAVE ? ", left as it was" : ", made " + width + "x" + height)
+                    + ". Above the video: " + chain(view);
+            (width == LEAVE ? LEFT : RESIZED).incrementAndGet();
+            synchronized (DECISIONS) {
+                Decision last = DECISIONS.peekLast();
+                if (last != null && last.line.equals(line)) {
+                    last.times++;
+                    return;
+                }
+                if (DECISIONS.size() == KEPT) DECISIONS.removeFirst();
+                DECISIONS.addLast(new Decision(line));
+            }
+        } catch (Throwable ignored) {
+            // A decision missing from the report beats a layout pass that throws.
+        }
+    }
+
+    /** Each view above the video with its size, up to the page the feed scrolls, then the window. */
+    static String chain(View view) {
+        StringBuilder out = new StringBuilder();
+        ViewParent parent = view.getParent();
+        for (int level = 0; level < CHAIN_LEVELS && parent instanceof View; level++) {
+            View above = (View) parent;
+            if (out.length() > 0) out.append(", ");
+            out.append(nameOf(above.getClass())).append(' ')
+                    .append(above.getWidth()).append('x').append(above.getHeight());
+            parent = above.getParent();
+            if (scrollsPages(parent)) {
+                out.append(" (the page)");
+                break;
+            }
+        }
+        View root = view.getRootView();
+        if (root != null && root != view) {
+            out.append(out.length() > 0 ? "; " : "").append("window ")
+                    .append(root.getWidth()).append('x').append(root.getHeight());
+        }
+        return out.length() > 0 ? out.toString() : "nothing";
+    }
+
+    private static String nameOf(Class<?> type) {
+        String name = type.getSimpleName();
+        return name.isEmpty() ? type.getName() : name;
+    }
+
+    /** Whether this is the list or pager the feed's pages sit in, by the class it extends. */
+    private static boolean scrollsPages(ViewParent parent) {
+        for (Class<?> type = parent == null ? null : parent.getClass();
+             type != null && type != Object.class; type = type.getSuperclass()) {
+            String name = type.getName();
+            if (name.endsWith("ViewPager") || name.endsWith("ViewPager2") || name.endsWith("RecyclerView")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The VIDEO FIT section of the diagnostic report. */
+    static final class Report implements LogBufferManager.ReportSection {
+        static final Report INSTANCE = new Report();
+
+        @Override public String title() {
+            return "VIDEO FIT";
+        }
+
+        @Override public List<String> lines() {
+            List<String> lines = new ArrayList<>();
+            // The saved choices: Pause reads both as off, and says so on a line of its own.
+            boolean fit = Settings.FIT_VIDEO_TO_SCREEN.savedValue();
+            boolean fill = Settings.FILL_VIDEO_TO_SCREEN.savedValue();
+            lines.add("Fit the video to the screen: " + (fit ? "on" : "off"));
+            lines.add("Fill the screen with the video: " + (fill ? "on" : "off"));
+            if ((fit || fill) && !Settings.FIT_VIDEO_TO_SCREEN.get() && !Settings.FILL_VIDEO_TO_SCREEN.get()) {
+                lines.add("Hushfeed is paused, so videos keep TikTok's size");
+            }
+            // Counted per check, and the feed checks twice for each video it shows.
+            lines.add("Fit checks since TikTok started: " + RESIZED.get() + " resized the video, "
+                    + LEFT.get() + " left it at TikTok's size");
+            synchronized (DECISIONS) {
+                if (!DECISIONS.isEmpty()) lines.add("The last " + DECISIONS.size() + ", oldest first:");
+                for (Decision decision : DECISIONS) {
+                    lines.add(decision.times == 1 ? decision.line
+                            : decision.line + " (" + decision.times + " in a row)");
+                }
+            }
+            return lines;
+        }
+    }
+
+    static void resetReportForTests() {
+        synchronized (DECISIONS) {
+            DECISIONS.clear();
+        }
+        RESIZED.set(0);
+        LEFT.set(0);
     }
 }

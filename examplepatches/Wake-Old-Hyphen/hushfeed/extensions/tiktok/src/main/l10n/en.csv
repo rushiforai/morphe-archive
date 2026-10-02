@@ -110,7 +110,6 @@ A message is already on its way,A message is already on its way
 "A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another.","A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another."
 "A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.","A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out."
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.,A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.
-A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.,A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.
 A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.,A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.,A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.
 AI-generated posts,AI-generated posts
@@ -125,6 +124,7 @@ Add a button that hides the current creator on this phone without blocking them.
 Add a creator,Add a creator
 Add a search box that filters comments already loaded on this video by text or username. It doesn't search all of TikTok or remove TikTok's suggested-search banner.,Add a search box that filters comments already loaded on this video by text or username. It doesn't search all of TikTok or remove TikTok's suggested-search banner.
 Add a separate button that skips videos using the current sound.,Add a separate button that skips videos using the current sound.
+Add apps to Share via,Add apps to Share via
 Add hidden creator,Add hidden creator
 Add older seen videos to this account,Add older seen videos to this account
 Added %1$s,Added %1$s
@@ -268,11 +268,13 @@ Close,Close
 "Comma separated country codes. Videos posted from these are hidden, whatever the list above says.","Comma separated country codes. Videos posted from these are hidden, whatever the list above says."
 "Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.","Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay."
 "Comma separated list of any other Inbox row titles to hide, matched exactly. Use this for anything not listed above.","Comma separated list of any other Inbox row titles to hide, matched exactly. Use this for anything not listed above."
+"Comma separated names exactly as the row under a profile's bio shows them, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Comma separated names exactly as the row under a profile's bio shows them, such as TikTok Studio or Your orders. Restart TikTok to apply this."
 "Comma separated names exactly as the share sheet shows them: friends in the Send to row, share targets such as Facebook, and actions such as Create group or Repost. Stable keys such as copy, save and dislike also work before the sheet opens.","Comma separated names exactly as the share sheet shows them: friends in the Send to row, share targets such as Facebook, and actions such as Create group or Repost. Stable keys such as copy, save and dislike also work before the sheet opens."
 Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.,Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.
 Comma separated usernames or display names whose comments are hidden.,Comma separated usernames or display names whose comments are hidden.
 "Comma separated words or phrases. Videos whose caption matches are hidden. Case doesn't matter. Two phrases in quotes can be joined: ""a"" & ""b"" needs both, ""a"" !& ""b"" needs the first without the second.","Comma separated words or phrases. Videos whose caption matches are hidden. Case doesn't matter. Two phrases in quotes can be joined: ""a"" & ""b"" needs both, ""a"" !& ""b"" needs the first without the second."
 "Comma separated words to match against a sound's name, like saxophone. Case doesn't matter.","Comma separated words to match against a sound's name, like saxophone. Case doesn't matter."
+"Comma separated words, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Case doesn't matter.","Comma separated words, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Case doesn't matter."
 "Comma separated. A comment is hidden if its text contains any of them. Case doesn't matter. Two phrases in quotes can be joined: ""a"" & ""b"" needs both, ""a"" !& ""b"" needs the first without the second.","Comma separated. A comment is hidden if its text contains any of them. Case doesn't matter. Two phrases in quotes can be joined: ""a"" & ""b"" needs both, ""a"" !& ""b"" needs the first without the second."
 Comment media filename,Comment media filename
 Comments,Comments
@@ -289,7 +291,6 @@ Confirm before following,Confirm before following
 Confirm before liking,Confirm before liking
 Confirm before liking a comment,Confirm before liking a comment
 Confirm before liking a story,Confirm before liking a story
-Confirm before sending to a friend,Confirm before sending to a friend
 Continue supported videos from where you stopped when you scroll back to them.,Continue supported videos from where you stopped when you scroll back to them.
 Controls,Controls
 Copy a quick report or save the full report as a file.,Copy a quick report or save the full report as a file.
@@ -402,7 +403,7 @@ Entry %1$d has a field with the wrong data type.,Entry %1$d has a field with the
 Entry %1$d isn't an object.,Entry %1$d isn't an object.
 Errors,Errors
 Expand activity list,Expand activity list
-Explore,Explore
+Explore or Community,Explore or Community
 Export diagnostic report,Export diagnostic report
 Export loaded values,Export loaded values
 Exported %1$d loaded values,Exported %1$d loaded values
@@ -431,6 +432,7 @@ Filter comments by keyword,Filter comments by keyword
 Filter feed tabs,Filter feed tabs
 Filter location-tagged videos,Filter location-tagged videos
 Filter settings,Filter settings
+Filter the LIVE feed,Filter the LIVE feed
 Filter the list,Filter the list
 Filter: %1$s,Filter: %1$s
 "Filters, translation and copy options","Filters, translation and copy options"
@@ -478,6 +480,7 @@ Got it,Got it
 Hand-off,Hand-off
 Handle or id,Handle or id
 Hidden %1$s on this phone,Hidden %1$s on this phone
+Hidden LIVE categories,Hidden LIVE categories
 Hidden commenters,Hidden commenters
 Hidden: %1$s,Hidden: %1$s
 Hide,Hide
@@ -486,6 +489,10 @@ Hide CAPTCHA popups,Hide CAPTCHA popups
 Hide LIVE replays,Hide LIVE replays
 Hide LIVE videos,Hide LIVE videos
 Hide LIVE videos from the feed.,Hide LIVE videos from the feed.
+Hide LIVEs hosted by verified accounts.,Hide LIVEs hosted by verified accounts.
+Hide LIVEs that TikTok labels as a paid partnership or promotional content.,Hide LIVEs that TikTok labels as a paid partnership or promotional content.
+Hide LIVEs that TikTok tags with a game or a gaming category.,Hide LIVEs that TikTok tags with a game or a gaming category.
+Hide LIVEs that sell products or carry a TikTok Shop tag.,Hide LIVEs that sell products or carry a TikTok Shop tag.
 Hide Search this image prompts,Hide Search this image prompts
 Hide Series,Hide Series
 Hide TikTok Shop,Hide TikTok Shop
@@ -512,6 +519,7 @@ Hide every direct message conversation. Leaves the Inbox empty apart from whatev
 "Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.","Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen."
 "Hide floating promotion badges, coins, and timer banners on the feed.","Hide floating promotion badges, coins, and timer banners on the feed."
 Hide floating promotions,Hide floating promotions
+Hide gaming LIVEs,Hide gaming LIVEs
 Hide inserted cards,Hide inserted cards
 Hide location labels,Hide location labels
 Hide message requests,Hide message requests
@@ -526,14 +534,19 @@ Hide photo posts from the feed.,Hide photo posts from the feed.
 Hide picture comments,Hide picture comments
 "Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged.","Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged."
 Hide playlist videos,Hide playlist videos
+Hide profile shortcuts,Hide profile shortcuts
+Hide profile shortcuts by name,Hide profile shortcuts by name
 Hide promotional music,Hide promotional music
 Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.,Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.
 Hide recorded LIVE broadcasts from the feed.,Hide recorded LIVE broadcasts from the feed.
+"Hide rooms in the LIVE feed you swipe through, using the rules below. Blocked creators and Creators hidden on this phone apply here too, Blocked caption words are matched against each LIVE's title, and Creator exceptions works the way it does for videos. The LIVE button picks the first room itself, so the rules start with the next one. If they hide every room for a while, one gets through so the feed keeps loading.","Hide rooms in the LIVE feed you swipe through, using the rules below. Blocked creators and Creators hidden on this phone apply here too, Blocked caption words are matched against each LIVE's title, and Creator exceptions works the way it does for videos. The LIVE button picks the first room itself, so the rules start with the next one. If they hide every room for a while, one gets through so the feed keeps loading."
 Hide rows by title,Hide rows by title
 Hide search rewards,Hide search rewards
 Hide search suggestions above comments,Hide search suggestions above comments
 Hide share actions,Hide share actions
 Hide sharing apps,Hide sharing apps
+Hide shopping LIVEs,Hide shopping LIVEs
+Hide sponsored LIVEs,Hide sponsored LIVEs
 Hide stories,Hide stories
 Hide stories from the feed.,Hide stories from the feed.
 Hide stories tray,Hide stories tray
@@ -558,6 +571,7 @@ Hide the Tako chat,Hide the Tako chat
 Hide the actions row of the share sheet.,Hide the actions row of the share sheet.
 Hide the add people icon,Hide the add people icon
 Hide the caption,Hide the caption
+Hide the comment bar on opened videos,Hide the comment bar on opened videos
 Hide the description under the creator's name on the feed.,Hide the description under the creator's name on the feed.
 Hide the event badge,Hide the event badge
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.,Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.
@@ -596,6 +610,7 @@ Hide the unread badges on the bottom tabs,Hide the unread badges on the bottom t
 "Hide the whole column on the right, from the avatar down to the music disc.","Hide the whole column on the right, from the avatar down to the music disc."
 Hide this creator on this phone,Hide this creator on this phone
 Hide verified accounts,Hide verified accounts
+Hide verified creators' LIVEs,Hide verified creators' LIVEs
 Hide video actions,Hide video actions
 Hide videos carrying TikTok's AI-generated label.,Hide videos carrying TikTok's AI-generated label.
 Hide videos marked as paid partnership or branded content.,Hide videos marked as paid partnership or branded content.
@@ -639,6 +654,7 @@ Included diagnostics,Included diagnostics
 Includes all diagnostic events.,Includes all diagnostic events.
 Includes these events: %1$s,Includes these events: %1$s
 Inserted cards,Inserted cards
+"Install one, then come back here.","Install one, then come back here."
 Keep For You on a Home tap,Keep For You on a Home tap
 Keep For You on a pull down,Keep For You on a pull down
 Keep a local record of what you have watched and hide those videos when the feed sends them again.,Keep a local record of what you have watched and hide those videos when the feed sends them again.
@@ -660,10 +676,13 @@ Keep this structured value to %1$s KB or less.,Keep this structured value to %1$
 "Kept to %1$s, the nearest value this row allows","Kept to %1$s, the nearest value this row allows"
 Kinds of post,Kinds of post
 LIVE,LIVE
+LIVE feed,LIVE feed
+LIVE followers range,LIVE followers range
 LIVE replays,LIVE replays
 LIVE settings,LIVE settings
 LIVE share actions,LIVE share actions
 LIVE videos,LIVE videos
+LIVE viewers range,LIVE viewers range
 Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.,Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.
 "Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this.","Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this."
 Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok to apply this.,Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok to apply this.
@@ -708,6 +727,7 @@ Log diagnostics,Log diagnostics
 Long press,Long press
 Long-press Home for Hushfeed settings,Long-press Home for Hushfeed settings
 Look like the store app to TikTok's checks,Look like the store app to TikTok's checks
+Looking for apps,Looking for apps
 Lowest,Lowest
 Make TikTok yours.,Make TikTok yours.
 Manager,Manager
@@ -743,6 +763,7 @@ Next message: today at %1$s.,Next message: today at %1$s.
 Next message: tomorrow at %1$s.,Next message: tomorrow at %1$s.
 No,No
 No app on this phone opens that file,No app on this phone opens that file
+No apps match this search,No apps match this search
 "No chat with @%1$s turned up on this account. Open your chat with them once, then try again.","No chat with @%1$s turned up on this account. Open your chat with them once, then try again."
 No creator to block on this video,No creator to block on this video
 No creator to hide on this video,No creator to hide on this video
@@ -760,7 +781,9 @@ No limit,No limit
 No matching countries. Try a country name or a two-letter code.,No matching countries. Try a country name or a two-letter code.
 No matching diagnostics found,No matching diagnostics found
 No matching settings,No matching settings
+No other app takes shared text,No other app takes shared text
 No preset selected. Choose a preset above.,No preset selected. Choose a preset above.
+No profile shortcuts have been seen yet,No profile shortcuts have been seen yet
 "No recording yet. Start one, use a feature, then return here.","No recording yet. Start one, use a feature, then return here."
 No seen videos recorded yet.,No seen videos recorded yet.
 No share actions have been seen yet,No share actions have been seen yet
@@ -829,6 +852,7 @@ Open the feed once so Hushfeed can see which bottom tabs TikTok loaded.,Open the
 Open the feed once so Hushfeed can see which tabs TikTok loaded.,Open the feed once so Hushfeed can see which tabs TikTok loaded.
 Open the profile again and try once more,Open the profile again and try once more
 Open the story again and try once more,Open the story again and try once more
+"Open your profile once, then return here to choose its shortcuts.","Open your profile once, then return here to choose its shortcuts."
 Opens github.com in your browser,Opens github.com in your browser
 Operator code,Operator code
 Operator name,Operator name
@@ -857,8 +881,10 @@ Photo destination,Photo destination
 Photo filename,Photo filename
 Photos and stickers,Photos and stickers
 "Photos can't be saved to the folder in that file, so your photo folder was kept","Photos can't be saved to the folder in that file, so your photo folder was kept"
+"Pick apps to add to the Share via row, before More. Each gets the same link the other apps get.","Pick apps to add to the Share via row, before More. Each gets the same link the other apps get."
 Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.,Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.
 Pick the buttons to take off the column. The rest stay where they are.,Pick the buttons to take off the column. The rest stay where they are.
+"Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this."
 "Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound.","Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound."
 Play videos TikTok has classified without the overlay asking to be tapped through first.,Play videos TikTok has classified without the overlay asking to be tapped through first.
 Playback,Playback
@@ -1008,6 +1034,7 @@ Screen layout recorded. Export the diagnostic report to send it.,Screen layout r
 Screen time,Screen time
 Search,Search
 Search and override gates,Search and override gates
+Search apps,Search apps
 Search by name or gate key,Search by name or gate key
 "Search by name, description or category.","Search by name, description or category."
 Search countries or operators,Search countries or operators
@@ -1064,6 +1091,8 @@ Show download progress,Show download progress
 Show failures on screen,Show failures on screen
 Show gates,Show gates
 Show last report,Show last report
+Show only LIVEs from creators with this many followers.,Show only LIVEs from creators with this many followers.
+Show only LIVEs with this many people watching.,Show only LIVEs with this many people watching.
 Show only videos with this many comments.,Show only videos with this many comments.
 Show only videos with this many favorites.,Show only videos with this many favorites.
 Show only videos with this many likes.,Show only videos with this many likes.
@@ -1125,6 +1154,7 @@ Still saving the last one,Still saving the last one
 "Stop TikTok asking the screen to run at the frame rate of the video it's playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included.","Stop TikTok asking the screen to run at the frame rate of the video it's playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included."
 "Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone.","Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone."
 Stop TikTok reading what you copied. Copying a link from TikTok still works.,Stop TikTok reading what you copied. Copying a link from TikTok still works.
+Stop TikTok's benchmark runs,Stop TikTok's benchmark runs
 Stop a long press on Like from opening TikTok's repost action.,Stop a long press on Like from opening TikTok's repost action.
 Stop a long press on Share from opening TikTok's quick share action.,Stop a long press on Share from opening TikTok's quick share action.
 Stop analytics and tracking,Stop analytics and tracking
@@ -1145,15 +1175,14 @@ Subtitle language,Subtitle language
 Subtitles,Subtitles
 Swipe left,Swipe left
 System,System
+"Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments."
 Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.,Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.
-Tap %1$s again to send,Tap %1$s again to send
 Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.,Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.
 Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.,Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.
 Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.,Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.
 Tap again to follow,Tap again to follow
 Tap again to like,Tap again to like
 Tap again to repost,Tap again to repost
-Tap again to send,Tap again to send
 Tap the feed Follow button twice within %1$d seconds.,Tap the feed Follow button twice within %1$d seconds.
 Tap the like heart twice within %1$d seconds. Removing a like stays immediate.,Tap the like heart twice within %1$d seconds. Removing a like stays immediate.
 Tap to start the feed,Tap to start the feed
@@ -1294,6 +1323,7 @@ TikTok refused the follow with code %1$s. A hidden CAPTCHA may be the cause.,Tik
 TikTok refused the follow: %1$s,TikTok refused the follow: %1$s
 TikTok refused the follow: %1$s A hidden CAPTCHA may be the cause.,TikTok refused the follow: %1$s A hidden CAPTCHA may be the cause.
 TikTok runs as if it weren't patched. Your settings stay as they are.,TikTok runs as if it weren't patched. Your settings stay as they are.
+"TikTok sometimes tests how fast your phone is in a background process of its own, which can hold a lot of memory. This keeps that process from starting. One that's already running stops when TikTok restarts.","TikTok sometimes tests how fast your phone is in a background process of its own, which can hold a lot of memory. This keeps that process from starting. One that's already running stops when TikTok restarts."
 TikTok's messages didn't start in time. It tries again at %1$s.,TikTok's messages didn't start in time. It tries again at %1$s.
 "TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.","TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being."
 TikTok's own value,TikTok's own value

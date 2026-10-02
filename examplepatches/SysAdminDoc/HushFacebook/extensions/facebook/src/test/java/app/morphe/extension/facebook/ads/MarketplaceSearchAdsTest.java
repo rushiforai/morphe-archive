@@ -272,7 +272,7 @@ public class MarketplaceSearchAdsTest {
                 answer(listing(1), numbered, empty, adStory(2), sponsoredListing(3))));
     }
 
-    /** A payload nested [depth] deep, deeper than a thread's stack can read. */
+    /** A payload with [depth] nested arrays. */
     private static String nested(int depth) {
         StringBuilder text = new StringBuilder("{\"data\":{\"deep\":");
         for (int i = 0; i < depth; i++) text.append('[');
@@ -285,7 +285,7 @@ public class MarketplaceSearchAdsTest {
      * came before it in the same piece goes on as it was read. The failure is reported.
      */
     @Test
-    public void aPayloadThatFailsGoesOnWhole() {
+    public void aDepthBudgetRefusalGoesOnWhole() {
         String deep = nested(300_000);
         String text = answer(listing(0), adStory(1)) + "\r\n" + deep + "\r\n";
         int cut = text.length() - 200_013;
@@ -295,7 +295,8 @@ public class MarketplaceSearchAdsTest {
         String second = MarketplaceAdFilterForTests.responsePiece(HEAD, text.substring(cut), request);
         assertEquals("nothing went missing", deep.length() + 2, second.length());
         assertTrue(second.equals(deep + "\r\n"));
-        assertTrue(statusLine(), statusLine().contains("threw java.lang.StackOverflowError"));
+        assertTrue(statusLine(), statusLine().contains("search depth budget 1"));
+        assertFalse(statusLine(), statusLine().contains("StackOverflowError"));
     }
 
     /**
@@ -347,8 +348,8 @@ public class MarketplaceSearchAdsTest {
         Object request = new Object();
         assertEquals(answer(listing(0)) + "\r\n",
                 MarketplaceAdFilterForTests.responsePiece(HEAD, answer(listing(0), adStory(1)) + "\r\n", request));
-        StringBuilder filler = new StringBuilder(MarketplaceSearchAds.MAX_WAITING_CHARS);
-        while (filler.length() < MarketplaceSearchAds.MAX_WAITING_CHARS) filler.append("0123456789");
+        StringBuilder filler = new StringBuilder(MarketplaceSearchAds.MAX_RESPONSE_CHARS);
+        while (filler.length() < MarketplaceSearchAds.MAX_RESPONSE_CHARS) filler.append("0123456789");
         String start = "{\"data\":{\"filler\":\"" + filler.substring(0, filler.length() / 2);
         assertEquals("", MarketplaceAdFilterForTests.responsePiece(HEAD, start, request));
         String more = filler.substring(filler.length() / 2);
@@ -356,6 +357,111 @@ public class MarketplaceSearchAdsTest {
         String tail = "\"}}\r\n" + streamed(3, adStory(3)) + "\r\n";
         assertEquals("\"}}\r\n" + streamed(2, adStory(3)) + "\r\n", MarketplaceAdFilterForTests.responsePiece(HEAD, tail, request));
         assertNull("nothing left waiting", MarketplaceAdFilter.responseEnd(request));
+    }
+
+    private static String padded(String payload, int length) {
+        String prefix = "{\"padding\":\"";
+        String suffix = "\"," + payload.substring(1);
+        return prefix + "a".repeat(length - prefix.length() - suffix.length()) + suffix;
+    }
+
+    @Test
+    public void completePayloadsRespectTheExactResponseBudget() {
+        int cap = MarketplaceSearchAds.MAX_RESPONSE_CHARS;
+        String at = padded(answer(listing(0), adStory(1)), cap);
+        assertFalse(MarketplaceAdFilterForTests.responseWhole(HEAD, at).contains("MarketplaceFeedAdStory"));
+        String over = padded(answer(listing(0), adStory(1)), cap + 1);
+        assertEquals(over, MarketplaceAdFilterForTests.responseWhole(HEAD, over));
+        assertTrue(statusLine(), statusLine().contains("search character budget 1"));
+    }
+
+    @Test
+    public void completePayloadsAccumulateAndRefusedPathsStillMove() {
+        String head = answer(listing(0), adStory(1));
+        String fill = padded("{\"data\":null}", MarketplaceSearchAds.MAX_RESPONSE_CHARS - head.length());
+        String tail = streamed(2, adStory(2));
+        String expected = answer(listing(0)) + fill + streamed(1, adStory(2));
+        assertEquals(expected, MarketplaceAdFilterForTests.responseWhole(HEAD, head + fill + tail));
+        assertTrue(statusLine(), statusLine().contains("search character budget 1"));
+    }
+
+    @Test
+    public void wideDataBeforeAPathUsesTheNodeBudgetAndKeepsItsOriginalBytes() {
+        String data = "{\"wide\":[" + "0,".repeat(65_536) + "0],\"fake\":{\"path\":[" + EDGES + ",2]}}";
+        String refused = "{\"data\":" + data + ",\"path\":[" + EDGES + ",2,\"node\"]}";
+        Object request = new Object();
+        assertEquals(answer(listing(0)), MarketplaceAdFilterForTests.responsePiece(HEAD,
+                answer(listing(0), adStory(1)), request));
+        assertEquals("{\"data\":" + data + ",\"path\":[" + EDGES + ",1,\"node\"]}",
+                MarketplaceAdFilterForTests.responsePiece(HEAD, refused, request));
+        assertEquals(deferred(MarketplaceSearchAds.NOWHERE + 1),
+                MarketplaceAdFilterForTests.responsePiece(HEAD, deferred(1), request));
+        assertEquals(streamed(2, adStory(3)),
+                MarketplaceAdFilterForTests.responsePiece(HEAD, streamed(3, adStory(3)), request));
+        assertTrue(statusLine(), statusLine().contains("search node budget 1"));
+        assertEquals(answer(listing(0)), MarketplaceAdFilterForTests.responseWhole(HEAD,
+                answer(listing(0), adStory(1))));
+    }
+
+    @Test
+    public void exactDepthAndNodeLimitsPassAndTheNextValueIsRefused() {
+        String atDepth = nested(MarketplaceSearchAds.MAX_PARSE_DEPTH - 2);
+        assertSame(atDepth, MarketplaceAdFilterForTests.responseWhole(HEAD, atDepth));
+        assertFalse(String.valueOf(statusLine()).contains("search depth budget"));
+        String pastDepth = nested(MarketplaceSearchAds.MAX_PARSE_DEPTH - 1);
+        assertSame(pastDepth, MarketplaceAdFilterForTests.responseWhole(HEAD, pastDepth));
+        assertTrue(statusLine(), statusLine().contains("search depth budget 1"));
+        String atNodes = "[" + "0,".repeat(MarketplaceSearchAds.MAX_PARSE_NODES - 2) + "0]";
+        assertSame(atNodes, MarketplaceAdFilterForTests.responseWhole(HEAD, atNodes));
+        assertFalse(String.valueOf(statusLine()).contains("search node budget"));
+        String pastNodes = "[" + "0,".repeat(MarketplaceSearchAds.MAX_PARSE_NODES - 1) + "0]";
+        assertSame(pastNodes, MarketplaceAdFilterForTests.responseWhole(HEAD, pastNodes));
+        assertTrue(statusLine(), statusLine().contains("search node budget 1"));
+    }
+
+    @Test
+    public void chunkedOversizeRemapsTheRefusedEnvelopeOnEitherSideOfItsLargeData() {
+        for (boolean pathFirst : new boolean[] {false, true}) {
+            String refused = pathFirst
+                    ? deferred(12).substring(0, deferred(12).length() - 1)
+                        + ",\"padding\":\"" + "a".repeat(MarketplaceSearchAds.MAX_RESPONSE_CHARS) + "\"}"
+                    : padded(deferred(12), MarketplaceSearchAds.MAX_RESPONSE_CHARS + 1);
+            String expected = refused.replace("\"edges\",12", "\"edges\",11");
+            Object request = new Object();
+            assertEquals(answer(listing(0)), MarketplaceAdFilterForTests.responsePiece(HEAD,
+                    answer(listing(0), adStory(1)), request));
+            StringBuilder actual = new StringBuilder();
+            for (int from = 0; from < refused.length(); from += 65_537) {
+                actual.append(MarketplaceAdFilterForTests.responsePiece(HEAD,
+                        refused.substring(from, Math.min(from + 65_537, refused.length())), request));
+            }
+            String rest = MarketplaceAdFilter.responseEnd(request);
+            if (rest != null) actual.append(rest);
+            assertEquals(expected, actual.toString());
+        }
+        assertTrue(statusLine(), statusLine().contains("search character budget 2"));
+    }
+
+    @Test
+    public void fallbackBatchesKeepOriginalNestedPrefixesAcrossEveryCharacterBoundary() {
+        String child = "{\"node\":{\"children\":[" + listing(0) + "," + adStory(1) + "," + listing(2) + "]}}";
+        Object request = new Object();
+        assertEquals(answer(listing(0), child.replace("," + adStory(1), "")),
+                MarketplaceAdFilterForTests.responsePiece(HEAD, answer(listing(0), adStory(1), child), request));
+        String deep = nested(MarketplaceSearchAds.MAX_PARSE_DEPTH);
+        assertEquals(deep, MarketplaceAdFilterForTests.responsePiece(HEAD, deep, request));
+        String path = "{\"path\":[" + EDGES + ",2,\"node\",\"children\",2,\"node\"],"
+                + "\"data\":{\"path\":[" + EDGES + ",2],\"note\":\"escaped \\\"path\\\" [12]\"}}";
+        String batch = "noise\"\r\n[" + path + "," + deferred(1) + "," + deferred(12) + "]";
+        String expected = "noise\"\r\n[" + path.replace(",2,\"node\"", ",1,\"node\"") + ","
+                + deferred(MarketplaceSearchAds.NOWHERE + 1) + "," + deferred(11) + "]";
+        StringBuilder actual = new StringBuilder();
+        for (int i = 0; i < batch.length(); i++) {
+            actual.append(MarketplaceAdFilterForTests.responsePiece(HEAD, batch.substring(i, i + 1), request));
+        }
+        assertEquals(expected, actual.toString());
+        assertNull(MarketplaceAdFilter.responseEnd(request));
+        assertTrue(statusLine(), statusLine().contains("search depth budget 1"));
     }
 
     /**

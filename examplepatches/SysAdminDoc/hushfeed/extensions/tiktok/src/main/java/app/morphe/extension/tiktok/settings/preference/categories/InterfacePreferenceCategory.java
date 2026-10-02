@@ -6,6 +6,7 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 
 import android.content.Context;
 import android.preference.PreferenceScreen;
+import android.preference.Preference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -233,6 +234,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide the \"Search this image\" prompt shown over videos. The feed search button and suggestions above comments are separate settings.",
                     Settings.HIDE_VISUAL_SEARCH
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the comment bar on opened videos",
+                    "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.",
+                    Settings.HIDE_DETAIL_COMMENT_BAR
+            ));
         }
         // Feed filter rows that hide things drawn around a video rather than videos.
         // They were the tail of the Feed filter page under "Feed elements", a page about
@@ -281,12 +288,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
         }
         if (SettingsStatus.captchaPopupSuppressionEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Hide CAPTCHA popups",
-                    "Hide the CAPTCHA dialogs raised while you browse or watch LIVE. Login, account verification and any CAPTCHA raised over a follow, like, comment or repost stay visible.",
-                    Settings.HIDE_CAPTCHA_POPUPS
-            ));
+            Preference captcha = new Preference(context);
+            captcha.setTitle(L10n.t(context, "Hide CAPTCHA popups"));
+            captcha.setSummary(L10n.t(context,
+                    "Unavailable on these TikTok builds. All verification challenges stay visible."));
+            captcha.setKey("hushfeed_captcha_unavailable");
+            captcha.setEnabled(false);
+            captcha.setSelectable(false);
+            addPreference(captcha);
         }
         if (SettingsStatus.sensitiveWarningsEnabled) {
             addPreference(new TogglePreference(

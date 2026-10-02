@@ -8,18 +8,22 @@ import app.morphe.util.addInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.tiktok.misc.extension.MainActivityOnCreateFingerprint
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/privacy/ResourceBatteryGovernor;"
+private const val BENCHMARK = "Lapp/morphe/extension/tiktok/privacy/BenchmarkRuns;"
 private const val MANAGER = "Landroid/hardware/SensorManager;"
 private const val LISTENER_AND_SENSOR = "Landroid/hardware/SensorEventListener;Landroid/hardware/Sensor;"
 
 @Suppress("unused")
 val resourceBatteryGovernorPatch = bytecodePatch(
     name = "Resource and battery governor",
-    description = "Stops TikTok listening to the motion sensors it polls for device fingerprinting: the accelerometer, gyroscope, magnetometer, rotation, gravity and linear acceleration sensors. Switch: Hushfeed settings > Privacy.",
+    description = "Stops TikTok listening to the motion sensors it polls for device fingerprinting: the accelerometer, gyroscope, magnetometer, rotation, gravity and linear acceleration sensors. " +
+        "A second switch, off by default, keeps TikTok's phone benchmark from starting in a background process of its own. " +
+        "Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
     category("Privacy")
@@ -48,5 +52,13 @@ val resourceBatteryGovernorPatch = bytecodePatch(
         }
         replaceSites(sites, replacements)
         println("[Resource and battery governor] Intercepted ${sites.size} sensor registration sites.")
+
+        // #64: ByteBench's collection service runs in a process of its own (":bm") when TikTok's
+        // servers ask for a benchmark. Its switch disables the component, and every start of the
+        // main activity puts the saved choice into effect, both ways.
+        MainActivityOnCreateFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p0 .. p0 }, $BENCHMARK->onAppOpened(Landroid/app/Activity;)V",
+        )
     }
 }

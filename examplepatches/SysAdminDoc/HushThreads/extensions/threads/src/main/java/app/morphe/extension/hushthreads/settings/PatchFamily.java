@@ -147,6 +147,21 @@ public enum PatchFamily {
             if (inBuild.contains(family)) lines.add(family.reportLine(paused));
             else absent.add(family.patchName);
         }
+        if (inBuild.contains(DISABLE_ANALYTICS)) {
+            int mask = SettingsStatus.analyticsAddressMask();
+            if (mask <= 0 || (mask & ~7) != 0) {
+                lines.add("analytics addresses: coverage not recorded");
+            } else {
+                List<String> matched = new ArrayList<>();
+                List<String> missing = new ArrayList<>();
+                String[] kinds = {"PIGEON", "DEFAULT", "MQTT"};
+                for (int i = 0; i < kinds.length; i++) {
+                    ((mask & (1 << i)) != 0 ? matched : missing).add(kinds[i]);
+                }
+                lines.add("analytics addresses: matched=" + String.join(", ", matched)
+                        + "; missing=" + (missing.isEmpty() ? "none" : String.join(", ", missing)));
+            }
+        }
         if (!absent.isEmpty()) lines.add("not in this build: " + String.join(", ", absent));
         return lines;
     }

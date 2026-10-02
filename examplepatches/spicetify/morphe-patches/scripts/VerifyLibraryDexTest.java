@@ -81,6 +81,12 @@ class VerifyLibraryDexTest {
                 code.add(new ImmutableInstruction10x(Opcode.RETURN_VOID));
                 code.add(new ImmutableInstruction10x(Opcode.RETURN_VOID));
             }
+            case GATE -> {
+                code.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0));
+                code.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 3));
+                code.add(new ImmutableInstruction10x(Opcode.RETURN_VOID));
+                code.add(new ImmutableInstruction10x(Opcode.RETURN_VOID));
+            }
             case NOTHING -> code.add(new ImmutableInstruction10x(Opcode.RETURN_VOID));
         }
         return code;

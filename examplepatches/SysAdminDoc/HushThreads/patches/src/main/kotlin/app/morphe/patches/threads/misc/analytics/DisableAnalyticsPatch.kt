@@ -10,14 +10,18 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.misc.extension.enableStatus
 import app.morphe.patches.threads.misc.extension.handleTargets
+import app.morphe.patches.threads.misc.extension.patchLog
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
+import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
+import app.morphe.patches.threads.misc.extension.writeStub
 import app.morphe.patches.threads.misc.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
@@ -75,8 +79,8 @@ internal object MqttSettingsFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = PATCH,
-    description = "Stops Threads sending its usage analytics and event logs to Meta. Everything " +
-        "the app needs to work is left alone.",
+    description = "Redirects matched Pigeon, default event-log and MQTT analytics addresses. " +
+        "Settings show which address kinds were patched. Other telemetry may remain.",
     default = true,
 ) {
     category("Privacy")
@@ -86,9 +90,15 @@ val disableAnalyticsPatch = bytecodePatch(
 
     execute {
         requireStatusMethod("disableAnalytics")
+        val coverage = mutableClassDefBy(SETTINGS_STATUS).methods.singleOrNull { it.name == "analyticsAddressMask" }
+        if (coverage == null || coverage.returnType != "I" || coverage.parameterTypes.isNotEmpty() ||
+            !AccessFlags.STATIC.isSet(coverage.accessFlags)) {
+            throw PatchException("SettingsStatus has no single static int analyticsAddressMask()")
+        }
 
+        var matched = 0
         handleTargets(PATCH, "kinds of analytics address", AddressSite.entries) { site ->
-            when (site) {
+            val missing = when (site) {
                 // Not `?.let { ...; null } ?: message`: a found method's null would reach the message.
                 AddressSite.PIGEON -> PigeonUrlFingerprint.methodOrNull.let { method ->
                     if (method == null) "no static (String, boolean) method builds the Pigeon logger's address"
@@ -101,14 +111,20 @@ val disableAnalyticsPatch = bytecodePatch(
                     else method.wrapAnalyticsSetting()
                 }
             }
+            if (missing == null) matched = matched or site.mask
+            missing?.let { "${site.name}: $it" }
         }
 
+        writeStub(SETTINGS_STATUS, "analyticsAddressMask", 1, "const/4 v0, $matched\nreturn v0")
+        val found = AddressSite.entries.filter { matched and it.mask != 0 }.joinToString { it.name }
+        val missing = AddressSite.entries.filter { matched and it.mask == 0 }.joinToString { it.name }.ifEmpty { "none" }
+        patchLog.info("$PATCH: matched $found; missing $missing.")
         enableStatus("disableAnalytics")
     }
 }
 
 /** The kinds of place Threads gets an analytics upload address from. */
-private enum class AddressSite { PIGEON, DEFAULT, MQTT }
+private enum class AddressSite(val mask: Int) { PIGEON(1), DEFAULT(2), MQTT(4) }
 
 /**
  * Sends [LOGGING_URL] through the extension wherever a method loads it and returns it straight

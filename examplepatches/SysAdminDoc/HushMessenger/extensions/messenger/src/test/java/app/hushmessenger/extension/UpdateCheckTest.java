@@ -71,6 +71,11 @@ public class UpdateCheckTest {
         assertTrue(SettingsActivity.compareVersions("0.7.0-dev.1", "0.6.0") > 0);
         assertTrue(SettingsActivity.compareVersions("0.7.0-dev.1", "0.7.0") < 0);
         assertTrue(SettingsActivity.compareVersions("0.7.0", "0.7.0-dev.1") > 0);
+        assertTrue(SettingsActivity.compareVersions("1.0.0-beta.11", "1.0.0-beta.2") > 0);
+        assertTrue(SettingsActivity.compareVersions("1.0.0-2", "1.0.0-alpha") < 0);
+        assertTrue(SettingsActivity.compareVersions("1.0.0-alpha", "1.0.0-alpha.1") < 0);
+        assertEquals(0, SettingsActivity.compareVersions("1.0.0+build.2", "1.0.0+build.1"));
+        assertTrue(SettingsActivity.compareVersions("2147483648.0.0", "2147483647.0.0") > 0);
     }
 
     @Test public void onlyThisProjectsReleasePagesAreOffered() {
@@ -100,10 +105,10 @@ public class UpdateCheckTest {
         assertNull(root.findViewWithTag("update_release"));
     }
 
-    @Test public void aReleaseLinkOutsideThisProjectGetsNoButton() throws Exception {
+    @Test public void aReleaseLinkOutsideThisProjectIsRejected() throws Exception {
         reply = json(200, release("v99.0.0", "https://example.com/releases/tag/v99.0.0"));
         View root = openWithCheckOn();
-        assertEquals("Version 99.0.0 is available", awaitStatus(root).getText().toString());
+        assertEquals("Couldn't check for updates.", awaitStatus(root).getText().toString());
         assertNull(root.findViewWithTag("update_release"));
     }
 
@@ -135,8 +140,105 @@ public class UpdateCheckTest {
             Thread.sleep(300);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEquals(View.GONE, ((View) root.findViewWithTag("update_status")).getVisibility());
+            root.findViewWithTag("check_now").performClick();
         }
         assertEquals(0, requests.get());
+    }
+
+    @Test public void malformedBodiesAndInvalidTagsAreRejectedWithoutAReleaseAction() throws Exception {
+        String valid = release("v99.0.0", RELEASE_PAGE);
+        String[] bad = {valid + " trailing", "[]", "null", "{'tag_name':'v99.0.0','html_url':'" + RELEASE_PAGE + "'}",
+            "{\"tag_name\":null,\"html_url\":\"" + RELEASE_PAGE + "\"}",
+            "{\"tag_name\":\"v99.0.0\",\"tag_name\":\"v1.0.0\",\"html_url\":\"" + RELEASE_PAGE + "\"}",
+            release("v99.0", RELEASE_PAGE), release("v099.0.0", RELEASE_PAGE), release("v99.0.0-01", RELEASE_PAGE),
+            release("v99.0.0-", RELEASE_PAGE), valid.substring(0, valid.length() - 1)};
+        Settings.preferences.edit().putBoolean("check_updates", true).commit();
+        for (String body : bad) {
+            reply = json(200, body);
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = screen.get().getWindow().getDecorView();
+                assertEquals(body, "Couldn't check for updates.", awaitStatus(root).getText().toString());
+                assertNull(root.findViewWithTag("update_release"));
+            }
+        }
+    }
+
+    @Test public void theByteLimitIsInclusiveAndLargerResponsesFail() throws Exception {
+        String valid = release("v99.0.0", RELEASE_PAGE);
+        Settings.preferences.edit().putBoolean("check_updates", true).commit();
+        for (int size : new int[] {256 * 1024, 256 * 1024 + 1}) {
+            reply = json(200, valid + " ".repeat(size - valid.getBytes(StandardCharsets.UTF_8).length));
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = screen.get().getWindow().getDecorView();
+                assertEquals(size == 256 * 1024 ? "Version 99.0.0 is available" : "Couldn't check for updates.", awaitStatus(root).getText().toString());
+            }
+        }
+    }
+
+    @Test public void malformedUtf8FailsBeforeJsonParsing() throws Exception {
+        reply = out -> {
+            byte[] bytes = {(byte) 0xc3, 0x28};
+            out.write("HTTP/1.1 200 Test\r\nContent-Length: 2\r\nConnection: close\r\n\r\n".getBytes(StandardCharsets.US_ASCII));
+            out.write(bytes);
+            out.flush();
+        };
+        assertEquals("Couldn't check for updates.", awaitStatus(openWithCheckOn()).getText().toString());
+    }
+
+    @Test public void enablingAndRetryingCheckOnceWithVisibleLoadingAndOneReleaseAction() throws Exception {
+        reply = json(403, "{}");
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            root.findViewWithTag("check_updates").performClick();
+            assertEquals("Checking for updates...", ((TextView) root.findViewWithTag("update_status")).getText().toString());
+            assertEquals("Couldn't check for updates.", awaitStatus(root).getText().toString());
+            assertEquals(1, requests.get());
+            reply = json(200, release("v99.0.0", RELEASE_PAGE));
+            root.findViewWithTag("check_now").performClick();
+            assertEquals("Version 99.0.0 is available", awaitStatus(root).getText().toString());
+            assertEquals(2, requests.get());
+            root.findViewWithTag("check_now").performClick();
+            assertNull(root.findViewWithTag("update_release"));
+            awaitStatus(root);
+            android.view.ViewGroup parent = (android.view.ViewGroup) root.findViewWithTag("update_status").getParent();
+            int actions = 0;
+            for (int i = 0; i < parent.getChildCount(); i++) if ("update_release".equals(parent.getChildAt(i).getTag())) actions++;
+            assertEquals(1, actions);
+            assertEquals(3, requests.get());
+        }
+    }
+
+    @Test public void optOutDestructionAndNewerRequestsCancelDelayedCompletions() throws Exception {
+        for (int code : new int[] {200, 403}) for (String action : new String[] {"optout", "destroy", "newer"}) {
+            CountDownLatch received = new CountDownLatch(1), finish = new CountDownLatch(1), answered = new CountDownLatch(1);
+            reply = out -> {
+                received.countDown();
+                try { finish.await(3, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                try { json(code, release("v99.0.0", RELEASE_PAGE)).send(out); }
+                finally { answered.countDown(); }
+            };
+            Settings.preferences.edit().putBoolean("check_updates", true).commit();
+            var screen = Robolectric.buildActivity(SettingsActivity.class).setup();
+            View root = screen.get().getWindow().getDecorView();
+            assertTrue(received.await(2, TimeUnit.SECONDS));
+            TextView status = root.findViewWithTag("update_status");
+            if ("optout".equals(action)) root.findViewWithTag("check_updates").performClick();
+            else if ("destroy".equals(action)) screen.pause().stop().destroy();
+            else {
+                reply = json(200, release("v" + BuildConfig.VERSION_NAME, RELEASE_PAGE));
+                root.findViewWithTag("check_now").performClick();
+                assertEquals("You have the latest version.", awaitStatus(root).getText().toString());
+            }
+            assertNull(org.robolectric.util.ReflectionHelpers.getField(screen.get(), "updateConnection"));
+            finish.countDown();
+            assertTrue(answered.await(2, TimeUnit.SECONDS));
+            Thread.sleep(100);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertNull(root.findViewWithTag("update_release"));
+            if ("optout".equals(action)) assertEquals(View.GONE, status.getVisibility());
+            else assertEquals("newer".equals(action) ? "You have the latest version." : "Checking for updates...", status.getText().toString());
+            if (!"destroy".equals(action)) screen.close();
+        }
     }
 
     private View openWithCheckOn() {
@@ -147,11 +249,12 @@ public class UpdateCheckTest {
     private static TextView awaitStatus(View root) throws InterruptedException {
         TextView status = root.findViewWithTag("update_status");
         long deadline = System.currentTimeMillis() + 10_000;
-        while (status.getVisibility() != View.VISIBLE && System.currentTimeMillis() < deadline) {
+        while ((status.getVisibility() != View.VISIBLE || status.getText().toString().equals("Checking for updates...")) && System.currentTimeMillis() < deadline) {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             Thread.sleep(20);
         }
         assertEquals(View.VISIBLE, status.getVisibility());
+        assertNotEquals("Checking for updates...", status.getText().toString());
         return status;
     }
 

@@ -49,6 +49,10 @@ internal fun Document.addSettingsEntry() {
 internal val settingsResources = resourcePatch(description = "Install HushMessenger settings") {
     execute {
         validateVersionCode(packageMetadata.versionCode)
+        nativeBubbleActivityVerified = document("AndroidManifest.xml").use {
+            it.requireNativeBubbleRoutesAbsent()
+            it.hasNativeBubbleActivity()
+        }
         val shortcutsPath = resolveShortcutsPath(listApkEntries("res/")) { path ->
             document(path).use { it }
         }
@@ -64,6 +68,8 @@ internal val settingsResources = resourcePatch(description = "Install HushMessen
 }
 
 internal var discoveredControls: Map<String, List<Method>> = emptyMap()
+internal var nativeBubbleActivityVerified = false
+internal var nativeBubbleRoutesVerified = false
 
 internal val settingsExtension = bytecodePatch(description = "Load HushMessenger runtime controls") {
     dependsOn(settingsResources)
@@ -73,6 +79,9 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         val classes = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
         classDefForEach { classes.add(it) }
         discoveredControls = findControls(classes)
+        val nativeGate = discoveredControls["bubble_mode"].orEmpty().singleOrNull()
+        nativeBubbleRoutesVerified = nativeBubbleActivityVerified && nativeGate != null &&
+            findNativeBubbleRoutes(classes, nativeGate.hookId()) == activeProfile.nativeBubbleRoutes
         bundledControls.clear()
         hookScreenHosts()
     }
@@ -80,6 +89,8 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         discoveredControls = emptyMap()
         bundledControls.clear()
         activeProfile = BASE_PROFILE
+        nativeBubbleActivityVerified = false
+        nativeBubbleRoutesVerified = false
     }
 }
 
@@ -122,6 +133,8 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "typing_mailbox" -> method.validateOutgoingTyping()
             "anonymous_stories" -> method.validateStorySeen()
             "growth_notes" -> method.validateNotesTips()
+            "bubbles" -> method.validateBubbleEligibility()
+            "bubble_mode" -> method.validateNativeBubbleMode()
             else -> method.validateSwitch()
         }
     }
@@ -140,6 +153,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "ai_tab" -> method.injectSwitch("hideMetaAiTab", "0x0")
             "typing" -> method.injectSwitch("suppressTyping", "0x0")
             "bubbles" -> method.injectSwitch("enableBubbles", "0x1")
+            "bubble_mode" -> method.injectNativeBubbleMode()
             "allow_screenshot" -> method.injectSwitch("allowScreenshot", "0x0")
             "hide_read_receipts", "read_mailbox" -> method.injectSwitch("hideReadReceipts", "0x0")
             "keep_unsent" -> method.injectKeepUnsent()
@@ -158,14 +172,19 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
 
 private fun controlPatch(key: String, title: String, summary: String, group: String, vararg hooks: String): BytecodePatch {
     var applied = false
+    var nativeRoutesApplied = false
     val featureResources = resourcePatch(description = "Record HushMessenger capability: $key") {
         dependsOn(settingsResources)
         execute {
             applied = false
+            nativeRoutesApplied = false
             document("AndroidManifest.xml").use { it.requireFeatureAbsent(key) }
         }
         finalize {
-            if (applied) document("AndroidManifest.xml").use { it.addFeature(key) }
+            if (applied) document("AndroidManifest.xml").use {
+                it.addFeature(key)
+                if (nativeRoutesApplied) it.addNativeBubbleRoutesMetadata()
+            }
         }
     }
     return bytecodePatch(
@@ -184,7 +203,13 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                     mutableClassDefBy(original.definingClass).methods.single { it.hookId() == original.hookId() }
                 }
             }
-            injectControl(key, methods)
+            if (key == "bubbles") {
+                val capability = mutableClassDefBy(HOST_SCREENS).methods.singleOrNull { it.hookId() == NATIVE_BUBBLE_ROUTES }
+                    ?: throw PatchException("Messenger controls: the extension has no native bubble capability")
+                injectNativeBubbles(methods.getValue("bubbles").single(), methods.getValue("bubble_mode").single(),
+                    capability, nativeBubbleRoutesVerified)
+                nativeRoutesApplied = nativeBubbleRoutesVerified
+            } else injectControl(key, methods)
             recordControl(key)
             applied = true
         }
@@ -232,7 +257,7 @@ val suppressTypingPatch = controlPatch("typing", "Hide typing indicator", "Suppr
 @Suppress("unused")
 val externalBrowserPatch = controlPatch("external_browser", "Open web links externally", "Uses Messenger's external-browser branch for HTTP and HTTPS links.", "Links and bubbles", "browser")
 @Suppress("unused")
-val enableBubblesPatch = controlPatch("bubbles", "Allow chat bubbles", "Removes the low-memory eligibility limit on Android 11 and newer.", "Links and bubbles")
+val enableBubblesPatch = controlPatch("bubbles", "Allow chat bubbles", "Offers Stock, Chat Heads and Native Bubbles on verified Messenger routes on Android 11 and newer.", "Links and bubbles", "bubbles", "bubble_mode")
 @Suppress("unused")
 val useSystemEmojiPatch = controlPatch("use_system_emoji", "Use system emoji", "Renders emoji with the phone's own font instead of Messenger's.", "Conversations", "emoji_typeface")
 @Suppress("unused")
@@ -242,7 +267,7 @@ val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots",
 @Suppress("unused")
 val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Suppresses your outgoing read receipt. In end-to-end encrypted chats, chats you open stay unread until you reply.", "Privacy", "hide_read_receipts", "read_mailbox")
 @Suppress("unused")
-val keepUnsentPatch = controlPatch("keep_unsent", "Keep unsent messages", "Preserves messages other people remove for everyone, except in end-to-end encrypted chats. Your own unsend ability may be limited while active.", "Privacy", "keep_unsent", "unsent_indicator", "delta_unsent")
+val keepUnsentPatch = controlPatch("keep_unsent", "Keep unsent messages", "Preserves messages on verified legacy unsend routes. End-to-end encrypted chats are unsupported, and group coverage is unverified. Activity records intercepted legacy unsends, not chat support. Your own unsend may be limited.", "Privacy", "keep_unsent", "unsent_indicator", "delta_unsent")
 private var anonymousStoriesApplied = false
 
 private val anonymousStoriesResources = resourcePatch(description = "Record HushMessenger capability: anonymous_stories") {
@@ -352,17 +377,18 @@ val menuSettingsPatch = bytecodePatch(
         val drawerMethod = methods.single { it.returnType == "V" && it.parameterTypes == listOf("Ljava/util/List;") }
         val clickMethod = methods.single { it.name == "onClick" }
         val addTarget = mutableClassDefBy(addMethod.definingClass).methods.single { it.hookId() == addMethod.hookId() }
+        val bindTarget = mutableClassDefBy(bindMethod.definingClass).methods.single { it.hookId() == bindMethod.hookId() }
+        val drawerTarget = mutableClassDefBy(drawerMethod.definingClass).methods.single { it.hookId() == drawerMethod.hookId() }
         val clickTarget = mutableClassDefBy(clickMethod.definingClass).methods.single { it.hookId() == clickMethod.hookId() }
-        // Check the Litho drawer's click site before editing anything.
+        // Every target, including encoding limits, must pass before the first instruction changes.
+        addTarget.validateMenuSettingsAdd()
+        bindTarget.validateMenuSettingsBind()
+        drawerTarget.validateMenuDrawerAdd()
         val folderItemType = addTarget.menuFolderItemType()
         clickTarget.menuFolderCastIndex(folderItemType)
         addTarget.injectMenuSettingsAdd()
-        mutableClassDefBy(bindMethod.definingClass).methods
-            .single { it.hookId() == bindMethod.hookId() }
-            .injectMenuSettingsBind()
-        mutableClassDefBy(drawerMethod.definingClass).methods
-            .single { it.hookId() == drawerMethod.hookId() }
-            .injectMenuDrawerAdd()
+        bindTarget.injectMenuSettingsBind()
+        drawerTarget.injectMenuDrawerAdd()
         clickTarget.injectMenuFolderClick(folderItemType)
         recordControl("menu_row")
         menuRowApplied = true

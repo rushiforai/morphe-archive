@@ -11,6 +11,7 @@ import android.app.Activity;
 import android.app.AppOpsManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -34,6 +35,7 @@ import android.provider.MediaStore;
 import android.view.ViewGroup;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
@@ -69,7 +71,7 @@ public class PrivacySwitchesTest {
     @After public void tearDown() {
         for (var setting : new app.morphe.extension.shared.settings.BooleanSetting[]{
                 Settings.BLOCK_CONTACT_LIST, Settings.BLOCK_INSTALLED_APPS, Settings.BLOCK_LOCATION,
-                Settings.BLOCK_CLIPBOARD_READS, Settings.BLOCK_MOTION_SENSORS,
+                Settings.BLOCK_CLIPBOARD_READS, Settings.BLOCK_MOTION_SENSORS, Settings.STOP_BENCHMARK_RUNS,
                 Settings.BLOCK_WEBVIEW_JS_INTERFACES, Settings.CAMERA_MIC_INDICATOR}) {
             setting.save(setting.defaultValue);
         }
@@ -209,6 +211,50 @@ public class PrivacySwitchesTest {
         Settings.BLOCK_MOTION_SENSORS.save(false);
         assertTrue(ResourceBatteryGovernor.interceptSensorRegistration(manager, listener, accelerometer,
                 SensorManager.SENSOR_DELAY_NORMAL));
+    }
+
+    @Test public void theBenchmarkSwitchDisablesItsServiceAndOffOrPausePutsItBack() throws Exception {
+        PackageManager packages = context.getPackageManager();
+        ComponentName service = new ComponentName(context.getPackageName(), BenchmarkRuns.SERVICE);
+        Shadows.shadowOf(packages).addServiceIfNotPresent(service);
+
+        BenchmarkRuns.settingsChanged(context, true);
+        Utils.awaitBackgroundTasksForTests();
+        assertEquals(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, packages.getComponentEnabledSetting(service));
+        BenchmarkRuns.settingsChanged(context, false);
+        Utils.awaitBackgroundTasksForTests();
+        assertEquals("off hands the service back to the manifest",
+                PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, packages.getComponentEnabledSetting(service));
+
+        for (int flip = 0; flip < 20; flip++) {
+            BenchmarkRuns.settingsChanged(context, true);
+            BenchmarkRuns.settingsChanged(context, false);
+        }
+        Utils.awaitBackgroundTasksForTests();
+        assertEquals("quick flips end where the switch was left",
+                PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, packages.getComponentEnabledSetting(service));
+
+        try (var owner = Robolectric.buildActivity(Activity.class).setup()) {
+            Settings.STOP_BENCHMARK_RUNS.save(true);
+            BenchmarkRuns.onAppOpened(owner.get());
+            Utils.awaitBackgroundTasksForTests();
+            assertEquals("a start puts the saved choice into effect",
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED, packages.getComponentEnabledSetting(service));
+
+            PausedProcess.set(true);
+            try {
+                BenchmarkRuns.onAppOpened(owner.get());
+                Utils.awaitBackgroundTasksForTests();
+                assertEquals("a paused start leaves the benchmark to TikTok",
+                        PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, packages.getComponentEnabledSetting(service));
+                BenchmarkRuns.settingsChanged(context, true);
+                Utils.awaitBackgroundTasksForTests();
+                assertEquals("turning it on while paused waits for the pause to end",
+                        PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, packages.getComponentEnabledSetting(service));
+            } finally {
+                PausedProcess.set(false);
+            }
+        }
     }
 
     @Test public void theDotFollowsTheCountsAndTheSwitch() {
@@ -393,8 +439,8 @@ public class PrivacySwitchesTest {
             List<String> expected = List.of(Settings.DISABLE_ANALYTICS.key, Settings.GHOST_MODE.key,
                     Settings.BLOCK_CONTACT_LIST.key, Settings.BLOCK_INSTALLED_APPS.key,
                     Settings.BLOCK_LOCATION.key, Settings.BLOCK_CLIPBOARD_READS.key,
-                    Settings.BLOCK_MOTION_SENSORS.key, Settings.CAMERA_MIC_INDICATOR.key,
-                    Settings.BLOCK_WEBVIEW_JS_INTERFACES.key);
+                    Settings.BLOCK_MOTION_SENSORS.key, Settings.STOP_BENCHMARK_RUNS.key,
+                    Settings.CAMERA_MIC_INDICATOR.key, Settings.BLOCK_WEBVIEW_JS_INTERFACES.key);
             assertEquals("the Privacy page lists tracking, then device access, then links",
                     expected, keys.stream().filter(expected::contains).toList());
             assertNotNull("Tracking heading", privacy.findPreference(Settings.GHOST_MODE.key));

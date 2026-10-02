@@ -254,6 +254,136 @@ fun Method.literalReads(index: Int): List<Int> {
 }
 
 /**
+ * Every instruction that can read the register the instruction at [index] writes on a way from
+ * it that writes that register again first, so a read of some other value. Its ways go into a
+ * handler only from what can throw, as those of [firstHolding] and [firstAfterRewrite] do, while
+ * [literalReads] follows every handler. An instruction can read the definition's value on one
+ * way and another value on another. A way that comes back round to the definition holds its
+ * value again.
+ *
+ * @throws IllegalArgumentException when the instruction at [index] writes no single register.
+ */
+fun Method.rewrittenReads(index: Int): List<Int> {
+    val reads = sortedSetOf<Int>()
+    walkFromDefinition(index) { at, instruction, register, rewritten ->
+        if (rewritten && readsRegister(instruction, register)) reads += at
+        true
+    }
+    return reads.toList()
+}
+
+/**
+ * On each way from the instruction at [index], the first instruction [stops] takes, when that way
+ * still holds the value the instruction at [index] writes: the other half of [firstAfterRewrite],
+ * over the same ways. Those go into a handler only from an instruction that can throw, and with
+ * [handlers] false never, which leaves the ways the method takes when nothing throws.
+ *
+ * @throws IllegalArgumentException when the instruction at [index] writes no single register.
+ */
+fun Method.firstHolding(index: Int, stops: (Instruction) -> Boolean, handlers: Boolean = true): List<Int> {
+    val found = sortedSetOf<Int>()
+    walkFromDefinition(index, handlers) { at, instruction, _, rewritten ->
+        if (!stops(instruction)) return@walkFromDefinition true
+        if (!rewritten) found += at
+        false
+    }
+    return found.toList()
+}
+
+/**
+ * On each way from the instruction at [index], the first instruction [stops] takes, when that way
+ * wrote the register the instruction at [index] writes again before getting there. A way that
+ * meets one of them still holding the definition's value ends there, and one that comes back
+ * round to the definition holds its value again.
+ *
+ * @throws IllegalArgumentException when the instruction at [index] writes no single register.
+ */
+fun Method.firstAfterRewrite(index: Int, stops: (Instruction) -> Boolean): List<Int> {
+    val found = sortedSetOf<Int>()
+    walkFromDefinition(index) { at, instruction, _, rewritten ->
+        if (!stops(instruction)) return@walkFromDefinition true
+        if (rewritten) found += at
+        false
+    }
+    return found.toList()
+}
+
+/**
+ * Walks every way from the instruction at [index], which writes one register, into the handlers
+ * of what can throw on it too unless [handlers] is false, visiting each instruction at most twice:
+ * still holding the definition's value, and written again. [visit]
+ * gets the instruction, the register and whether it was written again, and answers whether the
+ * way goes on past it.
+ */
+private fun Method.walkFromDefinition(
+    index: Int,
+    handlers: Boolean = true,
+    visit: (Int, Instruction, Int, Boolean) -> Boolean,
+) {
+    val flow = ControlFlow.of(this)
+    val definition = flow.instructions[index]
+    require(definition.opcode.setsRegister() && !definition.opcode.setsWideRegister()) {
+        "Instruction $index of $this does not write a single register."
+    }
+    val register = (definition as OneRegisterInstruction).registerA
+    val seen = arrayOf(BitSet(), BitSet())
+    val pending = ArrayDeque<Pair<Int, Int>>()
+    fun enqueue(successors: List<Int>, state: Int) = successors.forEach {
+        if (!seen[state][it]) { seen[state].set(it); pending += it to state }
+    }
+    enqueue(flow.normal[index], 0)
+    while (pending.isNotEmpty()) {
+        val (at, state) = pending.removeFirst()
+        val instruction = flow.instructions[at]
+        if (!visit(at, instruction, register, state == 1)) continue
+        // Only an instruction that can throw reaches its handlers, and one that throws never writes
+        // its destination, so they see what it held.
+        if (handlers && instruction.opcode.canThrow()) enqueue(flow.exceptional[at], state)
+        val next = when {
+            at == index -> 0
+            writesRegister(instruction, register) -> 1
+            else -> state
+        }
+        enqueue(flow.normal[at], next)
+    }
+}
+
+/**
+ * Every instruction whose write of [register] can be what that register holds as the instruction
+ * at [index] starts, found by walking back along every way in. A way in from a handler passes the
+ * instruction that threw, which never wrote its destination. -1 stands for the method's start,
+ * reached with [register] never written on the way.
+ */
+fun Method.writersReaching(index: Int, register: Int): List<Int> {
+    val flow = ControlFlow.of(this)
+    val count = flow.instructions.size
+    val normalInto = Array(count) { mutableListOf<Int>() }
+    val thrownInto = Array(count) { mutableListOf<Int>() }
+    for (from in 0 until count) {
+        flow.normal[from].forEach { normalInto[it] += from }
+        if (flow.instructions[from].opcode.canThrow()) flow.exceptional[from].forEach { thrownInto[it] += from }
+    }
+    val writers = sortedSetOf<Int>()
+    val seen = BitSet()
+    val pending = ArrayDeque<Int>()
+    fun passThrough(at: Int) {
+        if (seen[at]) return
+        seen.set(at)
+        pending += at
+    }
+    if (index == 0) writers += -1
+    for (from in normalInto[index]) if (writesRegister(flow.instructions[from], register)) writers += from else passThrough(from)
+    thrownInto[index].forEach(::passThrough)
+    while (pending.isNotEmpty()) {
+        val at = pending.removeFirst()
+        if (at == 0) writers += -1
+        for (from in normalInto[at]) if (writesRegister(flow.instructions[from], register)) writers += from else passThrough(from)
+        thrownInto[at].forEach(::passThrough)
+    }
+    return writers.toList()
+}
+
+/**
  * Every instruction that can read what [register] holds once the instruction at [index] has
  * run, before something writes it again. Empty means code inserted right after that
  * instruction may use the register for itself. The instruction's own handlers are included:

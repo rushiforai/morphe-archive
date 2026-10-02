@@ -52,12 +52,16 @@ public final class AdvancedFeedRules {
                     || !Settings.LOCAL_HIDDEN_CREATORS.get().trim().isEmpty();
         }
         public boolean getFiltered(Aweme item) {
-            CreatorIdentity who = CreatorIdentity.of(item);
-            return BLOCKED_CREATOR_CACHE.get(Settings.BLOCKED_CREATORS.get()).matches(
-                    who.normalizedUid, who.normalizedSecUid, who.normalizedHandle, who.handle, who.nickname)
-                    || LOCAL_CREATOR_CACHE.get(Settings.LOCAL_HIDDEN_CREATORS.get()).matches(
-                    who.normalizedUid, who.normalizedSecUid, who.normalizedHandle, who.handle, who.nickname);
+            return blocks(CreatorIdentity.of(item));
         }
+    }
+
+    /** Whether Blocked creators or Creators hidden on this phone names {@code who}. */
+    static boolean blocks(CreatorIdentity who) {
+        return BLOCKED_CREATOR_CACHE.get(Settings.BLOCKED_CREATORS.get()).matches(
+                who.normalizedUid, who.normalizedSecUid, who.normalizedHandle, who.handle, who.nickname)
+                || LOCAL_CREATOR_CACHE.get(Settings.LOCAL_HIDDEN_CREATORS.get()).matches(
+                who.normalizedUid, who.normalizedSecUid, who.normalizedHandle, who.handle, who.nickname);
     }
 
     /**

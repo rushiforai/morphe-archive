@@ -7,6 +7,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import dev.solvo37.vkvideopatches.Constants.VK_VIDEO
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 private const val VIDEO_FEATURES = "Lcom/vk/toggle/features/VideoFeatures;"
@@ -92,6 +93,34 @@ val removeVideoAdsPatch = bytecodePatch(
                 const/4 p3, 0x0
             """
         )
+
+        // Ordinary videos in 1.164 still carry a separate legacy ads object
+        // inside VideoVideoFullDto. Make that payload inert before the mapper
+        // can turn it into InstreamAd and start preroll playback.
+        VideoAdsConstructorFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 p1, 0x0
+                invoke-static {}, Ljava/util/Collections;->emptyList()Ljava/util/List;
+                move-result-object p2
+                const/4 p3, 0x0
+                invoke-static {}, Ljava/util/Collections;->emptyList()Ljava/util/List;
+                move-result-object p4
+                sget-object p5, Lcom/vk/api/generated/base/dto/BaseBoolIntDto;->NO:Lcom/vk/api/generated/base/dto/BaseBoolIntDto;
+                const/4 p6, 0x0
+                sget-object p7, Lcom/vk/api/generated/base/dto/BaseBoolIntDto;->NO:Lcom/vk/api/generated/base/dto/BaseBoolIntDto;
+            """
+        )
+
+        // Fail closed at the object boundary as well. The ordinary-video
+        // mapper treats a null ads object as no InstreamAd at all.
+        VideoFullAdsGetterFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return-object v0
+            """
+        )
     }
 }
 
@@ -169,16 +198,19 @@ val removeClipAdsPatch = bytecodePatch(
             return v0
         """.trimIndent()
 
-        listOf(
-            ClipAdsPromoProviderFingerprint.method,
-            ClipAdsStaticProviderFingerprint.method,
-            ClipAdsLabelProviderFingerprint.method,
-            ClipMarketAdProviderFingerprint.method,
-            ClipMarketAdChoicesProviderFingerprint.method,
-            ClipAdsVideoOwnerProviderFingerprint.method,
-            ClipFeedEndRewatchAdProviderFingerprint.method,
-            ClipAdsVideoProviderFingerprint.method,
-            ClipAdsCarouselProviderFingerprint.method,
+        // Provider internals are R8-obfuscated and can move between app versions.
+        // Treat these as defense-in-depth only: the stable feature gates, server
+        // feed filter and SDK mappers below remain mandatory fail-closed layers.
+        listOfNotNull(
+            ClipAdsPromoProviderFingerprint.methodOrNull,
+            ClipAdsStaticProviderFingerprint.methodOrNull,
+            ClipAdsLabelProviderFingerprint.methodOrNull,
+            ClipMarketAdProviderFingerprint.methodOrNull,
+            ClipMarketAdChoicesProviderFingerprint.methodOrNull,
+            ClipAdsVideoOwnerProviderFingerprint.methodOrNull,
+            ClipFeedEndRewatchAdProviderFingerprint.methodOrNull,
+            ClipAdsVideoProviderFingerprint.methodOrNull,
+            ClipAdsCarouselProviderFingerprint.methodOrNull,
         ).forEach { method ->
             check(method.implementation!!.registerCount >= 2) {
                 "Clips ad provider method ${method.name} has no free local register"
@@ -186,7 +218,9 @@ val removeClipAdsPatch = bytecodePatch(
             method.addInstructions(0, returnFalse)
         }
 
-        ClipYandexAdParamsProviderFingerprint.method.addInstructions(
+        // These config-provider hooks are likewise optional across R8 revisions.
+        // If they still match the 1.163 provider shape, keep applying them.
+        ClipYandexAdParamsProviderFingerprint.methodOrNull?.addInstructions(
             0,
             """
                 sget-object v0, Lwo0/k;->b:Lwo0/k;
@@ -194,7 +228,7 @@ val removeClipAdsPatch = bytecodePatch(
             """
         )
 
-        ClipMarketAdHeaderClicksProviderFingerprint.method.addInstructions(
+        ClipMarketAdHeaderClicksProviderFingerprint.methodOrNull?.addInstructions(
             0,
             """
                 sget-object v0, Lcom/vk/clips/sdk/shared/viewer/experiments/models/ClipsMarketAdHeaderClickConfig;->c:Lcom/vk/clips/sdk/shared/viewer/experiments/models/ClipsMarketAdHeaderClickConfig;
@@ -207,11 +241,11 @@ val removeClipAdsPatch = bytecodePatch(
             return-object v0
         """.trimIndent()
 
-        ClipSellerBannerCompanionProviderFingerprint.method.addInstructions(
+        ClipSellerBannerCompanionProviderFingerprint.methodOrNull?.addInstructions(
             0,
             returnDisabledBannerCompanion
         )
-        ClipBannerCompanionProviderFingerprint.method.addInstructions(
+        ClipBannerCompanionProviderFingerprint.methodOrNull?.addInstructions(
             0,
             returnDisabledBannerCompanion
         )
@@ -236,21 +270,61 @@ val filterClipServerFeedAdsPatch = bytecodePatch(
     compatibleWith(VK_VIDEO)
 
     execute {
+        // Runtime-validated hotfix: API deserializers may supply an immutable list. Both response
+        // mappers remove ad entries in-place, so own a mutable copy first.
+        ClipServerFeedConstructorFingerprint.method.apply {
+            val fieldReferences = implementation!!.instructions
+                .mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+            val itemsField = fieldReferences.firstOrNull {
+                it.startsWith("Lcom/vk/api/generated/shortVideo/dto/ShortVideoRecomFeedDto;->") &&
+                    it.endsWith(":Ljava/util/List;")
+            } ?: error("Clips feed items field was not found")
+            val pageAnchorField = fieldReferences.firstOrNull {
+                it.startsWith("Lcom/vk/api/generated/shortVideo/dto/ShortVideoRecomFeedDto;->") &&
+                    it.endsWith(":Ljava/lang/String;")
+            } ?: error("Clips feed page anchor field was not found")
+
+            addInstructions(
+                0,
+                """
+                    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+                    iput-object p2, p0, $pageAnchorField
+                    new-instance p2, Ljava/util/ArrayList;
+                    invoke-direct {p2, p1}, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V
+                    iput-object p2, p0, $itemsField
+                    return-void
+                """
+            )
+        }
+
         ClipServerFeedMapperFingerprint.method.apply {
-            // ee1.j.a() in VK Video 1.163 has 74 local registers plus two
-            // parameters. Filter the mutable API feed list before the original
-            // mapper converts ad DTOs into SDK items / install CTA buttons.
+            // The mapper class, method name and generated getter name move under
+            // R8 between VK Video releases. Resolve the two stable API calls
+            // from the matched method instead of hard-coding the 1.163 names.
             check(implementation!!.registerCount >= 6) {
                 "Clips feed mapper has insufficient local registers; fingerprint needs updating"
             }
 
+            val mapperReferences = implementation!!.instructions
+                .mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+
+            val responseFeedReference = mapperReferences.firstOrNull {
+                it.startsWith("Lcom/vk/api/generated/shortVideo/dto/ShortVideoGetRecomResponseDto;->") &&
+                    it.endsWith("()Lcom/vk/api/generated/shortVideo/dto/ShortVideoRecomFeedDto;")
+            } ?: error("ShortVideo recom feed getter was not found in Clips mapper")
+
+            val feedItemsReference = mapperReferences.firstOrNull {
+                it.startsWith("Lcom/vk/api/generated/shortVideo/dto/ShortVideoRecomFeedDto;->") &&
+                    it.endsWith("()Ljava/util/List;")
+            } ?: error("ShortVideo recom feed items getter was not found in Clips mapper")
+
             addInstructionsWithLabels(
                 0,
                 """
-                    invoke-virtual/range {p0 .. p0}, Lcom/vk/api/generated/shortVideo/dto/ShortVideoGetRecomResponseDto;->e()Lcom/vk/api/generated/shortVideo/dto/ShortVideoRecomFeedDto;
+                    invoke-virtual/range {p0 .. p0}, $responseFeedReference
                     move-result-object v0
 
-                    invoke-virtual {v0}, Lcom/vk/api/generated/shortVideo/dto/ShortVideoRecomFeedDto;->b()Ljava/util/List;
+                    invoke-virtual {v0}, $feedItemsReference
                     move-result-object v0
 
                     invoke-interface {v0}, Ljava/util/List;->iterator()Ljava/util/Iterator;
@@ -297,6 +371,11 @@ val filterClipServerFeedAdsPatch = bytecodePatch(
                 ExternalLabel("original", getInstruction(0))
             )
         }
+
+        // Do not mutate the API response in the shared synthetic Function1.
+        // That callback has additional consumers which assume the original
+        // response shape and crashed when opening Clips. Ads are filtered in
+        // the dedicated mapper above and in the lower SDK conversion patch.
     }
 }
 
@@ -310,22 +389,16 @@ val blockMidrollRuntimeAdsPatch = bytecodePatch(
 
     execute {
         MidrollRuntimeGateFingerprint.method.apply {
-            // x13.e.b() has five locals in 1.163. Return the same positive gate
-            // result that VideoAutoPlay interprets as 'do not start this ad'.
-            check(implementation!!.registerCount >= 4) {
-                "Midroll gate has no safe local register; fingerprint needs updating"
-            }
-
-            addInstructionsWithLabels(
+            // This method is a positive "may start" gate. Returning true here
+            // used to enable the MIDROLL branch instead of blocking it. Deny
+            // every instream section so preroll/postroll cannot move the main
+            // player's timeline either.
+            addInstructions(
                 0,
                 """
-                    sget-object v0, Lcom/vk/dto/common/AdSection;->MIDROLL:Lcom/vk/dto/common/AdSection;
-                    if-ne p1, v0, :original
-
-                    const/4 v0, 0x1
+                    const/4 v0, 0x0
                     return v0
-                """,
-                ExternalLabel("original", getInstruction(0))
+                """
             )
         }
     }
@@ -341,45 +414,24 @@ val filterClipSdkAdsPatch = bytecodePatch(
     compatibleWith(VK_VIDEO)
 
     execute {
-        val returnNullForSdkAd = """
-            invoke-static {p1}, Lc01/c;->f(Lcom/vk/clips/sdk/shared/api/deps/video/SdkVideoFile;)Z
-            move-result v0
-            if-eqz v0, :original
-
-            const/4 v0, 0x0
-            return-object v0
-        """.trimIndent()
-
-        ClipSdkAdVideoMapperFingerprint.method.apply {
-            check(implementation!!.registerCount >= 4) {
-                "Clips SDK ad mapper has no safe local register"
-            }
-            addInstructionsWithLabels(
-                0,
-                returnNullForSdkAd,
-                ExternalLabel("original", getInstruction(0))
-            )
-        }
-
-        ClipSdkAdVideoDefaultMapperFingerprint.method.apply {
-            check(implementation!!.registerCount >= 5) {
-                "Clips SDK default ad mapper has no safe local register"
-            }
-            addInstructionsWithLabels(
-                0,
-                returnNullForSdkAd,
-                ExternalLabel("original", getInstruction(0))
-            )
-        }
-
-        // r11.d.f(): e$d = StaticAds and e$b = MarketAds.
-        val staticAdIntermediate = "Lk01/e\$d;"
-        val marketAdIntermediate = "Lk01/e\$b;"
-
         ClipSdkIntermediateListFingerprint.method.apply {
             check(implementation!!.registerCount >= 7) {
                 "Clips SDK list mapper has insufficient local registers"
             }
+
+            // R8 renames the intermediate sealed class package between releases.
+            // Derive the StaticAds ($d) and MarketAds ($b) concrete types from
+            // the mapper's own INSTANCE_OF instructions instead of hard-coding
+            // their 1.163 names.
+            val intermediateTypes = implementation!!.instructions
+                .filter { it.opcode == Opcode.INSTANCE_OF }
+                .mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+                .distinct()
+
+            val staticAdIntermediate = intermediateTypes.firstOrNull { it.endsWith("\$d;") }
+                ?: error("StaticAds intermediate type was not found")
+            val marketAdIntermediate = intermediateTypes.firstOrNull { it.endsWith("\$b;") }
+                ?: error("MarketAds intermediate type was not found")
             addInstructionsWithLabels(
                 0,
                 """
@@ -456,11 +508,9 @@ val hideHomeShowcaseAdsPatch = bytecodePatch(
 
     execute {
         HomeShowcaseCatalogFactoryFingerprint.method.apply {
-            val adFactoryReference =
-                "Lcom/vk/catalog2/common/ui/mvp/configuration/a;->a(Lai0/f;Lwp/a;)Lcom/vk/catalog2/common/ui/holders/ads/AdShowCaseBannerVh;"
-
             val adFactoryIndex = implementation!!.instructions.indexOfFirst { instruction ->
-                (instruction as? ReferenceInstruction)?.reference?.toString() == adFactoryReference
+                (instruction as? ReferenceInstruction)?.reference?.toString()
+                    ?.endsWith(")Lcom/vk/catalog2/common/ui/holders/ads/AdShowCaseBannerVh;") == true
             }
             check(adFactoryIndex >= 0) {
                 "Home showcase AdShowCaseBannerVh factory call not found"
@@ -500,7 +550,7 @@ val disableVideoAdRepositoryPatch = bytecodePatch(
             addInstructions(
                 0,
                 """
-                    sget-object v0, Lcom/vk/libvideo/api/di/VideoAdvertisementsComponent;->INSTANCE:$VIDEO_ADS_COMPANION
+                    sget-object v0, Lcom/vk/libvideo/api/di/VideoAdvertisementsComponent;->Companion:$VIDEO_ADS_COMPANION
                     invoke-virtual {v0}, $VIDEO_ADS_COMPANION->getSTUB()Lcom/vk/libvideo/api/di/VideoAdvertisementsComponent;
                     move-result-object v0
                     invoke-interface {v0}, Lcom/vk/libvideo/api/di/VideoAdvertisementsComponent;->Q6()Lcom/vk/libvideo/api/ad/VideoAdvertisementsRepository;
@@ -513,18 +563,31 @@ val disableVideoAdRepositoryPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val hideProfileAdFreePromoPatch = bytecodePatch(
-    name = "Hide profile ad-free promo",
-    description = "Removes the VK Premium / ad-free trial promotional card from the profile My screen before it enters the adapter list.",
+val disableAdFreeSubscriptionPromoPatch = bytecodePatch(
+    name = "Disable ad-free subscription promo",
+    description = "Disables VK's VIDEO_AD_FREE_SUBSCRIPTION feature gate so profile promo items are never created.",
     default = true
 ) {
     compatibleWith(VK_VIDEO)
 
     execute {
-        // wc6.q.i(ArrayList) only appends AD_FREE_SUBSCRIPTION to the profile
-        // menu when the feature/config gates are enabled. Returning here keeps
-        // the item out of the list entirely, without touching other profile UI.
-        ProfileAdFreeMenuItemFingerprint.method.addInstruction(0, "return-void")
+        VideoFeaturesEnabledFingerprint.method.apply {
+            check(implementation!!.registerCount >= 2) {
+                "VideoFeatures.a() has no safe local register for the ad-free promo gate"
+            }
+
+            addInstructionsWithLabels(
+                0,
+                """
+                    sget-object v0, $VIDEO_FEATURES->VIDEO_AD_FREE_SUBSCRIPTION:$VIDEO_FEATURES
+                    if-ne p0, v0, :original
+
+                    const/4 v0, 0x0
+                    return v0
+                """,
+                ExternalLabel("original", getInstruction(0))
+            )
+        }
     }
 }
 

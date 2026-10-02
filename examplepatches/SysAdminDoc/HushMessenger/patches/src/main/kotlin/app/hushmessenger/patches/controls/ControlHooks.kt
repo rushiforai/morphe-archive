@@ -103,6 +103,7 @@ internal val expectedHooks = mapOf(
     "typing" to setOf("LX/Ahp;->run()V"),
     "typing_mailbox" to setOf("LX/8eb;->A0I(Ljava/lang/String;Z)LX/325;"),
     "bubbles" to setOf("LX/2ZW;->A00()Z"),
+    "bubble_mode" to setOf("LX/2ZW;->A01(Lcom/facebook/auth/usersession/FbUserSession;)Z"),
     "browser" to setOf("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0L(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"),
     "ads" to setOf("LX/2Wl;->D2i(LX/1fx;${IMMUTABLE_LIST}Ljava/lang/String;)$IMMUTABLE_LIST"),
     "people_jewel" to setOf("LX/HAR;->A01(LX/HAR;)Z"),
@@ -251,6 +252,10 @@ internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>
             }
             if (gate && refs.any { it.toString() == "Landroid/os/Build\$VERSION;->SDK_INT:I" } &&
                 refs.any { it.toString() == "Landroid/app/ActivityManager;->isLowRamDevice()Z" }) add("bubbles")
+            if (!AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
+                method.parameterTypes == listOf(BUBBLE_SESSION) && instructions.any {
+                    it.opcode == Opcode.CONST_WIDE && (it as? WideLiteralInstruction)?.wideLiteral == BUBBLE_ROLLOUT
+                }) add("bubble_mode")
             if (method.returnType == "Z" && strings.containsAll(setOf("iab_skipped_reason", "user_prefers_external"))) add("browser")
             if (method.returnType == "Z" && AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes == listOf(cls.type) &&
                 refs.any { it.toString() in peopleJewelKeys } && refs.any { it.toString() == activeProfile.preferenceGetter }) add("people_jewel")
@@ -812,10 +817,15 @@ internal fun MutableMethod.injectPeopleStory() {
 }
 
 internal fun MutableMethod.validateMenuSettingsAdd() {
-    val code = implementation!!.instructions.toList()
+    val impl = implementation ?: throw PatchException("Messenger controls: menu settings item builder has no code")
+    val code = impl.instructions.toList()
     val returns = code.count { it.opcode == Opcode.RETURN_OBJECT }
     if (returns != 1) throw PatchException("Messenger controls: menu settings item builder has $returns exits, expected 1")
     if (returnType != "Ljava/util/ArrayList;") throw PatchException("Messenger controls: menu settings item builder returns $returnType")
+    if (AccessFlags.STATIC.isSet(accessFlags) || parameterTypes.size != 1 || impl.registerCount < 2 ||
+        (code.single { it.opcode == Opcode.RETURN_OBJECT } as OneRegisterInstruction).registerA >= impl.registerCount) {
+        throw PatchException("Messenger controls: invalid menu settings item builder registers or parameters")
+    }
 }
 
 internal fun MutableMethod.injectMenuSettingsAdd() {
@@ -823,13 +833,19 @@ internal fun MutableMethod.injectMenuSettingsAdd() {
     val code = implementation!!.instructions.toList()
     val ret = code.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }
     val retReg = (code[ret] as OneRegisterInstruction).registerA
-    addInstructions(ret, "invoke-static {v$retReg}, $SETTINGS->addMenuSettingsEntry(Ljava/util/ArrayList;)V")
+    replaceInstruction(ret, "invoke-static/range {v$retReg .. v$retReg}, $SETTINGS->addMenuSettingsEntry(Ljava/util/ArrayList;)V")
+    addInstructions(ret + 1, "return-object v$retReg")
 }
 
 internal fun MutableMethod.validateMenuSettingsBind() {
-    val code = implementation!!.instructions.toList()
+    val impl = implementation ?: throw PatchException("Messenger controls: menu settings binder has no code")
+    val code = impl.instructions.toList()
     if (code.none { it.opcode == Opcode.RETURN_VOID }) throw PatchException("Messenger controls: menu settings binder has no normal exit")
     if (returnType != "V") throw PatchException("Messenger controls: menu settings binder returns $returnType")
+    if (AccessFlags.STATIC.isSet(accessFlags) || parameterTypes.size != 2 || parameterTypes[1] != "I" ||
+        !parameterTypes[0].startsWith("L") || impl.registerCount < 3) {
+        throw PatchException("Messenger controls: invalid menu settings binder registers or parameters")
+    }
 }
 
 internal fun MutableMethod.injectMenuSettingsBind() {
@@ -837,19 +853,25 @@ internal fun MutableMethod.injectMenuSettingsBind() {
     val paramWords = parameterTypes.sumOf { if (it == "J" || it == "D") 2 else 1 } + 1
     val viewHolderReg = implementation!!.registerCount - paramWords + 1
     val code = implementation!!.instructions.toList()
-    val normalExit = code.indexOfFirst { it.opcode == Opcode.RETURN_VOID }
-    addInstructions(normalExit, "invoke-static {v$viewHolderReg}, $SETTINGS->handleMenuItemBound(Ljava/lang/Object;)V")
+    for (normalExit in code.indices.filter { code[it].opcode == Opcode.RETURN_VOID }.reversed()) {
+        replaceInstruction(normalExit, "invoke-static/range {v$viewHolderReg .. v$viewHolderReg}, $SETTINGS->handleMenuItemBound(Ljava/lang/Object;)V")
+        addInstructions(normalExit + 1, "return-void")
+    }
 }
 
 internal fun MutableMethod.validateMenuDrawerAdd() {
     if (returnType != "V") throw PatchException("Messenger controls: menu drawer items setter returns $returnType")
     if (parameterTypes != listOf("Ljava/util/List;")) throw PatchException("Messenger controls: menu drawer items setter takes ${parameterTypes.joinToString()}")
+    val impl = implementation ?: throw PatchException("Messenger controls: menu drawer items setter has no code")
+    if (AccessFlags.STATIC.isSet(accessFlags) || impl.registerCount !in 2..256 || impl.instructions.none()) {
+        throw PatchException("Messenger controls: invalid menu drawer items setter registers")
+    }
 }
 
 internal fun MutableMethod.injectMenuDrawerAdd() {
     validateMenuDrawerAdd()
     addInstructions(0, """
-        invoke-static {p1}, $SETTINGS->addMenuDrawerEntry(Ljava/util/List;)Ljava/util/List;
+        invoke-static/range {p1 .. p1}, $SETTINGS->addMenuDrawerEntry(Ljava/util/List;)Ljava/util/List;
         move-result-object p1
     """.trimIndent())
 }
@@ -935,7 +957,11 @@ internal fun MutableMethod.menuFolderItemType(): String {
 /** Messenger casts the tapped folder row just before its folder-selected trace section starts. */
 internal fun MutableMethod.menuFolderCastIndex(folderItemType: String): Int {
     if (returnType != "V") throw PatchException("Messenger controls: drawer folder click returns $returnType")
-    val code = implementation!!.instructions.toList()
+    val impl = implementation ?: throw PatchException("Messenger controls: drawer folder click has no code")
+    if (AccessFlags.STATIC.isSet(accessFlags) || parameterTypes != listOf("Landroid/view/View;") || impl.registerCount < 2) {
+        throw PatchException("Messenger controls: invalid drawer folder click parameters or registers")
+    }
+    val code = impl.instructions.toList()
     val markers = code.indices.filter {
         ((code[it] as? ReferenceInstruction)?.reference as? StringReference)?.string == DRAWER_FOLDER_SELECTED
     }
@@ -945,8 +971,12 @@ internal fun MutableMethod.menuFolderCastIndex(folderItemType: String): Int {
         index < marker && marker - index <= 12 && code[index].opcode == Opcode.CHECK_CAST &&
             ((code[index] as ReferenceInstruction).reference as TypeReference).type == folderItemType
     }
-    return casts.singleOrNull()
+    val cast = casts.singleOrNull()
         ?: throw PatchException("Messenger controls: drawer folder click has ${casts.size} row casts before its marker, expected 1")
+    if ((code[cast] as OneRegisterInstruction).registerA >= impl.registerCount) {
+        throw PatchException("Messenger controls: drawer folder click row register is outside the method")
+    }
+    return cast
 }
 
 internal fun MutableMethod.injectMenuFolderClick(folderItemType: String) {

@@ -1,0 +1,7 @@
+# Reviewed removals only. Keep this empty unless a known vendor packaging change is unavoidable.
+# method Lpackage/Class;->method()V
+# dex classesN.dex
+#
+# Taken from Hushfacebook's scripts/injected-register-removal-allowlist.txt
+# (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
+# GPL-3.0-only. Unchanged apart from this note.

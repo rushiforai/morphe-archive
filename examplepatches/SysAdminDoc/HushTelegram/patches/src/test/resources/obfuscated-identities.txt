@@ -1,0 +1,6 @@
+# Short, per-build class names telegram.org's R8 build made up that the code writes down as
+# identities: a one-to-three-letter org/telegram/ui class, or a two-letter top-level package.
+# One path|descriptor per line. ObfuscatedIdentityTest fails on a descriptor found in the code
+# that is not listed here, and on a line here that no longer matches the code, so this list can
+# only shrink. The patches resolve every such class while patching, which is why this list is
+# empty.

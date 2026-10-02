@@ -59,12 +59,19 @@ import java.util.WeakHashMap;
  *                         called it ezp (on 47.0.3 ezp is a label in the paid series panel).
  *                         It is a shared root id: the profile's Favorites page is a
  *                         LinearLayout with the same id.
- *   id/view_rootview      the root of every feed cell (VideoViewCellRootView). Every id below
- *                         it here is feed furniture and lives inside one. id/long_press_layout
+ *   id/view_rootview      the root of every feed cell (VideoViewCellRootView). The ids below
+ *                         it here are feed furniture inside one, apart from uvy, qo4 and cn8,
+ *                         which sit outside the cells. id/long_press_layout
  *                         is a sibling layer under it, not an ancestor of the rail: scoping
  *                         to that from 0.35.0 hid nothing in the right column (S22, 2026-09-17,
  *                         read off the live tree with the probe's views action).
  *   id/uvy                the strip across the top holding For You, Following and the rest
+ *   id/qo4 id/cn8         on a video opened from a profile, a hashtag, a sound or search, the
+ *                         Add comment bar and the plain View under the pager that keeps its
+ *                         138 px (S22). Clear display hides the bar's frame and keeps the
+ *                         strip, so both go and the pager takes the room back (#50). cn8 also
+ *                         names a Space in other layouts, so only the child of
+ *                         id/viewpager_container counts
  *   id/i98 id/g6r id/ep7  the avatar, like and comment controls
  *   id/i7r id/pnp id/w_2  the favourite, music and share controls
  *   id/g6t id/ej_         the rows under like, comment, favourite and share
@@ -77,8 +84,9 @@ import java.util.WeakHashMap;
  * pass, since TikTok shows the prompt again for each video that has something to search.
  */
 public final class VideoOverlayHider {
-    private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
-    private static final String SEARCH_MODULE_PACKAGE = APP_PACKAGE + ".df_search_biz";
+    // TikTok's own ids are looked up under the running package, which a cloned build renames
+    // along with its resource table (#59). Feature modules keep their original names there.
+    private static final String SEARCH_MODULE_PACKAGE = "com.zhiliaoapp.musically.df_search_biz";
     private static final String[] VISUAL_SEARCH_LAYER_IDS = {"fo"};
     private static final String[] VISUAL_SEARCH_PILL_IDS = {"d4"};
     private static final String[] LIVE_ENTRANCE_IDS = {"47.0.3:k_5", "47.1.3:kam", "47.1.4:kam"};
@@ -89,6 +97,8 @@ public final class VideoOverlayHider {
     private static final String[] ACTION_BAR_IDS = {"47.0.3:liy", "47.1.3:llj", "47.1.4:llj"};
     private static final String[] SURVEY_IDS = {"47.0.3:f7u", "47.1.3:f98", "47.1.4:f98"};
     private static final String[] TAB_STRIP_IDS = {"47.0.3:uvy", "47.1.3:uzf", "47.1.4:uzf"};
+    private static final String[] DETAIL_COMMENT_BAR_IDS = {"47.0.3:qo4", "47.1.3:qqw", "47.1.4:qqw"};
+    private static final String[] DETAIL_COMMENT_STRIP_IDS = {"47.0.3:cn8", "47.1.3:cnk", "47.1.4:cnk"};
     /**
      * The feed cell root. Furniture is only hidden underneath one: Hide feed surveys used to
      * take every survey card id in the window, and on the profile that is the Favorites tab's whole
@@ -98,6 +108,13 @@ public final class VideoOverlayHider {
      * whole window, and the hook status names the miss.
      */
     private static final String CELL_ROOT_ID = "view_rootview";
+    /**
+     * The column the detail pager shares with the comment strip under it. The strip's id isn't
+     * its own: on 47.0.3 and 47.1.4 it also names a Space in twenty other layouts, any of which
+     * may be inflated in the detail window, so only the column's own child counts as the strip.
+     * The column keeps this name on every build so far.
+     */
+    private static final String PAGER_COLUMN_ID = "viewpager_container";
     /** Whether the last pass left the rail buttons scaled, so the next one can put them back. */
     private static boolean scaledLastPass;
     /** The index of the music row in {@link #RAIL_BUTTON_IDS}; it spans the width and is not scaled. */
@@ -170,7 +187,9 @@ public final class VideoOverlayHider {
     private static final int ACTION_BAR_TARGET = 2;
     private static final int SURVEY_TARGET = 3;
     private static final int TAB_STRIP_TARGET = 4;
-    private static final int RAIL_TARGET_START = 5;
+    private static final int DETAIL_COMMENT_BAR_TARGET = 5;
+    private static final int DETAIL_COMMENT_STRIP_TARGET = 6;
+    private static final int RAIL_TARGET_START = 7;
     private static final int COUNT_ROW_TARGET_START = RAIL_TARGET_START + RAIL_BUTTON_IDS.length;
     private static final int COUNT_TEXT_TARGET_START = COUNT_ROW_TARGET_START
             + RAIL_COUNT_ROW_IDS.length;
@@ -203,9 +222,13 @@ public final class VideoOverlayHider {
     private static WeakReference<Application> followed = new WeakReference<>(null);
 
     private static WeakReference<Activity> activityReference = new WeakReference<>(null);
-    /** Whether this class, rather than TikTok, is the one holding the status bar away. */
-    private static boolean statusBarHiddenHere;
-    private static long statusBarHiddenAt;
+    /**
+     * The windows whose status bar this class, rather than TikTok, is holding away, by decor
+     * view, with when it last hid it. One per window: the main feed and a video opened from a
+     * profile, a hashtag or a sound (DetailActivity) are two, and one flag for both would give
+     * back the wrong one's bar (#50).
+     */
+    private static final Map<View, Long> STATUS_BAR_HIDDEN_AT = new WeakHashMap<>();
     private static final GlobalLayoutHook LAYOUT_HOOK = new GlobalLayoutHook();
 
     private VideoOverlayHider() {
@@ -296,7 +319,7 @@ public final class VideoOverlayHider {
             // The LIVE entrance is the main feed's; looked for in the detail pager it was reported
             // missing on every pass, and the hook table called the overlay hooks broken.
             if (Settings.HIDE_LIVE_ENTRANCE.get() && !detailPager) {
-                hide(activity, APP_PACKAGE, LIVE_ENTRANCE_IDS);
+                hide(activity, activity.getPackageName(), LIVE_ENTRANCE_IDS);
             }
 
             // These are ordinary feed furniture rather than a prompt, so they come back
@@ -315,6 +338,8 @@ public final class VideoOverlayHider {
             // the mode. The persisted setting cannot be used here: the automatic path never
             // writes it, so it would answer false for exactly the case this is meant to fix.
             boolean tabStrip = !detailPager && RememberClearDisplayPatch.isClearDisplayNow();
+            // The comment bar is the detail pager's own; the main feed has the tabs there.
+            boolean detailCommentBar = detailPager && Settings.HIDE_DETAIL_COMMENT_BAR.get();
             boolean counts = Settings.HIDE_RAIL_COUNTS.get();
             boolean[] rail = TRAVERSAL.rail;
             updateRailButtonsWanted(rail);
@@ -332,7 +357,7 @@ public final class VideoOverlayHider {
             } catch (NumberFormatException ignored) {
             }
             touchScale = Math.min(MAX_TOUCH_SCALE, Math.max(1f, touchScale));
-            if (caption || music || actionBar || surveys || tabStrip || anyRail
+            if (caption || music || actionBar || surveys || tabStrip || detailCommentBar || anyRail
                     || !HIDDEN_HERE.isEmpty() || touchScale != 1f || scaledLastPass) {
                 ViewGroup root = activity.findViewById(android.R.id.content);
                 int[] ids = TRAVERSAL.ids;
@@ -343,6 +368,8 @@ public final class VideoOverlayHider {
                 wanted[ACTION_BAR_TARGET] = actionBar;
                 wanted[SURVEY_TARGET] = surveys;
                 wanted[TAB_STRIP_TARGET] = tabStrip;
+                wanted[DETAIL_COMMENT_BAR_TARGET] = detailCommentBar;
+                wanted[DETAIL_COMMENT_STRIP_TARGET] = detailCommentBar;
                 for (int i = 0; i < RAIL_BUTTON_IDS.length; i++) {
                     wanted[RAIL_TARGET_START + i] = rail[i];
                 }
@@ -358,9 +385,9 @@ public final class VideoOverlayHider {
                     boolean hideTarget = wanted[target];
                     for (String name : TRAVERSAL_TARGET_IDS[target]) {
                         ids[candidateAt] = resolveIdentifier(
-                                activity, APP_PACKAGE, name, false);
+                                activity, activity.getPackageName(), name, false);
                         hidden[candidateAt] = hideTarget;
-                        needsCell[candidateAt] = target != TAB_STRIP_TARGET;
+                        needsCell[candidateAt] = !outsideCells(target);
                         candidateAt++;
                     }
                 }
@@ -369,10 +396,16 @@ public final class VideoOverlayHider {
                 for (List<View> views : found) {
                     views.clear();
                 }
-                int cellId = identifier(activity, APP_PACKAGE, CELL_ROOT_ID);
+                int cellId = identifier(activity, activity.getPackageName(), CELL_ROOT_ID);
                 try {
                     collect(root, ids, found, cellId, cellId == 0, needsCell);
+                    // Only a strip this class hid is ever put back, and that one was the
+                    // column's, so the column is looked up only while the strip is wanted.
+                    if (detailCommentBar) {
+                        keepColumnStrips(found, identifier(activity, activity.getPackageName(), PAGER_COLUMN_ID));
+                    }
                     selectCurrentTargets(found, TRAVERSAL.selected);
+                    pairDetailCommentBar(hidden, TRAVERSAL.selected);
                     applySelectedTargets(ids, hidden, found, TRAVERSAL.selected,
                             touchScale != 1f);
                     // The size goes on the icon inside each button, not the button. The slots
@@ -413,7 +446,7 @@ public final class VideoOverlayHider {
                 }
             }
 
-            if (!detailPager) setStatusBarHidden(activity, Settings.HIDE_STATUS_BAR.get());
+            setStatusBarHidden(activity, Settings.HIDE_STATUS_BAR.get());
         } catch (Throwable ex) {
             Logger.printException(() -> "Video overlay hider failed", ex);
         }
@@ -535,13 +568,15 @@ public final class VideoOverlayHider {
     }
 
     private static String[][] traversalTargetIds() {
-        String[][] targets = new String[5 + RAIL_BUTTON_IDS.length
+        String[][] targets = new String[RAIL_TARGET_START + RAIL_BUTTON_IDS.length
                 + RAIL_COUNT_ROW_IDS.length + RAIL_COUNT_TEXT_IDS.length][];
         targets[CAPTION_TARGET] = CAPTION_IDS;
         targets[MUSIC_TARGET] = MUSIC_IDS;
         targets[ACTION_BAR_TARGET] = ACTION_BAR_IDS;
         targets[SURVEY_TARGET] = SURVEY_IDS;
         targets[TAB_STRIP_TARGET] = TAB_STRIP_IDS;
+        targets[DETAIL_COMMENT_BAR_TARGET] = DETAIL_COMMENT_BAR_IDS;
+        targets[DETAIL_COMMENT_STRIP_TARGET] = DETAIL_COMMENT_STRIP_IDS;
         for (int i = 0; i < RAIL_BUTTON_IDS.length; i++) {
             targets[RAIL_TARGET_START + i] = RAIL_BUTTON_IDS[i];
         }
@@ -552,10 +587,50 @@ public final class VideoOverlayHider {
         return targets;
     }
 
+    /** The tab strip above the cells and the detail pager's comment bar below them. */
+    private static boolean outsideCells(int target) {
+        return target >= TAB_STRIP_TARGET && target < RAIL_TARGET_START;
+    }
+
     private static int candidateCount(String[][] targets) {
         int count = 0;
         for (String[] candidates : targets) count += candidates.length;
         return count;
+    }
+
+    /** Where a target's candidates start in the per-candidate arrays. */
+    private static int firstCandidate(int target) {
+        int at = 0;
+        for (int i = 0; i < target; i++) at += TRAVERSAL_TARGET_IDS[i].length;
+        return at;
+    }
+
+    /** Drops every strip that isn't the pager column's own child; see {@link #PAGER_COLUMN_ID}. */
+    private static void keepColumnStrips(List<List<View>> found, int columnId) {
+        int at = firstCandidate(DETAIL_COMMENT_STRIP_TARGET);
+        for (int i = 0; i < DETAIL_COMMENT_STRIP_IDS.length; i++) {
+            List<View> strips = found.get(at + i);
+            for (int j = strips.size() - 1; j >= 0; j--) {
+                android.view.ViewParent parent = strips.get(j).getParent();
+                if (columnId == 0 || !(parent instanceof View)
+                        || ((View) parent).getId() != columnId) {
+                    strips.remove(j);
+                }
+            }
+        }
+    }
+
+    /**
+     * The comment bar and its strip go together or not at all. The strip alone grows the pager
+     * under a bar that still shows, which then covers the caption and the music row; the bar
+     * alone leaves the black strip. When one of them can't be found, the one that was found
+     * stays (or comes back) and the other is reported missing.
+     */
+    private static void pairDetailCommentBar(boolean[] hidden, int[] selected) {
+        boolean bar = selected[DETAIL_COMMENT_BAR_TARGET] >= 0;
+        boolean strip = selected[DETAIL_COMMENT_STRIP_TARGET] >= 0;
+        if (bar && !strip) hidden[firstCandidate(DETAIL_COMMENT_BAR_TARGET)] = false;
+        if (strip && !bar) hidden[firstCandidate(DETAIL_COMMENT_STRIP_TARGET)] = false;
     }
 
     /** Chooses the newest candidate that actually occurs in the current hierarchy. */
@@ -718,7 +793,7 @@ public final class VideoOverlayHider {
                 return;
             }
             long now = SystemClock.uptimeMillis();
-            if (!rehideAllowed(now)) {
+            if (!rehideAllowed(decor, now)) {
                 return;
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -732,12 +807,10 @@ public final class VideoOverlayHider {
             } else {
                 decor.setSystemUiVisibility(decor.getSystemUiVisibility() | LEGACY_STATUS_BAR_FLAGS);
             }
-            statusBarHiddenHere = true;
-            statusBarHiddenAt = now;
+            STATUS_BAR_HIDDEN_AT.put(decor, now);
             return;
         }
-        if (statusBarHiddenHere) {
-            statusBarHiddenHere = false;
+        if (STATUS_BAR_HIDDEN_AT.remove(decor) != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 WindowInsetsController controller = decor.getWindowInsetsController();
                 if (controller != null) {
@@ -750,11 +823,12 @@ public final class VideoOverlayHider {
     }
 
     /**
-     * False while a hide this class issued is younger than the peek window: the bar is
-     * either a swipe peek the system will end by itself, or the request is still landing.
+     * False while a hide this class issued on that window is younger than the peek window: the
+     * bar is either a swipe peek the system will end by itself, or the request is still landing.
      */
-    static boolean rehideAllowed(long now) {
-        return !statusBarHiddenHere || now - statusBarHiddenAt >= STATUS_BAR_PEEK_MS;
+    static boolean rehideAllowed(View decor, long now) {
+        Long hiddenAt = STATUS_BAR_HIDDEN_AT.get(decor);
+        return hiddenAt == null || now - hiddenAt >= STATUS_BAR_PEEK_MS;
     }
 
     private static boolean isStatusBarHidden(View decor) {
@@ -794,7 +868,7 @@ public final class VideoOverlayHider {
 
     /** Lets a test stand in for a TikTok resource id, which only the real APK resolves. */
     static void resolveForTests(String name, int id) {
-        RESOURCE_IDS.putForTests(APP_PACKAGE, name, id);
+        RESOURCE_IDS.putForTests(Utils.getContext().getPackageName(), name, id);
     }
 
     static void resolveSearchModuleForTests(String name, int id) {

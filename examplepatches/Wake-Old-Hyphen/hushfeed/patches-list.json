@@ -1,5 +1,5 @@
 {
-  "version": "v0.65.0",
+  "version": "v0.66.0",
   "appNames": {
     "com.zhiliaoapp.musically": "TikTok"
   },
@@ -682,6 +682,74 @@
         }
       ],
       "options": []
+    },
+    {
+      "name": "Change app name",
+      "description": "Shows a name you choose under the app's icon and in Android's app list, so the patched TikTok is easy to tell from another one. Type the name in this patch's options. Inside the app everything still says TikTok.",
+      "category": "Settings",
+      "use": false,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.0.3",
+          "47.1.3",
+          "47.1.4"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.0.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024700030,
+                "ARMEABI_V7A": 2024700030,
+                "X86": 2024700030,
+                "X86_64": 2024700030
+              }
+            },
+            {
+              "version": "47.1.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024701030,
+                "ARMEABI_V7A": 2024701030,
+                "X86": 2024701030,
+                "X86_64": 2024701030
+              }
+            },
+            {
+              "version": "47.1.4",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024701040,
+                "ARMEABI_V7A": 2024701040,
+                "X86": 2024701040,
+                "X86_64": 2024701040
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "appName",
+          "title": "App name",
+          "description": "The name shown under the app icon, up to 50 characters.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "Hushfeed",
+          "values": null
+        }
+      ]
     },
     {
       "name": "Comment publish diagnostics",
@@ -1955,7 +2023,7 @@
     },
     {
       "name": "Feed filter",
-      "description": "Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, location-tagged videos, verified accounts, series, mini dramas, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from, the language of their original caption and their view, like, comment, favorite and share counts. A short list of creator exceptions lets chosen accounts through the filters on the kind of post, its labels, age, length and counts. Ads, blocked creators, words, sounds, countries and caption languages, paid and Shop content, LIVE and seen videos still apply to them. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded and the ads a creator's video pager asks for on its own. The share prompt that appears after a like can be hidden too, and so can TikTok Shop's Products block and product cards in search results. Switch: Hushfeed settings > Feed filter.",
+      "description": "Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, location-tagged videos, verified accounts, series, mini dramas, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from, the language of their original caption and their view, like, comment, favorite and share counts. A short list of creator exceptions lets chosen accounts through the filters on the kind of post, its labels, age, length and counts. Ads, blocked creators, words, sounds, countries and caption languages, paid and Shop content, LIVE and seen videos still apply to them. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded and the ads a creator's video pager asks for on its own. The share prompt that appears after a like can be hidden too, and so can TikTok Shop's Products block and product cards in search results. The LIVE feed you swipe through has its own rules: gaming, shopping, sponsored and verified LIVEs, categories, and viewer and follower ranges. Switch: Hushfeed settings > Feed filter.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -3107,6 +3175,67 @@
       "options": []
     },
     {
+      "name": "Hide profile shortcuts",
+      "description": "Hides the shortcuts you pick from the row under a profile's bio, like TikTok Studio or Your orders. TikTok's server decides what goes in that row, so the checklist offers the ones it has sent to your phone, and you can also type names. Restart TikTok after a change. Switch: Hushfeed settings > App.",
+      "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "Settings"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.0.3",
+          "47.1.3",
+          "47.1.4"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.0.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024700030,
+                "ARMEABI_V7A": 2024700030,
+                "X86": 2024700030,
+                "X86_64": 2024700030
+              }
+            },
+            {
+              "version": "47.1.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024701030,
+                "ARMEABI_V7A": 2024701030,
+                "X86": 2024701030,
+                "X86_64": 2024701030
+              }
+            },
+            {
+              "version": "47.1.4",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024701040,
+                "ARMEABI_V7A": 2024701040,
+                "X86": 2024701040,
+                "X86_64": 2024701040
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide search suggestions",
       "description": "Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone. A separate switch hides the search rewards banner and coin counter some regions get. Switch: Hushfeed settings > App.",
       "category": "Search",
@@ -3352,7 +3481,7 @@
     },
     {
       "name": "Hide video overlays",
-      "description": "Hides the visual search prompt TikTok lays over videos, the LIVE entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar, which can also be hidden only while a LIVE room is open. Separate switches hide the Full screen button, location labels, the effect, template and CapCut tags above descriptions, and the Report button some regions get above the creator's picture, without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen.",
+      "description": "Hides the visual search prompt TikTok lays over videos, the LIVE entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar, on the feed and on videos opened from a profile, a hashtag, a sound or search. The status bar can also be hidden only while a LIVE room is open. Separate switches hide the Full screen button, location labels, the effect, template and CapCut tags above descriptions, and the Report button some regions get above the creator's picture, without removing videos or changing location permissions. One more takes the Add comment bar off those opened videos so they fill the screen. Switch: Hushfeed settings > Feed screen.",
       "category": "Feed",
       "use": false,
       "dependencies": [
@@ -4748,7 +4877,7 @@
     },
     {
       "name": "Remove unused language packs",
-      "description": "Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes. With the default choices it saves about 26 MB of storage.",
+      "description": "Empties the TikTok language bundles you leave out of Languages to keep, always keeping English. It keeps every language until you list the ones you want, so picking every patch removes none. Listed codes are checked before any file changes. Keeping only English saves about 26 MB of storage.",
       "category": "Performance",
       "use": false,
       "dependencies": [],
@@ -4806,10 +4935,10 @@
         {
           "key": "locales",
           "title": "Languages to keep",
-          "description": "Comma-separated language codes such as en, es, pt, fr or de. English is always kept.",
+          "description": "Comma-separated language codes such as en, es, pt, fr or de, or all to keep every language. English is always kept.",
           "required": false,
           "type": "kotlin.String",
-          "default": "en",
+          "default": "all",
           "values": null
         }
       ]
@@ -4877,7 +5006,7 @@
     },
     {
       "name": "Resource and battery governor",
-      "description": "Stops TikTok listening to the motion sensors it polls for device fingerprinting: the accelerometer, gyroscope, magnetometer, rotation, gravity and linear acceleration sensors. Switch: Hushfeed settings > Privacy.",
+      "description": "Stops TikTok listening to the motion sensors it polls for device fingerprinting: the accelerometer, gyroscope, magnetometer, rotation, gravity and linear acceleration sensors. A second switch, off by default, keeps TikTok's phone benchmark from starting in a background process of its own. Switch: Hushfeed settings > Privacy.",
       "category": "Privacy",
       "use": false,
       "dependencies": [
@@ -5181,7 +5310,7 @@
     },
     {
       "name": "Share sheet tools",
-      "description": "Asks twice before a video is sent to a friend from the share sheet. The check follows the account or conversation instead of the visible name and covers accessibility actions and keyboard input. It can also hide chosen people, share options or the whole Send to row, and a profile's or a LIVE's share sheet can hide a different set from a video's. Switch: Hushfeed settings > Share sheet.",
+      "description": "Hides chosen people, share options or the whole Send to row of the share sheet, and a profile's or a LIVE's share sheet can hide a different set from a video's. Apps you pick can be added to the Share via row. Switch: Hushfeed settings > Share sheet.",
       "category": "Interaction",
       "use": false,
       "dependencies": [

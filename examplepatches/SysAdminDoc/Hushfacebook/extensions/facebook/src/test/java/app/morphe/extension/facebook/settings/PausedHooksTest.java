@@ -13,7 +13,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.widget.FrameLayout;
 
+import com.facebook.common.util.TriState;
 import com.facebook.graphql.model.GraphQLPagesYouMayLikeFeedUnit;
 import com.facebook.graphql.model.GraphQLStory;
 
@@ -53,8 +55,11 @@ import app.morphe.extension.facebook.download.SaveRulesForTests;
 import app.morphe.extension.facebook.download.VideoMenuItemForTests;
 import app.morphe.extension.facebook.emoji.SystemEmoji;
 import app.morphe.extension.facebook.feed.FeedFilter;
+import app.morphe.extension.facebook.feed.FeedsHeader;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.feed.FeedGuardForTests;
+import app.morphe.extension.facebook.feed.MetaAiQuestions;
+import app.morphe.extension.facebook.feed.PostDates;
 import app.morphe.extension.facebook.feed.PostPrompts;
 import app.morphe.extension.facebook.feed.ProfileSuggestionsForTests;
 import app.morphe.extension.facebook.feed.TypedFeedUnit;
@@ -69,6 +74,7 @@ import app.morphe.extension.facebook.media.TapToPlayForTests;
 import app.morphe.extension.facebook.menu.MenuSectionsForTests;
 import app.morphe.extension.facebook.misc.ExternalBrowser;
 import app.morphe.extension.facebook.misc.LinkCleaner;
+import app.morphe.extension.facebook.navigation.BottomTabBar;
 import app.morphe.extension.facebook.navigation.MarketplaceOnlyForTests;
 import app.morphe.extension.facebook.navigation.ReelsTabForTests;
 import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
@@ -262,6 +268,23 @@ public class PausedHooksTest {
                         FeedGuardForTests.postText("Big SPOILER inside"))));
         // A story with a bumper is answered as one without, so no strip is drawn and no room kept.
         probes.put(PatchFamily.POST_PROMPTS, Collections.singletonList(() -> !PostPrompts.keep(true)));
+        // The pill socket's yes for Meta AI's questions is answered as a no, so it draws no row for
+        // them, and its default way of drawing a pill drops one typed meta_ai.
+        probes.put(PatchFamily.META_AI_QUESTIONS, Arrays.asList(
+                () -> !MetaAiQuestions.keep(1, MetaAiQuestions.META_AI_PILL),
+                () -> MetaAiQuestions.dropsDefaultPill(MetaAiQuestions.META_AI_TYPE)));
+        // A post header's yes to rotating its subtitle is answered as a no, so it keeps the one line.
+        probes.put(PatchFamily.POST_DATES, Collections.singletonList(() -> !PostDates.cycling(true)));
+        // The Feeds tab's yes to a title row is answered as a no, its filters go to a container
+        // that's never on screen, and its posts get no room for them. The room follows what the
+        // tab did with its filters, so that probe builds a tab first.
+        probes.put(PatchFamily.FEEDS_HEADER, Arrays.asList(
+                () -> !FeedsHeader.navBar(true),
+                () -> FeedsHeader.hidesFilters(new FrameLayout(RuntimeEnvironment.getApplication())),
+                () -> {
+                    FeedsHeader.hidesFilters(new FrameLayout(RuntimeEnvironment.getApplication()));
+                    return !FeedsHeader.roomForFilters(true);
+                }));
         probes.put(PatchFamily.SPONSORED_STORIES, Collections.singletonList(FeedFilter::hideSponsoredStories));
         // A tray of a friend's bucket, a suggested one and one labelled SUGGESTED keeps only the friend's.
         probes.put(PatchFamily.SUGGESTED_STORIES, Collections.singletonList(SuggestedStoriesForTests::hidesSuggestions));
@@ -319,15 +342,16 @@ public class PausedHooksTest {
         // A long press on a reel goes to Facebook's speed-up wherever it lands, the reel gets its
         // release listener, a hold speed of normal becomes 2x, the lift of a hold puts the speed back,
         // and that lift's speed is the one the reel had before the hold.
+        // Each in a build with Hold a reel for 2x, as its patch's status says in one.
         probes.put(PatchFamily.REEL_HOLD, Arrays.asList(
-                () -> ReelHold.longPress(false),
-                () -> ReelHold.anywhere(false),
-                () -> ReelHold.speedUp(false),
-                () -> ReelHold.holdSpeed(1.0) != 1.0,
-                () -> {
+                () -> ReelHoldForTests.withHold(() -> ReelHold.longPress(false)),
+                () -> ReelHoldForTests.withHold(() -> ReelHold.anywhere(false)),
+                () -> ReelHoldForTests.withHold(() -> ReelHold.speedUp(false)),
+                () -> ReelHoldForTests.withHold(() -> ReelHold.holdSpeed(1.0) != 1.0),
+                () -> ReelHoldForTests.withHold(() -> {
                     ReelHold.held();
                     return ReelHold.release(false);
-                },
+                }),
                 ReelHoldForTests::putsBackTheSpeedBeforeAHold));
         // A speed picked on a reel is set on the next reel the viewer starts.
         probes.put(PatchFamily.KEEP_REEL_SPEED, Collections.singletonList(ReelSpeedForTests::keepsAPickedSpeed));
@@ -398,6 +422,9 @@ public class PausedHooksTest {
                 ReelsTabForTests::dropsTheShortcut));
         // The tab bar's count for the Reels tab reads none.
         probes.put(PatchFamily.REELS_TAB_DOT, Collections.singletonList(ReelsTabForTests::clearsTheDot));
+        // Facebook's own override of where the tab bar goes reads YES, for the bottom, where it read NO.
+        probes.put(PatchFamily.BOTTOM_TAB_BAR, Collections.singletonList(
+                () -> BottomTabBar.override(TriState.NO.ordinal()) == TriState.YES.ordinal()));
         // A request for a post's comments that names no order asks for the chosen one.
         probes.put(PatchFamily.DEFAULT_COMMENT_ORDER,
                 Collections.singletonList(DefaultCommentOrderForTests::asksForTheChosenOrder));

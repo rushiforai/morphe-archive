@@ -20,6 +20,10 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import app.morphe.extension.shared.SettingsContextRule;
 
@@ -151,5 +155,53 @@ public class HookStatusTest {
         HookStatus.invoked(null);
         HookStatus.invoked("");
         assertEquals(Arrays.asList(": invoked 1, 0 found, 0 missing"), HookStatus.report());
+    }
+
+    @Test
+    public void outcomeAmountsIgnoreNonpositiveCountsAndKeepTheNameLimit() {
+        HookStatus.counted("unused", "zero", 0);
+        HookStatus.counted("unused", "negative", -1);
+        HookStatus.counted(null, "invalid", 3);
+        HookStatus.counted("unused", null, 3);
+        assertTrue(HookStatus.report().isEmpty());
+        for (int i = 0; i < 40; i++) HookStatus.counted("Feed", "kind " + i, 3);
+        String line = HookStatus.report().get(0);
+        assertTrue(line, line.contains("kind 15 3"));
+        assertTrue(line, !line.contains("kind 16"));
+    }
+
+    @Test
+    public void amountsRemainAtomicAcrossConcurrentCalls() throws Exception {
+        ExecutorService workers = Executors.newFixedThreadPool(4);
+        try {
+            List<Future<?>> calls = new ArrayList<>();
+            for (int worker = 0; worker < 8; worker++) {
+                calls.add(workers.submit(() -> {
+                    for (int call = 0; call < 1000; call++) HookStatus.counted("Feed", "removed", 3);
+                }));
+            }
+            for (Future<?> call : calls) call.get();
+        } finally {
+            workers.shutdownNow();
+        }
+        assertEquals(Arrays.asList("Feed: invoked 0, 0 found, 0 missing. Counted: removed 24000"),
+                HookStatus.report());
+    }
+
+    @Test
+    public void amountsSaturateAndUndoDoesNotOverflow() {
+        HookStatus.counted("Feed", "removed", Long.MAX_VALUE - 1);
+        HookStatus.counted("Feed", "removed", 3);
+        HookStatus.counted("Feed", "removed");
+        assertEquals(Arrays.asList("Feed: invoked 0, 0 found, 0 missing. Counted: removed " + Long.MAX_VALUE),
+                HookStatus.report());
+        HookStatus.Snapshot before = HookStatus.snapshotAndClear();
+        HookStatus.counted("Feed", "removed", 3);
+        HookStatus.restore(before);
+        assertEquals(Arrays.asList("Feed: invoked 0, 0 found, 0 missing. Counted: removed " + Long.MAX_VALUE),
+                HookStatus.report());
+        HookStatus.clear();
+        HookStatus.counted("Feed", "removed", 3);
+        assertEquals(Arrays.asList("Feed: invoked 0, 0 found, 0 missing. Counted: removed 3"), HookStatus.report());
     }
 }

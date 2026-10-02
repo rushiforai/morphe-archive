@@ -67,7 +67,11 @@ The app holding the last settings file still hasn't answered. Try again later.	S
 The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Ayar dosyasını tutan uygulama çok uzun sürüyor, bu yüzden HushThreads beklemeyi bıraktı. O uygulama kaydetmeyi yine de bitirebilir, bu yüzden dosyaya güvenmeden önce onu kontrol et.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	%1$s dosyası kaldırılamadı. Onu %2$s içinden sil, sonra yeniden Devam et'e dokun.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Ayar dosyası kaydedildi, ancak geri okunduğunda yazılanla aynı değil. Yeni bir dosya olarak tekrar kaydet.
-The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.	Threads'in Meta'ya gönderdiği kullanım ve olay günlükleri yanıt vermeyen bir adrese gider. Akışın, gönderilerin ve yanıtların eskisi gibi çalışır.
+Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.	Bulunan analiz adresleri yanıt vermeyen bir adrese yönlendirilir. Diğer telemetri devam edebilir. Özgün adresleri kullanmak için bunu kapat.
+Analytics address coverage	Analiz adresi kapsamı
+Patched: %1$s. Missing: %2$s.	Yamalanan: %1$s. Eksik: %2$s.
+Coverage wasn't recorded in this build. Patch again to see the matched address kinds.	Bu derlemede kapsam kaydedilmedi. Bulunan adres türlerini görmek için yeniden yama uygula.
+none	yok
 Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads telefonunuzun reklam kimliğini okuyamaz. Bunun için gereken izin bu sürümden kaldırıldı.
 Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads açıldıktan sonraki bir dakika içinde üst üste üç kez çöktü veya dondu, bu yüzden HushThreads kendini duraklattı.
 Threads' web addresses are selected for this app in Android's settings, so their links open here.	Threads'in web adresleri Android ayarlarında bu uygulama için seçili, bu yüzden bağlantıları burada açılır.

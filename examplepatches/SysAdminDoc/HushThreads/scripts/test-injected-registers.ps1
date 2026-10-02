@@ -24,7 +24,7 @@
     in a host method. Each of the five ShortcutManager calls the settings patch sends to the
     extension is left in the app's code by a build of its own, which has to fail that call's
     no-call rule and no other. The contract file may hold no no-call rule without such a build,
-    and no rule of any other kind, since nothing here builds bad fixtures for one; a malformed
+    and only the four Threads feature rules with selection and corruption fixtures; a malformed
     line of every kind the grammar knows is refused.
     The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
@@ -84,11 +84,15 @@ function New-DexApk {
 }
 
 function Invoke-DexDiff {
-    param([string]$Clean, [string]$Patched, [string]$Allowlist, [string]$Name, [string]$Contracts, [string]$Base)
+    param([string]$Clean, [string]$Patched, [string]$Allowlist, [string]$Name, [string]$Contracts, [string]$Base, [string]$Features)
     $report = Join-Path $caseRoot "$Name-report.txt"
     $arguments = @('-Xmx1g', '-cp', $classPath, 'DexDiff', $Clean, $Patched, $report, $Allowlist)
     if ($Contracts) { $arguments += $Contracts }
     if ($Base) { $arguments += $Base }
+    if ($Features) {
+        if (-not $Base) { $arguments += '-' }
+        $arguments += $Features
+    }
     $ErrorActionPreference = 'Continue'
     $global:LASTEXITCODE = 0
     $output = @(& $Java @arguments 2>&1 | ForEach-Object { "$_" })
@@ -578,12 +582,63 @@ try {
             ("The good build's $($shortcut.Call), sent to the stand-in whose own call is inside the extension, " +
             "was not reported clean.`n$($good.Output -join "`n")")
     }
-    # Every other rule the grammar knows needs bad builds of its own, and this suite builds none,
-    # so a rule of another kind in the contract file would pass on a count nobody checks.
+    # Every rule must have bad builds of its own. The feature fixtures below cover four families.
     $otherRules = @(Get-Content -LiteralPath $contracts | ForEach-Object { $_.Trim() } |
         Where-Object { $_ -and -not $_.StartsWith('#') -and $_ -notmatch '^no-call\s' })
-    Assert-True ($otherRules.Count -eq 0) `
+    Assert-True ((($otherRules | Sort-Object) -join ',') -ceq 'threads-feature disableAnalytics,threads-feature hideAds,threads-feature restoreTrust,threads-feature sanitizeSharingLinks') `
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
+
+    $featureClean = New-DexApk -Name 'features-clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-clean') })
+    $featureCases = [ordered]@{
+        'features-good' = 'hideAds,sanitizeSharingLinks,disableAnalytics,restoreTrust'
+        'features-omitted' = 'none'
+        'features-only-hideAds' = 'hideAds'
+        'features-only-sanitizeSharingLinks' = 'sanitizeSharingLinks'
+        'features-only-disableAnalytics' = 'disableAnalytics'
+        'features-only-restoreTrust' = 'restoreTrust'
+    }
+    foreach ($mask in 1..7) { $featureCases["features-mask-$mask"] = 'disableAnalytics' }
+    foreach ($case in $featureCases.GetEnumerator()) {
+        $apk = New-DexApk -Name $case.Key -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case.Key) })
+        $checked = Invoke-DexDiff -Clean $featureClean -Patched $apk -Allowlist $emptyAllowlist -Name $case.Key -Contracts $contracts -Features $case.Value
+        Assert-True ($checked.ExitCode -eq 0 -and (Get-Findings $checked).Fails.Count -eq 0) ("Feature selection $($case.Key) failed. " + ($checked.Output -join [Environment]::NewLine))
+        foreach ($feature in @('hideAds', 'sanitizeSharingLinks', 'disableAnalytics', 'restoreTrust')) {
+            $state = if ($feature -cin ($case.Value -split ',')) { 'verified' } else { 'omitted' }
+            Assert-True (($checked.Output -join [Environment]::NewLine) -match [regex]::Escape("threads-feature ${feature}: $state")) "Feature $feature did not report $state."
+        }
+    }
+    $featureFaults = @('feed-missing', 'feed-replaced', 'feed-register', 'item-stub', 'ad-target',
+        'link-missing', 'link-replaced', 'link-register', 'pigeon-missing', 'pigeon-replaced', 'pigeon-bypass',
+        'default-missing', 'mqtt-missing', 'trust-missing', 'trust-replaced', 'trust-fallback',
+        'status-missing', 'status-false', 'zero-mask', 'unknown-mask')
+    foreach ($fault in $featureFaults) {
+        $case = "features-bad-$fault"
+        $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
+        $checked = Invoke-DexDiff -Clean $featureClean -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features $featureCases['features-good']
+        $findings = Get-Findings $checked
+        Assert-True ($checked.ExitCode -ne 0 -and $findings.Fails.Count -gt 0 -and
+            @($findings.Categories | Where-Object { $_ -cne 'contract' }).Count -eq 0) "$fault was not rejected solely by a semantic contract."
+        $structural = Invoke-DexDiff -Clean $featureClean -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
+        Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid."
+    }
+    $noDefaultClean = New-DexApk -Name 'features-no-default-clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-no-default-clean') })
+    foreach ($case in @('features-no-default-pigeon', 'features-bad-default-coverage')) {
+        $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
+        $checked = Invoke-DexDiff -Clean $noDefaultClean -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features 'disableAnalytics'
+        if ($case -ceq 'features-no-default-pigeon') {
+            Assert-True ($checked.ExitCode -eq 0) 'PIGEON-only coverage was refused when DEFAULT has no address-return site.'
+        } else {
+            Assert-True ($checked.ExitCode -ne 0 -and ($checked.Output -join [Environment]::NewLine) -match 'DEFAULT has no literal address answers') 'A claimed DEFAULT bit passed with only an unrelated URL literal in PIGEON.'
+            $structural = Invoke-DexDiff -Clean $noDefaultClean -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
+            Assert-True ($structural.ExitCode -eq 0) 'Missing DEFAULT coverage was not a structurally valid fixture.'
+        }
+    }
+    $missingFeatureRule = Join-Path $caseRoot 'missing-feature-rule.txt'
+    [System.IO.File]::WriteAllLines($missingFeatureRule, @(Get-Content -LiteralPath $contracts | Where-Object { $_.Trim() -cne 'threads-feature hideAds' }))
+    $featureGood = New-DexApk -Name 'features-all-selected' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-good') })
+    $missing = Invoke-DexDiff -Clean $featureClean -Patched $featureGood -Allowlist $emptyAllowlist -Name 'missing-feature-rule' -Contracts $missingFeatureRule -Features $featureCases['features-good']
+    Assert-True ($missing.ExitCode -ne 0 -and ($missing.Output -join [Environment]::NewLine) -match 'selected feature has no contract: hideAds') 'A selected family with no contract was silently skipped.'
+    Write-Host "[scripts] selected feature contracts passed (14 good selections, 21 structurally valid corruptions, missing rule refused)"
 
     $bad = [ordered]@{
         'bad-branch' = 'branch'
@@ -748,6 +803,9 @@ try {
     $sendRef = 'Lapp/morphe/extension/hushthreads/fixture/Hook;->send(Ljava/util/concurrent/Executor;Ljava/lang/Runnable;)V'
     $executeRef = 'Ljava/util/concurrent/Executor;->execute(Ljava/lang/Runnable;)V'
     foreach ($line in @(
+            'threads-feature',
+            'threads-feature unknown',
+            'threads-feature hideAds extra',
             # first-call needs its method, "on" and a class descriptor.
             "first-call $stubRef on Host",
             "first-call $stubRef in Lfixture/Host;",

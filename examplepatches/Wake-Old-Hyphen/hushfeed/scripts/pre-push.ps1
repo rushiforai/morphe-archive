@@ -11,7 +11,7 @@
     standard input the way git supplies them. Run scripts/install-hooks.ps1 once to wire it up.
 
     Only what changed is checked: runtime tests when extension or patch sources move, every patch
-    applied to each declared TikTok build when patch sources move, and the release facts when a
+    applied to each declared TikTok build when bundle inputs move, and the release facts when a
     published file moves. Set HUSHFEED_SKIP_PRE_PUSH=1 to push anyway.
 #>
 [CmdletBinding()]
@@ -384,14 +384,40 @@ try {
         $_ -eq 'patches-bundle.png' -or $_ -like 'assets/readme-*' -or $_ -like 'concepts/marketing/*'
     }).Count -gt 0
     $touchesScripts = @($paths | Where-Object { $_ -like 'scripts/*' }).Count -gt 0
-    # What decides whether a patch still applies to TikTok: the patches themselves, and the patcher
-    # pin, which decides how their fingerprints match.
-    # Not on an index push: its release check compares the bundle in patches/build/release byte for
-    # byte with the published one, a rebuild here would stamp it with this commit's time, and the
-    # release receipt already applied that bundle to every declared build.
-    $touchesPatches = @($paths | Where-Object {
-        $_ -like 'patches/src/main/*' -or $_ -eq 'gradle/libs.versions.toml'
-    }).Count -gt 0 -and -not $script:indexChanged
+    $apkSigningPaths = @(
+        'scripts/apk-signing.ps1', 'scripts/SigningCertificateCheck.java',
+        'scripts/SigningKeyFixtures.java', 'scripts/test-apk-signing.ps1',
+        'scripts/patch-for-device.ps1', 'scripts/device-install.ps1',
+        'scripts/common.ps1', 'scripts/Resolve-Java.ps1',
+        'scripts/patch-target.ps1', 'scripts/patch-report.ps1',
+        'tools/verification-probe/build.ps1', 'tools/verification-probe/AndroidManifest.xml',
+        'gradle/libs.versions.toml', 'gradle/verification-metadata.xml'
+    )
+    $touchesApkSigning = @($paths | Where-Object {
+        $_ -in $apkSigningPaths -or $_ -like 'tools/verification-probe/src/*'
+    }).Count -gt 0
+    # Declarations, catalog generation and its consumed build pins can change the unnamed
+    # dependency closure without changing a script. Check that closure before starting a build.
+    $touchesCatalog = @($paths | Where-Object {
+        $_ -like 'patches/src/main/*' -or $_ -eq 'patches-list.json' -or
+        $_ -eq 'patches/build.gradle.kts' -or $_ -eq 'gradle.properties' -or
+        $_ -eq 'gradle/libs.versions.toml' -or $_ -eq 'gradle/verification-metadata.xml' -or
+        $_ -eq 'settings.gradle.kts' -or $_ -eq 'build.gradle.kts' -or
+        $_ -eq 'gradle/wrapper/gradle-wrapper.properties' -or
+        $_ -eq 'gradle/wrapper/gradle-wrapper.jar' -or $_ -eq 'gradlew' -or $_ -eq 'gradlew.bat'
+    }).Count -gt 0
+    # The extension DEX payload and its build inputs reach TikTok through the same bundle as the
+    # patch definitions. Tests alone don't prove that payload can be built or injected.
+    $touchesBundle = $touchesCatalog -or @($paths | Where-Object {
+        $_ -like 'extensions/*/src/main/*' -or $_ -like 'extensions/*/build.gradle.kts' -or
+        $_ -eq 'extensions/proguard-rules.pro'
+    }).Count -gt 0
+    $touchesCode = $touchesCode -or $touchesBundle
+    # An index push compares the existing release bundle byte for byte with the published one.
+    # Refuse a mixed source/index push rather than skip source verification or restamp that asset.
+    if ($touchesBundle -and $script:indexChanged) {
+        throw 'Push bundle inputs before the published index. A mixed source/index push cannot rebuild and preserve the published artifact.'
+    }
     $injectedRegisterVerifierPaths = @(
         'scripts/DexDiff.java',
         'scripts/injected-register-contracts.ps1',
@@ -450,7 +476,7 @@ try {
         $head = $null
         $dirty = @()
         $gateCommits = @($null)
-    } elseif ($touchesCode -or $touchesRelease -or $touchesScripts) {
+    } elseif ($touchesCode -or $touchesRelease -or $touchesScripts -or $touchesApkSigning) {
         $head = ([string](Invoke-HookGit @('-C', $Root, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim()
         $dirty = @(Invoke-HookGit @('-C', $Root, 'status', '--porcelain', '--untracked-files=all'))
         $gateCommits = @($script:pushedCommits)
@@ -480,12 +506,16 @@ try {
             'in a clean worktree of the commit instead.')
     }
 
-    if ($touchesScripts) {
+    if ($touchesScripts -or $touchesCatalog -or $touchesApkSigning) {
         # Script, notice, failure message. The two injected-register suites and the resource
         # table check's run only when their own files moved; each one is the pushed commit's
         # copy, run against that commit.
-        $suites = @(, @('scripts/test-script-contracts.ps1', 'scripts changed, running their contract tests',
+        $suites = @(, @('scripts/test-script-contracts.ps1', 'scripts or catalog inputs changed, running their contract tests',
             'The script contract tests did not pass.'))
+        if ($touchesApkSigning) {
+            $suites += , @('scripts/test-apk-signing.ps1', 'device builder inputs changed, running SDK signing and cleanup fixtures',
+                'The device builder signing and cleanup fixtures did not pass.')
+        }
         if ($touchesInjectedRegisterVerifier) {
             $suites += , @('scripts/test-injected-registers.ps1', 'injected-register verifier changed, running its fixture tests',
                 'The injected-register verifier fixture tests did not pass.')
@@ -570,7 +600,7 @@ try {
         # The bundle the fixture gate applies. Last, because :patches:test reruns :patches:jar, and
         # buildAndroid's verifyBundle also fails a catalog that no longer matches the patches. It
         # writes patches/build/release only, never the tracked patches-list.json.
-        if ($touchesPatches) { $tasks += ':patches:buildAndroid' }
+        if ($touchesBundle) { $tasks += ':patches:buildAndroid' }
         # HUSHFEED_BUILD_WRAPPER names a PowerShell script that runs Gradle on this machine,
         # called as <wrapper> -ProjectDir <repository> -Tasks <task>...: a machine that shares its
         # CPU and memory between several builds points it at a governor. Unset, the Gradle
@@ -593,7 +623,7 @@ try {
                 try {
                 # Before the build, so a missing fixture stops the push in seconds, not after it.
                 $fixtures = @()
-                if ($touchesPatches) { $fixtures = @(Get-DeclaredFixtures -GateRoot $gateRoot) }
+                if ($touchesBundle) { $fixtures = @(Get-DeclaredFixtures -GateRoot $gateRoot) }
                 $global:LASTEXITCODE = 0
                 Invoke-WithoutGitEnvironment {
                     if ($wrapper) {

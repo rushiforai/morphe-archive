@@ -93,7 +93,7 @@ val coreAssetDebloatPatch = rawResourcePatch(
 @Suppress("unused")
 val languagePackPurgerPatch = rawResourcePatch(
     name = "Remove unused language packs",
-    description = "Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes. With the default choices it saves about 26 MB of storage.",
+    description = "Empties the TikTok language bundles you leave out of Languages to keep, always keeping English. It keeps every language until you list the ones you want, so picking every patch removes none. Listed codes are checked before any file changes. Keeping only English saves about 26 MB of storage.",
     default = false,
 ) {
     category("Performance")
@@ -101,13 +101,19 @@ val languagePackPurgerPatch = rawResourcePatch(
     val targetLocales by stringOption(
         key = "locales",
         title = "Languages to keep",
-        description = "Comma-separated language codes such as en, es, pt, fr or de. English is always kept.",
-        default = "en",
+        description = "Comma-separated language codes such as en, es, pt, fr or de, or all to keep every language. English is always kept.",
+        // Keep native translations unless the user chooses which languages to remove (#67).
+        default = "all",
         required = false,
     )
 
     execute {
-        stripVerifiedLanguagePacks(get("."), targetLocales, languageInventories).report("Language Pack Purger")
+        val result = stripVerifiedLanguagePacks(get("."), targetLocales, languageInventories)
+        if (result.files == 0) {
+            println("[Language Pack Purger] Kept every reviewed language pack.")
+        } else {
+            result.report("Language Pack Purger")
+        }
     }
 }
 

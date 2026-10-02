@@ -47,10 +47,10 @@ public class CommentControlOwnershipTest {
         ShadowToast.reset();
         Object cache = ReflectionHelpers.getStaticField(CommentTools.class, "RESOURCE_IDS");
         Map<String, Integer> ids = ReflectionHelpers.getField(cache, "ids");
-        ids.put("com.zhiliaoapp.musically:47.0.3:k0k", 0x7f000201);
-        ids.put("com.zhiliaoapp.musically:47.0.3:mmt", 0x7f000202);
-        ids.put("com.zhiliaoapp.musically:jlk", 0x7f000101);
-        ids.put("com.zhiliaoapp.musically:m3b", 0x7f000102);
+        ids.put(RuntimeEnvironment.getApplication().getPackageName() + ":47.0.3:k0k", 0x7f000201);
+        ids.put(RuntimeEnvironment.getApplication().getPackageName() + ":47.0.3:mmt", 0x7f000202);
+        ids.put(RuntimeEnvironment.getApplication().getPackageName() + ":jlk", 0x7f000101);
+        ids.put(RuntimeEnvironment.getApplication().getPackageName() + ":m3b", 0x7f000102);
     }
 
     @After public void tearDown() {

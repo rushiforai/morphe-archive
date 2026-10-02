@@ -8,6 +8,7 @@ import android.content.Context;
 import android.preference.PreferenceScreen;
 
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.tiktok.privacy.BenchmarkRuns;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.L10n;
@@ -127,6 +128,19 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                             + "other motion sensors it uses to fingerprint the phone.",
                     Settings.BLOCK_MOTION_SENSORS
             ));
+            TogglePreference benchmark = new TogglePreference(
+                    context,
+                    "Stop TikTok's benchmark runs",
+                    "TikTok sometimes tests how fast your phone is in a background process of its "
+                            + "own, which can hold a lot of memory. This keeps that process from "
+                            + "starting. One that's already running stops when TikTok restarts.",
+                    Settings.STOP_BENCHMARK_RUNS
+            );
+            benchmark.setOnPreferenceChangeListener((preference, value) -> {
+                BenchmarkRuns.settingsChanged(context, Boolean.TRUE.equals(value));
+                return true;
+            });
+            addPreference(benchmark);
         }
         if (SettingsStatus.cameraMicIndicatorEnabled) {
             addPreference(new TogglePreference(

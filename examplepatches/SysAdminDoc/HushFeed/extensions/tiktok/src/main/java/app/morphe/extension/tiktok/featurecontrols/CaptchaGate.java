@@ -24,15 +24,10 @@ import app.morphe.extension.tiktok.settings.Settings;
 /**
  * The single place that decides whether one of TikTok's risk control puzzles may be hidden.
  *
- * TikTok raises a puzzle either while the user is browsing or because the server refused a
- * write the user just asked for. Hiding the first kind is the point of the setting. Hiding
- * the second kind makes a follow, like, comment or repost fail with no message at all, which
- * is what the reports on the upstream trackers describe. Every hook answers here so the two
- * cases cannot drift apart.
- *
- * Which kind a check is comes from the request it gates: the network interceptor records the
- * path of each outbound call, and a check that arrives while a write is still in flight is
- * treated as gating that write.
+ * A recent account write is a reason to preserve a challenge. Its absence does not prove
+ * the challenge is safe to hide. Every hook shares that decision and its diagnostic record.
+ * No browsing scene has a reviewed contract on the declared hosts, so even a saved legacy
+ * hide setting leaves all challenges visible until such a contract exists.
  */
 public final class CaptchaGate {
     private static final String HOOK_FAMILY = "CAPTCHA account state";
@@ -76,6 +71,8 @@ public final class CaptchaGate {
     private static volatile Stamped pendingWrite;
     private static volatile Stamped lastSuppressed;
     private static final AtomicBoolean warnedThisSession = new AtomicBoolean();
+    /** A native-shaped account service for decision tests; never set by a runtime entry point. */
+    static Object accountServiceForTests;
 
     private CaptchaGate() {
     }
@@ -192,6 +189,7 @@ public final class CaptchaGate {
         pendingWrite = null;
         lastSuppressed = null;
         warnedThisSession.set(false);
+        accountServiceForTests = null;
     }
 
     private static String fresh(Stamped stamped, long nowMs) {
@@ -215,7 +213,9 @@ public final class CaptchaGate {
 
         if (isAccountVerification(activity, detail)) return "it is account verification";
         if (!isLoggedIn()) return "no account is signed in";
-        return null;
+        // A puzzle type or the absence of a recent write cannot establish browsing intent.
+        // No browsing scene has a reviewed contract on the declared hosts yet.
+        return "its scene has no reviewed browsing contract";
     }
 
     /** The whole decision for one check. True hides it. */
@@ -284,7 +284,6 @@ public final class CaptchaGate {
      */
     private static boolean shouldHideVerifyRequest(Activity activity, Object verifyRequest) {
         String scene = verificationScene(verifyRequest);
-        if (scene == null) return false;
         return shouldHide(activity, checkId("scene", scene), scene);
     }
 
@@ -293,7 +292,6 @@ public final class CaptchaGate {
      * are never touched, whatever else is going on.
      */
     public static boolean shouldHideTuringCaptchaPopup(Activity activity, String serviceType) {
-        if ("sms".equals(serviceType) || "twice_verify".equals(serviceType)) return false;
         return shouldHide(activity, checkId("service", serviceType), serviceType);
     }
 
@@ -353,6 +351,8 @@ public final class CaptchaGate {
         String normalized = value.toLowerCase(Locale.ROOT);
         return normalized.equals("login")
                 || normalized.equals("passport")
+                || normalized.equals("sms")
+                || normalized.equals("twice_verify")
                 || normalized.contains("/passport/")
                 || normalized.contains("/login/")
                 || normalized.contains("\"passport\"")
@@ -360,6 +360,12 @@ public final class CaptchaGate {
     }
 
     private static boolean isLoggedIn() {
+        if (accountServiceForTests != null) {
+            Method isLogin = Reflect.requiredMethod(
+                    accountServiceForTests.getClass(), "isLogin", HOOK_FAMILY);
+            return Boolean.TRUE.equals(Reflect.invokeRequired(
+                    isLogin, accountServiceForTests, HOOK_FAMILY));
+        }
         Class<?> serviceManagerClass = Reflect.requiredClass(SERVICE_MANAGER_CLASS, HOOK_FAMILY);
         Method getManager = Reflect.requiredMethod(
                 serviceManagerClass, "get", HOOK_FAMILY);

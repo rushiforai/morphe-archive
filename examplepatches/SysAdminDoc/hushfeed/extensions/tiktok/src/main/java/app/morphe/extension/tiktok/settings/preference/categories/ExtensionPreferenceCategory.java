@@ -11,6 +11,8 @@ import android.preference.PreferenceScreen;
 
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
+import app.morphe.extension.tiktok.settings.preference.ProfileShortcutChecklistPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
@@ -49,6 +51,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.hideSearchSuggestionsEnabled
                 || SettingsStatus.keepFavoritesTabEnabled
                 || SettingsStatus.promotionalBannersEnabled
+                || SettingsStatus.profileShortcutsEnabled
                 || SettingsStatus.refreshRateEnabled
                 || SettingsStatus.launcherShortcutsEnabled;
     }
@@ -161,7 +164,8 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.HIDE_SEARCH_REWARDS
             ));
         }
-        if (SettingsStatus.keepFavoritesTabEnabled || SettingsStatus.promotionalBannersEnabled) {
+        if (SettingsStatus.keepFavoritesTabEnabled || SettingsStatus.promotionalBannersEnabled
+                || SettingsStatus.profileShortcutsEnabled) {
             addPreference(new SectionHeadingPreference(context, "Profile"));
         }
         if (SettingsStatus.keepFavoritesTabEnabled) {
@@ -178,6 +182,16 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Hide the rewards shortcut",
                     "Hide the purple rewards button beside Add friends on your profile.",
                     Settings.HIDE_PROFILE_REWARDS_SHORTCUT
+            ));
+        }
+        if (SettingsStatus.profileShortcutsEnabled) {
+            addPreference(new ProfileShortcutChecklistPreference(context));
+            addPreference(new InputTextPreference(
+                    context,
+                    "Hide profile shortcuts by name",
+                    "Comma separated names exactly as the row under a profile's bio shows them, "
+                            + "such as TikTok Studio or Your orders. Restart TikTok to apply this.",
+                    Settings.HIDDEN_PROFILE_SHORTCUTS
             ));
         }
         if (SettingsStatus.refreshRateEnabled || SettingsStatus.launcherShortcutsEnabled) {

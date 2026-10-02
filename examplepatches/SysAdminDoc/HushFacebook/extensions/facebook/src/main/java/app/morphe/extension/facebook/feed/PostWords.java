@@ -37,6 +37,12 @@ public final class PostWords {
     /** A phrase's length in characters (code points), after the spaces around it are dropped. */
     public static final int MIN_LENGTH = 2;
     public static final int MAX_LENGTH = 60;
+    /**
+     * The longest a clean list can be, in Java chars: {@link #MAX_PHRASES} phrases of
+     * {@link #MAX_LENGTH} characters that each take two chars, like an emoji, with a line break
+     * between each two.
+     */
+    public static final int MAX_STORED_CHARS = MAX_PHRASES * MAX_LENGTH * 2 + MAX_PHRASES - 1;
 
     /** How many posts the rule has hidden since Facebook started. The settings row shows it. */
     static final AtomicInteger HIDDEN = new AtomicInteger();

@@ -9,6 +9,8 @@
  */
 package app.morphe.extension.facebook.feed;
 
+import androidx.annotation.Nullable;
+
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.settings.SettingsStatus;
@@ -88,6 +90,25 @@ public final class FeedFilter {
     /** What a read of that flag found, as the report counts it. Only the first hides anything. */
     static final String UNCONNECTED = "unconnected";
     static final String CONNECTED = "connected";
+
+    /**
+     * The GraphQL type the same model answers for the Stories tray, which the feed adds as an
+     * adapter of its own. A unit answering it as an edge would be the tray between posts.
+     */
+    static final String STORIES_TRAY_UNIT_TYPE = "StoriesTrayFeedUnit";
+    /**
+     * The other two kinds of Stories between posts the same model answers in 577 and 580, through
+     * its table of type names rather than a literal: one large Stories tile, and one person's
+     * Stories in a viewer of their own.
+     */
+    static final String STORIES_LARGE_TILE_UNIT_TYPE = "StoriesOneColumnOneRowLargeTileFeedUnit";
+    static final String STORIES_INLINE_VIEWER_UNIT_TYPE = "StoriesSingleBucketInlineViewerFeedUnit";
+    /** What Hide the Stories tray's rule adds to the type of a row of Stories it took out of the feed. */
+    static final String STORIES_TRAY_REASON = "stories tray";
+
+    /** Whether Hide Stories tray is in this build, when a test says so instead of {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean storiesTrayInBuildForTests;
 
     /** The diagnostic counter routes. Each news feed edge counts as a list of one post. */
     static final String FEED_ROUTE = "News feed posts";
@@ -282,8 +303,10 @@ public final class FeedFilter {
             boolean reelsPatched, StoryFlag.Accessor showcaseAccessor, boolean wordsPatched,
             StoryFlag.Accessor messageAccessor, StoryFlag.Accessor attachedAccessor,
             StoryFlag.Accessor aiLabelAccessor) {
+        boolean trayPatched = storiesTrayInBuild();
         try {
             if (sponsoredPatched) HookStatus.invoked(FamilyNames.SPONSORED_POSTS);
+            if (trayPatched) HookStatus.invoked(FamilyNames.STORIES_TRAY);
             if (reelsPatched) HookStatus.invoked(FamilyNames.FEED_REELS);
             if (wordsPatched) HookStatus.invoked(FamilyNames.POST_WORDS);
             if (suggestedPatched) {
@@ -346,6 +369,9 @@ public final class FeedFilter {
                     }
                 }
             }
+            if (reason == null && trayPatched && Settings.HIDE_STORIES_TRAY.get()) {
+                reason = storiesRowReason(typeName(feedUnit));
+            }
             boolean aiLabelled = aiPatched && Settings.HIDE_AI_LABELLED_POSTS.get();
             if (reason == null && aiPatched && (aiLabelled || Settings.HIDE_AI_DETECTED_POSTS.get())) {
                 reason = flagReason(GenAiLabel.FLAG, AI_ROUTE, feedUnit, aiAccessor);
@@ -364,6 +390,7 @@ public final class FeedFilter {
             return true;
         } catch (Throwable failure) {
             if (sponsoredPatched) HookStatus.threw(FamilyNames.SPONSORED_POSTS, "feed guard", failure);
+            if (trayPatched) HookStatus.threw(FamilyNames.STORIES_TRAY, "feed guard", failure);
             if (reelsPatched) HookStatus.threw(FamilyNames.FEED_REELS, "feed guard", failure);
             if (suggestedPatched) HookStatus.threw(FamilyNames.SUGGESTED_POSTS, "feed guard", failure);
             if (aiPatched) HookStatus.threw(FamilyNames.AI_DETECTED_POSTS, "feed guard", failure);
@@ -371,6 +398,32 @@ public final class FeedFilter {
             Logger.printException(() -> "Feed filter: could not judge an edge", failure);
             return false;
         }
+    }
+
+    /**
+     * Whether Hide Stories tray is in this build: its switch hides the rows of Stories between posts
+     * as well as the tray, through this guard.
+     */
+    static boolean storiesTrayInBuild() {
+        Boolean forTests = storiesTrayInBuildForTests;
+        return forTests != null ? forTests : SettingsStatus.storiesTray();
+    }
+
+    /**
+     * Hide the Stories tray's rule for the Stories that come as feed edges (issue #45): a row of
+     * several people's Stories between posts, {@link #DISCOVER_UNIT_TYPE}, your friends' as well as
+     * the ones "Stories you might like" takes, the tray itself should it come as an edge,
+     * {@link #STORIES_TRAY_UNIT_TYPE}, and the single tiles and viewers of Stories,
+     * {@link #STORIES_LARGE_TILE_UNIT_TYPE} and {@link #STORIES_INLINE_VIEWER_UNIT_TYPE}. The reason
+     * names the type; any other type, or none, is null.
+     */
+    @Nullable
+    static String storiesRowReason(@Nullable String type) {
+        if (DISCOVER_UNIT_TYPE.equals(type) || STORIES_TRAY_UNIT_TYPE.equals(type)
+                || STORIES_LARGE_TILE_UNIT_TYPE.equals(type) || STORIES_INLINE_VIEWER_UNIT_TYPE.equals(type)) {
+            return type + ":" + STORIES_TRAY_REASON;
+        }
+        return null;
     }
 
     /**

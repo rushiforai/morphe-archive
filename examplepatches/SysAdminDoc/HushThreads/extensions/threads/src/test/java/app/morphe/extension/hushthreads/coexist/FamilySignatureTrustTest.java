@@ -16,8 +16,10 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
 import android.os.Process;
@@ -30,7 +32,10 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
 import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowApplicationPackageManager;
 import org.robolectric.shadows.ShadowBinder;
 import org.robolectric.shadows.ShadowPackageManager;
 import org.robolectric.shadows.ShadowSigningInfo;
@@ -42,6 +47,7 @@ import java.util.List;
 import app.morphe.extension.hushthreads.misc.ThreadsSignature;
 import app.morphe.extension.hushthreads.settings.FamilyNames;
 import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.HushThreadsPause;
 import app.morphe.extension.shared.settings.PauseForTests;
@@ -139,6 +145,63 @@ public class FamilySignatureTrustTest {
     /** The read Threads makes of the caller's signers while building its identity. */
     private boolean callerCheck(PackageInfo callerInfo) {
         return FamilySignatureTrust.isSameKeyFamilyCaller(callerInfo);
+    }
+
+    @Test
+    public void aFailingPackageManagerLookupKeepsTheFrameworkSigners() {
+        PackageInfo instagram = caller(INSTAGRAM, OUR_KEY);
+        Utils.setContext(new ContextWrapper(context) {
+            @Override
+            public PackageManager getPackageManager() {
+                throw new SecurityException("package manager unavailable");
+            }
+        });
+        assertFalse(callerCheck(instagram));
+        assertNull(ThreadsSignature.originalSigners(instagram));
+        assertNull(FamilySignatureTrust.ownSigners);
+    }
+
+    @Test
+    @Config(shadows = FailingUidPackages.class)
+    public void aFailingUidOwnershipLookupKeepsTheFrameworkSigners() {
+        PackageInfo instagram = caller(INSTAGRAM, OUR_KEY);
+        assertFalse(callerCheck(instagram));
+        assertNull(ThreadsSignature.originalSigners(instagram));
+        assertNull(FamilySignatureTrust.ownSigners);
+    }
+
+    @Test
+    @Config(shadows = FailingCallingUid.class)
+    public void aFailingBinderUidLookupKeepsTheFrameworkSigners() {
+        PackageInfo instagram = caller(INSTAGRAM, OUR_KEY);
+        FailingCallingUid.failReads = true;
+        try {
+            assertFalse(callerCheck(instagram));
+            assertNull(ThreadsSignature.originalSigners(instagram));
+            assertNull(FamilySignatureTrust.ownSigners);
+        } finally {
+            FailingCallingUid.failReads = false;
+        }
+    }
+
+    @Implements(className = "android.app.ApplicationPackageManager", isInAndroidSdk = false)
+    public static class FailingUidPackages extends ShadowApplicationPackageManager {
+        @Implementation
+        @Override
+        protected String[] getPackagesForUid(int uid) {
+            throw new SecurityException("UID packages unavailable");
+        }
+    }
+
+    @Implements(android.os.Binder.class)
+    public static class FailingCallingUid extends ShadowBinder {
+        static boolean failReads;
+
+        @Implementation
+        protected static int getCallingUid() {
+            if (failReads) throw new SecurityException("calling UID unavailable");
+            return ShadowBinder.getCallingUid();
+        }
     }
 
     /** Threads' original certificate, the one Restore screens answers with for this app. */

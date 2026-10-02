@@ -1,0 +1,180 @@
+# Turkish for HushTelegram: the English key, a tab, the translation. One row per string.
+# context: Chat-list-only story controls and immutable hook coverage.
+Hide Stories	Hikâyeleri gizle
+Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.	Sohbet listesindeki hikâye çubuğunu, avatar hikâye halkalarını ve Hikâye Paylaş düğmesini gizler, hikâye listesini almayı durdurur. Profil hikâyeleri ve arşivler kullanılabilir durumda kalır.
+story list requests	hikâye listesi istekleri
+chat-list story bar	sohbet listesindeki hikâye çubuğu
+Post Story button	Hikâye Paylaş düğmesi
+avatar story rings	avatar hikâye halkaları
+avatar story taps	avatarlardaki hikâye dokunuşları
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$d item in that file isn't a setting this version of HushTelegram knows, so it'll be left out.	O dosyadaki %1$d öğe, HushTelegram'un bu sürümünün tanıdığı ayarlardan değil, bu yüzden atlanacak.
+%1$d items in that file aren't settings this version of HushTelegram knows, so they'll be left out.	O dosyadaki %1$d öğe, HushTelegram'un bu sürümünün tanıdığı ayarlardan değil, bu yüzden atlanacak.
+%1$d switch will change.	%1$d anahtar değişecek.
+%1$d switches will change.	%1$d anahtar değişecek.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Yamaladığında ayarlandığı için Duraklatma bunu kapatamaz. Bunu elemek için yeniden yamala ve o yamayı dışarıda bırak.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Yamaladığında ayarlandıkları için Duraklatma bunları kapatamaz. Birini elemek için yeniden yamala ve onun ardından parantez içinde yazan yamayı dışarıda bırak.
+A diagnostic report is already being saved.	Bir tanılama raporu zaten kaydediliyor.
+A file named %1$s in %2$s paused HushTelegram.	%2$s içindeki %1$s adlı bir dosya HushTelegram'u duraklattı.
+About	Hakkında
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 ve öncesi burada hangi bağlantıların açıldığını bildirmez. Bu uygulamanın ayarlarını açmak için dokunun, ardından Varsayılan olarak aç'a gidin.
+Back	Geri
+Cancel	İptal
+Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Bir ayar dosyası seç. İçe aktarmadan önce kaç anahtarın değişeceğini görürsün.
+Clear diagnostic data	Tanılama verilerini temizle
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
+Copy quick report	Hızlı raporu kopyala
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Ayarlar içe aktarılamadı ve önceki ayarların geri yüklenemedi. Bu ekrandaki anahtarları kontrol et.
+Couldn't import the settings. Nothing was changed.	Ayarlar içe aktarılamadı. Hiçbir şey değiştirilmedi.
+Couldn't open that file. Nothing was changed.	Bu dosya açılamadı. Hiçbir şey değiştirilmedi.
+Couldn't open the file picker. Try again.	Dosya seçici açılamadı. Tekrar dene.
+Couldn't put back the diagnostic data. Try again.	Tanılama verileri geri getirilemedi. Tekrar dene.
+Couldn't save the settings file. Try again.	Ayar dosyası kaydedilemedi. Tekrar dene.
+Couldn't start that. Try again in a moment.	Bu işlem başlatılamadı. Birazdan tekrar dene.
+Couldn't start the report export. Try again shortly.	Rapor dışa aktarımı başlatılamadı. Birazdan tekrar dene.
+Couldn't turn HushTelegram back on. Try again.	HushTelegram yeniden açılamadı. Tekrar dene.
+Debug logging	Hata ayıklama günlüğü
+Diagnostic data cleared. Tap again to put it back.	Tanılama verileri temizlendi. Geri getirmek için tekrar dokun.
+Diagnostic data put back.	Tanılama verileri geri getirildi.
+Diagnostic report copied to the clipboard.	Tanılama raporu panoya kopyalandı.
+Empties the log and the hook findings a report would include.	Bir raporun içereceği günlüğü ve hook bulgularını boşaltır.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır, yamaladığında ayarlananlar ise devrede kalır. Ayarların olduğu gibi kalır.
+Export diagnostic report	Tanılama raporunu dışa aktar
+Export settings	Ayarları dışa aktar
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Sonraki açılıştan itibaren Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır ve tercihlerin kayıtlı kalır.
+Hide ads	Reklamları gizle
+Links, updates, backup and more	Bağlantılar, güncellemeler, yedekleme ve daha fazlası
+Privacy	Gizlilik
+Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Anahtarlarını bir dosyaya kaydet. Duraklatma ve Hata ayıklama günlüğü dahil edilmez, sürüm denetimi de edilmez.
+Settings exported. The app holding the file wouldn't let HushTelegram read it back, so it wasn't checked.	Ayarlar dışa aktarıldı. Dosyayı tutan uygulama HushTelegram'un onu geri okumasına izin vermedi, bu yüzden kontrol edilmedi.
+The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.	O dosyayı tutan uygulama çok uzun sürüyor, bu yüzden HushTelegram beklemeyi bıraktı. Hiçbir şey değiştirilmedi.
+The app holding the last settings file still hasn't answered. Try again later.	Son ayar dosyasını tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
+The app holding the settings file is taking too long, so HushTelegram stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Ayar dosyasını tutan uygulama çok uzun sürüyor, bu yüzden HushTelegram beklemeyi bıraktı. O uygulama kaydetmeyi yine de bitirebilir, bu yüzden dosyaya güvenmeden önce onu kontrol et.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	%1$s dosyası kaldırılamadı. Onu %2$s içinden sil, sonra yeniden Devam et'e dokun.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Ayar dosyası kaydedildi, ancak geri okunduğunda yazılanla aynı değil. Yeni bir dosya olarak tekrar kaydet.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Devam ettirene kadar Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır.
+Full report saved to %1$s	Tam rapor şuraya kaydedildi: %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, üzerine kurulduğu projelerin lisans bildirimleriyle
+HushTelegram is on	HushTelegram açık
+HushTelegram is paused	HushTelegram duraklatıldı
+HushTelegram settings	HushTelegram ayarları
+HushTelegram settings couldn't open	HushTelegram ayarları açılamadı
+Import	İçe aktar
+Import settings	Ayarları içe aktar
+Importing settings	Ayarlar içe aktarılıyor
+Licenses	Lisanslar
+Links	Bağlantılar
+OK	Tamam
+Pause HushTelegram	HushTelegram'u duraklat
+Reading the settings file	Ayar dosyası okunuyor
+Retry	Yeniden dene
+Save full report	Tam raporu kaydet
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushTelegram releases	Yeni HushTelegram sürümlerini denetle
+Ask GitHub once a day when Telegram starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Telegram açıldığında günde bir kez GitHub'ı kontrol eder ve daha yeni bir sürümü bu ayarların en üstünde gösterir. Varsayılan olarak kapalıdır. Hiçbir şey indirilmez.
+Check now	Şimdi denetle
+Asks GitHub for the newest release right now, even with the switch above off.	Yukarıdaki anahtar kapalı olsa bile GitHub'a en yeni sürümü hemen sorar.
+Checking GitHub now.	GitHub şu anda denetleniyor.
+HushTelegram %1$s is out. Update it in Morphe Manager.	HushTelegram %1$s çıktı. Morphe Manager'da güncelle.
+You have the newest HushTelegram release.	En yeni HushTelegram sürümünü kullanıyorsun.
+The newest HushTelegram release is %1$s.	En yeni HushTelegram sürümü %1$s.
+Couldn't reach GitHub. Try again later.	GitHub'a ulaşılamadı. Daha sonra tekrar dene.
+GitHub is turning away checks from this network for now. Try again later.	GitHub şu an bu ağdan gelen sorguları geri çeviriyor. Daha sonra tekrar dene.
+GitHub's answer couldn't be used. Try again later.	GitHub'ın yanıtı kullanılamadı. Daha sonra tekrar dene.
+Saving the settings file	Ayar dosyası kaydediliyor
+Set when you patched	Yamaladığında ayarlananlar
+Settings couldn't open	Ayarlar açılamadı
+Settings couldn't refresh completely. Reopen settings and try again.	Ayarlar tamamen yenilenemedi. Ayarları yeniden açıp tekrar dene.
+Settings exported.	Ayarlar dışa aktarıldı.
+Settings imported. %1$d switch changed.	Ayarlar içe aktarıldı. %1$d anahtar değişti.
+Settings imported. %1$d switches changed.	Ayarlar içe aktarıldı. %1$d anahtar değişti.
+Source code and issues	Kaynak kodu ve sorunlar
+Stays in while paused	Duraklatılsa da devrede kalır
+Tap to turn it back on.	Yeniden açmak için dokun.
+That file is too large to be a settings file. Nothing was changed.	Bu dosya bir ayar dosyası olamayacak kadar büyük. Hiçbir şey değiştirilmedi.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	Bu dosya okunabilir bir metin değil, aktarım sırasında hasar görmüş olabilir. Hiçbir şey değiştirilmedi.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	Bu dosyada bir ayar iki kez geçiyor, bu yüzden hangi değerin kullanılacağı belli değil. Hiçbir şey değiştirilmedi.
+That isn't a HushTelegram settings file. Nothing was changed.	Bu bir HushTelegram ayar dosyası değil. Hiçbir şey değiştirilmedi.
+That settings file holds a value HushTelegram can't read. Nothing was changed.	Bu ayar dosyasında HushTelegram'un okuyamadığı bir değer var. Hiçbir şey değiştirilmedi.
+That settings file is damaged or only partly downloaded. Nothing was changed.	Bu ayar dosyası hasarlı ya da yalnızca bir kısmı indirilmiş. Hiçbir şey değiştirilmedi.
+That settings file was written by a newer HushTelegram than this one. Nothing was changed.	Bu ayar dosyası, HushTelegram'un bu sürümünden daha yeni bir sürümüyle oluşturulmuş. Hiçbir şey değiştirilmedi.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Tanılama raporu henüz kaydedilemedi. Birazdan tekrar dene.
+The diagnostic report couldn't be saved. Try again.	Tanılama raporu kaydedilemedi. Tekrar dene.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushTelegram back on.	%1$s dosyası kaldırılamadı. HushTelegram'u yeniden açmak için onu %2$s içinden sil.
+The setting couldn't finish updating. Its saved value is shown.	Ayarın güncellenmesi tamamlanamadı. Kayıtlı değeri gösteriliyor.
+There's no diagnostic data to clear.	Temizlenecek tanılama verisi yok.
+There's no diagnostic data to put back.	Geri getirilecek tanılama verisi yok.
+This phone has no file picker, so there's no way to choose a file here.	Bu telefonda dosya seçici yok, bu yüzden burada dosya seçmenin bir yolu yok.
+Version	Sürüm
+Record patch activity and show errors for a bug report. Leave off during normal use.	Hata raporu için yama etkinliğini kaydeder ve hataları gösterir. Normal kullanımda kapalı bırakın.
+You paused HushTelegram.	HushTelegram'u duraklattın.
+Your switches already match that file, so nothing will change.	Anahtarların zaten o dosyayla aynı, bu yüzden hiçbir şey değişmeyecek.
+Copy a short report to the clipboard.	Kısa raporu panoya kopyalar.
+Save the full report in Download/Morphe.	Tam raporu Download/Morphe konumuna kaydeder.
+Settings imported.	Ayarlar içe aktarıldı.
+No app on this phone can open the link. The address is %1$s.	Bu telefondaki hiçbir uygulama bağlantıyı açamıyor. Adres: %1$s.
+Pause, backup and diagnostics	Duraklatma, yedekleme ve tanılama
+Updates	Güncellemeler
+Jump to a section	Bir bölüme git
+Go straight to one group of settings. Back returns to where you were.	Doğrudan bir ayar grubuna git. Geri, bulunduğun yere döndürür.
+Browse settings	Ayarları keşfet
+More settings	Diğer ayarlar
+No matching settings	Eşleşen ayar yok
+%1$d setting found	%1$d ayar bulundu
+%1$d settings found	%1$d ayar bulundu
+Try a different word or clear the search.	Başka bir kelime deneyin veya aramayı temizleyin.
+Search settings	Ayarlarda ara
+Clear search	Aramayı temizle
+Your controls are active.	Kontrolleriniz etkin.
+Pause	Duraklat
+Resume	Devam et
+Undo	Geri al
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Telegram's web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	Desteklenen bağlantılar
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	“Desteklenen bağlantıları aç” Android ayarlarında bu uygulama için kapalı. Açmak için dokunun.
+Android didn't say which links open here. Tap to check in Android's settings.	Android burada hangi bağlantıların açıldığını bildirmedi. Android ayarlarında kontrol etmek için dokunun.
+Selecting links by hand	Bağlantıları elle seçme
+
+A change here applies after Telegram restarts.	Buradaki bir değişiklik Telegram yeniden başladıktan sonra geçerli olur.
+Android opens t.me links in an app only when its addresses are selected for that app. Selecting them sends their links here, and your other link settings stay as they are.	Android, t.me bağlantılarını yalnızca bir uygulamanın adresleri o uygulama için seçiliyse o uygulamada açar. Onları seçmek bağlantılarını buraya gönderir ve diğer bağlantı ayarlarınız olduğu gibi kalır.
+Android verified this app for Telegram's web addresses, so their links open here.	Android bu uygulamayı Telegram'ın web adresleri için doğruladı, bu yüzden bağlantıları burada açılır.
+Android's settings for this app didn't open. Open App info from Telegram's icon, then Open by default.	Bu uygulamanın Android ayarları açılamadı. Telegram simgesinden Uygulama bilgileri'ni, ardından Varsayılan olarak aç'ı açın.
+Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.	Kanallarda sponsorlu mesaj, aramada sponsorlu hesap gösterilmez ve videolar reklamsız oynar. Telegram bunları hiç istemez, bu yüzden hiçbiri görüntülenmiş sayılmaz.
+Chats	Sohbetler
+HushTelegram %1$s on Telegram %2$s	Telegram %2$s üzerinde HushTelegram %1$s
+HushTelegram %1$s targets Telegram %2$s.	HushTelegram %1$s, Telegram %2$s için hazırlandı.
+HushTelegram pauses when Telegram restarts.	HushTelegram, Telegram yeniden başladığında duraklatılır.
+HushTelegram turns back on when Telegram restarts.	HushTelegram, Telegram yeniden başladığında tekrar açılır.
+It targets Telegram %1$s.	Telegram %1$s için hazırlandı.
+None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Telegram'ın web adreslerinden hiçbiri bu uygulama için seçili değil, bu yüzden bağlantıları başka yerde açılır. Android ayarlarında seçmek için dokunun.
+Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Telegram'ın web adreslerinden yalnızca bazıları bu uygulama için seçili ve diğerlerinin bağlantıları başka yerde açılır. Android ayarlarında seçmek için dokunun.
+Saved. Restart Telegram to apply this change.	Kaydedildi. Bu değişikliği uygulamak için Telegram'ı yeniden başlat.
+Sponsored messages and video ads	Sponsorlu mesajlar ve video reklamları
+Stop usage reports	Kullanım raporlarını durdur
+# context: Immutable hook coverage shown when a patch has missing targets.
+channel ads	kanal reklamları
+video ads	video reklamları
+search ads	arama reklamları
+device statistics reports	cihaz istatistik raporları
+channel read metrics	kanal okuma ölçümleri
+This build has no coverage for %1$s.	Bu derleme %1$s için kapsam sağlamaz.
+This build covers %1$s. Missing coverage: %2$s.	Bu derlemenin kapsamı: %1$s. Eksik kapsam: %2$s.
+Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	Telegram açıldıktan sonraki bir dakika içinde üst üste üç kez çöktü veya dondu, bu yüzden HushTelegram kendini duraklattı.
+Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.	Telegram, sunucusu istediğinde depolama klasörlerinizi cihaz raporu olarak göndermez, her kanal gönderisinde ne kadar kaldığınızı da göndermez. Mesajlar ve aramalar eskisi gibi çalışır.
+Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Telegram'ın web adresleri Android ayarlarında bu uygulama için seçili, bu yüzden bağlantıları burada açılır.
+Device statistics and read time	Cihaz istatistikleri ve okuma süresi
+Try again, or go back to Telegram.	Tekrar dene veya Telegram'a geri dön.
+Turn off Telegram's update checks	Telegram'ın güncelleme kontrollerini kapat
+Your choices are saved. Tap Resume, then restart Telegram.	Tercihleriniz kayıtlı. Devam et'e dokunun, sonra Telegram'ı yeniden başlatın.
+Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.	Telegram, telegram.org güncellemelerini sunmayı bırakır. Bunlar bu yamalı sürümün üzerine kurulamaz, bu yüzden her yeni sürümü Morphe Manager'da yamala.
+No HushTelegram release is out yet.	Henüz bir HushTelegram sürümü yayınlanmadı.
+Hide recommendations	Önerileri gizle
+Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.	Benzer kanalları ve botları, kayıtlı öneriler dahil gizler. Anahtar açıkken Telegram yeni öneri istemez.
+similar channels and bots	benzer kanallar ve botlar
+cached recommendations	kayıtlı öneriler
+Stop call diagnostics	Arama tanılamalarını durdur
+Stops automatic call debug reports and log-file uploads requested by Telegram's server.	Telegram sunucusunun istediği otomatik arama hata ayıklama raporlarını ve günlük dosyası yüklemelerini durdurur.
+call debug reports	arama hata ayıklama raporları
+call log file uploads	arama günlük dosyası yüklemeleri
+call log reports	arama günlük raporları

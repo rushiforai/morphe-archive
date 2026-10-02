@@ -180,6 +180,6 @@ class ObfuscatedIdentityTest {
          * Names that match a shape above and are nobody's invention: framework and interface
          * members compared by name, the resource types handed to a lookup, and file extensions.
          */
-        val REAL_NAMES = setOf("get", "put", "run", "id", "raw", "mp3", "mp4", "m4a", "m4v")
+        val REAL_NAMES = setOf("get", "put", "run", "key", "id", "raw", "mp3", "mp4", "m4a", "m4v")
     }
 }

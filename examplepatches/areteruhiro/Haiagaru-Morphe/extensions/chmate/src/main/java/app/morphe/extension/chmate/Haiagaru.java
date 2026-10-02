@@ -130,6 +130,7 @@ public final class Haiagaru {
     private static final String HISSI_VIEWER_THEME_KEY = "hissiViewerTheme";
     private static final String HISSI_VIEWER_TEXT_ZOOM_KEY = "hissiViewerTextZoom";
     private static final String HISSI_VIEWER_FULLSCREEN_KEY = "hissiViewerFullscreen";
+    private static final String HISSI_VIEWER_SWIPE_HISTORY_KEY = "hissiViewerSwipeHistory";
     private static final String KYODEMO_ENHANCED_VIEWER_KEY = "kyodemoEnhancedViewer";
     private static final int DEFAULT_NG_REGISTRATION_LIMIT = 300;
     private static final int MAX_NG_REGISTRATION_LIMIT = 100_000;
@@ -414,24 +415,39 @@ public final class Haiagaru {
 
     /** Adds the archive action to ChMate's own home-toolbar customization model. */
     public static Object addEdgeArchiveToolbarChoice(Object toolbarModel) {
+        return addToolbarChoice(toolbarModel, EDDI_ARCHIVE_TOOLBAR_ID, "haiagaru_edge_archive");
+    }
+
+    public static boolean compactQuickFilters() {
+        return applicationContext != null
+                && preferences(applicationContext).getBoolean("compactQuickFilters", false);
+    }
+
+    public static Object addQuickFilterToolbarChoice(Object toolbarModel) {
+        if (!compactQuickFilters()) return toolbarModel;
+        return addToolbarChoice(toolbarModel, QuickFilterToolbar.ID, "haiagaru_quick_filter");
+    }
+
+    private static Object addToolbarChoice(Object toolbarModel, int actionId, String resourceName) {
         if (toolbarModel == null) return null;
         try {
             Context context = applicationContext;
             if (context == null) return toolbarModel;
             int titleId = context.getResources().getIdentifier(
-                    "haiagaru_edge_archive", "string", context.getPackageName());
+                    resourceName, "string", context.getPackageName());
             int iconId = context.getResources().getIdentifier(
-                    "haiagaru_edge_archive", "drawable", context.getPackageName());
+                    resourceName, "drawable", context.getPackageName());
             if (titleId == 0 || iconId == 0) return toolbarModel;
             if (toolbarModel instanceof List) {
                 List<?> source = (List<?>) toolbarModel;
-                if (containsToolbarChoice(source)) return toolbarModel;
+                if (containsToolbarChoice(source, actionId)) return toolbarModel;
                 @SuppressWarnings("unchecked")
                 List<Object> buttons = (List<Object>) source;
-                Class<?> itemClass = Class.forName("o.r8lambda98incQ33GAiiY2082BMi9yDa3l0");
+                Class<?> itemClass = Class.forName("o.r8lambda98incQ33GAiiY2082BMi9yDa3l0",
+                        false, toolbarModel.getClass().getClassLoader());
                 Object item = itemClass.getConstructor(int.class, int.class, int.class,
                         int.class, boolean.class).newInstance(
-                        EDDI_ARCHIVE_TOOLBAR_ID, iconId, titleId, titleId, false);
+                        actionId, iconId, titleId, titleId, false);
                 buttons.add(item);
                 return toolbarModel;
             }
@@ -446,14 +462,14 @@ public final class Haiagaru {
             if (listField == null) return toolbarModel;
             listField.setAccessible(true);
             List<?> original = (List<?>) listField.get(toolbarModel);
-            if (original == null || containsToolbarChoice(original)) return toolbarModel;
+            if (original == null || containsToolbarChoice(original, actionId)) return toolbarModel;
             ArrayList<Object> buttons = new ArrayList<>(original);
             ClassLoader loader = toolbarModel.getClass().getClassLoader();
             Class<?> specClass = Class.forName(
                     "jp.syoboi.a2chMate.feature.toolbar.ToolbarButtonSpec", false, loader);
             Object item = specClass.getConstructor(int.class, int.class, int.class,
                     int.class, boolean.class).newInstance(
-                    EDDI_ARCHIVE_TOOLBAR_ID, iconId, titleId, titleId, false);
+                    actionId, iconId, titleId, titleId, false);
             // Modern ToolbarDefault keeps a mutable button list. Extending that
             // list preserves its position and configuration objects; rebuilding
             // the model can silently lose the new choice on some versions.
@@ -522,14 +538,14 @@ public final class Haiagaru {
         }
     }
 
-    private static boolean containsToolbarChoice(List<?> buttons) {
+    private static boolean containsToolbarChoice(List<?> buttons, int actionId) {
         for (Object button : buttons) {
             if (button == null) continue;
             for (Field id : button.getClass().getDeclaredFields()) {
                 if (id.getType() != int.class) continue;
                 try {
                     id.setAccessible(true);
-                    if (id.getInt(button) == EDDI_ARCHIVE_TOOLBAR_ID) return true;
+                    if (id.getInt(button) == actionId) return true;
                 } catch (Throwable ignored) { }
             }
         }
@@ -1367,6 +1383,7 @@ public final class Haiagaru {
      * an impossible key/token pair until all app data is cleared.
      */
     public static void prepareLegacyTalkPostSession() {
+        configureLegacyTalkConfirmationParser();
         Context context = applicationContext;
         if (context == null) return;
         SharedPreferences haiagaru = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -1389,6 +1406,30 @@ public final class Haiagaru {
                 .remove("legacyTalkSessionRepairV1")
                 .commit();
         Log.i(LOG_TAG, "Repaired legacy Talk write session after APK update");
+    }
+
+    /**
+     * The 0.8.10.191 confirmation-form parser uses `.` without DOTALL for both
+     * the input-tag matcher and attribute-value matcher. A MESSAGE value with
+     * line breaks is therefore silently dropped, so the confirmation POST is
+     * retried without its body and the server shows the cookie confirmation again.
+     */
+    private static void configureLegacyTalkConfirmationParser() {
+        try {
+            Class<?> parser = Class.forName("o.getCredentials");
+            java.lang.reflect.Field[] fields = parser.getDeclaredFields();
+            for (java.lang.reflect.Field field : fields) {
+                if (field.getType() != java.util.regex.Pattern.class) continue;
+                field.setAccessible(true);
+                java.util.regex.Pattern current = (java.util.regex.Pattern) field.get(null);
+                if (current == null || (current.flags() & java.util.regex.Pattern.DOTALL) != 0) continue;
+                field.set(null, java.util.regex.Pattern.compile(
+                        current.pattern(), current.flags() | java.util.regex.Pattern.DOTALL));
+            }
+            Log.i(LOG_TAG, "Enabled multiline parsing for legacy Talk confirmation forms");
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Could not enable multiline parsing for legacy Talk confirmation forms", error);
+        }
     }
 
     /** Drops only 191's renewable Talk write credentials after confirmation is cancelled. */
@@ -2770,12 +2811,26 @@ public final class Haiagaru {
                 text("必死チェッカーを全画面で表示", "Fullscreen checker viewer"),
                 preferences.getBoolean(HISSI_VIEWER_FULLSCREEN_KEY, false)
         );
+        Spinner hissiViewerSwipeHistory = addSpinner(
+                layout,
+                activity,
+                text("専用ビュワーの左右スワイプ", "Viewer horizontal swipe"),
+                new String[]{"無効", "左で戻る／右で進む", "左で進む／右で戻る"},
+                Math.max(0, Math.min(2, preferences.getInt(HISSI_VIEWER_SWIPE_HISTORY_KEY, 0)))
+        );
         Switch kyodemoEnhancedViewer = addSwitch(
                 layout,
                 activity,
                 text("KyodemoのID/ﾜｯﾁｮｲ検索を専用表示", "Enhanced Kyodemo ID/Wacchoi viewer"),
                 preferences.getBoolean(KYODEMO_ENHANCED_VIEWER_KEY, false)
         );
+        Switch compactFilters = null;
+        if (QuickFilterToolbar.supported(activity)) {
+            compactFilters = addSwitch(layout, activity,
+                    "スレのツールバーに「フィルタ」を追加する（191 dev／242 devでは旧フィルタ行も非表示。ON後、ツールバー設定で追加してスレを開き直してください）",
+                    preferences.getBoolean("compactQuickFilters", false));
+        }
+        final Switch compactQuickFiltersSwitch = compactFilters;
         Switch edgeReporterId = addSwitch(
                 layout,
                 activity,
@@ -3050,7 +3105,9 @@ public final class Haiagaru {
                                     Math.max(0, Math.min(2, hissiViewerTextZoom.getSelectedItemPosition()))
                             ])
                             .putBoolean(HISSI_VIEWER_FULLSCREEN_KEY, hissiViewerFullscreen.isChecked())
+                            .putInt(HISSI_VIEWER_SWIPE_HISTORY_KEY, hissiViewerSwipeHistory.getSelectedItemPosition())
                             .putBoolean(KYODEMO_ENHANCED_VIEWER_KEY, kyodemoEnhancedViewer.isChecked())
+                            .putBoolean("compactQuickFilters", compactQuickFiltersSwitch != null && compactQuickFiltersSwitch.isChecked())
                             .putBoolean("edgeReporterId", edgeReporterId.isChecked())
                             .putBoolean("forceHttps", forceHttps.isChecked())
                             .putBoolean("automaticDat", automaticDat.isChecked())
@@ -3810,6 +3867,13 @@ public final class Haiagaru {
     public static boolean hissiViewerFullscreen() {
         SharedPreferences prefs = preferencesOrNull();
         return prefs != null && prefs.getBoolean(HISSI_VIEWER_FULLSCREEN_KEY, false);
+    }
+
+    public static int hissiViewerSwipeHistory() {
+        SharedPreferences prefs = preferencesOrNull();
+        if (prefs == null) return 0;
+        int direction = prefs.getInt(HISSI_VIEWER_SWIPE_HISTORY_KEY, 0);
+        return direction >= 0 && direction <= 2 ? direction : 0;
     }
 
     public static boolean kyodemoEnhancedViewer() {

@@ -1,0 +1,1028 @@
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index a896e32..d9c434e 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -6,13 +6,11 @@
+     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+-    <uses-permission android:name="com.android.vending.BILLING"/>
+     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+     <application android:appComponentFactory="androidx.core.app.CoreComponentFactory" android:hardwareAccelerated="true" android:icon="@mipmap/ic_launcher" android:label="@string/app_name" android:largeHeap="true" android:name="androidx.multidex.MultiDexApplication" android:networkSecurityConfig="@xml/network_security_config" android:requestLegacyExternalStorage="true" android:roundIcon="@mipmap/ic_launcher_round" android:theme="@style/MyTheme">
+         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
+-        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-7945501403308637~5073635705"/>
+         <uses-library android:name="com.sec.android.app.multiwindow" android:required="false"/>
+         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+         <meta-data android:name="com.sec.android.support.multiwindow" android:value="true"/>
+@@ -196,7 +194,6 @@
+         <activity android:configChanges="fontScale|keyboard|keyboardHidden|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|touchscreen|uiMode" android:launchMode="singleTask" android:name="com.sauzask.nicoid.NicoidActivityFinish"/>
+         <activity android:configChanges="fontScale|keyboard|keyboardHidden|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|touchscreen|uiMode" android:name="com.sauzask.nicoid.NicoidLogger"/>
+         <activity android:configChanges="fontScale|keyboard|keyboardHidden|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|touchscreen|uiMode" android:name="com.sauzask.nicoid.NicoidChromecastReceiverSelect"/>
+-        <activity android:configChanges="fontScale|keyboard|keyboardHidden|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|touchscreen|uiMode" android:launchMode="singleTask" android:name="com.sauzask.nicoid.NicoidInAppBillingActivity"/>
+         <activity android:configChanges="fontScale|keyboard|keyboardHidden|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|touchscreen|uiMode" android:launchMode="singleTask" android:name="com.sauzask.nicoid.NicoidPopupViewLockActivity"/>
+         <service android:label="PopupAndBGPlayService" android:name="com.sauzask.nicoid.NicoidPopupViewService"/>
+         <service android:label="NicoidDownloadCache" android:name="com.sauzask.nicoid.NicoidDownloadCache"/>
+@@ -207,13 +204,6 @@
+                 <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
+             </intent-filter>
+         </receiver>
+-        <activity android:hardwareAccelerated="true" android:name="net.nend.android.internal.ui.activities.fullboard.NendAdFullBoardActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"/>
+-        <activity android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode" android:name="net.nend.android.internal.ui.activities.interstitial.NendAdInterstitialActivity" android:screenOrientation="behind" android:theme="@style/Theme.NendAd.Interstitial"/>
+-        <activity android:configChanges="fontScale|keyboard|keyboardHidden|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode" android:hardwareAccelerated="true" android:name="net.nend.android.internal.ui.activities.video.NendAdInterstitialVideoActivity" android:screenOrientation="behind" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"/>
+-        <activity android:configChanges="fontScale|keyboard|keyboardHidden|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode" android:hardwareAccelerated="true" android:name="net.nend.android.internal.ui.activities.video.NendAdRewardedVideoActivity" android:screenOrientation="behind" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"/>
+-        <activity android:configChanges="fontScale|keyboard|keyboardHidden|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode" android:hardwareAccelerated="true" android:name="net.nend.android.internal.ui.activities.formats.FullscreenVideoPlayingActivity" android:screenOrientation="user" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"/>
+-        <activity android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode" android:exported="false" android:name="com.google.android.gms.ads.AdActivity" android:theme="@android:style/Theme.Translucent"/>
+-        <provider android:authorities="com.sauzask.nicoid.hls.mobileadsinitprovider" android:exported="false" android:initOrder="100" android:name="com.google.android.gms.ads.MobileAdsInitProvider"/>
+         <activity android:exported="false" android:name="com.google.android.gms.common.api.GoogleApiActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+     </application>
+ </manifest>
+diff --git a/apktool.yml b/apktool.yml
+index f5cafdf..6188f02 100644
+--- a/apktool.yml
++++ b/apktool.yml
+@@ -12,8 +12,8 @@ packageInfo:
+   forcedPackageId: 127
+   renameManifestPackage: null
+ versionInfo:
+-  versionCode: 149
+-  versionName: 6.49
++  versionCode: 200
++  versionName: '6.49'
+ sharedLibrary: false
+ sparseResources: false
+ compactEntries: false
+diff --git a/res/drawable/background_tab.xml b/res/drawable/background_tab.xml
+index 5c4aa20..15ffcbc 100644
+--- a/res/drawable/background_tab.xml
++++ b/res/drawable/background_tab.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <selector xmlns:android="http://schemas.android.com/apk/res/android">
+- <item android:state_pressed="true"><shape><solid android:color="@color/theme_userinfo_background_press"/><corners android:radius="12.0dip"/></shape></item>
+- <item android:state_focused="true"><shape><solid android:color="@color/theme_userinfo_background_press"/><corners android:radius="12.0dip"/></shape></item>
++ <item android:state_pressed="true"><shape><solid android:color="?attr/nicoidSurfacePressed"/><corners android:radius="12.0dip"/></shape></item>
++ <item android:state_focused="true"><shape><solid android:color="?attr/nicoidSurfacePressed"/><corners android:radius="12.0dip"/></shape></item>
+  <item><shape><solid android:color="@android:color/transparent"/><corners android:radius="12.0dip"/></shape></item>
+ </selector>
+diff --git a/res/drawable/modern_row.xml b/res/drawable/modern_row.xml
+index b46784f..5585324 100644
+--- a/res/drawable/modern_row.xml
++++ b/res/drawable/modern_row.xml
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <selector xmlns:android="http://schemas.android.com/apk/res/android">
+- <item android:state_pressed="true"><shape><solid android:color="@color/theme_userinfo_background_press"/><corners android:radius="12.0dip"/></shape></item>
++ <item android:state_pressed="true"><shape><solid android:color="?attr/nicoidSurfacePressed"/><corners android:radius="12.0dip"/></shape></item>
+  <item><shape><solid android:color="?android:attr/colorBackground"/><corners android:radius="12.0dip"/></shape></item>
+ </selector>
+diff --git a/res/drawable/userinfo_background.xml b/res/drawable/userinfo_background.xml
+index 366c201..4d50827 100644
+--- a/res/drawable/userinfo_background.xml
++++ b/res/drawable/userinfo_background.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <selector xmlns:android="http://schemas.android.com/apk/res/android">
+- <item android:state_pressed="true"><shape><solid android:color="@color/theme_userinfo_background_press"/><corners android:radius="12.0dip"/></shape></item>
+- <item android:state_focused="true"><shape><solid android:color="@color/theme_userinfo_background_press"/><corners android:radius="12.0dip"/></shape></item>
+- <item><shape><solid android:color="@color/theme_userinfo_background"/><corners android:radius="12.0dip"/></shape></item>
++ <item android:state_pressed="true"><shape><solid android:color="?attr/nicoidSurfacePressed"/><corners android:radius="12.0dip"/></shape></item>
++ <item android:state_focused="true"><shape><solid android:color="?attr/nicoidSurfacePressed"/><corners android:radius="12.0dip"/></shape></item>
++ <item><shape><solid android:color="?attr/nicoidSurface"/><corners android:radius="12.0dip"/></shape></item>
+ </selector>
+diff --git a/res/layout/comment_list_item.xml b/res/layout/comment_list_item.xml
+index 9e644a3..47da6df 100644
+--- a/res/layout/comment_list_item.xml
++++ b/res/layout/comment_list_item.xml
+@@ -4,6 +4,6 @@
+     <View android:id="@id/colorbar" android:layout_width="0.0dip" android:layout_height="fill_parent" />
+     <RelativeLayout android:orientation="vertical" android:id="@id/linearLayout3" android:paddingTop="3.0dip" android:paddingBottom="3.0dip" android:layout_width="fill_parent" android:layout_height="wrap_content">
+         <TextView android:textSize="12.0sp" android:textColor="#ffaaaaaa" android:id="@id/time" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="3.0dip" android:layout_marginRight="3.0dip" android:text="テキスト" android:layout_centerVertical="true" />
+-        <TextView android:textSize="15.0sp" android:textColor="#ffffffff" android:ellipsize="none" android:id="@id/title" android:fadingEdge="horizontal" android:fadingEdgeLength="10.0dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="テキスト" android:scrollHorizontally="true" android:singleLine="true" android:freezesText="true" android:layout_toRightOf="@id/time" />
++        <TextView android:textSize="15.0sp" android:textColor="?android:attr/textColorPrimary" android:ellipsize="none" android:id="@id/title" android:fadingEdge="horizontal" android:fadingEdgeLength="10.0dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="テキスト" android:scrollHorizontally="true" android:singleLine="true" android:freezesText="true" android:layout_toRightOf="@id/time" />
+     </RelativeLayout>
+ </LinearLayout>
+diff --git a/res/layout/popup.xml b/res/layout/popup.xml
+index 2304b91..107be8a 100644
+--- a/res/layout/popup.xml
++++ b/res/layout/popup.xml
+@@ -1,5 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
++<e.e.a.PopupPinchLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
+   xmlns:android="http://schemas.android.com/apk/res/android">
+     <RelativeLayout android:id="@id/videoLayout" android:layout_width="fill_parent" android:layout_height="fill_parent">
+         <LinearLayout android:gravity="center" android:layout_gravity="center" android:id="@id/video" android:layout_width="fill_parent" android:layout_height="fill_parent">
+@@ -30,4 +30,4 @@
+         </LinearLayout>
+         <TextView android:textSize="14.0dip" android:textColor="#ffffffff" android:textColorHint="#ffffffff" android:gravity="left" android:id="@id/logtext" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_below="@id/titlebar" android:layout_alignParentLeft="true" android:layout_alignParentTop="false" android:layout_alignParentRight="false" android:layout_alignParentBottom="false" />
+     </RelativeLayout>
+-</LinearLayout>
++</e.e.a.PopupPinchLayout>
+diff --git a/res/layout/video_list_item_ad_admob.xml b/res/layout/video_list_item_ad_admob.xml
+index ced24e5..fe52967 100644
+--- a/res/layout/video_list_item_ad_admob.xml
++++ b/res/layout/video_list_item_ad_admob.xml
+@@ -1,3 +1,3 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<com.google.android.gms.ads.NativeExpressAdView android:id="@id/adView" android:layout_width="wrap_content" android:layout_height="wrap_content"
++<View android:id="@id/adView" android:visibility="gone" android:layout_width="0.0dip" android:layout_height="0.0dip"
+   xmlns:android="http://schemas.android.com/apk/res/android" />
+diff --git a/res/layout/videoinfo_activity.xml b/res/layout/videoinfo_activity.xml
+index 145be00..7f33c94 100644
+--- a/res/layout/videoinfo_activity.xml
++++ b/res/layout/videoinfo_activity.xml
+@@ -23,7 +23,7 @@
+         <ProgressBar android:layout_gravity="center_horizontal" android:id="@id/progressBar1" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+         <TextView android:textColor="?android:attr/textColorPrimary" android:gravity="center" android:layout_gravity="center_horizontal" android:id="@id/loadstatus" android:padding="2.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+     </LinearLayout>
+-    <LinearLayout android:orientation="vertical" android:id="@id/toolbarlay" android:background="?android:attr/colorBackground" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_above="@id/adLayout">
++    <LinearLayout android:orientation="vertical" android:id="@id/toolbarlay" android:background="?android:attr/colorBackground" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true">
+         <LinearLayout android:orientation="vertical" android:background="@color/theme_color" android:layout_width="fill_parent" android:layout_height="2.0dip" android:layout_weight="1.0" />
+         <LinearLayout android:orientation="horizontal" android:id="@id/toolbar" android:background="?android:attr/colorBackground" android:paddingLeft="8.0dip" android:paddingTop="4.0dip" android:paddingRight="8.0dip" android:paddingBottom="4.0dip" android:layout_width="fill_parent" android:layout_height="50.0dip" />
+     </LinearLayout>
+diff --git a/res/values-en/strings.xml b/res/values-en/strings.xml
+index 4222070..edf7ca9 100644
+--- a/res/values-en/strings.xml
++++ b/res/values-en/strings.xml
+@@ -2,7 +2,7 @@
+ <resources>
+     <string name="allDeselect">CANCEL</string>
+     <string name="allSelect">Select all</string>
+-    <string name="app_name">nicoid Mod</string>
++    <string name="app_name">nicoid Re</string>
+     <string name="backTop">Do you return to the top screen?</string>
+     <string name="cache">Cache</string>
+     <string name="cacheAddMessage">Do you want to get the cache?</string>
+diff --git a/res/values-night-v31/styles.xml b/res/values-night-v31/styles.xml
+index d2013b5..1a42b33 100644
+--- a/res/values-night-v31/styles.xml
++++ b/res/values-night-v31/styles.xml
+@@ -1,6 +1,8 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+     <style name="MyThemeMaterialYou" parent="@style/Theme.AppCompat">
++        <item name="nicoidSurface">#ff303238</item>
++        <item name="nicoidSurfacePressed">#ff464950</item>
+         <item name="colorPrimary">@android:color/system_accent1_800</item>
+         <item name="colorPrimaryDark">@android:color/system_accent1_900</item>
+         <item name="colorAccent">@android:color/system_accent1_200</item>
+diff --git a/res/values-zh-rTW/strings.xml b/res/values-zh-rTW/strings.xml
+index 4786b57..74eac4e 100644
+--- a/res/values-zh-rTW/strings.xml
++++ b/res/values-zh-rTW/strings.xml
+@@ -29,7 +29,7 @@
+     <string name="abc_toolbar_collapse_description">收合</string>
+     <string name="allDeselect">全部取消選擇</string>
+     <string name="allSelect">全部選擇</string>
+-    <string name="app_name">nicoid Mod</string>
++    <string name="app_name">nicoid Re</string>
+     <string name="backTop">請您返回到頂部的屏幕？</string>
+     <string name="cache">快取</string>
+     <string name="cacheAddMessage">你想要得到的現金？</string>
+diff --git a/res/values/arrays.xml b/res/values/arrays.xml
+index 9fd21cb..87e6e1c 100644
+--- a/res/values/arrays.xml
++++ b/res/values/arrays.xml
+@@ -188,4 +188,11 @@
+         <item>@string/popupmenuBackgroundPlay</item>
+         <item>@string/popupmenuPopup</item>
+     </string-array>
++    <string-array name="commentSizeLabels">
++        <item>最小（60%）</item><item>小（80%）</item><item>標準（100%）</item><item>大（120%）</item><item>最大（140%）</item>
++    </string-array>
++    <string-array name="commentSizeValues">
++        <item>0</item><item>1</item><item>2</item><item>3</item><item>4</item>
++    </string-array>
+ </resources>
++ 
+diff --git a/res/values/attrs.xml b/res/values/attrs.xml
+index 778ef8d..64d8330 100644
+--- a/res/values/attrs.xml
++++ b/res/values/attrs.xml
+@@ -1,5 +1,7 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
++    <attr name="nicoidSurface" format="color" />
++    <attr name="nicoidSurfacePressed" format="color" />
+     <attr name="NendAdjustSize" format="boolean" />
+     <attr name="NendApiKey" format="string" />
+     <attr name="NendIconCount" format="integer" />
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index cba5825..566cb89 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -29,7 +29,7 @@
+     <string name="abc_toolbar_collapse_description">Collapse</string>
+     <string name="allDeselect">全解除</string>
+     <string name="allSelect">全選択</string>
+-    <string name="app_name">nicoid Mod</string>
++    <string name="app_name">nicoid Re</string>
+     <string name="backTop">トップ画面に戻りますか？</string>
+     <string name="backgroundplayNotifyText">再生準備中</string>
+     <string name="backgroundplayNotifyTitle">nicoid background</string>
+diff --git a/res/values/styles.xml b/res/values/styles.xml
+index 49f81e1..bba9241 100644
+--- a/res/values/styles.xml
++++ b/res/values/styles.xml
+@@ -935,6 +935,8 @@
+     </style>
+     <style name="MyDialogTheme" parent="@android:style/Theme.Dialog" />
+     <style name="MyTheme" parent="@style/Theme.AppCompat.Light">
++        <item name="nicoidSurface">#ffe7e7e7</item>
++        <item name="nicoidSurfacePressed">#ffdadada</item>
+         <item name="colorAccent">@color/theme_colorAccent</item>
+         <item name="colorPrimary">@color/theme_colorPrimary</item>
+         <item name="colorPrimaryDark">@color/theme_colorPrimaryDark</item>
+diff --git a/res/xml/pref.xml b/res/xml/pref.xml
+index dc620db..caca8ab 100644
+--- a/res/xml/pref.xml
++++ b/res/xml/pref.xml
+@@ -30,6 +30,7 @@
+         <CheckBoxPreference android:title="@string/settingSleepPlay" android:key="player_sleep_play" android:summary="@string/settingSleepPlaySub" />
+     </PreferenceCategory>
+     <PreferenceCategory android:title="@string/settingComment" android:key="comment">
++        <ListPreference android:entries="@array/commentSizeLabels" android:title="コメントの大きさ" android:key="comment_size_level" android:summary="最小・小・標準・大・最大（次の再生から反映）" android:defaultValue="2" android:entryValues="@array/commentSizeValues" />
+         <ListPreference android:entries="@array/commentFpsString" android:title="@string/settingCommentFrameRate" android:key="comment_fps" android:summary="@string/settingCommentFrameRateSub" android:defaultValue="60" android:entryValues="@array/commentFps" />
+         <ListPreference android:entries="@array/commentAlphaString" android:title="@string/settingCommentAlpha" android:key="comment_alpha" android:summary="@string/settingCommentAlphaSub" android:defaultValue="255" android:entryValues="@array/commentAlpha" />
+         <ListPreference android:entries="@array/commentShadowString" android:title="@string/settingCommentShadow" android:key="comment_shadow" android:summary="@string/settingCommentShadowSub" android:defaultValue="0" android:entryValues="@array/commentShadow" />
+@@ -38,6 +39,12 @@
+         <CheckBoxPreference android:title="@string/settingCommentCast" android:key="comment_cast_min" android:summary="@string/settingCommentCastSub" android:defaultValue="true" />
+         <CheckBoxPreference android:title="コメント取得数の上限を拡張" android:key="comment_limit_extended" android:summary="従来形式の動画で取得するコメント数を増やします。通信量と描画負荷が増えます" android:defaultValue="false" />
+     </PreferenceCategory>
++    <PreferenceCategory android:title="Google Cast" android:key="google_cast">
++        <Preference android:title="接続" android:key="google_cast_connect" android:summary="接続する端末を選択">
++            <intent android:action="android.intent.action.VIEW" android:targetPackage="com.sauzask.nicoid.hls" android:targetClass="com.sauzask.nicoid.NicoidChromecastReceiverSelect" />
++        </Preference>
++        <Preference android:title="接続解除" android:key="google_cast_disconnect" android:summary="Google Cast の接続を解除" />
++    </PreferenceCategory>
+     <PreferenceCategory android:title="@string/settingLanguage">
+         <ListPreference android:entries="@array/commentLangString" android:title="@string/settingPlayerLanguage" android:key="player_lang" android:summary="@string/settingPlayerLanguageSub" android:defaultValue="-1" android:entryValues="@array/commentLang" />
+         <ListPreference android:entries="@array/appLangString" android:title="@string/settingAppLanguage" android:key="app_lang" android:summary="@string/settingAppLanguageSub" android:defaultValue="@string/settingDefaultCommentLanguage" android:entryValues="@array/appLang" />
+@@ -50,5 +57,6 @@
+         <Preference android:title="@string/settingLicense" android:key="license" />
+         <Preference android:title="@string/settingTranslation" android:key="app_translation" android:summary="@string/settingTranslator" />
+         <Preference android:title="Version.1.0" android:key="info" android:summary="Copyright (c) sauzask" />
++        <Preference android:title="パッチバージョン" android:key="nicoid_patch_version" android:summary="1.10-dev.2（検証版）" android:selectable="false" />
+     </PreferenceCategory>
+ </PreferenceScreen>
+diff --git a/smali/com/sauzask/nicoid/NicoidPopupViewService.smali b/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
+index 80ec8c0..21c95e4 100644
+--- a/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
++++ b/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
+@@ -2175,6 +2175,7 @@
+ .method public onDestroy()V
+     .locals 3
+ 
++    invoke-static {p0}, Le/e/a/ModernEnhancements;->destroy(Ljava/lang/Object;)V
+     iget-object v0, p0, Lcom/sauzask/nicoid/NicoidPopupViewService;->V:Landroid/media/AudioManager;
+ 
+     if-eqz v0, :cond_0
+@@ -2800,6 +2801,7 @@
+     move-result v1
+ 
+     iput-boolean v1, p0, Lcom/sauzask/nicoid/NicoidPopupViewService;->v:Z
++    invoke-static {p0}, Le/e/a/ModernEnhancements;->attach(Ljava/lang/Object;)V
+ 
+     iget-object v1, p0, Lcom/sauzask/nicoid/NicoidPopupViewService;->Q:Landroid/content/SharedPreferences;
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidPopupViewService$c.smali b/smali/com/sauzask/nicoid/NicoidPopupViewService$c.smali
+index e9d1c79..ad2f8d6 100644
+--- a/smali/com/sauzask/nicoid/NicoidPopupViewService$c.smali
++++ b/smali/com/sauzask/nicoid/NicoidPopupViewService$c.smali
+@@ -100,5 +100,7 @@
+     invoke-static {v0}, Lcom/sauzask/nicoid/NicoidPopupViewService;->a(Lcom/sauzask/nicoid/NicoidPopupViewService;)V
+ 
+     :cond_1
++    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidPopupViewService$c;->a:Lcom/sauzask/nicoid/NicoidPopupViewService;
++    invoke-static {v0}, Le/e/a/ModernEnhancements;->prepared(Ljava/lang/Object;)V
+     return-void
+ .end method
+diff --git a/smali/com/sauzask/nicoid/NicoidSetting.smali b/smali/com/sauzask/nicoid/NicoidSetting.smali
+index 6908e85..35578ad 100644
+--- a/smali/com/sauzask/nicoid/NicoidSetting.smali
++++ b/smali/com/sauzask/nicoid/NicoidSetting.smali
+@@ -700,6 +700,7 @@
+     const p1, 0x7f120001
+ 
+     invoke-virtual {p0, p1}, Landroid/preference/PreferenceActivity;->addPreferencesFromResource(I)V
++    invoke-static {p0}, Le/e/a/ModernEnhancements;->settings(Landroid/preference/PreferenceActivity;)V
+ 
+     const-string p1, "material_you_mode"
+     invoke-virtual {p0, p1}, Landroid/preference/PreferenceActivity;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+diff --git a/smali/com/sauzask/nicoid/NicoidTopActivity.smali b/smali/com/sauzask/nicoid/NicoidTopActivity.smali
+index 042089d..d57419c 100644
+--- a/smali/com/sauzask/nicoid/NicoidTopActivity.smali
++++ b/smali/com/sauzask/nicoid/NicoidTopActivity.smali
+@@ -411,93 +411,7 @@
+ 
+     invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+ 
+-    const-string v1, "com.google.android.gms"
+-
+-    :try_start_0
+-    invoke-virtual/range {p0 .. p0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+-
+-    move-result-object v2
+-
+-    const/16 v3, 0x80
+-
+-    invoke-virtual {v2, v1, v3}, Landroid/content/pm/PackageManager;->getApplicationInfo(Ljava/lang/String;I)Landroid/content/pm/ApplicationInfo;
+-
+-    const/4 v2, 0x1
+-
+-    const v1, 0x7f0f01c2
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v3
+-
+-    const-string v4, ""
+-
+-    const/4 v5, 0x0
+-
+-    const/4 v6, 0x0
+-
+-    move-object v1, v7
+-
+-    invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+-
+-    new-instance v5, Landroid/content/Intent;
+-
+-    invoke-direct {v5, v10}, Landroid/content/Intent;-><init>(Ljava/lang/String;)V
+-
+-    const-string v1, "com.sauzask.nicoid.NicoidChromecastReceiverSelect"
+-
+-    invoke-virtual {v5, v11, v1}, Landroid/content/Intent;->setClassName(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;
+-
+-    const/4 v2, 0x0
+-
+-    const v1, 0x7f0f01c3
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v3
+-
+-    const v1, 0x7f0f01c4
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v4
+-
+-    const/4 v6, 0x0
+-
+-    move-object v1, v7
+-
+-    invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+-
+-    const/4 v2, 0x0
+-
+-    const v1, 0x7f0f01c5
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v3
+-
+-    const v1, 0x7f0f01c6
+-
+-    invoke-virtual {v0, v1}, Landroid/content/Context;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v4
+-
+-    const/4 v5, 0x0
+-
+-    const/4 v6, 0x3
+-
+-    move-object v1, v7
+-
+-    invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+-    :try_end_0
+-    .catch Landroid/content/pm/PackageManager$NameNotFoundException; {:try_start_0 .. :try_end_0} :catch_0
+-
+-    goto :goto_1
+-
+-    :catch_0
+-    nop
+-
+-    :goto_1
++    # Google Cast controls are available below comment settings.
+     const/4 v2, 0x1
+     const-string v3, "設定"
+     const-string v4, ""
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoActivity.smali b/smali/com/sauzask/nicoid/NicoidVideoActivity.smali
+index fe0c45d..99a9b28 100644
+--- a/smali/com/sauzask/nicoid/NicoidVideoActivity.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoActivity.smali
+@@ -1,5 +1,40 @@
+ .class public Lcom/sauzask/nicoid/NicoidVideoActivity;
+ .super Landroidx/appcompat/app/AppCompatActivity;
++
++.method protected onUserLeaveHint()V
++    .locals 1
++    const/4 v0, 0x0
++    invoke-static {p0, v0}, Le/e/a/PlaybackSession;->leave(Ljava/lang/Object;Z)Z
++    invoke-super {p0}, Landroidx/appcompat/app/AppCompatActivity;->onUserLeaveHint()V
++    return-void
++.end method
++
++.method public onBackPressed()V
++    .locals 1
++    const/4 v0, 0x1
++    invoke-static {p0, v0}, Le/e/a/PlaybackSession;->leave(Ljava/lang/Object;Z)Z
++    move-result v0
++    if-nez v0, :handled
++    invoke-super {p0}, Landroidx/appcompat/app/AppCompatActivity;->onBackPressed()V
++    :handled
++    return-void
++.end method
++
++.method protected onPause()V
++    .locals 1
++    const/4 v0, 0x0
++    invoke-static {p0, v0}, Le/e/a/PlaybackSession;->activitySave(Ljava/lang/Object;Z)V
++    invoke-super {p0}, Landroidx/appcompat/app/AppCompatActivity;->onPause()V
++    return-void
++.end method
++
++.method protected onDestroy()V
++    .locals 1
++    const/4 v0, 0x1
++    invoke-static {p0, v0}, Le/e/a/PlaybackSession;->activitySave(Ljava/lang/Object;Z)V
++    invoke-super {p0}, Landroidx/appcompat/app/AppCompatActivity;->onDestroy()V
++    return-void
++.end method
+ .source ""
+ 
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoFragment.smali b/smali/com/sauzask/nicoid/NicoidVideoFragment.smali
+index fce67b4..0f7acb3 100644
+--- a/smali/com/sauzask/nicoid/NicoidVideoFragment.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoFragment.smali
+@@ -4779,7 +4779,7 @@
+ 
+     iget-object v2, p0, Lcom/sauzask/nicoid/NicoidVideoFragment;->f1:Lcom/google/android/gms/ads/AdView;
+ 
+-    invoke-virtual {v2, p1}, Lcom/google/android/gms/ads/AdView;->loadAd(Lcom/google/android/gms/ads/AdRequest;)V
++    # Advertising requests are disabled in this build.
+ 
+     goto :goto_0
+ 
+@@ -4973,7 +4973,7 @@
+ 
+     iget-object v1, p0, Lcom/sauzask/nicoid/NicoidVideoFragment;->f1:Lcom/google/android/gms/ads/AdView;
+ 
+-    invoke-virtual {v1, p1}, Lcom/google/android/gms/ads/AdView;->loadAd(Lcom/google/android/gms/ads/AdRequest;)V
++    # Advertising requests are disabled in this build.
+ 
+     goto :goto_0
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoFragment$n.smali b/smali/com/sauzask/nicoid/NicoidVideoFragment$n.smali
+index 50a8684..d2acf06 100644
+--- a/smali/com/sauzask/nicoid/NicoidVideoFragment$n.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoFragment$n.smali
+@@ -108,5 +108,9 @@
+     iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoFragment;->a0:Lcom/devbrackets/android/exomedia/ui/widget/VideoView;
+     invoke-virtual {v0, v1}, Lcom/devbrackets/android/exomedia/ui/widget/VideoView;->setPlaybackSpeed(F)Z
+     :speed_done
++    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoFragment$n;->a:Lcom/sauzask/nicoid/NicoidVideoFragment;
++    const/4 v1, 0x0
++    invoke-static {v0, v1}, Le/e/a/PlaybackSession;->prepared(Ljava/lang/Object;Z)V
++    invoke-static {v0}, Le/e/a/ModernControls;->update(Lcom/sauzask/nicoid/NicoidVideoFragment;)V
+     return-void
+ .end method
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoInfoFragment.smali b/smali/com/sauzask/nicoid/NicoidVideoInfoFragment.smali
+index f287fc1..fc3e69c 100644
+--- a/smali/com/sauzask/nicoid/NicoidVideoInfoFragment.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoInfoFragment.smali
+@@ -243,7 +243,8 @@
+ 
+     move-result-object v0
+ 
+-    invoke-static {v0}, Ljava/lang/Integer;->parseInt(Ljava/lang/String;)I
++    iget-object v0, v1, Lcom/sauzask/nicoid/NicoidVideoInfoFragment;->i0:Landroid/os/Bundle;
++    invoke-static {v0}, Le/e/a/PlaybackSession;->metadataVersion(Landroid/os/Bundle;)I
+ 
+     move-result v0
+ 
+diff --git a/smali/e/e/a/a3.smali b/smali/e/e/a/a3.smali
+index 696f381..01efdf6 100644
+--- a/smali/e/e/a/a3.smali
++++ b/smali/e/e/a/a3.smali
+@@ -4653,7 +4653,7 @@
+ 
+     iget-object v2, p0, Le/e/a/a3;->f1:Lcom/google/android/gms/ads/AdView;
+ 
+-    invoke-virtual {v2, p1}, Lcom/google/android/gms/ads/AdView;->loadAd(Lcom/google/android/gms/ads/AdRequest;)V
++    # Advertising requests are disabled in this build.
+ 
+     goto :goto_0
+ 
+@@ -5549,7 +5549,7 @@
+ 
+     iget-object v1, p0, Le/e/a/a3;->f1:Lcom/google/android/gms/ads/AdView;
+ 
+-    invoke-virtual {v1, p1}, Lcom/google/android/gms/ads/AdView;->loadAd(Lcom/google/android/gms/ads/AdRequest;)V
++    # Advertising requests are disabled in this build.
+ 
+     goto :goto_0
+ 
+diff --git a/smali/e/e/a/b0$a.smali b/smali/e/e/a/b0$a.smali
+index eeb3310..ffeda0f 100644
+--- a/smali/e/e/a/b0$a.smali
++++ b/smali/e/e/a/b0$a.smali
+@@ -154,6 +154,14 @@
+     aput-boolean v4, v1, v6
+ 
+     :cond_4
++    const/4 v2, 0x0
++    aput-boolean v5, v1, v2
++    const/4 v2, 0x1
++    aput-boolean v5, v1, v2
++    const/4 v2, 0x2
++    aput-boolean v5, v1, v2
++    const/4 v2, 0x3
++    aput-boolean v5, v1, v2
+     aget-boolean v2, v1, v4
+ 
+     const/4 v7, 0x5
+diff --git a/smali/e/e/a/DynamicTheme.smali b/smali/e/e/a/DynamicTheme.smali
+index 088e096..6c2c969 100644
+--- a/smali/e/e/a/DynamicTheme.smali
++++ b/smali/e/e/a/DynamicTheme.smali
+@@ -3,19 +3,7 @@
+ .source "DynamicTheme.java"
+ 
+ .method public static commentTextColor(Landroid/view/View;)I
+-    .locals 4
+-    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;
+-    move-result-object v0
+-    invoke-static {v0}, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+-    move-result-object v1
+-    const-string v2, "material_you_mode"
+-    const/4 v3, 0x0
+-    invoke-interface {v1, v2, v3}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+-    move-result v1
+-    if-nez v1, :themed
+-    const/4 v0, -0x1
+-    return v0
+-    :themed
++    .locals 1
+     invoke-static {p0}, Le/e/a/DynamicTheme;->textColor(Landroid/view/View;)I
+     move-result v0
+     return v0
+diff --git a/smali/e/e/a/m0$b.smali b/smali/e/e/a/m0$b.smali
+index aa88827..0a74690 100644
+--- a/smali/e/e/a/m0$b.smali
++++ b/smali/e/e/a/m0$b.smali
+@@ -148,6 +148,14 @@
+     aput-boolean v3, p1, v5
+ 
+     :cond_4
++    const/4 v1, 0x0
++    aput-boolean v4, p1, v1
++    const/4 v1, 0x1
++    aput-boolean v4, p1, v1
++    const/4 v1, 0x2
++    aput-boolean v4, p1, v1
++    const/4 v1, 0x3
++    aput-boolean v4, p1, v1
+     aget-boolean v1, p1, v3
+ 
+     const/4 v6, 0x5
+diff --git a/smali/e/e/a/ModernControls.smali b/smali/e/e/a/ModernControls.smali
+index 73d8966..cb1a7eb 100644
+--- a/smali/e/e/a/ModernControls.smali
++++ b/smali/e/e/a/ModernControls.smali
+@@ -56,8 +56,15 @@
+     invoke-virtual {v0, v2}, Landroid/widget/Button;->setText(Ljava/lang/CharSequence;)V
+     const/4 v2, -0x1
+     invoke-virtual {v0, v2}, Landroid/widget/Button;->setTextColor(I)V
+-    const/high16 v2, 0x41400000
++    const/high16 v2, 0x41600000
+     invoke-virtual {v0, v2}, Landroid/widget/Button;->setTextSize(F)V
++    sget-object v2, Landroid/graphics/Typeface;->DEFAULT:Landroid/graphics/Typeface;
++    const/4 v3, 0x1
++    invoke-virtual {v0, v2, v3}, Landroid/widget/Button;->setTypeface(Landroid/graphics/Typeface;I)V
++    const/high16 v2, 0x40000000
++    const/high16 v3, 0x3f800000
++    const/high16 v4, -0x1000000
++    invoke-virtual {v0, v2, v3, v3, v4}, Landroid/widget/Button;->setShadowLayer(FFFI)V
+     const/4 v2, 0x0
+     invoke-virtual {v0, v2}, Landroid/widget/Button;->setBackgroundColor(I)V
+     const/4 v2, 0x0
+@@ -66,7 +73,7 @@
+     invoke-direct {v3, p1, p4}, Le/e/a/ModernControls$Open;-><init>(Lcom/sauzask/nicoid/NicoidVideoFragment;I)V
+     invoke-virtual {v0, v3}, Landroid/widget/Button;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+     new-instance v3, Landroid/widget/LinearLayout$LayoutParams;
+-    const/high16 v5, 0x42200000
++    const/high16 v5, 0x42600000
+     invoke-virtual {v1}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+     move-result-object v1
+     invoke-virtual {v1}, Landroid/content/res/Resources;->getDisplayMetrics()Landroid/util/DisplayMetrics;
+@@ -74,7 +81,10 @@
+     iget v1, v1, Landroid/util/DisplayMetrics;->density:F
+     mul-float/2addr v5, v1
+     float-to-int v5, v5
+-    invoke-direct {v3, v5, v5}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
++    const/high16 v4, 0x42300000
++    mul-float/2addr v4, v1
++    float-to-int v4, v4
++    invoke-direct {v3, v5, v4}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
+     invoke-virtual {v0, v5}, Landroid/widget/Button;->setMinimumWidth(I)V
+     invoke-virtual {v0, v2, v2, v2, v2}, Landroid/widget/Button;->setPadding(IIII)V
+     invoke-virtual {p0, v0, v2, v3}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;ILandroid/view/ViewGroup$LayoutParams;)V
+diff --git a/smali/e/e/a/ModernControls$Open.smali b/smali/e/e/a/ModernControls$Open.smali
+index 725cd83..80d848b 100644
+--- a/smali/e/e/a/ModernControls$Open.smali
++++ b/smali/e/e/a/ModernControls$Open.smali
+@@ -11,56 +11,9 @@
+     return-void
+ .end method
+ .method public onClick(Landroid/view/View;)V
+-    .locals 7
++    .locals 2
+     iget-object v0, p0, Le/e/a/ModernControls$Open;->fragment:Lcom/sauzask/nicoid/NicoidVideoFragment;
+-    iget-object v1, v0, Lcom/sauzask/nicoid/NicoidVideoFragment;->A1:Lcom/sauzask/nicoid/NicoidVideoActivity;
+-    if-eqz v1, :done
+-    new-instance v2, Landroid/app/AlertDialog$Builder;
+-    invoke-direct {v2, v1}, Landroid/app/AlertDialog$Builder;-><init>(Landroid/content/Context;)V
+-    iget v3, p0, Le/e/a/ModernControls$Open;->mode:I
+-    if-nez v3, :speed
+-    const-string v3, "画質"
+-    const/4 v4, 0x3
+-    new-array v4, v4, [Ljava/lang/CharSequence;
+-    const/4 v5, 0x0
+-    invoke-static {v5}, Le/e/a/ModernControls;->qualityOption(I)Ljava/lang/String;
+-    move-result-object v6
+-    aput-object v6, v4, v5
+-    const/4 v5, 0x1
+-    invoke-static {v5}, Le/e/a/ModernControls;->qualityOption(I)Ljava/lang/String;
+-    move-result-object v6
+-    aput-object v6, v4, v5
+-    const/4 v5, 0x2
+-    invoke-static {v5}, Le/e/a/ModernControls;->qualityOption(I)Ljava/lang/String;
+-    move-result-object v6
+-    aput-object v6, v4, v5
+-    goto :show
+-    :speed
+-    const-string v3, "再生速度"
+-    const/4 v4, 0x5
+-    new-array v4, v4, [Ljava/lang/CharSequence;
+-    const/4 v5, 0x0
+-    const-string v6, "0.75倍"
+-    aput-object v6, v4, v5
+-    const/4 v5, 0x1
+-    const-string v6, "1倍"
+-    aput-object v6, v4, v5
+-    const/4 v5, 0x2
+-    const-string v6, "1.25倍"
+-    aput-object v6, v4, v5
+-    const/4 v5, 0x3
+-    const-string v6, "1.5倍"
+-    aput-object v6, v4, v5
+-    const/4 v5, 0x4
+-    const-string v6, "2倍"
+-    aput-object v6, v4, v5
+-    :show
+-    invoke-virtual {v2, v3}, Landroid/app/AlertDialog$Builder;->setTitle(Ljava/lang/CharSequence;)Landroid/app/AlertDialog$Builder;
+-    new-instance v3, Le/e/a/ModernControls$Choice;
+-    iget v5, p0, Le/e/a/ModernControls$Open;->mode:I
+-    invoke-direct {v3, v0, v5}, Le/e/a/ModernControls$Choice;-><init>(Lcom/sauzask/nicoid/NicoidVideoFragment;I)V
+-    invoke-virtual {v2, v4, v3}, Landroid/app/AlertDialog$Builder;->setItems([Ljava/lang/CharSequence;Landroid/content/DialogInterface$OnClickListener;)Landroid/app/AlertDialog$Builder;
+-    invoke-virtual {v2}, Landroid/app/AlertDialog$Builder;->show()Landroid/app/AlertDialog;
+-    :done
++    iget v1, p0, Le/e/a/ModernControls$Open;->mode:I
++    invoke-static {v0, v1}, Le/e/a/PlaybackSession;->normalChoose(Ljava/lang/Object;I)V
+     return-void
+ .end method
+diff --git a/smali/e/e/a/ModernPlayback.smali b/smali/e/e/a/ModernPlayback.smali
+index 7c2cb05..01c3385 100644
+--- a/smali/e/e/a/ModernPlayback.smali
++++ b/smali/e/e/a/ModernPlayback.smali
+@@ -404,12 +404,12 @@
+ 
+     iget v2, p0, Le/e/a/d0;->e:I
+     const/4 v3, 0x4
+-    if-lt v2, v3, :not_low
++    if-ne v2, v3, :not_low
+     const/4 v2, 0x2
+     goto :quality_ready
+     :not_low
+     const/4 v3, 0x3
+-    if-lt v2, v3, :high_quality
++    if-ne v2, v3, :high_quality
+     const/4 v2, 0x1
+     goto :quality_ready
+     :high_quality
+diff --git a/smali/e/e/a/ModernPopupProbe.smali b/smali/e/e/a/ModernPopupProbe.smali
+index cd63f76..af531fe 100644
+--- a/smali/e/e/a/ModernPopupProbe.smali
++++ b/smali/e/e/a/ModernPopupProbe.smali
+@@ -33,6 +33,10 @@
+     const-string v2, "nicoid-popup"
+     invoke-static {v2, v0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+     if-nez v4, :done
++    iget-object v0, p0, Le/e/a/ModernPopupProbe;->service:Lcom/sauzask/nicoid/NicoidPopupViewService;
++    invoke-static {v0}, Le/e/a/PlaybackSession;->allowRetry(Ljava/lang/Object;)Z
++    move-result v0
++    if-eqz v0, :done
+     invoke-virtual {v1}, Lcom/devbrackets/android/exomedia/ui/widget/VideoView;->start()V
+     const-string v0, "Popup playback start retried"
+     invoke-static {v0}, Le/e/a/ModernDebug;->record(Ljava/lang/String;)V
+diff --git a/smali/e/e/a/t.smali b/smali/e/e/a/t.smali
+index 3e98c92..44060ae 100644
+--- a/smali/e/e/a/t.smali
++++ b/smali/e/e/a/t.smali
+@@ -909,6 +909,10 @@
+ 
+     div-float/2addr p1, p2
+ 
++    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;
++    move-result-object v0
++    invoke-static {v0, p1}, Le/e/a/ModernEnhancements;->commentSize(Landroid/content/Context;F)F
++    move-result p1
+     iput p1, p0, Le/e/a/t;->K:F
+ 
+     iget p1, p0, Le/e/a/t;->K:F
+@@ -5735,6 +5739,25 @@
+ .method public setRyuuyou(Landroid/view/View;)V
+     .locals 2
+ 
++    instance-of v0, p1, Le/e/a/u;
++    if-eqz v0, :same_renderer
++    check-cast p1, Le/e/a/u;
++    iget-boolean v0, p1, Le/e/a/u;->g:Z
++    iput-boolean v0, p0, Le/e/a/t;->g:Z
++    iget-object v0, p1, Le/e/a/u;->i:Ljava/util/ArrayList;
++    iput-object v0, p0, Le/e/a/t;->i:Ljava/util/ArrayList;
++    iget-boolean v0, p1, Le/e/a/u;->m:Z
++    iput-boolean v0, p0, Le/e/a/t;->m:Z
++    iget-object v0, p1, Le/e/a/u;->n:Ljava/util/ArrayList;
++    iput-object v0, p0, Le/e/a/t;->n:Ljava/util/ArrayList;
++    iget-boolean v0, p1, Le/e/a/u;->b:Z
++    iput-boolean v0, p0, Le/e/a/t;->b:Z
++    iget-object v0, p1, Le/e/a/u;->c:Ljava/util/ArrayList;
++    iput-object v0, p0, Le/e/a/t;->c:Ljava/util/ArrayList;
++    return-void
++
++    :same_renderer
++
+     check-cast p1, Le/e/a/t;
+ 
+     iget-boolean v0, p1, Le/e/a/t;->g:Z
+diff --git a/smali/e/e/a/u.smali b/smali/e/e/a/u.smali
+index 8b36f3a..fa16c80 100644
+--- a/smali/e/e/a/u.smali
++++ b/smali/e/e/a/u.smali
+@@ -886,6 +886,10 @@
+ 
+     div-float/2addr p1, p2
+ 
++    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;
++    move-result-object v0
++    invoke-static {v0, p1}, Le/e/a/ModernEnhancements;->commentSize(Landroid/content/Context;F)F
++    move-result p1
+     iput p1, p0, Le/e/a/u;->J:F
+ 
+     iget p1, p0, Le/e/a/u;->J:F
+diff --git a/smali/e/e/a/v0.smali b/smali/e/e/a/v0.smali
+index c8e5b0a..e8c22c7 100644
+--- a/smali/e/e/a/v0.smali
++++ b/smali/e/e/a/v0.smali
+@@ -490,206 +490,11 @@
+ .end method
+ 
+ .method public static a(Landroid/app/Activity;Landroid/widget/LinearLayout;Landroid/content/SharedPreferences;Z)Lcom/google/android/gms/ads/AdView;
+-    .locals 4
+-
++    .locals 1
++    const/16 v0, 0x8
++    invoke-virtual {p1, v0}, Landroid/view/View;->setVisibility(I)V
+     const/4 v0, 0x0
+     return-object v0
+-
+-    const/4 v0, 0x0
+-
+-    if-nez p2, :cond_0
+-
+-    :try_start_0
+-    invoke-static {p0}, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+-
+-    move-result-object p2
+-
+-    :cond_0
+-    const-string v1, "rma"
+-
+-    invoke-interface {p2, v1, v0}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+-
+-    move-result p2
+-
+-    invoke-static {}, Le/e/a/v0;->e()Z
+-
+-    move-result v1
+-
+-    const/4 v2, 0x1
+-
+-    if-nez v1, :cond_2
+-
+-    if-eqz p2, :cond_2
+-
+-    invoke-static {v2}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+-
+-    move-result-object p2
+-
+-    sput-object p2, Le/e/a/v0;->h:Ljava/lang/Boolean;
+-
+-    invoke-static {p0}, Le/e/a/v0;->a(Landroid/content/Context;)V
+-
+-    :goto_0
+-    sget-object p2, Le/e/a/v0;->h:Ljava/lang/Boolean;
+-
+-    if-nez p2, :cond_1
+-
+-    goto :goto_0
+-
+-    :cond_1
+-    new-instance p2, Ljava/lang/StringBuilder;
+-
+-    invoke-direct {p2}, Ljava/lang/StringBuilder;-><init>()V
+-
+-    const-string v1, "isRemoveAdOptionpref.getBoolean true):"
+-
+-    invoke-virtual {p2, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+-
+-    invoke-virtual {p2, v2}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+-
+-    invoke-virtual {p2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+-
+-    const/4 p2, 0x1
+-
+-    :cond_2
+-    new-instance v1, Ljava/lang/StringBuilder;
+-
+-    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+-
+-    const-string v2, "isRemoveAdOption/prefRMA:"
+-
+-    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+-
+-    invoke-virtual {v1, p2}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+-
+-    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+-
+-    new-instance p2, Ljava/lang/StringBuilder;
+-
+-    invoke-direct {p2}, Ljava/lang/StringBuilder;-><init>()V
+-
+-    const-string v1, "isRemoveAdOption:"
+-
+-    invoke-virtual {p2, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+-
+-    sget-object v1, Le/e/a/v0;->h:Ljava/lang/Boolean;
+-
+-    invoke-virtual {p2, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+-
+-    invoke-virtual {p2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+-
+-    invoke-static {}, Le/e/a/v0;->e()Z
+-
+-    move-result p2
+-    :try_end_0
+-    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0
+-
+-    if-eqz p2, :cond_3
+-
+-    const/4 p0, 0x0
+-
+-    return-object p0
+-
+-    :catch_0
+-    move-exception p2
+-
+-    invoke-virtual {p2}, Ljava/lang/Exception;->printStackTrace()V
+-
+-    :cond_3
+-    invoke-virtual {p0}, Landroid/app/Activity;->getWindowManager()Landroid/view/WindowManager;
+-
+-    move-result-object p2
+-
+-    invoke-interface {p2}, Landroid/view/WindowManager;->getDefaultDisplay()Landroid/view/Display;
+-
+-    move-result-object p2
+-
+-    new-instance v1, Landroid/util/DisplayMetrics;
+-
+-    invoke-direct {v1}, Landroid/util/DisplayMetrics;-><init>()V
+-
+-    invoke-virtual {p2, v1}, Landroid/view/Display;->getMetrics(Landroid/util/DisplayMetrics;)V
+-
+-    iget p2, v1, Landroid/util/DisplayMetrics;->widthPixels:I
+-
+-    int-to-float p2, p2
+-
+-    iget v2, v1, Landroid/util/DisplayMetrics;->heightPixels:I
+-
+-    int-to-float v2, v2
+-
+-    iget v1, v1, Landroid/util/DisplayMetrics;->density:F
+-
+-    div-float v3, p2, v1
+-
+-    float-to-int v3, v3
+-
+-    if-eqz p3, :cond_4
+-
+-    cmpl-float p2, p2, v2
+-
+-    if-lez p2, :cond_4
+-
+-    div-float/2addr v2, v1
+-
+-    float-to-int v3, v2
+-
+-    :cond_4
+-    invoke-static {p0, v3}, Lcom/google/android/gms/ads/AdSize;->getCurrentOrientationAnchoredAdaptiveBannerAdSize(Landroid/content/Context;I)Lcom/google/android/gms/ads/AdSize;
+-
+-    move-result-object p2
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/LinearLayout;->setVisibility(I)V
+-
+-    const/16 p3, 0x11
+-
+-    invoke-virtual {p1, p3}, Landroid/widget/LinearLayout;->setGravity(I)V
+-
+-    const/16 p3, 0x32
+-
+-    invoke-static {p3, p0}, Le/e/a/v0;->b(ILandroid/content/Context;)I
+-
+-    move-result p3
+-
+-    invoke-virtual {p1, p3}, Landroid/widget/LinearLayout;->setMinimumHeight(I)V
+-
+-    invoke-virtual {p1}, Landroid/widget/LinearLayout;->getLayoutParams()Landroid/view/ViewGroup$LayoutParams;
+-
+-    move-result-object p3
+-
+-    const/4 v0, -0x2
+-
+-    iput v0, p3, Landroid/view/ViewGroup$LayoutParams;->height:I
+-
+-    const/4 v0, -0x1
+-
+-    iput v0, p3, Landroid/view/ViewGroup$LayoutParams;->width:I
+-
+-    invoke-virtual {p1, p3}, Landroid/widget/LinearLayout;->setLayoutParams(Landroid/view/ViewGroup$LayoutParams;)V
+-
+-    new-instance p3, Lcom/google/android/gms/ads/AdView;
+-
+-    invoke-direct {p3, p0}, Lcom/google/android/gms/ads/AdView;-><init>(Landroid/content/Context;)V
+-
+-    const-string p0, "ca-app-pub-7945501403308637/6550368906"
+-
+-    invoke-virtual {p3, p0}, Lcom/google/android/gms/ads/AdView;->setAdUnitId(Ljava/lang/String;)V
+-
+-    invoke-virtual {p3, p2}, Lcom/google/android/gms/ads/AdView;->setAdSize(Lcom/google/android/gms/ads/AdSize;)V
+-
+-    invoke-virtual {p1, p3}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+-
+-    new-instance p0, Lcom/google/android/gms/ads/AdRequest$Builder;
+-
+-    invoke-direct {p0}, Lcom/google/android/gms/ads/AdRequest$Builder;-><init>()V
+-
+-    invoke-virtual {p0}, Lcom/google/android/gms/ads/AdRequest$Builder;->build()Lcom/google/android/gms/ads/AdRequest;
+-
+-    move-result-object p0
+-
+-    invoke-virtual {p3, p0}, Lcom/google/android/gms/ads/AdView;->loadAd(Lcom/google/android/gms/ads/AdRequest;)V
+-
+-    return-object p3
+ .end method
+ 
+ .method public static a(I)Ljava/lang/CharSequence;
+
+diff --git a/smali/e/e/a/b0$a.smali b/smali/e/e/a/b0$a.smali
+--- a/smali/e/e/a/b0$a.smali
++++ b/smali/e/e/a/b0$a.smali
+@@ -221,10 +221,6 @@
+     iget-object v2, p0, Le/e/a/b0$a;->e:Le/e/a/b0;
+ 
+     .line 15
+-    iget-boolean v9, v2, Le/e/a/b0;->k:Z
+-
+-    if-eqz v9, :cond_7
+-
+     .line 16
+     iget-object v9, v0, Ld/b/q/z;->a:Ld/b/p/i/g;
+ 
+@@ -248,10 +244,6 @@
+     iget-object v1, p0, Le/e/a/b0$a;->e:Le/e/a/b0;
+ 
+     .line 19
+-    iget-boolean v2, v1, Le/e/a/b0;->k:Z
+-
+-    if-eqz v2, :cond_8
+-
+     .line 20
+     iget-object v2, v0, Ld/b/q/z;->a:Ld/b/p/i/g;
+ 

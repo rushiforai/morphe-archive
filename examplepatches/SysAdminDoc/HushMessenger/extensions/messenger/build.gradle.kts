@@ -9,7 +9,7 @@ android {
     defaultConfig {
         minSdk = 28
         targetSdk = 36
-        versionCode = 70
+        versionCode = 90
         versionName = project.version.toString()
     }
     buildFeatures { buildConfig = true }

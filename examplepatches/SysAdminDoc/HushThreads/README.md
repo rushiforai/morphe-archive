@@ -1,7 +1,7 @@
 ![HushThreads. Keep the thread. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/HushThreads/releases"><img src="https://img.shields.io/badge/version-0.0.2-000000" alt="Version 0.0.2"></a>
+  <a href="https://github.com/SysAdminDoc/HushThreads/releases"><img src="https://img.shields.io/badge/version-0.0.3-000000" alt="Version 0.0.3"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Threads-449.0.0.54.82-000000" alt="Threads 449.0.0.54.82">
@@ -12,7 +12,7 @@
 
 HushThreads is a Morphe patch bundle for Android that takes the ads out of Threads, cleans the links you share and cuts down what the app reports back to Meta.
 
-The latest release is [v0.0.2](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.2), with 6 patches. It's the first one.
+The latest release is [v0.0.3](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.3), with 6 patches.
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads) | [Download a release](https://github.com/SysAdminDoc/HushThreads/releases/latest) | [Browse the patches](#patches)
 
@@ -20,7 +20,7 @@ The latest release is [v0.0.2](https://github.com/SysAdminDoc/HushThreads/releas
 
 - **A feed without ads.** Sponsored posts come out of each page of the feed as it arrives, before Threads saves or shows it.
 - **Links that don't point back at you.** The code Threads adds to a shared link to tie it to your account comes off, along with the other tracking tags.
-- **Less sent home.** Threads' event logs go nowhere, and it gets zeros instead of your phone's advertising ID.
+- **Less sent home.** Matched analytics upload addresses go nowhere, and Threads gets zeros instead of your phone's advertising ID. Other telemetry may remain.
 - **Controls that recover.** Every runtime feature has a switch, and a pause, an automatic safe mode, settings backups and privacy-filtered diagnostics help when Threads changes.
 
 HushThreads is the Threads member of a small family of patch bundles. Its settings screen, diagnostics and release checks come from its Facebook sibling, [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook). The Threads patches are written here. See [Where the patches come from](#where-the-patches-come-from).
@@ -36,7 +36,9 @@ This project has no connection to Meta or to the Morphe project. Neither endorse
 
 <p><img src="assets/patch-selection.png" width="300" alt="Morphe Manager with the six HushThreads patches selected and Morphe's own patches left off"></p>
 
-Threads releases a new version about once a week, and each one renames most of its code. Every patch here finds what it changes by names Threads keeps (its post model, the feed cache, JSON parser names, strings and manifest components) rather than by the names that change. When one can't find what it needs, patching stops with a message naming it, instead of producing an app that quietly does nothing. Disable analytics works down three kinds of target. It stops only when a build has none of them, and names each missing one in the patch log.
+Threads releases a new version about once a week, and each one renames most of its code. Every patch here finds what it changes by names Threads keeps (its post model, the feed cache, JSON parser names, strings and manifest components) rather than by the names that change. When one can't find what it needs, patching stops with a message naming it, instead of producing an app that quietly does nothing. Disable analytics checks three address kinds: PIGEON (the logger's URL builder), DEFAULT (direct event-log URL returns) and MQTT (the analytics endpoint setting). It stops when none match. The patch log, Privacy settings and exported diagnostics identify matched and missing kinds. The supported 449 build matches all three. This doesn't establish that every telemetry path is covered.
+
+Hide ads and Sanitize sharing links also stop on competing inner targets. The failure lists the candidates so a changed build can be checked before installing it.
 
 ## Keep your signing key
 
@@ -54,7 +56,7 @@ There are 6 patches, and every one of them is selected by default.
 
 | Patch | What it does |
 |---|---|
-| `Disable analytics` | Stops Threads sending its usage analytics and event logs to Meta. Everything the app needs to work is left alone. |
+| `Disable analytics` | Redirects matched Pigeon, default event-log and MQTT analytics addresses. Settings show which address kinds were patched. Other telemetry may remain. |
 | `Hide ads` | Takes sponsored posts out of your Threads feed before they're shown. |
 | `HushThreads settings` | Adds HushThreads settings to Threads. Long-press Threads' launcher icon, or open Additional settings in the app on Threads' App info page, to turn features on or off, pause HushThreads, save your switches to a file or load them, and export diagnostics. The licenses are there too. |
 | `Remove the advertising ID` | Stops Threads getting your phone's advertising ID from Google Play services. Threads gets a string of zeros in its place. |
@@ -65,18 +67,26 @@ There are 6 patches, and every one of them is selected by default.
 
 Long-press the Threads icon and tap HushThreads. You can also open Threads' App info page and tap Additional settings in the app, which Samsung phones call Configure in Threads.
 
-<p><img src="assets/settings-overview.png" width="320" alt="HushThreads settings with search, Pause and the Feed and Privacy pages"><img src="assets/settings-privacy.png" width="320" alt="The Privacy page with switches for clean shared links and for stopping analytics uploads"></p>
+<p><img src="assets/settings-overview.png" width="320" alt="HushThreads settings with search, Pause and the Feed and Privacy pages"><img src="assets/settings-privacy.png" width="320" alt="Privacy preview with clean shared links, analytics uploads and all three address kinds matched"></p>
 <p><img src="assets/launcher-shortcut.png" width="320" alt="The HushThreads shortcut on Threads' launcher icon"></p>
+
+Diagnostics list hook calls separately from removed ad posts and shared links that changed. Unchanged, disabled, paused or failed operations add no removal or change count. Reports keep these totals without saving the posts or URLs.
 
 ## Signing in
 
-A Threads account is an Instagram account. On a patched Threads, tap Log in with Instagram and sign in with your Instagram username and password. That's been tried on a phone and it works.
+Tap Log in with Instagram and enter your Instagram username and password. On 2026-10-01, this reached a live feed for one account on Threads 449.0.0.54.82 with the published 0.0.2 bundle and all six tested source 0.0.3 configurations. The source checks covered settings plus Restore screens, each privacy patch added separately, and the full bundle. These checks ran on Android 16 beside signed-in stock Instagram 449.0.0.52.84.
 
-Threads also offers to continue as the Instagram account already on your phone, and that doesn't work on a patched Threads yet. Next to an Instagram patched with the same key, Threads doesn't offer it at all and opens the username and password form instead. Next to the stock Instagram it hasn't been tried. Instagram checks which key the asking app was signed with, though, so expect the same there.
+Stock Threads and the full 0.0.2 and source 0.0.3 bundles also reached the feed through manual sign-in with Instagram absent.
+
+Threads can show Save your login info twice. Tap Not now on each prompt if you don't want to save it.
+
+Stock Threads recovered that Instagram session automatically after its data was cleared. The patched builds offered the manual form, with no Continue as option. The same-key patched Instagram check on 2026-09-29 also offered only the manual form.
+
+[The password-login failure reported on 2026-10-01](https://github.com/SysAdminDoc/HushThreads/discussions/2) remains unresolved. These successful checks haven't identified its cause or established login for every account.
 
 ## Your Threads account
 
-**Can Meta tell?** Assume it can. A patched Threads is signed with your key rather than Meta's, and Threads' own code checks that signature in places, which is why `Restore screens on re-signed builds` exists. Pick `Disable analytics` and the app's event logs stop reaching Meta, and Meta could notice that too.
+**Can Meta tell?** Assume it can. A patched Threads is signed with your key rather than Meta's, and Threads' own code checks that signature in places, which is why `Restore screens on re-signed builds` exists. `Disable analytics` prevents uploads through matched address paths, and Meta could notice those missing events too.
 
 **What stays the same?** Your feed still comes from Meta's servers, ads included, and HushThreads takes the ads out on your phone after they arrive. It doesn't post, like, follow or message on your behalf, and it doesn't change how you sign in.
 
@@ -88,7 +98,7 @@ HushThreads doesn't collect anything and has no server. The patched app goes onl
 
 The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.org`. Those open in your browser, and only when you tap one.
 
-`Disable analytics` points Threads' event log uploads at `127.0.0.1`, which is your phone itself, on a port nothing listens on. The upload fails right there and never leaves the phone.
+`Disable analytics` replaces matched Pigeon, default event-log and MQTT analytics addresses with `127.0.0.1`, on a port nothing listens on. Those uploads fail locally. Missing address kinds and other telemetry aren't covered by this claim. Turning the switch off, Pause or safe mode restores the original addresses.
 
 ## Where the patches come from
 
@@ -115,7 +125,11 @@ The bundle lands in `patches/build/release/patches-<version>.mpp`, beside its SH
 
 Tests: `./gradlew :patches:test :extensions:threads:testDebugUnitTest`. Set `HUSHTHREADS_FIXTURE_DIR` to a folder holding Threads builds to run the tests that read real builds. Without it they skip and say so.
 
-To apply every patch to a real build and check the result, run `scripts/verify-all-patches.ps1 -Apk <threads bundle> -DesktopJar <morphe-desktop jar> -WorkDir <scratch folder>`. [CONTRIBUTING.md](CONTRIBUTING.md) has the rest.
+To apply every patch to a real build and check the result, run `scripts/verify-all-patches.ps1 -Apk <threads bundle> -DesktopJar <morphe-desktop jar> -WorkDir <scratch folder>`. It checks the manifest, stock resources and DEX structure, then verifies each selected feature's intended mutations against the stock APK. These contracts cover the typed feed helpers, owned permalink hook, recorded analytics address kinds and signature wrapper's stock fallback. Omitted features are reported separately. [CONTRIBUTING.md](CONTRIBUTING.md) has the rest.
+
+Split bundles are copied into a private input directory for each merge. Concurrent runs can share the original XAPK when each has its own output directory. Temporary inputs are cleaned on success or failure, and plain APKs are used directly.
+
+Before passing `-Serial` to an install or verifier script, acquire an exclusive shared device lease. Set `HUSHTHREADS_DEVICE_LEASE_DIR` to the shared folder, `HUSHTHREADS_DEVICE_LEASE_TOKEN` to your lease's ownership token and `HUSHTHREADS_DEVICE_IDENTITY` to the phone's model or emulator's exact AVD name. The scripts verify identity, renew the owned lease and keep its file exclusively open throughout each device command. Release it after testing. A signing conflict requires repatching with the installed key. `-Replace` is refused, preserving installed apps and accounts. Builds and static checks without `-Serial` need no device lease.
 
 ## License
 

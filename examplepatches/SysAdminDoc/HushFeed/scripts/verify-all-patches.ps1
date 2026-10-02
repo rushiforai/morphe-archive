@@ -170,6 +170,47 @@ try {
         $resourceOutput | ForEach-Object { Write-Host "[verify] $_" }
         Write-Host "[verify] resource report: $resourceReport"
         if ($resourceExitCode -eq 0) {
+            # This command uses each patch's default options. Selecting every patch must not
+            # silently replace TikTok's native translations with English (#67).
+            $languagePatch = @($catalog.patches | Where-Object { $_.name -eq 'Remove unused language packs' })
+            if ($languagePatch.Count -gt 0) {
+                $locales = @($languagePatch[0].options | Where-Object { $_.key -eq 'locales' })
+                if ($locales.Count -ne 1 -or $locales[0].default -ne 'all') {
+                    throw 'Remove unused language packs must default to all in an all-patches verification.'
+                }
+                Add-Type -AssemblyName System.IO.Compression.FileSystem
+                $stockZip = [System.IO.Compression.ZipFile]::OpenRead($Apk)
+                $patchedZip = $null
+                $digest = [System.Security.Cryptography.SHA256]::Create()
+                try {
+                    $patchedZip = [System.IO.Compression.ZipFile]::OpenRead($out)
+                    $packs = @($stockZip.Entries | Where-Object {
+                        $_.FullName.StartsWith('assets/strings#lang_', [StringComparison]::Ordinal) -and
+                            -not $_.FullName.EndsWith('/')
+                    })
+                    if ($packs.Count -eq 0) { throw 'The stock APK has no native language files to verify.' }
+                    foreach ($entry in $packs) {
+                        $retained = $patchedZip.GetEntry($entry.FullName)
+                        if ($null -eq $retained -or $retained.Length -ne $entry.Length) {
+                            throw "The default all-patches build removed or changed $($entry.FullName)."
+                        }
+                        $sourceStream = $entry.Open()
+                        try { $sourceHash = [BitConverter]::ToString($digest.ComputeHash($sourceStream)) }
+                        finally { $sourceStream.Dispose() }
+                        $retainedStream = $retained.Open()
+                        try { $retainedHash = [BitConverter]::ToString($digest.ComputeHash($retainedStream)) }
+                        finally { $retainedStream.Dispose() }
+                        if ($sourceHash -ne $retainedHash) {
+                            throw "The default all-patches build changed $($entry.FullName)."
+                        }
+                    }
+                    Write-Host "[verify] all $($packs.Count) native language files are byte-identical to stock."
+                } finally {
+                    $digest.Dispose()
+                    if ($patchedZip) { $patchedZip.Dispose() }
+                    $stockZip.Dispose()
+                }
+            }
             Write-Host '[verify] success: every requested patch applied to a valid APK whose resource table holds every stock resource.'
             $exitCode = 0
         } else {

@@ -499,8 +499,9 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.SANITIZE_SHARING_LINKS.key));
         recreate();
         assertTrue(contains(Settings.SANITIZE_SHARING_LINKS.key));
-        // Privacy: Remove tracking from shared links and Stop analytics uploads.
-        assertEquals(2, list().getCount());
+        // Privacy includes both switches and the address coverage disclosed by this build.
+        assertEquals(3, list().getCount());
+        assertTrue(titles().contains("Analytics address coverage"));
         page.navigation.back();
         findSearch(dialog.getView()).setText("shared links");
         recreate();
@@ -583,6 +584,26 @@ public class SettingsNavigationTest {
         assertEquals(android.widget.Switch.class.getName(), toggle.createAccessibilityNodeInfo().getClassName());
         assertTrue(toggle.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK, null));
         assertFalse(Settings.HIDE_ADS.savedValue());
+    }
+
+    /** Both coverage states are rendered through the settings dialog's actual layout. */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(shadows = AnalyticsCoverageTest.Status.class,
+            instrumentedPackages = "app.morphe.extension.hushthreads.settings")
+    public void completeAndPartialAnalyticsCoverageAreReadableOffscreen() throws Exception {
+        try {
+            AnalyticsCoverageTest.Status.included = true;
+            for (int mask : new int[]{7, 1}) {
+                AnalyticsCoverageTest.Status.mask = mask;
+                recreate();
+                page.navigation.open(page.findPreference(Settings.DISABLE_ANALYTICS.key));
+                assertTrue(titles().contains("Analytics address coverage"));
+                capture(mask == 7 ? "analytics-complete" : "analytics-partial");
+            }
+        } finally {
+            AnalyticsCoverageTest.Status.mask = 0;
+            AnalyticsCoverageTest.Status.included = false;
+        }
     }
 
     /** All pages are rendered with the same viewport as the design reference. */

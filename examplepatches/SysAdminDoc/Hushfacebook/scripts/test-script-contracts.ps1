@@ -363,6 +363,13 @@ exit /b 19
     $newer = @(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle)
     Assert-True ($newer.Count -eq 6 -and $newer[0].FullName -eq (Get-Item -LiteralPath $notice).FullName) `
         "A NOTICE written after the bundle, which the payload carries, was missed: $(@($newer | ForEach-Object FullName) -join ', ')"
+    $scopeManifest = Join-Path $staleRoot 'gradle/tooling-scopes.txt'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $scopeManifest) -Force | Out-Null
+    [IO.File]::WriteAllText($scopeManifest, 'required settings/buildscript/classpath', [Text.Encoding]::ASCII)
+    [IO.File]::SetLastWriteTimeUtc($scopeManifest, $then.AddMinutes(13))
+    $newer = @(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle)
+    Assert-True ($newer.Count -eq 7 -and $newer[0].FullName -eq (Get-Item -LiteralPath $scopeManifest).FullName) `
+        'A tooling coverage manifest written after the bundle was missed.'
     $deviceScript = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'patch-for-device.ps1') -Raw
     Assert-True ($deviceScript -match 'Get-SourcesNewerThanBundle' -and
         $deviceScript -match '\[switch\]\$AllowStaleBundle') `
@@ -560,12 +567,49 @@ try {
         Set-Content -LiteralPath $Path -Encoding UTF8 -Value ($document | ConvertTo-Json -Depth 12)
     }
 
+    function New-TestTooling {
+        param([string]$Path, [string]$Bundle, [string]$Commit = '0123456789abcdef0123456789abcdef01234567',
+            [string]$ScopeText = "required settings/buildscript/classpath`nrequired :patches/configuration/testRuntimeClasspath`n",
+            [string[]]$Libraries = @('pkg:maven/com.google.code.gson/gson@2.14.0'), [scriptblock]$Mutate, [switch]$SettingsOnly)
+        $manifest = Read-ToolingScopeManifest -Text $ScopeText
+        $facts = Get-BundleManifestFacts -BundlePath $Bundle
+        $scopes = @($manifest.Entries | ForEach-Object {
+            if ($_.Requirement -ceq 'conditional') {
+                [ordered]@{ id = $_.Id; status = 'notConfigured'; reason = "No $($_.TestTask) test component" }
+            } else {
+                $coordinates = @($Libraries | ForEach-Object { $_.Substring('pkg:maven/'.Length).Replace('/', ':').Replace('@', ':') })
+                if ($SettingsOnly -and $_.Id -cne 'settings/buildscript/classpath') { $coordinates = @() }
+                [ordered]@{ id = $_.Id; status = 'resolved'; root = 'root'; nodes = @('root') + $coordinates
+                    edges = @([ordered]@{ from = 'root'; to = $coordinates }) + @($coordinates | ForEach-Object {
+                        [ordered]@{ from = $_; to = @() } }) }
+            }
+        })
+        $components = @($Libraries | ForEach-Object {
+            $parts = [regex]::Match($_, '^pkg:maven/([^/]+)/([^@]+)@(.+)$')
+            $coordinate = "$($parts.Groups[1].Value):$($parts.Groups[2].Value):$($parts.Groups[3].Value)"
+            [ordered]@{ coordinate = $coordinate
+                group = $parts.Groups[1].Value; name = $parts.Groups[2].Value; version = $parts.Groups[3].Value; purl = $_
+                scopes = @($scopes | Where-Object { $_.status -ceq 'resolved' -and $_.nodes -ccontains $coordinate } | ForEach-Object { $_.id })
+                artifacts = @([ordered]@{ name = "$($parts.Groups[2].Value).jar"; sha256 = ('a' * 64) }) }
+        })
+        $document = [ordered]@{ schemaVersion = 1; source = [ordered]@{ commit = $Commit; tree = 'clean' }
+            bundle = [ordered]@{ file = Split-Path -Leaf $Bundle; version = $facts.version; sha256 = Get-Sha256Hex -Path $Bundle }
+            scopeManifest = [ordered]@{ file = 'gradle/tooling-scopes.txt'; sha256 = $manifest.Sha256
+                entries = @($manifest.Entries | ForEach-Object { [ordered]@{ id = $_.Id; requirement = $_.Requirement
+                    status = if ($_.Requirement -ceq 'conditional') { 'notConfigured' } else { 'resolved' } } }) }
+            scopes = $scopes; components = $components }
+        if ($Mutate) { & $Mutate $document }
+        Set-Content -LiteralPath $Path -Encoding UTF8 -Value ($document | ConvertTo-Json -Depth 16)
+    }
+
     $bundle = Join-Path $allowlistRoot 'patches-9.9.9.mpp'
     New-TestBundle -Path $bundle -Entries @{ 'extensions/facebook.mpe' = "dex`n035 payload" }
     $bundleHash = Get-Sha256Hex -Path $bundle
     $bundleSize = (Get-Item -LiteralPath $bundle).Length
     $sbomFile = Join-Path $allowlistRoot 'patches-9.9.9.cdx.json'
     New-TestSbom -Path $sbomFile -Bundle $bundle
+    $toolingFile = Join-Path $allowlistRoot 'patches-9.9.9.tooling.json'
+    New-TestTooling -Path $toolingFile -Bundle $bundle
 
     $manifestFacts = Get-BundleManifestFacts -BundlePath $bundle
     Assert-True ($manifestFacts.version -eq '9.9.9') 'The bundle manifest version was not read.'
@@ -584,6 +628,8 @@ try {
         bundle    = [ordered]@{ file = 'patches-9.9.9.mpp'; sizeBytes = $bundleSize
             sha256 = $bundleHash; timestamp = 1700000000000L }
         sbom      = [ordered]@{ file = 'patches-9.9.9.cdx.json'; sha256 = (Get-Sha256Hex -Path $sbomFile); components = 3 }
+        tooling   = [ordered]@{ file = 'patches-9.9.9.tooling.json'; sha256 = Get-Sha256Hex -Path $toolingFile
+            components = 1; scopes = 2; audit = [ordered]@{ status = 'checked' } }
         toolchain = [ordered]@{ patcherVersion = '1.12.0'; managerFloor = '1.29.0' }
         extension = [ordered]@{ dexPayloads = @([ordered]@{
             name = 'extensions/facebook.mpe'; sizeBytes = 10; sha256 = ('A' * 64) }) }
@@ -629,6 +675,12 @@ try {
     # has never been shown to fail is a gate nobody has tested.
     $mutations = [ordered]@{
         'a receipt from a different schema'     = { param($r) $r.schemaVersion = 99 }
+        'no tooling report'                    = { param($r) $r.PSObject.Properties.Remove('tooling') }
+        'a tooling filename for another version' = { param($r) $r.tooling.file = 'patches-9.9.8.tooling.json' }
+        'an unhashed tooling report'            = { param($r) $r.tooling.sha256 = '' }
+        'no tooling components'                = { param($r) $r.tooling.components = 0 }
+        'no tooling scopes'                    = { param($r) $r.tooling.scopes = 0 }
+        'an unknown tooling audit status'       = { param($r) $r.tooling.audit.status = 'unchecked' }
         'a receipt for a different version'     = { param($r) $r.release.version = '9.9.8' }
         'a tag that does not match the version' = { param($r) $r.release.tag = 'v9.9.8' }
         'a short commit'                        = { param($r) $r.release.commit = '0123456' }
@@ -960,19 +1012,86 @@ try {
     Set-Content -LiteralPath $variant -Encoding ASCII -Value 'not json'
     Assert-Throws { Read-ReleaseSbom -Path $variant } '*patches-9.9.9.cdx.json is not JSON*' 'Text that is not JSON was read as an SBOM.'
 
+    # Tooling graph validation is independent of the payload SBOM and binds to source coverage.
+    $scopeText = "required settings/buildscript/classpath`nrequired :patches/configuration/testRuntimeClasspath`n"
+    $toolingRead = Read-ReleaseTooling -Path $toolingFile
+    $bound = Test-ReleaseTooling -Tooling $toolingRead -BundlePath $bundle -ExpectedCommit $template.release.commit -ScopeManifestText $scopeText
+    Assert-True ($bound.Valid -and $toolingRead.Scopes.Count -eq 2 -and $toolingRead.Components.Count -eq 1) `
+        "The source-bound tooling graph was refused: $($bound.Reason)"
+    $downloadedBundle = Join-Path $allowlistRoot 'temporary-download.mpp'
+    Copy-Item -LiteralPath $bundle -Destination $downloadedBundle
+    $downloaded = Test-ReleaseTooling -Tooling $toolingRead -BundlePath $downloadedBundle -BundleName 'patches-9.9.9.mpp' `
+        -ExpectedCommit $template.release.commit -ScopeManifestText $scopeText
+    Assert-True $downloaded.Valid "A byte-identical temporary download lost its declared release name: $($downloaded.Reason)"
+    function Test-ReceiptWithTooling($Receipt, [switch]$Publish) {
+        return Test-ReleaseReceipt -Receipt $Receipt -ExpectedVersion '9.9.9' -ExpectedPatchNames @('Alpha', 'Beta') `
+            -ExpectedPatcherVersion '1.12.0' -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
+            -ExpectedPackageVersions $declaredBuilds -BundlePath $bundle -ToolingPath $toolingFile `
+            -ToolingScopeManifestText $scopeText -RequireToolingAudit:$Publish
+    }
+    $boundReceipt = Test-ReceiptWithTooling (New-TestReceipt) -Publish
+    Assert-True $boundReceipt.Valid "The receipt was refused against its audited tooling report: $($boundReceipt.Reason)"
+    foreach ($case in @(
+            @{ Name = 'a changed audit report'; Mutate = { param($r) $r.tooling.sha256 = ('c' * 64) }; Pattern = '*changed after its advisory audit*' },
+            @{ Name = 'the wrong component count'; Mutate = { param($r) $r.tooling.components = 2 }; Pattern = '*counts differ*' },
+            @{ Name = 'the wrong scope count'; Mutate = { param($r) $r.tooling.scopes = 1 }; Pattern = '*counts differ*' },
+            @{ Name = 'a skipped audit at publication'; Mutate = { param($r) $r.tooling.audit.status = 'skipped' }; Pattern = '*skipped tooling advisory audit cannot authorize publication*' })) {
+        $result = Test-ReceiptWithTooling (New-TestReceipt -Mutate $case.Mutate) -Publish
+        Assert-True (-not $result.Valid -and $result.Reason -like $case.Pattern) "Tooling $($case.Name) was not refused for it: $($result.Reason)"
+    }
+    $offlineReceipt = Test-ReceiptWithTooling (New-TestReceipt -Mutate { param($r) $r.tooling.audit.status = 'skipped' })
+    Assert-True $offlineReceipt.Valid 'An explicitly offline local receipt was refused before publication.'
+    $variantTooling = Join-Path $allowlistRoot 'variant/patches-9.9.9.tooling.json'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $variantTooling) -Force | Out-Null
+    foreach ($broken in @(
+            @{ Name = 'a duplicate scope'; Mutate = { param($d) $d.scopes += $d.scopes[0] }; Pattern = '*duplicate tooling scope*' },
+            @{ Name = 'a missing declared scope'; Mutate = { param($d) $d.scopes = @($d.scopes[1]); $d.components[0].scopes = @($d.scopes[0].id) }; Pattern = '*missing or unresolved declared scope*' },
+            @{ Name = 'an unresolved edge'; Mutate = { param($d) $d.scopes[0].edges[0].to = @('absent:module:1') }; Pattern = '*unresolved or duplicate graph edge*' },
+            @{ Name = 'a disconnected graph'; Mutate = { param($d) $d.scopes[0].edges[0].to = @() }; Pattern = '*unreachable from its root*' },
+            @{ Name = 'a missing coordinate'; Mutate = { param($d) $d.components = @() }; Pattern = '*omits resolved module coordinates*' },
+            @{ Name = 'a mismatched package URL'; Mutate = { param($d) $d.components[0].purl = 'pkg:maven/com.example/other@1' }; Pattern = '*does not match its Maven package URL*' },
+            @{ Name = 'a missing carrier'; Mutate = { param($d) $d.components[0].scopes = @($d.scopes[0].id) }; Pattern = '*omits one of its resolved scopes*' },
+            @{ Name = 'a local artifact path'; Mutate = { param($d) $d.components[0].artifacts[0].name = 'private/account.jar' }; Pattern = '*invalid artifact name or hash*' })) {
+        New-TestTooling -Path $variantTooling -Bundle $bundle -Mutate $broken.Mutate
+        Assert-Throws { Read-ReleaseTooling -Path $variantTooling } $broken.Pattern "Tooling $($broken.Name) was accepted."
+    }
+    foreach ($wrong in @(
+            @{ Name = 'dirty source'; Mutate = { param($d) $d.source.tree = 'dirty' }; Pattern = '*clean source commit*' },
+            @{ Name = 'another commit'; Mutate = { param($d) $d.source.commit = ('b' * 40) }; Pattern = '*clean source commit*' },
+            @{ Name = 'another bundle'; Mutate = { param($d) $d.bundle.sha256 = ('b' * 64) }; Pattern = '*does not describe this bundle*' },
+            @{ Name = 'another scope manifest'; Mutate = { param($d) $d.scopeManifest.sha256 = ('b' * 64) }; Pattern = '*scope manifest differs*' },
+            @{ Name = 'omitted coverage declarations'; Mutate = { param($d) $d.scopeManifest.entries = @($d.scopeManifest.entries[0]) }; Pattern = '*omits or adds scope declarations*' })) {
+        New-TestTooling -Path $variantTooling -Bundle $bundle -Mutate $wrong.Mutate
+        $result = Test-ReleaseTooling -Tooling (Read-ReleaseTooling $variantTooling) -BundlePath $bundle `
+            -ExpectedCommit $template.release.commit -ScopeManifestText $scopeText
+        Assert-True (-not $result.Valid -and $result.Reason -like $wrong.Pattern) "Tooling $($wrong.Name) was not refused for it: $($result.Reason)"
+    }
+    $conditionalText = $scopeText + "conditional :extensions:facebook/configuration/releaseUnitTestRuntimeClasspath testReleaseUnitTest`n"
+    New-TestTooling -Path $variantTooling -Bundle $bundle -ScopeText $conditionalText
+    $conditional = Read-ReleaseTooling $variantTooling
+    $result = Test-ReleaseTooling -Tooling $conditional -BundlePath $bundle -ExpectedCommit $template.release.commit -ScopeManifestText $conditionalText
+    Assert-True $result.Valid "An explicitly absent test component was refused: $($result.Reason)"
+    New-TestTooling -Path $variantTooling -Bundle $bundle -ScopeText $conditionalText -Mutate { param($d) $d.scopes[2].reason = 'absent' }
+    $result = Test-ReleaseTooling -Tooling (Read-ReleaseTooling $variantTooling) -BundlePath $bundle `
+        -ExpectedCommit $template.release.commit -ScopeManifestText $conditionalText
+    Assert-True ($result.Reason -like '*does not identify the absent test component*') 'An unexplained absent test scope passed.'
+    $schemaTwo = New-TestReceipt -Mutate { param($r) $r.schemaVersion = 2; $r.PSObject.Properties.Remove('tooling') }
+    $historical = Test-ReceiptWithSbom $schemaTwo -Schema 2
+    Assert-True $historical.Valid "A historical payload-only schema 2 receipt was refused: $($historical.Reason)"
+
     # A receipt cut before schema 2 names no SBOM, and is read as its own commit wrote it; each
     # schema is refused where the other is expected.
-    $schemaOne = New-TestReceipt -Mutate { param($r) $r.schemaVersion = 1; $r.PSObject.Properties.Remove('sbom') }
+    $schemaOne = New-TestReceipt -Mutate { param($r) $r.schemaVersion = 1; $r.PSObject.Properties.Remove('sbom'); $r.PSObject.Properties.Remove('tooling') }
     $oneAtOne = Test-ReleaseReceipt -Receipt $schemaOne -ExpectedVersion '9.9.9' -ExpectedPatchNames @('Alpha', 'Beta') `
         -ExpectedPatcherVersion '1.12.0' -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
         -ExpectedPackageVersions $declaredBuilds -BundlePath $bundle -ExpectedSchemaVersion 1
     Assert-True $oneAtOne.Valid "A schema 1 receipt was refused at schema 1: $($oneAtOne.Reason)"
     $oneAtTwo = Test-TestReceipt -Receipt $schemaOne
-    Assert-True ($oneAtTwo.Reason -like '*schema version 1; its release is read at version 2*') `
-        "A schema 1 receipt was not refused where schema 2 is expected: $($oneAtTwo.Reason)"
+    Assert-True ($oneAtTwo.Reason -like '*schema version 1; its release is read at version 3*') `
+        "A schema 1 receipt was not refused where schema 3 is expected: $($oneAtTwo.Reason)"
     $twoAtOne = Test-ReceiptWithSbom (New-TestReceipt) -Schema 1
-    Assert-True ($twoAtOne.Reason -like '*schema version 2; its release is read at version 1*') `
-        "A schema 2 receipt was not refused where schema 1 is expected: $($twoAtOne.Reason)"
+    Assert-True ($twoAtOne.Reason -like '*schema version 3; its release is read at version 1*') `
+        "A schema 3 receipt was not refused where schema 1 is expected: $($twoAtOne.Reason)"
     $oneWithSbom = Test-ReceiptWithSbom $schemaOne -Schema 1
     Assert-True ($oneWithSbom.Reason -like '*schema 1 receipt names no SBOM to hold*') `
         "A schema 1 receipt was held to an SBOM it can't name: $($oneWithSbom.Reason)"
@@ -1320,7 +1439,7 @@ Set-Content -LiteralPath $Result -Value $lines
     New-Item -ItemType Directory -Path (Split-Path -Parent $receiptScript) -Force | Out-Null
     $currentSchema = Get-ReleaseReceiptSchemaVersion
     $schemaCommits = @{}
-    foreach ($written in @(1, $currentSchema, ($currentSchema + 1))) {
+    foreach ($written in @(1, 2, $currentSchema, ($currentSchema + 1))) {
         Set-Content -LiteralPath $receiptScript -Encoding UTF8 -Value @('function Get-ReleaseReceiptSchemaVersion {', '    <#',
             '    .SYNOPSIS', '        Bumped when the shape changes. A receipt at return 9 would be a surprise.', '    #>',
             "    return $written", '}')
@@ -1332,6 +1451,9 @@ Set-Content -LiteralPath $Result -Value $lines
     Assert-True ($atOne.Version -eq 1 -and $atOne.Note -like "*schema 1, which its own commit $($schemaCommits[1].Substring(0, 8)) wrote*") `
         "A receipt cut at schema 1 was not held to it: $($atOne.Version), $($atOne.Note)"
     $atCurrent = Resolve-ReceiptSchema -Root $toolchainRoot -Commit $schemaCommits[$currentSchema]
+    $atTwo = Resolve-ReceiptSchema -Root $toolchainRoot -Commit $schemaCommits[2]
+    Assert-True ($atTwo.Version -eq 2 -and $atTwo.Note -like '*predates tooling reports*') `
+        'The historical schema 2 receipt was not identified as predating tooling reports.'
     Assert-True ($atCurrent.Version -eq $currentSchema -and $null -eq $atCurrent.Note) `
         "A receipt cut at this checkout's schema was not held to it quietly: $($atCurrent.Version), $($atCurrent.Note)"
     Assert-Throws { Resolve-ReceiptSchema -Root $toolchainRoot -Commit $schemaCommits[$currentSchema + 1] } `
@@ -1592,6 +1714,63 @@ try {
     $said = Invoke-Gate @()
     Assert-True ($said -like '*lists no library to ask OSV about*' -and $osvAsked.Count -eq 0) `
         "An SBOM with no library was not passed as one: $said"
+
+    function New-GateTooling([string[]]$Purls) {
+        $value = New-GateSbom $Purls
+        $value.Path = Join-Path $advisoryRoot 'patches-9.9.9.tooling.json'
+        $value | Add-Member -NotePropertyName Scopes -NotePropertyValue @('settings/buildscript/classpath', ':patches/configuration/testRuntimeClasspath')
+        foreach ($library in $value.Libraries) { $library | Add-Member -NotePropertyName Scopes -NotePropertyValue @('settings/buildscript/classpath') }
+        return $value
+    }
+    function Invoke-ToolingGate([string[]]$Purls, [string[]]$Exceptions = @(), [switch]$Skip) {
+        $list = Join-Path $advisoryRoot 'tooling-exceptions.txt'
+        Set-Content -LiteralPath $list -Encoding ASCII -Value (@('# reviewed applicability for this case') + $Exceptions)
+        . $osvStandIn
+        $osvAsked.Clear()
+        return (@(Invoke-ToolingAdvisoryGate -Tooling (New-GateTooling $Purls) -ExceptionsPath $list -Today $today `
+            -SkipAdvisoryCheck:$Skip 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n")
+    }
+    foreach ($case in @(
+            @{ Purl = $gsonPurl; Pattern = '*GHSA-4jrv-ppp4-jm57 (HIGH*' },
+            @{ Purl = 'pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1'; Pattern = '*GHSA-jfh8-c2jp-5v3q (CRITICAL*' })) {
+        Assert-Throws { Invoke-ToolingGate @($case.Purl) } $case.Pattern 'A settings-only serious finding passed the tooling gate.'
+    }
+    try {
+        $osvAnswers = @{ $cleanPurl = "{`"vulns`":[$log4jVectorFour]}" }
+        Assert-Throws { Invoke-ToolingGate @($cleanPurl) } '*UNRATED*' 'An unscored settings-only finding passed the tooling gate.'
+        $guavaVersions = @('4.0-jre', '33.7.1-jre', '33.7.1-android', '33.7.2-jre', '33.7.2-android', '3.0', 'snapshot')
+        $guavaPurls = @($guavaVersions | ForEach-Object { "pkg:maven/com.google.guava/guava@$_" })
+        $osvAnswers = @{}
+        foreach ($purl in $guavaPurls) { $osvAnswers[$purl] = '{}' }
+        . $osvStandIn
+        $found = @(Get-ToolingAdvisories -Tooling (New-GateTooling $guavaPurls))
+        Assert-True ($found.Count -eq 4 -and @($found | Where-Object { $_.Severity.Level -ceq 'MODERATE' }).Count -eq 3 -and
+            @($found | Where-Object { $_.Severity.Level -ceq 'UNRATED' }).Count -eq 1 -and
+            @($found | Where-Object { $_.Version -eq '33.7.1-android' -and $_.Scopes -contains 'settings/buildscript/classpath' }).Count -eq 1) `
+            'The vendor fallback lost an affected version, edition, carrier or the vendor severity.'
+        Assert-Throws { Invoke-ToolingGate @($guavaPurls[1]) } '*GHSA-xxph-c9ww-hj94 (MODERATE*reachability review*' `
+            'OSV returning no match bypassed the required vendor Guava review.'
+        $review = "GHSA-xxph-c9ww-hj94 com.google.guava:guava $later Only trusted local build inputs reach this test API."
+        $said = Invoke-ToolingGate @($guavaPurls[1]) @($review)
+        Assert-True ($said -like '*accepted until*checked') 'A dated, explained tooling review was not accepted.'
+        Assert-Throws { Invoke-ToolingGate @($guavaPurls[1]) @($review.Replace($later, '2026-09-24')) } '*reachability exception expired on 2026-09-24*' `
+            'An expired vendor reachability review passed.'
+        Assert-Throws { Invoke-ToolingGate @($guavaPurls[1]) @($review.Replace($later, '2027-01-01')) } '*more than 90 days out*' `
+            'A tooling review longer than 90 days passed.'
+        Assert-Throws { Invoke-ToolingGate @($guavaPurls[1]) @("GHSA-xxph-c9ww-hj94 com.google.guava:guava $later harmless") } '*without saying why*' `
+            'An unexplained tooling review passed.'
+        $aliasAdvisory = '{"id":"OSV-test-alias","aliases":["GHSA-xxph-c9ww-hj94"],"summary":"Recorded vendor alias","database_specific":{"severity":"MODERATE"}}'
+        $osvAnswers[$guavaPurls[1]] = "{`"vulns`":[$aliasAdvisory]}"
+        $merged = @(Get-ToolingAdvisories -Tooling (New-GateTooling @($guavaPurls[1])))
+        Assert-True ($merged.Count -eq 1 -and $merged[0].Aliases -contains 'OSV-test-alias') 'Vendor fallback duplicated an OSV alias finding.'
+        Assert-Throws { Invoke-ToolingGate @($guavaPurls[1]) @($review.Replace($later, '2026-09-24'),
+            "OSV-test-alias com.google.guava:guava $later Only trusted local build inputs reach this test API.") } '*reachability exception expired*' `
+            'A current alias review hid an expired reachability review.'
+        $said = Invoke-ToolingGate @($guavaPurls[3], $guavaPurls[4])
+        Assert-True ($said -like '*no refused advisory*checked') 'Fixed Guava editions were refused by the vendor fallback.'
+        $said = Invoke-ToolingGate @('pkg:maven/com.example/offline@1') -Skip
+        Assert-True ($said -like '*cannot authorize publication*skipped' -and $osvAsked.Count -eq 0) 'An offline tooling audit appeared checked.'
+    } finally { $osvAnswers = $osvRecorded }
 } finally {
     Remove-Item -LiteralPath $advisoryRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
@@ -2851,7 +3030,7 @@ try {
         $env:GITHUB_ACTOR = $null
         $env:GITHUB_TOKEN = $null
         foreach ($pin in @('gradle/libs.versions.toml', 'gradle/verification-metadata.xml',
-                'settings.gradle.kts', 'build.gradle.kts', 'patches/build.gradle.kts')) {
+                'gradle/tooling-scopes.txt', 'settings.gradle.kts', 'build.gradle.kts', 'patches/build.gradle.kts')) {
             Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @($pin) 6> $null } `
                 '*GITHUB_ACTOR*' "A push that changed $pin did not reach the build gates."
         }
@@ -3689,7 +3868,7 @@ try {
     # The source ledger and the two files its rules hold an adopted source to go in as well: a
     # release is held to the census, and .gitignore has to let the ledger be committed.
     $releaseFiles = @('patches-list.json', 'patches-bundle.json', 'gradle.properties', 'README.md', 'CHANGELOG.md',
-        'gradle/libs.versions.toml', '.github/ISSUE_TEMPLATE/bug_report.yml', '.gitignore',
+        'gradle/libs.versions.toml', 'gradle/tooling-scopes.txt', '.github/ISSUE_TEMPLATE/bug_report.yml', '.gitignore',
         'sources/facebook-sources.json', 'NOTICE', 'provenance.json')
     foreach ($relative in $releaseFiles) {
         $destination = Join-Path $releaseRepo $relative
@@ -3829,11 +4008,14 @@ try {
             bundle    = [ordered]@{ file = "patches-$releaseVersionHere.mpp"; sizeBytes = 10; sha256 = ('E' * 64)
                 timestamp = $Seconds * 1000 }
             sbom      = [ordered]@{ file = "patches-$releaseVersionHere.cdx.json"; sha256 = ('D' * 64); components = 3 }
+            tooling   = [ordered]@{ file = "patches-$releaseVersionHere.tooling.json"; sha256 = ('a' * 64)
+                components = 1; scopes = 2; audit = [ordered]@{ status = 'checked' } }
             toolchain = [ordered]@{ patcherVersion = $releaseToolchain.PatcherVersion; managerFloor = $releaseToolchain.ManagerFloor }
             extension = [ordered]@{ dexPayloads = @([ordered]@{ name = 'extensions/facebook.mpe'; sizeBytes = 10; sha256 = ('F' * 64) }) }
             targets   = $targets
         }
         if ($Schema -lt 2) { $document.Remove('sbom') }
+        if ($Schema -lt 3) { $document.Remove('tooling') }
         Set-Content -LiteralPath $releaseReceipt -Encoding UTF8 -Value ($document | ConvertTo-Json -Depth 12)
     }
     # The run the hook makes for a push that carries a receipt: lenient, since the index may lag
@@ -4073,6 +4255,10 @@ try {
     $releaseSbom = [System.IO.Path]::ChangeExtension($releaseBundle, '.cdx.json')
     New-TestSbom -Path $releaseSbom -Bundle $releaseBundle
 
+    $releaseTooling = [IO.Path]::ChangeExtension($releaseBundle, '.tooling.json')
+    $releaseScopeText = [IO.File]::ReadAllText((Join-Path $releaseRepo 'gradle/tooling-scopes.txt'))
+    New-TestTooling -Path $releaseTooling -Bundle $releaseBundle -Commit $releaseCommit -ScopeText $releaseScopeText
+
     # The builder reads git with a plain `git -C`, which a GIT_DIR inherited from a hook would
     # override, so every GIT_* variable is cleared for the length of a run. OSV is the stand-in
     # above, and what the builder says is kept in $builderSaid, warnings included.
@@ -4143,6 +4329,11 @@ try {
     Assert-True ($built.sbom.file -eq "patches-$releaseVersionHere.cdx.json" -and
         $built.sbom.sha256 -ceq (Get-Sha256Hex -Path $releaseSbom) -and [int]$built.sbom.components -eq 3) `
         "The receipt does not record the SBOM beside the bundle: $($built.sbom | ConvertTo-Json -Compress)"
+    $builtTooling = Read-ReleaseTooling $releaseTooling
+    Assert-True ($built.tooling.file -ceq "patches-$releaseVersionHere.tooling.json" -and
+        $built.tooling.sha256 -ceq $builtTooling.Sha256 -and $built.tooling.components -eq $builtTooling.Components.Count -and
+        $built.tooling.scopes -eq $builtTooling.Scopes.Count -and $built.tooling.audit.status -ceq 'checked') `
+        'The receipt omitted its tooling graph, source coverage, counts or successful audit status.'
     Assert-True ($builderSaid -like "*OSV has no advisory for the libraries patches-$releaseVersionHere.cdx.json lists: gson 2.14.0*") `
         "The receipt builder did not put the SBOM's libraries to OSV: $builderSaid"
     # And the receipt the builder writes is one the release check accepts.
@@ -4310,6 +4501,29 @@ try {
     } finally {
         [System.IO.File]::WriteAllBytes($releaseSbom, $cleanSbomBytes)
         [System.IO.File]::WriteAllBytes($releaseReceipt, $cleanReceiptBytes)
+    }
+
+    # A settings-only finding prevents patching even when the payload SBOM is clean. An audited
+    # report replaced during patching cannot be recorded as the report that passed that audit.
+    $cleanToolingBytes = [IO.File]::ReadAllBytes($releaseTooling)
+    $receiptBeforeToolingCases = [IO.File]::ReadAllBytes($releaseReceipt)
+    try {
+        New-TestTooling -Path $releaseTooling -Bundle $releaseBundle -Commit $releaseCommit -ScopeText $releaseScopeText -Libraries @($gsonPurl) -SettingsOnly
+        Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } '*Tooling advisories require remediation*HIGH*' `
+            'The builder patched with a serious settings-only advisory and a clean payload.'
+        Assert-True (-not (Test-Path -LiteralPath $javaLog)) 'The tooling gate ran after the fixture patching.'
+        [IO.File]::WriteAllBytes($releaseTooling, $cleanToolingBytes)
+        $replacementTooling = Join-Path $releaseRoot 'replacement.tooling.json'
+        New-TestTooling -Path $replacementTooling -Bundle $releaseBundle -Commit $releaseCommit -ScopeText $releaseScopeText `
+            -Mutate { param($d) $d.source.tree = 'dirty' }
+        $duringPatch = Join-Path $tools 'during-patch.cmd'
+        [IO.File]::WriteAllText($duringPatch, "@copy /y `"$replacementTooling`" `"$releaseTooling`" >nul`r`n", [Text.Encoding]::ASCII)
+        Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } '*tooling report changed after its advisory audit*' `
+            'A report replaced after its audit was recorded as checked.'
+    } finally {
+        Remove-Item -LiteralPath $duringPatch -Force -ErrorAction SilentlyContinue
+        [IO.File]::WriteAllBytes($releaseTooling, $cleanToolingBytes)
+        [IO.File]::WriteAllBytes($releaseReceipt, $receiptBeforeToolingCases)
     }
 
     # A bundle that isn't a build of the commit, from a tree that is clean by the time the receipt
@@ -4511,6 +4725,9 @@ try {
     New-Item -ItemType Directory -Path (Split-Path -Parent $cleanServedSbom) -Force | Out-Null
     Copy-Item -LiteralPath $releaseSbom -Destination $cleanServedSbom
     $servedSbom = $cleanServedSbom
+    $cleanServedTooling = Join-Path $releaseRoot "served\patches-$releaseVersionHere.tooling.json"
+    Copy-Item -LiteralPath $releaseTooling -Destination $cleanServedTooling
+    $servedTooling = $cleanServedTooling
     $servedSums = $null
     $servedReceipt = $null
     $publishedStandIns = {
@@ -4522,13 +4739,15 @@ try {
             if (-not $UseBasicParsing) { throw "Invoke-WebRequest $Uri without -UseBasicParsing" }
             $receiptServed = if ($servedReceipt) { $servedReceipt } else { $releaseReceipt }
             if ($OutFile) {
-                $served = if ("$Uri" -like '*.cdx.json') { $servedSbom } elseif ("$Uri" -like '*/release-receipt-*.json') {
+                $served = if ("$Uri" -like '*.cdx.json') { $servedSbom } elseif ("$Uri" -like '*.tooling.json') {
+                    $servedTooling } elseif ("$Uri" -like '*/release-receipt-*.json') {
                     $receiptServed } else { $servedBundle }
                 Copy-Item -LiteralPath $served -Destination $OutFile -Force
             }
             $sums = if ($servedSums) { $servedSums } else {
                 "$((Get-FileHash -LiteralPath $servedBundle -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.mpp`n" +
                     "$((Get-FileHash -LiteralPath $servedSbom -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.cdx.json`n" +
+                    "$(Get-Sha256Hex -Path $servedTooling)  patches-$indexVersionHere.tooling.json`n" +
                     "$((Get-FileHash -LiteralPath $receiptServed -Algorithm SHA256).Hash.ToLowerInvariant())  release-receipt-$releaseVersionHere.json`n"
             }
             [pscustomobject]@{ StatusCode = 200; Content = [Text.Encoding]::UTF8.GetBytes($sums) }
@@ -4585,7 +4804,8 @@ try {
         $recutBytes.Add(10)
         [System.IO.File]::WriteAllBytes($recutReceipt, $recutBytes.ToArray())
         $bundleAndSbomSums = "$((Get-FileHash -LiteralPath $releaseBundle -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.mpp`n" +
-            "$((Get-FileHash -LiteralPath $cleanServedSbom -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.cdx.json`n"
+            "$((Get-FileHash -LiteralPath $cleanServedSbom -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.cdx.json`n" +
+            "$(Get-Sha256Hex $cleanServedTooling)  patches-$indexVersionHere.tooling.json`n"
         try {
             $servedSums = $bundleAndSbomSums
             Assert-Throws { Invoke-IndexPushCheck $publishedRun } "*SHA256SUMS.txt has no entry for release-receipt-$releaseVersionHere.json*" `
@@ -4629,6 +4849,51 @@ try {
             Save-ReleaseLedger
         }
 
+        # The hosted tooling graph is checked with a clean payload SBOM. A receipt whose own
+        # source commit predates this requirement is exercised separately below.
+        $receiptBeforeHostedTooling = [IO.File]::ReadAllBytes($releaseReceipt)
+        try {
+            $bundleSum = "$(Get-Sha256Hex $releaseBundle)  patches-$indexVersionHere.mpp`n"
+            $sbomSum = "$(Get-Sha256Hex $servedSbom)  patches-$indexVersionHere.cdx.json`n"
+            $receiptSum = "$(Get-Sha256Hex $releaseReceipt)  release-receipt-$releaseVersionHere.json`n"
+            $servedSums = $bundleSum + $sbomSum + $receiptSum
+            Assert-Throws { Invoke-IndexPushCheck $publishedRun } '*SHA256SUMS.txt has no entry for*.tooling.json*' `
+                'Publication accepted a tooling report absent from SHA256SUMS.'
+            $servedSums += "$('0' * 64)  patches-$indexVersionHere.tooling.json`n"
+            Assert-Throws { Invoke-IndexPushCheck $publishedRun } '*SHA256SUMS.txt lists another hash*.tooling.json*' `
+                'Publication accepted a tooling report with the wrong listed hash.'
+            $servedSums = $null
+            $script:servedTooling = Join-Path $releaseRoot "served/case/patches-$releaseVersionHere.tooling.json"
+            New-Item -ItemType Directory -Path (Split-Path -Parent $servedTooling) -Force | Out-Null
+            $settingsPurl = 'pkg:maven/com.example/settings-only@1.0'
+            $answersWithUnrated = $osvRecorded.Clone()
+            $answersWithUnrated[$settingsPurl] = "{`"vulns`":[$log4jVectorFour]}"
+            $osvAnswers = $answersWithUnrated
+            foreach ($finding in @(
+                    @{ Purl = $gsonPurl; Pattern = '*Tooling advisories require remediation*HIGH*' },
+                    @{ Purl = 'pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1'; Pattern = '*Tooling advisories require remediation*CRITICAL*' },
+                    @{ Purl = $settingsPurl; Pattern = '*Tooling advisories require remediation*UNRATED*' })) {
+                New-TestTooling -Path $servedTooling -Bundle $releaseBundle -Commit $releaseCommit -ScopeText $releaseScopeText `
+                    -Libraries @($finding.Purl) -SettingsOnly
+                $document = Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json
+                $document.tooling.sha256 = Get-Sha256Hex $servedTooling
+                Set-Content -LiteralPath $releaseReceipt -Encoding UTF8 -Value ($document | ConvertTo-Json -Depth 16)
+                Assert-Throws { Invoke-IndexPushCheck $publishedRun } $finding.Pattern 'Publication accepted a settings-only security finding.'
+            }
+            $servedTooling = $cleanServedTooling
+            [IO.File]::WriteAllBytes($releaseReceipt, $receiptBeforeHostedTooling)
+            $document = Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json
+            $document.tooling.audit.status = 'skipped'
+            Set-Content -LiteralPath $releaseReceipt -Encoding UTF8 -Value ($document | ConvertTo-Json -Depth 16)
+            Assert-Throws { Invoke-IndexPushCheck $publishedRun } '*skipped tooling advisory audit cannot authorize publication*' `
+                'A skipped local tooling audit authorized publication.'
+        } finally {
+            $servedSums = $null
+            $servedTooling = $cleanServedTooling
+            $osvAnswers = $osvRecorded
+            [IO.File]::WriteAllBytes($releaseReceipt, $receiptBeforeHostedTooling)
+        }
+
         # Each way the hosted SBOM can fail it. A receipt that names the SBOM served has its hash
         # and count written in, so that what refuses the push is the case's own difference. The
         # deliberately vulnerable fixture goes out here too: the receipt for it was built offline,
@@ -4660,12 +4925,11 @@ try {
             Use-ServedSbom @($gsonPurl)
             Assert-Throws { Invoke-IndexPushCheck $publishedRun } '*high or critical*GHSA-4jrv-ppp4-jm57 (HIGH, CVE-2022-25647) in com.google.code.gson:gson 2.8.8*' `
                 'An index push went through with a bundle carrying gson 2.8.8.'
-            # The offline way through is explicit, and it says so.
+            # A current publication cannot opt out of the tooling audit.
             $offlineRun = $publishedRun.Clone()
             $offlineRun['SkipAdvisoryCheck'] = $true
-            $said = Invoke-IndexPushCheck $offlineRun
-            Assert-True ($said -like '*-SkipAdvisoryCheck: OSV was not asked about the libraries*') `
-                "An index push with the advisory check skipped did not say so: $said"
+            Assert-Throws { Invoke-IndexPushCheck $offlineRun } '*SkipAdvisoryCheck cannot satisfy schema-3 tooling publication checks*' `
+                'A schema 3 index push bypassed its tooling audit.'
             Use-ServedSbom @('pkg:maven/com.example/unknown@1.0')
             Assert-Throws { Invoke-IndexPushCheck $publishedRun } '*could not be asked about pkg:maven/com.example/unknown@1.0*fails closed*' `
                 'An index push went through without OSV answering.'
@@ -4701,6 +4965,7 @@ try {
         $releaseBuilds = Split-Path -Parent $releaseBundle
         $parkedBundle = Join-Path $releaseRoot "parked\patches-$releaseVersionHere.mpp"
         $parkedSbom = [System.IO.Path]::ChangeExtension($parkedBundle, '.cdx.json')
+        $parkedTooling = [IO.Path]::ChangeExtension($parkedBundle, '.tooling.json')
         $otherBuilds = @('patches-9.9.8.mpp', 'patches-9.9.9.mpp' | ForEach-Object { Join-Path $releaseBuilds $_ })
         $releaseDescription = [string]($releaseIndexText | ConvertFrom-Json).description
         function Invoke-IndexPushHook {
@@ -4731,7 +4996,7 @@ try {
         }
         # Pass or fail, the downloads are gone afterwards and build/release holds what it held.
         function Assert-LeftAlone([string]$Case, [string[]]$Builds) {
-            $left = @(Get-ChildItem -LiteralPath $hookTemp -File -Recurse | Where-Object { $_.Name -like '*.mpp' -or $_.Name -like '*.cdx.json' } |
+            $left = @(Get-ChildItem -LiteralPath $hookTemp -File -Recurse | Where-Object { $_.Name -like '*.mpp' -or $_.Name -like '*.cdx.json' -or $_.Name -like '*.tooling.json' } |
                 ForEach-Object { $_.Name })
             Assert-True ($left.Count -eq 0) "The $Case left its download behind: $($left -join ', ')"
             $now = @(Get-ChildItem -LiteralPath $releaseBuilds -File | ForEach-Object { $_.Name } | Sort-Object) -join ', '
@@ -4756,6 +5021,7 @@ try {
             # build gets, and the check says the byte-for-byte comparison had nothing to compare with.
             Move-Item -LiteralPath $releaseBundle -Destination $parkedBundle
             Move-Item -LiteralPath $releaseSbom -Destination $parkedSbom
+            Move-Item -LiteralPath $releaseTooling -Destination $parkedTooling
             $servedBundle = $parkedBundle
             $said = Invoke-IndexPushHook
             foreach ($line in @('no local bundle here, so the hosted asset is downloaded and checked on its own',
@@ -4791,6 +5057,7 @@ try {
             # the other is left alone; with neither named for it, the hosted one is checked on its own.
             Move-Item -LiteralPath $parkedBundle -Destination $releaseBundle
             Move-Item -LiteralPath $parkedSbom -Destination $releaseSbom
+            Move-Item -LiteralPath $parkedTooling -Destination $releaseTooling
             $servedBundle = $releaseBundle
             New-TestBundleArchive -Path $otherBuilds[0] -Entries ([ordered]@{ 'META-INF/MANIFEST.MF' = "Manifest-Version: 1.0`nVersion: 9.9.8`n`n" })
             $said = Invoke-IndexPushHook
@@ -4799,10 +5066,11 @@ try {
                 $said -like "*the receipt proves $($releaseNames.Count) patches on*") `
                 "An index push with several bundles did not compare the hosted one with the bundle for its version: $said"
             Assert-LeftAlone 'comparison with the bundle built here' @("patches-$releaseVersionHere.mpp", "patches-$releaseVersionHere.cdx.json",
-                'patches-9.9.8.mpp')
+                "patches-$releaseVersionHere.tooling.json", 'patches-9.9.8.mpp')
             Move-Item -LiteralPath $releaseBundle -Destination $parkedBundle
             Move-Item -LiteralPath $releaseSbom -Destination $parkedSbom
             $servedBundle = $parkedBundle
+            Move-Item -LiteralPath $releaseTooling -Destination $parkedTooling
             New-TestBundleArchive -Path $otherBuilds[1] -Entries ([ordered]@{ 'META-INF/MANIFEST.MF' = "Manifest-Version: 1.0`nVersion: 9.9.9`n`n" })
             $said = Invoke-IndexPushHook
             Assert-True ($said -like "*found 2 bundles and none is patches-$indexVersionHere.mpp, so the hosted asset is downloaded and checked on its own*" -and
@@ -4820,9 +5088,65 @@ try {
             if (-not (Test-Path -LiteralPath $releaseSbom) -and (Test-Path -LiteralPath $parkedSbom)) {
                 Move-Item -LiteralPath $parkedSbom -Destination $releaseSbom
             }
+            if (-not (Test-Path -LiteralPath $releaseTooling) -and (Test-Path -LiteralPath $parkedTooling)) {
+                Move-Item -LiteralPath $parkedTooling -Destination $releaseTooling
+            }
             foreach ($folder in @('scripts', 'extensions', 'patches/build/test-results')) {
                 Remove-Item -LiteralPath (Join-Path $releaseRepo $folder) -Recurse -Force -ErrorAction SilentlyContinue
             }
+        }
+
+        # Schema 2 is held to the policy its release used. Its hosted payload-only receipt still
+        # works, including the explicit historical offline path, without inventing tooling data.
+        $schemaTwoScript = Join-Path $releaseRoot 'schema-two-release-receipt.ps1'
+        Set-Content -LiteralPath $schemaTwoScript -Encoding ASCII -Value @('function Get-ReleaseReceiptSchemaVersion {',
+            '    <# Receipt shape written by this historical source. #>', '    return 2', '}')
+        $schemaTwoBlob = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('hash-object', '-w', $schemaTwoScript) | Select-Object -First 1)".Trim()
+        Invoke-FixtureGit -Root $releaseRepo -Arguments @('update-index', '--add', '--cacheinfo',
+            "100644,$schemaTwoBlob,scripts/release-receipt.ps1") | Out-Null
+        $schemaTwoTree = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('write-tree') | Select-Object -First 1)".Trim()
+        Invoke-FixtureGit -Root $releaseRepo -Arguments @('reset', '--quiet') | Out-Null
+        $schemaTwoCommit = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('commit-tree', $schemaTwoTree, '-p', $releaseCommit,
+            '-m', 'cut before tooling provenance') | Select-Object -First 1)".Trim()
+        $schemaTwoSeconds = [long]"$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('log', '-1', '--format=%ct', $schemaTwoCommit) | Select-Object -First 1)".Trim()
+        $receiptBeforeHistorical = [IO.File]::ReadAllBytes($releaseReceipt)
+        try {
+            $servedBundle = Join-Path $releaseRoot "schema-two/patches-$releaseVersionHere.mpp"
+            New-Item -ItemType Directory -Path (Split-Path -Parent $servedBundle) -Force | Out-Null
+            New-TestBundleArchive -Path $servedBundle -Entries ([ordered]@{
+                'META-INF/MANIFEST.MF' = ("Manifest-Version: 1.0`nVersion: $releaseVersionHere`nTimestamp: $($schemaTwoSeconds * 1000)`n" +
+                    "Patcher-Version: $($releaseToolchain.PatcherVersion)`n`n")
+                'classes.dex' = "dex`n035" + ('patches' * 8)
+                'extensions/facebook.mpe' = "dex`n035" + ('payload' * 8) })
+            $servedSbom = [IO.Path]::ChangeExtension($servedBundle, '.cdx.json')
+            New-TestSbom -Path $servedSbom -Bundle $servedBundle
+            $document = Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json
+            $document.schemaVersion = 2
+            $document.PSObject.Properties.Remove('tooling')
+            $document.release.commit = $schemaTwoCommit
+            $document.release.commitTimestamp = $schemaTwoSeconds
+            $document.bundle.timestamp = $schemaTwoSeconds * 1000
+            $document.bundle.sha256 = Get-Sha256Hex $servedBundle
+            $document.bundle.sizeBytes = (Get-Item -LiteralPath $servedBundle).Length
+            $document.sbom.sha256 = Get-Sha256Hex $servedSbom
+            Set-Content -LiteralPath $releaseReceipt -Encoding UTF8 -Value ($document | ConvertTo-Json -Depth 16)
+            Invoke-FixtureGit -Root $releaseRepo -Arguments @('push', '--quiet', '--force', $publishedRepo,
+                "${schemaTwoCommit}:refs/tags/v$indexVersionHere") | Out-Null
+            Invoke-FixtureGit -Root $releaseRepo -Arguments @('tag', '--force', "v$indexVersionHere", $schemaTwoCommit) | Out-Null
+            $historicalRun = $publishedRun.Clone()
+            $historicalRun['ArtifactPath'] = $servedBundle
+            $said = Invoke-IndexPushCheck $historicalRun
+            Assert-True ($said -like '*schema 2*predates tooling reports*the receipt proves*') 'A hosted schema 2 release was forced into schema 3.'
+            $historicalRun['SkipAdvisoryCheck'] = $true
+            $said = Invoke-IndexPushCheck $historicalRun
+            Assert-True ($said -like '*SkipAdvisoryCheck: OSV was not asked about the libraries*') 'The historical schema 2 offline path changed silently.'
+        } finally {
+            $servedBundle = $releaseBundle
+            $servedSbom = $cleanServedSbom
+            [IO.File]::WriteAllBytes($releaseReceipt, $receiptBeforeHistorical)
+            Invoke-FixtureGit -Root $releaseRepo -Arguments @('push', '--quiet', '--force', $publishedRepo,
+                "${releaseCommit}:refs/tags/v$indexVersionHere") | Out-Null
+            Invoke-FixtureGit -Root $releaseRepo -Arguments @('tag', '--delete', "v$indexVersionHere") | Out-Null
         }
 
         # A release re-cut on GitHub onto another commit, here one with no catalog, while the clone
@@ -4881,8 +5205,8 @@ try {
             $said -like "*the receipt proves $($releaseNames.Count) patches on*from commit $($schemaOneCommit.Substring(0, 8))*") `
             "A receipt cut before the SBOM was not read as its own commit wrote it: $said"
         Save-ReleaseReceipt -Builds $releaseTarget.PackageVersions -Commit $schemaOneCommit -Seconds $schemaOneSeconds
-        Assert-Throws { Invoke-ReleaseCheck } '*schema version 2; its release is read at version 1*' `
-            'A schema 2 receipt was accepted for a commit whose builder wrote schema 1.'
+        Assert-Throws { Invoke-ReleaseCheck } '*schema version 3; its release is read at version 1*' `
+            'A schema 3 receipt was accepted for a commit whose builder wrote schema 1.'
     } finally {
         [System.IO.File]::WriteAllBytes($releaseReceipt, $receiptBytes)
     }

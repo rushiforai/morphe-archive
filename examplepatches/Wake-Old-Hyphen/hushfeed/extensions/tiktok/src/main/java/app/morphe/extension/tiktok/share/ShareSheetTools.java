@@ -7,9 +7,6 @@
 package app.morphe.extension.tiktok.share;
 
 import android.app.Activity;
-import android.graphics.drawable.Drawable;
-import android.os.SystemClock;
-import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -18,10 +15,8 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
-import app.morphe.extension.tiktok.interaction.TapConfirmation;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.Settings;
-import app.morphe.extension.tiktok.settings.L10n;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
@@ -39,8 +34,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
- * Share sheet tools: a confirm step before a video goes to a friend, and hiding of chosen
- * people or share options, or the whole "Send to" row.
+ * Share sheet tools: hiding of chosen people or share options, or the whole "Send to" row.
  *
  * Ids were read off the live view hierarchy with the share sheet open. TikTok 47.0.3 moved
  * the panel into its own window and renamed all four anchors. The 46.x names (ibc, u3t, dqr,
@@ -55,13 +49,13 @@ import java.util.WeakHashMap;
  * Every cell in the three rows carries its label as its content description, which is
  * what the hidden list matches against.
  *
- * The patch binds each recycled contact cell to the model's stable user or conversation id.
- * TikTok's common click dispatcher asks {@link #allowRecipientClick(View)} before it invokes
- * the native send callback, so touch, keyboard and accessibility activation all take the same
- * path and the native callback still runs exactly once after confirmation.
+ * There used to be a confirm step here, a second tap before a video went to a friend. On every
+ * build Hushfeed supports, a tap on a person only marks them chosen and TikTok's own Send button
+ * sends, and the method the step was hooked to was the contact cell's impression callback, which
+ * TikTok runs when a cell scrolls into view. So it asked for a second tap nobody had made a first
+ * time (#58) and never held a real one.
  */
 public final class ShareSheetTools {
-    private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     /** One family for everything that touches the sheet, so an export reads as one surface. */
     private static final String FAMILY = ShareModelFilter.FAMILY;
     private static final String[] CONTACTS_SECTION_IDS = {"47.0.3:ip5", "47.1.3:iql", "47.1.4:iql"};
@@ -69,39 +63,14 @@ public final class ShareSheetTools {
     private static final String[] CHANNELS_LIST_IDS = {"47.0.3:dwr", "47.1.3:dxb", "47.1.4:dxb"};
     private static final String[] ACTIONS_LIST_IDS = {"47.0.3:a5t", "47.1.3:a5u", "47.1.4:a5u"};
 
-    /**
-     * How long a first tap stays armed before a second tap is needed again. The settings row
-     * formats this number in, so the row and the window cannot drift apart.
-     */
-    public static final int ARM_WINDOW_SECONDS = 4;
-    private static final long ARM_WINDOW_MS = ARM_WINDOW_SECONDS * 1000L;
-
-    interface ConfirmationSettingReader {
-        boolean enabled();
-    }
-
-    private static final ConfirmationSettingReader DEFAULT_CONFIRMATION_SETTING_READER =
-            () -> Settings.SHARE_CONFIRM_SEND.get();
-    private static ConfirmationSettingReader confirmationSettingReader =
-            DEFAULT_CONFIRMATION_SETTING_READER;
-
     private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
 
     /** Original layout width of each cell this class has shrunk, so it can be restored. */
     private static final WeakHashMap<View, Integer> ORIGINAL_WIDTHS = new WeakHashMap<>();
 
-    /** The current model identity for each recycled native contact cell. */
-    private static final WeakHashMap<View, RecipientBinding> RECIPIENTS = new WeakHashMap<>();
-
     private static WeakReference<Activity> activityReference = new WeakReference<>(null);
     private static final GlobalLayoutHook LAYOUT_HOOK = new GlobalLayoutHook();
 
-    private static String armedRecipientId;
-    private static long armedAtMs;
-    private static WeakReference<View> armedCell = new WeakReference<>(null);
-    private static Drawable armedPreviousForeground;
-    private static Drawable armedRing;
-    private static int armGeneration;
     private static boolean applyPosted;
 
     private ShareSheetTools() {
@@ -158,17 +127,7 @@ public final class ShareSheetTools {
             addIds(activity, wanted, ACTIONS_LIST_IDS);
             List<Map<Integer, View>> found = indexRoots(roots, wanted);
             View contacts = find(activity, roots, found, CONTACTS_LIST_IDS);
-            if (contacts == null) {
-                // The sheet is closed. Its cells are gone, so the armed state is stale.
-                disarm();
-                RECIPIENTS.clear();
-            }
-
             List<String> hidden = entries(ShareModelFilter.hiddenItems());
-            boolean confirm = Settings.SHARE_CONFIRM_SEND.get();
-            if (!confirm) {
-                disarm();
-            }
 
             View contactsSection = find(activity, roots, found, CONTACTS_SECTION_IDS);
             boolean hideContacts = Settings.HIDE_SHARE_CONTACTS.get();
@@ -257,257 +216,21 @@ public final class ShareSheetTools {
         return false;
     }
 
-    // ---- confirm before sending --------------------------------------------------------
+    // ---- contact binds -----------------------------------------------------------------
 
     /**
-     * Called from the patched contact adapter each time a holder is bound. The AndroidX holder
-     * stays an Object here because AndroidX is owned by the host and is not part of the extension
-     * compile classpath. Its public {@code itemView} field is the native row the click dispatcher
-     * later supplies.
+     * Called from the patched contact adapter each time it binds a cell in the Send to row.
+     * 47.0.3 presents the panel in another WindowManager root, so the activity root's
+     * global-layout listener does not reliably observe its first layout. A contact bind happens
+     * while that window is being built, so it asks for one coalesced pass after the bind.
      */
-    public static void bindRecipient(Object holder, Object contact) {
+    public static void contactBound() {
         try {
-            View cell = itemViewOf(holder);
-            if (cell != null) {
-                bindRecipientView(cell, contact);
-            }
+            requestApply();
         } catch (Throwable ex) {
-            HookStatus.threw(FAMILY, "recipient bind", ex);
-            Logger.printException(() -> "Could not bind a share recipient", ex);
+            HookStatus.threw(FAMILY, "contact bind", ex);
+            Logger.printException(() -> "Could not schedule a share sheet pass after a contact bind", ex);
         }
-    }
-
-    /**
-     * The one gate in front of TikTok's native recipient callback. Returning false ends the
-     * native dispatcher before its Function0 is invoked; returning true lets that same dispatcher
-     * invoke it. Nothing here synthesizes another click.
-     */
-    public static boolean allowRecipientClick(View touched) {
-        final boolean confirmationEnabled;
-        try {
-            confirmationEnabled = confirmationSettingReader.enabled();
-        } catch (Throwable ex) {
-            try {
-                disarm();
-            } catch (Throwable cleanupEx) {
-                Logger.printException(() -> "Could not clear unread share confirmation", cleanupEx);
-            }
-            HookStatus.threw(FAMILY, "confirm setting", ex);
-            Logger.printException(() -> "Could not read share confirmation setting", ex);
-            // Repost, Copy link, Save and the rest of the share channels come through this same
-            // native dispatcher. A setting nobody can read is not a reason to eat their taps,
-            // and a sheet whose every button does nothing is exactly what a broken patch looks
-            // like from the outside. Hold the tap only where it is a person being sent to.
-            return !isBoundRecipient(touched);
-        }
-
-        if (!confirmationEnabled) {
-            try {
-                disarm();
-            } catch (Throwable ex) {
-                Logger.printException(() -> "Could not clear disabled share confirmation", ex);
-            }
-            return true;
-        }
-
-        try {
-            View cell = boundCellOf(touched);
-            RecipientBinding binding = RECIPIENTS.get(cell);
-            if (binding == null) {
-                // Not a recipient we bound. Repost, Copy link, Save and the other
-                // share-channel actions reach this same native dispatcher, and none of them
-                // is a person to confirm before sending to. Let the first tap through
-                // instead of arming a "tap again to send". Reposting a video used to arm
-                // this step and ask for a second tap before it would repost.
-                disarm();
-                return true;
-            }
-            String recipientId = binding.id;
-            String name = labelOf(cell);
-            long now = SystemClock.uptimeMillis();
-            boolean armed = cell == armedCell.get()
-                    && recipientId.equals(armedRecipientId)
-                    && now - armedAtMs < ARM_WINDOW_MS;
-            if (armed) {
-                disarm();
-                Logger.printDebug(() -> "Share recipient confirmed");
-                return true;
-            }
-
-            arm(cell, recipientId, name);
-            return false;
-        } catch (Throwable ex) {
-            HookStatus.threw(FAMILY, "confirm step", ex);
-            Logger.printException(() -> "Share confirm step failed", ex);
-            // Confirmation failures must consume the activation instead of reaching native send.
-            try {
-                disarm();
-            } catch (Throwable cleanupEx) {
-                Logger.printException(() -> "Could not clear failed share confirmation", cleanupEx);
-            }
-            // Same reasoning as the setting read above: a share channel is not a person, so a
-            // failure here leaves it to TikTok rather than making the sheet look broken.
-            return !isBoundRecipient(touched);
-        }
-    }
-
-    /**
-     * Whether this activation is on a cell bound to a person, decided without touching anything
-     * that can throw again. Called from the catch blocks, so it answers false on its own failure:
-     * an unknown cell is treated as a share channel and left to TikTok.
-     */
-    private static boolean isBoundRecipient(View touched) {
-        try {
-            return RECIPIENTS.get(boundCellOf(touched)) != null;
-        } catch (Throwable ex) {
-            Logger.printException(() -> "Could not tell a share recipient from a share action", ex);
-            return false;
-        }
-    }
-
-    static void bindRecipientView(View cell, Object contact) {
-        if (cell == null) {
-            return;
-        }
-        if (armedCell.get() == cell) {
-            disarm();
-        }
-        if (contact == null) {
-            RECIPIENTS.remove(cell);
-            return;
-        }
-        RECIPIENTS.put(cell, new RecipientBinding(stableRecipientId(contact)));
-        // 47.0.3 presents the panel in another WindowManager root, so the activity root's
-        // global-layout listener does not reliably observe its first layout. A recipient bind
-        // happens while that window is being built; run one coalesced pass after the bind.
-        requestApply();
-    }
-
-    private static void arm(View cell, String recipientId, String name) {
-        disarm();
-        armedRecipientId = recipientId;
-        armedAtMs = SystemClock.uptimeMillis();
-        armedCell = new WeakReference<>(cell);
-        armedPreviousForeground = cell.getForeground();
-
-        armedRing = TapConfirmation.armedRing(cell);
-        cell.setForeground(armedRing);
-        cell.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-
-        Utils.showToastShort(name == null
-                ? L10n.t("Tap again to send")
-                : L10n.f("Tap %1$s again to send", name));
-
-        final int token = armGeneration;
-        Utils.runOnMainThreadDelayed(() -> {
-            if (armGeneration == token) {
-                disarm();
-            }
-        }, ARM_WINDOW_MS);
-    }
-
-    private static void disarm() {
-        View cell = armedCell.get();
-        Drawable ring = armedRing;
-        Drawable previousForeground = armedPreviousForeground;
-        armedRecipientId = null;
-        armedAtMs = 0;
-        armedCell = new WeakReference<>(null);
-        armedPreviousForeground = null;
-        armedRing = null;
-        armGeneration++;
-        if (cell != null && cell.getForeground() == ring) {
-            cell.setForeground(previousForeground);
-        }
-    }
-
-    private static View itemViewOf(Object holder) throws ReflectiveOperationException {
-        if (holder == null) {
-            return null;
-        }
-        Class<?> type = holder.getClass();
-        while (type != null) {
-            try {
-                Field field = type.getDeclaredField("itemView");
-                field.setAccessible(true);
-                Object value = field.get(holder);
-                return value instanceof View ? (View) value : null;
-            } catch (NoSuchFieldException ignored) {
-                type = type.getSuperclass();
-            }
-        }
-        return null;
-    }
-
-    private static String stableRecipientId(Object contact) {
-        String conversation = stringMethod(contact, "getConversationId");
-        if (conversation != null) {
-            return "conversation:" + conversation;
-        }
-        String user = stringMethod(contact, "getUid");
-        if (user != null) {
-            return "user:" + user;
-        }
-        // Special action contacts do not identify a person. Object identity is conservative:
-        // it may ask again after a rebuild, but it can never confirm a different model instance.
-        return "model:" + contact.getClass().getName() + ":" + System.identityHashCode(contact);
-    }
-
-    private static String stringMethod(Object target, String name) {
-        try {
-            Method method = target.getClass().getMethod(name);
-            Object value = method.invoke(target);
-            if (value == null) {
-                return null;
-            }
-            String text = value.toString().trim();
-            return text.isEmpty() ? null : text;
-        } catch (ReflectiveOperationException ignored) {
-            return null;
-        }
-    }
-
-    private static View boundCellOf(View view) {
-        View current = view;
-        for (int depth = 0; current != null && depth < 5; depth++) {
-            if (RECIPIENTS.containsKey(current)) {
-                return current;
-            }
-            current = current.getParent() instanceof View ? (View) current.getParent() : null;
-        }
-        return cellOf(view);
-    }
-
-    static void resetForTests() {
-        disarm();
-        RECIPIENTS.clear();
-        confirmationSettingReader = DEFAULT_CONFIRMATION_SETTING_READER;
-    }
-
-    static void setConfirmationSettingReaderForTests(ConfirmationSettingReader reader) {
-        confirmationSettingReader = reader == null
-                ? DEFAULT_CONFIRMATION_SETTING_READER
-                : reader;
-    }
-
-    private static final class RecipientBinding {
-        final String id;
-
-        RecipientBinding(String id) {
-            this.id = id;
-        }
-    }
-
-    /** The contact cell is the nearest ancestor (or the view itself) that carries a label. */
-    static View cellOf(View view) {
-        View current = view;
-        for (int depth = 0; current != null && depth < 5; depth++) {
-            if (labelOf(current) != null) {
-                return current;
-            }
-            current = current.getParent() instanceof View ? (View) current.getParent() : null;
-        }
-        return view;
     }
 
     static String labelOf(View view) {
@@ -542,7 +265,7 @@ public final class ShareSheetTools {
      */
     private static void addIds(Activity activity, Set<Integer> ids, String[] candidates) {
         for (String name : candidates) {
-            int id = RESOURCE_IDS.resolve(activity.getResources(), APP_PACKAGE, name, false);
+            int id = RESOURCE_IDS.resolve(activity.getResources(), activity.getPackageName(), name, false);
             if (id != 0) ids.add(id);
         }
     }
@@ -593,7 +316,8 @@ public final class ShareSheetTools {
         boolean resolvedAny = false;
         String diagnostic = String.join("|", candidates);
         for (String name : candidates) {
-            int id = RESOURCE_IDS.resolve(activity.getResources(), APP_PACKAGE, name, false);
+            // The running package, not TikTok's: a cloned build renames it, resource table and all (#59).
+            int id = RESOURCE_IDS.resolve(activity.getResources(), activity.getPackageName(), name, false);
             if (id == 0) continue;
             resolvedAny = true;
             for (int root = 0; root < roots.size(); root++) {

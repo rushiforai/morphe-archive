@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.facebook.feed.hook.feedFilterHookPatch
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.requireLocals
@@ -34,15 +35,25 @@ internal const val UNIFIED_TRAY = 1
  * first instruction: ask the extension, and return null when it says so, which is what the method
  * returns when Facebook's own gates leave the tray out. The one local the hook uses holds nothing
  * yet at that point. Off by default: stories are people's own posts.
+ *
+ * The rows of Stories Facebook puts between posts are edges, DiscoverFeedUnit ones, so the feed
+ * guard this patch brings takes them out under the same switch (issue #45), and the tray too
+ * should it ever come as an edge, a StoriesTrayFeedUnit one. So do the single large Stories tile
+ * and the single person's Stories viewer the same model answers through its table of type names,
+ * StoriesOneColumnOneRowLargeTileFeedUnit and StoriesSingleBucketInlineViewerFeedUnit
+ * (StoriesBetweenPostsFixtureTest finds both in every declared build). Hide suggested and
+ * promoted posts takes out the rows of Stories from people you aren't connected to on its own
+ * switch.
  */
 @Suppress("unused")
 val hideStoriesTrayPatch = bytecodePatch(
     name = "Hide Stories tray",
-    description = "Removes the row of stories at the top of the news feed, Create story included.",
+    description = "Removes the row of stories at the top of the news feed, Create story included, and the rows " +
+        "of stories Facebook puts between posts.",
     default = false,
 ) {
     category("Feed")
-    dependsOn(settingsPatch)
+    dependsOn(settingsPatch, feedFilterHookPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {

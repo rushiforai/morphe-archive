@@ -5,6 +5,8 @@ import app.morphe.takes
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -15,7 +17,9 @@ import org.junit.Test
  * TikTok reads its own signing certificate through one cached self-package wrapper, and the patch
  * answers from the head of it. The wrapper carries an obfuscated name that moved between builds, so
  * the fingerprint matches on shape. This pins that the shape still finds exactly one method and that
- * the method has a local register for the entry hook's result.
+ * the method has a local register for the entry hook's result. It also pins that every Android 11
+ * install source read TikTok makes is one the patch stands in front of, so a build that starts
+ * reading something new off it fails here instead of reporting Morphe Manager.
  */
 class StoreIdentityAnchorsTest {
     @Test
@@ -40,5 +44,36 @@ class StoreIdentityAnchorsTest {
             }
             assertTrue("$version: the wrapper has no local for the hook's result (locals=$locals)", locals >= 1)
         }
+    }
+
+    @Test
+    fun `every install source read is one the patch answers on each build`() {
+        Fixtures.forEachDeclared { apk ->
+            val version = Fixtures.versionOf(apk)
+            val reads = sortedSetOf<String>()
+            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            container.dexEntryNames.forEach { entry ->
+                container.getEntry(entry)!!.dexFile.classes.forEach { classDef ->
+                    classDef.methods.forEach { method ->
+                        method.implementation?.instructions?.forEach { instruction ->
+                            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                                ?: return@forEach
+                            val read = ref.definingClass == INSTALL_SOURCE_INFO ||
+                                (ref.definingClass == PACKAGE_MANAGER && ref.name == "getInstallSourceInfo")
+                            if (read) reads += ref.toString()
+                        }
+                    }
+                }
+            }
+
+            assertTrue("$version: no install source read found", reads.any { "->getInstallSourceInfo(" in it })
+            val unanswered = reads - INSTALL_SOURCE_READS.keys
+            assertTrue("$version: install source reads the patch doesn't answer: $unanswered", unanswered.isEmpty())
+        }
+    }
+
+    private companion object {
+        const val PACKAGE_MANAGER = "Landroid/content/pm/PackageManager;"
+        const val INSTALL_SOURCE_INFO = "Landroid/content/pm/InstallSourceInfo;"
     }
 }

@@ -8,6 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -24,6 +26,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 /**
@@ -37,6 +40,8 @@ class HideAdsFixtureTest {
     @Test
     fun `each declared build has one feed merge and one injected check, and the patch hooks both`() {
         for (build in Fixtures.declaredBuilds()) {
+            FeedPageMergeFingerprint.clearMatch()
+            InjectedAdCheckFingerprint.clearMatch()
             val where = build.name
             val checks = FixtureDex.methodsWhere(build, { true }) { it.isInjectedCheck() }
             assertEquals("$where: static boolean methods reading the injected hash", 1, checks.size)
@@ -49,8 +54,8 @@ class HideAdsFixtureTest {
             val merge = merges.single()
 
             val getters = merge.instructions().mapNotNull { it.mediaGetter() }.distinct()
-            assertTrue("$where: the merge asks an item for its post: $getters", getters.isNotEmpty())
-            val getter = getters.first()
+            assertEquals("$where: the merge has one distinct item getter: $getters", 1, getters.size)
+            val getter = getters.single()
             val item = FixtureDex.classes(build, setOf(getter.definingClass))[getter.definingClass]
             assertNotNull("$where: the item class ${getter.definingClass} is in the build", item)
             assertTrue(
@@ -64,7 +69,7 @@ class HideAdsFixtureTest {
             }
             assertEquals("$where: Media's own methods that ask the injected check", 1, askers.size)
 
-            val context = PatchContexts.of(ExtensionDex.classes() + classes.values)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
             hideAdsPatch.execute(context)
 
             val patched = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
@@ -96,6 +101,55 @@ class HideAdsFixtureTest {
             assertEquals("$where: SettingsStatus.hideAds() answers true", Opcode.CONST_4, status[0].opcode)
             assertEquals(1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(Opcode.RETURN, status[1].opcode)
+        }
+    }
+
+    @Test
+    fun `two distinct Media getters are rejected rather than choosing the first`() {
+        for (build in Fixtures.declaredBuilds()) {
+            FeedPageMergeFingerprint.clearMatch()
+            InjectedAdCheckFingerprint.clearMatch()
+            val injected = FixtureDex.methodsWhere(build, { true }) { it.isInjectedCheck() }.single()
+            val classes = FixtureDex.classes(build, setOf(FEED_CACHE, MEDIA, injected.definingClass))
+            val merge = classes.getValue(FEED_CACHE).methods.single { it.isFeedMerge() }
+            val getter = merge.instructions().mapNotNull { it.mediaGetter() }.distinct().single()
+            val item = FixtureDex.classes(build, setOf(getter.definingClass)).getValue(getter.definingClass)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
+            val mutable = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
+            mutable.addInstructions(
+                0,
+                """
+                    check-cast v0, ${getter.definingClass}
+                    invoke-virtual { v0 }, ${getter.definingClass}->decoyPost()$MEDIA
+                """,
+            )
+            val error = assertThrows(PatchException::class.java) { hideAdsPatch.execute(context) }
+            assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("decoyPost"))
+        }
+    }
+
+    @Test
+    fun `repeated getters and unrelated prototypes do not create another target`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val injected = FixtureDex.methodsWhere(build, { true }) { it.isInjectedCheck() }.single()
+            val classes = FixtureDex.classes(build, setOf(FEED_CACHE, MEDIA, injected.definingClass))
+            val merge = classes.getValue(FEED_CACHE).methods.single { it.isFeedMerge() }
+            val getter = merge.instructions().mapNotNull { it.mediaGetter() }.distinct().single()
+            val item = FixtureDex.classes(build, setOf(getter.definingClass)).getValue(getter.definingClass)
+            for (code in listOf(
+                "invoke-virtual { v0 }, $getter",
+                "invoke-virtual/range { v0 .. v0 }, $getter",
+                "invoke-virtual { v0, v1 }, ${getter.definingClass}->decoyPost(Ljava/lang/String;)$MEDIA",
+            )) {
+                FeedPageMergeFingerprint.clearMatch()
+                InjectedAdCheckFingerprint.clearMatch()
+                val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
+                val mutable = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
+                mutable.addInstructions(0, "check-cast v0, ${getter.definingClass}\n$code")
+                hideAdsPatch.execute(context)
+                val stub = context.mutableClassDefBy(feedAds).methods.single { it.name == "itemMedia" }.instructions()
+                assertEquals("the actual no-argument getter is used", getter.toString(), stub.single { it.opcode == Opcode.INVOKE_VIRTUAL }.referenceText())
+            }
         }
     }
 

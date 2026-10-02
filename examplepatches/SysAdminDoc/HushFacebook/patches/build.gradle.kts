@@ -4,6 +4,7 @@ import app.morphe.patches.gradle.PatchesExtension
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.component.RootComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import java.io.ByteArrayOutputStream
@@ -144,6 +145,7 @@ object Sbom {
     fun key(id: ComponentIdentifier): String = when (id) {
         is ModuleComponentIdentifier -> "${id.group}:${id.module}:${id.version}"
         is ProjectComponentIdentifier -> "project ${id.projectPath}"
+        is RootComponentIdentifier -> "root"
         else -> throw GradleException("The SBOM can't name ${id.displayName}, a ${id::class.java.simpleName}.")
     }
 
@@ -162,6 +164,7 @@ object Sbom {
             val node = when (val id = component.id) {
                 is ModuleComponentIdentifier -> Node(key, "module", id.group, id.module, id.version)
                 is ProjectComponentIdentifier -> Node(key, "project", "", id.projectPath, "")
+                is RootComponentIdentifier -> Node(key, "root", "", "root", "")
                 else -> throw GradleException("The SBOM can't name ${id.displayName}, a ${id::class.java.simpleName}.")
             }
             nodes[key] = node
@@ -326,6 +329,116 @@ abstract class PayloadGraph : DefaultTask() {
         val root = graph.get()
         Sbom.writeGraph(output.get().asFile, payload.get(), Sbom.key(root.id), Sbom.walk(root),
             artifacts.get().map { it.substringBefore('\t') to File(it.substringAfter('\t')) })
+    }
+}
+
+/** Build/test provenance is separate from the libraries the bundle actually ships. */
+abstract class WriteToolingReport : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    abstract val bundle: RegularFileProperty
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val scopeManifest: RegularFileProperty
+
+    @get:Input
+    abstract val sourceCommit: Property<String>
+
+    @get:Input
+    abstract val sourceTree: Property<String>
+
+    @get:Input
+    abstract val bundleVersion: Property<String>
+
+    @get:Input
+    abstract val configuredScopes: ListProperty<String>
+
+    /** Absent conditional scopes and their registered-task check, captured during configuration. */
+    @get:Input
+    abstract val absentScopes: ListProperty<String>
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val graphs: ConfigurableFileCollection
+
+    @get:OutputFile
+    abstract val output: RegularFileProperty
+
+    @TaskAction
+    fun write() {
+        val resolved = graphs.files.map { Sbom.readGraph(it) }.sortedBy { it.payload }
+        val expected = configuredScopes.get().toSortedSet()
+        val actual = resolved.map { it.payload }
+        if (actual.size != actual.toSet().size || actual.toSet() != expected) {
+            throw GradleException("Tooling graphs do not cover the configured scopes. Missing: " +
+                (expected - actual.toSet()).joinToString(", ") + "; unexpected: " +
+                (actual.toSet() - expected).joinToString(", "))
+        }
+        val absent = absentScopes.get().associate { it.substringBefore('\t') to it.substringAfter('\t') }
+        val manifestText = scopeManifest.get().asFile.readText(Charsets.UTF_8)
+            .replace("\r\n", "\n").trimEnd('\n') + "\n"
+        val manifestEntries = manifestText.lines()
+            .map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }.map { line ->
+                val parts = line.split(Regex("\\s+"))
+                if (parts.size !in 2..3 || parts[0] !in setOf("required", "conditional") ||
+                    (parts[0] == "conditional") != (parts.size == 3)) {
+                    throw GradleException("Invalid tooling scope declaration: $line")
+                }
+                if (parts[1] !in expected && (parts[0] == "required" || parts[1] !in absent)) {
+                    throw GradleException("The tooling report is missing ${parts[1]}.")
+                }
+                linkedMapOf("id" to parts[1], "requirement" to parts[0],
+                    "status" to if (parts[1] in expected) "resolved" else "notConfigured")
+            }
+        if (manifestEntries.map { it.getValue("id") }.toSet().size != manifestEntries.size) {
+            throw GradleException("The tooling scope manifest contains a duplicate.")
+        }
+        val libraries = sortedMapOf<String, Sbom.Node>()
+        val artifactHashes = sortedMapOf<String, MutableSet<Pair<String, String>>>()
+        val carriers = sortedMapOf<String, MutableSet<String>>()
+        val scopes = resolved.map { graph ->
+            if (graph.root !in graph.nodes) throw GradleException("${graph.payload} has no graph root.")
+            for (node in graph.nodes.values) {
+                if (node.dependsOn.any { it !in graph.nodes }) {
+                    throw GradleException("${graph.payload} contains an unresolved graph edge.")
+                }
+                if (node.kind == "module") {
+                    libraries[node.key] = node
+                    carriers.getOrPut(node.key) { sortedSetOf() } += graph.payload
+                }
+            }
+            for ((owner, artifacts) in graph.artifacts) {
+                if (owner !in graph.nodes) throw GradleException("${graph.payload} has an artifact with no component.")
+                artifactHashes.getOrPut(owner) { mutableSetOf() }.addAll(artifacts)
+            }
+            linkedMapOf<String, Any>("id" to graph.payload, "status" to "resolved", "root" to graph.root,
+                "nodes" to graph.nodes.keys.sorted(), "edges" to graph.nodes.values.map { node ->
+                    linkedMapOf("from" to node.key, "to" to node.dependsOn.toList())
+                })
+        } + absent.entries.sortedBy { it.key }.map { (scope, reason) ->
+            linkedMapOf("id" to scope, "status" to "notConfigured", "reason" to reason)
+        }
+        val components = libraries.values.map { node ->
+            linkedMapOf("coordinate" to node.key, "group" to node.group, "name" to node.name,
+                "version" to node.version, "purl" to Sbom.purl(node.group, node.name, node.version),
+                "scopes" to carriers.getValue(node.key).toList(),
+                "artifacts" to (artifactHashes[node.key] ?: emptySet()).sortedWith(compareBy({ it.first }, { it.second }))
+                    .map { linkedMapOf("name" to it.first, "sha256" to it.second) })
+        }
+        val bundleFile = bundle.get().asFile
+        val document = linkedMapOf("schemaVersion" to 1,
+            "source" to linkedMapOf("commit" to sourceCommit.get(), "tree" to sourceTree.get()),
+            "bundle" to linkedMapOf("file" to bundleFile.name, "version" to bundleVersion.get(),
+                "sha256" to Sbom.sha256(bundleFile)),
+            "scopeManifest" to linkedMapOf("file" to "gradle/tooling-scopes.txt",
+                "sha256" to Sbom.sha256(manifestText.toByteArray(Charsets.UTF_8)), "entries" to manifestEntries),
+            "scopes" to scopes.sortedBy { it["id"].toString() }, "components" to components)
+        output.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(Sbom.json(document) + "\n", Charsets.UTF_8)
+        }
+        logger.lifecycle("Tooling report: ${resolved.size} resolved scopes, ${absent.size} not configured, ${components.size} module coordinates")
     }
 }
 
@@ -569,6 +682,83 @@ abstract class WriteReleaseSbom : DefaultTask() {
         target.parentFile.mkdirs()
         target.writeText(Sbom.json(document) + "\n", Charsets.UTF_8)
     }
+}
+
+// All configurations are now known. Each graph is resolved by a task on its owning project;
+// only files reach the aggregate, so it cannot read another project's configuration at execution.
+gradle.projectsEvaluated {
+    val scopeFile = rootProject.file("gradle/tooling-scopes.txt")
+    val required = scopeFile.readLines(Charsets.UTF_8).map { it.trim() }
+        .filter { it.isNotEmpty() && !it.startsWith("#") }.map { it.split(Regex("\\s+")) }
+    val configured = mutableListOf<String>()
+    val absent = mutableListOf<String>()
+    val producers = mutableListOf<TaskProvider<PayloadGraph>>()
+
+    fun record(owner: Project, scope: String, configuration: org.gradle.api.artifacts.Configuration) {
+        if (!configuration.isCanBeResolved) throw GradleException("Tooling scope $scope cannot be resolved.")
+        val index = producers.size
+        configured += scope
+        producers += owner.tasks.register<PayloadGraph>("toolingGraph$index") {
+            payload.set(scope)
+            graph.set(configuration.incoming.resolutionResult.rootComponent)
+            val libraries = configuration.incoming.artifactView { componentFilter { it is ModuleComponentIdentifier } }.artifacts
+            artifacts.set(libraries.resolvedArtifacts.map { resolved ->
+                resolved.map { Sbom.key(it.id.componentIdentifier) + "\t" + it.file.absolutePath }.sorted()
+            })
+            artifactFiles.from(libraries.artifactFiles)
+            output.set(owner.layout.buildDirectory.file("tooling/graph-$index.tsv"))
+        }
+    }
+    @Suppress("UNCHECKED_CAST")
+    val settings = rootProject.extensions.extraProperties["hushSettingsTooling"] as Map<String, Any>
+    configured += "settings/buildscript/classpath"
+    producers += rootProject.tasks.register<PayloadGraph>("toolingSettingsGraph") {
+        payload.set("settings/buildscript/classpath")
+        @Suppress("UNCHECKED_CAST")
+        graph.set(settings.getValue("graph") as org.gradle.api.provider.Provider<ResolvedComponentResult>)
+        @Suppress("UNCHECKED_CAST")
+        artifacts.set(settings.getValue("artifacts") as org.gradle.api.provider.Provider<List<String>>)
+        artifactFiles.from(settings.getValue("files"))
+        output.set(rootProject.layout.buildDirectory.file("tooling/settings-graph.tsv"))
+    }
+    for (owner in rootProject.allprojects.sortedBy { it.path }) {
+        record(owner, "${owner.path}/buildscript/classpath", owner.buildscript.configurations.getByName("classpath"))
+        for (configuration in owner.configurations.filter { it.isCanBeResolved }.sortedBy { it.name }) {
+            record(owner, "${owner.path}/configuration/${configuration.name}", configuration)
+        }
+    }
+    for (parts in required) {
+        if (parts.size !in 2..3 || parts[0] !in setOf("required", "conditional") ||
+            (parts[0] == "conditional") != (parts.size == 3)) {
+            throw GradleException("Invalid tooling scope declaration: ${parts.joinToString(" ")}")
+        }
+        if (parts[1] in configured) continue
+        if (parts[0] == "required") throw GradleException("Required tooling scope ${parts[1]} is missing.")
+        val owner = rootProject.project(parts[1].substringBefore("/configuration/"))
+        if (parts[2] in owner.tasks.names) {
+            throw GradleException("${parts[1]} is absent, but its ${parts[2]} task is registered.")
+        }
+        absent += parts[1] + "\tNo registered " + parts[2] + " task or resolvable configuration"
+    }
+    val commit = providers.exec {
+        commandLine("git", "rev-parse", "HEAD")
+        workingDir = rootProject.projectDir
+    }.standardOutput.asText.map { it.trim() }
+    val report = tasks.register<WriteToolingReport>("releaseTooling") {
+        group = "build"
+        description = "Records resolved settings, project build and test graphs separately from payload provenance"
+        dependsOn("buildAndroid")
+        bundle.set(layout.buildDirectory.file("release/patches-${project.version}.mpp"))
+        bundleVersion.set(project.version.toString())
+        scopeManifest.set(scopeFile)
+        sourceCommit.set(commit)
+        sourceTree.set(if (uncommittedChanges?.isEmpty() == true) "clean" else "dirty")
+        configuredScopes.set(configured.sorted())
+        absentScopes.set(absent.sorted())
+        graphs.from(producers.map { it.flatMap { task -> task.output } })
+        output.set(layout.buildDirectory.file("release/patches-${project.version}.tooling.json"))
+    }
+    tasks.named("buildAndroid") { finalizedBy(report) }
 }
 
 group = "app.morphe"

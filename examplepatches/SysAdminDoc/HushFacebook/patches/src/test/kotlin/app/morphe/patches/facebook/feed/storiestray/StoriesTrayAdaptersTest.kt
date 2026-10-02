@@ -149,7 +149,7 @@ class StoriesTrayAdaptersTest {
     @Test
     fun `the settings row and the README both say the switch waits for a restart`() {
         val row = File(RepoFiles.root,
-            "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/HushfacebookPreferenceFragment.java")
+            "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/FeedPages.java")
             .readText()
         val readme = File(RepoFiles.root, "README.md").readText()
         assertTrue("the row doesn't say the switch waits for a restart",

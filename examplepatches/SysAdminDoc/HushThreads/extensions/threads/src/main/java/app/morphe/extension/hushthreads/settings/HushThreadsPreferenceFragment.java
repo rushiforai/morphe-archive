@@ -240,8 +240,24 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             }
             if (build.contains(PatchFamily.DISABLE_ANALYTICS)) {
                 privacy.addPreference(toggle(context, Settings.DISABLE_ANALYTICS, L10n.t("Stop analytics uploads"),
-                        L10n.t("The usage and event logs Threads sends to Meta go to an address that doesn't answer. "
-                                + "Your feed, posts and replies work as before.")));
+                        L10n.t("Matched analytics addresses go to an address that doesn't answer. "
+                                + "Other telemetry may remain. Turn this off to use the original addresses.")));
+                int mask = SettingsStatus.analyticsAddressMask();
+                String coverage;
+                if (mask <= 0 || (mask & ~7) != 0) {
+                    coverage = L10n.t("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.");
+                } else {
+                    List<String> matched = new ArrayList<>();
+                    List<String> missing = new ArrayList<>();
+                    String[] kinds = {"PIGEON", "DEFAULT", "MQTT"};
+                    for (int i = 0; i < kinds.length; i++) {
+                        ((mask & (1 << i)) != 0 ? matched : missing).add(kinds[i]);
+                    }
+                    String found = L10n.isolate(String.join(", ", matched));
+                    String absent = missing.isEmpty() ? L10n.t("none") : L10n.isolate(String.join(", ", missing));
+                    coverage = L10n.f("Patched: %1$s. Missing: %2$s.", found, absent);
+                }
+                privacy.addPreference(info(context, L10n.t("Analytics address coverage"), coverage));
             }
         }
 

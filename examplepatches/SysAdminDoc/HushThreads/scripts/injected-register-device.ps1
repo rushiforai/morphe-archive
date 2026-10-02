@@ -1,26 +1,4 @@
-function Invoke-HushThreadsAdbCommand {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)][string]$Adb,
-        [Parameter(Mandatory = $true)][string[]]$Arguments,
-        [scriptblock]$Invoker
-    )
-
-    if ($Invoker) {
-        $result = & $Invoker $Adb $Arguments
-        if ($null -eq $result -or $null -eq $result.ExitCode) {
-            throw 'The ADB invoker returned no exit code.'
-        }
-        return [pscustomobject]@{
-            ExitCode = [int]$result.ExitCode
-            Output = @($result.Output | ForEach-Object { "$_" })
-        }
-    }
-
-    $PSNativeCommandUseErrorActionPreference = $false
-    $output = @(& $Adb @Arguments 2>&1 | ForEach-Object { "$_" })
-    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
-}
+. (Join-Path $PSScriptRoot 'device-install.ps1')
 
 function Format-HushThreadsAdbFailure {
     param([string]$Message, $Result)
@@ -43,6 +21,7 @@ function Invoke-AndroidVerifierTally {
     if ($Label -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$') {
         throw "Invalid verifier label: $Label"
     }
+    Assert-HushThreadsDeviceLease -Adb $Adb -Serial $Serial -AdbInvoker $AdbInvoker
 
     $remote = "/data/local/tmp/hushthreads-verify-$Label.apk"
     $directory = "/data/local/tmp/hushthreads-verify-$Label"
@@ -54,13 +33,13 @@ function Invoke-AndroidVerifierTally {
     # dex file.
     $localSize = (Get-Item -LiteralPath $Local).Length
     try {
-        $push = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker `
+        $push = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker -RequireLease `
             -Arguments @('-s', $Serial, 'push', $Local, $remote)
         if ($push.ExitCode -ne 0) {
             throw (Format-HushThreadsAdbFailure -Message "Could not push $Label to $Serial" -Result $push)
         }
 
-        $setup = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker `
+        $setup = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker -RequireLease `
             -Arguments @('-s', $Serial, 'shell', "rm -rf $directory && mkdir -p $directory")
         if ($setup.ExitCode -ne 0) {
             throw (Format-HushThreadsAdbFailure `
@@ -68,7 +47,7 @@ function Invoke-AndroidVerifierTally {
                 -Result $setup)
         }
 
-        $clear = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker `
+        $clear = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker -RequireLease `
             -Arguments @('-s', $Serial, 'logcat', '-c')
         if ($clear.ExitCode -ne 0) {
             throw (Format-HushThreadsAdbFailure `
@@ -80,7 +59,7 @@ function Invoke-AndroidVerifierTally {
             "--output-vdex=$directory/out.vdex --instruction-set=arm64 " +
             '--compiler-filter=verify --runtime-arg -Xmx1024m -j4; echo exit=$?; ' +
             'echo size=$(stat -c %s ' + $remote + ' 2>/dev/null || echo 0)'
-        $dex = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker `
+        $dex = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker -RequireLease `
             -Arguments @('-s', $Serial, 'shell', $dexCommand)
         if ($dex.ExitCode -ne 0) {
             throw (Format-HushThreadsAdbFailure `
@@ -100,7 +79,7 @@ function Invoke-AndroidVerifierTally {
             throw "dex2oat on $Label read a file of $readSize bytes on $Serial, not the $localSize bytes pushed."
         }
 
-        $logResult = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker `
+        $logResult = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker -RequireLease `
             -Arguments @('-s', $Serial, 'logcat', '-d')
         if ($logResult.ExitCode -ne 0) {
             throw (Format-HushThreadsAdbFailure `
@@ -134,7 +113,7 @@ function Invoke-AndroidVerifierTally {
         $cleanupFailures = [System.Collections.Generic.List[string]]::new()
         foreach ($remotePath in @($directory, $remote)) {
             try {
-                $cleanup = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker `
+                $cleanup = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker -RequireLease `
                     -Arguments @('-s', $Serial, 'shell', "rm -rf $remotePath")
                 if ($cleanup.ExitCode -ne 0) {
                     $cleanupFailures.Add((Format-HushThreadsAdbFailure `

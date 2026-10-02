@@ -13,34 +13,20 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
-import android.preference.TwoStatePreference;
 import android.text.InputType;
-import android.text.Layout;
-import android.text.util.Linkify;
-import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -53,7 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import app.morphe.extension.facebook.coexist.MessengerLinkCheck;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
@@ -65,7 +50,6 @@ import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.facebook.navigation.MarketplaceOnly;
-import app.morphe.extension.facebook.theme.AmoledTheme;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -75,9 +59,6 @@ import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
-import app.morphe.extension.shared.settings.preference.ClearLogBufferPreference;
-import app.morphe.extension.shared.settings.preference.ExportDiagnosticReportPreference;
-import app.morphe.extension.shared.settings.preference.ImmediateAction;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 /**
@@ -89,10 +70,12 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
  * what Pause can't reach is listed under the Pause switch. Switches are keyed by their setting,
  * which is how the shared fragment keeps them in sync with stored values. Every word is read from
  * {@link L10n} in the phone's language; the product names and the address stay as they are.
+ * Each section is built by its category page's class, {@link FeedPages} and the three beside it,
+ * from the row kinds in {@link SettingsRows} and {@link ValueRows} and the builders here.
  */
 @SuppressWarnings("deprecation")
 public final class HushfacebookPreferenceFragment extends AbstractPreferenceFragment
-        implements ReleaseCheck.Listener {
+        implements ReleaseCheck.Listener, SettingsRows, ValueRows {
     /** The repository as a link, and as a person reads it. ExtensionHostsTest reads the link. */
     static final String SOURCE_URL = "https://github.com/SysAdminDoc/Hushfacebook";
     static final String SOURCE_ADDRESS = SOURCE_URL.substring(SOURCE_URL.indexOf("://") + 3);
@@ -145,7 +128,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
 
     /** The Downloads section, where the running saves are listed, or null when no download patch is in. */
     @Nullable
-    private PreferenceCategory downloads;
+    PreferenceCategory downloads;
 
     /** The rows of the saves running now, by save number. */
     private final Map<Integer, SaveRow> saveRows = new HashMap<>();
@@ -280,585 +263,26 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         LogBufferManager.registerReportSection(ReleaseCheck.REPORT);
         Set<PatchFamily> build = PatchFamily.inThisBuild();
 
-        if (build.contains(PatchFamily.START_TAB) || build.contains(PatchFamily.MARKETPLACE_ONLY)) {
-            // First: it's what happens before anything the other rows change comes on screen.
-            PreferenceCategory opening = category(screen, L10n.t("Opening Facebook"));
-            if (build.contains(PatchFamily.MARKETPLACE_ONLY)) {
-                // Facebook builds the tab bar once, and the hook is asked then and not again.
-                opening.addPreference(toggle(context, Settings.MARKETPLACE_ONLY, L10n.t("Marketplace only"), ""));
-                opening.addPreference(toggle(context, Settings.MARKETPLACE_QUIET_NOTIFICATIONS,
-                        L10n.t("Quiet social notifications"),
-                        L10n.t("Silence video suggestions, memories, birthdays and friend suggestions while this mode is on. Messages and trading updates stay. Your other notification choices stay saved.")));
-                Row regular = new Row(context);
-                regular.actsAtOnce = true;
-                regular.setKey("action_regular_facebook");
-                regular.setTitle(L10n.t("Return to regular Facebook"));
-                regular.setSummary(L10n.t("Restore the normal tabs at the next restart. Your other settings stay saved."));
-                regular.setOnPreferenceClickListener(ignored -> {
-                    if (Settings.MARKETPLACE_ONLY.save(false)) {
-                        refreshSwitches();
-                        Utils.showToastLong(MarketplaceOnly.state() == MarketplaceOnly.State.RESTART_NEEDED
-                                ? L10n.t("Marketplace mode is off. Restart Facebook to restore its normal tabs.")
-                                : L10n.t("Marketplace mode is off."));
-                    } else {
-                        Utils.showToastLong(L10n.t("Couldn't save the change. Try again."));
-                    }
-                    return true;
-                });
-                opening.addPreference(regular);
-                opening.addPreference(toggle(context, Settings.MARKETPLACE_SKIP_FEED_PREFETCH,
-                        L10n.t("Skip feed preloading"),
-                        L10n.t("Reduce background feed loading while Marketplace mode is active. Some loading can still happen during startup.")));
-            }
-            if (build.contains(PatchFamily.START_TAB)) {
-                opening.addPreference(toggle(context, Settings.OPEN_ON_CHOSEN_TAB, L10n.t("Open on a chosen tab"),
-                        L10n.t("Choose where Facebook opens from its icon. Notifications and links still open their destination.")));
-                opening.addPreference(startTabRow(context));
-            }
-        }
-
-        if (build.contains(PatchFamily.SPONSORED_POSTS) || build.contains(PatchFamily.SUGGESTED_POSTS)
-                || build.contains(PatchFamily.STORIES_TRAY) || build.contains(PatchFamily.FEED_REELS)
-                || build.contains(PatchFamily.RETURN_REFRESH)
-                || build.contains(PatchFamily.AI_DETECTED_POSTS)
-                || build.contains(PatchFamily.SPONSORED_PROFILE_POSTS)
-                || build.contains(PatchFamily.AFFILIATE_LINKS)
-                || build.contains(PatchFamily.POST_WORDS)
-                || build.contains(PatchFamily.POST_PROMPTS)) {
-            PreferenceCategory feed = category(screen, L10n.t("News feed"));
-            if (build.contains(PatchFamily.SPONSORED_POSTS)) {
-                feed.addPreference(toggle(context, Settings.HIDE_SPONSORED_POSTS, L10n.t("Hide sponsored posts"),
-                        L10n.t("Paid ads in the feed. They're dropped before Facebook adds them, so no gap is left.")));
-                feed.addPreference(toggle(context, Settings.HIDE_PROMOTED_POSTS, L10n.t("Hide promoted posts"),
-                        L10n.t("Posts Facebook files as promotions rather than as ads.")));
-            }
-            // Profiles have no section of their own; their ads sit with the feed's.
-            if (build.contains(PatchFamily.SPONSORED_PROFILE_POSTS)) {
-                feed.addPreference(toggle(context, Settings.HIDE_SPONSORED_PROFILE_POSTS,
-                        L10n.t("Hide sponsored profile posts"),
-                        L10n.t("Ads between the posts on someone's profile or a Page. Their own posts stay.")));
-            }
-            // One switch covers the cards on reels and in the comment sheet too.
-            if (build.contains(PatchFamily.AFFILIATE_LINKS)) {
-                feed.addPreference(toggle(context, Settings.HIDE_AFFILIATE_LINKS,
-                        L10n.t("Hide affiliate product links"),
-                        L10n.t("The product cards of shop links creators add to posts, on reels, under feed posts and "
-                                + "in the comments. The \"Commission eligible\" label stays.")));
-            }
-            if (build.contains(PatchFamily.SUGGESTED_POSTS)) {
-                feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_POSTS,
-                        L10n.t("Hide page suggestions and Facebook's own promos"),
-                        L10n.t("\"Pages you may like\" cards and the cards Facebook uses to push its own features. "
-                                + "In-feed surveys go too.")));
-                feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_FOR_YOU,
-                        L10n.t("Hide \"Suggested for you\" posts"),
-                        L10n.t("Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.")));
-                // The Stories tray's cards are filtered by Hide suggested stories' hook, so the
-                // switch reaches them only when that patch is in too.
-                feed.addPreference(toggle(context, Settings.HIDE_PEOPLE_YOU_MAY_KNOW,
-                        L10n.t("Hide \"People you may know\""),
-                        build.contains(PatchFamily.SUGGESTED_STORIES)
-                                ? L10n.t("The row of friend suggestions between posts, the one on your own profile, "
-                                        + "and the cards with an Add button in the Stories tray.")
-                                : L10n.t("The row of friend suggestions between posts, and the one on your own profile.")));
-                feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_GROUPS,
-                        L10n.t("Hide suggested groups"),
-                        L10n.t("The row of groups to join between posts, with its Discover more groups button. "
-                                + "Posts from groups you're in stay.")));
-                feed.addPreference(toggle(context, Settings.HIDE_STORIES_YOU_MIGHT_LIKE,
-                        L10n.t("Hide \"Stories you might like\""),
-                        L10n.t("The row of Stories from people you aren't connected to that Facebook puts between "
-                                + "posts. Your friends' Stories and the Stories tray stay.")));
-            }
-            if (build.contains(PatchFamily.STORIES_TRAY)) {
-                // Facebook builds the feed's adapters once, when the feed is set up, and the tray is
-                // one of them. The hook is asked then and not again, so a change waits for a restart.
-                feed.addPreference(toggle(context, Settings.HIDE_STORIES_TRAY, L10n.t("Hide the Stories tray"),
-                        L10n.t("The row of stories at the top of the feed, Create story included.") + " "
-                                + L10n.t("The switch takes effect when Facebook restarts.")));
-            }
-            if (build.contains(PatchFamily.FEED_REELS)) {
-                feed.addPreference(toggle(context, Settings.HIDE_FEED_REELS, L10n.t("Hide Reels in the feed"),
-                        L10n.t("The rows of reels between posts, and the reels Facebook adds where your feed ends.")));
-            }
-            if (build.contains(PatchFamily.POST_PROMPTS)) {
-                feed.addPreference(toggle(context, Settings.HIDE_POST_PROMPTS, L10n.t("Hide post prompts"),
-                        L10n.t("The strip on some posts, like \"Are you interested in this post?\", \"Show less\" "
-                                + "or who recently commented, and the follow and chat suggestions in the same place. "
-                                + "The post stays.")));
-            }
-            if (build.contains(PatchFamily.RETURN_REFRESH)) {
-                feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
-                        L10n.t("Keep feed position on return"),
-                        L10n.t("Returning to Facebook within ten minutes keeps your place. Pull to refresh still works.")));
-                feed.addPreference(toggle(context, Settings.RETURN_REFRESH_NO_LIMIT,
-                        L10n.t("No time limit"),
-                        L10n.t("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.")));
-            }
-            if (build.contains(PatchFamily.AI_DETECTED_POSTS)) {
-                feed.addPreference(toggle(context, Settings.HIDE_AI_DETECTED_POSTS, L10n.t("Hide AI-detected posts"),
-                        L10n.t("Posts that Facebook's own detection marks as made with AI. A post that only its "
-                                + "creator labelled as AI stays. It's off by default because it hasn't been tested "
-                                + "on a real feed yet.")));
-                feed.addPreference(toggle(context, Settings.HIDE_AI_LABELLED_POSTS,
-                        L10n.t("Also hide posts labelled as AI"),
-                        L10n.t("Posts whose creator marked them as made with AI. Facebook puts its AI label next to "
-                                + "the name on these as well as on the posts its detection found, and with this on, "
-                                + "both kinds go. It's off by default because it hasn't been tested on a real feed "
-                                + "yet.")));
-            }
-            if (build.contains(PatchFamily.POST_WORDS)) {
-                feed.addPreference(toggle(context, Settings.HIDE_POSTS_WITH_WORDS,
-                        L10n.t("Hide posts with words you choose"),
-                        L10n.t("Posts whose text has a word or phrase from your list below. A post with a word from "
-                                + "your keep list stays, and so does a post with no text. Your words only leave the "
-                                + "phone in a settings file you export.")));
-                feed.addPreference(wordsRow(context, Settings.HIDDEN_WORDS, true));
-                feed.addPreference(wordsRow(context, Settings.KEPT_WORDS, false));
-            }
-        }
-
-        if (build.contains(PatchFamily.SPONSORED_STORIES) || build.contains(PatchFamily.SUGGESTED_STORIES)
-                || build.contains(PatchFamily.STORY_AUTO_ADVANCE) || build.contains(PatchFamily.STORY_SEEN)
-                || build.contains(PatchFamily.STORY_DOWNLOAD)) {
-            PreferenceCategory stories = category(screen, L10n.t("Stories"));
-            if (build.contains(PatchFamily.SPONSORED_STORIES)) {
-                stories.addPreference(toggle(context, Settings.HIDE_SPONSORED_STORIES, L10n.t("Hide sponsored stories"),
-                        L10n.t("Ad cards between the stories people posted.")));
-            }
-            if (build.contains(PatchFamily.SUGGESTED_STORIES)) {
-                // The tray's buckets are filtered as each answer of its fetch comes in, so a change
-                // shows when Facebook next loads the tray, not on the tray already drawn.
-                stories.addPreference(toggle(context, Settings.HIDE_SUGGESTED_STORIES,
-                        L10n.t("Hide suggested stories"),
-                        L10n.t("Keep friends and followed Pages in the Stories tray. Applies when Facebook next loads the tray.")));
-                stories.addPreference(toggle(context, Settings.HIDE_CONTACT_IMPORT_CARD,
-                        L10n.t("Hide \"Find friends from contacts\""),
-                        L10n.t("The Stories tray card asking to upload your contacts. Applies when Facebook next loads the tray.")));
-            }
-            if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
-                stories.addPreference(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE,
-                        L10n.t("Stop Story auto-advance"),
-                        L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.")));
-            }
-            if (build.contains(PatchFamily.STORY_SEEN)) {
-                stories.addPreference(toggle(context, Settings.VIEW_STORIES_ANONYMOUSLY,
-                        L10n.t("View stories anonymously"),
-                        L10n.t("Facebook isn't told which stories you watch, so you stay off their viewer lists. "
-                                + "Replying or reacting still shows you, and stories you've watched keep their "
-                                + "unwatched ring.")));
-            }
-            if (build.contains(PatchFamily.STORY_DOWNLOAD)) {
-                stories.addPreference(toggle(context, Settings.DOWNLOAD_STORIES, L10n.t("Save any story"),
-                        L10n.t("Add Save to every story menu, using your download quality. Off or paused, Facebook only saves your own stories.")));
-            }
-        }
-
-        // In every build: "How do I block Reels?" has four answers in four places (discussion #17),
-        // and the tab's answer is Facebook's own setting, so the map is here whatever was patched.
-        PreferenceCategory reels = category(screen, L10n.t("Reels and Watch"));
-        reels.addPreference(info(context, L10n.t("How to block Reels"),
-                L10n.t("Reels show up in four places, and each one has its own control.")));
-        reels.addPreference(reelsLink(context, build, PatchFamily.FEED_REELS, Settings.HIDE_FEED_REELS,
-                L10n.t("Reels in the feed"),
-                L10n.t("In News feed, Hide Reels in the feed blocks the rows of reels between posts.")));
-        reels.addPreference(reelsLink(context, build, PatchFamily.TAP_TO_PLAY, Settings.TAP_TO_PLAY,
-                L10n.t("Reels that play by themselves"),
-                L10n.t("In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.")));
-        // Without Hide the Reels tab, Facebook's own Hide is the answer, on the accounts that have it.
-        if (build.contains(PatchFamily.REELS_TAB)) {
-            reels.addPreference(reelsLink(context, build, PatchFamily.REELS_TAB, Settings.HIDE_REELS_TAB,
-                    L10n.t("The Reels tab"),
-                    L10n.t("In Reels and Watch, Hide the Reels tab blocks it after a restart.")));
-        } else {
-            reels.addPreference(info(context, L10n.t("The Reels tab"),
-                    L10n.f("Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose "
-                            + "Hide next to Reels, which some accounts call Video. If neither is listed, choose the "
-                            + "%1$s patch in Morphe Manager and patch again.",
-                            L10n.isolate(PatchFamily.REELS_TAB.patchName))));
-        }
-        reels.addPreference(reelsLink(context, build, PatchFamily.MARKETPLACE_ONLY, Settings.MARKETPLACE_ONLY,
-                L10n.t("Everything except Marketplace"),
-                L10n.t("In Opening Facebook, Marketplace only blocks the feed, the Reels tab and the other social "
-                        + "tabs after a restart.")));
-        if (build.contains(PatchFamily.REELS_TAB)) {
-            // Facebook keeps the tab bar it built, so a change waits for a restart and the page says so.
-            reels.addPreference(toggle(context, Settings.HIDE_REELS_TAB, L10n.t("Hide the Reels tab"),
-                    L10n.t("Take the Reels tab, called Video on some accounts, off the tab bar. Reel links and reels "
-                            + "in the feed still open. Changes show after Facebook restarts.")));
-        }
-        if (build.contains(PatchFamily.REELS_TAB_DOT)) {
-            reels.addPreference(toggle(context, Settings.HIDE_REELS_TAB_DOT, L10n.t("Hide the Reels tab dot"),
-                    L10n.t("No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.")));
-        }
-        if (build.contains(PatchFamily.REEL_PROMPTS)) {
-            reels.addPreference(toggle(context, Settings.HIDE_REEL_PROMPTS, L10n.t("Hide reel interest prompts"),
-                    L10n.t("No \"Are you interested in this reel?\" prompt on reels. The reel plays as usual.")));
-        }
-        // Both reel filters work on each batch of reels as it arrives, so a change leaves the
-        // reels already loaded as they are, and the rows say so.
-        if (build.contains(PatchFamily.SPONSORED_REELS)) {
-            reels.addPreference(toggle(context, Settings.HIDE_SPONSORED_REELS, L10n.t("Hide sponsored reels"),
-                    L10n.t("Ads inside Reels, starting with the next batch Facebook loads. Banners, mid-rolls "
-                            + "and app-inserted ads stay blocked even while paused.")));
-        }
-        if (build.contains(PatchFamily.AI_DETECTED_POSTS)) {
-            reels.addPreference(toggle(context, Settings.HIDE_AI_DETECTED_REELS,
-                    L10n.t("Hide AI-detected reels and videos"),
-                    L10n.t("Reels and Watch videos that Facebook's own detection marks as made with AI, starting "
-                            + "with the next batch Facebook loads. One that only its creator labelled as AI stays. "
-                            + "It's off by default because it hasn't been tested on a real account yet.")));
-        }
-        if (build.contains(PatchFamily.REEL_DECLUTTER)) {
-            reels.addPreference(toggle(context, Settings.HIDE_REEL_CHIPS,
-                    L10n.t("Hide prompts and promos under reels"),
-                    L10n.t("Remix, Use template, Add yours and Edits buttons, plus Stars, games, partner apps "
-                            + "and outside links. The song and other labels stay.")));
-            reels.addPreference(toggle(context, Settings.HIDE_REEL_FOLLOW_BUTTON,
-                    L10n.t("Hide the Follow button on reels"),
-                    L10n.t("The Follow button next to the reel's author. You can still follow them from their profile.")));
-            reels.addPreference(toggle(context, Settings.HIDE_REEL_SOCIAL_FOOTER,
-                    L10n.t("Hide comment and reaction previews"),
-                    L10n.t("The comment Facebook previews under a reel and the bubbles of friends who reacted. "
-                            + "Open the comments to see them all.")));
-        }
-        if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
-            reels.addPreference(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY,
-                    L10n.t("Don't send reel watch history"),
-                    L10n.t("Stop sending watched-reel lists to Facebook. It uses them to rank your feed, so watched reels may return.")));
-        }
-        if (build.contains(PatchFamily.DOUBLE_TAP_LIKE)) {
-            reels.addPreference(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE,
-                    L10n.t("Turn off double tap to like"),
-                    L10n.t("A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like "
-                            + "button work as before.")));
-        }
-        if (build.contains(PatchFamily.KEEP_REEL_SPEED)) {
-            reels.addPreference(toggle(context, Settings.KEEP_REEL_SPEED, L10n.t("Keep the reel speed"),
-                    L10n.t("A playback speed you pick in a reel's menu stays for the next reels until you pick another "
-                            + "or Facebook restarts. Off, every reel starts at normal speed.")));
-        }
-        if (build.contains(PatchFamily.REEL_HOLD)) {
-            reels.addPreference(toggle(context, Settings.HOLD_REEL_FOR_2X, L10n.t("Hold a reel for 2x"),
-                    L10n.t("Holding a reel plays it at double speed until you let go, in place of Facebook's long-press "
-                            + "menu. The reel's more button still opens that menu.")));
-        }
-        if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
-            reels.addPreference(toggle(context, Settings.DOWNLOAD_REELS, L10n.t("Download button on reels"),
-                    L10n.t("Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return.")));
-        }
-
-        if (build.contains(PatchFamily.DEFAULT_COMMENT_ORDER)) {
-            PreferenceCategory comments = category(screen, L10n.t("Comments"));
-            comments.addPreference(toggle(context, Settings.DEFAULT_COMMENT_ORDER, L10n.t("Default comment order"),
-                    L10n.t("Use the order below. A choice made on a post lasts until restart. Links to comments keep Facebook's order.")));
-            comments.addPreference(commentOrderRow(context));
-        }
-
-        if (build.contains(PatchFamily.TAG_SUGGESTIONS)) {
-            PreferenceCategory writing = category(screen, L10n.t("Writing"));
-            writing.addPreference(toggle(context, Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT,
-                    L10n.t("Tag suggestions only after @"),
-                    L10n.t("Type @ before Facebook suggests someone to tag in posts or comments. Your text stays unchanged.")));
-        }
-
-        if (build.contains(PatchFamily.TAP_TO_PLAY) || build.contains(PatchFamily.RESUME_LONG_VIDEOS)
-                || build.contains(PatchFamily.PLAYBACK_QUALITY)) {
-            PreferenceCategory playback = category(screen, L10n.t("Playback"));
-            if (build.contains(PatchFamily.TAP_TO_PLAY)) {
-                playback.addPreference(toggle(context, Settings.TAP_TO_PLAY, L10n.t("Tap to play"),
-                        L10n.t("Videos, reels, stories and music wait for your tap. Facebook's Autoplay setting temporarily reads Off.")));
-            }
-            if (build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
-                playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS, L10n.t("Resume long videos"),
-                        L10n.t("Resume videos over two minutes where you left off. Seek to start elsewhere. Reels, live videos and ads start as usual.")));
-            }
-            if (build.contains(PatchFamily.PLAYBACK_QUALITY)) {
-                playback.addPreference(toggle(context, Settings.DEFAULT_PLAYBACK_QUALITY, L10n.t("Default playback quality"),
-                        L10n.t("Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.")));
-                playback.addPreference(playbackQualityRow(context));
-            }
-        }
-
-        if (build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.REEL_DOWNLOAD)
-                || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
-            PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
-            this.downloads = downloads;
-            if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
-                downloads.addPreference(toggle(context, Settings.DOWNLOAD_VIDEOS, L10n.t("Download feed and Watch videos"),
-                        L10n.t("Add Download to phone to feed and Watch video menus. Uses the quality below. Off or paused, Facebook's menu returns.")));
-            }
-            // Every save reads it, a story's and a reel's as much as a feed video's, so it's here
-            // whichever download patch is in, above the quality it keeps within.
-            downloads.addPreference(toggle(context, Settings.DOWNLOAD_COMPATIBLE, L10n.t("Save videos other apps can open"),
-                    L10n.t("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves "
-                            + "without sound. May lower quality.")));
-            downloads.addPreference(qualityRow(context));
-            downloads.addPreference(saveToRow(context));
-            downloads.addPreference(folderRow(context));
-            downloads.addPreference(fileNameRow(context));
-            // Reels and feed and Watch videos can go to another app as a link (#41). A story can't:
-            // its link opens only for someone signed in, so no downloader could fetch it.
-            if (build.contains(PatchFamily.REEL_DOWNLOAD) || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
-                downloads.addPreference(downloadActionRow(context));
-                downloads.addPreference(sendAppRow(context));
-            }
-        }
-
-        if (build.contains(PatchFamily.MESSENGER_CARD) || build.contains(PatchFamily.MESSENGER_ICON)) {
-            PreferenceCategory chats = category(screen, L10n.t("Chats"));
-            if (build.contains(PatchFamily.MESSENGER_CARD)) {
-                chats.addPreference(toggle(context, Settings.HIDE_GET_MESSENGER_CARD, L10n.t("Hide the Get Messenger card"),
-                        L10n.t("The card at the top of Chats that asks you to get the Messenger app goes while Messenger "
-                                + "is installed. Without Messenger it stays, so you can still install it from there.")));
-            }
-            if (build.contains(PatchFamily.MESSENGER_ICON)) {
-                chats.addPreference(toggle(context, Settings.OPEN_MESSENGER_APP, L10n.t("Open the Messenger app"),
-                        L10n.t("A tap on the Messenger icon at the top of Facebook opens the Messenger app instead "
-                                + "of Chats. Without Messenger installed, Chats opens as before.")));
-            }
-        }
-
-        if (build.contains(PatchFamily.MENU_PROMOTIONS)) {
-            PreferenceCategory menu = category(screen, L10n.t("Menu"));
-            menu.addPreference(toggle(context, Settings.HIDE_MENU_UPGRADES, L10n.t("Hide Upgrades"),
-                    L10n.t("The Upgrades section and its offers leave Facebook's Menu. Settings, Help and support "
-                            + "and the rest of the Menu stay.")));
-            menu.addPreference(toggle(context, Settings.HIDE_MENU_ALSO_FROM_META, L10n.t("Hide Also from Meta"),
-                    L10n.t("The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps "
-                            + "and its ads for Meta's devices. Your own shortcuts stay.")));
-        }
-
-        if (build.contains(PatchFamily.META_AI_SEARCH) || build.contains(PatchFamily.SPONSORED_SEARCH)) {
-            PreferenceCategory search = category(screen, L10n.t("Search"));
-            if (build.contains(PatchFamily.META_AI_SEARCH)) {
-                search.addPreference(toggle(context, Settings.HIDE_META_AI_IN_SEARCH, L10n.t("Hide Meta AI in search"),
-                        L10n.t("Search results lose the Meta AI answer and the Ask Meta AI prompts, and a suggestion no "
-                                + "longer sends your search to Meta AI. People, groups, pages and posts stay, and the Meta "
-                                + "AI button still opens Meta AI.")));
-            }
-            if (build.contains(PatchFamily.SPONSORED_SEARCH)) {
-                search.addPreference(toggle(context, Settings.HIDE_SPONSORED_SEARCH_RESULTS,
-                        L10n.t("Hide sponsored search results"),
-                        L10n.t("Ads between the results when you search Facebook. What you searched for stays.")));
-            }
-        }
-
-        if (build.contains(PatchFamily.SPONSORED_MARKETPLACE)) {
-            PreferenceCategory marketplace = category(screen, L10n.t("Marketplace"));
-            marketplace.addPreference(toggle(context, Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS,
-                    L10n.t("Hide sponsored Marketplace listings"),
-                    L10n.t("Ads and boosted listings in Marketplace's feed and search results. The other "
-                            + "listings stay.")));
-        }
-
-        if (build.contains(PatchFamily.PROMO_NOTIFICATIONS)) {
-            PreferenceCategory notifications = category(screen, L10n.t("Notifications"));
-            notifications.addPreference(toggle(context, Settings.BLOCK_TRENDING_VIDEO_NOTIFICATIONS,
-                    L10n.t("Block trending video notifications"),
-                    L10n.t("Trending videos and the reels Facebook picked for you stop showing up in your "
-                            + "notifications.")));
-            notifications.addPreference(toggle(context, Settings.BLOCK_MEMORY_NOTIFICATIONS,
-                    L10n.t("Block memory notifications"),
-                    L10n.t("Facebook's \"On this day\" memories stop showing up in your notifications.")));
-            notifications.addPreference(toggle(context, Settings.BLOCK_BIRTHDAY_NOTIFICATIONS,
-                    L10n.t("Block birthday notifications"),
-                    L10n.t("No more reminders that it's a friend's birthday.")));
-            notifications.addPreference(toggle(context, Settings.BLOCK_HIGHLIGHT_NOTIFICATIONS,
-                    L10n.t("Block group and Page highlights"),
-                    L10n.t("Digests of what's going on in groups, Pages and creators you follow stop. Comments, "
-                            + "replies and mentions still come through.")));
-            notifications.addPreference(toggle(context, Settings.BLOCK_PEOPLE_YOU_MAY_KNOW_NOTIFICATIONS,
-                    L10n.t("Block \"People you may know\""),
-                    L10n.t("Friend suggestions stop showing up in your notifications. Friend requests still come "
-                            + "through.")));
-            notifications.addPreference(toggle(context, Settings.BLOCK_NEARBY_NOTIFICATIONS,
-                    L10n.t("Block nearby and weather notifications"),
-                    L10n.t("Alerts about places near you and about the weather stop.")));
-            notifications.addPreference(info(context, L10n.t("What always comes through"),
-                    L10n.t("Messages, friend requests, comments, mentions, calls and login alerts, and any kind "
-                            + "Hushfacebook doesn't know. Android's own settings for Facebook's notification "
-                            + "categories work too, since Facebook drops a notification whose category you turned "
-                            + "off. Facebook's server decides which categories you get, though, so they may not "
-                            + "split these kinds out.")));
-        }
-
-        // In every build: Android checks Facebook's links against Meta's signing key, which no
-        // re-signed build has, whatever its patches.
-        PreferenceCategory links = category(screen, L10n.t("Links"));
-        if (build.contains(PatchFamily.EXTERNAL_BROWSER)) {
-            links.addPreference(toggle(context, Settings.OPEN_LINKS_EXTERNALLY, L10n.t("Open links in your browser"),
-                    L10n.t("Open web links in your browser. Facebook's own pages stay in the app.")));
-        }
-        if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
-            links.addPreference(toggle(context, Settings.SANITIZE_SHARING_LINKS,
-                    L10n.t("Remove tracking from shared links"),
-                    L10n.t("Takes tracking tags such as mibextid off the links you share or copy. A "
-                            + "facebook.com/share/ link is made for one share, so Facebook can still trace it back to you.")));
-        }
-        links.addPreference(supportedLinksRow(context));
-        links.addPreference(info(context, L10n.t("Selecting links by hand"),
-                L10n.t("Android checks Facebook's links against Meta's signing key, which a re-signed build doesn't have. "
-                        + "Selecting the addresses sends their links here again. It doesn't restore Meta's verification, "
-                        + "and your other link settings stay as they are.")));
-
-        // In every build: the release check is the settings entry's own, not a patch's. Its switch
-        // is one Pause turns off, so it sits above the Pause row with the rest.
-        PreferenceCategory updates = category(screen, L10n.t("Updates"));
-        if (build.contains(PatchFamily.UPDATE_PROMPTS)) {
-            updates.addPreference(toggle(context, Settings.STOP_UPDATE_PROMPTS, L10n.t("Stop update prompts"),
-                    L10n.t("Facebook stops asking you to update through Meta App Manager and stops having it look for one. "
-                            + "Chat promotions aimed at older versions go too. A patched build can't install Meta's updates anyway.")));
-        }
-        updates.addPreference(toggle(context, Settings.CHECK_FOR_RELEASES, L10n.t("Check for new Hushfacebook releases"),
-                L10n.t("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.")));
-        updates.addPreference(checkNowRow(context));
-        ReleaseCheck.watch(this);
-
-        if (build.contains(PatchFamily.SYSTEM_FONT) || build.contains(PatchFamily.SYSTEM_EMOJI)) {
-            PreferenceCategory appearance = category(screen, L10n.t("Appearance"));
-            if (build.contains(PatchFamily.SYSTEM_FONT)) {
-                appearance.addPreference(toggle(context, Settings.USE_SYSTEM_FONT, L10n.t("Use the system font"),
-                        L10n.t("Use your phone's font or a file chosen below. Restart Facebook after changing it.")));
-                // The file the switch draws in, and, while one is picked, the way back to the phone's font.
-                // The way back goes in once whatever is picked, so it keeps its place right after Font file
-                // when a pick brings it back, rather than landing at the end of the section.
-                FontRow choose = new FontRow(this, context, FontFilePreference.CHOOSE);
-                choose.wayBack = new FontRow(this, context, FontFilePreference.PHONE_FONT);
-                appearance.addPreference(choose);
-                appearance.addPreference(choose.wayBack);
-                choose.show();
-            }
-            if (build.contains(PatchFamily.SYSTEM_EMOJI)) {
-                // The quick emoji picker keeps the first typeface it's given until Facebook restarts.
-                appearance.addPreference(toggle(context, Settings.USE_SYSTEM_EMOJI, L10n.t("Use the phone's emoji"),
-                        L10n.t("Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.")));
-            }
-        }
-
-        if (build.contains(PatchFamily.AD_PREFETCH) || build.contains(PatchFamily.AD_TELEMETRY)
-                || build.contains(PatchFamily.AUDIENCE_NETWORK) || build.contains(PatchFamily.AMOLED_THEME)
-                || build.contains(PatchFamily.MATERIAL_YOU_THEME) || build.contains(PatchFamily.RESTORE_TRUST)
-                || build.contains(PatchFamily.INSTALL_BESIDE_META_APPS)) {
-            PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
-            if (build.contains(PatchFamily.AD_PREFETCH)) {
-                patched.addPreference(mark(info(context, L10n.t("Background ad prefetch blocked"),
-                        L10n.t("Facebook doesn't download ads or its ad model in the background.")), SettingsIcons.BLOCK));
-            }
-            if (build.contains(PatchFamily.AD_TELEMETRY)) {
-                patched.addPreference(mark(info(context, L10n.t("Ad telemetry blocked"),
-                        L10n.t("No screenshot watching for ads, and no reports of which apps you install.")), SettingsIcons.TELEMETRY));
-            }
-            if (build.contains(PatchFamily.AUDIENCE_NETWORK)) {
-                patched.addPreference(mark(info(context, L10n.t("Audience Network off"),
-                        L10n.t("Facebook doesn't serve ads to other apps on this phone.")), SettingsIcons.NETWORK));
-            }
-            if (build.contains(PatchFamily.AMOLED_THEME)) {
-                patched.addPreference(mark(info(context, L10n.t("AMOLED black theme"),
-                        amoledSummary(AmoledTheme.backgroundColour())), SettingsIcons.MOON));
-            }
-            if (build.contains(PatchFamily.MATERIAL_YOU_THEME)) {
-                patched.addPreference(mark(info(context, L10n.t("Material You theme"),
-                        L10n.t("Facebook dark mode and this screen use your wallpaper colours. Android 11 uses blue "
-                                + "instead. Turn on Facebook dark mode to see it.")), SettingsIcons.APPEARANCE));
-            }
-            if (build.contains(PatchFamily.RESTORE_TRUST)) {
-                patched.addPreference(mark(info(context, L10n.t("Re-signed build fix"),
-                        L10n.t("Profiles and some Settings pages open again on this re-signed build.")), SettingsIcons.BUILD));
-            }
-            if (build.contains(PatchFamily.INSTALL_BESIDE_META_APPS)) {
-                patched.addPreference(mark(info(context, L10n.t("Room for Meta's apps"),
-                        L10n.t("Messenger, Facebook Lite, Business Suite and Workplace install beside this Facebook. "
-                                + "It gives the two permissions they share with it names of its own.")), SettingsIcons.PHONE));
-            }
-            patched.addPreference(info(context, L10n.t("Changing these"),
-                    L10n.t("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. "
-                            + "Patch again to change them.")));
-        }
-
-        // Named for its rows: the screen's own title already says Hushfacebook.
-        PreferenceCategory hushfacebook = category(screen, L10n.t("Pause, backup and diagnostics"));
-        hushfacebook.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause Hushfacebook"),
-                L10n.t("From the next start, every switch but Debug logging acts as if it were off. "
-                        + "Changes made when you patched stay in, and your choices stay saved.")), SettingsIcons.PATCHED));
-        String stays = PatchFamily.staysWhilePausedSummary(build);
-        // Morphe Manager can export the patch choices and the signing key, not these switches.
-        hushfacebook.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.EXPORT,
-                L10n.t("Export settings"),
-                L10n.t("Save your switches and download settings to a file. Pause and Debug logging aren't included, "
-                        + "and neither is the release check.")), SettingsIcons.EXPORT));
-        // The preview gives a count of the switches and the download settings' new values, not
-        // each switch by name.
-        hushfacebook.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.IMPORT,
-                L10n.t("Import settings"),
-                L10n.t("Choose a settings file. Before anything is imported, you'll see how many switches it "
-                        + "changes and any new download settings.")), SettingsIcons.DOWNLOADS));
-        // Debug logging also fills the exported report and turns on error toasts (Logger).
-        hushfacebook.addPreference(mark(toggle(context, BaseSettings.DEBUG, L10n.t("Debug logging"),
-                L10n.t("Record patch activity and show errors for a bug report. Leave off during normal use.")), SettingsIcons.BUG));
-        // A test for Debug logging only: a Messenger patched with this build's key, asked now
-        // instead of on Facebook's own schedule. Restore screens fills it in. The screen is built
-        // once, so the row comes and goes when settings open again after Debug logging changes: a
-        // row this page can only disable would sit greyed out in every build with Restore screens.
-        if (build.contains(PatchFamily.RESTORE_TRUST) && BaseSettings.DEBUG.get() && MessengerLinkCheck.available()) {
-            Preference link = new Row(context);
-            link.setTitle(L10n.t("Test the Messenger link"));
-            link.setSummary(L10n.t("Runs the two reads Facebook makes of Messenger at startup, now, and shows whether "
-                    + "each one answered. Shown while Debug logging is on."));
-            link.setPersistent(false);
-            link.setOnPreferenceClickListener(p -> {
-                MessengerLinkCheck.start(context);
-                return true;
-            });
-            hushfacebook.addPreference(mark(link, SettingsIcons.BUG));
-        }
-        // Both rows come without a title of their own: Hushfeed's gave them one from string
-        // resources that Facebook's APK doesn't have, and untitled they showed as blank rows.
-        ExportDiagnosticReportPreference export = new ExportRow(context);
-        export.setTitle(L10n.t("Export diagnostic report"));
-        export.setSummary(L10n.t("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies "
-                + "and sign-in tokens are left out. Check it for other private text before you share it."));
-        hushfacebook.addPreference(mark(export, SettingsIcons.LICENSE));
-        ClearLogBufferPreference clear = new ClearRow(context);
-        clear.setTitle(L10n.t("Clear diagnostic data"));
-        clear.setClearAndUndoSummaries(L10n.t("Empties the log and the filter counts a report would include."),
-                L10n.t("Diagnostic data cleared. Tap again to put it back."));
-        hushfacebook.addPreference(mark(clear, SettingsIcons.DELETE));
-        // Keep the detailed patch-time exception list after the controls people come here for.
-        if (stays != null) hushfacebook.addPreference(info(context, L10n.t(STAYS_WHILE_PAUSED), stays));
-
-        PreferenceCategory about = category(screen, L10n.t("About"));
-        about.addPreference(mark(info(context, L10n.t("Version"), L10n.f("Hushfacebook %1$s on Facebook %2$s",
-                L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()))), SettingsIcons.ABOUT));
-
-        Preference source = new Row(context);
-        source.setTitle(L10n.t("Source code and issues"));
-        source.setSummary(SOURCE_ADDRESS);
-        source.setPersistent(false);
-        source.setOnPreferenceClickListener(p -> {
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(SOURCE_URL)));
-            } catch (ActivityNotFoundException | SecurityException missing) {
-                // No browser, or none switched on. Uncaught, Android's exception closed Facebook.
-                Logger.printInfo(() -> "No app opened the source code link");
-                Utils.showToastLong(L10n.f("No app on this phone can open the link. The address is %1$s.",
-                        L10n.isolate(SOURCE_ADDRESS)));
-            }
-            return true;
-        });
-        about.addPreference(mark(source, SettingsIcons.OPENING));
-
-        // Section 7b asks that its notice reach the person using the software, and a file in the
-        // repository does not reach them.
-        Preference licenses = new Row(context);
-        licenses.setTitle(L10n.t("Licenses"));
-        licenses.setSummary(L10n.t("GPL-3.0, with the notices of the projects this is built on"));
-        licenses.setPersistent(false);
-        licenses.setOnPreferenceClickListener(p -> {
-            showNotice(context);
-            return true;
-        });
-        about.addPreference(mark(licenses, SettingsIcons.LICENSE));
+        // The sections in the order they come on the page, each in its category page's class.
+        FeedPages.opening(this, screen, context, build);
+        FeedPages.newsFeed(this, screen, context, build);
+        FeedPages.stories(this, screen, context, build);
+        VideoPages.reels(this, screen, context, build);
+        FeedPages.comments(this, screen, context, build);
+        FeedPages.writing(this, screen, context, build);
+        VideoPages.playback(this, screen, context, build);
+        VideoPages.downloads(this, screen, context, build);
+        AppPages.chats(this, screen, context, build);
+        AppPages.menu(this, screen, context, build);
+        AppPages.search(this, screen, context, build);
+        AppPages.marketplace(this, screen, context, build);
+        AppPages.notifications(this, screen, context, build);
+        AppPages.links(this, screen, context, build);
+        HushfacebookPages.updates(this, screen, context, build);
+        HushfacebookPages.appearance(this, screen, context, build);
+        HushfacebookPages.patched(this, screen, context, build);
+        HushfacebookPages.pause(this, screen, context, build);
+        HushfacebookPages.about(this, screen, context, build);
 
         // The overview shows it under the card by its key. Last in the model, it moves no other row.
         Preference lacking = missingDefaultsRow(context, build);
@@ -912,29 +336,6 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
-    /**
-     * One line of the Reels map. A tap goes to [setting]'s own row, and changes nothing. Without
-     * [family] in the build there's no row to go to, so the line names the patch to add instead
-     * and can't be tapped.
-     */
-    private Preference reelsLink(Context context, Set<PatchFamily> build, PatchFamily family, BooleanSetting setting,
-                                 String title, String summary) {
-        if (!build.contains(family)) {
-            return info(context, title, L10n.f("Not in this build. To block this, choose the %1$s patch in "
-                    + "Morphe Manager and patch again.", L10n.isolate(family.patchName)));
-        }
-        Row row = new Row(context);
-        row.setKey("action_show_" + setting.key);
-        row.setPersistent(false);
-        row.setTitle(title);
-        row.setSummary(summary);
-        row.setOnPreferenceClickListener(ignored -> {
-            Preference target = findPreference(setting.key);
-            return target != null && jumpTo(target);
-        });
-        return row;
-    }
-
     /** The page's section titles in the order they're on the page; a tap on one goes there. */
     void showSections(Context context) {
         List<Preference> sections = sections();
@@ -951,7 +352,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * shows once the view is gone or the activity is finishing: a word list's Save can land as the
      * activity goes, and its note would come up over a window that's gone.
      */
-    private void show(AlertDialog.Builder builder) {
+    void show(AlertDialog.Builder builder) {
         Activity activity = getActivity();
         if (getView() == null || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         AlertDialog dialog = builder.show();
@@ -1126,7 +527,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * Asks GitHub for the newest release now, and says what the last try found. The tap is the
      * request for that one check, so it runs with the switch off too.
      */
-    private Preference checkNowRow(Context context) {
+    Preference checkNowRow(Context context) {
         Row row = new Row(context);
         row.setKey(CHECK_NOW);
         row.setTitle(L10n.t("Check now"));
@@ -1148,7 +549,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * them (Morphe Manager #1028). The page opens over Facebook, so the row reads the state again
      * on the way back.
      */
-    private Preference supportedLinksRow(Context context) {
+    Preference supportedLinksRow(Context context) {
         Row row = new Row(context);
         row.setKey(SUPPORTED_LINKS);
         row.setTitle(L10n.t("Supported links"));
@@ -1349,7 +750,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         ScreenColors.recoveryMessage(row);
     }
 
-    private static PreferenceCategory category(PreferenceScreen screen, String title) {
+    static PreferenceCategory category(PreferenceScreen screen, String title) {
         PreferenceCategory category = new Heading(screen.getContext());
         category.setTitle(title);
         screen.addPreference(category);
@@ -1840,8 +1241,12 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         EditText field = row.getEditText();
         field.setSingleLine(false);
         field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        // A landscape IME's extracted editor replaces the dialog and hides Save and Cancel.
+        field.setImeOptions(field.getImeOptions() | EditorInfo.IME_FLAG_NO_FULLSCREEN
+                | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+        // No line cap: the list grows inside its dialog's scroll, which a field scrolling itself
+        // inside it would fight (#58).
         field.setMinLines(3);
-        field.setMaxLines(8);
         field.setHint(L10n.t("One word or phrase per line"));
         row.setText(setting.savedValue());
         row.setOnPreferenceChangeListener((preference, typed) -> {
@@ -1890,13 +1295,13 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return summary;
     }
 
-    private static Preference mark(Preference row, String icon) {
+    static Preference mark(Preference row, String icon) {
         ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
         row.setIcon(SettingsIcons.icon(row.getContext(), icon, colors.heading));
         return row;
     }
 
-    private static Preference info(Context context, String title, String summary) {
+    static Preference info(Context context, String title, String summary) {
         Preference preference = new Row(context);
         preference.setTitle(title);
         preference.setSummary(summary);
@@ -1920,132 +1325,6 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (summary != null) summary.setMaxLines(Integer.MAX_VALUE);
     }
 
-    /** A section title, which a screen reader announces as a heading so a reader can jump between sections. */
-    static final class Heading extends PreferenceCategory {
-        Heading(Context context) {
-            super(context);
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            view.setAccessibilityHeading(true);
-            showAllText(view);
-            ScreenColors.heading(view);
-        }
-    }
-
-    /** A row of text, which a screen reader calls a button when a tap does something. */
-    static final class Row extends Preference implements ImmediateAction {
-        /** Set on a row whose tap does what it says at once, which then goes without a chevron. */
-        boolean actsAtOnce;
-
-        Row(Context context) {
-            super(context);
-        }
-
-        @Override
-        public boolean actsOnTap() {
-            return actsAtOnce;
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(isSelectable() ? new RowSemantics(this, Button.class) : null);
-        }
-    }
-
-    /**
-     * A running save: what it is, what it's doing, how far it has got, and a Cancel button. Its text
-     * changes in place: a row rebuilt under a finger loses the tap on its button.
-     */
-    static final class SaveRow extends Preference {
-        /** Before every setting of the section, oldest save first. */
-        private static final int FIRST = Integer.MIN_VALUE / 2;
-
-        final int id;
-        private final boolean video;
-        private String status;
-        @Nullable
-        private View bound;
-
-        SaveRow(Context context, SaveControl.Running save) {
-            super(context);
-            id = save.id;
-            video = save.video;
-            status = SaveControl.status(save);
-            setKey("running_save_" + save.id);
-            setPersistent(false);
-            setSelectable(false);
-            setOrder(FIRST + save.id);
-            setTitle(video ? L10n.t("Saving a video") : L10n.t("Saving a photo"));
-        }
-
-        @Override
-        public CharSequence getSummary() {
-            return status;
-        }
-
-        void show(SaveControl.Running save) {
-            String next = SaveControl.status(save);
-            if (next.equals(status)) return;
-            status = next;
-            TextView summary = bound == null ? null : bound.findViewById(android.R.id.summary);
-            if (summary != null) summary.setText(next);
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            bound = view;
-            showAllText(view);
-            ScreenColors.row(view, this);
-            android.view.ViewGroup frame = view.findViewById(android.R.id.widget_frame);
-            if (frame == null) return;
-            frame.removeAllViews();
-            Button cancel = new Button(getContext());
-            cancel.setText(L10n.t("Cancel"));
-            // Two saves can be listed at once, so the button says whose it is.
-            cancel.setContentDescription(video ? L10n.t("Cancel saving this video") : L10n.t("Cancel saving this photo"));
-            cancel.setAllCaps(false);
-            cancel.setTextSize(14);
-            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
-            cancel.setTextColor(colors.heading);
-            cancel.setBackgroundColor(Color.TRANSPARENT);
-            int touch = Math.round(48 * view.getResources().getDisplayMetrics().density);
-            cancel.setMinWidth(touch);
-            cancel.setMinimumWidth(touch);
-            cancel.setMinHeight(touch);
-            cancel.setMinimumHeight(touch);
-            cancel.setPadding(touch / 4, 0, touch / 4, 0);
-            cancel.setOnClickListener(ignored -> {
-                cancel.setEnabled(false);
-                SaveControl.cancel(id);
-            });
-            frame.addView(cancel, new android.widget.LinearLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
-            frame.setVisibility(View.VISIBLE);
-        }
-    }
-
-    /** A switch row, which a screen reader calls a switch and reads as on or off. */
-    static final class Toggle extends SwitchPreference {
-        Toggle(Context context) {
-            super(context);
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Switch.class));
-        }
-    }
-
     /**
      * An edit dialog shrinks to fit above the keyboard instead of going under it. Android's own
      * EditTextPreference only asks for the keyboard, so at a large font size a long message pushed
@@ -2058,602 +1337,6 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         int mode = window.getAttributes().softInputMode;
         window.setSoftInputMode((mode & ~WindowManager.LayoutParams.SOFT_INPUT_MASK_ADJUST)
                 | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-    }
-
-    /**
-     * The save folder's row. Its summary follows its text, whoever sets it: the person, the shared
-     * page syncing it from the setting, or an import.
-     */
-    static final class FolderRow extends EditTextPreference {
-        FolderRow(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void setText(String text) {
-            super.setText(text);
-            setSummary(folderSummary(SaveFolder.sanitize(text)));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its edit dialog takes the screen's colours, as the other rows' dialogs do. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-            fitAboveKeyboard(getDialog());
-        }
-    }
-
-    /**
-     * A word list's row. Its summary follows its text, whoever sets it: the person, the shared page
-     * syncing it from the setting, or an import.
-     */
-    static final class WordsRow extends EditTextPreference {
-        final boolean hides;
-
-        WordsRow(Context context, boolean hides) {
-            super(context);
-            this.hides = hides;
-        }
-
-        @Override
-        public void setText(String text) {
-            super.setText(text);
-            setSummary(wordsSummary(text, hides));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its edit dialog takes the screen's colours, as the folder's does. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-            fitAboveKeyboard(getDialog());
-        }
-    }
-
-    /**
-     * The video file name's row. Its summary follows its text, whoever sets it: the person, the
-     * shared page syncing it from the setting, or an import.
-     */
-    static final class FileNameRow extends EditTextPreference {
-        @Nullable private TextView preview;
-        private java.util.Date previewDate;
-
-        FileNameRow(Context context) {
-            super(context);
-            getEditText().addTextChangedListener(new android.text.TextWatcher() {
-                @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
-                @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
-                    if (preview != null) preview.setText(previewName(text.toString(), previewDate));
-                }
-                @Override public void afterTextChanged(android.text.Editable text) { }
-            });
-        }
-
-        static String previewName(String text, java.util.Date when) {
-            return FileNameTemplate.videoName(FileNameTemplate.sanitize(text), when, "123456") + ".mp4";
-        }
-
-        @Override protected View onCreateDialogView() {
-            Context context = getContext();
-            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
-            int pad = Math.round(20 * context.getResources().getDisplayMetrics().density);
-            android.widget.LinearLayout content = new android.widget.LinearLayout(context);
-            content.setOrientation(android.widget.LinearLayout.VERTICAL);
-            content.setPadding(pad, pad / 2, pad, pad);
-            EditText field = getEditText();
-            if (field.getParent() instanceof android.view.ViewGroup) ((android.view.ViewGroup) field.getParent()).removeView(field);
-            content.addView(field, new android.widget.LinearLayout.LayoutParams(-1, -2));
-            TextView label = new TextView(context);
-            label.setText(L10n.t("Example without post details"));
-            label.setTextSize(12);
-            label.setTextColor(colors.summary);
-            label.setPadding(0, pad, 0, pad / 4);
-            content.addView(label);
-            previewDate = new java.util.Date();
-            preview = new TextView(context);
-            preview.setTextSize(14);
-            preview.setTextColor(colors.title);
-            preview.setText(previewName(getText(), previewDate));
-            content.addView(preview);
-            TextView help = new TextView(context);
-            help.setId(android.R.id.message);
-            help.setText(getDialogMessage());
-            help.setTextSize(14);
-            help.setTextColor(colors.summary);
-            help.setPadding(0, pad, 0, 0);
-            content.addView(help);
-            ScrollView scroll = new ScrollView(context);
-            scroll.addView(content);
-            return scroll;
-        }
-
-        @Override protected void onBindDialogView(View view) {
-            // The input is already in the custom scroll container, before its explanatory text.
-            getEditText().setText(getText());
-        }
-
-        @Override protected void onDialogClosed(boolean positive) {
-            super.onDialogClosed(positive);
-            preview = null;
-        }
-
-        @Override
-        public void setText(String text) {
-            super.setText(text);
-            setSummary(fileNameSummary(FileNameTemplate.sanitize(text)));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its edit dialog takes the screen's colours, as the folder's does. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-            fitAboveKeyboard(getDialog());
-        }
-    }
-
-    /**
-     * The download quality's row. Its summary follows its value, whoever sets it: the person, the
-     * shared page syncing it from the setting, or an import.
-     */
-    static final class QualityRow extends ListPreference {
-        QualityRow(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void setValue(String value) {
-            super.setValue(value);
-            showSummary();
-        }
-
-        void showSummary() {
-            DownloadQuality quality = DownloadQuality.BEST;
-            for (DownloadQuality candidate : DownloadQuality.values()) {
-                if (candidate.name().equals(getValue())) quality = candidate;
-            }
-            setSummary(qualitySummary(quality));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its list takes the screen's colours, as the other rows' dialogs do. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-        }
-    }
-
-    /**
-     * The Save to row. Its summary follows its value, whoever sets it: the person, the shared page
-     * syncing it from the setting, or an import.
-     */
-    static final class SaveToRow extends ListPreference {
-        SaveToRow(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void setValue(String value) {
-            super.setValue(value);
-            showSummary();
-        }
-
-        void showSummary() {
-            SaveTo to = SaveTo.MOVIES_AND_PICTURES;
-            for (SaveTo candidate : SaveTo.values()) {
-                if (candidate.name().equals(getValue())) to = candidate;
-            }
-            setSummary(saveToSummary(to));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its list takes the screen's colours, as the other rows' dialogs do. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-        }
-    }
-
-    /**
-     * The download action's row. Its summary follows its value, whoever sets it: the person or the
-     * shared page syncing it from the setting.
-     */
-    static final class DownloadActionRow extends ListPreference {
-        DownloadActionRow(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void setValue(String value) {
-            super.setValue(value);
-            showSummary();
-        }
-
-        void showSummary() {
-            setSummary(downloadActionSummary(SendLink.Action.SEND.name().equals(getValue())
-                    ? SendLink.Action.SEND : SendLink.Action.SAVE));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its list takes the screen's colours, as the other rows' dialogs do. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-        }
-    }
-
-    /**
-     * The send-to app's row. Its summary follows its text, whoever sets it: the person or the
-     * shared page syncing it from the setting.
-     */
-    static final class SendAppRow extends EditTextPreference {
-        SendAppRow(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void setText(String text) {
-            super.setText(text);
-            setSummary(sendAppSummary(text));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its edit dialog takes the screen's colours, as the folder's does. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-            fitAboveKeyboard(getDialog());
-        }
-    }
-
-    /**
-     * The start tab's row. Its summary follows its value, whoever sets it: the person, the shared
-     * page syncing it from the setting, or an import.
-     */
-    static final class StartTabRow extends ListPreference {
-        StartTabRow(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void setValue(String value) {
-            super.setValue(value);
-            showSummary();
-        }
-
-        void showSummary() {
-            StartTab tab = StartTab.MARKETPLACE;
-            for (StartTab candidate : StartTab.values()) {
-                if (candidate.name().equals(getValue())) tab = candidate;
-            }
-            setSummary(startTabSummary(tab));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its list takes the screen's colours, as the other rows' dialogs do. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-        }
-    }
-
-    /**
-     * The comment order's row. Its summary follows its value, whoever sets it: the person, the
-     * shared page syncing it from the setting, or an import.
-     */
-    static final class CommentOrderRow extends ListPreference {
-        CommentOrderRow(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void setValue(String value) {
-            super.setValue(value);
-            showSummary();
-        }
-
-        void showSummary() {
-            CommentOrder order = CommentOrder.FACEBOOK;
-            for (CommentOrder candidate : CommentOrder.values()) {
-                if (candidate.name().equals(getValue())) order = candidate;
-            }
-            setSummary(commentOrderSummary(order));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its list takes the screen's colours, as the other rows' dialogs do. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-        }
-    }
-
-    /**
-     * The playback quality's row. Its summary follows its value, whoever sets it: the person, the
-     * shared page syncing it from the setting, or an import.
-     */
-    static final class PlaybackQualityRow extends ListPreference {
-        PlaybackQualityRow(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void setValue(String value) {
-            super.setValue(value);
-            showSummary();
-        }
-
-        void showSummary() {
-            PlaybackQuality quality = PlaybackQuality.AUTO;
-            for (PlaybackQuality candidate : PlaybackQuality.values()) {
-                if (candidate.name().equals(getValue())) quality = candidate;
-            }
-            setSummary(playbackQualitySummary(quality));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its list takes the screen's colours, as the other rows' dialogs do. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
-        }
-    }
-
-    static final class ExportRow extends ExportDiagnosticReportPreference {
-        ExportRow(Context context) {
-            super(context);
-        }
-
-        /** The two choices as cards, each saying what it does under its name. */
-        @Override
-        protected ListAdapter choices(Context dialogContext) {
-            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
-            return new ChoiceCards(colors,
-                    new CharSequence[]{L10n.t(getContext(), "Copy quick report"),
-                            L10n.t(getContext(), "Save full report")},
-                    new CharSequence[]{L10n.t(getContext(), "Copy a short report to the clipboard."),
-                            L10n.t(getContext(), "Save the full report in Download/Morphe.")});
-        }
-
-        /**
-         * The screen's colours, before the dialog is shown so its first layout measures them. The
-         * cards bring their own spacing and press ripple, so the list draws no divider and no
-         * highlight of its own over them.
-         */
-        @Override
-        protected void onDialogCreated(AlertDialog dialog) {
-            ListView list = dialog.getListView();
-            if (list != null) {
-                list.setDivider(null);
-                list.setSelector(new ColorDrawable(Color.TRANSPARENT));
-            }
-            ScreenColors.dialog(dialog);
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-    }
-
-    static final class ClearRow extends ClearLogBufferPreference {
-        ClearRow(Context context) {
-            super(context);
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-    }
-
-    /** Font file, which opens the picker, or Use your phone's font, which acts at once. */
-    static final class FontRow extends FontFilePreference {
-        FontRow(HushfacebookPreferenceFragment page, Context context, int role) {
-            super(page, context, role);
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-    }
-
-    /** Export settings or Import settings. */
-    static final class BackupRow extends SettingsBackupPreference {
-        BackupRow(HushfacebookPreferenceFragment page, Context context, int action, String title, String summary) {
-            super(page, context, action, title, summary);
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-    }
-
-    /**
-     * What a screen reader hears about a row a tap acts on. The list itself gives such a row its
-     * place and a click action and no role, and the switch drawn in a switch row can't take
-     * focus, so on its own a switch row said neither that it was a switch nor whether it was on.
-     * A double tap goes through the list, the way a tap does, so the preference's own click runs.
-     */
-    static final class RowSemantics extends View.AccessibilityDelegate {
-        private final Preference preference;
-        private final Class<? extends View> role;
-
-        RowSemantics(Preference preference, Class<? extends View> role) {
-            this.preference = preference;
-            this.role = role;
-        }
-
-        @Override
-        public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
-            super.onInitializeAccessibilityNodeInfo(host, info);
-            AbsListView list = listOf(host);
-            int position = list == null ? AdapterView.INVALID_POSITION : list.getPositionForView(host);
-            if (position != AdapterView.INVALID_POSITION) {
-                list.onInitializeAccessibilityNodeInfoForItem(host, position, info);
-            }
-            info.setClassName(role.getName());
-            if (preference instanceof TwoStatePreference) {
-                info.setCheckable(true);
-                info.setChecked(((TwoStatePreference) preference).isChecked());
-            }
-            if (preference.isEnabled() && !info.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK)) {
-                info.setClickable(true);
-                info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
-            }
-        }
-
-        @Override
-        public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
-            super.onInitializeAccessibilityEvent(host, event);
-            // The click event is what a screen reader answers a double tap with, so it carries the
-            // state the tap left.
-            event.setClassName(role.getName());
-            if (preference instanceof TwoStatePreference) {
-                event.setChecked(((TwoStatePreference) preference).isChecked());
-            }
-        }
-
-        @Override
-        public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
-            AbsListView list = listOf(host);
-            if (action == AccessibilityNodeInfo.ACTION_CLICK && list != null && preference.isEnabled()) {
-                int position = list.getPositionForView(host);
-                if (position != AdapterView.INVALID_POSITION) {
-                    return list.performItemClick(host, position, list.getItemIdAtPosition(position));
-                }
-            }
-            return super.performAccessibilityAction(host, action, arguments);
-        }
-
-        @Nullable
-        private static AbsListView listOf(View row) {
-            return row.getParent() instanceof AbsListView ? (AbsListView) row.getParent() : null;
-        }
-    }
-
-    /**
-     * The notice itself stays in English, as the licence texts it carries are: a translation of
-     * the GPL is not the licence.
-     */
-    private void showNotice(Context context) {
-        TextView text = new TextView(context);
-        // NOTICE is hard-wrapped for a source file. Reflow prose on a narrow screen while keeping
-        // blank lines, headings, lists and the generated notice itself intact.
-        String notice = LicenseNotice.TEXT.replaceAll("(?<=[\\p{L}.,;])\\n(?=\\p{L})", " ")
-                .replaceAll("(?m)^(  .+?) {2,}(https?://[^\\n]+)$", "$1\n$2\n");
-        text.setText(notice);
-        text.setTextIsSelectable(true);
-        text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        text.setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY);
-        int pad = Math.round(16 * context.getResources().getDisplayMetrics().density);
-        text.setPadding(pad, pad, pad, pad);
-        text.setLineSpacing(Math.round(2 * context.getResources().getDisplayMetrics().density), 1.04f);
-        ScrollView scroll = new ScrollView(context);
-        scroll.addView(text);
-        ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
-        text.setTextColor(colors.summary);
-        text.setLinkTextColor(colors.heading);
-        Linkify.addLinks(text, Linkify.WEB_URLS);
-        show(new AlertDialog.Builder(context)
-                .setTitle(L10n.t("Licenses"))
-                .setView(scroll)
-                .setPositiveButton(L10n.t("OK"), null));
     }
 
     @Override

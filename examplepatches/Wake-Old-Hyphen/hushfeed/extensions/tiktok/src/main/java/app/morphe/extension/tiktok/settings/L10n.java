@@ -37,10 +37,13 @@ public final class L10n {
     private static final class Table {
         final String key;
         final Map<String, String> translations;
+        /** The language the text is shown in: the table's, or English when there is none. */
+        final Locale shown;
 
-        Table(String key, Map<String, String> translations) {
+        Table(String key, Map<String, String> translations, Locale shown) {
             this.key = key;
             this.translations = translations;
+            this.shown = shown;
         }
     }
 
@@ -62,7 +65,7 @@ public final class L10n {
         if (english == null || english.isEmpty()) {
             return english;
         }
-        Map<String, String> translations = tableFor(tags(context));
+        Map<String, String> translations = tableFor(tags(context)).translations;
         if (translations == null) {
             return english;
         }
@@ -91,8 +94,9 @@ public final class L10n {
      * decision, not {@code count == 1}: Indonesian has no "one" form and takes the other row for
      * 1, and a language with more forms than English (Polish, Russian, Arabic) keeps its extra
      * forms as rows keyed {@code other + "|" + category}, where the category is the CLDR name
-     * ("few", "many", "zero", "two"). A table with no such row falls back to its other form,
-     * which is what every hand-rolled {@code == 1} did for every count above one.
+     * ("few", "many", "zero", "two", and "one" for a one-category count other than 1). A table
+     * with no such row falls back to its other form, which is what every hand-rolled
+     * {@code == 1} did for every count above one.
      */
     public static String quantity(Context context, long count, String one, String other) {
         return quantity(context, count, one, other, new Object[]{count});
@@ -104,19 +108,24 @@ public final class L10n {
      * so the one form simply leaves the count unused.
      */
     public static String quantity(Context context, long count, String one, String other, Object... args) {
-        String category = pluralCategory(context, count);
-        String row = pluralRow(category, one, other, tableFor(tags(context)));
-        return format(row, "one".equals(category) ? one : other, args);
+        Table table = tableFor(tags(context));
+        String category = pluralCategory(table.shown, count);
+        String row = pluralRow(category, count, one, other, table.translations);
+        return format(row, oneForm(category, count) ? one : other, args);
     }
 
     /**
-     * The row a category takes: the one form's translation for "one", a {@code |category} row
-     * for a form English does not have, and the other form's translation for everything else.
-     * English itself when the table has no row. Kept apart from the phone so a table with more
-     * forms than any shipped language can be checked without one.
+     * The row a category takes: the one form's translation for a count of 1, a
+     * {@code |category} row for a form English does not have, and the other form's translation
+     * for everything else. English itself when the table has no row. Kept apart from the phone
+     * so a table with more forms than any shipped language can be checked without one.
+     *
+     * <p>The one form says "1" outright, so it only fits 1. A language whose one category takes
+     * other counts as well (Russian's 21 and 101, Brazilian Portuguese's 0) reads those from an
+     * {@code other|one} row, which carries the count, or from its other form when it has none.
      */
-    static String pluralRow(String category, String one, String other, Map<String, String> table) {
-        if ("one".equals(category)) {
+    static String pluralRow(String category, long count, String one, String other, Map<String, String> table) {
+        if (oneForm(category, count)) {
             return rowOrKey(table, one);
         }
         if (!"other".equals(category) && table != null) {
@@ -126,14 +135,27 @@ public final class L10n {
         return rowOrKey(table, other);
     }
 
+    private static boolean oneForm(String category, long count) {
+        return "one".equals(category) && count == 1;
+    }
+
     private static String rowOrKey(Map<String, String> table, String key) {
         String translated = table == null ? null : table.get(key);
         return translated == null || translated.isEmpty() ? key : translated;
     }
 
-    /** The plural category the phone's first language gives {@code count}. */
+    /**
+     * The plural category {@code count} takes in the language the settings are shown in. That
+     * is the table's language, not the phone's first one: a phone set to Japanese and then
+     * Russian reads Russian words, and Japanese rules gave them "1 результатов". A phone with no
+     * table reads English, by English rules.
+     */
     static String pluralCategory(Context context, long count) {
-        Locale locale = locales(context).get(0);
+        return pluralCategory(tableFor(tags(context)).shown, count);
+    }
+
+    /** The plural category {@code locale}'s language gives {@code count}. */
+    static String pluralCategory(Locale locale, long count) {
         if (Build.VERSION.SDK_INT >= 24) {
             try {
                 return android.icu.text.PluralRules.forLocale(locale).select(count);
@@ -215,8 +237,12 @@ public final class L10n {
         return Collections.singletonList(Locale.getDefault());
     }
 
-    /** The first tag with a table, remembered until the phone's languages change. */
-    private static Map<String, String> tableFor(List<String> tags) {
+    /**
+     * The first tag with a table, remembered until the phone's languages change. English ends
+     * the search: it is the text itself, so a phone that lists it ahead of German reads English,
+     * as TikTok does, rather than the first language further down with a table.
+     */
+    private static Table tableFor(List<String> tags) {
         StringBuilder builder = new StringBuilder();
         for (String tag : tags) {
             builder.append(tag).append(',');
@@ -225,17 +251,30 @@ public final class L10n {
 
         Table table = cached;
         if (table != null && key.equals(table.key)) {
-            return table.translations;
+            return table;
         }
 
         Map<String, String> found = null;
+        Locale shown = Locale.ENGLISH;
         for (String tag : tags) {
+            if (tag.equals("en") || tag.startsWith("en-r")) {
+                break;
+            }
             found = L10nTranslations.of(tag);
             if (found != null) {
+                shown = localeOf(tag);
                 break;
             }
         }
-        cached = new Table(key, found);
-        return found;
+        table = new Table(key, found, shown);
+        cached = table;
+        return table;
+    }
+
+    /** A table tag as a locale: "pt-rbr" is Portuguese in Brazil, whose plural rule differs. */
+    private static Locale localeOf(String tag) {
+        int region = tag.indexOf("-r");
+        return region < 0 ? new Locale(tag)
+                : new Locale(tag.substring(0, region), tag.substring(region + 2).toUpperCase(Locale.ROOT));
     }
 }

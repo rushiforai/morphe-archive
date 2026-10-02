@@ -50,9 +50,12 @@ public class VerifyKyodemoRouting {
                         .equals(KyodemoRouting.idSearchUrl("bbs.eddibb.cc", "liveedge",
                                 "op3na4RR/", "1707378532", "20240208")),
                 "ID must be safely encoded with board, thread, and date context");
-        check("https://www.kyodemo.net/sdemo/b/news4vip/?bs=hi&k=abcd"
+        check("https://www.kyodemo.net/sdemo/b/news4vip/?bs=hi&k=%DC%AF%C1%AE%B2+abcd-EFGH"
                         .equals(KyodemoRouting.wacchoiSearchUrl("egg.5ch.io", "news4vip", "ﾜｯﾁｮｲ abcd-EFGH")),
-                "Wacchoi must use the prefix accepted by Kyodemo's ID/ﾜｯﾁｮｲ search");
+                "Wacchoi must retain its full token and use a Shift_JIS label");
+        check("https://www.kyodemo.net/sdemo/b/netidol/?bs=hi&k=%DC%AF%C1%AE%B2+b7e9-cwxD"
+                        .equals(KyodemoRouting.wacchoiSearchUrl("egg.5ch.io", "netidol", "b7e9-cwxD")),
+                "Regression: the reported SLIP must not become an ID-prefix search");
         check(KyodemoRouting.boardSlug("talk.jp", "newsplus") == null,
                 "Unsupported sites must not be given a false result");
         check(KyodemoRouting.boardSlug("evil.bbs.eddibb.cc", "liveedge") == null,

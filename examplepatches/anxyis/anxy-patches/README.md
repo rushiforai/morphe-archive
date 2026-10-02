@@ -1,4 +1,4 @@
-# 🔮 anxy Morphe Patches
+# ✦ anxy's morphe patches
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/anxyis/anxy-patches/release.yml)
 ![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)
@@ -7,44 +7,48 @@
 <br/>
 
 > [!TIP]
-> **One-Tap Morphe Import**: If you have **Morphe Manager** installed on your Android device, tap [**Add to Morphe Manager**](https://morphe.software/add-source?github=anxyis/anxy-patches) to automatically add this repository as a remote source!
+> **One-Tap Morphe Import**: If you have **Morphe Manager** on your Android device, tap [**Add to Morphe Manager**](https://morphe.software/add-source?github=anxyis/anxy-patches) to automatically add this repository as a remote source!
 
 <br/>
 
 | App | Package | Patches |
 |---|---|---|
-| **Alight Motion** 🎯 | `com.alightcreative.motion` | <ul><li>Premium Unlock (Complete Suite — 5.0.270)</li><li>PairIP License Bypass + Force-Update Suppression</li><li>Membership & Settings Gates Unlock</li><li>Device Capability Unlock (Max Res/Layers)</li><li>Encoder / Effect / Import Features Unlock</li><li>Effects Content Bundle (353 effects + thumbnails)</li><li>Dev Settings Extras + Home Declutter</li></ul> |
+| **Alight Motion** ◈ | `com.alightcreative.motion` | <ul><li>Premium Unlock (Complete Suite — 5.0.270)</li><li>PairIP License Bypass + Force-Update Suppression</li><li>Membership & Settings Gates Unlock</li><li>Device Capability Unlock (Max Res/Layers)</li><li>Encoder / Effect / Import Features Unlock</li><li>Effects Content Bundle (353 effects + thumbnails)</li><li>Dev Settings Extras + Home Declutter</li></ul> |
 
 <br/>
 
-🎯 _This app has strict target version requirements defined in the patch (e.g. `5.0.273.1028426`, `5.0.273`, `5.0.270.1002578`)._\
-💻 _These patches include native AArch64 code modifications targeting `arm64-v8a` CPUs._
+◈ _Strict target version requirements (e.g. `5.0.273.1028426`, `5.0.273`, `5.0.270.1002578`)._\
+⚙ _Includes native AArch64 code modifications targeting `arm64-v8a` CPUs._
 
 <br/>
 
 ---
 
-## Frequently Asked Questions 🙋
+## FAQ ✦
 
 #### How do I use this with Morphe Manager?
-1. Open [**this link**](https://morphe.software/add-source?github=anxyis/anxy-patches) directly on your Android phone, or manually add `anxyis/anxy-patches` under **Morphe Manager** &rarr; **Settings** &rarr; **Sources**.
-2. Select your target application APK (e.g. Alight Motion `5.0.270`).
-3. Select the desired patches and tap **Patch**!
+1. Open [**this link**](https://morphe.software/add-source?github=anxyis/anxy-patches) on your phone, or add `anxyis/anxy-patches` manually under **Morphe Manager** &rarr; **Settings** &rarr; **Sources**.
+2. Pick your base APK (e.g. Alight Motion `5.0.270`).
+3. Select your patches and hit **Patch**!
 
 > [!NOTE]
-> **Where to get the original 5.0.270 APK:** open [APKMirror's Alight Motion uploads](https://www.apkmirror.com/uploads?appcategory=alight-motion-video-and-animation-editor) and download **version `5.0.270.1002578`** (not the newest one).
+> **Where to get the clean 5.0.270 APK:** grab **version `5.0.270.1002578`** directly from [APKMirror's Alight Motion uploads](https://www.apkmirror.com/uploads?appcategory=alight-motion-video-and-animation-editor) (not the latest one).
 
-#### What does the Alight Motion suite do?
-It unlocks the full premium function set on `5.0.270.1002578`:
-- **Premium state + membership gates** — all Pro-gated UI and features.
-- **PairIP license bypass** — no license checks, no paywalls, no forced update.
-- **Device capability unlock** — max export resolution and layer counts.
-- **Encoder / effect / import features** — previously gated codecs and tools.
-- **Effects content bundle** — 353 effect XMLs + thumbnails + banner.
-- **Dev Settings extras + home declutter** — extra toggles, no tutorial button.
+#### What does the Alight Motion suite actually do?
+Unlocks the full pro feature set cleanly on `5.0.270.1002578` without needing sketchy pre-modded APKs:
+- **Pro / Membership gates** — all pro-only UI, tools, and export toggles.
+- **PairIP license bypass** — kills license checks, paywalls, and force-update screens.
+- **Device capability unlock** — max export resolution and layer limits.
+- **Encoder / effect / import features** — previously locked codecs and tools.
+- **Effects content bundle** — 353 extra effect XMLs + thumbnails + banner.
+- **Dev settings + cleaner home** — extra dev toggles, drops the tutorial clutter.
 
 #### Will more apps be added?
-Yes! The repository is structured to modularly support additional applications over time.
+Yeah! The repo is set up modularly so more apps can be added as patches get made.
+
+#### What's in the works next? (o゜▽゜)o☆
+- **Newer versions:** bringing the full unlock suite to newer base releases like `5.0.273+`.
+- **Self-contained .zip project import / export:** normal XML exports kind of suck because they strip out all your media (music, video clips, images), while cloud project links force you into subscription accounts. Looking into building a custom .zip import/export patch so you can bundle the project XML and all media assets together into one portable file. That way you can share full projects anywhere (Google Drive, Telegram, local storage) without touching Alight's cloud infrastructure.
 
 ---
 

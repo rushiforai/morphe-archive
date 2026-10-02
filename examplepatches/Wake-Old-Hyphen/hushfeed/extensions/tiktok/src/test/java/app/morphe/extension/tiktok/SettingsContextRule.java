@@ -63,6 +63,17 @@ public final class SettingsContextRule extends ExternalResource {
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Could not clear the running values", exception);
         }
+        // A comment button an earlier test registered stays attached to that test's activity,
+        // which nothing destroys, and a gesture set to comments presses whichever button is on
+        // screen, so it could press that one.
+        try {
+            Field comments = app.morphe.extension.tiktok.interaction.GestureActions.class
+                    .getDeclaredField("COMMENTS");
+            comments.setAccessible(true);
+            ((java.util.Map<?, ?>) comments.get(null)).clear();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Could not clear the comment buttons", exception);
+        }
     }
 
     @Override

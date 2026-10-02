@@ -9,7 +9,7 @@ object MXPlayerCompatibility {
         name = "MX Player Pro",
         packageName = "com.mxtech.videoplayer.pro",
         apkFileType = ApkFileType.APK,
-        appIconColor = 0xFFF44336,
+        appIconColor = 0xFFF44336.toInt(),
         targets = listOf(
             AppTarget(version = "2.2.4")
         )

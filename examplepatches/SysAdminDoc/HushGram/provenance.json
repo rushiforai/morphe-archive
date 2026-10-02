@@ -1,0 +1,257 @@
+{
+  "note": "Where every shipped source file under patches/ and extensions/ came from, and the scripts ported with them, which their rules name one by one. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it. A Meta-app repository named here also has to be allowed by sources/instagram-sources.json.",
+  "rules": [
+    {
+      "paths": [
+        "extensions/shared/**",
+        "patches/src/main/kotlin/app/morphe/util/**",
+        "patches/src/main/kotlin/app/morphe/patches/shared/**",
+        "patches/stub/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/extension/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/settings/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/settings/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/LinkCleaner.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Packages moved from app.morphe.extension to app.hushgram.extension so the payload can't collide with another Morphe source's classes. Instagram's hosts and cookie names in DiagnosticRedactor, Instagram wording in user-facing messages, HushfacebookPause renamed HushgramPause with its keys and marker file. The settings screen cut down to HushGram's patches: no Material You theme, search, section navigation, backups, release check or downloads. The Facebook compatibility target replaced with Instagram 449.0.0.52.84 and its two signer digests. LinkCleaner's key lists replaced with Instagram's own and limited to Instagram's hosts, with clipboard and share sheet stand-ins added. The extension and settings patches rewritten for InstagramAppShell and InstagramMainActivity. The translation tables pruned to the strings HushGram shows, with its new strings translated. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/resignedtrust/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/InstagramSignature.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/andrewliang25/morphe-patches",
+      "commit": "5db2e57e133aede5297c48b419168cf30fd89953",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0",
+      "changes": "Taken from Hushfacebook c15d4f7930505824789684d35039d3c78c8b0903, which rewrote Andrew Liang's Facebook fix. Pointed at Instagram: its package, and its two original certificates (Kevin Systrom's and Meta's rotated one) answered as its signing history. Hushfacebook's same-key Meta family trust and Messenger link test left out."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/externalbrowser/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/ExternalBrowser.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/andrewliang25/morphe-patches",
+      "commit": "5db2e57e133aede5297c48b419168cf30fd89953",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0",
+      "changes": "Taken from Hushfacebook 814acd23d7b70d5d23abce6cb6c97767e16a051e, which rewrote Andrew Liang's Facebook patch. Pointed at Instagram's one in-app browser, BrowserLiteInMainProcessIGActivity, with both of its hooks checked before either is written, and a trace section counted only when it opens before the super call. The hosts kept in the app became Instagram's, Facebook's, Messenger's, Meta's and Threads' domains, and an ad stays in the app by the IABAdsContext Instagram's ad launcher gives it. Facebook's link shim forms and short-link rules went: the shim is unwrapped by LinkCleaner, which reads Instagram's own shim hosts, and fbclid comes off through it too."
+    },
+    {
+      "paths": [
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/**",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/download/**",
+        "extensions/instagram/src/test/resources/app/hushgram/extension/instagram/download/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "3a47363954eea853357e71e7cf3951a5ee984cee",
+      "via": [
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Hushfacebook's video and photo save pipeline, packages moved from app.morphe.extension.facebook to app.hushgram.extension.instagram. MediaDownload became MediaSave without its Facebook hooks: saveVideo, savePhoto and saveItem take the single files as renditions with any size and bitrate the app states, an optional DASH manifest and the post's details, and RenditionPicker ranks a stated size above the address's marker, with a stated bitrate breaking a tie. PostDetails keeps only its value and reads an Instagram media id. PlayerSources, ReelDownload, VideoMenuItem, the settings rows and the patches were left out, with the tests that only drove them. MediaStoreWriter writes the file itself on Android 9, which has no pending rows, and SaveLeftovers sweeps what that leaves. The folder, file names, notification channel and ledger are HushGram's own, and the save text names Instagram. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/ResumePlayback.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/ResumePoints.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/TapClock.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/TapToPlay.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/ResumePlaybackForTests.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/ResumePlaybackTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/ResumePointsAgeTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/ResumePointsTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/TapClockTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/TapToPlayForTests.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/TapToPlayTest.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "814acd23d7b70d5d23abce6cb6c97767e16a051e",
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's TapClock and the decision core of TapToPlay, packages moved from app.morphe.extension.facebook to app.hushgram.extension.instagram. Instagram's starts carry a reason string instead of Facebook's EventTriggerType, and it can't tell a tap from an automatic start, so the control triggers and the visibility triggers went: a start goes ahead on an armed player or within a second of a tap. The legacy player, the Reels play button and overlay hooks went with them. The Autoplay setting reader became a boolean filter on Instagram's VideoAutoplayChecker, and the pause hook takes Instagram's pause reason so a seek, a pinch or a reel's replay keeps the player armed. ResumePoints came over as it was. ResumePlayback kept the thresholds and the player bookkeeping, and reads Instagram's IgVideoPlayerImpl and IgVideoSource through stubs the patch fills, where it read Facebook's VideoPlayerParams by field name. Long reels resume, since Instagram posts nearly every video as a reel. The trigger enum, the release hook and the loop, GIF and audio-only checks went, and Instagram's first video start ages the saved points instead of Facebook's app start. The tests were ported with them. TapToPlay also hands the feed's Litho play button to HushGram's own PlayButtons, which hides it while the video a tap on it started plays, and lets a tap's first start come up to four seconds after it, for a story that's slow to load. TapClock also keeps how long a tap was held, and TapToPlay remembers the players it held, so the release of a press and hold on a held story takes the story player's resume. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/PlaybackQuality.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/QualityChoice.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/QualityChoiceTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/PlaybackQualitySettingsTest.java",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/media/quality/DefaultPlaybackQualityPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/media/quality/QualityAnchors.kt",
+        "patches/src/test/kotlin/app/morphe/patches/instagram/media/quality/DefaultPlaybackQualityTest.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "830f9499ebfb06fe6c578e4691d8a067ddbd15a8",
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's Default playback quality, packages moved from app.morphe.extension.facebook to app.hushgram.extension.instagram. The quality ladder, the choice rules, the setting and its row in the Playback section came over as they were, with Instagram named in the text. Instagram plays through the same Hero player and DASH format evaluator, but its evaluator carries no preselected quality, so the constructor and setter hooks went. One hook now runs right after the evaluator's choice of a track first keeps its tracks, picks a track by label and hands it to the evaluator's own custom-quality setter through stubs the patch fills, where Facebook's hook wrote the preselected label by field name. The anchors are found through the Hero player's setCustomQualityInternal string and the evaluator's AbrContextAwareConfiguration constructor. The tests were ported with them. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/TranslatedStart.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/misc/TranslatedStartTest.java",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/translatedstart/TranslatedStartPatch.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "57d9c2f86d7ecb7ad13afab60ce705fbd97f8d42",
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's Start on x86 devices, packages moved from app.morphe.extension.facebook to app.hushgram.extension.instagram. The ABI check came over as it was. Instagram has no list of start-up tasks to skip, so where Facebook's hook added MprotectCode to that list, HushGram's asks before each call Instagram makes to RuntimeInternals.mprotectExecCode() and jumps over the call on a translated device, and logs through HushGram's logger once. The tests were ported with it. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
+        "scripts/advisory-exceptions.txt",
+        "scripts/build-release-receipt.ps1",
+        "scripts/common.ps1",
+        "scripts/release-advisories.ps1",
+        "scripts/release-receipt.ps1",
+        "scripts/test-release-tooling.ps1",
+        "scripts/validate-release-facts.ps1"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "814acd23d7b70d5d23abce6cb6c97767e16a051e",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's release tooling: the provenance receipt and its SBOM, the receipt builder, the OSV advisory gate with its exceptions file, and the release facts check. The receipt builder reads the declared Instagram builds out of HUSHGRAM_FIXTURE_DIR, finds the desktop CLI the way the other scripts here do, and writes SHA256SUMS.txt beside the bundle. The release facts check reads Instagram's package, build and bug form and HushGram's source ledger, and it has a mode for the time before the first release, when there's no patches-bundle.json yet. Morphe Manager's changelog scope is Instagram, and the SBOM's first-party mark is HushGram's. The receipt, advisory, resolver, CHANGELOG and release sections of Hushfacebook's script contract suite became test-release-tooling.ps1, held to Instagram's one declared build and the manifest removals HushGram approves. The Assert-UrlReachable helper came over into common.ps1 from the same commit. Changed files carry a 'Modified for HushGram' line."
+    },
+    {
+      "paths": [
+        "scripts/apk-facts.ps1",
+        "scripts/device-install.ps1",
+        "scripts/gen-l10n.py",
+        "scripts/install-hooks.ps1",
+        "scripts/manifest-delta-allowlist.txt",
+        "scripts/MergeSplits.java",
+        "scripts/patch-for-device.ps1",
+        "scripts/patch-report.ps1",
+        "scripts/patch-target.ps1",
+        "scripts/pre-push.ps1",
+        "scripts/Resolve-Java.ps1",
+        "scripts/verify-all-patches.ps1"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "The patching and push scripts HushGram started with. apk-facts.ps1 is the aapt2 lookup, manifest reader and manifest delta taken out of Hushfacebook's release-receipt.ps1. The rest read Instagram's package, builds and fixture folder (HUSHGRAM_FIXTURE_DIR) where they read Facebook's, the push gate checks HushGram's own suites, and the manifest allowlist holds the changes HushGram's patches make. device-install.ps1, MergeSplits.java and patch-report.ps1 are unchanged apart from their provenance note. Changed files say they were modified for HushGram."
+    },
+    {
+      "paths": [
+        "scripts/BadDexFixture.java",
+        "scripts/DexDiff.java",
+        "scripts/injected-mutation-contracts.txt",
+        "scripts/injected-register-contracts.ps1",
+        "scripts/injected-register-device.ps1",
+        "scripts/injected-register-removal-allowlist.txt",
+        "scripts/ResourceTableCheck.java",
+        "scripts/script-wiring.ps1",
+        "scripts/test-injected-register-device.ps1",
+        "scripts/test-injected-registers.ps1",
+        "scripts/test-resource-table-check.ps1",
+        "scripts/verify-injected-registers.ps1",
+        "scripts/audit-instagram-sources.ps1",
+        "scripts/instagram-sources.ps1",
+        "scripts/test-instagram-sources.ps1"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "3a47363954eea853357e71e7cf3951a5ee984cee",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's resource table and injected-register gates with their fixture suites, and its source ledger scripts renamed from facebook-sources to instagram-sources. The contracts pin HushGram's own hooks, with a shared-call rule kind for a filter several methods call, the fixture writes its own contracts since HushGram's name Instagram's code, and the ledger rules are cut down to what an unreleased source needs, with a Meta-family package list, a standalone-patcher kind and retries for a forge that doesn't answer. The removal allowlist, ResourceTableCheck.java and script-wiring.ps1 are unchanged apart from their provenance note. Changed files say they were modified for HushGram."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/instagram/ads/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/analytics/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/buildexpiry/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/adid/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/sharelinks/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/flags/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/developeroptions/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/theme/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/bottomspace/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/profile/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/profile/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/reels/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/reels/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/feed/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/metaai/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/metaai/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/explore/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/explore/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/share/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/share/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/stories/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/feed/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/stories/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/ads/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/misc/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/settings/SettingsRow.kt",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/settings/SettingsScreenRow.java",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/download/**",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/extension/PurgeMarkers.kt",
+        "scripts/audit-dependencies.ps1",
+        "scripts/dependency-graphs.init.gradle",
+        "scripts/dependency-advisory-exceptions.txt",
+        "scripts/PatchCoverage.java",
+        "patches/src/test/kotlin/app/morphe/patches/instagram/misc/extension/TargetCoverageTest.kt",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/TargetCoverageReportTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/ChildControlAvailabilityTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/ClearResumeSettingsTest.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/settings/ConfigurationBackup.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/ConfigurationBackupTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/ConfigurationDocumentsTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/download/SaveInterruptionTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/settings/SettingsDialogBoundaryTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/ClearResumeHistoryTest.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/InstagramMedia.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/ReelDownload.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/StoryDownload.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/VideoDownload.java",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/media/**",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/ReelStateReader.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/StoryPlayerReader.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/PlayButtons.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/media/QualityReader.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/media/PlayButtonsTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/misc/AnalyticsTest.java",
+        "extensions/instagram/src/test/java/app/hushgram/extension/instagram/misc/DeveloperOptionsTest.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushGram",
+      "license": "GPL-3.0-only"
+    }
+  ]
+}

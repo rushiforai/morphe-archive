@@ -1,0 +1,381 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.morphe.patches.instagram.profile.friendship
+
+import app.morphe.ExtensionDex
+import app.morphe.Fixtures
+import app.morphe.PatchContexts
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class FriendshipStatusHookTest {
+    @Test
+    fun theHooksAreInTheExtension() {
+        val declared = ExtensionDex.classDef(FRIENDSHIP_STATUS).methods
+            .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+            .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+        for (hook in listOf(BESIDE_PRONOUNS, IN_PLACE_OF_PRONOUNS)) {
+            assertTrue("$hook is not in the extension: $declared", hook.substringAfter("->") in declared)
+        }
+    }
+
+    @Test
+    fun bothPlacesTheSlotSettlesGetTheLabel() {
+        val context = PatchContexts.of(standIns())
+
+        val found = context.findProfileName()
+        assertEquals(SLOT, found.slot)
+        assertEquals(0, found.header)
+        assertEquals(HEADER, found.headerType)
+        context.labelProfileName(found)
+
+        assertLabelled("stand-in", context.mutableClassDefBy(BINDER).methods.single { it.name == "bind" }, found.header)
+    }
+
+    @Test
+    fun theStubsReachTheUserAndTheSlot() {
+        val context = PatchContexts.of(standIns())
+        val found = context.findProfileName()
+        context.friendshipStubs().fill(found)
+
+        val extension = context.mutableClassDefBy(FRIENDSHIP_STATUS).methods
+        fun calls(stub: String) = extension.single { it.name == stub }.implementation!!.instructions
+            .mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+        assertTrue(calls("profileUser").containsAll(listOf("$HEADER->model:$VIEW_MODEL", "$VIEW_MODEL->user:$USER")))
+        assertTrue(calls("friendshipFollowedBy").containsAll(
+            listOf("$USER->friendship()$RELATIONSHIP", "$RELATIONSHIP->followedBy()Ljava/lang/Boolean;"),
+        ))
+        assertTrue("$USER->follows()Ljava/lang/Boolean;" in calls("followedBy"))
+        assertTrue("$USER->id()Ljava/lang/String;" in calls("userId"))
+        assertTrue(calls("viewerId").containsAll(
+            listOf("$HEADER->session:$USER_SESSION", "$USER_SESSION->getUserId()Ljava/lang/String;"),
+        ))
+        assertTrue("$SLOT->getView()Landroid/view/View;" in calls("slotView"))
+        assertTrue("$SLOT->setVisibility(I)V" in calls("setSlotVisibility"))
+    }
+
+    /**
+     * A filled stub answering something narrower than Object returns on each way out by itself. Two
+     * ways joined at one return-object hand it whatever they held merged, an Object, and ART turns
+     * the whole extension class down for that (a status and a Boolean met that way on the S22).
+     */
+    @Test
+    fun noNarrowStubJoinsTwoWaysAtOneReturn() {
+        val context = PatchContexts.of(standIns())
+        context.friendshipStubs().fill(context.findProfileName())
+
+        val narrow = context.mutableClassDefBy(FRIENDSHIP_STATUS).methods.filter {
+            it.name in setOf("friendshipFollowedBy", "followedBy", "userId", "viewerId", "slotView")
+        }
+        assertEquals(5, narrow.size)
+        for (stub in narrow) {
+            val code = stub.implementation!!.instructions.toList()
+            val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+            val targets = code.withIndex().filter { it.value is OffsetInstruction }
+                .map { addresses[it.index] + (it.value as OffsetInstruction).codeOffset }.toSet()
+            code.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }.forEach { (at, _) ->
+                assertTrue("${stub.name}: a branch lands on the return at $at", addresses[at] !in targets)
+            }
+        }
+    }
+
+    @Test
+    fun noBinderFailsThePatch() {
+        val context = PatchContexts.of(standIns(traceName = "bindBio"))
+        assertThrows(PatchException::class.java) { context.findProfileName() }
+    }
+
+    /** A binder that never hides the slot is laid out some other way. */
+    @Test
+    fun aSlotThatIsNeverHiddenFailsThePatch() {
+        val context = PatchContexts.of(standIns(hides = false))
+        assertThrows(PatchException::class.java) { context.findProfileName() }
+    }
+
+    @Test
+    fun aUserGetterNotLoadingTheKeyFailsThePatch() {
+        val context = PatchContexts.of(standIns(key = "following"))
+        assertThrows(PatchException::class.java) { context.findProfileName() }
+    }
+
+    /** Without the friendship status's dump there's no telling which of its getters is followed_by. */
+    @Test
+    fun aFriendshipStatusWithoutItsDumpFailsThePatch() {
+        val context = PatchContexts.of(standIns(dumped = false))
+        assertThrows(PatchException::class.java) { context.findProfileName() }
+    }
+
+    @Test
+    fun aViewModelWithoutTheUserFailsThePatch() {
+        val context = PatchContexts.of(standIns(keepsUser = false))
+        assertThrows(PatchException::class.java) { context.findProfileName() }
+    }
+
+    /** In each declared build both places the pronouns slot settles in the name's binder get the label. */
+    @Test
+    fun eachDeclaredBuildLabelsTheName() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        var checked = 0
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
+                val binders = FixtureDex.classesHolding(bundle, BIND_FULL_NAME) + FixtureDex.classesHolding(bundle, FOLLOWED_BY)
+                val wanted = mutableSetOf(VIEW_MODEL, USER, RELATIONSHIP, USER_SESSION)
+                for (method in binders.flatMap { it.methods }.filter { it.loads(BIND_FULL_NAME) }) {
+                    wanted += method.parameterTypes.map(CharSequence::toString)
+                    method.implementation?.instructions?.forEach { instruction ->
+                        val called = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                        if (called?.name == "getView") wanted += called.definingClass
+                    }
+                }
+                val classes = (binders + FixtureDex.classes(bundle, wanted).values + ExtensionDex.classDef(FRIENDSHIP_STATUS))
+                    .map { ImmutableClassDef.of(it) }.distinctBy { it.type }
+                val context = PatchContexts.of(classes)
+
+                val found = context.findProfileName()
+                context.labelProfileName(found)
+                context.friendshipStubs().fill(found)
+                val method = context.mutableClassDefBy(found.type).methods.single {
+                    it.name == found.name && it.parameterTypes.map(CharSequence::toString) == found.parameters
+                }
+                assertLabelled("${bundle.name} ${found.type}->${found.name}", method, found.header)
+                checked++
+            }
+        }
+        assertTrue("no fixture of a declared build", checked > 0)
+    }
+
+    /**
+     * Each hook once: a range call on two registers side by side, the first moved from the slot the
+     * call three before shows or hides, the second from the header parameter. The beside hook follows
+     * the slot being given its text, the other the slot's field being read. No branch lands on the
+     * hook's code, so only the binder's own way through runs it.
+     */
+    private fun assertLabelled(what: String, method: Method, header: Int) {
+        val code = method.implementation!!.instructions.toList()
+        val locals = method.implementation!!.registerCount - method.parameterTypes.size -
+            (if (AccessFlags.STATIC.isSet(method.accessFlags)) 0 else 1)
+        val headerRegister = locals + header
+        val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+        for (hook in listOf(BESIDE_PRONOUNS, IN_PLACE_OF_PRONOUNS)) {
+            val calls = code.withIndex().filter { (it.value as? ReferenceInstruction)?.reference?.toString() == hook }
+            assertEquals("$what: calls of $hook", 1, calls.size)
+            val (at, call) = calls.single()
+            val range = call as RegisterRangeInstruction
+            assertEquals("$what: $hook takes two registers", 2, range.registerCount)
+
+            val shows = code[at - 3]
+            val shown = (shows as ReferenceInstruction).reference as MethodReference
+            assertEquals("$what: the slot settled three before $hook", "setVisibility", shown.name)
+            val slot = (shows as FiveRegisterInstruction).registerC
+            val slotMove = code[at - 2] as TwoRegisterInstruction
+            val headerMove = code[at - 1] as TwoRegisterInstruction
+            assertEquals("$what: slot moved", Opcode.MOVE_OBJECT_FROM16, code[at - 2].opcode)
+            assertEquals("$what: slot into the first", range.startRegister, slotMove.registerA)
+            assertEquals("$what: from the slot", slot, slotMove.registerB)
+            assertEquals("$what: header into the second", range.startRegister + 1, headerMove.registerA)
+            assertEquals("$what: from the header", headerRegister, headerMove.registerB)
+
+            val before = code[at - 4]
+            if (hook == BESIDE_PRONOUNS) {
+                assertEquals("$what: the pronouns set before it's shown", "setText",
+                    ((before as ReferenceInstruction).reference as MethodReference).name)
+            } else {
+                assertEquals("$what: the slot read right before it's hidden", Opcode.IGET_OBJECT, before.opcode)
+            }
+            for ((index, instruction) in code.withIndex()) {
+                if (instruction !is OffsetInstruction) continue
+                val target = addresses[index] + instruction.codeOffset
+                assertTrue("$what: the branch at $index lands in $hook's code", target !in (addresses[at - 2]..addresses[at]))
+            }
+        }
+    }
+
+    private fun Method.loads(value: String) = implementation?.instructions?.any {
+        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == value
+    } == true
+
+    private companion object {
+        const val BINDER = "Lfixture/ProfileBinder;"
+        const val HOLDER = "Lfixture/ProfileHolder;"
+        const val HEADER = "Lfixture/ProfileHeader;"
+        const val SLOT = "Lfixture/Slot;"
+        const val TRACE = "Lfixture/Trace;"
+        const val DUMP = "Lfixture/RelationshipDump;"
+
+        /**
+         * The classes the patch reads, shaped as on 449: a static binder that begins a trace section
+         * named [traceName], shows the pronouns slot when there are pronouns and hides it otherwise, and
+         * takes the header, whose view model keeps the user, whose getter loads [key].
+         */
+        fun standIns(
+            traceName: String = BIND_FULL_NAME,
+            hides: Boolean = true,
+            key: String = FOLLOWED_BY,
+            keepsUser: Boolean = true,
+            dumped: Boolean = true,
+        ): List<ClassDef> {
+            val hide = if (hides) {
+                """
+                    const/16 v3, 0x8
+                    iget-object v1, p1, $HOLDER->pronouns:$SLOT
+                    invoke-interface { v1, v3 }, $SLOT->setVisibility(I)V
+                """
+            } else {
+                ""
+            }
+            val bind = method(
+                BINDER, "bind", listOf(HEADER, HOLDER, "Ljava/lang/String;"), "V", 8,
+                """
+                    const-string v0, "$traceName"
+                    invoke-static { v0 }, $TRACE->begin(Ljava/lang/String;)V
+                    if-eqz p2, :hide
+                    const/4 v3, 0x0
+                    iget-object v1, p1, $HOLDER->pronouns:$SLOT
+                    invoke-interface { v1 }, $SLOT->getView()Landroid/view/View;
+                    move-result-object v2
+                    check-cast v2, Landroid/widget/TextView;
+                    invoke-virtual { v2, p2 }, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+                    invoke-interface { v1, v3 }, $SLOT->setVisibility(I)V
+                    goto :done
+                    :hide
+                    $hide
+                    :done
+                    invoke-static { v0 }, $TRACE->begin(Ljava/lang/String;)V
+                    return-void
+                """,
+            )
+            val getter = method(
+                USER, "follows", emptyList(), "Ljava/lang/Boolean;", 2,
+                """
+                    const-string v0, "$key"
+                    const/4 v0, 0x0
+                    return-object v0
+                """,
+                static = false,
+            )
+            val friendship = method(
+                USER, "friendship", emptyList(), RELATIONSHIP, 2,
+                """
+                    const-string v0, "$FRIENDSHIP_STATUS_KEY"
+                    const/4 v0, 0x0
+                    return-object v0
+                """,
+                static = false,
+            )
+            val id = method(
+                USER, "id", emptyList(), "Ljava/lang/String;", 2,
+                """
+                    const/4 v0, 0x0
+                    return-object v0
+                """,
+                static = false,
+            )
+            val hash = method(
+                USER, "hashCode", emptyList(), "I", 2,
+                """
+                    invoke-virtual { p0 }, $USER->id()Ljava/lang/String;
+                    move-result-object v0
+                    invoke-virtual { v0 }, Ljava/lang/String;->hashCode()I
+                    move-result v0
+                    return v0
+                """,
+                static = false,
+            )
+            val viewer = method(
+                USER_SESSION, "getUserId", emptyList(), "Ljava/lang/String;", 2,
+                """
+                    const/4 v0, 0x0
+                    return-object v0
+                """,
+                static = false,
+            )
+            // The status's dump: each key, then the status asked for it.
+            val dump = method(
+                DUMP, "dump", listOf(RELATIONSHIP), "V", 2,
+                """
+                    const-string v0, "following"
+                    invoke-interface { p0 }, $RELATIONSHIP->following()Ljava/lang/Boolean;
+                    move-result-object v0
+                    const-string v0, "$FOLLOWED_BY"
+                    invoke-interface { p0 }, $RELATIONSHIP->followedBy()Ljava/lang/Boolean;
+                    move-result-object v0
+                    return-void
+                """,
+            )
+            return listOf(
+                classOf(BINDER, emptyList(), listOf(bind)),
+                classOf(HOLDER, listOf(field(HOLDER, "pronouns", SLOT)), emptyList()),
+                classOf(HEADER, listOf(field(HEADER, "model", VIEW_MODEL), field(HEADER, "session", USER_SESSION)), emptyList()),
+                classOf(VIEW_MODEL, if (keepsUser) listOf(field(VIEW_MODEL, "user", USER)) else emptyList(), emptyList()),
+                classOf(USER, emptyList(), listOf(getter, friendship, id, hash)),
+                classOf(USER_SESSION, emptyList(), listOf(viewer)),
+                classOf(DUMP, emptyList(), if (dumped) listOf(dump) else emptyList()),
+                interfaceOf(SLOT, abstract(SLOT, "getView", emptyList(), "Landroid/view/View;"), abstract(SLOT, "setVisibility", listOf("I"), "V")),
+                interfaceOf(
+                    RELATIONSHIP,
+                    abstract(RELATIONSHIP, "following", emptyList(), "Ljava/lang/Boolean;"),
+                    abstract(RELATIONSHIP, "followedBy", emptyList(), "Ljava/lang/Boolean;"),
+                ),
+                ExtensionDex.classDef(FRIENDSHIP_STATUS),
+            )
+        }
+
+        private fun interfaceOf(type: String, vararg methods: Method): ClassDef = ImmutableClassDef(
+            type, AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value,
+            "Ljava/lang/Object;", null, null, null, null, methods.toList(),
+        )
+
+        private fun method(
+            type: String, name: String, parameters: List<String>, returns: String, registers: Int, body: String,
+            static: Boolean = true,
+        ): Method {
+            val flags = AccessFlags.PUBLIC.value or (if (static) AccessFlags.STATIC.value else AccessFlags.FINAL.value)
+            return ImmutableMethod.of(
+                MutableMethod(
+                    ImmutableMethod(
+                        type, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns, flags, null, null,
+                        ImmutableMethodImplementation(registers, emptyList(), null, null),
+                    ),
+                ).apply { addInstructionsWithLabels(0, body.trimIndent()) },
+            )
+        }
+
+        private fun abstract(type: String, name: String, parameters: List<String>, returns: String) = ImmutableMethod(
+            type, name, parameters.map { ImmutableMethodParameter(it, null, null) }, returns,
+            AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, null, null, null,
+        )
+
+        private fun field(type: String, name: String, of: String) =
+            ImmutableField(type, name, of, AccessFlags.PUBLIC.value, null, null, null)
+
+        private fun classOf(type: String, fields: List<ImmutableField>, methods: List<Method>): ClassDef = ImmutableClassDef(
+            type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;",
+            null, null, null, fields, methods,
+        )
+    }
+}

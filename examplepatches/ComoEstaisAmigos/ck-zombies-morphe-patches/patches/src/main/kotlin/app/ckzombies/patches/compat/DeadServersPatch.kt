@@ -55,7 +55,9 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
  * brings up (see [deadServersNativePatch]).
  *
  * Without its OBB the game would ask Google Play and then Glu's `rpack.glu.com`, which no longer
- * resolves, for the file; [obbMessagePatch] shows what is wrong with the OBB instead.
+ * resolves, for the file; [obbMessagePatch] shows what is wrong with the OBB instead. "Modern
+ * Android compatibility" depends on it too and is the one that describes it, so the message is
+ * there with either patch.
  *
  * OpenFeint's servers closed in 2012, and [openFeintPatch] keeps the SDK from starting: every
  * call the game makes into it first checks a flag that only a finished `initialize()` sets. Its
@@ -68,8 +70,7 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
 val deadServersPatch = bytecodePatch(
     name = "Stop requests to dead servers",
     description = "Removes the 30 second wait on the loading screen and the daily offline message, and stops " +
-        "the game from contacting Tapjoy, OpenFeint and Glu's dead servers. " +
-        "If the OBB is missing, the game says why.",
+        "the game from contacting Tapjoy, OpenFeint and Glu's dead servers.",
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
 

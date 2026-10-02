@@ -20,11 +20,9 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val shareSheetToolsPatch = bytecodePatch(
     name = "Share sheet tools",
-    description = "Asks twice before a video is sent to a friend from the share sheet. " +
-        "The check follows the account or conversation instead of the visible name and covers " +
-        "accessibility actions and keyboard input. It can also hide chosen people, share options " +
-        "or the whole Send to row, and a profile's or a LIVE's share sheet can hide a different " +
-        "set from a video's. Switch: Hushfeed settings > Share sheet.",
+    description = "Hides chosen people, share options or the whole Send to row of the share " +
+        "sheet, and a profile's or a LIVE's share sheet can hide a different set from a video's. " +
+        "Apps you pick can be added to the Share via row. Switch: Hushfeed settings > Share sheet.",
     default = false,
 ) {
     category("Interaction")
@@ -34,7 +32,10 @@ val shareSheetToolsPatch = bytecodePatch(
 
     execute {
         hookShareModel()
-        hookShareRecipientConfirmation()
+        hookShareTargets()
+        hookFinishedChannelRow()
+        hookShareModes()
+        hookShareContactBinds()
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, " +

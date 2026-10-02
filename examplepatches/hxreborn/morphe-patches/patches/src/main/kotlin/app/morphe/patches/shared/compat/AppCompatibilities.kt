@@ -72,12 +72,26 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "2.9.8", versionCode = 31, minSdk = 23)),
     )
 
+    val CATZY = Compatibility(
+        name = "Catzy",
+        packageName = "com.nieruo.healthapp",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0x4059B9,
+        signatures = setOf(
+            "9cf85b81cc307a9dc367d5421dbe47737724275e92781c95768a8eef9e529a39",
+        ),
+        targets = listOf(AppTarget(version = "1.61.0", versionCode = 281, minSdk = 24)),
+    )
+
     val CX_FILE_EXPLORER = Compatibility(
         name = "Cx File Explorer",
         packageName = "com.cxinventor.file.explorer",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x5167F6,
-        targets = listOf(AppTarget(version = "2.7.8", versionCode = 278, minSdk = 21)),
+        targets = listOf(
+            AppTarget(version = "2.7.8", versionCode = 278, minSdk = 21),
+            AppTarget(version = "2.7.9", versionCode = 279, minSdk = 21),
+        ),
     )
 
     val CXXDROID = Compatibility(
@@ -171,6 +185,18 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x000000,
         targets = listOf(AppTarget(version = "p5.11.1", versionCode = 50126, minSdk = 29)),
+    )
+
+    val MEMONEET = Compatibility(
+        name = "MemoNeet",
+        packageName = "com.adithya.memoneet",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0x8865BC,
+        signatures = setOf(
+            "0b35fb5df963d4382ba19bf70923a66a056334335721a4fe395bf9365721a151",
+            "c3f2c1d09fe211d59fe243da4a639bd610a4cee4ee54ad5380c03f83310378cb",
+        ),
+        targets = listOf(AppTarget(version = "62.6", versionCode = 626, minSdk = 24)),
     )
 
     val MOVIEBOX = Compatibility(
@@ -388,7 +414,10 @@ internal object AppCompatibilities {
         packageName = "com.michaldrabik.showly2",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xF44336,
-        targets = listOf(AppTarget(version = "3.70.0", versionCode = 840, minSdk = 23)),
+        targets = listOf(
+            AppTarget(version = "3.70.0", versionCode = 840, minSdk = 23),
+            AppTarget(version = "3.72.0", versionCode = 843, minSdk = 28),
+        ),
     )
 
     val SYMFONIUM = Compatibility(

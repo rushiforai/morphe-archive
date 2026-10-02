@@ -9,8 +9,11 @@ import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /*
  * Where Keep the reel speed hooks, found by kept names only (read from 577 and 580, 2026-09-29).
@@ -21,6 +24,10 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  *   the reel's PlayerOrigin and video id), then posts, 150 ms later, the speed toast: the one
  *   static (Context, float) method holding "InlinePlaybackSpeedAttributeSelector" (580
  *   LX/Txd;->A02, 577 LX/Het;->A02). Only the two pickers' runnables call it.
+ * - The gear menu's speed sheet, which is where some accounts get Playback speed in a reel's More
+ *   menu: its pick, the one method holding "gear_playback_speed_selection_tap" (580 LX/UO1;->Dy6),
+ *   finds the reel's FbGrootPlayer by its PlayerOrigin and video id and sets the speed with the
+ *   setter, once for each way the pick reads its speed, and shows no toast.
  * - FbGrootPlayer (580 LX/5BR;, 577 LX/4qS;), the class of the play holding "FbGrootPlayer.play":
  *   its speed setter, the one instance (F)V method that reads HeroPlayerSetting's
  *   enableLastPlaybackSpeedCacheUpdate, which it checks before remembering the speed for the video
@@ -48,6 +55,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 internal const val REEL_SPEED = "$EXTENSION_PACKAGE/media/ReelSpeed;"
 internal const val SPEED_SET = "$REEL_SPEED->speedSet(Ljava/lang/Object;F)V"
 internal const val PICKED = "$REEL_SPEED->picked(F)V"
+internal const val GEAR_PICKED = "$REEL_SPEED->gearPicked(F)V"
 internal const val STARTED = "$REEL_SPEED->started(Ljava/lang/Object;)V"
 internal const val SET_SPEED_STUB = "setPlayerSpeed"
 internal const val ORIGIN_STUB = "playerOrigin"
@@ -57,6 +65,9 @@ internal const val REEL_PARAMS_STUB = "playerParams"
 internal val REEL_PARAM_STUBS = linkedMapOf("isFbShorts" to "fbShorts", "isSponsored" to "sponsored", "isLiveNow" to "liveNow")
 
 internal const val SPEED_TOAST = "InlinePlaybackSpeedAttributeSelector"
+
+/** Kept literal. The gear menu's speed sheet logs its pick under it. */
+internal const val GEAR_PICK = "gear_playback_speed_selection_tap"
 internal const val PLAYER_ORIGIN = "Lcom/facebook/video/common/playerorigin/PlayerOrigin;"
 internal const val SPEED_CACHE_SWITCH =
     "Lcom/facebook/video/heroplayer/setting/HeroPlayerSetting;->enableLastPlaybackSpeedCacheUpdate:Z"
@@ -77,6 +88,23 @@ internal fun speedSetters(owner: ClassDef): List<Method> = owner.methods.filter 
             ((it as? ReferenceInstruction)?.reference as? FieldReference)?.toString() == SPEED_CACHE_SWITCH
         } == true
 }
+
+/**
+ * Where [method] calls [owner]'s speed [setter]: each call's index, with the register it hands over
+ * as the speed, the call's last.
+ */
+internal fun setterCalls(method: Method, owner: String, setter: Method): List<Pair<Int, Int>> =
+    method.implementation?.instructions?.withIndex()?.mapNotNull { (index, instruction) ->
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@mapNotNull null
+        if (call.definingClass != owner || call.name != setter.name || call.returnType != "V" ||
+            call.parameterTypes.map(CharSequence::toString) != listOf("F")
+        ) return@mapNotNull null
+        when (instruction) {
+            is FiveRegisterInstruction -> index to instruction.registerD
+            is RegisterRangeInstruction -> index to instruction.startRegister + 1
+            else -> null
+        }
+    }.orEmpty()
 
 /** [owner]'s PlayerOrigin getters: instance methods with a body, taking nothing and answering one. */
 internal fun originGetters(owner: ClassDef): List<Method> = owner.methods.filter {

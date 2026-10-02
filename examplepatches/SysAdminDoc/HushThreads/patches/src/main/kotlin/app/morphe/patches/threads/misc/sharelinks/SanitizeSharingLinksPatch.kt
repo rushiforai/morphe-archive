@@ -7,7 +7,6 @@
 package app.morphe.patches.threads.misc.sharelinks
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -16,9 +15,17 @@ import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
+import app.morphe.util.singleOrPatchException
+import app.morphe.util.superclassChain
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val SANITIZE =
     "Lapp/morphe/extension/hushthreads/misc/LinkCleaner;->sanitizeShared(Ljava/lang/String;)Ljava/lang/String;"
@@ -67,17 +74,71 @@ val sanitizeSharingLinksPatch = bytecodePatch(
         val method = PermalinkResponseParserFingerprint.method
         val instructions = method.implementation!!.instructions.toList()
 
-        // The response object is created after its type name is loaded, and the parsed link is the
-        // first String stored into it.
+        // Tie the response to its type-name constructor argument and follow its registers until
+        // an owned String store. A different allocation, owner or receiver isn't the response.
         val typeName = PermalinkResponseParserFingerprint.instructionMatches[1].index
-        val created = (typeName until instructions.size).firstOrNull { instructions[it].opcode == Opcode.NEW_INSTANCE }
-            ?: throw PatchException("Sanitize sharing links: ${method.definingClass}->${method.name} creates no response")
-        val store = (created until instructions.size).firstOrNull {
-            val instruction = instructions[it]
-            instruction.opcode == Opcode.IPUT_OBJECT &&
-                instruction.getReference<FieldReference>()?.type == "Ljava/lang/String;"
-        } ?: throw PatchException(
-            "Sanitize sharing links: ${method.definingClass}->${method.name} stores no String into its response",
+        val typeRegister = (instructions[typeName] as OneRegisterInstruction).registerA
+        val stores = mutableSetOf<Int>()
+        for (created in typeName + 1 until instructions.size) {
+            val allocation = instructions[created]
+            if (allocation.opcode != Opcode.NEW_INSTANCE) continue
+            val owner = allocation.getReference<TypeReference>()!!.type
+            val constructorOwners = superclassChain(owner).toSet()
+            val aliases = mutableSetOf((allocation as OneRegisterInstruction).registerA)
+            val typeUnchanged = instructions.subList(typeName + 1, created + 1).none {
+                val register = (it as? OneRegisterInstruction)?.registerA
+                it.opcode.setsRegister() && (register == typeRegister || it.opcode.setsWideRegister() && register == typeRegister - 1)
+            }
+            if (!typeUnchanged) continue
+            var namedResponse = false
+            for (index in created + 1 until instructions.size) {
+                val instruction = instructions[index]
+                if (instruction is OffsetInstruction || !instruction.opcode.canContinue()) break
+                if (instruction.opcode == Opcode.INVOKE_DIRECT || instruction.opcode == Opcode.INVOKE_DIRECT_RANGE) {
+                    val call = instruction.getReference<MethodReference>()!!
+                    val registers = when (instruction) {
+                        is FiveRegisterInstruction -> listOf(instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF, instruction.registerG).take(instruction.registerCount)
+                        is RegisterRangeInstruction -> (instruction.startRegister until instruction.startRegister + instruction.registerCount).toList()
+                        else -> emptyList()
+                    }
+                    var word = 1
+                    val takesTypeName = call.parameterTypes.any { parameter ->
+                        val register = registers.getOrNull(word)
+                        word += if (parameter == "J" || parameter == "D") 2 else 1
+                        parameter == "Ljava/lang/String;" && register == typeRegister &&
+                            instructions.subList(typeName + 1, index).none {
+                                val register = (it as? OneRegisterInstruction)?.registerA
+                                it.opcode.setsRegister() && (register == typeRegister || it.opcode.setsWideRegister() && register == typeRegister - 1)
+                            }
+                    }
+                    if (call.name == "<init>" && call.returnType == "V" && call.definingClass in constructorOwners &&
+                        registers.firstOrNull() in aliases && takesTypeName) {
+                        namedResponse = true
+                    }
+                }
+                if (namedResponse && instruction.opcode == Opcode.IPUT_OBJECT) {
+                    val field = instruction.getReference<FieldReference>()!!
+                    if (field.definingClass == owner && field.type == "Ljava/lang/String;" &&
+                        (instruction as TwoRegisterInstruction).registerB in aliases) stores += index
+                }
+                if (instruction.opcode.setsRegister()) {
+                    val target = (instruction as OneRegisterInstruction).registerA
+                    val carriesResponse = when (instruction.opcode) {
+                        Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16 ->
+                            (instruction as TwoRegisterInstruction).registerB in aliases
+                        Opcode.CHECK_CAST -> target in aliases
+                        else -> false
+                    }
+                    aliases.remove(target)
+                    if (instruction.opcode.setsWideRegister()) aliases.remove(target + 1)
+                    if (carriesResponse) aliases += target
+                    if (aliases.isEmpty()) break
+                }
+            }
+        }
+        val store = stores.singleOrPatchException(
+            "Sanitize sharing links: owned response String store in ${method.definingClass}->${method.name}; candidates: " +
+                stores.joinToString { "$it:${instructions[it].getReference<FieldReference>()}" },
         )
         val link = (instructions[store] as TwoRegisterInstruction).registerA
 

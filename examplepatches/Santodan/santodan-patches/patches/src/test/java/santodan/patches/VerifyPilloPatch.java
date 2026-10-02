@@ -11,7 +11,7 @@ import com.android.tools.smali.dexlib2.writer.pool.DexPool;
 import java.io.*;
 import java.util.*;
 
-/** Integration checks for the Pillo 0.6.19 alarm dispatcher. */
+/** Integration checks for a supported Pillo alarm dispatcher. */
 public final class VerifyPilloPatch {
     private static void require(boolean value, String message) {
         if (!value) throw new AssertionError(message);

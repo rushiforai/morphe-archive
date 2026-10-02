@@ -1,0 +1,24 @@
+/*
+ * Forked from https://github.com/SysAdminDoc/HushThreads at b141524 (GPL-3.0),
+ * modified for HushTelegram (Telegram), 2026.
+ *
+ * Forked from https://github.com/SysAdminDoc/Hushfacebook at c15d4f79 (GPL-3.0),
+ * modified for HushThreads (Threads), 2026.
+ *
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ */
+package app.hushtelegram.extension.shared;
+
+import java.util.Map;
+
+/** The generated tables, for a test outside this package. */
+public final class L10nTablesForTests {
+    private L10nTablesForTests() {
+    }
+
+    /** The table for a tag as L10nTranslations keys it ("de", "pt-rbr", "in"), or null. */
+    public static Map<String, String> of(String language) {
+        return L10nTranslations.of(language);
+    }
+}

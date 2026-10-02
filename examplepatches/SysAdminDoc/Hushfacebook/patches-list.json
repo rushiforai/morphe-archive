@@ -1,5 +1,5 @@
 {
-  "version": "v0.5.0",
+  "version": "v0.6.0",
   "appNames": {
     "com.facebook.katana": "Facebook"
   },
@@ -730,6 +730,50 @@
       "options": []
     },
     {
+      "name": "Hide Meta AI questions under posts",
+      "description": "Removes the row of Meta AI questions Facebook adds under some posts. The post, its link card and its buttons stay.",
+      "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "580.0.0.51.74",
+          "577.0.0.50.72"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "580.0.0.51.74",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475019344
+              }
+            },
+            {
+              "version": "577.0.0.50.72",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 474426275
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide Reels in the feed",
       "description": "Removes the rows of reels between posts in the news feed, and the reels Facebook adds where your feed ends. A reel a friend posts stays.",
       "category": "Feed",
@@ -776,10 +820,11 @@
     },
     {
       "name": "Hide Stories tray",
-      "description": "Removes the row of stories at the top of the news feed, Create story included.",
+      "description": "Removes the row of stories at the top of the news feed, Create story included, and the rows of stories Facebook puts between posts.",
       "category": "Feed",
       "use": false,
       "dependencies": [
+        "BytecodePatch",
         "Hushfacebook settings"
       ],
       "compatiblePackages": {
@@ -1356,6 +1401,50 @@
       "options": []
     },
     {
+      "name": "Hide the Feeds header",
+      "description": "Takes the title row and the All, Favorites, Friends, Groups and Pages filters off the top of the Feeds tab, so it opens on its posts. Its switch starts off, so turn it on under News feed and restart Facebook.",
+      "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "580.0.0.51.74",
+          "577.0.0.50.72"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "580.0.0.51.74",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475019344
+              }
+            },
+            {
+              "version": "577.0.0.50.72",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 474426275
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide the Get Messenger card",
       "description": "Hides the \"Get the Messenger app\" card at the top of Chats while Messenger is installed. Facebook only counts a Messenger signed with its own key, so a re-signed Facebook shows the card even with Messenger right there. Without Messenger the card stays.",
       "category": "Interface",
@@ -1494,6 +1583,7 @@
       "category": "Interface",
       "use": false,
       "dependencies": [
+        "BytecodePatch",
         "Hushfacebook settings"
       ],
       "compatiblePackages": {
@@ -1667,11 +1757,56 @@
       "options": []
     },
     {
+      "name": "Keep post dates",
+      "description": "Keeps the date under the poster's name. Facebook's newer post header can swap that line for rotating details a moment after a post shows, and on some phones the line goes blank. With this on, the line stays put.",
+      "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "580.0.0.51.74",
+          "577.0.0.50.72"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "580.0.0.51.74",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475019344
+              }
+            },
+            {
+              "version": "577.0.0.50.72",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 474426275
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Keep the reel speed",
       "description": "A playback speed you pick in a reel's menu stays for the next reels until you pick another or Facebook restarts.",
       "category": "Interface",
       "use": true,
       "dependencies": [
+        "BytecodePatch",
         "Hushfacebook settings"
       ],
       "compatiblePackages": {
@@ -2164,6 +2299,50 @@
       "name": "Stop update prompts",
       "description": "Stops Facebook's own update prompts on a patched build, which can't install Meta's updates anyway. Meta App Manager's update promotions and the push message that has it look for an update go, and so do chat promotions aimed at older versions.",
       "category": "Fixes",
+      "use": true,
+      "dependencies": [
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "580.0.0.51.74",
+          "577.0.0.50.72"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "580.0.0.51.74",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475019344
+              }
+            },
+            {
+              "version": "577.0.0.50.72",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 474426275
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Tab bar at the bottom",
+      "description": "Moves Facebook's tab bar to the bottom of the screen on accounts that have it at the top. Its switch starts off, so turn it on under Appearance and restart Facebook.",
+      "category": "Interface",
       "use": true,
       "dependencies": [
         "Hushfacebook settings"

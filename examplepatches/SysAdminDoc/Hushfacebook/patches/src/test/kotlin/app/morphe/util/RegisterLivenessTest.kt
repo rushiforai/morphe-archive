@@ -4,6 +4,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableExceptionHandler
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -299,6 +301,149 @@ class RegisterLivenessTest {
     }
 
     @Test
+    fun `a read past a write on only one way reads both the literal and another value`() {
+        val method = smali(
+            registers = 3, params = listOf("Z"),
+            body = """
+                const/4 v0, 0x1
+                if-eqz p0, :keep
+                const/4 v0, 0x0
+                :keep
+                invoke-static {v0}, Lcom/example/Log;->note(I)V
+                const/4 v0, 0x2
+                invoke-static {v0}, Lcom/example/Log;->note(I)V
+                return-void
+            """,
+        )
+        // The first note reads the 1 when p0 is false and the 0 when it isn't; the second reads only the 2.
+        assertEquals(listOf(3), method.literalReads(0))
+        assertEquals(listOf(3, 5), method.rewrittenReads(0))
+        // A backward jump that writes the register first brings another value round to an earlier read.
+        val loop = smali(
+            registers = 3, params = emptyList(),
+            body = """
+                const/4 v0, 0x1
+                :top
+                invoke-static {v0}, Lcom/example/Log;->note(I)V
+                const/4 v0, 0x0
+                goto :top
+            """,
+        )
+        assertEquals(listOf(1), loop.literalReads(0))
+        assertEquals(listOf(1), loop.rewrittenReads(0))
+    }
+
+    @Test
+    fun `the first stop after a rewrite on each way, past handlers and wide writes`() {
+        fun branchOn(register: Int) = { instruction: Instruction ->
+            instruction.opcode == Opcode.IF_EQZ && (instruction as OneRegisterInstruction).registerA == register
+        }
+        // The way through the second const meets the branch holding the 0, the other the 1.
+        val oneWay = smali(
+            registers = 3, params = listOf("Z"),
+            body = """
+                const/4 v0, 0x1
+                if-eqz p0, :keep
+                const/4 v0, 0x0
+                :keep
+                if-eqz v0, :done
+                :done
+                return-void
+            """,
+        )
+        assertEquals(listOf(3), oneWay.firstAfterRewrite(0, branchOn(0)))
+        // A branch holding the definition's value ends its way, so a later one past a write isn't the first.
+        val passed = smali(
+            registers = 1, params = emptyList(),
+            body = """
+                const/4 v0, 0x1
+                if-eqz v0, :next
+                :next
+                const/4 v0, 0x0
+                if-eqz v0, :done
+                :done
+                return-void
+            """,
+        )
+        assertEquals(emptyList<Int>(), passed.firstAfterRewrite(0, branchOn(0)))
+        assertEquals("the later branch still reads another value", listOf(3), passed.rewrittenReads(0))
+        // Back round to the definition, the register holds the definition's value again.
+        val loop = smali(
+            registers = 3, params = listOf("Z"),
+            body = """
+                :top
+                const/4 v0, 0x1
+                invoke-static {}, Lcom/example/Log;->tick()V
+                if-nez p0, :top
+                if-eqz v0, :done
+                :done
+                return-void
+            """,
+        )
+        assertEquals(emptyList<Int>(), loop.firstAfterRewrite(0, branchOn(0)))
+        assertEquals(emptyList<Int>(), loop.rewrittenReads(0))
+        // A handler reached from a call before the write sees the definition's value, one reached after it doesn't.
+        fun caught(from: Int) = smali(
+            registers = 3, params = emptyList(),
+            body = """
+                const/4 v0, 0x1
+                invoke-static {}, Lcom/example/Log;->tick()V
+                const/4 v0, 0x0
+                invoke-static {}, Lcom/example/Log;->tick()V
+                return-void
+                move-exception v1
+                if-eqz v0, :done
+                :done
+                return-void
+            """,
+        ).apply {
+            // addInstructionsWithLabels leaves .catch out, so the try block over one call is added by hand.
+            implementation!!.addCatch("Ljava/lang/Exception;", implementation!!.newLabelForIndex(from),
+                implementation!!.newLabelForIndex(from + 1), implementation!!.newLabelForIndex(5))
+        }
+        assertEquals(emptyList<Int>(), caught(1).firstAfterRewrite(0, branchOn(0)))
+        assertEquals(listOf(6), caught(3).firstAfterRewrite(0, branchOn(0)))
+        assertEquals(listOf(6), caught(3).rewrittenReads(0))
+        assertEquals("the handler's branch still holds the value", listOf(6), caught(1).firstHolding(0, branchOn(0)))
+        assertEquals("without handlers no way gets there", emptyList<Int>(), caught(1).firstHolding(0, branchOn(0), handlers = false))
+        // A try block over a write and a nop, neither of which can throw, never reaches its handler.
+        val unthrown = smali(
+            registers = 3, params = emptyList(),
+            body = """
+                const/4 v0, 0x1
+                const/4 v0, 0x0
+                nop
+                return-void
+                move-exception v1
+                if-eqz v0, :done
+                :done
+                return-void
+            """,
+        ).apply {
+            implementation!!.addCatch("Ljava/lang/Exception;", implementation!!.newLabelForIndex(1),
+                implementation!!.newLabelForIndex(3), implementation!!.newLabelForIndex(4))
+        }
+        assertEquals("the try block is in the flow", listOf(4), ControlFlow.of(unthrown).exceptional[2])
+        assertEquals(emptyList<Int>(), unthrown.firstAfterRewrite(0, branchOn(0)))
+        assertEquals(emptyList<Int>(), unthrown.rewrittenReads(0))
+        assertEquals("the handler's branch is on no way from the write", emptyList<Int>(), unthrown.firstHolding(0, branchOn(0)))
+        assertEquals("every handler is followed for the literal reads", listOf(5), unthrown.literalReads(0))
+        // A wide write into the register below writes this one too.
+        val wide = smali(
+            registers = 2, params = emptyList(),
+            body = """
+                const/4 v1, 0x1
+                const-wide/16 v0, 0x0
+                if-eqz v1, :done
+                :done
+                return-void
+            """,
+        )
+        assertEquals(listOf(2), wide.firstAfterRewrite(0, branchOn(1)))
+        assertEquals(listOf(2), wide.rewrittenReads(0))
+    }
+
+    @Test
     fun `reads after an instruction end at the next write, and a later read keeps the register busy`() {
         val method = smali(
             registers = 3, params = emptyList(),
@@ -313,6 +458,66 @@ class RegisterLivenessTest {
         )
         assertEquals(emptyList<Int>(), method.readsAfter(1, 0))   // rewritten before anything reads it
         assertEquals(listOf(4), method.readsAfter(1, 2))          // v2 is read further down
+    }
+
+    /**
+     * The writes that can reach a branch: one on each way in, the jump back of a loop included,
+     * and the method's start where a way never writes the register. A handler's way in goes past
+     * the instruction that threw, which never wrote its destination, to the write before it.
+     */
+    @Test
+    fun `the writes reaching an instruction, back along every way in`() {
+        val method = smali(
+            registers = 3, params = listOf("I"),
+            body = """
+                if-eqz p0, :branch
+                const/4 v0, 0x1
+                :branch
+                if-eqz v0, :next
+                return-void
+                :next
+                invoke-static {}, Lcom/example/Check;->ask()Z
+                move-result v0
+                goto :branch
+            """,
+        )
+        assertEquals(listOf(-1, 1, 5), method.writersReaching(2, 0))
+        assertEquals(listOf(5), method.writersReaching(6, 0))
+        assertEquals(listOf(-1), method.writersReaching(0, 0))
+
+        val caught = smali(
+            registers = 2, params = emptyList(),
+            body = """
+                const/4 v0, 0x0
+                invoke-static {}, Lcom/example/Check;->ask()Z
+                move-result v0
+                return-void
+                invoke-static {v0}, Lcom/example/Log;->note(Z)V
+                return-void
+            """,
+        ).apply {
+            // The call and its move-result in a try block whose handler is the note.
+            implementation!!.apply { addCatch(newLabelForIndex(1), newLabelForIndex(3), newLabelForIndex(4)) }
+        }
+        assertEquals("the handler sees v0 from before the call that threw", listOf(0), caught.writersReaching(4, 0))
+        assertEquals(listOf(2), caught.writersReaching(3, 0))
+
+        // The instruction that throws is itself a write of v0, so a walk that took a throwing
+        // write for a write would answer 1 here.
+        val throwingWrite = smali(
+            registers = 2, params = emptyList(),
+            body = """
+                const/4 v0, 0x0
+                const-string v0, "x"
+                return-void
+                invoke-static {v0}, Lcom/example/Log;->note(Ljava/lang/Object;)V
+                return-void
+            """,
+        ).apply {
+            implementation!!.apply { addCatch(newLabelForIndex(1), newLabelForIndex(2), newLabelForIndex(3)) }
+        }
+        assertEquals("the handler sees v0 from before the write that threw", listOf(0), throwingWrite.writersReaching(3, 0))
+        assertEquals("past the write it's the write", listOf(1), throwingWrite.writersReaching(2, 0))
     }
 
     private fun smali(registers: Int, params: List<String>, body: String) = MutableMethod(

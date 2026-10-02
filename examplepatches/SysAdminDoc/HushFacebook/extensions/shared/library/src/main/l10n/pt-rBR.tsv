@@ -74,6 +74,10 @@ The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	N
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	O arquivo de configurações foi salvo, mas ao ser lido de volta não corresponde ao que foi gravado. Salve de novo como um arquivo novo.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Até você retomar, todas as opções, menos o Registro de depuração, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo.
 Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.	Usa os emojis do seu dispositivo. Reações e figurinhas não são alteradas. Reinicie o Facebook depois de alterar esta opção.
+# context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
+Tab bar at the bottom	Barra de abas embaixo
+# context: description of that switch; Facebook shows the tab bar at the top of the screen on some accounts and at the bottom on others
+Put Facebook's tab bar at the bottom of the screen on accounts that have it at the top. Restart Facebook after changing it.	Coloca a barra de abas do Facebook na parte de baixo da tela nas contas que a têm em cima. Reinicie o Facebook depois de alterar esta opção.
 Use your phone's font or a file chosen below. Restart Facebook after changing it.	Usa a fonte do seu dispositivo ou um arquivo escolhido abaixo. Reinicie o Facebook depois de alterar esta opção.
 Font file	Arquivo de fonte
 Use your phone's font	Usar a fonte do celular
@@ -209,7 +213,7 @@ the re-signed build fix	a correção para versão reassinada
 the start-up fix for x86 devices	a correção de inicialização para dispositivos x86
 the recoloured dark mode	a nova coloração do modo escuro
 The row of friend suggestions between posts, and the one on your own profile.	A linha de sugestões de amizade entre as publicações e a linha no seu próprio perfil.
-The row of stories at the top of the feed, Create story included.	A linha de Stories no topo do feed, incluindo “Criar Story”.
+The row of stories at the top of the feed, Create story included, and the rows of stories between posts.	A linha de Stories no topo do feed, incluindo “Criar Story”, e as linhas de Stories entre as publicações.
 The rows of reels between posts, and the reels Facebook adds where your feed ends.	As linhas de Reels entre as publicações e os Reels que o Facebook adiciona ao final do feed.
 The setting couldn't finish updating. Its saved value is shown.	Não foi possível concluir a atualização da configuração. O valor salvo está sendo mostrado.
 There's no diagnostic data to clear.	Não há dados de diagnóstico para limpar.
@@ -511,6 +515,18 @@ Open the setting	Abrir a configuração
 Hide post prompts	Ocultar as perguntas abaixo das publicações
 # context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
 The strip on some posts, like "Are you interested in this post?", "Show less" or who recently commented, and the follow and chat suggestions in the same place. The post stays.	A faixa em algumas publicações, como “Você tem interesse nesta publicação?”, “Mostrar menos” ou quem comentou há pouco, e as sugestões para seguir e conversar no mesmo lugar. A publicação fica.
+# context: switch title under News feed; Meta AI is the name of Meta's assistant, and the questions are the row of suggested questions for it that Facebook puts under some posts
+Hide Meta AI questions under posts	Ocultar as perguntas da Meta AI abaixo das publicações
+# context: description of that switch; a link card is the preview of a shared link inside a post
+The row of Meta AI questions under some posts. The post, its link card and its buttons stay.	A fileira de perguntas da Meta AI abaixo de algumas publicações. A publicação, o cartão do link e os botões continuam.
+# context: switch title under News feed; it keeps the date shown under the name of whoever posted
+Keep post dates	Manter a data das publicações
+# context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
+The line under the poster's name keeps the post's date instead of Facebook's rotating details, which go blank on some phones.	A linha abaixo do nome de quem publicou mantém a data da publicação em vez dos detalhes que o Facebook vai alternando, que em alguns celulares ficam em branco.
+# context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
+Hide the Feeds header	Ocultar o cabeçalho dos Feeds
+# context: description of that switch; the Feeds tab is where Facebook lists posts by those filters, and the title row is the one with the tab's name
+Open the Feeds tab on its posts, without the title row or the filters under it. Restart Facebook after changing it.	Abre a aba Feeds direto nas publicações, sem a linha do título nem os filtros abaixo dela. Reinicie o Facebook depois de alterar esta opção.
 # context: switch title under Reels and Watch; the prompt is Facebook's "Are you interested in this reel?" question on a reel
 Hide reel interest prompts	Ocultar a pergunta de interesse nos reels
 # context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it

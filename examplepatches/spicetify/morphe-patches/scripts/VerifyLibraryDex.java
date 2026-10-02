@@ -15,8 +15,9 @@ class VerifyLibraryDex {
     static final String PLAYBACK = "Lapp/spicetify/extension/spotify/localserver/ServerPlayback;";
     static final String OBSERVABLE = "Lio/reactivex/rxjava3/core/Observable;";
     static final String ARTWORK = "Lapp/spicetify/extension/spotify/localserver/ServerArtwork;";
+    static final String SERVER_PROCESS = "Lapp/spicetify/extension/spotify/localserver/ServerProcess;";
 
-    enum After { EARLY_RETURN_OBJECT, RETURN_SAME, REPLACE_ARGUMENT, EARLY_RETURN_VOID, NOTHING }
+    enum After { EARLY_RETURN_OBJECT, RETURN_SAME, REPLACE_ARGUMENT, EARLY_RETURN_VOID, GATE, NOTHING }
 
     /** One expected call from a Spotify method into the extension. */
     record Hook(String caller, String method, List<String> parameters, String owner, String name,
@@ -38,6 +39,10 @@ class VerifyLibraryDex {
             List.of("Ljava/lang/Object;", "Ljava/lang/String;"), "Ljava/lang/String;", After.EARLY_RETURN_VOID, 1),
         new Hook("Lcom/spotify/imageloader/localfileimage/LocalFileImageLoader;", "loadImage", List.of("Ljava/lang/String;"), ARTWORK, "bytes",
             List.of("Ljava/lang/String;"), "[B", After.EARLY_RETURN_OBJECT, -1),
+        new Hook("Lcom/spotify/music/SpotifyApplication;", "onCreate", List.of(), SERVER_PROCESS, "skipApplication",
+            List.of("Landroid/content/Context;"), "Z", After.GATE, -1),
+        new Hook("Lcom/spotify/music/SpotifyApplication;", "onTrimMemory", List.of("I"), SERVER_PROCESS, "isCurrent",
+            List.of("Landroid/content/Context;"), "Z", After.GATE, -1),
         new Hook("Lp/s2w;", "<init>", List.of("Lp/wrj;", "Lp/lm90;", "Z", "Ljava/util/List;"), PLAYBACK, "setPlayer",
             List.of("Ljava/lang/Object;"), "V", After.NOTHING, -1));
 
@@ -75,7 +80,7 @@ class VerifyLibraryDex {
                 for (int index = 0; index < code.size(); index++) {
                     if (!(code.get(index) instanceof ReferenceInstruction ref) || !(ref.getReference() instanceof MethodReference target)
                             || !(target.getDefiningClass().equals(ROWS) || target.getDefiningClass().equals(PLAYBACK)
-                            || target.getDefiningClass().equals(ARTWORK))) continue;
+                            || target.getDefiningClass().equals(ARTWORK) || target.getDefiningClass().equals(SERVER_PROCESS))) continue;
                     Hook hook = null;
                     for (Hook candidate : HOOKS) {
                         if (candidate.caller.equals(cls.getType()) && candidate.method.equals(method.getName())
@@ -86,7 +91,13 @@ class VerifyLibraryDex {
                             && target.getReturnType().equals(hook.hookResult), "Wrong hook signature: " + hook.key());
                     List<Integer> passed = registers(code.get(index));
                     require(passed.size() == hook.hookParameters.size(), "Wrong hook arguments: " + hook.key());
-                    if (hook.after != After.NOTHING) {
+                    if (hook.after == After.GATE) {
+                        require(index + 3 < code.size() && code.get(index + 1).getOpcode() == Opcode.MOVE_RESULT
+                                && code.get(index + 2).getOpcode() == Opcode.IF_EQZ
+                                && register(code.get(index + 2)) == register(code.get(index + 1))
+                                && code.get(index + 3).getOpcode() == Opcode.RETURN_VOID,
+                                "Hook must return only when it says so: " + hook.key());
+                    } else if (hook.after != After.NOTHING) {
                         require(index + 1 < code.size() && code.get(index + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT, "Hook result is dropped: " + hook.key());
                         int result = register(code.get(index + 1));
                         switch (hook.after) {

@@ -18,6 +18,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.view.View;
+import android.widget.TextView;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -35,6 +37,8 @@ import java.util.Arrays;
 
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.shared.settings.HushfacebookPause;
+import app.morphe.extension.shared.settings.PauseForTests;
 
 /**
  * What a picked font file draws: Facebook's text in it, a variable font at the weight asked for,
@@ -119,6 +123,187 @@ public class OwnFontFileTest {
     }
 
     /**
+     * Text that names none of Meta's fonts gets Facebook's Roboto, the phone's font, and with a file
+     * picked it gets the file at the Roboto's weight and slant. With no file, the switch off or
+     * Hushfacebook paused, Facebook's Roboto stands.
+     */
+    @Test
+    public void facebooksRobotoTakesThePickedFont() throws Exception {
+        Typeface regular = Typeface.create("sans-serif", Typeface.NORMAL);
+        Typeface boldItalic = Typeface.create(Typeface.DEFAULT, 700, true);
+        assertSame("no file picked, and the phone's font stays", regular, OwnFont.replacePhoneFont(regular));
+
+        File copy = pick(FontFileTest.STATIC_FONT, "Rubik-Regular.ttf");
+        Typeface rubik = new Typeface.Builder(copy).build();
+        assertNotEquals("Rubik measures like the phone's font, so this proves nothing",
+                width(regular, LATIN), width(rubik, LATIN), 1f);
+        Typeface drawn = OwnFont.replacePhoneFont(regular);
+        assertEquals(width(rubik, LATIN), width(drawn, LATIN), 0.01f);
+        assertEquals(ink(rubik, LATIN), ink(drawn, LATIN));
+        Typeface heavy = OwnFont.replacePhoneFont(boldItalic);
+        assertEquals(700, heavy.getWeight());
+        assertTrue(heavy.isItalic());
+        assertSame(OwnFont.typeface(700, true), heavy);
+
+        Settings.USE_SYSTEM_FONT.save(false);
+        assertSame(regular, OwnFont.replacePhoneFont(regular));
+        Settings.USE_SYSTEM_FONT.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        try {
+            assertSame("paused, Facebook's Roboto stands", regular, OwnFont.replacePhoneFont(regular));
+        } finally {
+            PauseForTests.resume();
+        }
+        assertSame(drawn, OwnFont.replacePhoneFont(regular));
+    }
+
+    /**
+     * Facebook's own reads of Android's default typefaces, the spans that bold a name in a post's
+     * header among them, get the picked file at the default's weight and slant. With no file, the
+     * switch off or Hushfacebook paused, Android's default stands.
+     */
+    @Test
+    public void androidsDefaultTypefacesTakeThePickedFont() throws Exception {
+        assertSame("no file picked, and Android's default stays", Typeface.DEFAULT, OwnFont.defaultTypeface());
+        assertSame(Typeface.DEFAULT_BOLD, OwnFont.defaultBold());
+        assertSame(Typeface.defaultFromStyle(Typeface.ITALIC), OwnFont.defaultFromStyle(Typeface.ITALIC));
+
+        pick(FontFileTest.STATIC_FONT, "Rubik-Regular.ttf");
+        assertSame(OwnFont.typeface(400, false), OwnFont.defaultTypeface());
+        Typeface bold = OwnFont.defaultBold();
+        assertEquals(700, bold.getWeight());
+        assertSame(OwnFont.typeface(700, false), bold);
+        assertSame(OwnFont.typeface(700, true), OwnFont.defaultFromStyle(Typeface.BOLD_ITALIC));
+
+        Settings.USE_SYSTEM_FONT.save(false);
+        assertSame(Typeface.DEFAULT_BOLD, OwnFont.defaultBold());
+        Settings.USE_SYSTEM_FONT.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        try {
+            assertSame("paused, Android's default stands", Typeface.DEFAULT_BOLD, OwnFont.defaultBold());
+        } finally {
+            PauseForTests.resume();
+        }
+        assertSame(bold, OwnFont.defaultBold());
+    }
+
+    /**
+     * The calls that answer the phone's sans-serif by name, or from one of its typefaces, take the
+     * picked file at the weight and slant Android answered: "sans-serif-medium" at its medium, a
+     * span's bold of the paint's typeface at bold. Another family stays Android's, and so does
+     * everything while no file is picked.
+     */
+    @Test
+    public void theSansSerifFacebookAsksForByNameTakesThePickedFont() throws Exception {
+        Typeface medium = Typeface.create("sans-serif-medium", Typeface.NORMAL);
+        Typeface bold = Typeface.create((Typeface) null, Typeface.BOLD);
+        assertSame("no file picked, and Android's answer stays", medium, OwnFont.create("sans-serif-medium", Typeface.NORMAL));
+        assertSame(bold, OwnFont.create((Typeface) null, Typeface.BOLD));
+        assertSame(Typeface.SANS_SERIF, OwnFont.sansSerif());
+
+        pick(FontFileTest.STATIC_FONT, "Rubik-Regular.ttf");
+        assertSame(OwnFont.typeface(medium.getWeight(), false), OwnFont.create("sans-serif-medium", Typeface.NORMAL));
+        // Android has no Roboto-Medium on every phone, so the file comes at the weight Android answered.
+        assertSame(OwnFont.typeface(Typeface.create("Roboto-Medium", Typeface.NORMAL).getWeight(), false),
+                OwnFont.create("Roboto-Medium", Typeface.NORMAL));
+        assertSame(OwnFont.typeface(400, false), OwnFont.sansSerif());
+        assertSame(OwnFont.typeface(bold.getWeight(), false), OwnFont.create((Typeface) null, Typeface.BOLD));
+        Typeface picked = OwnFont.defaultTypeface();
+        assertSame("the picked font's own bold", OwnFont.typeface(Typeface.create(picked, Typeface.BOLD).getWeight(), false),
+                OwnFont.create(picked, Typeface.BOLD));
+        assertSame(OwnFont.typeface(500, true), OwnFont.create(Typeface.DEFAULT, 500, true));
+
+        Typeface mono = Typeface.create("monospace", Typeface.NORMAL);
+        assertSame("another family stays Android's", mono, OwnFont.create("monospace", Typeface.NORMAL));
+        assertSame(Typeface.create(Typeface.MONOSPACE, Typeface.BOLD), OwnFont.create(Typeface.MONOSPACE, Typeface.BOLD));
+        assertTrue(OwnFont.isPhoneSans(null) && OwnFont.isPhoneSans("sans-serif") && OwnFont.isPhoneSans("roboto"));
+        assertTrue(OwnFont.isPhoneSans("sans-serif-black") && OwnFont.isPhoneSans("roboto-regular"));
+        for (String other : new String[]{"InstagramSans-Bold", "serif", "sans-serif-monospace", "sans-serif-condensed",
+                "sans-serif-smallcaps", "roboto-flex", "san-serif-condensed", "sans-serifx"}) {
+            assertFalse(other, OwnFont.isPhoneSans(other));
+        }
+        assertSame("Android's monospace by its sans-serif name stays", Typeface.create("sans-serif-monospace", Typeface.NORMAL),
+                OwnFont.create("sans-serif-monospace", Typeface.NORMAL));
+
+        Settings.USE_SYSTEM_FONT.save(false);
+        assertSame(medium, OwnFont.create("sans-serif-medium", Typeface.NORMAL));
+        assertSame(Typeface.create(picked, Typeface.BOLD), OwnFont.create(picked, Typeface.BOLD));
+        Settings.USE_SYSTEM_FONT.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        try {
+            assertSame("paused, Android's answer stands", Typeface.SANS_SERIF, OwnFont.sansSerif());
+        } finally {
+            PauseForTests.resume();
+        }
+    }
+
+    /**
+     * One of Android's text views Facebook builds takes the picked file when it has no typeface, or
+     * one of the phone's sans-serif typefaces from its layout: a style, "sans-serif-medium" or a
+     * text weight. One with another typeface keeps it. With no file picked, the switch off or
+     * Hushfacebook paused, every view keeps what Android gave it.
+     */
+    @Test
+    public void textViewsFacebookBuildsTakeThePickedFont() throws Exception {
+        Context app = RuntimeEnvironment.getApplication();
+        TextView plain = new TextView(app);
+        Typeface unset = plain.getTypeface();
+        OwnFont.textView(plain);
+        assertSame("no file picked, and the view keeps what Android gave it", unset, plain.getTypeface());
+
+        pick(FontFileTest.STATIC_FONT, "Rubik-Regular.ttf");
+        TextView none = new TextView(app);
+        none.setTypeface(null);
+        OwnFont.textView(none);
+        assertSame(OwnFont.typeface(400, false), none.getTypeface());
+        TextView bold = new TextView(app);
+        bold.setTypeface(null, Typeface.BOLD);
+        OwnFont.textView(bold);
+        assertSame("a layout's bold", OwnFont.typeface(700, false), bold.getTypeface());
+        Typeface medium = Typeface.create("sans-serif-medium", Typeface.NORMAL);
+        TextView named = new TextView(app);
+        named.setTypeface(Typeface.create(medium, Typeface.ITALIC));
+        OwnFont.inflated(named);
+        assertSame("a layout's sans-serif-medium in italic", OwnFont.typeface(medium.getWeight(), true), named.getTypeface());
+        TextView weighted = new TextView(app);
+        weighted.setTypeface(Typeface.create(Typeface.DEFAULT, 600, false));
+        OwnFont.textView(weighted);
+        assertSame("a layout's text weight", OwnFont.typeface(600, false), weighted.getTypeface());
+        TextView namedWeight = new TextView(app);
+        namedWeight.setTypeface(Typeface.create(medium, 600, false));
+        OwnFont.textView(namedWeight);
+        assertSame("a layout's text weight on sans-serif-medium", OwnFont.typeface(600, false), namedWeight.getTypeface());
+
+        Typeface mono = Typeface.create("sans-serif-monospace", Typeface.NORMAL);
+        for (Typeface other : new Typeface[]{Typeface.SERIF, mono, Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)}) {
+            TextView kept = new TextView(app);
+            kept.setTypeface(other);
+            OwnFont.textView(kept);
+            assertSame("another family stays", other, kept.getTypeface());
+        }
+        OwnFont.inflated(new View(app));
+        OwnFont.textView(null);
+        OwnFont.inflated(null);
+
+        Settings.USE_SYSTEM_FONT.save(false);
+        TextView off = new TextView(app);
+        off.setTypeface(null, Typeface.BOLD);
+        Typeface offBold = off.getTypeface();
+        OwnFont.textView(off);
+        assertSame(offBold, off.getTypeface());
+        Settings.USE_SYSTEM_FONT.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        try {
+            TextView paused = new TextView(app);
+            paused.setTypeface(null);
+            OwnFont.textView(paused);
+            assertSame("paused, the view keeps what Android gave it", null, paused.getTypeface());
+        } finally {
+            PauseForTests.resume();
+        }
+    }
+
+    /**
      * A variable font is built along its 'wght' axis. Noto Sans Khmer's early axis runs from 26 to
      * 190, so any weight past 190 is its heaviest, and that heaviest is told it's the weight asked
      * for, so Android doesn't embolden it a second time.
@@ -181,6 +366,9 @@ public class OwnFontFileTest {
         // At the weight and slant asked for, as with no file at all.
         assertEquals(width(Typeface.create(Typeface.DEFAULT, 700, true), LATIN), width(OwnFont.replace(
                 Typeface.create(Typeface.SERIF, 400, true), Family.OPTIMISTIC_TEXT_APP_REGULAR, 700), LATIN), 0.01f);
+        // Facebook's own Roboto and Android's defaults are the phone's font already, so they stand.
+        assertSame(phone, OwnFont.replacePhoneFont(phone));
+        assertSame(Typeface.DEFAULT_BOLD, OwnFont.defaultBold());
 
         Settings.USE_SYSTEM_FONT.save(false);
         assertSame(meta, OwnFont.replace(meta, Family.OPTIMISTIC_TEXT_APP_REGULAR, 400));

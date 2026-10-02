@@ -34,9 +34,11 @@ Plurals. A count is written as two English keys, the one form ("1 result") and t
 ("%1$d results"), and L10n.quantity picks between them by the phone language's CLDR plural rule
 rather than by count == 1. The five shipped languages have at most those two forms. A language
 with more (Polish, Russian, Czech, Arabic) keeps each extra form as a row keyed by the other
-form plus "|" and the CLDR category name: "%1$d results|few" and "%1$d results|many". Such a
-row is a translation of the other form, so it is held to that form's placeholders and it is
-left out of the English base, which lists source strings only.
+form plus "|" and the CLDR category name: "%1$d results|few" and "%1$d results|many". The one
+form says 1 outright, so a language whose one category takes other counts too (Russian's 21 and
+101) adds "%1$d results|one" for those. Such a row is a translation of the other form, so it is
+held to that form's placeholders and it is left out of the English base, which lists source
+strings only.
 
 Run from the repository root: python scripts/gen-l10n.py
 """

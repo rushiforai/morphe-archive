@@ -6,7 +6,7 @@
  * 1. Mig dark scheme resolver returns → mig() recolours greys and blues
  * 2. FDS colour resolver returns → fds() recolours greys and blues
  * 3. Dark surface constants (0xFF080809 etc.) → reads from volatile fields
- * 4. Color.parseColor and Context/Resources.getColor → surface-aware wrappers
+ * 4. Color.parseColor and Context.getColor → surface-aware wrappers
  *
  * The dark mode detection hook sends Messenger's own answer through
  * MaterialYouTheme.darkModeAnswer() so the runtime knows when to act.
@@ -15,18 +15,17 @@ package app.hushmessenger.patches.controls
 
 import app.hushmessenger.patches.MessengerTarget
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val THEME = "Lapp/hushmessenger/extension/MaterialYouTheme;"
@@ -89,143 +88,109 @@ val materialYouPatch = bytecodePatch(
     compatibleWith(MessengerTarget.COMPATIBILITY)
     dependsOn(settingsExtension, materialYouResources)
     execute {
-        // --- Find DarkColorScheme's token resolver (DCz in 346013440) ---
-        // It reads the colour from the token and returns it.
-        // We hook before the RETURN to recolour through MaterialYouTheme.mig(int).
-        val darkScheme = mutableClassDefBy(DARK_SCHEME)
-        val dcz = darkScheme.methods.filter(::isTokenColorMethod).singleOrNull()
-            ?: throw app.morphe.patcher.patch.PatchException(
-                "DarkColorScheme's colour token method not found"
-            )
-        val dczCode = dcz.implementation!!.instructions.toList()
+        // Discover and validate against immutable definitions. A mutable lookup registers
+        // the whole class for recompilation, even when it needs no theme changes.
+        data class Edit(val index: Int, val code: String, val insert: Boolean = false)
+        val edits = linkedMapOf<Method, MutableList<Edit>>()
 
-        // Find the RETURN instruction and hook before it
-        val returnIndex = dczCode.indexOfLast { it.opcode == Opcode.RETURN }
-        check(returnIndex >= 0) { "no RETURN in DCz" }
-
-        // The return register holds the resolved colour
-        val returnReg = (dczCode[returnIndex] as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA
-
-        // Insert: invoke-static {vReturn}, MaterialYouTheme.mig(I)I; move-result vReturn
-        dcz.addInstructions(
-            returnIndex,
-            """
-                invoke-static {v$returnReg}, $THEME->mig(I)I
-                move-result v$returnReg
-            """
-        )
-
-        // --- Find the FDS dark mode check and hook it ---
-        // FDSColors.A00 calls LX/2AN.A02(Context)Z (the isDarkMode check).
-        // LX/2AN.A02 calls LX/2AO.A07(Context)Z and returns its result.
-        // We hook the return of A02 to also feed through darkModeAnswer.
-        val fdsColors = mutableClassDefBy(FDS_COLORS)
-        val fdsMethod = fdsColors.methods.firstOrNull { m ->
-            m.returnType == "I" && m.parameterTypes.size == 3 &&
-                m.parameterTypes[0] == "Landroid/content/Context;" &&
-                m.implementation != null
+        fun planReturns(method: Method, helper: String) {
+            val implementation = method.implementation
+                ?: throw app.morphe.patcher.patch.PatchException("No code in ${method.hookId()}")
+            var count = 0
+            for ((index, instruction) in implementation.instructions.withIndex()) {
+                if (instruction.opcode != Opcode.RETURN) continue
+                val register = (instruction as OneRegisterInstruction).registerA
+                val call = if (register < 16) "invoke-static {v$register}"
+                    else "invoke-static/range {v$register .. v$register}"
+                edits.getOrPut(method) { mutableListOf() }.add(
+                    Edit(index, "$call, $THEME->$helper\nmove-result v$register", insert = true))
+                count++
+            }
+            if (count == 0) throw app.morphe.patcher.patch.PatchException("No return in ${method.hookId()}")
         }
 
-        if (fdsMethod != null) {
-            // Find the dark mode check class from FDSColors: it's called as a static method returning boolean
-            val darkCheckRef = fdsMethod.implementation!!.instructions.toList()
-                .filterIsInstance<ReferenceInstruction>()
-                .mapNotNull { it.reference as? MethodReference }
-                .firstOrNull { it.returnType == "Z" && it.parameterTypes.size == 1 && it.parameterTypes[0] == "Landroid/content/Context;" }
+        val resolver = classDefBy(DARK_SCHEME).methods.filter(::isTokenColorMethod).singleOrNull()
+            ?: throw app.morphe.patcher.patch.PatchException("DarkColorScheme's colour token method not found")
+        planReturns(resolver, "mig(I)I")
 
-            if (darkCheckRef != null) {
-                val darkCheckClass = mutableClassDefBy(darkCheckRef.definingClass)
-                val darkCheckMethod = darkCheckClass.methods.singleOrNull { m ->
-                    m.name == darkCheckRef.name && m.returnType == "Z" &&
-                        m.parameterTypes.size == 1 &&
-                        m.parameterTypes[0] == "Landroid/content/Context;" &&
-                        m.implementation != null
-                }
-
-                if (darkCheckMethod != null) {
-                    val darkCode = darkCheckMethod.implementation!!.instructions.toList()
-                    val darkReturn = darkCode.indexOfLast { it.opcode == Opcode.RETURN }
-                    if (darkReturn >= 0) {
-                        val darkReg = (darkCode[darkReturn] as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA
-                        darkCheckMethod.addInstructions(
-                            darkReturn,
-                            """
-                                invoke-static {v$darkReg}, $THEME->darkModeAnswer(Z)Z
-                                move-result v$darkReg
-                            """
-                        )
-                    }
-                }
-            }
-
-            // --- Hook FDS colour returns ---
-            // FDSColors has two return paths: one from the resolver (intValue), one from the fallback.
-            // Hook both returns of each method that returns int.
-            // Insert in reverse order so indices stay valid.
-            for (m in fdsColors.methods) {
-                if (m.returnType != "I" || m.implementation == null) continue
-                val code = m.implementation!!.instructions.toList()
-                val returns = code.indices.filter { code[it].opcode == Opcode.RETURN }
-                for (index in returns.reversed()) {
-                    val reg = (code[index] as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA
-                    m.addInstructions(
-                        index,
-                        """
-                            invoke-static {v$reg}, $THEME->fds(I)I
-                            move-result v$reg
-                        """
-                    )
-                }
-            }
+        val fdsMethods = classDefBy(FDS_COLORS).methods.filter {
+            it.returnType == "I" && it.implementation != null
         }
+        val fdsResolvers = fdsMethods.filter {
+            it.parameterTypes.size == 3 && it.parameterTypes[0] == "Landroid/content/Context;"
+        }
+        val darkChecks = fdsResolvers.flatMap { method ->
+            method.implementation!!.instructions.mapNotNull { instruction ->
+                if (instruction.opcode != Opcode.INVOKE_STATIC) return@mapNotNull null
+                ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
+                    it.returnType == "Z" && it.parameterTypes == listOf("Landroid/content/Context;")
+                }
+            }
+        }.distinctBy { it.toString() }
+        val darkCheckRef = darkChecks.singleOrNull()
+            ?: throw app.morphe.patcher.patch.PatchException("Expected one FDS (Context)Z dark mode check")
+        val darkCheck = classDefBy(darkCheckRef.definingClass).methods.singleOrNull {
+            it.hookId() == darkCheckRef.toString() && AccessFlags.STATIC.isSet(it.accessFlags)
+        } ?: throw app.morphe.patcher.patch.PatchException("Dark mode check not found: $darkCheckRef")
+        planReturns(darkCheck, "darkModeAnswer(Z)Z")
+        fdsMethods.forEach { planReturns(it, "fds(I)I") }
 
-        // --- Route 3: replace dark surface constants with reads from volatile fields ---
-        // Scan every class for const instructions loading known dark surfaces and replace
-        // each with an sget from MaterialYouTheme's route 3 fields.
-        val surfaces = materialYouSurfaces
-        val extensionPackage = "Lapp/hushmessenger/extension/"
-        var route3Count = 0
+        var surfaceCount = 0
+        var colorCount = 0
         classDefForEach { cls ->
-            if (cls.type.startsWith(extensionPackage)) return@classDefForEach
-            val mutable = runCatching { mutableClassDefBy(cls.type) }.getOrNull() ?: return@classDefForEach
-            for (method in mutable.methods) {
-                val impl = method.implementation ?: continue
-                val code = impl.instructions.toList()
-                for ((index, insn) in code.withIndex()) {
-                    if (insn.opcode != Opcode.CONST && insn.opcode != Opcode.CONST_HIGH16) continue
-                    val lit = (insn as NarrowLiteralInstruction).narrowLiteral
-                    val fieldName = surfaces[lit] ?: continue
-                    val reg = (insn as OneRegisterInstruction).registerA
-                    method.replaceInstruction(index, "sget v$reg, $THEME->$fieldName:I")
-                    route3Count++
-                }
-            }
-        }
-
-        // --- Route 4: redirect Color.parseColor and getColor calls ---
-        // Replace invoke-static Color.parseColor(String) with MaterialYouTheme.parseColor(String).
-        // Replace invoke-virtual Context.getColor(int) with MaterialYouTheme.getColor(Context, int).
-        val colorReroutes = materialYouColorCalls
-        var route4Count = 0
-        classDefForEach { cls ->
-            if (cls.type.startsWith(extensionPackage)) return@classDefForEach
-            val mutable = runCatching { mutableClassDefBy(cls.type) }.getOrNull() ?: return@classDefForEach
-            for (method in mutable.methods) {
-                val impl = method.implementation ?: continue
-                val code = impl.instructions.toList()
-                for ((index, insn) in code.withIndex()) {
-                    if (insn !is ReferenceInstruction) continue
-                    val ref = insn.reference.toString()
-                    val replacement = colorReroutes[ref] ?: continue
-                    if (insn.opcode == Opcode.INVOKE_STATIC || insn.opcode == Opcode.INVOKE_VIRTUAL) {
-                        // For both: replace with invoke-static keeping the same registers.
-                        // Context.getColor(int) receiver becomes the first static parameter.
-                        method.replaceInstruction(index, "invoke-static {${registerList(insn as FiveRegisterInstruction)}}, $replacement")
-                        route4Count++
+            if (cls.type.startsWith("Lapp/hushmessenger/extension/")) return@classDefForEach
+            for (method in cls.methods) {
+                val implementation = method.implementation ?: continue
+                for ((index, instruction) in implementation.instructions.withIndex()) {
+                    if (instruction.opcode == Opcode.CONST || instruction.opcode == Opcode.CONST_HIGH16) {
+                        val field = materialYouSurfaces[(instruction as NarrowLiteralInstruction).narrowLiteral]
+                        if (field != null) {
+                            val register = (instruction as OneRegisterInstruction).registerA
+                            edits.getOrPut(method) { mutableListOf() }.add(
+                                Edit(index, "sget v$register, $THEME->$field:I"))
+                            surfaceCount++
+                        }
+                    } else if (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_VIRTUAL ||
+                        instruction.opcode == Opcode.INVOKE_STATIC_RANGE || instruction.opcode == Opcode.INVOKE_VIRTUAL_RANGE) {
+                        val reference = (instruction as ReferenceInstruction).reference.toString()
+                        val replacement = materialYouColorCalls[reference] ?: continue
+                        val contextCall = reference.startsWith("Landroid/content/Context;")
+                        val range = instruction as? RegisterRangeInstruction
+                        val invoke = instruction as? FiveRegisterInstruction
+                        val expectedOpcode = if (contextCall) {
+                            if (range != null) Opcode.INVOKE_VIRTUAL_RANGE else Opcode.INVOKE_VIRTUAL
+                        } else if (range != null) Opcode.INVOKE_STATIC_RANGE else Opcode.INVOKE_STATIC
+                        val expectedRegisters = if (contextCall) 2 else 1
+                        if (instruction.opcode != expectedOpcode || (range?.registerCount ?: invoke?.registerCount) != expectedRegisters ||
+                            (range != null && range.startRegister + range.registerCount > implementation.registerCount)) {
+                            throw app.morphe.patcher.patch.PatchException("Invalid colour call in ${method.hookId()}")
+                        }
+                        val call = if (range != null) {
+                            "invoke-static/range {v${range.startRegister} .. v${range.startRegister + range.registerCount - 1}}"
+                        } else "invoke-static {${registerList(invoke!!)}}"
+                        edits.getOrPut(method) { mutableListOf() }.add(
+                            Edit(index, "$call, $replacement"))
+                        colorCount++
                     }
                 }
             }
         }
+        if (surfaceCount == 0 || colorCount == 0) {
+            throw app.morphe.patcher.patch.PatchException("Missing Material You surface or colour-call route")
+        }
+
+        // Resolve every editable target before the first edit. Apply backwards so original
+        // instruction coordinates remain valid when wrappers add instructions.
+        val targets = edits.map { (method, changes) ->
+            mutableClassDefBy(method.definingClass).methods.single { it.hookId() == method.hookId() } to changes
+        }
+        for ((method, changes) in targets) for (edit in changes.sortedByDescending { it.index }) {
+            if (edit.insert) method.addInstructions(edit.index, edit.code)
+            else method.replaceInstruction(edit.index, edit.code)
+        }
+        java.util.logging.Logger.getLogger("").info(
+            "Material You: ${edits.keys.map { it.definingClass }.toSet().size} classes, " +
+                "$surfaceCount surfaces, $colorCount colour calls")
 
         recordControl("material_you")
         materialYouApplied = true

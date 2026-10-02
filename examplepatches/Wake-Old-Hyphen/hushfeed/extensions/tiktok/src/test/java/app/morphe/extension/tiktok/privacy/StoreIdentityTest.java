@@ -87,10 +87,23 @@ public class StoreIdentityTest {
         assertEquals(StoreIdentity.STORE, StoreIdentity.installerFor(pm, ownPackage));
     }
 
-    @Test public void theInstallerOfAnotherPackageIsNotSpoofed() {
+    @Test public void anotherPackageGetsTheRealCallWithWhatItThrows() {
         PackageManager pm = context.getPackageManager();
-        // Not TikTok's own package, so the Play Store is never substituted for it.
-        assertNull(StoreIdentity.installerFor(pm, "com.example.other"));
+        // Not TikTok's own package, so it gets exactly what the real call gives, a throw included.
+        assertEquals(outcome(() -> pm.getInstallerPackageName("com.example.other")),
+                outcome(() -> StoreIdentity.installerFor(pm, "com.example.other")));
+        Settings.STORE_IDENTITY.save(false);
+        assertEquals(outcome(() -> pm.getInstallerPackageName("com.example.other")),
+                outcome(() -> StoreIdentity.installerFor(pm, "com.example.other")));
+    }
+
+    /** What a call returned, or the kind of exception it threw. */
+    private static Object outcome(java.util.concurrent.Callable<String> call) {
+        try {
+            return "returned " + call.call();
+        } catch (Exception thrown) {
+            return thrown.getClass();
+        }
     }
 
     @Test public void offTheInstallerReadsAsItReallyIs() {

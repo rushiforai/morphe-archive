@@ -2,7 +2,58 @@
 
 ## Unreleased
 
+Development version 0.9.0. The public download remains v0.8.0.
+
+### New
+
+- **Allow chat bubbles** offers **Stock**, **Chat Heads** and **Native Bubbles** when Messenger's native routes are verified. Native mode uses its conversation notifications, long-lived shortcuts and embedded chat screen on Android 11 or newer. Account eligibility and Android's permissions still apply. Notification and conversation settings links include recovery guidance when a phone omits either page. Pause or Stock restores the original routing. Refs #19.
+
 ### Changed and fixed
+
+- Both settings tabs have fresh screenshots from the embedded v0.9.0 build. Install guidance separates message-content prompts from store updates, explains drawer access and unsent/read-receipt limits, and preserves account data when an installation conflicts. Manager 1.33.0 and Desktop 1.18.0 are the documented baseline, with manual signed-checksum verification.
+- Native capability checks follow the values connecting Messenger's shortcut, notification metadata and embedded activity. Null, disconnected and ambiguous routes keep stock behavior.
+
+## 0.8.0 (2026-10-01)
+
+This release keeps the same 31 patches, 28 of them switches, for all 21 arm64 builds of Messenger 580.0.0.49.91. Patching with Material You theme fits in a 1 GB heap now, and you can save your choices to a file. Most of the other work makes the settings screen say plainly what each switch is doing.
+
+### New
+
+- **Save choices to a file** and **Restore choices from a file** use Android's file picker. They share the clipboard backup format and need no storage permission. Cancelled, unreadable or corrupt documents leave choices alone, and a result from before settings reopened is ignored.
+
+### Changed and fixed
+
+- Crash recovery is verified against API 30, 36 and 37 exit records, including low memory, user stops, package updates and MemoryLimiter:AnonSwap. Duplicate or stale records don't advance the same failure twice. A controlled test on an owned phone activated safe mode after three preview-process crashes and kept the selected choice when Resume cleared it.
+
+- Delayed update failures now have the same opt-out, destruction and supersession regression checks as delayed successes.
+
+- Update checks show progress when enabled and offer **Check now** to retry. Responses are capped at 256 KiB and checked as strict UTF-8 JSON with a valid release tag and a link to this repository. Opt-out, a newer request or closing settings cancels the connection and prevents stale results. The help explains GitHub's connection metadata.
+
+- App explains why the drawer-icon switch is absent on Root Mount, bundles without a launcher alias, or installations without the Menu row. Search links to the relevant App setting. A disabled but installed alias remains configurable, and shortcuts alone cannot hide the only reliable icon. Refs #6.
+
+- The heap verifier and its regression tests now pass the pinned formatter. Their syntax trees and assertions are unchanged.
+
+- Keep unsent activity now advances only when a legacy unsend with an identifier is intercepted. Reading ordinary or previously retained messages leaves the timestamp alone. Status checks also sample pixels from the rendered screen and inspect Android's accessibility node in both themes.
+
+- Retained-unsend identifiers are added under one lock, so concurrent events no longer overwrite each other. Duplicate events avoid another write. Calls while the control is off, paused, unavailable or in safe mode add nothing. Tests preserve 100 concurrent identifiers and existing entries through a fresh read from disk.
+
+- Keep unsent describes its verified legacy routes, unsupported encrypted chats and unverified group coverage beside the switch. **No unsend activity observed since restart** describes hook activity without implying chat support. Tests cover retained-message labels, stock behavior while off or paused, and choices retained after settings reinitializes. Refs #23.
+
+- Control activity labels refresh when settings resumes, keeping the same switches, scroll position and focus. Paused choices say **Changes paused**. Labels have full contrast in both themes, and the switch reads the current status once without exposing exception details.
+
+- Repeated taps cannot open overlapping choices pickers. Cancel lets the next request proceed. Tests also check malformed UTF-8 and require all five menu mapping groups explicitly.
+
+- Choice backups now use an exact versioned header and a 16 KiB limit. Legacy exports still restore. The entire backup is checked before one preference update; malformed lines, duplicate keys and invalid booleans change nothing. Unknown and unavailable controls are reported separately, and omitted choices retain their saved values.
+
+- The settings menu patch validates its builder, binder, drawer setter and click route before editing any of them. Tests corrupt each target and its register contract across all five naming groups, checking that failures leave the host code and capability flags untouched. Branches to normal exits still run the settings hook.
+
+- The memory check now rejects incomplete APKs, missing extension code, changed input files and reduced catalogs. It compares edited class counts as well as color counts. Material You validates and wraps range-form color calls too.
+
+- **Open** skips the settings launcher alias, extension screens and disabled launcher entries, so it opens Messenger instead of reopening settings. Missing or rejected launchers show the existing recovery message. Restart applies the same disabled-entry guard.
+
+- Safe mode now offers **Resume** directly. If **Pause all changes** was already on, the action reads **Clear safe mode** and leaves Pause on. Both actions clear the crash streak and keep every saved choice.
+
+- Material You now finds and validates its edits before making any host class mutable. This avoids rebuilding unrelated classes and leaves the theme untouched if a required route is missing. All 31 patches apply to each of the 21 supported APKs with a 1024 MB Java heap. New tests check unchanged classes and late failures, and `scripts/verify_patch_heap.py` repeats the whole-APK check against the recorded input hashes and independently discovered color counts. Refs #18.
 
 - `scripts/CompatReport.java` checks **Material You theme** now, so its report covers all 31 patches. That switch finds its methods when it patches instead of from a build record, and the release checks for v0.7.0 caught it failing on 13 of the 21 builds before it shipped. The report lists what it found on each build and fails one where the theme's color methods are missing or ambiguous, so a new build can't be recorded until the theme fits it. A test fails if the report and the patch disagree on the colors and calls they look for.
 

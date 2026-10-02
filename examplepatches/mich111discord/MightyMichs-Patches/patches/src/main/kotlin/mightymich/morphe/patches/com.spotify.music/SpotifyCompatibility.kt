@@ -9,9 +9,9 @@ object SpotifyCompatibility {
         name = "Spotify",
         packageName = "com.spotify.music",
         apkFileType = ApkFileType.APK,
-        appIconColor = 0xFF1DB954,
+        appIconColor = 0xFF1DB954.toInt(),
         targets = listOf(
-            AppTarget(version = "9.1.86.2432")
+            AppTarget(version = "9.0.0")
         )
     )
 }

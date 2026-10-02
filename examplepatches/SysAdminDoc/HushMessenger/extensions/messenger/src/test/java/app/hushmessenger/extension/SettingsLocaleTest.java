@@ -180,7 +180,8 @@ public class SettingsLocaleTest {
     private static int visibleControls(View root) {
         int count = 0;
         for (String[] spec : SettingsActivity.CONTROLS)
-            if (((View) root.findViewWithTag(spec[0]).getParent()).getVisibility() == View.VISIBLE) count++;
+            // A hidden section can contain a visible inner row, as the bubble mode controls do.
+            if (root.findViewWithTag(spec[0]).isShown()) count++;
         return count;
     }
 

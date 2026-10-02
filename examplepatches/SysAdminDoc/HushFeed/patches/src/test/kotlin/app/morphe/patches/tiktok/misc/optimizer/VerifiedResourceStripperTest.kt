@@ -196,6 +196,64 @@ class VerifiedResourceStripperTest {
     }
 
     @Test
+    fun `blank or all selects the full reviewed language inventory`() {
+        val available = setOf("en", "tr", "es")
+        listOf(null, "", " , ", "all", "ALL", "en, all").forEach { raw ->
+            assertEquals("'$raw' keeps every language", available, parseLanguageSelection(raw, available))
+        }
+        assertEquals(setOf("en"), parseLanguageSelection("en", available))
+        assertEquals(setOf("en", "tr"), parseLanguageSelection("tr", available))
+        assertEquals(setOf("en", "tr"), parseLanguageSelection("en, tr", available))
+        assertThrows(PatchException::class.java) { parseLanguageSelection("all, xx", available) }
+        assertThrows(PatchException::class.java) { parseLanguageSelection("all", setOf("tr")) }
+    }
+
+    @Test
+    fun `preserve all checks paths and bytes without changing any language`() {
+        val root = temporary.newFolder("preserved-languages")
+        val english = root.write("assets/strings#lang_en/en.xrsc", "english")
+        val turkish = root.write("assets/strings#lang_tr/tr.xrsc", "turkish")
+        val contract = languageContract(root, setOf("en", "tr"))
+        listOf(null, "", "all").forEach { selection ->
+            val result = stripVerifiedLanguagePacks(root, selection, listOf(contract))
+            assertEquals(0, result.files)
+            assertEquals(0L, result.bytes)
+            assertArrayEquals("english".toByteArray(), english.readBytes())
+            assertArrayEquals("turkish".toByteArray(), turkish.readBytes())
+        }
+
+        assertThrows(PatchException::class.java) { stripVerifiedLanguagePacks(root, "all, xx", listOf(contract)) }
+        turkish.writeText("changed")
+        assertThrows(PatchException::class.java) { stripVerifiedLanguagePacks(root, "all", listOf(contract)) }
+        assertArrayEquals("english".toByteArray(), english.readBytes())
+        turkish.writeText("turkish")
+        root.write("assets/strings#lang_tr/extra.xrsc", "extra")
+        assertThrows(PatchException::class.java) { stripVerifiedLanguagePacks(root, "all", listOf(contract)) }
+        assertArrayEquals("turkish".toByteArray(), turkish.readBytes())
+    }
+
+    @Test
+    fun `explicit language removal keeps English and cannot be undone without a clean source`() {
+        val root = temporary.newFolder("explicit-languages")
+        val english = root.write("assets/strings#lang_en/en.xrsc", "english")
+        val turkish = root.write("assets/strings#lang_tr/tr.xrsc", "turkish")
+        val spanish = root.write("assets/strings#lang_es/es.xrsc", "spanish")
+        val contract = languageContract(root, setOf("en", "tr", "es"))
+
+        assertEquals(1, stripVerifiedLanguagePacks(root, "en, tr", listOf(contract)).files)
+        assertArrayEquals("english".toByteArray(), english.readBytes())
+        assertArrayEquals("turkish".toByteArray(), turkish.readBytes())
+        assertTrue(spanish.readBytes().isEmpty())
+        assertThrows(PatchException::class.java) { stripVerifiedLanguagePacks(root, "all", listOf(contract)) }
+
+        spanish.writeText("spanish")
+        assertEquals(2, stripVerifiedLanguagePacks(root, "en", listOf(contract)).files)
+        assertArrayEquals("english".toByteArray(), english.readBytes())
+        assertTrue(turkish.readBytes().isEmpty())
+        assertTrue(spanish.readBytes().isEmpty())
+    }
+
+    @Test
     fun `language selection keeps English and both Android aliases`() {
         val available = setOf("en", "es", "he", "iw", "id", "in")
 

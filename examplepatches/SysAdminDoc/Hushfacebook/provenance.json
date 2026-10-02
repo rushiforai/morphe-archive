@@ -291,7 +291,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the font swap. It stands at the exit of the typeface repository's resolver, found in Facebook 577 and 580 by the refusal it throws for a family with no source, at the exit of the variable-font builders the kept com.meta.foa.typefacebuilder.ApiUtils makes, and at the exit of React Native's typeface resolver, found by the variation settings refusal its utilities log. It answers the phone's default font, or a font file picked in the settings and copied into Facebook's files after a check, at the same weight and slant, for Meta's interface families only, which it knows by the enum constant names Redex keeps and by the family names React Native screens ask for."
+      "changes": "Written for Hushfacebook: the font swap. It stands at the exit of the typeface repository's resolver, found in Facebook 577 and 580 by the refusal it throws for a family with no source, at the exit of the variable-font builders the kept com.meta.foa.typefacebuilder.ApiUtils makes, and at the exit of React Native's typeface resolver, found by the variation settings refusal its utilities log, at the exit of Facebook's own Roboto builder, found by the message it logs when it can't make one, and at each read of Android's default typefaces in Facebook's code. It answers the phone's default font, or a font file picked in the settings and copied into Facebook's files after a check, at the same weight and slant, for Meta's interface families only, which it knows by the enum constant names Redex keeps and by the family names React Native screens ask for. At the Roboto builder and the default typeface reads it answers a picked file only, since both are the phone's font already."
     },
     {
       "paths": [
@@ -341,7 +341,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the tab Facebook opens on. The patch checks that Facebook 577 and 580 still pick the main screen's start tab from an intent's target_tab_id, by the one method that answers a tab id from that extra, and puts the extension first in the onCreate the main screen inherits. For a start from the launcher icon with nothing to restore, the extension hands the screen a copy of its intent asking for the chosen tab's id, the id each kept TabTag subclass hands TabTag, and leaves links, notifications, shortcuts and restored screens alone. Marketplace only is written here too: it asks the extension right after Facebook's hidden-tab set answers for each configured tab, in the one static method that builds the tab bar's shown tabs from NavigationConfig's list, so Home, Video, Friends, Feeds, Groups, Gaming and Events go the way a tab hidden in Facebook's own editor does. Hide the Reels tab is written here too: it shares that one call, a tab bar filter both patches depend on, and drops only WatchTab, the one TabTag class 577 and 580 keep for the tab accounts call Reels or Video, leaving a tab Facebook's own set already hides to Facebook. A start sent to the hidden tab asks for Home instead."
+      "changes": "Written for Hushfacebook: the tab Facebook opens on. The patch checks that Facebook 577 and 580 still pick the main screen's start tab from an intent's target_tab_id, by the one method that answers a tab id from that extra, and puts the extension first in the onCreate the main screen inherits. For a start from the launcher icon with nothing to restore, the extension hands the screen a copy of its intent asking for the chosen tab's id, the id each kept TabTag subclass hands TabTag, and leaves links, notifications, shortcuts and restored screens alone. Marketplace only is written here too: it asks the extension right after Facebook's hidden-tab set answers for each configured tab, in the one static method that builds the tab bar's shown tabs from NavigationConfig's list, so Home, Video, Friends, Feeds, Groups, Gaming and Events go the way a tab hidden in Facebook's own editor does. Hide the Reels tab is written here too: it shares that one call, a tab bar filter both patches depend on, and drops only WatchTab, the one TabTag class 577 and 580 keep for the tab accounts call Reels or Video, leaving a tab Facebook's own set already hides to Facebook. A start sent to the hidden tab asks for Home instead. Tab bar at the bottom is written here too: in 577 and 580 a static field set from fb4a_bottom_tabs_override_enabled holds the key of Facebook's own override of where the tab bar goes, and each method that reads it from FbSharedPreferences as a TriState and takes its ordinal gets a call right after the ordinal, which answers YES's ordinal while the switch is on. A load of the key that goes into anything else, Facebook's tab menu writing it, is left alone. No read, a read that answers no TriState or takes no ordinal right away, or a jump to the instruction after the ordinal stops patching with a message."
     },
     {
       "paths": [
@@ -418,6 +418,15 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredreels/ReelItemStory.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the reel ads Facebook builds as ordinary reels. In Facebook 577 and 580 the reel ad item's base class has one no-argument getter for its GraphQLStory, declared on one public interface up its supertypes that every reel item implements. The patch finds that interface and GraphQLStory's one sponsored_data accessor, and fills three extension stubs with them: whether an object is a reel item, the item's story, and the story's sponsored data. The extension drops a reel whose story carries sponsored data, the check Facebook's own Reels code makes before it shows a promotion over a reel."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/notifications/**",
         "patches/src/main/kotlin/app/morphe/patches/facebook/notifications/**"
       ],
@@ -440,6 +449,7 @@
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceAdFilter.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceSearchAds.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplacePathRemapper.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/HideSponsoredMarketplaceListingsPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceRequestAnchors.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceResponseAnchors.kt"
@@ -459,6 +469,33 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: hiding feed posts by words the person lists. In Facebook 577 and 580 GraphQLStory has one accessor that asks getCachedModel for the field keyed message as the type tagged TextWithEntities, and GraphQLStory's own toString calls it, labels its text message.text and reads that with a static helper that is getCachedString of the key text. The patch finds that accessor and the one of attached_story as Story by their keys, holds the first to toString's reading, and fills two stubs in PostText with them. The rule runs in the shared feed guard: the extension reads both texts through the kept getCachedString after checking the model's type tag, folds them and the two bounded phrase lists with NFKC case folding, lets a keep phrase win, keeps any post whose text it can't read, and reports only counts."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/metaai/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: hiding the row of Meta AI questions under posts. In Facebook 577 and 580 one static method loads both DeepDivePillSocket and the kept class name of GenAiDeepDivePillPlugin. It loads every pill plugin's class name into one register and asks a static (model, index) -> Z check of its own class whether that plugin applies, twice per plugin, each answer in a move-result. The patch puts a call after each answer that hands the extension the answer and the name, and the extension answers no for Meta AI's plugin while its switch is on, so the socket goes on to the next plugin. A missing or doubled socket, plugin names in more than one register, or a register past v15 stops patching with a message."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/postdates/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: keeping the date on post headers. In Facebook 577 and 580 one method, the render of the post header subtitle that names itself FDSPostHeaderSubtitle, loads both in_cycling_experiment and subtitle_cycling_text_count. It works out whether the header rotates its subtitle, logs that boolean as in_cycling_experiment through String.valueOf right after the call that answers it, and then branches on it between a component that rotates the subtitle plugins' texts and the one line with the date. The patch finds that method by the two strings, checks the log's shape, and hands the answer to the extension at the log's own label, which answers no while the switch is on."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/feedsheader/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the Feeds tab without its header. In Facebook 577 and 580 the Feeds tab is com.facebook.feed.fragment.FeedFiltersFragment, which keeps its member names. Its shouldInitializeNavBar answers whether the tab's chrome builds a title row, and the patch hands each answer to the extension at the return's own label, which answers no while the switch is on. Its onCreateView hands the container kept in tabBarContainer to the controller that fills and shows the filters. Right before that controller's new-instance the patch asks the extension, and on a yes puts a new container of the field's type in that register, built from the old one's Context the way the fragment builds its own, so the controller fills one that's never on screen. The fragment's feedFiltersFragmentContainerController posts a runnable Redex still names FeedFiltersFragmentContainerController$setViewPagerTopMargin$1, whose run() sets the posts' top margin to the filters' height when its boolean says they show. The patch hands that boolean to the extension between the read and the branch on it, and the extension answers no for a tab whose filters went to the container that's never on screen, so the posts start at the top."
     },
     {
       "paths": [

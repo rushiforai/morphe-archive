@@ -237,8 +237,29 @@ try {
 @echo off
 set /p FAKE_ADB_MODE=<"%~dp0mode.txt"
 echo mode=%FAKE_ADB_MODE% args=%*>>"%~dp0adb.log"
+if "%3"=="get-serialno" goto serial_identity
+if "%3|%4|%5"=="shell|getprop|ro.product.model" goto model_identity
+if "%3|%4|%5"=="emu|avd|name" goto avd_identity
+if "%3"=="install" goto install
 if "%3|%4|%5"=="shell|pm|path" goto package_path
 if "%3"=="uninstall" goto uninstall
+exit /b 0
+:serial_identity
+if "%FAKE_ADB_MODE%"=="wrong-serial" echo ANOTHER
+if not "%FAKE_ADB_MODE%"=="wrong-serial" echo %2
+exit /b 0
+:model_identity
+if "%FAKE_ADB_MODE%"=="wrong-model" echo AnotherModel
+if not "%FAKE_ADB_MODE%"=="wrong-model" echo FixtureModel
+exit /b 0
+:avd_identity
+echo FixtureAVD
+echo OK
+exit /b 0
+:install
+if "%FAKE_ADB_MODE%"=="signer-conflict" echo Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE]
+if "%FAKE_ADB_MODE%"=="signer-conflict" exit /b 23
+echo Success
 exit /b 0
 :package_path
 if "%FAKE_ADB_MODE%"=="check-fail" goto check_fail
@@ -257,35 +278,133 @@ exit /b 19
     [System.IO.File]::WriteAllText($fakeAdb, $fakeBody, [System.Text.Encoding]::ASCII)
 
     [System.IO.File]::WriteAllText($mode, 'absent', [System.Text.Encoding]::ASCII)
-    $removed = Remove-AndroidPackageIfInstalled -Adb $fakeAdb -Serial 'CLEAN' -PackageName 'com.example.app'
-    $calls = @(Get-Content -LiteralPath $log)
-    Assert-True (-not $removed) 'An absent package was reported as removed.'
-    Assert-True ($calls.Count -eq 1 -and $calls[0] -like '*shell pm path com.example.app') `
-        'The absent-package path attempted an uninstall.'
+    # Replacement removal is no longer allowed, including through the old shared helper.
+    foreach ($replacementMode in @('absent', 'present', 'check-fail', 'uninstall-fail')) {
+        [IO.File]::WriteAllText($mode, $replacementMode, [Text.Encoding]::ASCII)
+        Assert-Throws { Remove-AndroidPackageIfInstalled -Adb $fakeAdb -Serial 'READY' -PackageName 'com.example.app' } `
+            '*Replacement uninstall is disabled*' "Replacement mode $replacementMode was accepted."
+        Assert-True (-not (Test-Path -LiteralPath $log)) 'A replacement refusal invoked ADB.'
+    }
+    Assert-Throws { & (Join-Path $PSScriptRoot 'patch-for-device.ps1') -Replace -Serial 'READY' } `
+        '*Replacement uninstall is disabled*' 'The device script accepted -Replace.'
+    Assert-True (-not (Test-Path -LiteralPath $log)) '-Replace invoked ADB before refusing.'
 
+    $leaseRoot = Join-Path $caseRoot 'leases'
+    [void][IO.Directory]::CreateDirectory($leaseRoot)
+    $leaseToken = [guid]::NewGuid().ToString('N')
+    function Write-TestDeviceLease {
+        param([string]$Serial = 'READY', [string]$Variant = 'valid')
+        $lease = [ordered]@{schemaVersion = 1; serial = $Serial; project = 'HushThreads'; chatIdentity = 'fixture';
+            ownershipToken = $leaseToken; acquiredUtc = [DateTimeOffset]::UtcNow.ToString('o');
+            expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes(1).ToString('o')}
+        if ($Variant -eq 'foreign') { $lease.ownershipToken = 'another-chat' }
+        if ($Variant -eq 'other-project') { $lease.project = 'AnotherProject' }
+        if ($Variant -eq 'expired') { $lease.expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes(-1).ToString('o') }
+        if ($Variant -eq 'wrong-recorded-serial') { $lease.serial = 'ANOTHER' }
+        [IO.File]::WriteAllText((Join-Path $leaseRoot ($Serial + '.json')), ($lease | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
+    }
+    $leaseArguments = @{Adb = $fakeAdb; Serial = 'READY'; OwnershipToken = $leaseToken;
+        ExpectedIdentity = 'FixtureModel'; LeaseDirectory = $leaseRoot}
+    Assert-Throws { Assert-HushThreadsDeviceLease @leaseArguments } '*No readable exclusive device lease*' 'A missing lease passed.'
+    foreach ($variant in @('foreign', 'other-project', 'expired', 'wrong-recorded-serial')) {
+        Write-TestDeviceLease -Variant $variant
+        $before = [IO.File]::ReadAllText((Join-Path $leaseRoot 'READY.json'))
+        Assert-Throws { Assert-HushThreadsDeviceLease @leaseArguments } '*device lease*' "Lease variant $variant passed."
+        Assert-True ([IO.File]::ReadAllText((Join-Path $leaseRoot 'READY.json')) -ceq $before) "Lease variant $variant was overwritten."
+        Assert-True (-not (Test-Path -LiteralPath $log)) "Lease variant $variant invoked ADB."
+    }
+    foreach ($identityMode in @('wrong-serial', 'wrong-model')) {
+        Write-TestDeviceLease
+        [IO.File]::WriteAllText($mode, $identityMode, [Text.Encoding]::ASCII)
+        Assert-Throws { Assert-HushThreadsDeviceLease @leaseArguments } '*identity*' "Identity variant $identityMode passed."
+        $calls = @(Get-Content -LiteralPath $log)
+        Assert-True (@($calls | Where-Object { $_ -notmatch 'get-serialno|shell getprop ro.product.model' }).Count -eq 0) `
+            'An identity failure issued a device-changing command.'
+        Remove-Item -LiteralPath $log -Force
+    }
+    Write-TestDeviceLease
+    [IO.File]::WriteAllText($mode, 'present', [Text.Encoding]::ASCII)
+    Assert-HushThreadsDeviceLease @leaseArguments
+    $renewed = Get-Content (Join-Path $leaseRoot 'READY.json') -Raw | ConvertFrom-Json
+    Assert-True ([DateTimeOffset]$renewed.expiresUtc -gt [DateTimeOffset]::UtcNow.AddMinutes(19)) 'The owned lease was not renewed.'
+    Assert-True ($renewed.ownershipToken -ceq $leaseToken) 'Renewal changed the ownership token.'
     Remove-Item -LiteralPath $log -Force
-    [System.IO.File]::WriteAllText($mode, 'present', [System.Text.Encoding]::ASCII)
-    $removed = Remove-AndroidPackageIfInstalled -Adb $fakeAdb -Serial 'READY' -PackageName 'com.example.app'
-    $calls = @(Get-Content -LiteralPath $log)
-    Assert-True $removed 'An installed package was not removed.'
-    Assert-True ($calls.Count -eq 2 -and $calls[0] -like '*shell pm path com.example.app' -and
-        $calls[1] -like '*uninstall com.example.app') 'The installed-package path did not check then uninstall.'
+    Write-TestDeviceLease -Serial 'emulator-5554'
+    Assert-HushThreadsDeviceLease -Adb $fakeAdb -Serial 'emulator-5554' -OwnershipToken $leaseToken `
+        -ExpectedIdentity 'FixtureAVD' -LeaseDirectory $leaseRoot
+    Assert-True (@(Get-Content -LiteralPath $log | Where-Object { $_ -like '*emu avd name*' }).Count -eq 1) `
+        'An emulator lease did not verify the exact AVD profile.'
+    Remove-Item -LiteralPath $log -Force
 
-    Remove-Item -LiteralPath $log -Force
-    [System.IO.File]::WriteAllText($mode, 'check-fail', [System.Text.Encoding]::ASCII)
-    Assert-Throws {
-        Remove-AndroidPackageIfInstalled -Adb $fakeAdb -Serial 'BROKEN' -PackageName 'com.example.app'
-    } '*could not check*' 'An ADB transport failure was treated as an absent package.'
-    $calls = @(Get-Content -LiteralPath $log)
-    Assert-True ($calls.Count -eq 1) 'The check-failure path continued after ADB failed.'
-
-    Remove-Item -LiteralPath $log -Force
-    [System.IO.File]::WriteAllText($mode, 'uninstall-fail', [System.Text.Encoding]::ASCII)
-    Assert-Throws {
-        Remove-AndroidPackageIfInstalled -Adb $fakeAdb -Serial 'LOCKED' -PackageName 'com.example.app'
-    } '*uninstall failed*' 'An uninstall failure was accepted.'
-    $calls = @(Get-Content -LiteralPath $log)
-    Assert-True ($calls.Count -eq 2) 'The uninstall-failure path did not perform exactly a check and uninstall.'
+    # Execute the real install suffix, so a signer failure cannot be masked by a later version read.
+    $deviceText = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'patch-for-device.ps1'))
+    $tokens = $null; $parseErrors = $null
+    $deviceAst = [Management.Automation.Language.Parser]::ParseInput($deviceText, [ref]$tokens, [ref]$parseErrors)
+    $installNode = $deviceAst.FindAll({param($node) $node -is [Management.Automation.Language.AssignmentStatementAst] -and
+        $node.Left.Extent.Text -ceq '$install'}, $true) | Select-Object -First 1
+    Assert-True ($null -ne $installNode -and -not $parseErrors) 'The real install operation was not found.'
+    $installSuffix = [scriptblock]::Create($deviceText.Substring($installNode.Extent.StartOffset))
+    $leaseNames = @('HUSHTHREADS_DEVICE_LEASE_DIR', 'HUSHTHREADS_DEVICE_LEASE_TOKEN', 'HUSHTHREADS_DEVICE_IDENTITY')
+    $savedLeaseEnvironment = @{}
+    foreach ($name in $leaseNames) { $savedLeaseEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
+    try {
+        $env:HUSHTHREADS_DEVICE_LEASE_DIR = $leaseRoot
+        $env:HUSHTHREADS_DEVICE_LEASE_TOKEN = $leaseToken
+        $env:HUSHTHREADS_DEVICE_IDENTITY = 'FixtureModel'
+        # Another process cannot replace or delete the owned lease between validation and ADB.
+        foreach ($commandThrows in @($false, $true)) {
+            Write-TestDeviceLease
+            $script:commandHeldLease = $false
+            $duringCommand = {
+                param($adbPath, $command)
+                if ($command[2] -ceq 'get-serialno') { return [pscustomobject]@{ExitCode = 0; Output = @('READY')} }
+                if ($command[2] -ceq 'shell' -and $command[3] -ceq 'getprop') {
+                    return [pscustomobject]@{ExitCode = 0; Output = @('FixtureModel')}
+                }
+                $leasePath = Join-Path $leaseRoot 'READY.json'
+                foreach ($operation in @('write', 'delete')) {
+                    $blocked = $false
+                    try {
+                        if ($operation -eq 'write') {
+                            $other = [IO.File]::Open($leasePath, [IO.FileMode]::Open, [IO.FileAccess]::Write, [IO.FileShare]::ReadWrite)
+                            $other.Dispose()
+                        } else { [IO.File]::Delete($leasePath) }
+                    } catch [IO.IOException] { $blocked = $true }
+                    Assert-True $blocked "The owned lease allowed a competing $operation during ADB."
+                }
+                $script:commandHeldLease = $true
+                if ($commandThrows) { throw 'fixture device command failed' }
+                return [pscustomobject]@{ExitCode = 7; Output = @('fixture command')}
+            }
+            if ($commandThrows) {
+                Assert-Throws { Invoke-HushThreadsAdbCommand -Adb $fakeAdb -RequireLease -Invoker $duringCommand -Arguments @('-s', 'READY', 'shell', 'true') } '*fixture device command failed*' 'A leased command exception was swallowed.'
+            } else {
+                $guarded = Invoke-HushThreadsAdbCommand -Adb $fakeAdb -RequireLease -Invoker $duringCommand -Arguments @('-s', 'READY', 'shell', 'true')
+                Assert-True ($guarded.ExitCode -eq 7 -and $guarded.Output[0] -ceq 'fixture command') 'The leased ADB result changed.'
+            }
+            Assert-True $script:commandHeldLease 'The leased command did not execute.'
+            $released = [IO.File]::Open((Join-Path $leaseRoot 'READY.json'), [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+            $released.Dispose()
+        }
+        foreach ($variant in @('missing', 'foreign', 'expired')) {
+            Write-TestDeviceLease -Variant $variant
+            if ($variant -eq 'missing') { Remove-Item -LiteralPath (Join-Path $leaseRoot 'READY.json') -Force }
+            [IO.File]::WriteAllText($mode, 'present', [Text.Encoding]::ASCII)
+            Assert-Throws { & { $adb = $fakeAdb; $Serial = 'READY'; $out = $reportApk; & $installSuffix } } `
+                '*device lease*' "The real install handler accepted a $variant lease."
+            Assert-True (-not (Test-Path -LiteralPath $log)) "The real install handler used ADB with a $variant lease."
+        }
+        Write-TestDeviceLease
+        [IO.File]::WriteAllText($mode, 'signer-conflict', [Text.Encoding]::ASCII)
+        Assert-Throws { & { $adb = $fakeAdb; $Serial = 'READY'; $out = $reportApk; & $installSuffix } } `
+            '*Signing key conflict on READY*' 'A signing conflict passed the real install handler.'
+        $calls = @(Get-Content -LiteralPath $log)
+        Assert-True (@($calls | Where-Object { $_ -like '*install -r -g*' }).Count -eq 1) 'The update did not preserve installed data.'
+        Assert-True (@($calls | Where-Object { $_ -match 'uninstall|\bclear\b|dumpsys package' }).Count -eq 0) `
+            'A signer conflict uninstalled, cleared or reported the previous build as success.'
+    } finally {
+        foreach ($name in $leaseNames) { [Environment]::SetEnvironmentVariable($name, $savedLeaseEnvironment[$name], 'Process') }
+    }
 
     $emptyJdk = Join-Path $caseRoot 'empty-jdk'
     New-Item -ItemType Directory -Path $emptyJdk | Out-Null
@@ -3696,6 +3815,70 @@ foreach ($name in @('build-release-receipt.ps1', 'verify-all-patches.ps1')) {
 
 Write-Host '[scripts] split bundle contracts passed'
 
+# The merger's temporary folder comes from the input parent and basename. Check the real Java
+# entry point with a small compatible merger that records its input directory, then touches it.
+$mergeIsolationRoot = Join-Path ([IO.Path]::GetTempPath()) ('hushthreads-merge-isolation-' + [guid]::NewGuid().ToString('N'))
+try {
+    New-Item -ItemType Directory -Path $mergeIsolationRoot | Out-Null
+    $mergeTestJava = Resolve-Java
+    $mergeTestJavac = Join-Path (Split-Path -Parent $mergeTestJava) 'javac.exe'
+    $mergeFixtureSource = Join-Path $mergeIsolationRoot 'ApkMerger.java'
+    [IO.File]::WriteAllText($mergeFixtureSource, @'
+package app.morphe.patcher.apk;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+public final class ApkMerger {
+    public void merge(File bundle, File merged, boolean a, String b, boolean c, Boolean d, boolean e) throws IOException {
+        Path parent = bundle.toPath().toAbsolutePath().getParent();
+        Files.writeString(Path.of(merged + ".input"), parent.toString());
+        Files.createDirectories(parent.resolve("nested"));
+        Files.writeString(parent.resolve("nested/working.txt"), "temporary merge data");
+        Files.copy(bundle.toPath(), merged.toPath());
+        if (merged.getName().startsWith("fail")) throw new IOException("injected merge failure");
+    }
+}
+'@, [Text.UTF8Encoding]::new($false))
+    $mergeClasses = Join-Path $mergeIsolationRoot 'classes'
+    & $mergeTestJavac -d $mergeClasses $mergeFixtureSource (Join-Path $PSScriptRoot 'MergeSplits.java')
+    Assert-True ($LASTEXITCODE -eq 0) 'Could not compile the merge isolation fixture.'
+    $mergeArchive = Join-Path $mergeIsolationRoot 'input.xapk'
+    [IO.File]::WriteAllText($mergeArchive, 'original archive bytes', [Text.UTF8Encoding]::new($false))
+    $mergeHash = (Get-FileHash -LiteralPath $mergeArchive).Hash
+    $destinations = @('first.apk', 'second.apk', 'failure.apk') | ForEach-Object { Join-Path $mergeIsolationRoot $_ }
+    $mergeProcesses = @()
+    foreach ($destination in $destinations) {
+        $mergeProcesses += Start-Process -FilePath $mergeTestJava -WindowStyle Hidden -PassThru `
+            -ArgumentList @('-cp', ('"' + $mergeClasses + '"'), 'MergeSplits', ('"' + $mergeArchive + '"'), ('"' + $destination + '"')) `
+            -RedirectStandardOutput "$destination.stdout" -RedirectStandardError "$destination.stderr"
+    }
+    foreach ($process in $mergeProcesses) { $process.WaitForExit() }
+    $inputDirectories = @()
+    for ($k = 0; $k -lt $destinations.Count; $k++) {
+        $destination = $destinations[$k]
+        $inputDirectory = Get-Content -LiteralPath "$destination.input" -Raw
+        $inputDirectories += $inputDirectory
+        Assert-True (-not (Test-SamePath $inputDirectory $mergeIsolationRoot)) 'The merger unpacked beside the shared archive.'
+        Assert-True (-not (Test-Path -LiteralPath $inputDirectory)) 'A private archive or merge directory survived success/error.'
+        if ($k -lt 2) {
+            Assert-True ($mergeProcesses[$k].ExitCode -eq 0 -and (Get-FileHash -LiteralPath $destination).Hash -ceq $mergeHash) 'A concurrent merge did not receive the original archive bytes.'
+        } else {
+            Assert-True ($mergeProcesses[$k].ExitCode -ne 0 -and (Get-Content -LiteralPath "$destination.stderr" -Raw) -match 'injected merge failure') 'The merge error was not propagated.'
+        }
+    }
+    Assert-True (@($inputDirectories | Sort-Object -Unique).Count -eq 3) 'Concurrent merges shared an input directory.'
+    Assert-True ((Get-FileHash -LiteralPath $mergeArchive).Hash -ceq $mergeHash) 'Merging changed the original archive.'
+    Assert-True (-not (Test-Path -LiteralPath (Join-Path $mergeIsolationRoot 'nested'))) 'The merger wrote beside the original archive.'
+    Write-Host '[scripts] concurrent merge input isolation and cleanup contracts passed'
+} finally {
+    $mergeIsolationPath = [IO.Path]::GetFullPath($mergeIsolationRoot)
+    $mergeTempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
+    if (-not $mergeIsolationPath.StartsWith($mergeTempRoot, [StringComparison]::OrdinalIgnoreCase) -or
+        -not (Split-Path -Leaf $mergeIsolationPath).StartsWith('hushthreads-merge-isolation-')) { throw 'Unsafe merge-fixture cleanup path.' }
+    if (Test-Path -LiteralPath $mergeIsolationPath) { Remove-Item -LiteralPath $mergeIsolationPath -Recurse -Force }
+}
+
 # --- relative paths ------------------------------------------------------------------------------
 #
 # .NET reads a relative path against the process directory, which Set-Location doesn't move, while
@@ -4482,7 +4665,7 @@ try {
     # refused before the CLI starts. No -Serial, so nothing goes near adb.
     $deviceOut = Join-Path $releaseRoot 'device'
     function Invoke-DeviceBuild([string]$Apk, [string]$OutDir = $deviceOut, [string]$DesktopJar = $stubJar) {
-        Remove-Item -LiteralPath $javaLog -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $javaLog, $mergeLog -Force -ErrorAction SilentlyContinue
         $arguments = @{ Root = $releaseRepo; DesktopJar = $DesktopJar; Java = $stubJava; Aapt2 = $stubAapt2; OutDir = $OutDir }
         if ($Apk) { $arguments['Apk'] = $Apk }
         & (Join-Path $PSScriptRoot 'patch-for-device.ps1') @arguments 6> $null
@@ -4495,18 +4678,30 @@ try {
             throw "patch-for-device.ps1 refused the declared build ${build}: $($_.Exception.Message)"
         }
         $deviceRuns = @(Get-Content -LiteralPath $javaLog)
-        Assert-True ($deviceRuns.Count -eq 1 -and $deviceRuns[0] -eq "patch $($fixturePaths[$build]) forced=0" -and
+        Assert-True ($deviceRuns.Count -eq 1 -and $deviceRuns[0] -eq "patch $($fixturePaths[$build]) merged forced=0" -and
             (Test-Path -LiteralPath $deviceApk -PathType Leaf)) `
             "patch-for-device.ps1 did not build $build once, without -f: $($deviceRuns -join '; ')"
         Assert-True (-not (Test-Path -LiteralPath (Join-Path $deviceOut 'stock-base.apk'))) `
             "patch-for-device.ps1 left the base APK it read for $build behind."
+        Assert-True ((@(Get-Content -LiteralPath $mergeLog) -join '') -ceq "merge $($fixturePaths[$build])" -and
+            -not (Test-Path -LiteralPath (Join-Path $deviceOut 'stock-merged.apk'))) 'The device build did not merge once and clean its generated merge.'
+    }
+    foreach ($broken in $brokenMerges) {
+        $flag = Join-Path $tools $broken.Flag
+        Set-Content -LiteralPath $flag -Value 'on' -Encoding ASCII
+        try {
+            Assert-Throws { Invoke-DeviceBuild -Apk $newestFixture } $broken.Pattern 'A device build patched after its merge failed.'
+            Assert-True (-not (Test-Path -LiteralPath $javaLog) -and
+                -not (Test-Path -LiteralPath (Join-Path $deviceOut 'stock-merged.apk')) -and
+                -not (Test-Path -LiteralPath (Join-Path $deviceOut 'morphe-patch.args'))) 'A failed device merge patched or left generated inputs behind.'
+        } finally { Remove-Item -LiteralPath $flag -Force }
     }
     $savedFixtureDir = $env:HUSHTHREADS_FIXTURE_DIR
     try {
         $env:HUSHTHREADS_FIXTURE_DIR = $fixtures
         Invoke-DeviceBuild
         Assert-True ((@(Get-Content -LiteralPath $javaLog) -join '; ') -eq
-            "patch $($fixturePaths[$releaseTarget.PackageVersion]) forced=0") `
+            "patch $($fixturePaths[$releaseTarget.PackageVersion]) merged forced=0") `
             "With no -Apk, patch-for-device.ps1 did not take the newest declared build from the fixture folder."
     } finally {
         $env:HUSHTHREADS_FIXTURE_DIR = $savedFixtureDir

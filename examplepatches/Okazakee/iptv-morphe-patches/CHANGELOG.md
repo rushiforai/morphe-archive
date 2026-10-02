@@ -1,3 +1,15 @@
+## [1.0.2](https://github.com/Okazakee/iptv-morphe-patches/compare/v1.0.1...v1.0.2) (2026-10-01)
+
+### 🐛 Bug Fixes
+
+* dedupe bundle display name ("IPTV IPTV patches" -> "IPTV Pro patches") ([a856d74](https://github.com/Okazakee/iptv-morphe-patches/commit/a856d74ea35e4ac1b7cbe251876a748b33fa7c7a))
+
+## [1.0.2-dev.1](https://github.com/Okazakee/iptv-morphe-patches/compare/v1.0.1...v1.0.2-dev.1) (2026-10-01)
+
+### 🐛 Bug Fixes
+
+* dedupe bundle display name ("IPTV IPTV patches" -> "IPTV Pro patches") ([a856d74](https://github.com/Okazakee/iptv-morphe-patches/commit/a856d74ea35e4ac1b7cbe251876a748b33fa7c7a))
+
 ## 1.0.1 (2026-08-31)
 
 ### 🐛 Bug Fixes

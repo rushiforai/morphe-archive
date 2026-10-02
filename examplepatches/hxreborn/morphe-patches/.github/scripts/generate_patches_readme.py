@@ -186,6 +186,7 @@ ICONS = {
     "all.in.one.calculator": "allinonecalculator.png",
     "psyberia.alpinequest.free": "alpinequest.png",
     "com.atlogis.atlomaps": "atlomaps.png",
+    "com.adithya.memoneet": "memoneet.png",
     "com.spocky.projengmenu": "projectivy.png",
     "com.myvitale.forus": "forus.png",
     "com.michaldrabik.showly2": "showly.png",
@@ -229,6 +230,7 @@ ICONS = {
     "com.yunyi.smartcamera": "yiiot.png",
     "com.greenstone.pocketwhip": "pocketwhip.png",
     "apps.automan.blurwallpaper": "blurwall.png",
+    "com.nieruo.healthapp": "catzy.png",
     "com.one4studio.one4home": "one4home.png",
 }
 

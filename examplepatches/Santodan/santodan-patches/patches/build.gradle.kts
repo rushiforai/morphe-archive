@@ -3,7 +3,7 @@ group = "software.santodan.patches"
 patches {
     about {
         name = "Santodan Patches"
-        description = "Independent Morphe patches for NuvioTV, Reddit, Pillo, and Peafowl"
+        description = "Independent Morphe patches for MEO, NuvioTV, Reddit, Pillo, and Peafowl"
         source = "https://github.com/Santodan/santodan-patches"
         author = "Santodan"
         contact = "https://github.com/Santodan"
@@ -47,6 +47,14 @@ tasks {
         classpath = sourceSets["test"].runtimeClasspath
         mainClass.set("santodan.patches.VerifyRedditGuestMode")
         args(fileTree("../../.inspect-reddit") { include("classes*.dex") }.files.sorted().map { it.absolutePath })
+    }
+
+    register<JavaExec>("verifyPilloPatch") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyPilloPatch")
+        val input = file("../../.inspect-pillo-620/classes15.dex")
+        args(input.absolutePath, file("${layout.buildDirectory.get()}/verification/pillo-classes15.dex").absolutePath)
     }
 
     register<JavaExec>("generatePatchesList") {

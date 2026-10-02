@@ -217,8 +217,10 @@ Assert-True ((Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersi
 
 $allNames = @($catalog.patches | ForEach-Object { $_.name })
 $allDependencies = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $allNames)
-Assert-True ($allDependencies.Count -eq 1 -and $allDependencies[0] -eq 'BytecodePatch') `
-    'The real catalog dependency closure did not isolate the internal BytecodePatch.'
+# An unnamed patch is listed by its kind: every unnamed bytecode patch reads BytecodePatch, and
+# the one unnamed resource patch is the manifest half of Keep a streak going.
+Assert-True ((@($allDependencies | Sort-Object) -join ',') -eq 'BytecodePatch,ResourcePatch') `
+    "The real catalog dependency closure was not its two internal patches: $(@($allDependencies) -join ', ')."
 Assert-True (Test-ReportedPatchNames -Expected $allNames `
     -Actual @($allNames + $allDependencies) -AllowedDependencies $allDependencies) `
     'A result that included the real internal dependency was rejected.'
@@ -312,6 +314,62 @@ try {
         -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion
     Assert-True $reportValidation.Valid `
         "A complete result with a declared dependency was rejected: $($reportValidation.Reason)"
+
+    # Exercise the verifier's actual preservation branch against archives, including corruption
+    # with an unchanged length. A resource-table check alone doesn't cover native XRSC files.
+    $verifyTokens = $null
+    $verifyErrors = $null
+    $verifyAst = [System.Management.Automation.Language.Parser]::ParseFile(
+        (Join-Path $PSScriptRoot 'verify-all-patches.ps1'), [ref]$verifyTokens, [ref]$verifyErrors)
+    Assert-True ($verifyErrors.Count -eq 0) 'The all-patches verifier did not parse.'
+    $nativeGuards = @($verifyAst.FindAll({ param($node)
+        $node -is [System.Management.Automation.Language.IfStatementAst] -and
+            $node.Extent.Text.StartsWith('if ($languagePatch.Count -gt 0)')
+    }, $true))
+    Assert-True ($nativeGuards.Count -eq 1) 'The verifier has no single native-language preservation branch.'
+    $nativeGuard = [scriptblock]::Create($nativeGuards[0].Extent.Text)
+    function Invoke-NativeLanguageGuard([string]$Apk, [string]$out, [string]$Default = 'all') {
+        $catalog = [pscustomobject]@{ patches = @([pscustomobject]@{
+            name = 'Remove unused language packs'
+            options = @([pscustomobject]@{ key = 'locales'; default = $Default })
+        }) }
+        $languagePatch = @($catalog.patches)
+        & $nativeGuard 6> $null
+    }
+    function New-LanguageArchive([string]$Name, [System.Collections.IDictionary]$Files) {
+        $path = Join-Path $caseRoot "$Name.apk"
+        $zip = [System.IO.Compression.ZipFile]::Open($path, [System.IO.Compression.ZipArchiveMode]::Create)
+        try {
+            foreach ($key in $Files.Keys) {
+                $stream = $zip.CreateEntry($key).Open()
+                try {
+                    $bytes = [Text.Encoding]::UTF8.GetBytes($Files[$key])
+                    $stream.Write($bytes, 0, $bytes.Length)
+                } finally { $stream.Dispose() }
+            }
+        } finally { $zip.Dispose() }
+        return $path
+    }
+    $nativeEnglish = 'assets/strings#lang_en/en.xrsc'
+    $nativeTurkish = 'assets/strings#lang_tr/tr.xrsc'
+    $nativeStock = New-LanguageArchive 'native-stock' @{ $nativeEnglish = 'English'; $nativeTurkish = 'Turkish' }
+    $nativeSame = New-LanguageArchive 'native-same' @{ $nativeEnglish = 'English'; $nativeTurkish = 'Turkish' }
+    Invoke-NativeLanguageGuard $nativeStock $nativeSame
+    Assert-Throws { Invoke-NativeLanguageGuard $nativeStock $nativeSame 'en' } '*must default to all*' `
+        'An all-patches catalog that silently removed languages was accepted.'
+    $nativeMissing = New-LanguageArchive 'native-missing' @{ $nativeEnglish = 'English' }
+    Assert-Throws { Invoke-NativeLanguageGuard $nativeStock $nativeMissing } "*removed or changed $nativeTurkish*" `
+        'A missing native language file passed the verifier.'
+    $nativeEmpty = New-LanguageArchive 'native-empty' @{ $nativeEnglish = 'English'; $nativeTurkish = '' }
+    Assert-Throws { Invoke-NativeLanguageGuard $nativeStock $nativeEmpty } "*removed or changed $nativeTurkish*" `
+        'A zeroed native language file passed the verifier.'
+    $nativeChanged = New-LanguageArchive 'native-changed' @{ $nativeEnglish = 'English'; $nativeTurkish = 'Changed' }
+    Assert-Throws { Invoke-NativeLanguageGuard $nativeStock $nativeChanged } "*build changed $nativeTurkish*" `
+        'A same-length native language corruption passed the verifier.'
+    $nativeAbsent = New-LanguageArchive 'native-absent' @{ 'AndroidManifest.xml' = 'manifest' }
+    Assert-Throws { Invoke-NativeLanguageGuard $nativeAbsent $nativeSame } '*no native language files*' `
+        'An unexercised native-language verifier reported success.'
+    Write-Host '[scripts] native language preservation contracts passed'
 
     $fakeAdb = Join-Path $caseRoot 'adb.cmd'
     $log = Join-Path $caseRoot 'adb.log'
@@ -646,10 +704,15 @@ $unchanged = Get-ManifestDelta -Stock $facts -Patched $facts
 Assert-True (@(ConvertTo-ManifestDeltaEntries -Delta $unchanged).Count -eq 0) `
     'An unchanged manifest produced a delta.'
 
+# Exactly Keep a streak going's three alarm permissions. Anything more means a patch changes the
+# manifest in a way nobody has reviewed here yet.
 $checkedInAllowlist = Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt')
-Assert-True (@($checkedInAllowlist | Where-Object { $_ }).Count -eq 0) `
-    ('The checked-in manifest delta allowlist is no longer empty, so the patches now change the ' +
-     "Android manifest: $(@($checkedInAllowlist) -join ', ')")
+Assert-True ((@($checkedInAllowlist | Where-Object { $_ }) -join '; ') -eq (@(
+    'permission-added android.permission.RECEIVE_BOOT_COMPLETED',
+    'permission-added android.permission.SCHEDULE_EXACT_ALARM',
+    'permission-added android.permission.USE_EXACT_ALARM') -join '; ')) `
+    ('The checked-in manifest delta allowlist changed, so the patches now change the Android ' +
+     "manifest in a new way: $(@($checkedInAllowlist) -join ', ')")
 
 $allowlistRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("receipt-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $allowlistRoot | Out-Null
@@ -1555,6 +1618,7 @@ try {
     New-Item -ItemType Directory -Path (Join-Path $hookRoot 'scripts') -Force | Out-Null
     $factsMarker = Join-Path $hookRoot 'facts-ran.txt'
     $contractsMarker = Join-Path $hookRoot 'contracts-ran.txt'
+    $signingMarker = Join-Path $hookRoot 'signing-ran.txt'
     Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/validate-release-facts.ps1') -Encoding UTF8 -Value @(
         'param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag,',
         '    [switch]$VerifyPublishedAsset, [string]$ArtifactPath)',
@@ -1564,10 +1628,14 @@ try {
         'param([string]$Root)',
         "Set-Content -LiteralPath '$contractsMarker' -Value 'ran'",
         'exit 0')
+    Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/test-apk-signing.ps1') -Encoding UTF8 -Value @(
+        'param([string]$Root)',
+        "Set-Content -LiteralPath '$signingMarker' -Value `"root=`$Root`"",
+        'exit 0')
 
     function Invoke-Hook {
         param([string[]]$Paths)
-        Remove-Item -LiteralPath $factsMarker, $contractsMarker -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $factsMarker, $contractsMarker, $signingMarker -Force -ErrorAction SilentlyContinue
         $global:LASTEXITCODE = 0
         & $prePushScript -Root $hookRoot -ChangedPaths $Paths 6> $null
         if ($LASTEXITCODE -ne 0) { throw "pre-push exited $LASTEXITCODE for $($Paths -join ', ')" }
@@ -1575,8 +1643,33 @@ try {
 
     # The control: a file no gate reads runs no gate, so a marker below is the routing talking.
     Invoke-Hook -Paths @('CONTRIBUTING.md')
-    Assert-True (-not (Test-Path -LiteralPath $factsMarker)) `
-        'The release check ran for a push that changed nothing it reads.'
+    Assert-True (-not (Test-Path -LiteralPath $factsMarker) -and
+        -not (Test-Path -LiteralPath $contractsMarker) -and
+        -not (Test-Path -LiteralPath $signingMarker)) `
+        'An unread documentation change selected release or catalog contracts.'
+
+    # The previous routing fixtures covered scripts and catalog consumers, but no probe
+    # source or signing input. Exercise the real selector without running SDK tools here.
+    foreach ($signingInput in @(
+        'scripts/apk-signing.ps1', 'scripts/SigningCertificateCheck.java',
+        'scripts/SigningKeyFixtures.java', 'scripts/test-apk-signing.ps1',
+        'scripts/patch-for-device.ps1', 'scripts/device-install.ps1',
+        'scripts/common.ps1', 'scripts/Resolve-Java.ps1',
+        'scripts/patch-target.ps1', 'scripts/patch-report.ps1',
+        'tools/verification-probe/build.ps1', 'tools/verification-probe/AndroidManifest.xml',
+        'tools/verification-probe/src/Probe.java'
+    )) {
+        Invoke-Hook -Paths @($signingInput)
+        Assert-True ((Get-Content -LiteralPath $signingMarker -Raw).Trim() -eq "root=$hookRoot") `
+            "A device builder input $signingInput skipped its SDK signing fixtures or used another root."
+        Assert-True (Test-Path -LiteralPath $contractsMarker) 'A probe input skipped the ordinary script contracts.'
+    }
+    foreach ($unrelatedInput in @('scripts/pre-push.ps1', 'scripts/time-patches.ps1',
+            'tools/verification-probe/README.md', 'CONTRIBUTING.md')) {
+        Invoke-Hook -Paths @($unrelatedInput)
+        Assert-True (-not (Test-Path -LiteralPath $signingMarker)) `
+            "An unrelated input $unrelatedInput selected SDK signing fixtures."
+    }
 
     Invoke-Hook -Paths @('release-receipt-0.31.0.json')
     Assert-True (Test-Path -LiteralPath $factsMarker) `
@@ -1748,12 +1841,21 @@ try {
         $env:GITHUB_TOKEN = $null
         # The files the tests read from outside the source folders reach the build too: a push
         # that changed only one of them ran the release facts check at most.
-        foreach ($pin in @('gradle/libs.versions.toml', 'gradle/verification-metadata.xml',
+        foreach ($pin in @('patches/src/main/kotlin/app/morphe/patches/tiktok/Any.kt',
+                'gradle.properties', 'gradle/wrapper/gradle-wrapper.properties',
+                'gradle/wrapper/gradle-wrapper.jar', 'gradlew', 'gradlew.bat',
+                'gradle/libs.versions.toml', 'gradle/verification-metadata.xml',
                 'settings.gradle.kts', 'build.gradle.kts', 'patches/build.gradle.kts',
                 'README.md', 'NOTICE', 'patches-list.json', 'patches-bundle.png', 'assets/readme-hero.png',
                 'concepts/marketing/2026-09-12/selected/hero-final.png')) {
+            Remove-Item -LiteralPath $contractsMarker -Force -ErrorAction SilentlyContinue
             Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @($pin) 6> $null } `
                 '*GITHUB_ACTOR*' "A push that changed $pin did not reach the build gates."
+            if ($pin -notin @('README.md', 'NOTICE', 'patches-bundle.png', 'assets/readme-hero.png',
+                    'concepts/marketing/2026-09-12/selected/hero-final.png')) {
+                Assert-True (Test-Path -LiteralPath $contractsMarker) `
+                    "A patch or catalog input $pin skipped the script contracts before its build."
+            }
         }
         # And the control: a file the build branch has no interest in must not reach it.
         & $prePushScript -Root $hookRoot -ChangedPaths @('CONTRIBUTING.md') 6> $null
@@ -1781,7 +1883,7 @@ try {
             "Set-Content -LiteralPath '$wrapperMarker' -Value (`"dir=`$ProjectDir tasks=`" + (`$Tasks -join ','))",
             'exit 0')
         $env:HUSHFEED_BUILD_WRAPPER = $wrapperStub
-        & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/tiktok/src/main/java/Any.java') 6> $null
+        & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/tiktok/src/test/java/AnyTest.java') 6> $null
         Assert-True (Test-Path -LiteralPath $wrapperMarker) `
             'The hook did not run the build through the wrapper HUSHFEED_BUILD_WRAPPER names.'
         $wrapped = Get-Content -LiteralPath $wrapperMarker -Raw
@@ -1867,6 +1969,11 @@ try {
             Reset-Apply
             & $prePushScript -Root $hookRoot -ChangedPaths @('gradle/libs.versions.toml') 6> $null
             Assert-True ((Get-ApplyCalls).Count -eq 2) 'A patcher pin change applied nothing to the fixtures.'
+            Assert-True (Test-Path -LiteralPath $signingMarker) 'A signing provider pin change skipped SDK signing fixtures.'
+            Remove-Item -LiteralPath $signingMarker -Force
+            Reset-Apply
+            & $prePushScript -Root $hookRoot -ChangedPaths @('gradle/verification-metadata.xml') 6> $null
+            Assert-True (Test-Path -LiteralPath $signingMarker) 'A signing provider checksum change skipped SDK signing fixtures.'
 
             # HUSHFEED_GATE_SERIAL=1 applies one build at a time: the second run starts only once the
             # first has ended.
@@ -1901,6 +2008,23 @@ try {
                     Copy-Item -LiteralPath (Join-Path $hookRoot "scripts/$script") -Destination (Join-Path $firstPatchRoot 'scripts')
                 }
                 Copy-Item -LiteralPath $stubCatalog -Destination (Join-Path $firstPatchRoot 'patches-list.json')
+                # An unnamed resource dependency is present in native reports, but is not a
+                # separately selectable patch. Use the real report reader in the stub suite.
+                Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'patch-report.ps1') -Destination (Join-Path $firstPatchRoot 'scripts')
+                $firstCatalog = Join-Path $firstPatchRoot 'patches-list.json'
+                $closureCatalog = Get-Content -LiteralPath $firstCatalog -Raw | ConvertFrom-Json
+                $closureCatalog.patches[0] | Add-Member -NotePropertyName dependencies -NotePropertyValue @('ResourcePatch')
+                $closureCatalog | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $firstCatalog -Encoding UTF8
+                $closureMarker = Join-Path $hookRoot 'closure-ran.txt'
+                Set-Content -LiteralPath (Join-Path $firstPatchRoot 'scripts/test-script-contracts.ps1') -Encoding UTF8 -Value @(
+                    'param([string]$Root)',
+                    '. (Join-Path $PSScriptRoot ''patch-report.ps1'')',
+                    '$catalog = Get-Content -LiteralPath (Join-Path $Root ''patches-list.json'') -Raw | ConvertFrom-Json',
+                    '$names = @($catalog.patches | ForEach-Object { $_.name })',
+                    '$closure = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $names)',
+                    "Add-Content -LiteralPath '$closureMarker' -Value (`"root=`$Root closure=`" + (`$closure -join ','))",
+                    'if (-not (Test-ReportedPatchNames -Expected $names -Actual @($names + ''ResourcePatch'') -AllowedDependencies $closure)) { throw ''The unnamed resource dependency is missing from the catalog closure.'' }',
+                    'exit 0')
                 Set-Content -LiteralPath (Join-Path $firstPatchRoot 'patches-bundle.json') -Encoding UTF8 -Value '{}'
                 Set-Content -LiteralPath (Join-Path $firstPatchRoot $patchSource) -Encoding UTF8 -Value '// patch'
                 # As in the repository: the build's output is not part of the tree the hook checks.
@@ -1935,25 +2059,145 @@ try {
                 $firstCalls = @(Get-ApplyCalls | ForEach-Object { ($_ -split ' ')[0] })
                 Assert-True (($firstCalls -join ',') -eq 'apk=com.zhiliaoapp.musically_1.0.3-100_apkmirror.com.apk,apk=tiktok-1.1.3.apk') `
                     ("A first push with patch sources did not apply the bundle to each declared build once: " + ((Get-ApplyCalls) -join '; '))
+                Assert-True ((Get-Content -LiteralPath $closureMarker -Raw) -like '*closure=ResourcePatch*') `
+                    'A new branch did not check its unnamed resource dependency.'
+
+                # No script changes in either pushed range. The valid catalog passes, and the
+                # invalid one fails before a build. Changing the working catalog must not make
+                # the gate check a different commit from the ref being pushed.
+                Add-Content -LiteralPath (Join-Path $firstPatchRoot $patchSource) -Value '// valid patch-only edit'
+                & git -C $firstPatchRoot add -- $patchSource
+                & git -C $firstPatchRoot commit --quiet -m 'patch-only good'
+                $closureGood = (& git -C $firstPatchRoot rev-parse HEAD).Trim()
+                & git -C $firstPatchRoot branch closure-good $closureGood
+                Remove-Item -LiteralPath $closureMarker -Force
+                & $prePushScript -Root $firstPatchRoot -PushedRefs "refs/heads/closure-good $closureGood refs/heads/good $firstPatchHead" 6> $null
+                Assert-True ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $closureMarker)) `
+                    'A patch-only change skipped its valid dependency contracts.'
+
+                $closureCatalog.patches[0].dependencies = @()
+                $closureCatalog | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $firstCatalog -Encoding UTF8
+                & git -C $firstPatchRoot add patches-list.json
+                & git -C $firstPatchRoot commit --quiet -m 'missing closure entry'
+                $closureBase = (& git -C $firstPatchRoot rev-parse HEAD).Trim()
+                Add-Content -LiteralPath (Join-Path $firstPatchRoot $patchSource) -Value '// invalid patch-only edit'
+                & git -C $firstPatchRoot add -- $patchSource
+                & git -C $firstPatchRoot commit --quiet -m 'patch-only broken'
+                $closureBroken = (& git -C $firstPatchRoot rev-parse HEAD).Trim()
+                & git -C $firstPatchRoot branch closure-broken $closureBroken
+                $goodRef = "refs/heads/closure-good $closureGood refs/heads/good $firstPatchHead"
+                $badRef = "refs/heads/closure-broken $closureBroken refs/heads/broken $closureBase"
+                Remove-Item -LiteralPath $closureMarker -Force
+                & $prePushScript -Root $firstPatchRoot -PushedRefs $goodRef 6> $null
+                $checkedClosure = Get-Content -LiteralPath $closureMarker -Raw
+                Assert-True ($LASTEXITCODE -eq 0 -and $checkedClosure -like '*closure=ResourcePatch*' -and
+                    $checkedClosure -notlike "*root=$firstPatchRoot *") `
+                    'A patch-only ref read the broken catalog in another checkout instead of its own.'
+                Remove-Item -LiteralPath $wrapperMarker -Force -ErrorAction SilentlyContinue
+                Assert-Throws { & $prePushScript -Root $firstPatchRoot -PushedRefs $badRef 6> $null } `
+                    '*unnamed resource dependency is missing*' 'A missing closure entry passed a patch-only push.'
+                Assert-True (-not (Test-Path -LiteralPath $wrapperMarker)) `
+                    'A missing dependency closure was checked only after the build started.'
+                Remove-Item -LiteralPath $closureMarker -Force
+                Assert-Throws { & $prePushScript -Root $firstPatchRoot -PushedRefs "$goodRef`n$badRef" 6> $null } `
+                    '*unnamed resource dependency is missing*' 'One good ref hid a broken patch-only ref in the same push.'
+                $checkedClosure = Get-Content -LiteralPath $closureMarker -Raw
+                Assert-True ($checkedClosure -match 'closure=ResourcePatch' -and $checkedClosure -match 'closure=\s*(\r?\n|$)') `
+                    'A multi-ref push did not check both commits with their own catalog states.'
+
+                # Runtime-only refs must apply their own payload, including a new branch and
+                # two refs pushed together. HEAD deliberately holds the opposite result.
+                & git -C $firstPatchRoot checkout --detach --force --quiet $closureGood
+                $runtimePath = 'extensions/tiktok/src/main/java/Runtime.java'
+                $runtimeFile = Join-Path $firstPatchRoot $runtimePath
+                New-Item -ItemType Directory -Path (Split-Path -Parent $runtimeFile) -Force | Out-Null
+                Set-Content -LiteralPath $runtimeFile -Value 'base' -Encoding ASCII
+                $runtimeVerifier = Join-Path $firstPatchRoot 'scripts/verify-all-patches.ps1'
+                $runtimeStub = Get-Content -LiteralPath $runtimeVerifier -Raw
+                $runtimeStub = $runtimeStub.Replace('exit 0', @'
+$payload = (Get-Content -LiteralPath (Join-Path $PSScriptRoot '../extensions/tiktok/src/main/java/Runtime.java') -Raw).Trim()
+if ($payload -eq 'broken') { Write-Host '[verify] FAILED runtime payload'; exit 1 }
+exit 0
+'@)
+                Set-Content -LiteralPath $runtimeVerifier -Value $runtimeStub -Encoding UTF8
+                & git -C $firstPatchRoot add -- $runtimePath scripts/verify-all-patches.ps1
+                & git -C $firstPatchRoot commit --quiet -m 'runtime application fixture'
+                $runtimeBase = (& git -C $firstPatchRoot rev-parse HEAD).Trim()
+                Set-Content -LiteralPath $runtimeFile -Value 'good' -Encoding ASCII
+                & git -C $firstPatchRoot add -- $runtimePath
+                & git -C $firstPatchRoot commit --quiet -m 'runtime good'
+                $runtimeGood = (& git -C $firstPatchRoot rev-parse HEAD).Trim()
+                & git -C $firstPatchRoot branch runtime-good $runtimeGood
+                Set-Content -LiteralPath $runtimeFile -Value 'broken' -Encoding ASCII
+                & git -C $firstPatchRoot add -- $runtimePath
+                & git -C $firstPatchRoot commit --quiet -m 'runtime broken'
+                $runtimeBroken = (& git -C $firstPatchRoot rev-parse HEAD).Trim()
+                & git -C $firstPatchRoot branch runtime-broken $runtimeBroken
+                $runtimeGoodRef = "refs/heads/runtime-good $runtimeGood refs/heads/runtime-good $runtimeBase"
+                $runtimeBadRef = "refs/heads/runtime-broken $runtimeBroken refs/heads/runtime-broken $runtimeGood"
+                Reset-Apply
+                & $prePushScript -Root $firstPatchRoot -PushedRefs "refs/heads/runtime-good $runtimeGood refs/heads/new-runtime $('0' * 40)" 6> $null
+                Assert-True ($LASTEXITCODE -eq 0 -and (Get-ApplyCalls).Count -eq 2) `
+                    'A new runtime branch did not apply its own payload while HEAD was broken.'
+                Reset-Apply
+                & $prePushScript -Root $firstPatchRoot -PushedRefs $runtimeGoodRef 6> $null
+                Assert-True ($LASTEXITCODE -eq 0 -and (Get-ApplyCalls).Count -eq 2) `
+                    'A runtime-only ref applied the broken working payload instead of its own.'
+                & git -C $firstPatchRoot checkout --detach --force --quiet $runtimeGood
+                Reset-Apply
+                Assert-Throws { & $prePushScript -Root $firstPatchRoot -PushedRefs $runtimeBadRef 6> $null } `
+                    '*did not apply to TikTok 1.0.3 and 1.1.3*' 'A good HEAD concealed a broken runtime-only ref.'
+                Reset-Apply
+                Assert-Throws { & $prePushScript -Root $firstPatchRoot -PushedRefs "$runtimeGoodRef`n$runtimeBadRef" 6> $null } `
+                    '*did not apply to TikTok 1.0.3 and 1.1.3*' 'One good runtime ref concealed a bad one in the same push.'
+                Assert-True ((Get-ApplyCalls).Count -eq 4) `
+                    'A multi-ref runtime push did not apply both commits to every declared host.'
             } finally {
                 $env:HUSHFEED_BUILD_WRAPPER = $wrapperStub
                 Remove-Item -LiteralPath $firstPatchRoot, $firstPatchWrapper -Recurse -Force -ErrorAction SilentlyContinue
             }
 
-            # The control: extension sources build and test, and apply nothing.
+            # These inputs change the shipped DEX payload or its compiler, even without a patch edit.
+            foreach ($runtimeInput in @('extensions/tiktok/src/main/java/Any.java',
+                    'extensions/tiktok/src/main/l10n/fr.tsv', 'extensions/shared/library/src/main/java/Any.java',
+                    'extensions/tiktok/stub/src/main/java/Native.java', 'extensions/tiktok/build.gradle.kts',
+                    'extensions/shared/build.gradle.kts', 'extensions/shared/library/build.gradle.kts',
+                    'extensions/tiktok/stub/build.gradle.kts', 'extensions/proguard-rules.pro',
+                    'patches/build.gradle.kts', 'gradle.properties', 'gradle/wrapper/gradle-wrapper.properties',
+                    'gradle/wrapper/gradle-wrapper.jar', 'gradlew', 'gradlew.bat',
+                    'settings.gradle.kts', 'build.gradle.kts', 'gradle/verification-metadata.xml')) {
+                Reset-Apply
+                & $prePushScript -Root $hookRoot -ChangedPaths @($runtimeInput) 6> $null
+                Assert-True ($LASTEXITCODE -eq 0 -and ((Get-ApplyCalls) -join "`n") -eq ($expected -join "`n")) `
+                    "A bundle input $runtimeInput did not apply the built payload to every declared host."
+                Assert-True ((Get-Content -LiteralPath $wrapperMarker -Raw).Trim() -like '*,:patches:buildAndroid') `
+                    "A bundle input $runtimeInput did not rebuild the release payload last."
+            }
+
+            foreach ($testOrDoc in @('extensions/tiktok/src/test/java/AnyTest.java', 'README.md', 'CONTRIBUTING.md')) {
+                Reset-Apply
+                & $prePushScript -Root $hookRoot -ChangedPaths @($testOrDoc) 6> $null
+                Assert-True ($LASTEXITCODE -eq 0 -and (Get-ApplyCalls).Count -eq 0) `
+                    "An input outside the payload $testOrDoc applied the bundle."
+                Assert-True (-not (Test-Path -LiteralPath $wrapperMarker) -or
+                    (Get-Content -LiteralPath $wrapperMarker -Raw) -notlike '*buildAndroid*') `
+                    "An input outside the payload $testOrDoc rebuilt the bundle."
+            }
+
             Reset-Apply
-            & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/tiktok/src/main/java/Any.java') 6> $null
-            Assert-True ($LASTEXITCODE -eq 0 -and (Get-ApplyCalls).Count -eq 0) `
-                "An extension-only push applied the patches: $((Get-ApplyCalls) -join '; ')"
-            Assert-True ((Get-Content -LiteralPath $wrapperMarker -Raw) -notlike '*buildAndroid*') `
-                'An extension-only push built the bundle.'
+            Set-Content -LiteralPath $applyFails -Value 'fail' -Encoding ASCII
+            Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/tiktok/src/main/java/Any.java') 6> $null } `
+                '*did not apply to TikTok 1.0.3 and 1.1.3*' 'A runtime-only push ignored an application failure.'
+            Assert-True ((Get-ApplyCalls).Count -eq 2) 'A failed runtime payload did not check every declared host.'
 
             # An index push is compared byte for byte with the published bundle, which a rebuild
             # here would restamp, so it leaves the bundle alone.
             Reset-Apply
-            & $prePushScript -Root $hookRoot -ChangedPaths @($patchSource, 'patches-bundle.json') 6> $null
-            Assert-True ((Get-ApplyCalls).Count -eq 0 -and (Get-Content -LiteralPath $wrapperMarker -Raw) -notlike '*buildAndroid*') `
+            & $prePushScript -Root $hookRoot -ChangedPaths @('patches-bundle.json') 6> $null
+            Assert-True ((Get-ApplyCalls).Count -eq 0 -and -not (Test-Path -LiteralPath $wrapperMarker)) `
                 'An index push rebuilt the bundle it is compared against.'
+            Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @($patchSource, 'patches-bundle.json') 6> $null } `
+                '*Push bundle inputs before the published index*' 'A mixed source/index push skipped payload verification.'
 
             # The positive control: a bundle that fails to apply stops the push, after every build ran.
             Reset-Apply

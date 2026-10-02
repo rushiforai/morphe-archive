@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceIdCache;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -18,7 +19,6 @@ import java.util.WeakHashMap;
 
 /** Receives dedicated native controls proven by the patcher, never arbitrary matching text. */
 public final class FeedOverlayControls {
-    private static final String PACKAGE = "com.zhiliaoapp.musically";
     private static final ResourceIdCache IDS = new ResourceIdCache();
     private static final WeakHashMap<View, WeakReference<Binding>> BINDINGS = new WeakHashMap<>();
 
@@ -139,7 +139,7 @@ public final class FeedOverlayControls {
     }
 
     private static boolean insideFeedCell(View view) {
-        int cell = IDS.resolve(view.getResources(), PACKAGE, "view_rootview", false);
+        int cell = IDS.resolve(view.getResources(), view.getContext().getPackageName(), "view_rootview", false);
         if (cell == 0) return false; // Unknown host layout keeps native behavior.
         for (int depth = 0; view != null && depth < 24; depth++) {
             if (view.getId() == cell) return true;
@@ -150,7 +150,7 @@ public final class FeedOverlayControls {
 
     /** Collapse the shared host only if its entire child chain is this one location card. */
     private static View exclusiveLocationWrapper(View view) {
-        int host = IDS.resolve(view.getResources(), PACKAGE, "feed_multi_tag_layout", false);
+        int host = IDS.resolve(view.getResources(), view.getContext().getPackageName(), "feed_multi_tag_layout", false);
         if (host == 0) return null;
         for (int depth = 0; depth < 8 && view.getParent() instanceof ViewGroup; depth++) {
             ViewGroup parent = (ViewGroup) view.getParent();
@@ -161,6 +161,8 @@ public final class FeedOverlayControls {
         return null;
     }
 
-    static void resolveForTests(String name, int id) { IDS.putForTests(PACKAGE, name, id); }
+    static void resolveForTests(String name, int id) {
+        IDS.putForTests(Utils.getContext().getPackageName(), name, id);
+    }
     private FeedOverlayControls() { }
 }

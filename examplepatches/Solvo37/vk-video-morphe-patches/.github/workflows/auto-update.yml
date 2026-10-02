@@ -27,8 +27,8 @@ permissions:
   issues: write
 
 concurrency:
-  group: vk-video-auto-build
-  cancel-in-progress: false
+  group: vk-video-auto-build-v2
+  cancel-in-progress: true
 
 env:
   PACKAGE_NAME: com.vk.vkvideo
@@ -101,7 +101,29 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y apksigner aapt zipalign jq unzip zip
+          sudo apt-get install -y jq unzip zip
+
+          SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
+          if [[ ! -x "$SDKMANAGER" ]]; then
+            SDKMANAGER="$(command -v sdkmanager || true)"
+          fi
+          [[ -n "$SDKMANAGER" && -x "$SDKMANAGER" ]] || {
+            echo "::error::Android sdkmanager is not available on this runner."
+            exit 1
+          }
+
+          yes | "$SDKMANAGER" "build-tools;35.0.0" >/dev/null || true
+          BUILD_TOOLS="${ANDROID_HOME}/build-tools/35.0.0"
+          [[ -x "$BUILD_TOOLS/zipalign" && -x "$BUILD_TOOLS/apksigner" && -x "$BUILD_TOOLS/aapt" ]] || {
+            echo "::error::Android build-tools 35.0.0 were not installed."
+            exit 1
+          }
+
+          echo "$BUILD_TOOLS" >> "$GITHUB_PATH"
+          "$BUILD_TOOLS/zipalign" -h > zipalign-help.txt 2>&1 || true
+          grep -q -- '-P' zipalign-help.txt
+          rm -f zipalign-help.txt
+          echo "Using Android build-tools 35.0.0 with 16 KiB zipalign support."
 
       - name: Resolve release baseline
         id: baseline
@@ -236,6 +258,21 @@ jobs:
           set -euo pipefail
           python ci/select_upstream.py             --root upstream             --package "${PACKAGE_NAME}"             --certificate "${EXPECTED_CERT_SHA256}"             --output upstream.json             --github-output "$GITHUB_OUTPUT"
 
+      - name: Check runtime quarantine
+        id: runtime
+        env:
+          VERSION_CODE: ${{ steps.upstream.outputs.version_code }}
+        run: |
+          set -euo pipefail
+          QUARANTINED=false
+
+          if [[ -s ci/runtime-quarantine.json ]] && jq -e --argjson code "$VERSION_CODE" '.entries[]? | select(.version_code == $code)' ci/runtime-quarantine.json >/dev/null; then
+            QUARANTINED=true
+            echo "::warning::VK Video versionCode $VERSION_CODE is runtime-quarantined and must not be published."
+          fi
+
+          echo "quarantined=$QUARANTINED" >> "$GITHUB_OUTPUT"
+
       - name: Decide whether to build
         id: decision
         env:
@@ -247,11 +284,12 @@ jobs:
           BASELINE_TAG: ${{ steps.baseline.outputs.tag }}
           USER_FORCE_REBUILD: ${{ inputs.force_rebuild || false }}
           PATCH_PROFILE_CHANGED: ${{ steps.patch_change.outputs.changed }}
+          RUNTIME_QUARANTINED: ${{ steps.runtime.outputs.quarantined }}
         run: |
           set -euo pipefail
 
           FORCE_REBUILD=false
-          if [[ "$USER_FORCE_REBUILD" == "true" || "$PATCH_PROFILE_CHANGED" == "true" ]]; then
+          if [[ "$USER_FORCE_REBUILD" == "true" || "$PATCH_PROFILE_CHANGED" == "true" || "$RUNTIME_QUARANTINED" == "true" ]]; then
             FORCE_REBUILD=true
           fi
           echo "Force rebuild: $FORCE_REBUILD (manual=$USER_FORCE_REBUILD, patch-profile=$PATCH_PROFILE_CHANGED)"
@@ -369,7 +407,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          "$JAVA_HOME/bin/java" -jar morphe.jar patch             -p "$MPP"             --force             --exclusive             -e "Fix install conflict with stock VK"             -e "Bypass native signature check"             -e "Disable in-app update"             -e "Remove video ads"             -e "Remove clip ads"             -e "Filter clip feed ads"             -e "Block midroll ads"             -e "Filter Clips SDK ads"             -e "Block deep midroll ads"             -e "Hide home showcase ads"             -e "Disable video ad repository"             -e "Hide profile ad-free promo"             -e "Hide promoted banner content"             -e "Disable ad pixel tracking"             --bytecode-mode STRIP_FAST             --unsigned             -r dist/patch-result.json             -o dist/unsigned-patched.apk             dist/upstream-universal.apk
+          "$JAVA_HOME/bin/java" -jar morphe.jar patch             -p "$MPP"             --force             --exclusive             -e "Fix install conflict with stock VK"             -e "Bypass native signature check"             -e "Disable in-app update"             -e "Remove video ads"             -e "Remove clip ads"             -e "Filter clip feed ads"             -e "Block midroll ads"             -e "Filter Clips SDK ads"             -e "Block deep midroll ads"             -e "Hide home showcase ads"             -e "Disable video ad repository"             -e "Disable ad-free subscription promo"             -e "Hide promoted banner content"             -e "Disable ad pixel tracking"             --bytecode-mode STRIP_FAST             --unsigned             -r dist/patch-result.json             -o dist/unsigned-patched.apk             dist/upstream-universal.apk
 
       - name: Validate Morphe result and patched payload
         if: steps.decision.outputs.build == 'true' && steps.patch.outcome == 'success'
@@ -380,13 +418,63 @@ jobs:
 
           jq -e '((.patchingSteps // []) | length) > 0 and all(.patchingSteps[]?; .success == true) and ((.failedPatches // []) | length == 0)' dist/patch-result.json >/dev/null
 
-          for patch in             "Fix install conflict with stock VK"             "Bypass native signature check"             "Disable in-app update"             "Remove video ads"             "Remove clip ads"             "Filter clip feed ads"             "Block midroll ads"             "Filter Clips SDK ads"             "Block deep midroll ads"             "Hide home showcase ads"             "Disable video ad repository"             "Hide profile ad-free promo"             "Hide promoted banner content"             "Disable ad pixel tracking"; do
+          for patch in             "Fix install conflict with stock VK"             "Bypass native signature check"             "Disable in-app update"             "Remove video ads"             "Remove clip ads"             "Filter clip feed ads"             "Block midroll ads"             "Filter Clips SDK ads"             "Block deep midroll ads"             "Hide home showcase ads"             "Disable video ad repository"             "Disable ad-free subscription promo"             "Hide promoted banner content"             "Disable ad pixel tracking"; do
             jq -e --arg patch "$patch"               'any(.appliedPatches[]?; .name == $patch)'               dist/patch-result.json >/dev/null               || { echo "Required patch missing from Morphe report: $patch" >&2; exit 1; }
           done
 
           aapt dump xmltree dist/unsigned-patched.apk AndroidManifest.xml > dist/manifest-xmltree.txt
           python ci/verify_manifest.py dist/manifest-xmltree.txt
           python ci/verify_patched_apk.py             dist/unsigned-patched.apk             --json-out dist/static-gate.json
+
+      - name: Collect compatibility diagnostics
+        if: steps.decision.outputs.build == 'true' && steps.patch.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          rm -rf dist/compat-decode
+          mkdir -p dist/compat-diagnostics
+
+          "$JAVA_HOME/bin/java" -jar APKEditor.jar d \
+            -i dist/upstream-universal.apk \
+            -o dist/compat-decode >/dev/null 2>&1 || true
+
+          {
+            echo '=== request_midroll / midroll references ==='
+            grep -Rni -E -C 25 'request_midroll|"(midroll)"|AdSection;->MIDROLL|InstreamAdEngine' dist/compat-decode 2>/dev/null || true
+            echo
+            echo '=== ad / clips semantic anchors ==='
+            grep -Rni -E -C 12 'ClipsFeatures;|SdkClipsAdsFeaturesParams|ShortVideoGetRecomResponseDto|SdkVideoFile|ClipsMarketAdHeaderClickConfig|ClipsBannerCompanionConfig|VideoAdvertisementsComponent|AD_FREE_SUBSCRIPTION|VideoDiscoverAdsDto|rxjava3/core/q;->subscribe|AdShowCaseBannerVh' dist/compat-decode 2>/dev/null || true
+            echo
+            echo '=== known ad resource names ==='
+            grep -Rni -E -C 8 'catalog_ad_banner|catalog_ad_banner_medium|video_player_ads_panel|video_ad_banner' dist/compat-decode 2>/dev/null || true
+          } > dist/compat-diagnostics/grep.txt
+
+          find dist/compat-decode -type f \( -name '*.smali' -o -name '*.xml' \) -print0 \
+            | xargs -0 grep -l -E 'request_midroll|AdSection;->MIDROLL|InstreamAdEngine|ClipsFeatures;|SdkClipsAdsFeaturesParams|ShortVideoGetRecomResponseDto|SdkVideoFile|ClipsMarketAdHeaderClickConfig|ClipsBannerCompanionConfig|VideoAdvertisementsComponent|AD_FREE_SUBSCRIPTION|VideoDiscoverAdsDto|rxjava3/core/q;->subscribe|AdShowCaseBannerVh|catalog_ad_banner|catalog_ad_banner_medium|video_player_ads_panel|video_ad_banner' 2>/dev/null \
+            | sort > dist/compat-diagnostics/matching-files.txt || true
+
+          while IFS= read -r file; do
+            [[ -f "$file" ]] || continue
+            rel="${file#dist/compat-decode/}"
+            out="dist/compat-diagnostics/files/$rel"
+            mkdir -p "$(dirname "$out")"
+            cp "$file" "$out"
+          done < dist/compat-diagnostics/matching-files.txt
+
+          # Resource file contents do not contain their own file names, so copy
+          # the known ad layouts explicitly when present.
+          while IFS= read -r layout; do
+            [[ -f "$layout" ]] || continue
+            rel="${layout#dist/compat-decode/}"
+            out="dist/compat-diagnostics/files/$rel"
+            mkdir -p "$(dirname "$out")"
+            cp "$layout" "$out"
+          done < <(find dist/compat-decode -type f \( \
+            -name 'catalog_ad_banner.xml' -o \
+            -name 'catalog_ad_banner_medium.xml' -o \
+            -name 'video_ad_banner.xml' -o \
+            -name 'video_player_ads_panel.xml' \
+          \) -print)
 
       - name: Open compatibility issue on gate failure
         if: steps.decision.outputs.build == 'true' && (steps.patch.outcome == 'failure' || steps.static_gate.outcome == 'failure')
@@ -470,11 +558,11 @@ jobs:
           OUT="dist/VK-Video-${VERSION}-patched.apk"
           ALIGNED="dist/aligned-patched.apk"
 
-          zipalign -f -p 4 dist/unsigned-patched.apk "$ALIGNED"
+          zipalign -P 16 -f 4 dist/unsigned-patched.apk "$ALIGNED"
+          zipalign -c -P 16 4 "$ALIGNED"
 
           apksigner sign             --ks signing.jks             --ks-pass env:STORE_PASSWORD             --ks-key-alias "$KEY_ALIAS"             --key-pass env:KEY_PASSWORD             --v1-signing-enabled false             --v2-signing-enabled false             --v3-signing-enabled true             --v4-signing-enabled false             --out "$OUT"             "$ALIGNED"
 
-          zipalign -c -p 4 "$OUT"
           apksigner verify --verbose --print-certs "$OUT"
 
           CERT="$(apksigner verify --print-certs "$OUT"             | sed -n 's/^Signer #1 certificate SHA-256 digest: //p'             | head -n1 | tr '[:upper:]' '[:lower:]' | tr -d ':')"
@@ -536,12 +624,14 @@ jobs:
             dist/static-gate.json
             dist/final-gate.json
             dist/manifest-xmltree.txt
+            dist/compat-diagnostics/**
+            dist/VK-Video-*-patched.apk
             dist/VK-Video-*-patched.sha256
             patches/build/libs/*.mpp
           if-no-files-found: warn
 
       - name: Publish clean GitHub Release
-        if: steps.decision.outputs.build == 'true' && steps.patch.outcome == 'success' && steps.static_gate.outcome == 'success' && env.HAS_SIGNING == 'true'
+        if: steps.decision.outputs.build == 'true' && steps.patch.outcome == 'success' && steps.static_gate.outcome == 'success' && env.HAS_SIGNING == 'true' && steps.runtime.outputs.quarantined != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.upstream.outputs.version }}
@@ -584,7 +674,7 @@ jobs:
             --latest
 
       - name: Advance verified baseline
-        if: steps.decision.outputs.build == 'true' && steps.patch.outcome == 'success' && steps.static_gate.outcome == 'success' && env.HAS_SIGNING == 'true'
+        if: steps.decision.outputs.build == 'true' && steps.patch.outcome == 'success' && steps.static_gate.outcome == 'success' && env.HAS_SIGNING == 'true' && steps.runtime.outputs.quarantined != 'true'
         env:
           VERSION: ${{ steps.upstream.outputs.version }}
           VERSION_CODE: ${{ steps.upstream.outputs.version_code }}

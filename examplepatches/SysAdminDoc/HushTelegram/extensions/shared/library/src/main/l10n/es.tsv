@@ -1,0 +1,180 @@
+# Spanish for HushTelegram: the English key, a tab, the translation. One row per string.
+# context: Chat-list-only story controls and immutable hook coverage.
+Hide Stories	Ocultar historias
+Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.	Oculta la barra de historias de la lista de chats, los anillos de historias en los avatares y el botón para publicar una historia, y deja de consultar la lista de historias. Las historias de los perfiles y los archivos siguen disponibles.
+story list requests	consultas de la lista de historias
+chat-list story bar	barra de historias de la lista de chats
+Post Story button	botón para publicar una historia
+avatar story rings	anillos de historias en los avatares
+avatar story taps	toques de historias en los avatares
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$d item in that file isn't a setting this version of HushTelegram knows, so it'll be left out.	%1$d elemento de ese archivo no es un ajuste que conozca esta versión de HushTelegram, así que se omitirá.
+%1$d items in that file aren't settings this version of HushTelegram knows, so they'll be left out.	%1$d elementos de ese archivo no son ajustes que conozca esta versión de HushTelegram, así que se omitirán.
+%1$d switch will change.	Cambiará %1$d interruptor.
+%1$d switches will change.	Cambiarán %1$d interruptores.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Este cambio se aplicó al parchear, así que Pausar no puede desactivarlo. Para descartarlo, vuelve a parchear sin ese parche.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Estos cambios se aplicaron al parchear, así que Pausar no puede desactivarlos. Para descartar uno, vuelve a parchear sin el parche que aparece entre paréntesis después de él.
+A diagnostic report is already being saved.	Ya se está guardando un informe de diagnóstico.
+A file named %1$s in %2$s paused HushTelegram.	Un archivo llamado %1$s en %2$s pausó HushTelegram.
+About	Acerca de
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 y las versiones anteriores no indican qué enlaces se abren aquí. Toca para abrir los ajustes de esta app y luego Abrir de forma predeterminada.
+Back	Atrás
+Cancel	Cancelar
+Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Elige un archivo de configuración. Antes de importar nada, verás cuántos interruptores cambia.
+Clear diagnostic data	Borrar datos de diagnóstico
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en Download/Morphe. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa si queda otro texto privado antes de compartirlo.
+Copy quick report	Copiar informe rápido
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	No se pudo importar la configuración ni restaurar la que tenías. Revisa los interruptores de esta pantalla.
+Couldn't import the settings. Nothing was changed.	No se pudo importar la configuración. No se cambió nada.
+Couldn't open that file. Nothing was changed.	No se pudo abrir ese archivo. No se cambió nada.
+Couldn't open the file picker. Try again.	No se pudo abrir el selector de archivos. Inténtalo de nuevo.
+Couldn't put back the diagnostic data. Try again.	No se pudieron restaurar los datos de diagnóstico. Inténtalo de nuevo.
+Couldn't save the settings file. Try again.	No se pudo guardar el archivo de configuración. Inténtalo de nuevo.
+Couldn't start that. Try again in a moment.	No se pudo iniciar. Inténtalo de nuevo en un momento.
+Couldn't start the report export. Try again shortly.	No se pudo iniciar la exportación del informe. Inténtalo de nuevo en breve.
+Couldn't turn HushTelegram back on. Try again.	No se pudo volver a activar HushTelegram. Inténtalo de nuevo.
+Debug logging	Registro de depuración
+Diagnostic data cleared. Tap again to put it back.	Se borraron los datos de diagnóstico. Toca de nuevo para restaurarlos.
+Diagnostic data put back.	Se restauraron los datos de diagnóstico.
+Diagnostic report copied to the clipboard.	Informe de diagnóstico copiado en el portapapeles.
+Empties the log and the hook findings a report would include.	Vacía el registro y los resultados de los hooks que incluiría un informe.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados, y lo que se aplicó al parchear se mantiene. Tu configuración no cambia.
+Export diagnostic report	Exportar informe de diagnóstico
+Export settings	Exportar configuración
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Desde el próximo inicio, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene, y tus preferencias quedan guardadas.
+Hide ads	Ocultar anuncios
+Links, updates, backup and more	Enlaces, actualizaciones, copia de seguridad y más
+Privacy	Privacidad
+Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Guarda tus interruptores en un archivo. La pausa y el Registro de depuración no se incluyen, y la búsqueda de nuevas versiones tampoco.
+Settings exported. The app holding the file wouldn't let HushTelegram read it back, so it wasn't checked.	Configuración exportada. La app que guarda el archivo no dejó que HushTelegram lo volviera a leer, así que no se comprobó.
+The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.	La app que guarda ese archivo tarda demasiado, así que HushTelegram dejó de esperar. No se cambió nada.
+The app holding the last settings file still hasn't answered. Try again later.	La app del último archivo de configuración aún no ha respondido. Inténtalo más tarde.
+The app holding the settings file is taking too long, so HushTelegram stopped waiting. That app may still finish saving it, so check the file before you rely on it.	La app que guarda el archivo de configuración tarda demasiado, así que HushTelegram dejó de esperar. Esa app aún puede terminar de guardarlo, así que revisa el archivo antes de confiar en él.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	No se pudo eliminar el archivo %1$s. Bórralo de %2$s y luego vuelve a tocar Reanudar.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	El archivo de configuración se guardó, pero al volver a leerlo no coincide con lo que se escribió. Guárdalo de nuevo como un archivo nuevo.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Hasta que reanudes, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene.
+Full report saved to %1$s	Informe completo guardado en %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, con los avisos de los proyectos en los que se basa
+HushTelegram is on	HushTelegram está activado
+HushTelegram is paused	HushTelegram está en pausa
+HushTelegram settings	Configuración de HushTelegram
+HushTelegram settings couldn't open	No se pudo abrir la configuración de HushTelegram
+Import	Importar
+Import settings	Importar configuración
+Importing settings	Importando la configuración
+Licenses	Licencias
+Links	Enlaces
+OK	Aceptar
+Pause HushTelegram	Pausar HushTelegram
+Reading the settings file	Leyendo el archivo de configuración
+Retry	Reintentar
+Save full report	Guardar informe completo
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushTelegram releases	Buscar nuevas versiones de HushTelegram
+Ask GitHub once a day when Telegram starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Consulta GitHub una vez al día al iniciar Telegram y muestra una versión más nueva arriba de estos ajustes. Desactivado por defecto. No descarga nada.
+Check now	Comprobar ahora
+Asks GitHub for the newest release right now, even with the switch above off.	Pregunta ahora mismo a GitHub por la versión más reciente, aunque el interruptor de arriba esté desactivado.
+Checking GitHub now.	Consultando GitHub ahora.
+HushTelegram %1$s is out. Update it in Morphe Manager.	Ya salió HushTelegram %1$s. Actualízalo en Morphe Manager.
+You have the newest HushTelegram release.	Tienes la versión más reciente de HushTelegram.
+The newest HushTelegram release is %1$s.	La versión más reciente de HushTelegram es la %1$s.
+Couldn't reach GitHub. Try again later.	No se pudo contactar con GitHub. Inténtalo de nuevo más tarde.
+GitHub is turning away checks from this network for now. Try again later.	GitHub está rechazando por ahora las consultas desde esta red. Inténtalo de nuevo más tarde.
+GitHub's answer couldn't be used. Try again later.	No se pudo usar la respuesta de GitHub. Inténtalo de nuevo más tarde.
+Saving the settings file	Guardando el archivo de configuración
+Set when you patched	Aplicado al parchear
+Settings couldn't open	No se pudo abrir la configuración
+Settings couldn't refresh completely. Reopen settings and try again.	No se pudo actualizar la configuración por completo. Vuelve a abrirla e inténtalo de nuevo.
+Settings exported.	Configuración exportada.
+Settings imported. %1$d switch changed.	Configuración importada. Cambió %1$d interruptor.
+Settings imported. %1$d switches changed.	Configuración importada. Cambiaron %1$d interruptores.
+Source code and issues	Código fuente e incidencias
+Stays in while paused	Se mantiene durante la pausa
+Tap to turn it back on.	Toca para volver a activarlo.
+That file is too large to be a settings file. Nothing was changed.	Ese archivo es demasiado grande para ser un archivo de configuración. No se cambió nada.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	Ese archivo no es texto legible, así que puede haberse dañado por el camino. No se cambió nada.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	Ese archivo incluye un ajuste dos veces, así que no se sabe qué valor usar. No se cambió nada.
+That isn't a HushTelegram settings file. Nothing was changed.	Eso no es un archivo de configuración de HushTelegram. No se cambió nada.
+That settings file holds a value HushTelegram can't read. Nothing was changed.	Ese archivo de configuración contiene un valor que HushTelegram no puede leer. No se cambió nada.
+That settings file is damaged or only partly downloaded. Nothing was changed.	Ese archivo de configuración está dañado o solo se descargó en parte. No se cambió nada.
+That settings file was written by a newer HushTelegram than this one. Nothing was changed.	Ese archivo de configuración lo escribió una versión de HushTelegram más reciente que esta. No se cambió nada.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Todavía no se pudo guardar el informe de diagnóstico. Inténtalo de nuevo en un momento.
+The diagnostic report couldn't be saved. Try again.	No se pudo guardar el informe de diagnóstico. Inténtalo de nuevo.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushTelegram back on.	No se pudo eliminar el archivo %1$s. Bórralo de %2$s para volver a activar HushTelegram.
+The setting couldn't finish updating. Its saved value is shown.	No se pudo terminar de actualizar el ajuste. Se muestra su valor guardado.
+There's no diagnostic data to clear.	No hay datos de diagnóstico que borrar.
+There's no diagnostic data to put back.	No hay datos de diagnóstico que restaurar.
+This phone has no file picker, so there's no way to choose a file here.	Este teléfono no tiene selector de archivos, así que aquí no hay forma de elegir un archivo.
+Version	Versión
+Record patch activity and show errors for a bug report. Leave off during normal use.	Registra la actividad de los parches y muestra errores para un informe. Déjalo desactivado en el uso normal.
+You paused HushTelegram.	Pausaste HushTelegram.
+Your switches already match that file, so nothing will change.	Tus interruptores ya coinciden con ese archivo, así que no cambiará nada.
+Copy a short report to the clipboard.	Copia un informe breve en el portapapeles.
+Save the full report in Download/Morphe.	Guarda el informe completo en Download/Morphe.
+Settings imported.	Configuración importada.
+No app on this phone can open the link. The address is %1$s.	Ninguna app de este teléfono puede abrir el enlace. La dirección es %1$s.
+Pause, backup and diagnostics	Pausa, copia de seguridad y diagnóstico
+Updates	Actualizaciones
+Jump to a section	Ir a una sección
+Go straight to one group of settings. Back returns to where you were.	Ve directo a un grupo de ajustes. Atrás te devuelve a donde estabas.
+Browse settings	Explorar ajustes
+More settings	Más ajustes
+No matching settings	No hay ajustes coincidentes
+%1$d setting found	%1$d ajuste encontrado
+%1$d settings found	%1$d ajustes encontrados
+Try a different word or clear the search.	Prueba otra palabra o borra la búsqueda.
+Search settings	Buscar ajustes
+Clear search	Borrar búsqueda
+Your controls are active.	Tus controles están activos.
+Pause	Pausar
+Resume	Reanudar
+Undo	Deshacer
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Telegram's web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	Enlaces compatibles
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	“Abrir enlaces compatibles” está desactivado para esta app en los ajustes de Android. Toca para activarlo.
+Android didn't say which links open here. Tap to check in Android's settings.	Android no indicó qué enlaces se abren aquí. Toca para comprobarlo en los ajustes de Android.
+Selecting links by hand	Seleccionar enlaces a mano
+
+A change here applies after Telegram restarts.	Un cambio de aquí se aplica cuando Telegram se reinicie.
+Android opens t.me links in an app only when its addresses are selected for that app. Selecting them sends their links here, and your other link settings stay as they are.	Android abre los enlaces t.me en una app solo cuando sus direcciones están seleccionadas para esa app. Al seleccionarlas, sus enlaces llegan aquí, y tus otros ajustes de enlaces se quedan como están.
+Android verified this app for Telegram's web addresses, so their links open here.	Android verificó esta app para las direcciones web de Telegram, así que sus enlaces se abren aquí.
+Android's settings for this app didn't open. Open App info from Telegram's icon, then Open by default.	No se abrieron los ajustes de Android para esta app. Abre Información de la app desde el icono de Telegram y luego Abrir de forma predeterminada.
+Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.	Los canales no muestran mensajes patrocinados, la búsqueda no muestra cuentas patrocinadas y los videos se reproducen sin anuncios. Telegram nunca los solicita, así que ninguno cuenta como visto.
+Chats	Chats
+HushTelegram %1$s on Telegram %2$s	HushTelegram %1$s en Telegram %2$s
+HushTelegram %1$s targets Telegram %2$s.	HushTelegram %1$s está pensado para Telegram %2$s.
+HushTelegram pauses when Telegram restarts.	HushTelegram se pausa cuando Telegram se reinicie.
+HushTelegram turns back on when Telegram restarts.	HushTelegram vuelve a activarse cuando Telegram se reinicie.
+It targets Telegram %1$s.	Está pensado para Telegram %1$s.
+None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Ninguna dirección web de Telegram está seleccionada para esta app, así que sus enlaces se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.
+Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Solo algunas direcciones web de Telegram están seleccionadas para esta app, y los enlaces a las demás se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.
+Saved. Restart Telegram to apply this change.	Guardado. Reinicia Telegram para aplicar este cambio.
+Sponsored messages and video ads	Mensajes patrocinados y anuncios de video
+Stop usage reports	Detener los informes de uso
+# context: Immutable hook coverage shown when a patch has missing targets.
+channel ads	anuncios en canales
+video ads	anuncios en videos
+search ads	anuncios en búsquedas
+device statistics reports	informes de estadísticas del dispositivo
+channel read metrics	métricas de lectura de canales
+This build has no coverage for %1$s.	Esta versión no cubre %1$s.
+This build covers %1$s. Missing coverage: %2$s.	Esta versión cubre %1$s. Falta cobertura de %2$s.
+Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	Tres veces seguidas, Telegram falló o se congeló durante el primer minuto tras iniciarse, así que HushTelegram se pausó solo.
+Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.	Telegram no envía tus carpetas de almacenamiento como informe del dispositivo cuando su servidor lo pide, ni cuánto tiempo pasaste en cada publicación de un canal. Los mensajes y las llamadas funcionan como antes.
+Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Las direcciones web de Telegram están seleccionadas para esta app en los ajustes de Android, así que sus enlaces se abren aquí.
+Device statistics and read time	Estadísticas del dispositivo y tiempo de lectura
+Try again, or go back to Telegram.	Inténtalo de nuevo o vuelve a Telegram.
+Turn off Telegram's update checks	Desactivar las comprobaciones de actualización de Telegram
+Your choices are saved. Tap Resume, then restart Telegram.	Tus preferencias están guardadas. Toca Reanudar y luego reinicia Telegram.
+Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.	Telegram deja de ofrecer actualizaciones de telegram.org. No se pueden instalar sobre este build parcheado, así que parchea cada versión nueva en Morphe Manager.
+No HushTelegram release is out yet.	Todavía no hay ninguna versión de HushTelegram.
+Hide recommendations	Ocultar recomendaciones
+Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.	Oculta canales y bots similares, incluidas las recomendaciones guardadas. Telegram no solicita nuevas recomendaciones mientras el interruptor está activado.
+similar channels and bots	canales y bots similares
+cached recommendations	recomendaciones guardadas
+Stop call diagnostics	Detener diagnósticos de llamadas
+Stops automatic call debug reports and log-file uploads requested by Telegram's server.	Detiene los informes automáticos de depuración y las subidas de archivos de registro de llamadas solicitados por el servidor de Telegram.
+call debug reports	informes de depuración de llamadas
+call log file uploads	subidas de archivos de registro de llamadas
+call log reports	informes de registro de llamadas

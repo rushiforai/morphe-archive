@@ -51,6 +51,7 @@ private const val PROFILE_DETAIL_PANEL_DESCRIPTOR =
 private const val TAKO_AI_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/TakoAiFilter;"
 private const val CARD_FILTERS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/CardFilters;"
 private const val SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/SearchLynxCards;"
+private const val LIVE_FEED_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/LiveFeedFilter;"
 private const val FEED_ITEM_LIST_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;"
 
 @Suppress("unused")
@@ -70,7 +71,9 @@ val feedFilterPatch = bytecodePatch(
         "and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices " +
         "into a video pager after the list has loaded and the ads a creator's video pager asks " +
         "for on its own. The share prompt that appears after a like can be hidden too, and so " +
-        "can TikTok Shop's Products block and product cards in search results. " +
+        "can TikTok Shop's Products block and product cards in search results. The LIVE feed " +
+        "you swipe through has its own rules: gaming, shopping, sponsored and verified LIVEs, " +
+        "categories, and viewer and follower ranges. " +
         "Switch: Hushfeed settings > Feed filter.",
     default = true,
 ) {
@@ -288,6 +291,26 @@ val feedFilterPatch = bytecodePatch(
             0,
             "invoke-static/range {p0 .. p1}, $SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR->onCardBound(Ljava/lang/Object;Ljava/lang/Object;)V",
         )
+
+        // The LIVE feed you swipe through (issue #57). Its rooms come a page at a time from
+        // /webcast/feed/, and every page goes through one handler that turns the items into rooms
+        // and adds them to the pager, so the page is swapped for its filtered copy at the top of
+        // it. The list is p1 in a frame of 41 to 44 registers, hence the range form. Required on a
+        // declared build like the search binds above; elsewhere the LIVE rows stay hidden.
+        val livePage = if (declaredBuild) LiveDrawRoomPageFingerprint.method else LiveDrawRoomPageFingerprint.methodOrNull
+        livePage?.addInstructions(
+            0,
+            """
+                invoke-static/range { p1 .. p1 }, $LIVE_FEED_FILTER_CLASS_DESCRIPTOR->filter(Ljava/util/List;)Ljava/util/List;
+                move-result-object p1
+            """,
+        )
+        if (livePage != null) {
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, $LIVE_FEED_FILTER_CLASS_DESCRIPTOR->installed()V",
+            )
+        }
 
         // The Friends tab is a separate feed with its own response type, so none of the
         // hooks above ever see it, and every consumer reads its list straight off the field.

@@ -46,10 +46,13 @@ val hideVideoOverlaysPatch = bytecodePatch(
     name = "Hide video overlays",
     description = "Hides the visual search prompt TikTok lays over videos, the LIVE " +
         "entrance in the top left corner, caption and music text, selected action buttons or " +
-        "their counts in the right column, survey cards and the status bar, which can also be hidden " +
-        "only while a LIVE room is open. Separate switches hide the Full screen " +
+        "their counts in the right column, survey cards and the status bar, on the feed and on videos " +
+        "opened from a profile, a hashtag, a sound or search. The status bar can also be hidden only " +
+        "while a LIVE room is open. Separate switches hide the Full screen " +
         "button, location labels, the effect, template and CapCut tags above descriptions, and the Report " +
-        "button some regions get above the creator's picture, without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen.",
+        "button some regions get above the creator's picture, without removing videos or changing location permissions. " +
+        "One more takes the Add comment bar off those opened videos so they fill the screen. " +
+        "Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
     category("Feed")

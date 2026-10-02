@@ -49,6 +49,12 @@ final class CreatorIdentity {
                 Reflect.string(author, "getNickname", "nickname"));
     }
 
+    /** A creator read from somewhere other than a feed item, like a LIVE room's owner. */
+    static CreatorIdentity of(@Nullable String uid, @Nullable String secUid,
+            @Nullable String handle, @Nullable String nickname) {
+        return new CreatorIdentity(uid, secUid, handle, nickname);
+    }
+
     /** The author's uid alone, for a check that needs nothing else. */
     static String uidOf(Aweme item) {
         return uid(item, Reflect.property(item, "getAuthor", "author"));

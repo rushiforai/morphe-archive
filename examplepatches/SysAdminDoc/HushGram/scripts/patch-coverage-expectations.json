@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "package": "com.instagram.android",
+      "versionName": "449.0.0.52.84",
+      "versionCode": "385511871",
+      "families": [
+        {
+          "family": "disableAnalytics",
+          "patch": "Disable analytics",
+          "targets": ["builder", "graph", "mqtt", "reports", "pings", "stream", "setup"],
+          "optional": []
+        },
+        {
+          "family": "sanitizeSharingLinks",
+          "patch": "Sanitize sharing links",
+          "targets": ["permalink parser", "story link parser", "clipboard copies", "share sheets", "direct shares"],
+          "optional": []
+        },
+        {
+          "family": "translatedStart",
+          "patch": "Start on x86 devices",
+          "targets": ["code protection call 1", "code protection call 2"],
+          "optional": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+# Accepted advisories on resolved build, test and provided classpaths. This is separate from
+# advisory-exceptions.txt, which applies only to libraries the release bundle carries.
+#
+# One per line: <advisory> <group>:<name> <yyyy-MM-dd> <reason>
+# Use an OSV id or one of its aliases. The date is the last accepted day, at most 90 days out.
+# Give at least three words explaining why this build's use is unaffected. Expired exceptions
+# cover nothing; exceptions for advisories the build no longer has must be removed.

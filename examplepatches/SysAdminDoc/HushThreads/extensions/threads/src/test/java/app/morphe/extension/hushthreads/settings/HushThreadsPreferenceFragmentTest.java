@@ -30,6 +30,7 @@ import app.morphe.extension.shared.settings.HushThreadsPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,9 +71,10 @@ public class HushThreadsPreferenceFragmentTest {
     private static final Pattern UNPATCHED = Pattern.compile("(?i)unpatched|n't patched|not patched|as if it weren");
 
     /** The row each patch adds, by the title it shows. */
-    private static final Map<PatchFamily, String> ROW_TITLES = new LinkedHashMap<>();
+    private final Map<PatchFamily, String> ROW_TITLES = new LinkedHashMap<>();
 
-    static {
+    @Before
+    public void initializeRowTitlesAfterContext() {
         ROW_TITLES.put(PatchFamily.HIDE_ADS, "Hide ads");
         ROW_TITLES.put(PatchFamily.SANITIZE_SHARING_LINKS, "Remove tracking from shared links");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop analytics uploads");
@@ -202,8 +204,9 @@ public class HushThreadsPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
             assertEquals("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the "
                     + "link stays as it was.", String.valueOf(page.findPreference(Settings.SANITIZE_SHARING_LINKS.key).getSummary()));
-            assertEquals("The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, "
-                    + "posts and replies work as before.", String.valueOf(page.findPreference(Settings.DISABLE_ANALYTICS.key).getSummary()));
+            assertEquals("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. "
+                    + "Turn this off to use the original addresses.",
+                    String.valueOf(page.findPreference(Settings.DISABLE_ANALYTICS.key).getSummary()));
             // The switches are the screen's, all three on as they ship.
             for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.SANITIZE_SHARING_LINKS,
                     Settings.DISABLE_ANALYTICS)) {

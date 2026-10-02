@@ -6,15 +6,19 @@ package app.morphe.patches.facebook.font
 
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patches.facebook.emoji.isEmojiTypefaceProvider
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.literalReads
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -29,6 +33,9 @@ import java.io.File
  * builders it makes, and React Native's typeface resolver, with the frames the injections need.
  */
 class OwnFontFixtureTest {
+    private val TEXT_PAINT = "Landroid/text/TextPaint;"
+    private val OBJECT_TYPE = "Ljava/lang/Object;"
+
     /** The families the switch swaps. OwnFontTest holds the extension to the same twelve. */
     private val metaFamilies = sortedSetOf(
         "FACEBOOK_SANS_VARIABLE", "OPTIMISTIC_AI", "OPTIMISTIC_AI_1_BETA", "OPTIMISTIC_AI_2_BETA",
@@ -55,6 +62,254 @@ class OwnFontFixtureTest {
         assertEquals("${bundle.name}: classes holding the no-source refusal", 1, owners.size)
         checkResolver(bundle, owners.single())
         checkBuilders(bundle, owners.single())
+    }
+
+    /**
+     * The Roboto Facebook's text engine builds for text that names none of Meta's fonts comes from one
+     * builder in each declared build, found by its log, and it hands its answer back through a return.
+     */
+    @Test
+    fun `each declared build has one Roboto builder`() = bundles { bundle ->
+        val builders = FixtureDex.classesHolding(bundle, NO_ROBOTO).flatMap(::robotoBuilders)
+        assertEquals("${bundle.name}: Roboto builders", 1, builders.size)
+        assertTrue("${bundle.name}: the Roboto builder returns a Typeface", objectReturns(builders.single()).isNotEmpty())
+    }
+
+    /**
+     * Each declared build reads Android's default bold in a text span's draw, which is how the names
+     * bolded in a post's header get the phone's bold, and the rewrite of those reads and of the
+     * calls that answer the phone's typefaces runs over every class making them.
+     */
+    @Test
+    fun `each declared build reads Android's default bold in a text span`() = bundles { bundle ->
+        val readers = FixtureDex.methodsWhere(bundle, { true }) { method ->
+            method.implementation?.instructions?.any { defaultRead(it) != null } == true
+        }
+        val reads = readers.flatMap { method -> method.implementation!!.instructions.mapNotNull(::defaultRead) }
+        assertTrue("${bundle.name}: Android's default typefaces read ${reads.size} times", reads.size > 100)
+        assertTrue("${bundle.name}: no text span reads DEFAULT_BOLD", readers.any { method ->
+            method.name == "updateDrawState" && method.implementation!!.instructions.any { defaultRead(it) == "$TYPEFACE->DEFAULT_BOLD:$TYPEFACE" }
+        })
+        val styleCalls = readers.flatMap { method ->
+            method.implementation!!.instructions.filter { defaultRead(it) == DEFAULT_FROM_STYLE }
+        }
+        assertTrue("${bundle.name}: no defaultFromStyle call", styleCalls.isNotEmpty())
+
+        // The rewrite itself, over every class that reads them. A field read only ever compared
+        // with another typeface stays, Litho's text paint's compare with Typeface.DEFAULT among
+        // them. Every other read goes to the extension in its own place, a field read's answer
+        // comes back into the register the read wrote, and each call to the extension's own.
+        val owners = FixtureDex.classes(bundle, readers.map { it.definingClass }.toSet())
+        fun keptIn(method: Method) = method.implementation!!.instructions.toList().withIndex()
+            .filter { (at, instruction) -> defaultRead(instruction) in DEFAULT_TYPEFACES && method.onlyCompared(at) }.map { it.index }
+        val kept = readers.flatMap { method -> keptIn(method).map { method } }
+        assertTrue("${bundle.name}: no read is only compared", kept.isNotEmpty())
+        assertTrue("${bundle.name}: no text paint builder keeps its compare with Typeface.DEFAULT", kept.any { method ->
+            method.returnType == TEXT_PAINT && method.implementation!!.instructions.any { defaultRead(it) == DEFAULT_FROM_STYLE }
+        })
+        val context = PatchContexts.of(owners.values)
+        assertEquals("${bundle.name}: reads sent", reads.size - kept.size, context.hookDefaultTypefaces())
+        val getters = DEFAULT_TYPEFACES.values.map { "$OWN_FONT->$it()$TYPEFACE" }.toSet()
+        val sent = mutableMapOf<String, Int>()
+        for ((type, original) in owners) {
+            for (method in context.mutableClassDefBy(type).methods) {
+                val body = method.implementation?.instructions?.toList() ?: continue
+                val where = "${bundle.name}: $type->${method.name}"
+                val before = original.methods.single { it.name == method.name && it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString) &&
+                    it.returnType == method.returnType }
+                val code = before.implementation!!.instructions.toList()
+                val stays = keptIn(before).toSet()
+                assertEquals("$where: the reads left are the ones only compared", stays.map { defaultRead(code[it]) },
+                    body.mapNotNull(::defaultRead))
+                val wanted = code.indices.filter { defaultRead(code[it]) in DEFAULT_TYPEFACES && it !in stays }
+                    .map { (code[it] as OneRegisterInstruction).registerA }
+                val given = body.indices.filter { at ->
+                    (body[at] as? ReferenceInstruction)?.reference?.toString() in getters
+                }.map { at ->
+                    assertEquals("$where: the getter's answer is moved", Opcode.MOVE_RESULT_OBJECT, body[at + 1].opcode)
+                    (body[at + 1] as OneRegisterInstruction).registerA
+                }
+                assertEquals("$where: the registers the reads wrote", wanted, given)
+                for (call in DEFAULT_CALLS) {
+                    sent.merge(call, body.count { (it as? ReferenceInstruction)?.reference?.toString() == ownCall(call) }, Int::plus)
+                }
+            }
+        }
+        for (call in DEFAULT_CALLS) {
+            assertEquals("${bundle.name}: $call calls sent", reads.count { it == call }, sent[call])
+        }
+        assertEquals("${bundle.name}: defaultFromStyle calls sent", styleCalls.size, sent[DEFAULT_FROM_STYLE])
+    }
+
+    /**
+     * Every check each declared build makes of whether a typeface is one of Android's defaults,
+     * found by its shape alone: an if-eq or if-ne, an equals call, or Kotlin's areEqual, a static
+     * call on two objects answering a boolean. A read of the default nothing but checks use is
+     * still a read of Android's own field after the rewrite, so each of those checks still asks
+     * about Android's typeface. Litho's text paint and the post text's check (580 `LX/3qU;->A00`,
+     * `LX/302;->A0k`) are among them. A read that's also set on a paint goes to the extension, and
+     * its check compares the very typeface it then sets, as AppCompat's switch does to see whether
+     * its paint has that one already.
+     */
+    @Test
+    fun `every check of whether a typeface is Android's default still asks about Android's`() = bundles { bundle ->
+        fun isCheck(instruction: Instruction): Boolean = when (instruction.opcode) {
+            Opcode.IF_EQ, Opcode.IF_NE -> true
+            Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE ->
+                (instruction as ReferenceInstruction).reference.toString() == "Ljava/lang/Object;->equals(Ljava/lang/Object;)Z"
+            Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE ->
+                ((instruction as ReferenceInstruction).reference as MethodReference).let { call ->
+                    call.returnType == "Z" && call.parameterTypes.map(CharSequence::toString) == listOf(OBJECT_TYPE, OBJECT_TYPE)
+                }
+            else -> false
+        }
+        fun checked(method: Method, only: Boolean): List<Int> {
+            val code = method.implementation!!.instructions.toList()
+            return code.indices.filter { at ->
+                defaultRead(code[at]) in DEFAULT_TYPEFACES && method.literalReads(at).let { uses ->
+                    uses.any { isCheck(code[it]) } && (!only || uses.all { isCheck(code[it]) })
+                }
+            }
+        }
+        val checkers = FixtureDex.methodsWhere(bundle, { true }) { method ->
+            method.implementation?.instructions?.any { defaultRead(it) in DEFAULT_TYPEFACES } == true
+        }.filter { checked(it, only = false).isNotEmpty() }
+        var throughKotlin = 0
+        var onlyChecked = 0
+        for (method in checkers) {
+            val code = method.implementation!!.instructions.toList()
+            for (at in checked(method, only = true)) {
+                onlyChecked++
+                if (method.literalReads(at).any { code[it].opcode == Opcode.INVOKE_STATIC || code[it].opcode == Opcode.INVOKE_STATIC_RANGE }) throughKotlin++
+            }
+        }
+        assertTrue("${bundle.name}: $onlyChecked reads only checked", onlyChecked >= 5)
+        assertTrue("${bundle.name}: no check goes through Kotlin's areEqual", throughKotlin >= 1)
+        assertTrue("${bundle.name}: Litho's text paint isn't among them", checkers.any { it.returnType == TEXT_PAINT })
+
+        val owners = FixtureDex.classes(bundle, checkers.map { it.definingClass }.toSet())
+        val context = PatchContexts.of(owners.values)
+        context.hookDefaultTypefaces()
+        for (method in checkers) {
+            val after = context.mutableClassDefBy(method.definingClass).methods.single {
+                it.name == method.name && it.returnType == method.returnType &&
+                    it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
+            }
+            val code = method.implementation!!.instructions.toList()
+            val body = after.implementation!!.instructions.toList()
+            val left = body.indices.filter { defaultRead(body[it]) in DEFAULT_TYPEFACES }
+            val where = "${bundle.name}: ${method.definingClass}->${method.name}"
+            assertEquals("$where: the reads left are the ones only checked", checked(method, only = true).map { defaultRead(code[it]) },
+                left.map { defaultRead(body[it]) })
+            for (at in left) assertTrue("$where: the read left at $at is used by nothing but checks", after.literalReads(at).all { isCheck(body[it]) })
+        }
+    }
+
+    /**
+     * Use the system emoji's typeface: each declared build's emoji typeface provider hands its
+     * answer to Facebook's emoji spans and drawings, which set it on a paint themselves, and to the
+     * quick emoji picker's holder. On the way it goes through nothing the font rewrite sends to the
+     * extension, and the rewrite changes nothing in those spans and drawings, so the phone's emoji
+     * draw as they did whatever font file is picked.
+     */
+    @Test
+    fun `the emoji typeface reaches its paints with nothing of the font rewrite's in the way`() = bundles { bundle ->
+        val provider = FixtureDex.methodsWhere(bundle, { true }, ::isEmojiTypefaceProvider).single()
+        val asked = "${provider.definingClass}->${provider.name}()$TYPEFACE"
+        fun holds(method: Method, reference: String) =
+            method.implementation?.instructions?.any { (it as? ReferenceInstruction)?.reference?.toString() == reference } == true
+        val consumers = sortedSetOf<String>()
+        val holders = sortedSetOf<String>()
+        fun follow(method: Method, at: Int, what: String) {
+            val code = method.implementation!!.instructions.toList()
+            for (use in method.literalReads(at)) {
+                val reference = (code[use] as? ReferenceInstruction)?.reference
+                assertTrue("${bundle.name}: ${method.definingClass}->${method.name}: $what goes through $reference",
+                    defaultRead(code[use]) == null && !reference.toString().startsWith("$TYPEFACE->"))
+                if (reference is MethodReference && reference.name == "<init>") consumers += reference.definingClass
+                if (code[use].opcode == Opcode.SPUT_OBJECT) holders += reference.toString()
+            }
+        }
+        for (caller in FixtureDex.methodsWhere(bundle, { true }) { holds(it, asked) }) {
+            val code = caller.implementation!!.instructions.toList()
+            for (at in code.indices.filter { (code[it] as? ReferenceInstruction)?.reference?.toString() == asked }) {
+                assertEquals("${bundle.name}: the answer is moved", Opcode.MOVE_RESULT_OBJECT, code[at + 1].opcode)
+                follow(caller, at + 1, "the provider's answer")
+            }
+        }
+        assertTrue("${bundle.name}: the answer reaches ${consumers.size} spans and drawings", consumers.size >= 3)
+        assertTrue("${bundle.name}: the quick picker's holder", holders.isNotEmpty())
+        for (holder in holders) {
+            val get = FixtureDex.methodsWhere(bundle, { true }) { holds(it, holder) }
+            for (reader in get) {
+                val code = reader.implementation!!.instructions.toList()
+                code.indices.filter { code[it].opcode == Opcode.SGET_OBJECT && (code[it] as ReferenceInstruction).reference.toString() == holder }
+                    .forEach { follow(reader, it, "the held emoji typeface") }
+            }
+        }
+
+        val owners = FixtureDex.classes(bundle, consumers)
+        val context = PatchContexts.of(owners.values)
+        for ((type, consumer) in owners) {
+            assertTrue("${bundle.name}: $type sets a typeface on a paint", consumer.methods.any {
+                holds(it, "Landroid/graphics/Paint;->setTypeface($TYPEFACE)$TYPEFACE")
+            })
+            for (method in context.mutableClassDefBy(type).methods) {
+                assertEquals("${bundle.name}: $type->${method.name}: default reads sent", 0, method.sendDefaultReads())
+                assertEquals("${bundle.name}: $type->${method.name}: text views sent", 0, method.sendTextViews())
+            }
+        }
+    }
+
+    /**
+     * Each declared build builds Android's text views, by `new` and as the super call of views of
+     * its own, and its layout inflaters make views from a layout's tag through createView. The hook
+     * runs over every class doing either, and each site gets the extension's call right after it,
+     * on the site's register: the one the constructor got first, or the one the inflater's answer
+     * moves into. Nothing else in those methods changes.
+     */
+    @Test
+    fun `each declared build's text views go to the extension right after they're built`() = bundles { bundle ->
+        fun sitesIn(code: List<Instruction>) = code.indices.mapNotNull { at ->
+            builtTextView(code[at])
+                ?: code.getOrNull(at + 1)?.takeIf { makesView(code[at]) && it.opcode == Opcode.MOVE_RESULT_OBJECT }
+                    ?.let { (it as OneRegisterInstruction).registerA }
+        }
+        val builders = FixtureDex.methodsWhere(bundle, { true }) { method ->
+            method.implementation?.instructions?.any { builtTextView(it) != null || makesView(it) } == true
+        }
+        val sites = builders.sumOf { method -> sitesIn(method.implementation!!.instructions.toList()).size }
+        val inflated = builders.sumOf { method -> method.implementation!!.instructions.count(::makesView) }
+        assertTrue("${bundle.name}: $sites text views built", sites > 200)
+        // 577's own inflater makes views from a tag, and 580 adds a factory that does it too.
+        assertTrue("${bundle.name}: layout inflaters make views $inflated times", inflated >= 1)
+
+        val owners = FixtureDex.classes(bundle, builders.map { it.definingClass }.toSet())
+        val context = PatchContexts.of(owners.values)
+        assertEquals("${bundle.name}: sites hooked", sites, context.hookTextViews())
+        val hooks = setOf(OWN_TEXT_VIEW, OWN_INFLATED)
+        for ((type, original) in owners) {
+            for (method in context.mutableClassDefBy(type).methods) {
+                val body = method.implementation?.instructions?.toList() ?: continue
+                val where = "${bundle.name}: $type->${method.name}"
+                val before = original.methods.single { it.name == method.name && it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString) &&
+                    it.returnType == method.returnType }
+                val code = before.implementation!!.instructions.toList()
+                val at = body.indices.filter { (body[it] as? ReferenceInstruction)?.reference?.toString() in hooks }
+                assertEquals("$where: the registers handed over", sitesIn(code), at.map { (body[it] as RegisterRangeInstruction).startRegister })
+                for (hook in at) {
+                    val prior = body[hook - 1]
+                    assertTrue("$where: the hook at $hook follows what it hands over",
+                        builtTextView(prior) != null || prior.opcode == Opcode.MOVE_RESULT_OBJECT && makesView(body[hook - 2]))
+                    assertEquals("$where: one register", 1, (body[hook] as RegisterRangeInstruction).registerCount)
+                }
+                // The assembler pads a payload that follows the hook to its alignment with a nop.
+                val was = code.map { it.opcode }.filter { it != Opcode.NOP }
+                val left = body.filterIndexed { index, _ -> index !in at }.map { it.opcode }.filter { it != Opcode.NOP }
+                val first = (0 until maxOf(was.size, left.size)).firstOrNull { was.getOrNull(it) != left.getOrNull(it) }
+                assertEquals("$where: nothing else changed, first difference at", null, first)
+            }
+        }
     }
 
     private fun checkResolver(bundle: File, owner: ClassDef) {

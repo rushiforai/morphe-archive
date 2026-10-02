@@ -13,6 +13,7 @@ import java.lang.ref.WeakReference;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
+import app.morphe.extension.facebook.settings.SettingsStatus;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
@@ -60,6 +61,14 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * tap and the side buttons work as before, and reels that are ads keep Facebook's long-press menu.
  * Off, paused, before the settings are ready, or when anything here fails, every answer is
  * Facebook's own.
+ *
+ * <p>Keep the reel speed brings {@link #touch}, {@link #held}, {@link #speedSet} and
+ * {@link #release} along too, for the accounts Facebook gives its own hold. There the release
+ * listener is on every reel, hears every lift, and puts back the speed the reel was drawn at, so a
+ * tap or the start of a swipe took a reel picked at 1.5x back to normal speed (issue #25). With Keep
+ * the reel speed on and this switch off or not in the build, Facebook's flags keep their answers
+ * during Facebook's own hold, its lift gets the speed from before the hold, and outside a hold the
+ * listener is told no, so it leaves the speed alone.
  */
 public final class ReelHold {
     /** Counted under the patch's name for each long press on a reel that went to the speed-up while the switch is on. */
@@ -69,6 +78,12 @@ public final class ReelHold {
     static final double DOUBLE_SPEED = 2.0;
 
     private static final String FAMILY = FamilyNames.HOLD_REEL_FOR_2X;
+
+    /** Whether the build carries each patch, when a test says so instead of {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean holdInBuildForTests;
+    @Nullable
+    static volatile Boolean keepInBuildForTests;
 
     /** Whether a hold sped a reel up and the speed hasn't gone back since. */
     private static volatile boolean holding;
@@ -135,7 +150,7 @@ public final class ReelHold {
                 lifted = true;
             }
         } catch (Throwable failure) {
-            HookStatus.threw(FAMILY, "touch", failure);
+            threwShared("touch", failure);
         }
     }
 
@@ -150,14 +165,16 @@ public final class ReelHold {
      * only on its way to the speed-up: past the flag, the ad check and the edge check. A hold.
      */
     public static void held() {
-        HookStatus.invoked(FAMILY);
-        if (!on("hold")) return;
+        invokedShared();
+        boolean hold = on("hold");
+        if (!hold && !keeping("hold")) return;
         again = holding && !restored;
         holding = true;
         restored = false;
         speedUpNext = true;
-        HookStatus.counted(FAMILY, HELD);
-        Logger.printDebug(() -> "Reel hold: a long press on a reel went to the speed-up");
+        if (hold) HookStatus.counted(FAMILY, HELD);
+        Logger.printDebug(() -> hold ? "Reel hold: a long press on a reel went to the speed-up"
+                : "Reel hold: Facebook's own hold sped a reel up");
     }
 
     /**
@@ -172,8 +189,8 @@ public final class ReelHold {
      */
     public static float speedSet(Object player, float speed) {
         try {
-            HookStatus.invoked(FAMILY);
-            if (!on("speed set")) return speed;
+            invokedShared();
+            if (!on("speed set") && !keeping("speed set")) return speed;
             if (speedUpNext) {
                 speedUpNext = false;
                 WeakReference<Object> last = heldPlayer;
@@ -205,7 +222,7 @@ public final class ReelHold {
                 Logger.printDebug(() -> "Reel hold: back to " + speed + "x");
             }
         } catch (Throwable failure) {
-            HookStatus.threw(FAMILY, "speed set", failure);
+            threwShared("speed set", failure);
         }
         return speed;
     }
@@ -237,28 +254,95 @@ public final class ReelHold {
 
     /**
      * After the release listener asks either flag. While on, yes from a hold until a lift the listener
-     * hears, whose two questions both get yes; the gesture after it starts with the hold over.
+     * hears, whose two questions both get yes; the gesture after it starts with the hold over. With
+     * Keep the reel speed guarding instead, Facebook's answer during a hold of Facebook's own and no
+     * outside one, so a lift that ended no hold puts back nothing.
      */
     public static boolean release(boolean facebooks) {
-        HookStatus.invoked(FAMILY);
-        if (!on("release")) return facebooks;
-        if (holding && lifted && !restored) {
+        invokedShared();
+        boolean hold = on("release");
+        if (!hold && !keeping("release")) return facebooks;
+        boolean yes = hold ? holding : facebooks && holding;
+        if (yes && lifted && !restored) {
             restored = true;
             backSince = SystemClock.uptimeMillis();
             backNext = true;
         }
-        return holding;
+        // The listener asks on every touch event of a gesture, so only its lift, the one that used to
+        // reset the speed, is logged.
+        if (!hold && facebooks && !holding && lifted) {
+            Logger.printDebug(() -> "Reel hold: a lift outside a hold, the reel keeps its speed");
+        }
+        return yes;
     }
 
     /** Whether the switch is on, with [where] bound. Never throws: a failure is reported and reads off. */
     private static boolean on(String where) {
         try {
-            if (!Utils.settingsReady() || !Settings.HOLD_REEL_FOR_2X.get()) return false;
+            if (!holdInBuild() || !Utils.settingsReady() || !Settings.HOLD_REEL_FOR_2X.get()) return false;
             HookStatus.bound(FAMILY, where);
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, where, failure);
             return false;
+        }
+    }
+
+    /**
+     * Whether Keep the reel speed guards the release listener, with [where] bound under its name: it's
+     * in the build and on. Never throws: a failure is reported and reads off.
+     */
+    private static boolean keeping(String where) {
+        try {
+            if (!keepInBuild() || !Utils.settingsReady() || !Settings.KEEP_REEL_SPEED.get()) return false;
+            HookStatus.bound(FamilyNames.KEEP_REEL_SPEED, where);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.KEEP_REEL_SPEED, where, failure);
+            return false;
+        }
+    }
+
+    /**
+     * Whether Hold a reel for 2x is in this build: its own patch applied. These hooks come with it or
+     * with Keep the reel speed, and the guard goes in before either patch does its own part, so when
+     * Keep the reel speed's part refuses and Hold a reel for 2x wasn't picked, the hooks are there
+     * with neither status on. They leave every answer to Facebook then, whatever Hold's switch says.
+     */
+    static boolean holdInBuild() {
+        Boolean forced = holdInBuildForTests;
+        return forced != null ? forced : SettingsStatus.reelHold();
+    }
+
+    static boolean keepInBuild() {
+        Boolean forced = keepInBuildForTests;
+        return forced != null ? forced : SettingsStatus.keepReelSpeed();
+    }
+
+    /**
+     * The family the shared hooks count under: this patch's when it's in the build, else Keep the
+     * reel speed's when that one is, else none, so a build carrying only the guard reports no
+     * family's hooks as run.
+     */
+    @Nullable
+    private static String family() {
+        if (holdInBuild()) return FAMILY;
+        return keepInBuild() ? FamilyNames.KEEP_REEL_SPEED : null;
+    }
+
+    /** One more run of a shared hook, under {@link #family()} when there is one. */
+    private static void invokedShared() {
+        String family = family();
+        if (family != null) HookStatus.invoked(family);
+    }
+
+    /** A shared hook's throw, under {@link #family()}, or in the log when neither patch is in the build. */
+    private static void threwShared(String where, Throwable failure) {
+        String family = family();
+        if (family != null) {
+            HookStatus.threw(family, where, failure);
+        } else {
+            Logger.printException(() -> "Reel hold: the '" + where + "' hook threw with neither reel patch in the build", failure);
         }
     }
 
@@ -274,5 +358,7 @@ public final class ReelHold {
         heldPlayer = null;
         before = Float.NaN;
         speeds = PATCHED;
+        holdInBuildForTests = null;
+        keepInBuildForTests = null;
     }
 }

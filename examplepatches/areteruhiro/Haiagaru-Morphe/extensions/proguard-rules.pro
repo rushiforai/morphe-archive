@@ -10,6 +10,9 @@
 -keep class rikka.shizuku.** {
     *;
 }
+-keep class rikka.sui.** {
+    *;
+}
 
 # Programmable NG evaluates user-authored rules with Rhino in interpreter mode.
 -keep class org.mozilla.javascript.** { *; }

@@ -16,6 +16,9 @@ internal object PatchLogCapture {
     /** Runs [block] and hands back the warnings it logged, each as its message. */
     fun warnings(block: () -> Unit): List<String> = messages(Level.WARNING, block)
 
+    /** Runs [block] and hands back its normal patch-output messages. */
+    fun info(block: () -> Unit): List<String> = messages(Level.INFO, block)
+
     /**
      * Runs [block] and hands back the fine-level messages it logged, each as its message. Fine
      * messages don't show at the patch log's default level, so [block] runs with it raised, then

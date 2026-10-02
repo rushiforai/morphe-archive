@@ -1,0 +1,180 @@
+# Indonesian for HushTelegram: the English key, a tab, the translation. One row per string.
+# context: Chat-list-only story controls and immutable hook coverage.
+Hide Stories	Sembunyikan Cerita
+Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.	Menyembunyikan bilah cerita di daftar chat, lingkaran cerita pada avatar dan tombol Kirim Cerita, serta berhenti mengambil daftar cerita. Cerita profil dan arsip tetap tersedia.
+story list requests	permintaan daftar cerita
+chat-list story bar	bilah cerita di daftar chat
+Post Story button	tombol Kirim Cerita
+avatar story rings	lingkaran cerita pada avatar
+avatar story taps	ketukan cerita pada avatar
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$d item in that file isn't a setting this version of HushTelegram knows, so it'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi HushTelegram ini, jadi tidak akan disertakan.
+%1$d items in that file aren't settings this version of HushTelegram knows, so they'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi HushTelegram ini, jadi tidak akan disertakan.
+%1$d switch will change.	%1$d sakelar akan berubah.
+%1$d switches will change.	%1$d sakelar akan berubah.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
+A diagnostic report is already being saved.	Sudah ada laporan diagnostik yang sedang disimpan.
+A file named %1$s in %2$s paused HushTelegram.	File bernama %1$s di %2$s menjeda HushTelegram.
+About	Tentang
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.
+Back	Kembali
+Cancel	Batal
+Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Pilih file pengaturan. Sebelum apa pun diimpor, Anda akan melihat berapa sakelar yang berubah.
+Clear diagnostic data	Hapus data diagnostik
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
+Copy quick report	Salin laporan singkat
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Pengaturan tidak dapat diimpor, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa sakelar di layar ini.
+Couldn't import the settings. Nothing was changed.	Pengaturan tidak dapat diimpor. Tidak ada yang diubah.
+Couldn't open that file. Nothing was changed.	File itu tidak dapat dibuka. Tidak ada yang diubah.
+Couldn't open the file picker. Try again.	Pemilih file tidak dapat dibuka. Coba lagi.
+Couldn't put back the diagnostic data. Try again.	Data diagnostik tidak dapat dikembalikan. Coba lagi.
+Couldn't save the settings file. Try again.	File pengaturan tidak dapat disimpan. Coba lagi.
+Couldn't start that. Try again in a moment.	Tidak dapat dimulai. Coba lagi dalam beberapa saat.
+Couldn't start the report export. Try again shortly.	Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.
+Couldn't turn HushTelegram back on. Try again.	HushTelegram tidak dapat diaktifkan lagi. Coba lagi.
+Debug logging	Pencatatan debug
+Diagnostic data cleared. Tap again to put it back.	Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
+Diagnostic data put back.	Data diagnostik dikembalikan.
+Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
+Empties the log and the hook findings a report would include.	Mengosongkan log dan temuan hook yang akan dimasukkan ke laporan.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
+Export diagnostic report	Ekspor laporan diagnostik
+Export settings	Ekspor pengaturan
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
+Hide ads	Sembunyikan iklan
+Links, updates, backup and more	Tautan, pembaruan, cadangan, dan lainnya
+Privacy	Privasi
+Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
+Settings exported. The app holding the file wouldn't let HushTelegram read it back, so it wasn't checked.	Pengaturan diekspor. Aplikasi yang menyimpan file itu tidak mengizinkan HushTelegram membacanya kembali, jadi file itu tidak diperiksa.
+The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.	Aplikasi yang menyimpan file itu terlalu lama, jadi HushTelegram berhenti menunggu. Tidak ada yang diubah.
+The app holding the last settings file still hasn't answered. Try again later.	Aplikasi yang menyimpan file pengaturan terakhir masih belum merespons. Coba lagi nanti.
+The app holding the settings file is taking too long, so HushTelegram stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushTelegram berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.
+Full report saved to %1$s	Laporan lengkap disimpan ke %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya
+HushTelegram is on	HushTelegram aktif
+HushTelegram is paused	HushTelegram dijeda
+HushTelegram settings	Pengaturan HushTelegram
+HushTelegram settings couldn't open	Pengaturan HushTelegram tidak dapat dibuka
+Import	Impor
+Import settings	Impor pengaturan
+Importing settings	Mengimpor pengaturan
+Licenses	Lisensi
+Links	Tautan
+OK	Oke
+Pause HushTelegram	Jeda HushTelegram
+Reading the settings file	Membaca file pengaturan
+Retry	Coba lagi
+Save full report	Simpan laporan lengkap
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushTelegram releases	Periksa rilis HushTelegram baru
+Ask GitHub once a day when Telegram starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Periksa GitHub sekali sehari saat Telegram dimulai dan tampilkan rilis yang lebih baru di bagian atas pengaturan ini. Mati secara bawaan. Tidak mengunduh apa pun.
+Check now	Periksa sekarang
+Asks GitHub for the newest release right now, even with the switch above off.	Menanyakan rilis terbaru ke GitHub sekarang juga, meski sakelar di atas mati.
+Checking GitHub now.	Sedang memeriksa GitHub.
+HushTelegram %1$s is out. Update it in Morphe Manager.	HushTelegram %1$s sudah dirilis. Perbarui di Morphe Manager.
+You have the newest HushTelegram release.	Anda sudah memakai rilis HushTelegram terbaru.
+The newest HushTelegram release is %1$s.	Rilis HushTelegram terbaru adalah %1$s.
+Couldn't reach GitHub. Try again later.	GitHub tidak dapat dihubungi. Coba lagi nanti.
+GitHub is turning away checks from this network for now. Try again later.	GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.
+GitHub's answer couldn't be used. Try again later.	Jawaban GitHub tidak dapat digunakan. Coba lagi nanti.
+Saving the settings file	Menyimpan file pengaturan
+Set when you patched	Diatur saat Anda menambal
+Settings couldn't open	Pengaturan tidak dapat dibuka
+Settings couldn't refresh completely. Reopen settings and try again.	Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.
+Settings exported.	Pengaturan diekspor.
+Settings imported. %1$d switch changed.	Pengaturan diimpor. %1$d sakelar berubah.
+Settings imported. %1$d switches changed.	Pengaturan diimpor. %1$d sakelar berubah.
+Source code and issues	Kode sumber dan laporan masalah
+Stays in while paused	Tetap aktif saat dijeda
+Tap to turn it back on.	Ketuk untuk mengaktifkan HushTelegram lagi.
+That file is too large to be a settings file. Nothing was changed.	File itu terlalu besar untuk sebuah file pengaturan. Tidak ada yang diubah.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	File itu bukan teks yang dapat dibaca, jadi mungkin rusak saat ditransfer. Tidak ada yang diubah.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	File itu mencantumkan satu pengaturan dua kali, jadi tidak jelas nilai mana yang harus dipakai. Tidak ada yang diubah.
+That isn't a HushTelegram settings file. Nothing was changed.	Itu bukan file pengaturan HushTelegram. Tidak ada yang diubah.
+That settings file holds a value HushTelegram can't read. Nothing was changed.	File pengaturan itu memuat nilai yang tidak dapat dibaca HushTelegram. Tidak ada yang diubah.
+That settings file is damaged or only partly downloaded. Nothing was changed.	File pengaturan itu rusak atau hanya terunduh sebagian. Tidak ada yang diubah.
+That settings file was written by a newer HushTelegram than this one. Nothing was changed.	File pengaturan itu dibuat oleh versi HushTelegram yang lebih baru daripada versi ini. Tidak ada yang diubah.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.
+The diagnostic report couldn't be saved. Try again.	Laporan diagnostik tidak dapat disimpan. Coba lagi.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushTelegram back on.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushTelegram lagi.
+The setting couldn't finish updating. Its saved value is shown.	Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.
+There's no diagnostic data to clear.	Tidak ada data diagnostik yang dapat dihapus.
+There's no diagnostic data to put back.	Tidak ada data diagnostik yang dapat dikembalikan.
+This phone has no file picker, so there's no way to choose a file here.	Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.
+Version	Versi
+Record patch activity and show errors for a bug report. Leave off during normal use.	Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.
+You paused HushTelegram.	Anda menjeda HushTelegram.
+Your switches already match that file, so nothing will change.	Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.
+Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
+Save the full report in Download/Morphe.	Simpan laporan lengkap di Download/Morphe.
+Settings imported.	Pengaturan diimpor.
+No app on this phone can open the link. The address is %1$s.	Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.
+Pause, backup and diagnostics	Jeda, cadangan, dan diagnostik
+Updates	Pembaruan
+Jump to a section	Lompat ke bagian
+Go straight to one group of settings. Back returns to where you were.	Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.
+Browse settings	Jelajahi pengaturan
+More settings	Pengaturan lainnya
+No matching settings	Tidak ada pengaturan yang cocok
+%1$d setting found	%1$d pengaturan ditemukan
+%1$d settings found	%1$d pengaturan ditemukan
+Try a different word or clear the search.	Coba kata lain atau hapus pencarian.
+Search settings	Cari pengaturan
+Clear search	Hapus pencarian
+Your controls are active.	Kontrol Anda aktif.
+Pause	Jeda
+Resume	Lanjutkan
+Undo	Urungkan
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Telegram's web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	Tautan yang didukung
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	“Buka link yang didukung” nonaktif untuk aplikasi ini di pengaturan Android. Ketuk untuk mengaktifkannya.
+Android didn't say which links open here. Tap to check in Android's settings.	Android tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk memeriksanya di pengaturan Android.
+Selecting links by hand	Memilih tautan secara manual
+
+A change here applies after Telegram restarts.	Perubahan di sini berlaku setelah Telegram dimulai ulang.
+Android opens t.me links in an app only when its addresses are selected for that app. Selecting them sends their links here, and your other link settings stay as they are.	Android hanya membuka tautan t.me di sebuah aplikasi saat alamatnya dipilih untuk aplikasi itu. Memilihnya akan mengirim tautannya ke sini, dan pengaturan tautan Anda yang lain tetap seperti semula.
+Android verified this app for Telegram's web addresses, so their links open here.	Android telah memverifikasi aplikasi ini untuk alamat web Telegram, jadi tautannya terbuka di sini.
+Android's settings for this app didn't open. Open App info from Telegram's icon, then Open by default.	Pengaturan Android untuk aplikasi ini tidak terbuka. Buka Info aplikasi dari ikon Telegram, lalu Buka secara default.
+Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.	Saluran tidak menampilkan pesan bersponsor, pencarian tidak menampilkan akun bersponsor, dan video diputar tanpa iklan. Telegram tidak pernah memintanya, jadi tidak ada yang dihitung sebagai dilihat.
+Chats	Chat
+HushTelegram %1$s on Telegram %2$s	HushTelegram %1$s di Telegram %2$s
+HushTelegram %1$s targets Telegram %2$s.	HushTelegram %1$s ditujukan untuk Telegram %2$s.
+HushTelegram pauses when Telegram restarts.	HushTelegram dijeda saat Telegram dimulai ulang.
+HushTelegram turns back on when Telegram restarts.	HushTelegram aktif lagi saat Telegram dimulai ulang.
+It targets Telegram %1$s.	Rilis ini ditujukan untuk Telegram %1$s.
+None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Tidak ada alamat web Telegram yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
+Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Hanya sebagian alamat web Telegram yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
+Saved. Restart Telegram to apply this change.	Tersimpan. Mulai ulang Telegram untuk menerapkan perubahan ini.
+Sponsored messages and video ads	Pesan bersponsor dan iklan video
+Stop usage reports	Hentikan laporan penggunaan
+# context: Immutable hook coverage shown when a patch has missing targets.
+channel ads	iklan saluran
+video ads	iklan video
+search ads	iklan pencarian
+device statistics reports	laporan statistik perangkat
+channel read metrics	metrik pembacaan saluran
+This build has no coverage for %1$s.	Versi ini tidak mencakup %1$s.
+This build covers %1$s. Missing coverage: %2$s.	Versi ini mencakup %1$s. Cakupan yang belum tersedia: %2$s.
+Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	Telegram berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushTelegram menjeda dirinya sendiri.
+Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.	Telegram tidak mengirim folder penyimpanan Anda sebagai laporan perangkat saat server-nya meminta, atau berapa lama Anda melihat setiap postingan saluran. Pesan dan panggilan tetap berfungsi seperti biasa.
+Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Alamat web Telegram dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.
+Device statistics and read time	Statistik perangkat dan waktu baca
+Try again, or go back to Telegram.	Coba lagi, atau kembali ke Telegram.
+Turn off Telegram's update checks	Matikan pemeriksaan pembaruan Telegram
+Your choices are saved. Tap Resume, then restart Telegram.	Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Telegram.
+Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.	Telegram berhenti menawarkan pembaruan dari telegram.org. Pembaruan itu tidak bisa dipasang di atas build yang sudah di-patch ini, jadi patch setiap versi baru di Morphe Manager.
+No HushTelegram release is out yet.	Belum ada rilis HushTelegram.
+Hide recommendations	Sembunyikan rekomendasi
+Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.	Menyembunyikan saluran dan bot serupa, termasuk rekomendasi tersimpan. Telegram tidak meminta rekomendasi baru selama sakelar aktif.
+similar channels and bots	saluran dan bot serupa
+cached recommendations	rekomendasi tersimpan
+Stop call diagnostics	Hentikan diagnostik panggilan
+Stops automatic call debug reports and log-file uploads requested by Telegram's server.	Menghentikan laporan debug panggilan otomatis dan unggahan berkas log yang diminta server Telegram.
+call debug reports	laporan debug panggilan
+call log file uploads	unggahan berkas log panggilan
+call log reports	laporan log panggilan

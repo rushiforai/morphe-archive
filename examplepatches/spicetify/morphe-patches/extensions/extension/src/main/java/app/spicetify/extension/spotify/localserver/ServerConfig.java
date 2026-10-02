@@ -16,6 +16,7 @@ public final class ServerConfig {
     private static final String JELLYFIN_LIBRARY_NAME = "jellyfin_library_name";
     private static SharedPreferences preferences;
     private static Context context;
+    private static long serverPreferencesModified;
     private static volatile Snapshot current = new Snapshot(false, null, null);
     private ServerConfig() {}
 
@@ -57,6 +58,38 @@ public final class ServerConfig {
             }
         } catch (IllegalArgumentException ignored) {
             forget();
+        }
+    }
+
+    /**
+     * Loads the settings saved by Spotify's main process without changing them, for the process that serves
+     * track files. Reloads only when the settings file has changed since the last call.
+     */
+    @SuppressWarnings("deprecation")
+    static synchronized void loadForServer(Context supplied) {
+        Context app = supplied.getApplicationContext();
+        java.io.File file = new java.io.File(app.getApplicationInfo().dataDir, "shared_prefs/spicetify_local_server.xml");
+        long modified = file.lastModified();
+        if (preferences != null && modified == serverPreferencesModified) return;
+        serverPreferencesModified = modified;
+        context = app;
+        preferences = app.getSharedPreferences("spicetify_local_server", Context.MODE_MULTI_PROCESS);
+        boolean enabled = preferences.getBoolean("enabled", false);
+        try {
+            if ("jellyfin".equals(preferences.getString("provider", ""))) {
+                current = new Snapshot(enabled, null, JellyfinConnection.restore(
+                        preferences.getString(JELLYFIN_ROOT, ""), preferences.getString(DEVICE_ID, ""),
+                        preferences.getString(JELLYFIN_USER_ID, ""), preferences.getString(JELLYFIN_USER_NAME, ""),
+                        preferences.getString(JELLYFIN_TOKEN, ""), preferences.getString(JELLYFIN_LIBRARY_ID, ""),
+                        preferences.getString(JELLYFIN_LIBRARY_NAME, "")));
+            } else {
+                String url = preferences.getString("url", "");
+                ServerConnection connection = url.isEmpty() ? null : new ServerConnection(url,
+                        preferences.getString("username", ""), preferences.getString("password", ""));
+                current = new Snapshot(enabled && connection != null, connection, null);
+            }
+        } catch (IllegalArgumentException invalid) {
+            current = new Snapshot(false, null, null);
         }
     }
 

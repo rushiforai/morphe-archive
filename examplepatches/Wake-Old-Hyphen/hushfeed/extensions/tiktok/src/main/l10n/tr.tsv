@@ -67,7 +67,6 @@ A green square in the top corner while TikTok has the camera open, and an orange
 A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.	Bir bağlantıyı paylaşırken veya kopyalarken tiktok.com yerine konacak alan adı, örneğin vxtiktok.com. TikTok'un kendi bağlantılarını paylaşmak için boş bırak. Yalnızca TikTok bağlantıları değişir, onların da yalnızca alan adı: hiçbir yere yeni bir şey gönderilmez.
 A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Akıştaki küçük bir etiket, bugünkü bütçenden kalan dakikayı veya video sayısını gösterir, hangisi bitmeye daha yakınsa onu.
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.	Senin İçin açıkken Ana Sayfa'ya ya da Senin İçin sekmesine dokunmak artık akışı yenilemez. İzlediğin video yerinde kalır.
-A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.	Şuraya gönder satırındaki bir kişiye dokunmak onu yalnızca seçer. Aynı kişiye %1$d saniye içinde ikinci kez dokunmak videoyu gönderir.
 A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.	Duraklattığın bir video, uygulamaya döndüğünde yeniden başlamak yerine duraklatılmış kalır. Oynarken bıraktığın bir video her zamanki gibi başlar. Android 10 ve sonrasında çalışır.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.	Birinin yoruma bıraktığı web adresine, elle kopyalamak yerine dokunulabilir. Yorumun başka bir yerine dokunmak yine eskiden ne yapıyorsa onu yapar.
 AI-generated posts	Yapay zeka ile üretilmiş gönderiler
@@ -80,6 +79,7 @@ Added to this account.	Bu hesaba eklendi.
 Caption languages	Altyazı dilleri
 Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds, countries and caption languages, and seen videos still apply.	Virgülle ayrılmış hesap adları veya kullanıcı kimlikleri. Videoları, yalnızca gönderi türü, etiketleri, yaşı, süresi veya sayılarıyla ilgili bir filtre onları gizleyecekse kalır. Reklamlar, engellenen içerik üreticiler, kelimeler, sesler, ülkeler ve altyazı dilleri ile izlenmiş videolar geçerli olmaya devam eder.
 Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.	Virgülle ayrılmış dil kodları, örneğin en, es. Özgün altyazısı başka bir dilde olan video gizlenir. Altyazısı olmayan ya da yalnızca çevrilmiş altyazısı olan videolar her zaman kalır.
+Comma separated names exactly as the row under a profile's bio shows them, such as TikTok Studio or Your orders. Restart TikTok to apply this.	Virgülle ayrılmış adlar, bir profilin biyografisinin altındaki satırda göründüğü gibi, örneğin TikTok Studio veya Siparişlerin. Bunu uygulamak için TikTok'u yeniden başlat.
 Couldn't add the older seen videos. Try again.	Eski görülen videolar eklenemedi. Tekrar dene.
 Couldn't copy the report. Use Save report instead.	Rapor kopyalanamadı. Bunun yerine "Raporu kaydet"i kullan.
 Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.	TikTok'un geçerli değerleri okunamadı (%1$s). Yeniden denemek için menüden değerleri yenile.
@@ -90,6 +90,8 @@ Forget the %1$s videos @%2$s has seen.	@%2$s hesabının gördüğü %1$s videoy
 Forget the seen video.	Görülen videoyu unut.
 Forget the video @%2$s has seen.	@%2$s hesabının gördüğü videoyu unut.
 Got it	Anladım
+Hide profile shortcuts	Profil kısayollarını gizle
+Hide profile shortcuts by name	Profil kısayollarını adına göre gizle
 Hide the status bar in LIVE rooms	LIVE odalarında durum çubuğunu gizle
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.	Bir videonun bir dahaki sefere gizlenmesi için ne kadarını izlemen gerektiği. Sıfır, birkaç saniye sonra sayar.
 Later	Daha sonra
@@ -98,16 +100,20 @@ Let a LIVE fill the screen up to the top edge. The status bar comes back when yo
 Loading the gate list and TikTok's current values…	Gate listesi ve TikTok'un geçerli değerleri yükleniyor…
 New value	Yeni değer
 No app on this phone opens that file	Bu telefonda o dosyayı açan bir uygulama yok
+No profile shortcuts have been seen yet	Henüz hiç profil kısayolu görülmedi
 One video was recorded before each account kept its own list. It hides nothing until you add it here.	Her hesabın kendi listesi olmadan önce bir video kaydedildi. Buraya ekleyene kadar hiçbir şeyi gizlemez.
 Only these caption languages	Yalnızca bu altyazı dilleri
 Open	Aç
+Open your profile once, then return here to choose its shortcuts.	Profilini bir kez aç, sonra kısayollarını seçmek için buraya dön.
 Photos can't be saved to the folder in that file, so your photo folder was kept	Fotoğraflar o dosyadaki klasöre kaydedilemiyor, bu yüzden fotoğraf klasörün korundu
+Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this.	Bir profilin biyografisinin altındaki satırdan kaldırılacak kısayolları seç, örneğin TikTok Studio veya Siparişlerin. Bunu uygulamak için TikTok'u yeniden başlat.
 Preview shortened. Save report keeps the full report.	Önizleme kısaltıldı. "Raporu kaydet" raporun tamamını saklar.
 Refreshing TikTok's current values…	TikTok'un geçerli değerleri yenileniyor…
 Restart TikTok to apply this	Bunu uygulamak için TikTok'u yeniden başlat
 Save report	Raporu kaydet
 Stay on the video in full screen	Tam ekranda videoda kal
 Stickers can't be saved to the folder in that file, so your sticker folder was kept	Çıkartmalar o dosyadaki klasöre kaydedilemiyor, bu yüzden çıkartma klasörün korundu
+Stop TikTok's benchmark runs	TikTok'un performans testlerini durdur
 That creator pattern could stall the feed, so it was skipped: %1$s	Bu içerik üreticisi kalıbı akışı kilitleyebileceği için atlandı: %1$s
 That creator pattern could stall the feed, so it wasn't added: %1$s	Bu içerik üreticisi kalıbı akışı kilitleyebileceği için eklenmedi: %1$s
 This key isn't in Hushfeed's list, so its type can't be checked. Reset the override.	Bu anahtar Hushfeed listesinde yok, bu yüzden türü denetlenemiyor. Geçersiz kılmayı sıfırla.
@@ -226,6 +232,7 @@ Clear all suggested accounts	Önerilen tüm hesapları temizle
 Clear the recent events, saved crash reports, a recorded screen layout and the hook status above.	Son olayları, kaydedilen çökme raporlarını, kaydedilmiş bir ekran düzenini ve yukarıdaki kanca durumunu temizle.
 Record a screen's layout	Bir ekranın düzenini kaydet
 Tap, then go to the screen with what you want hidden. After %1$d seconds Hushfeed records how that screen is built, without any of its text, for the diagnostic report.	Dokun, sonra gizlemek istediğin şeyin olduğu ekrana git. %1$d saniye sonra Hushfeed o ekranın nasıl kurulduğunu, metnini almadan, tanılama raporu için kaydeder.
+TikTok sometimes tests how fast your phone is in a background process of its own, which can hold a lot of memory. This keeps that process from starting. One that's already running stops when TikTok restarts.	TikTok bazen telefonunun ne kadar hızlı olduğunu kendi arka plan işleminde test eder ve bu işlem çok fazla bellek kullanabilir. Bu ayar o işlemin başlamasını engeller. Zaten çalışan bir işlem, TikTok yeniden başladığında durur.
 Waiting to record. Go to the screen you want recorded.	Kayıt bekleniyor. Kaydedilmesini istediğin ekrana git.
 A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another.	Bir ekran düzeni kaydedildi. Göndermek için tanılama raporunu dışa aktar ya da başka birini kaydetmek için dokun.
 Go to the screen now. Hushfeed records its layout in %1$d seconds.	Şimdi ekrana git. Hushfeed %1$d saniye içinde düzenini kaydeder.
@@ -268,7 +275,6 @@ Confirm before following	Takip etmeden önce onay iste
 Confirm before liking	Beğenmeden önce onay iste
 Confirm before liking a comment	Bir yorumu beğenmeden önce onay iste
 Confirm before liking a story	Bir hikayeyi beğenmeden önce onay iste
-Confirm before sending to a friend	Bir arkadaşa göndermeden önce onay iste
 Continue supported videos from where you stopped when you scroll back to them.	Desteklenen videolara geri kaydırdığında kaldığın yerden devam et.
 Controls	Kontroller
 Feature gate report copied	Özellik kapısı raporu kopyalandı
@@ -379,7 +385,7 @@ Entry %1$d has a field with the wrong data type.	%1$d numaralı girdide veri tü
 Entry %1$d isn't an object.	%1$d numaralı girdi bir nesne değil.
 Errors	Hatalar
 Expand activity list	Etkinlik listesini genişlet
-Explore	Keşfet
+Explore or Community	Keşfet veya Topluluk
 Export diagnostic report	Tanılama raporunu dışa aktar
 Export loaded values	Yüklenen değerleri dışa aktar
 Exported %1$d loaded values	%1$d yüklenen değer dışa aktarıldı
@@ -1023,14 +1029,12 @@ Subtitle language	Altyazı dili
 Subtitles	Altyazılar
 System	Sistem
 Hide the streak button in a chat and the reminder message that goes with it.	Sohbetteki seri düğmesini ve onunla birlikte gelen hatırlatma mesajını gizle.
-Tap %1$s again to send	Göndermek için yeniden dokun: %1$s
 Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.	Bir yorumun kalbine %1$d saniye içinde iki kez dokun. Yoruma çift dokunmak da ikinci bir çift dokunma ister. Beğeniyi kaldırmak yine anında olur.
 Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.	Bir hikayenin kalbine %1$d saniye içinde iki kez dokun. Beğeniyi kaldırmak yine anında olur.
 Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.	Bir videonun altındaki çubukta Yeniden yayınla düğmesine %1$d saniye içinde iki kez dokun. Not eklenmiş bir yeniden yayınlama olduğu gibi kalır.
 Tap again to follow	Takip etmek için yeniden dokun
 Tap again to like	Beğenmek için yeniden dokun
 Tap again to repost	Yeniden yayınlamak için yeniden dokun
-Tap again to send	Göndermek için yeniden dokun
 Tap the feed Follow button twice within %1$d seconds.	Akıştaki Takip et düğmesine %1$d saniye içinde iki kez dokun.
 Tap the like heart twice within %1$d seconds. Removing a like stays immediate.	Beğeni kalbine %1$d saniye içinde iki kez dokun. Beğeniyi kaldırmak yine anında olur.
 Tap to start the feed	Akışı başlatmak için dokun
@@ -1432,3 +1436,29 @@ Found %1$s in your chats.	%1$s sohbetlerinde bulundu.
 App checks	Uygulama kontrolleri
 Look like the store app to TikTok's checks	TikTok'un kontrollerine mağaza uygulaması gibi görünün
 Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.	TikTok'un nasıl imzalanıp yüklendiğine dair kendi kontrollerini, Play Store uygulaması gibi yanıtlar. Yenilemede kendiliğinden geri alınan takip veya beğeniler için. TikTok bunu, buraya erişemeyen yerel koddan da kontrol edebilir, bu yüzden yardımcı olmayabilir.
+Add apps to Share via	Şununla paylaş'a uygulama ekle
+Pick apps to add to the Share via row, before More. Each gets the same link the other apps get.	Şununla paylaş satırına, Daha fazla'dan önce eklenecek uygulamaları seç. Her biri diğer uygulamalarla aynı bağlantıyı alır.
+Search apps	Uygulama ara
+Looking for apps	Uygulamalar aranıyor
+No other app takes shared text	Paylaşılan metni alan başka uygulama yok
+Install one, then come back here.	Bir tane yükle, sonra buraya dön.
+No apps match this search	Bu aramayla eşleşen uygulama yok
+LIVE feed	CANLI akışı
+Filter the LIVE feed	CANLI akışını filtrele
+Hide rooms in the LIVE feed you swipe through, using the rules below. Blocked creators and Creators hidden on this phone apply here too, Blocked caption words are matched against each LIVE's title, and Creator exceptions works the way it does for videos. The LIVE button picks the first room itself, so the rules start with the next one. If they hide every room for a while, one gets through so the feed keeps loading.	Kaydırarak gezdiğin CANLI akışındaki yayınları aşağıdaki kurallara göre gizle. “Engellenen içerik üreticileri” ve “Bu telefonda gizlenen içerik üreticileri” burada da geçerli, “Engellenen açıklama kelimeleri” her CANLI yayının başlığıyla karşılaştırılır ve “İçerik üretici istisnaları” videolardaki gibi çalışır. İlk yayını CANLI düğmesi kendisi seçer, bu yüzden kurallar bir sonrakinden itibaren geçerli olur. Kurallar bir süre her yayını gizlerse, akış yüklenmeye devam etsin diye biri geçer.
+Hide gaming LIVEs	Oyun CANLI yayınlarını gizle
+Hide LIVEs that TikTok tags with a game or a gaming category.	TikTok'un bir oyunla ya da oyun kategorisiyle etiketlediği CANLI yayınları gizle.
+Hide shopping LIVEs	Alışveriş CANLI yayınlarını gizle
+Hide LIVEs that sell products or carry a TikTok Shop tag.	Ürün satan ya da TikTok Shop etiketi taşıyan CANLI yayınları gizle.
+Hide sponsored LIVEs	Sponsorlu CANLI yayınları gizle
+Hide LIVEs that TikTok labels as a paid partnership or promotional content.	TikTok'un ücretli iş birliği ya da tanıtım içeriği olarak işaretlediği CANLI yayınları gizle.
+Hide verified creators' LIVEs	Doğrulanmış içerik üreticilerinin CANLI yayınlarını gizle
+Hide LIVEs hosted by verified accounts.	Doğrulanmış hesapların CANLI yayınlarını gizle.
+Hidden LIVE categories	Gizlenen CANLI kategorileri
+Comma separated words, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Case doesn't matter.	Virgülle ayrılmış kelimeler, örneğin müzik, sohbet. Kategorisi, konu etiketleri ya da oyun adı bunlardan birini içeren CANLI yayın gizlenir. Büyük küçük harf fark etmez.
+LIVE viewers range	CANLI izleyici aralığı
+Show only LIVEs with this many people watching.	Yalnızca bu kadar izleyicisi olan CANLI yayınları göster.
+LIVE followers range	CANLI takipçi aralığı
+Show only LIVEs from creators with this many followers.	Yalnızca bu kadar takipçisi olan içerik üreticilerinin CANLI yayınlarını göster.
+Hide the comment bar on opened videos	Açılan videolarda yorum çubuğunu gizle
+Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Bir profilden, hashtag'den, sesten veya aramadan açtığın videolardaki yorum yazma çubuğunu kaldır, böylece video ekranı en alta kadar doldurur. Sağdaki yorum düğmesi yorumları açmaya devam eder.

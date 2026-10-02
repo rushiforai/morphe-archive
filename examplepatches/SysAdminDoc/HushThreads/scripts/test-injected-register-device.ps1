@@ -25,6 +25,23 @@ function Assert-True {
 $fixture = Join-Path ([System.IO.Path]::GetTempPath()) ("hushthreads-device-fixture-" + [guid]::NewGuid().ToString('N') + '.apk')
 [System.IO.File]::WriteAllBytes($fixture, [byte[]](1..200 | ForEach-Object { $_ % 256 }))
 $fixtureSize = (Get-Item -LiteralPath $fixture).Length
+$leaseRoot = Join-Path ([IO.Path]::GetTempPath()) ('hushthreads-verifier-leases-' + [guid]::NewGuid().ToString('N'))
+[void][IO.Directory]::CreateDirectory($leaseRoot)
+$leaseNames = @('HUSHTHREADS_DEVICE_LEASE_DIR', 'HUSHTHREADS_DEVICE_LEASE_TOKEN', 'HUSHTHREADS_DEVICE_IDENTITY')
+$savedLeaseEnvironment = @{}
+foreach ($name in $leaseNames) { $savedLeaseEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
+$env:HUSHTHREADS_DEVICE_LEASE_DIR = $leaseRoot
+$env:HUSHTHREADS_DEVICE_LEASE_TOKEN = [guid]::NewGuid().ToString('N')
+$env:HUSHTHREADS_DEVICE_IDENTITY = 'FixtureModel'
+$lease = [ordered]@{ schemaVersion = 1; serial = 'SERIAL'; project = 'HushThreads'; chatIdentity = 'fixture';
+    ownershipToken = $env:HUSHTHREADS_DEVICE_LEASE_TOKEN; acquiredUtc = [DateTimeOffset]::UtcNow.ToString('o');
+    expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes(20).ToString('o') }
+$leasePath = Join-Path $leaseRoot 'SERIAL.json'
+$leaseStream = [IO.File]::Open($leasePath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+try {
+    $leaseBytes = [Text.UTF8Encoding]::new($false).GetBytes(($lease | ConvertTo-Json))
+    $leaseStream.Write($leaseBytes, 0, $leaseBytes.Length)
+} finally { $leaseStream.Dispose() }
 try {
     function New-FakeAdb {
         param(
@@ -50,7 +67,11 @@ try {
             $output = @()
             $operation = $Arguments[2]
 
-            if ($operation -eq 'push') {
+            if ($operation -eq 'get-serialno') {
+                $output = @($Arguments[1])
+            } elseif ($operation -eq 'shell' -and $Arguments[3] -eq 'getprop') {
+                $output = @('FixtureModel')
+            } elseif ($operation -eq 'push') {
                 [void]$state.RemotePaths.Add($Arguments[4])
                 if ($FailureStage -eq 'push') { $exitCode = 11 }
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like '*&& mkdir -p*') {
@@ -180,6 +201,35 @@ try {
     Assert-True ($null -ne $caught -and $caught.Exception.Message -like 'Verifier cleanup failed.*') `
         'A cleanup failure after successful verification was accepted.'
     Assert-BothCleanupCalls -State $successWithCleanupFailure.State -Context 'success cleanup failure'
+
+    # Ownership can change between commands, after the command's exclusive handle is released.
+    $leasedCommandBody = (Get-Item Function:\Invoke-HushThreadsAdbCommand).ScriptBlock
+    function Invoke-HushThreadsAdbCommand {
+        param([string]$Adb, [string[]]$Arguments, [scriptblock]$Invoker, [switch]$RequireLease)
+        $result = & $leasedCommandBody @PSBoundParameters
+        if ($RequireLease -and $Arguments[2] -ceq 'push') {
+            $record = Get-Content -LiteralPath $leasePath -Raw | ConvertFrom-Json
+            if ($stage -eq 'lease-expire-after-push') {
+                $record.expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes(-1).ToString('o')
+            } else { $record.ownershipToken = 'another-chat' }
+            [IO.File]::WriteAllText($leasePath, ($record | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
+        }
+        return $result
+    }
+    try {
+    foreach ($stage in @('lease-expire-after-push', 'lease-transfer-after-push')) {
+        $lease.expiresUtc = [DateTimeOffset]::UtcNow.AddMinutes(20).ToString('o')
+        [IO.File]::WriteAllText($leasePath, ($lease | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
+        $fake = New-FakeAdb -FailureStage $stage
+        $caught = $null
+        try { Invoke-AndroidVerifierTally -Adb 'fake' -Serial 'SERIAL' -Local $fixture -Label 'case' -AdbInvoker $fake.Invoker }
+        catch { $caught = $_ }
+        Assert-True ($null -ne $caught -and $caught.Exception.Message -like '*device lease*') "$stage continued without its lease."
+        $afterPush = @($fake.State.Calls | Where-Object { $_ -notmatch 'get-serialno|shell getprop| push ' })
+        Assert-True ($afterPush.Count -eq 0) "$stage changed or cleaned the device after losing its lease."
+        Assert-True ($fake.State.RemotePaths.Count -eq 1) "$stage ran unleased cleanup."
+    }
+    } finally { Set-Item Function:\Invoke-HushThreadsAdbCommand -Value $leasedCommandBody }
 
     # As the verifier runs them (script-wiring.ps1), so help text, log lines, functions nothing
     # calls and dead branches can't stand in for the calls: the helper dot-sourced, and a tally of
@@ -383,6 +433,11 @@ try {
 
 } finally {
     [System.IO.File]::Delete($fixture)
+    foreach ($name in $leaseNames) { [Environment]::SetEnvironmentVariable($name, $savedLeaseEnvironment[$name], 'Process') }
+    $resolvedLeaseRoot = [IO.Path]::GetFullPath($leaseRoot)
+    if (-not $resolvedLeaseRoot.StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()), [StringComparison]::OrdinalIgnoreCase) -or
+        [IO.Path]::GetFileName($resolvedLeaseRoot) -notlike 'hushthreads-verifier-leases-*') { throw 'Unexpected verifier fixture directory' }
+    Remove-Item -LiteralPath $resolvedLeaseRoot -Recurse -Force
 }
 
 $global:LASTEXITCODE = 0

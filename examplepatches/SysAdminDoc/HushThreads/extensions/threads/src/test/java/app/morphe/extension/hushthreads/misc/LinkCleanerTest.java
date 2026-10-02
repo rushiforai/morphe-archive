@@ -10,11 +10,101 @@ package app.morphe.extension.hushthreads.misc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
+
+import java.util.Collections;
+
+import app.morphe.extension.hushthreads.settings.Settings;
+import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.Setting;
 
 /** What the link cleaner takes out of a link, and everything it leaves exactly as it was. */
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 30)
 public class LinkCleanerTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    @Before
+    public void clearCounts() {
+        HookStatus.clear();
+    }
+
+    @After
+    public void restore() {
+        ThrowingSettingsRead.fail = false;
+        Settings.SANITIZE_SHARING_LINKS.resetToDefault();
+        HookStatus.clear();
+    }
+
+    @Test
+    public void sharedLinkOutcomesCountOnlyActualChangesWithoutKeepingUrls() {
+        String original = "https://example.org/a?fbclid=private-marker#top";
+        assertEquals("https://example.org/a#top", LinkCleaner.sanitizeShared(original));
+        assertEquals("https://example.org/a#top", LinkCleaner.sanitizeShared("https://example.org/a#top"));
+        assertNull(LinkCleaner.sanitizeShared(null));
+        String invalid = "intent://x?fbclid=private-marker#Intent;end";
+        assertSame(invalid, LinkCleaner.sanitizeShared(invalid));
+        assertEquals(Collections.singletonList("Sanitize sharing links: invoked 4, 0 found, 0 missing. "
+                + "Counted: shared links changed 1"), HookStatus.report());
+    }
+
+    @Test
+    public void disabledNotReadyAndPausedSharesDoNotAddChangeOutcomes() throws Exception {
+        String original = "https://example.org/a?fbclid=private-marker";
+        Settings.SANITIZE_SHARING_LINKS.save(false);
+        assertSame(original, LinkCleaner.sanitizeShared(original));
+        Settings.SANITIZE_SHARING_LINKS.save(true);
+        SettingsContextRule.withoutContext(() -> assertSame(original, LinkCleaner.sanitizeShared(original)));
+        java.lang.reflect.Method pause = Setting.class.getDeclaredMethod("setPausedForProcess", boolean.class);
+        pause.setAccessible(true);
+        try {
+            pause.invoke(null, true);
+            assertSame(original, LinkCleaner.sanitizeShared(original));
+        } finally {
+            pause.invoke(null, false);
+        }
+        assertEquals(Collections.singletonList("Sanitize sharing links: invoked 3, 0 found, 0 missing"),
+                HookStatus.report());
+    }
+
+    @Test
+    @Config(shadows = ThrowingSettingsRead.class, instrumentedPackages = "app.morphe.extension.shared")
+    public void aSettingsReadFailureKeepsTheLinkAndAddsNoChangeOutcome() {
+        String original = "https://example.org/a?fbclid=private-marker";
+        try {
+            ThrowingSettingsRead.fail = true;
+            assertSame(original, LinkCleaner.sanitizeShared(original));
+        } finally {
+            ThrowingSettingsRead.fail = false;
+        }
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains("switch read"));
+        assertTrue(report, !report.contains("shared links changed"));
+        assertTrue(report, !report.contains("private-marker") && !report.contains("https://"));
+    }
+
+    @Implements(Utils.class)
+    public static class ThrowingSettingsRead {
+        static boolean fail;
+
+        @Implementation
+        protected static boolean settingsReady() {
+            if (fail) throw new IllegalStateException("settings unavailable");
+            return true;
+        }
+    }
 
     private static void cleansTo(String expected, String url) {
         assertEquals(url, expected, LinkCleaner.clean(url));

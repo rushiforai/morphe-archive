@@ -1,3 +1,13 @@
+## [1.5.0-dev.1](https://github.com/Plyrs1/morphe-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-10-01)
+
+### 🐛 Bug Fixes
+
+* **shared:** register Android Auto compatibility target ([26b8fe1](https://github.com/Plyrs1/morphe-patches/commit/26b8fe1bed8e729cf821f910155be1dab36d2b89))
+
+### ✨ New Features
+
+* **com_google_android_projection_gearhead:** add allow sideloaded apps patch ([15558b4](https://github.com/Plyrs1/morphe-patches/commit/15558b4f74ebd362f6dabff436d0e9936e4d0902))
+
 ## [1.4.0](https://github.com/Plyrs1/morphe-patches/compare/v1.3.0...v1.4.0) (2026-09-29)
 
 ### 🐛 Bug Fixes

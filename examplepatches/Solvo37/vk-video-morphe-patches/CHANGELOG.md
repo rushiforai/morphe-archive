@@ -1,5 +1,65 @@
 # Changelog
 
+## 0.2.13 — 2026-10-02
+
+Runtime correction after real-account validation of 1.164.4:
+
+- fixed the instream runtime gate: its positive result means “may start ad”, so the old MIDROLL branch accidentally allowed advertising; the gate now denies PREROLL, MIDROLL and POSTROLL;
+- removed mutation of the raw Clips response from the shared synthetic callback, which was introduced immediately before the Clips-entry crash;
+- retained complete-entry filtering in the dedicated server mapper and lower Clips SDK converter;
+- quarantined 1.164.4 until the rebuilt signed APK passes an authenticated Clips and ordinary-video playback test.
+
+## 0.2.12 — 2026-10-02
+
+Hotfix after real-account validation of 1.164.3:
+
+- copy the server Clips feed into a mutable `ArrayList` before removing ad entries, preventing the immediate crash caused by `Iterator.remove()` on an immutable response list;
+- force `VideoVideoFullDto.ads` to return `null`, preventing the ordinary-video mapper from constructing any `InstreamAd` even when a legacy ad payload is present;
+- confirmed the mutable feed copy and null ads getter in the rebuilt DEX, then passed a 20-second Android 15 cold-start runtime check without a fatal exception.
+
+## 0.2.11 — 2026-10-02
+
+Completeness fixes for ordinary-video and Clips advertising paths in VK Video 1.164:
+
+- neutralized the legacy `VideoAdsDto` embedded in ordinary `VideoVideoFullDto` responses before it becomes an `InstreamAd`, closing the remaining preroll/midroll source;
+- added filtering to the alternate synthetic Clips response mapper, which consumed the same server `StaticAd`, `MarketAd`, `FloatingAd`, and MyTarget variants outside the previously patched primary mapper;
+- confirmed both injected paths in the rebuilt DEX and passed the Android 15 cold-start runtime gate without a fatal exception.
+
+## 0.2.10 — 2026-10-02
+
+Production promotion of the tested VK Video 1.164 startup fix:
+
+- promoted the same bytecode fix that passed repeated Android 15 cold-start smoke tests;
+- set Android 13 and newer as the supported release baseline;
+- cleared the temporary runtime quarantine and added the remaining work to the public roadmap.
+
+## 0.2.9 — 2026-10-02
+
+Confirmed startup-crash fix and local runtime validation:
+
+- fixed **Disable video ad repository** to use the actual Kotlin companion field (`Companion`) instead of the nonexistent `INSTANCE` field;
+- added a repeatable local Android launch smoke test that installs a candidate, cold-starts it, records full logcat and fails on process death or a fatal exception;
+- restored runtime quarantine while diagnosing the crash, then cleared it after the signed candidate passed repeated Android 15 cold-start smoke tests;
+- established Android 13+ as the project's runtime release-gate baseline.
+
+## 0.2.8 — 2026-10-02
+
+Runtime stability hotfix for VK Video 1.164:
+
+- replaced the unsafe profile data-provider short-circuit with the app's own `VIDEO_AD_FREE_SUBSCRIPTION` feature gate;
+- stopped returning `null` from Clips SDK video mappers, which could leave black, non-renderable positions in the vertical feed;
+- kept ad removal at the server-feed and intermediate-list stages, where complete feed entries can be removed safely;
+- removed XML layout collapsing from the release profile while player/runtime behavior is being validated.
+
+## 0.2.7 — 2026-10-01
+
+VK Видео 1.164 compatibility and remaining XML ad-surface cleanup:
+
+- hardened R8-sensitive fingerprints and derived obfuscated ad internals at patch time so the profile can follow VK Видео 1.164 without silently matching stale 1.163 names;
+- added targeted compatibility diagnostics to the auto-build failure artifact for future upstream changes;
+- added **Hide ad XML surfaces** for `catalog_ad_banner`, `catalog_ad_banner_medium`, `video_ad_banner` and portrait/landscape `video_player_ads_panel`;
+- XML layouts are kept structurally intact but their root view is forced to `gone` and `0dp × 0dp`, avoiding inflation / `findViewById` crashes that deleting the resource files could cause.
+
 ## 0.2.6 — 2026-09-23
 
 Profile cleanup after real-device validation of 1.163.5-rc1:

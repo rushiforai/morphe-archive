@@ -11,3 +11,4 @@
 .morphe/
 dist/
 upstream/
+test-results/

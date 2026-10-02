@@ -1,0 +1,27 @@
+# Reviewed Android manifest changes the HushTelegram patches make to a stock Telegram APK.
+#
+# One line per change, as "<kind> <value>":
+#   permission-added     <permission name>      the patched app asks for something stock did not
+#   permission-removed   <permission name>      the patched app no longer asks for it
+#   exported-added       <kind>:<class>         something other apps can now reach
+#   exported-removed     <kind>:<class>         something other apps can no longer reach
+#
+# scripts/build-release-receipt.ps1 writes the delta it measures into the release receipt, and
+# scripts/validate-release-facts.ps1 refuses a receipt carrying a change that is not listed here.
+# scripts/verify-all-patches.ps1 reads it too, and stops a run whose patched manifest changed in
+# a way it doesn't list. A line nothing produces any more fails the receipt as well, so this
+# cannot quietly outlive the change it approved.
+#
+# One change is approved.
+#
+# HushTelegram settings adds an alias of Telegram's launcher activity that answers
+# android.intent.action.APPLICATION_PREFERENCES, so Android's App info page for Telegram shows
+# "Additional settings in the app". An alias has to be exported for that page to open it. It
+# targets org.telegram.ui.LaunchActivity, which Telegram already exports as its launcher (and under
+# several icon aliases besides), so nothing new is reachable: the alias only gives other apps a
+# second name for a screen they could already open.
+#
+# Nothing else is approved. A patch that asks for any permission, drops one, or changes what other
+# apps can reach still stops the release until somebody says why.
+
+exported-added activity-alias:app.hushtelegram.extension.telegram.settings.OpenSettings

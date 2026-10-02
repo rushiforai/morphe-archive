@@ -58,8 +58,15 @@ public class L10nCatalogTest {
             + "|makeText|show|setPositiveButton|setNegativeButton|setNeutralButton|setItems|setMessage|setDescription"
             + "|NotificationChannel|Builder|setClearAndUndoSummaries|say)\\s*\\(");
 
-    /** The settings fragment's row helpers, which put their text on the screen. Elsewhere info() is a log line. */
+    /**
+     * The settings page's row helpers, which put their text on the screen: in the fragment, and in each
+     * category page class that imports them from it. Elsewhere info() is a log line.
+     */
     private static final Pattern ROW_HELPERS = Pattern.compile("\\b(?:toggle|info|category)\\s*\\(");
+
+    /** A file's import of one of the row helpers from the fragment. */
+    private static final Pattern ROW_HELPER_IMPORT = Pattern.compile(
+            "import static [\\w.]+\\.HushfacebookPreferenceFragment\\.(?:toggle|info|category);");
 
     private static final Pattern L10N_CALL = Pattern.compile("\\bL10n\\s*\\.\\s*(?:t|f|quantity)\\s*\\(");
 
@@ -157,6 +164,29 @@ public class L10nCatalogTest {
         assertEquals("accented letters are words, not invisible", null, textProblem("Ausblenden f" + (char) 0x00FC + "r"));
     }
 
+    /**
+     * Every apostrophe in a translation is the straight one the English uses. Turkish puts one
+     * before every suffix on a name (Facebook'u), and seven rows once had a curly one, so the same
+     * name looked different from one row to the next.
+     */
+    @Test
+    public void everyApostropheIsStraight() {
+        List<String> problems = new ArrayList<>();
+        for (String language : L10nTranslations.LANGUAGES) {
+            for (Map.Entry<String, String> row : L10nTranslations.of(language).entrySet()) {
+                if (curlyApostrophe(row.getValue())) problems.add(language + ": " + row.getKey());
+            }
+        }
+        assertEquals(problems.toString(), 0, problems.size());
+        assertTrue(curlyApostrophe("Facebook" + (char) 0x2019 + "u"));
+        assertTrue(curlyApostrophe((char) 0x2018 + "Reels"));
+        assertFalse(curlyApostrophe("Facebook'u"));
+    }
+
+    static boolean curlyApostrophe(String text) {
+        return text.indexOf(0x2018) >= 0 || text.indexOf(0x2019) >= 0;
+    }
+
     /** No sentence goes to a view, a toast or a notification without going through the catalog. */
     @Test
     public void noEnglishReachesTheScreenOutsideTheCatalog() throws IOException {
@@ -191,6 +221,16 @@ public class L10nCatalogTest {
         unwrappedProse("A.java", "class A { void a(TextView v) { v.setText(L10n.f(\"" + sentence + " %1$s\", L10n.isolate(\"x\")));"
                 + " v.setText(\"Hushfacebook\"); v.setText(\"%.1f MB\"); } }", none);
         assertEquals(none.toString(), 0, none.size());
+        // A category page's rows are read the way the fragment's are, once it imports the helpers.
+        String page = "class A { void a(Context c) { toggle(c, null, \"" + sentence + "\", L10n.t(\"x\")); } }";
+        List<String> imported = new ArrayList<>();
+        unwrappedProse("FeedPages.java",
+                "import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;\n" + page,
+                imported);
+        assertEquals("missed a category page's row: " + imported, 1, imported.size());
+        List<String> notImported = new ArrayList<>();
+        unwrappedProse("FeedPages.java", page, notImported);
+        assertEquals("read a toggle() that isn't the fragment's", 0, notImported.size());
     }
 
     /** The literal reader, which both scans lean on. */
@@ -240,8 +280,8 @@ public class L10nCatalogTest {
             for (int index = l10n.start(); index <= close && index >= 0; index++) outside[index] = WRAPPED;
         }
         int calls = 0;
-        Matcher shows = (name.equals("HushfacebookPreferenceFragment.java")
-                ? Pattern.compile(SHOWS.pattern() + "|" + ROW_HELPERS.pattern()) : SHOWS).matcher(text);
+        boolean rows = name.equals("HushfacebookPreferenceFragment.java") || ROW_HELPER_IMPORT.matcher(text).find();
+        Matcher shows = (rows ? Pattern.compile(SHOWS.pattern() + "|" + ROW_HELPERS.pattern()) : SHOWS).matcher(text);
         while (shows.find()) {
             if (kind[shows.start()] != CODE) continue;
             int open = shows.end() - 1;

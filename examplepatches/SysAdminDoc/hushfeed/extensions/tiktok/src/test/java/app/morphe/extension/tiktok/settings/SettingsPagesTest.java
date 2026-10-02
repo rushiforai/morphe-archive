@@ -190,6 +190,66 @@ public class SettingsPagesTest {
         }
     }
 
+    @Test public void anUnvalidatedCaptchaSwitchStaysUnavailableOnAMountedPage() throws Exception {
+        assertUnavailableCaptchaRow(null);
+    }
+
+    @Test @Config(sdk = 29)
+    public void theUnavailableCaptchaRowRendersInDarkTheme() throws Exception {
+        assertUnavailableCaptchaRow("dark");
+    }
+
+    @Test @Config(sdk = 29, qualifiers = "w480dp-h960dp-notnight-mdpi")
+    public void theUnavailableCaptchaRowRendersInLightTheme() throws Exception {
+        assertUnavailableCaptchaRow("light");
+    }
+
+    private void assertUnavailableCaptchaRow(String theme) throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            for (boolean saved : new boolean[]{false, true}) {
+                Settings.HIDE_CAPTCHA_POPUPS.save(saved);
+                TikTokPreferenceFragment page = attachSection(activity, "INTERFACE");
+                Preference row = page.findPreference("hushfeed_captcha_unavailable");
+                assertNotNull(row);
+                assertFalse(row.isEnabled());
+                assertFalse(row.isSelectable());
+                assertFalse(row instanceof android.preference.SwitchPreference);
+                assertNull(app.morphe.extension.shared.settings.Setting
+                        .getSettingFromPath(row.getKey()));
+                assertEquals(L10n.t(activity,
+                        "Unavailable on these TikTok builds. All verification challenges stay visible."),
+                        String.valueOf(row.getSummary()));
+                assertEquals(saved, Settings.HIDE_CAPTCHA_POPUPS.savedValue());
+                if (theme != null) {
+                    ListView list = page.getView().findViewById(android.R.id.list);
+                    int position = positionOf(list, row.getKey());
+                    assertTrue("the unavailable row isn't in the mounted list", position >= 0);
+                    list.setSelectionFromTop(position, 70);
+                    Shadows.shadowOf(Looper.getMainLooper()).idle();
+                    View rendered = list.getChildAt(position - list.getFirstVisiblePosition());
+                    assertNotNull(rendered);
+                    assertNull("an informational row must not advertise navigation",
+                            rendered.findViewWithTag("hushfeed_chevron"));
+                    UiCapture.save(page.getView(), "pages/" + theme
+                            + "/captcha-unavailable-saved-" + saved + ".png");
+                }
+                Settings.HIDE_CAPTCHA_POPUPS.save(!saved);
+                refreshAvailability(page);
+                assertFalse("a stored-value refresh re-enabled the information row", row.isEnabled());
+                assertEquals(!saved, Settings.HIDE_CAPTCHA_POPUPS.savedValue());
+                app.morphe.extension.shared.settings.PausedProcess.set(true);
+                refreshAvailability(page);
+                assertFalse("Pause re-enabled the information row", row.isEnabled());
+                app.morphe.extension.shared.settings.PausedProcess.set(false);
+            }
+        } finally {
+            app.morphe.extension.shared.settings.PausedProcess.set(false);
+            Settings.HIDE_CAPTCHA_POPUPS.resetToDefault();
+        }
+    }
+
     @Test public void noPageGatesItsRowsOnAnEarlyReturn() throws Exception {
         // The other half of the same bug, and one a rendering test cannot see. An early return on
         // one patch's flag takes every later patch's rows with it: the offline videos limit set

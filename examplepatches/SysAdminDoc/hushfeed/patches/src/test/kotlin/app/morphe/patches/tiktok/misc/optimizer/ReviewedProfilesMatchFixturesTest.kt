@@ -9,6 +9,8 @@ import java.util.zip.ZipInputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 
 /**
  * Every reviewed path set has to describe a build that is actually on the desk.
@@ -25,6 +27,7 @@ import org.junit.Test
  * That is the shape issue #9's reporter patched, and all four strips refused it.
  */
 class ReviewedProfilesMatchFixturesTest {
+    @get:Rule val temporary = TemporaryFolder()
     private val groups = mapOf(
         "core assets" to coreAssetProfiles,
         "creation tools" to studioAssetProfiles,
@@ -97,6 +100,42 @@ class ReviewedProfilesMatchFixturesTest {
             }
         }
         assertEquals("language inventories that do not describe the fixtures", emptyList<String>(), problems)
+    }
+
+    @Test
+    fun `each declared host keeps every native language by default and trims only an explicit list`() {
+        Fixtures.forEachDeclared { apk ->
+            val root = temporary.newFolder("languages-${Fixtures.versionOf(apk)}")
+            val original = digests(apk) { it.startsWith(LANGUAGE_PREFIX) }
+            assertTrue("native Turkish is missing from ${apk.name}", original.keys.any { it.startsWith("${LANGUAGE_PREFIX}tr/") })
+            ZipFile(apk).use { zip ->
+                zip.entries().asSequence().filter { !it.isDirectory && it.name.startsWith(LANGUAGE_PREFIX) }
+                    .forEach { entry ->
+                        val file = root.resolve(entry.name)
+                        file.parentFile.mkdirs()
+                        zip.getInputStream(entry).use { input -> file.outputStream().use { input.copyTo(it) } }
+                    }
+            }
+
+            for (selection in listOf(null, "", "all")) {
+                assertEquals(0, stripVerifiedLanguagePacks(root, selection, languageInventories).files)
+                val retained = root.walkTopDown().filter(File::isFile).associate { file ->
+                    file.relativeTo(root).invariantSeparatorsPath to file.inputStream().use(::sha256)
+                }
+                assertEquals("${apk.name}: $selection changed a native language", original, retained)
+            }
+
+            assertTrue(stripVerifiedLanguagePacks(root, "en,tr", languageInventories).files > 0)
+            for ((path, digest) in original) {
+                val file = root.resolve(path)
+                val language = path.removePrefix(LANGUAGE_PREFIX).substringBefore('/')
+                if (language == "en" || language == "tr") {
+                    assertEquals("${apk.name}: $path changed", digest, file.inputStream().use(::sha256))
+                } else {
+                    assertEquals("${apk.name}: $path wasn't removed", 0L, file.length())
+                }
+            }
+        }
     }
 
     /** Every TikTok APK and split bundle in the fixture directory. */

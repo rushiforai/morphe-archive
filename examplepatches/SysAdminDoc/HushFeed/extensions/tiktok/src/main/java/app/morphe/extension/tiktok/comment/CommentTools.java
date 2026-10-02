@@ -225,7 +225,6 @@ public final class CommentTools {
         return Reflect.string(surprise, "getKeyword", "keyword") != null;
     }
 
-    private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     private static final String POLL_HOOK_FAMILY = "comment polls";
     private static final String[] DISLIKE_BUTTON_IDS = {"47.0.3:k0k", "47.1.3:k2_", "47.1.4:k2_"};
 
@@ -1152,7 +1151,7 @@ public final class CommentTools {
         boolean resolvedAny = false;
         String diagnostic = String.join("|", candidates);
         for (String name : candidates) {
-            int id = RESOURCE_IDS.resolve(root.getResources(), APP_PACKAGE, name, false);
+            int id = RESOURCE_IDS.resolve(root.getResources(), root.getContext().getPackageName(), name, false);
             if (id == 0) continue;
             resolvedAny = true;
             View control = root.findViewById(id);

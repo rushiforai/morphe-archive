@@ -8,7 +8,6 @@
 package app.morphe.patches.threads.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
@@ -22,7 +21,11 @@ import app.morphe.util.getReference
 import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide ads"
 
@@ -56,11 +59,36 @@ val hideAdsPatch = bytecodePatch(
         val merge = FeedPageMergeFingerprint.method
 
         // The feed item's own getter for its post. It answers null for an item that carries none.
-        val itemMedia = merge.implementation!!.instructions.mapNotNull { instruction ->
-            if (instruction.opcode != Opcode.INVOKE_VIRTUAL) return@mapNotNull null
-            instruction.getReference<MethodReference>()
-                ?.takeIf { it.returnType == MEDIA && it.parameterTypes.isEmpty() && it.definingClass != MEDIA }
-        }.firstOrNull() ?: throw PatchException("$PATCH: the feed merge never asks an item for its post")
+        val instructions = merge.implementation!!.instructions.toList()
+        val getters = instructions.mapIndexedNotNull { index, instruction ->
+            if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) {
+                return@mapIndexedNotNull null
+            }
+            val reference = instruction.getReference<MethodReference>() ?: return@mapIndexedNotNull null
+            if (reference.returnType != MEDIA || reference.parameterTypes.isNotEmpty() || reference.definingClass == MEDIA) {
+                return@mapIndexedNotNull null
+            }
+            val receiver = when (instruction) {
+                is FiveRegisterInstruction -> instruction.registerC
+                is RegisterRangeInstruction -> instruction.startRegister
+                else -> return@mapIndexedNotNull null
+            }
+            val lastWrite = instructions.take(index).lastOrNull {
+                val register = (it as? OneRegisterInstruction)?.registerA
+                it.opcode.setsRegister() && (register == receiver || it.opcode.setsWideRegister() && register == receiver - 1)
+            }
+            reference.takeIf {
+                lastWrite?.opcode == Opcode.CHECK_CAST &&
+                    lastWrite.getReference<TypeReference>()?.type == reference.definingClass
+            }
+        }.distinctBy { it.toString() }
+        val itemMedia = getters.singleOrPatchException(
+            "$PATCH: item-owned no-argument Media getter in ${merge.definingClass}->${merge.name}; candidates: " + getters.joinToString(),
+        )
+        mutableClassDefBy(itemMedia.definingClass).methods.filter {
+            it.name == itemMedia.name && it.returnType == MEDIA && it.parameterTypes.isEmpty() &&
+                !AccessFlags.STATIC.isSet(it.accessFlags)
+        }.singleOrPatchException("$PATCH: declaration of $itemMedia")
 
         // Media's own ad check: an instance boolean method, no parameters, that asks the injected check.
         val injected = InjectedAdCheckFingerprint.method

@@ -74,9 +74,16 @@ public final class KyodemoRouting {
         String value = stripWacchoiLabel(wacchoi);
         java.util.regex.Matcher token = wacchoiTokenMatcher(value);
         if (token.matches()) {
-            // Kyodemo's ID/ﾜｯﾁｮｲ endpoint rejects the hyphenated full token.
-            // Search its four-character prefix, which is a broader match.
-            value = token.group(1);
+            // Match the site's Shift_JIS form: the label is required to
+            // distinguish a SLIP from an ID. Keep both halves of the token.
+            String slug = boardSlug(host, board);
+            if (slug == null) return null;
+            try {
+                return "https://www.kyodemo.net/sdemo/b/" + slug + "/?bs=hi&k="
+                        + URLEncoder.encode("ﾜｯﾁｮｲ " + value.replaceAll("[‐‑–—]", "-"), "Shift_JIS");
+            } catch (UnsupportedEncodingException impossible) {
+                throw new AssertionError(impossible);
+            }
         }
         if (value.isEmpty() || value.length() > 80) return null;
         return idSearchUrl(host, board, value, null, null);

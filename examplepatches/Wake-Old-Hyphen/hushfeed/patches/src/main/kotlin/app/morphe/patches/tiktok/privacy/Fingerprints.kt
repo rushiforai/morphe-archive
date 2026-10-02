@@ -13,8 +13,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
  * TikTok's own cached lookup of its package: a static method that takes a PackageManager, the
- * package name and flags, calls {@code getPackageManager().getPackageInfo(name, flags)} once and
- * keeps the answer in a static PackageInfo field. Every read of TikTok's own signing certificate
+ * package name and flags, calls {@code getPackageInfo(name, flags)} and keeps the answers for a
+ * few flag combinations (0, GET_SIGNATURES and GET_META_DATA) in static PackageInfo fields. Every read of TikTok's own signing certificate
  * that TikTok's Java code makes, the AppLog {@code sig_hash} among them, comes through here. The
  * obfuscated name held ("V3") across the declared builds but the class did not, so this matches on
  * shape: exactly one method per fixture.
@@ -23,6 +23,8 @@ internal object SelfPackageInfoCacheFingerprint : Fingerprint(
     returnType = "Landroid/content/pm/PackageInfo;",
     parameters = listOf("Landroid/content/pm/PackageManager;", "Ljava/lang/String;", "I"),
     custom = { method, _ ->
+        // The hook reads p0 as the PackageManager, which only a static method's p0 is.
+        val static = AccessFlags.STATIC.isSet(method.accessFlags)
         val instructions = method.implementation?.instructions?.toList().orEmpty()
         val callsGetPackageInfo = instructions.any {
             ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref ->
@@ -35,7 +37,7 @@ internal object SelfPackageInfoCacheFingerprint : Fingerprint(
                 ((it as? ReferenceInstruction)?.reference as? FieldReference)?.type ==
                 "Landroid/content/pm/PackageInfo;"
         }
-        callsGetPackageInfo && cachesPackageInfo
+        static && callsGetPackageInfo && cachesPackageInfo
     },
 )
 

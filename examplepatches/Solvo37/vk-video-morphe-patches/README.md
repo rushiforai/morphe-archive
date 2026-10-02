@@ -9,10 +9,10 @@
 
 ## Скачать
 
-**Текущий стабильный релиз: 1.163.6**  
-Android внутри APK: **1.163 / versionCode 51920**.
+**Текущий релиз: 1.164.4**  
+Android внутри APK: **1.164 / versionCode 52379**.
 
-➡️ [Скачать последний APK](https://github.com/Solvo37/vk-video-morphe-patches/releases/latest)
+➡️ [Скачать APK 1.164.4](https://github.com/Solvo37/vk-video-morphe-patches/releases/tag/1.164.4)
 
 В Releases публикуется **только один APK**. Служебные отчёты, checksums и build metadata остаются в GitHub Actions и не засоряют список загрузок.
 
@@ -28,11 +28,13 @@ Android внутри APK: **1.163 / versionCode 51920**.
 
 Полный список активных патчей хранится в [patches-list.json](./patches-list.json).
 
+Поддерживаемая тестовая база проекта: **Android 13 и новее**. Оставшиеся задачи опубликованы в [ROADMAP.md](./ROADMAP.md).
+
 ## Установка
 
 1. Если установлен официальный **VK Видео**, удалите его один раз — официальный APK и этот проект подписаны разными сертификатами.
 2. Обычный **VK** удалять не нужно.
-3. Установите APK из [Latest Release](https://github.com/Solvo37/vk-video-morphe-patches/releases/latest).
+3. Установите APK из [текущего релиза 1.164.4](https://github.com/Solvo37/vk-video-morphe-patches/releases/tag/1.164.4).
 
 Все релизы проекта подписываются одним постоянным сертификатом, поэтому следующие сборки ставятся поверх предыдущих.
 
@@ -42,9 +44,9 @@ Workflow **VK Video auto build** каждые 6 часов проверяет Ru
 
 Схема версий Releases отделена от Android `versionName`:
 
-- текущий стабильный релиз: `1.163.6`;
-- следующий rebuild этой же Android-версии: `1.163.7`;
-- новая Android-версия 1.164 начнётся с `1.164.0`.
+- текущий релиз: `1.164.4`;
+- следующий rebuild этой же Android-версии: `1.164.5`;
+- новая Android-версия начнёт собственную линию с ревизии `.0`.
 
 Каждый Release immutable: существующий APK не перезаписывается. Это важно для корректной работы клиентов обновлений и кэша GitHub asset IDs.
 

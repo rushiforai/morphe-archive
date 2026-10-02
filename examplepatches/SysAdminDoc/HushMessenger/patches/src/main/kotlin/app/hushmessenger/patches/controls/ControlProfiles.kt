@@ -23,6 +23,10 @@ internal class ControlProfile(
     /** Instruction count and exits of the inbox item processor the ad filter edits. */
     val adFilterSize: Int,
     val adFilterExits: List<Int>,
+    val bubbleCapabilityGetter: String,
+    val bubbleRolloutGetter: String,
+    /** Existing attachment, long-lived shortcut and conversation routes, separated by |. */
+    val nativeBubbleRoutes: String,
 )
 
 /** 346013387, 346013440, 346013442, 346013354 and 346013394 share one mapping. */
@@ -37,6 +41,9 @@ internal val BASE_PROFILE = ControlProfile(
     browserPreferenceIndex = 60,
     adFilterSize = 935,
     adFilterExits = listOf(916, 931),
+    bubbleCapabilityGetter = "LX/1hy;->A03(Lcom/facebook/auth/usersession/FbUserSession;I)Z",
+    bubbleRolloutGetter = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->Ah8(J)Z",
+    nativeBubbleRoutes = "LX/8qv;->A02(Landroid/graphics/Bitmap;LX/0MX;Lcom/facebook/auth/usersession/FbUserSession;LX/8qz;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/6ev;Lcom/facebook/push/constants/PushProperty;Z)V|LX/8qx;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/messaging/model/threadkey/ThreadKey;Ljava/lang/String;)LX/8qz;|LX/MP1;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/auth/usersession/FbUserSession;LX/MP1;Lcom/facebook/messaging/model/threads/ThreadSummary;)Z",
 )
 
 /**
@@ -61,6 +68,7 @@ internal val PROFILE_346013370 = ControlProfile(
         "avatar_stickers" to setOf("LX/PT6;->A01(LX/PT6;)Z"),
         "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6U(LX/5n3;)V"),
         "browser" to setOf("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0M(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"),
+        "bubble_mode" to setOf("LX/2ZV;->A01(Lcom/facebook/auth/usersession/FbUserSession;)Z"),
         "bubbles" to setOf("LX/2ZV;->A00()Z"),
         "business_suggestions" to setOf("LX/7R8;->A05(LX/7R8;)Z", "LX/7S6;->A04(LX/7S6;)Z", "LX/HCJ;->A04()Z"),
         "chat_promotions" to setOf("LX/HCH;->A0D()Z", "LX/HCH;->A0E()Z"),
@@ -115,6 +123,9 @@ internal val PROFILE_346013370 = ControlProfile(
     browserPreferenceIndex = 54,
     adFilterSize = 934,
     adFilterExits = listOf(915, 930),
+    bubbleCapabilityGetter = "LX/1hx;->A03(Lcom/facebook/auth/usersession/FbUserSession;I)Z",
+    bubbleRolloutGetter = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->AhB(J)Z",
+    nativeBubbleRoutes = "LX/8pO;->A02(Landroid/graphics/Bitmap;LX/0MX;Lcom/facebook/auth/usersession/FbUserSession;LX/8pT;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/6dR;Lcom/facebook/push/constants/PushProperty;Z)V|LX/8pR;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/messaging/model/threadkey/ThreadKey;Ljava/lang/String;)LX/8pT;|LX/PSx;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/auth/usersession/FbUserSession;LX/PSx;Lcom/facebook/messaging/model/threads/ThreadSummary;)Z",
 )
 
 /**
@@ -139,6 +150,7 @@ internal val PROFILE_346013423 = ControlProfile(
         "avatar_stickers" to setOf("LX/YAk;->A01(LX/YAk;)Z"),
         "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6U(LX/5qN;)V"),
         "browser" to setOf("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0M(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"),
+        "bubble_mode" to setOf("LX/2ak;->A01(Lcom/facebook/auth/usersession/FbUserSession;)Z"),
         "bubbles" to setOf("LX/2ak;->A00()Z"),
         "business_suggestions" to setOf("LX/7Tb;->A05(LX/7Tb;)Z", "LX/7UZ;->A04(LX/7UZ;)Z", "LX/KHp;->A04()Z"),
         "chat_promotions" to setOf("LX/KHo;->A0D()Z", "LX/KHo;->A0E()Z"),
@@ -193,6 +205,9 @@ internal val PROFILE_346013423 = ControlProfile(
     browserPreferenceIndex = 54,
     adFilterSize = 935,
     adFilterExits = listOf(916, 931),
+    bubbleCapabilityGetter = "LX/1it;->A03(Lcom/facebook/auth/usersession/FbUserSession;I)Z",
+    bubbleRolloutGetter = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->AhI(J)Z",
+    nativeBubbleRoutes = "LX/8sV;->A02(Landroid/graphics/Bitmap;LX/0Ma;Lcom/facebook/auth/usersession/FbUserSession;LX/8sZ;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/6ey;Lcom/facebook/push/constants/PushProperty;Z)V|LX/8sX;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/messaging/model/threadkey/ThreadKey;Ljava/lang/String;)LX/8sZ;|LX/MAc;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/auth/usersession/FbUserSession;LX/MAc;Lcom/facebook/messaging/model/threads/ThreadSummary;)Z",
 )
 
 /**
@@ -217,6 +232,7 @@ internal val PROFILE_346013357 = ControlProfile(
         "avatar_stickers" to setOf("LX/PN4;->A01(LX/PN4;)Z"),
         "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A0P()Lcom/google/common/collect/ImmutableList;"),
         "browser" to setOf("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0L(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"),
+        "bubble_mode" to setOf("LX/2ZW;->A01(Lcom/facebook/auth/usersession/FbUserSession;)Z"),
         "bubbles" to setOf("LX/2ZW;->A00()Z"),
         "business_suggestions" to setOf("LX/7SD;->A05(LX/7SD;)Z", "LX/7TB;->A04(LX/7TB;)Z", "LX/Ts4;->A04()Z"),
         "chat_promotions" to setOf("LX/Ts2;->A0D()Z", "LX/Ts2;->A0E()Z"),
@@ -271,6 +287,9 @@ internal val PROFILE_346013357 = ControlProfile(
     browserPreferenceIndex = 60,
     adFilterSize = 935,
     adFilterExits = listOf(916, 931),
+    bubbleCapabilityGetter = "LX/1hy;->A03(Lcom/facebook/auth/usersession/FbUserSession;I)Z",
+    bubbleRolloutGetter = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->Ah9(J)Z",
+    nativeBubbleRoutes = "LX/8qV;->A02(Landroid/graphics/Bitmap;LX/0MX;Lcom/facebook/auth/usersession/FbUserSession;LX/8qZ;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/6eV;Lcom/facebook/push/constants/PushProperty;Z)V|LX/8qX;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/messaging/model/threadkey/ThreadKey;Ljava/lang/String;)LX/8qZ;|LX/MOA;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/auth/usersession/FbUserSession;LX/MOA;Lcom/facebook/messaging/model/threads/ThreadSummary;)Z",
 )
 
 /**
@@ -295,6 +314,7 @@ internal val PROFILE_346013374 = ControlProfile(
         "avatar_stickers" to setOf("LX/MEX;->A01(LX/MEX;)Z"),
         "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6U(LX/5os;)V"),
         "browser" to setOf("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0M(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"),
+        "bubble_mode" to setOf("LX/2ZV;->A01(Lcom/facebook/auth/usersession/FbUserSession;)Z"),
         "bubbles" to setOf("LX/2ZV;->A00()Z"),
         "business_suggestions" to setOf("LX/7T9;->A05(LX/7T9;)Z", "LX/7U7;->A04(LX/7U7;)Z", "LX/HKl;->A04()Z"),
         "chat_promotions" to setOf("LX/HKj;->A0D()Z", "LX/HKj;->A0E()Z"),
@@ -349,6 +369,9 @@ internal val PROFILE_346013374 = ControlProfile(
     browserPreferenceIndex = 54,
     adFilterSize = 932,
     adFilterExits = listOf(913, 928),
+    bubbleCapabilityGetter = "LX/1hx;->A03(Lcom/facebook/auth/usersession/FbUserSession;I)Z",
+    bubbleRolloutGetter = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->Ah7(J)Z",
+    nativeBubbleRoutes = "LX/8rP;->A02(Landroid/graphics/Bitmap;LX/0MX;Lcom/facebook/auth/usersession/FbUserSession;LX/8rT;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/6fS;Lcom/facebook/push/constants/PushProperty;Z)V|LX/8rR;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/messaging/model/threadkey/ThreadKey;Ljava/lang/String;)LX/8rT;|LX/JXq;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/auth/usersession/FbUserSession;LX/JXq;Lcom/facebook/messaging/model/threads/ThreadSummary;)Z",
 )
 
 /** Each supported build's profile, by version code. Builds that share a mapping share a profile. */

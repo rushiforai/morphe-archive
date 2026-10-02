@@ -159,7 +159,28 @@ class HoldReelFor2xFixtureTest {
                 val classes: List<ClassDef> = (handlers + listeners + componentClasses + edgeClass + activity + player + configClass +
                     speedUpClasses + speedClass + ExtensionDex.classDef(REEL_HOLD) + ExtensionDex.classDef(SETTINGS_STATUS))
                     .distinctBy { it.type }
+                // A guard-only build, as Keep the reel speed has without this patch: the listeners'
+                // answers, the hold's start, the setter and the touch dispatch, and none of the rest.
+                val guardOnly = PatchContexts.of(classes)
+                reelLiftGuardPatch.execute(guardOnly)
+                fun hooks(method: Method, hook: String) = guardOnly.mutableClassDefBy(method.definingClass).methods
+                    .single { key(it) == key(method) }.code().count { it.call?.toString() == hook }
+                assertTrue("$name: the guard leaves a release listener alone",
+                    listeners.flatMap { it.methods }.filter { flagCalls(it, config).isNotEmpty() }.all { hooks(it, RELEASE) > 0 })
+                assertEquals("$name: the guard hooks a long-press flag", 0,
+                    handlers.flatMap { it.methods }.sumOf { hooks(it, LONG_PRESS) })
+                assertEquals("$name: the guard hooks the overlay's flag", 0, hooks(checks.single(), SPEED_UP))
+                assertEquals("$name: the guard hooks the edge check", 0, hooks(edge, ANYWHERE))
+                assertEquals("$name: the guard hooks the hold speed", 0, hooks(holdSpeed, HOLD_SPEED))
+                assertEquals("$name: the guard's setter hook", 1, hooks(setter, SPEED_SET))
+                assertEquals("$name: the guard's touch hook", 1,
+                    hooks(activity.methods.single { it.name == "dispatchTouchEvent" && it.implementation != null }, TOUCH))
+                assertEquals("$name: the guard's hold starts", handlers.size,
+                    handlers.flatMap { it.methods }.sumOf { hooks(it, HELD) })
+
+                // The patcher runs the guard first, as a dependency, then the patch.
                 val context = PatchContexts.of(classes)
+                reelLiftGuardPatch.execute(context)
                 holdReelFor2xPatch.execute(context)
 
                 fun patched(method: Method): List<Instruction> = context.mutableClassDefBy(method.definingClass).methods.single {

@@ -20,8 +20,6 @@ import app.morphe.extension.tiktok.settings.preference.categories.DownloadsPrefe
 import app.morphe.extension.tiktok.settings.preference.categories.FeedFilterPreferenceCategory;
 import app.morphe.extension.tiktok.settings.preference.categories.InterfacePreferenceCategory;
 import app.morphe.extension.tiktok.settings.preference.categories.PlaybackPreferenceCategory;
-import app.morphe.extension.tiktok.settings.preference.categories.SharePreferenceCategory;
-import app.morphe.extension.tiktok.share.ShareSheetTools;
 import app.morphe.extension.tiktok.speed.PlaybackSpeedPatch;
 
 import org.junit.Rule;
@@ -65,7 +63,6 @@ public class LimitTextFollowsConstantsTest {
             setEveryStatus(true);
             PreferenceScreen screen = activity.getPreferenceManager().createPreferenceScreen(activity);
             new InterfacePreferenceCategory(activity, screen);
-            new SharePreferenceCategory(activity, screen);
             new DownloadsPreferenceCategory(activity, screen);
             new FeedFilterPreferenceCategory(activity, screen);
             new PlaybackPreferenceCategory(activity, screen);
@@ -73,8 +70,6 @@ public class LimitTextFollowsConstantsTest {
             String window = TapConfirmation.CONFIRM_WINDOW_SECONDS + " seconds";
             assertTrue(summary(screen, "Confirm before following").contains(window));
             assertTrue(summary(screen, "Confirm before liking").contains(window));
-            assertTrue(summary(screen, "Confirm before sending to a friend")
-                    .contains(ShareSheetTools.ARM_WINDOW_SECONDS + " seconds"));
             assertTrue(summary(screen, "Caption text size")
                     .contains(CaptionStyle.MIN_TEXT_SIZE + " to " + CaptionStyle.MAX_TEXT_SIZE));
             assertTrue(summary(screen, "Offline videos limit").contains(
@@ -87,7 +82,7 @@ public class LimitTextFollowsConstantsTest {
                     + PlaybackSpeedPatch.speedLabel(PlaybackSpeedPatch.MAX_SPEED)));
             // No placeholder survives into what the reader sees.
             for (String title : new String[]{"Confirm before following", "Confirm before liking",
-                    "Confirm before sending to a friend", "Caption text size", "Offline videos limit",
+                    "Caption text size", "Offline videos limit",
                     "Forget seen videos after", "Speed menu choices"}) {
                 assertTrue(title + " still carries a placeholder: " + summary(screen, title),
                         !summary(screen, title).contains("%"));

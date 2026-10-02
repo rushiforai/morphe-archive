@@ -48,6 +48,20 @@ public final class ServerIndex {
         Index saved = index;
         return saved.snapshot == snapshot && ServerConfig.isCurrent(snapshot) ? saved.byId.get(id) : null;
     }
+    private static long savedModified;
+
+    /** Publishes the scan saved by Spotify's main process when it is newer than the one loaded, for the track server process. */
+    static synchronized void loadSaved(ServerConfig.Snapshot snapshot) {
+        android.content.Context context = ServerConfig.context();
+        if (context == null || !snapshot.enabled) return;
+        java.io.File file = IndexCache.file(context);
+        long modified = file.lastModified();
+        if (index.snapshot == snapshot && modified == savedModified) return;
+        List<RemoteTrack> saved = IndexCache.read(file, IndexCache.key(snapshot));
+        savedModified = modified;
+        index = new Index(snapshot, saved);
+    }
+
     /**
      * Waits off the main thread until the saved or scanned index for {@code snapshot} is published,
      * for callers that start before it is, such as Spotify loading artwork at launch.

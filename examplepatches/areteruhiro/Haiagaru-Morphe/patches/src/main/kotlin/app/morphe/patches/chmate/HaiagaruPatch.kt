@@ -549,6 +549,109 @@ private fun BytecodePatchContext.patchEdgeArchiveToolbar(
     }
 }
 
+private fun BytecodePatchContext.patchQuickFilterToolbar(version: String) {
+    if (version == "0.8.10.191 dev") {
+        val toolbarModelType = "Lo/r8lambdaElkXfNt4VbdvffL9Z700R6oMDo;"
+        val builder = mutableClassDefBy("Lo/pa;").methods.single {
+            it.name == "j" && it.returnType == toolbarModelType && it.parameters.isEmpty()
+        }
+        val returnSites = builder.implementation!!.instructions.withIndex()
+            .filter { it.value.opcode == Opcode.RETURN_OBJECT }
+        check(returnSites.isNotEmpty()) { "191 response toolbar return sites missing" }
+        returnSites.asReversed().forEach { (index, instruction) ->
+            val register = (instruction as OneRegisterInstruction).registerA
+            builder.addInstructionsWithLabels(index, """
+                invoke-static/range {v$register .. v$register}, $EXTENSION->addQuickFilterToolbarChoice(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object v$register
+                check-cast v$register, $toolbarModelType
+            """.trimIndent())
+        }
+        val dispatcherClass = "Lo/r8lambdahIGIGCNpKpFqE0lgDli724UCuDM;"
+        val dispatchers = mutableClassDefBy(dispatcherClass).methods.filter {
+            it.returnType == "Z" && it.parameters.map(CharSequence::toString) ==
+                listOf("I", "Ljava/lang/Object;") && it.implementation?.instructions?.isNotEmpty() == true
+        }
+        check(dispatchers.isNotEmpty()) { "191 response toolbar dispatcher missing" }
+        dispatchers.forEach { method ->
+            val mutable = mutableClassDefBy(dispatcherClass).findMutableMethodOf(method)
+            val first = mutable.implementation!!.instructions.first()
+            val result = mutable.findFreeRegister(0)
+            mutable.addInstructionsWithLabels(0, """
+                invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/QuickFilterToolbar;->clickLegacy(Ljava/lang/Object;I)Z
+                move-result v$result
+                if-eqz v$result, :legacy_filter_dispatch
+                const/4 v$result, 0x1
+                return v$result
+            """.trimIndent(), ExternalLabel("legacy_filter_dispatch", first))
+        }
+        val filterBinding = mutableClassDefBy("Lo/j4;").methods.single {
+            it.name == "<init>" && it.parameters.map(CharSequence::toString) ==
+                listOf("Lo/executeOnMainThread;", "Landroid/view/View;")
+        }
+        val constructorReturn = filterBinding.implementation!!.instructions.indexOfLast {
+            it.opcode == Opcode.RETURN_VOID
+        }
+        check(constructorReturn >= 0) { "191 filter binding constructor return missing" }
+        filterBinding.addInstructionsWithLabels(constructorReturn, """
+            invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/QuickFilterToolbar;->hideLegacyFilterRow(Ljava/lang/Object;)V
+        """.trimIndent())
+        return
+    }
+    if (version !in setOf("0.8.10.226 dev", "0.8.10.241", "0.8.10.242 dev", "0.8.10.243 dev")) return
+    val fragment = "Ljp/syoboi/a2chMate/ui/reslist/ResListFragment;"
+    val model = "Ljp/syoboi/a2chMate/feature/toolbar/ToolbarDefault;"
+    val catalog = when (version) {
+        "0.8.10.226 dev" -> "Lo/AdSlot;"
+        "0.8.10.241" -> "Lo/PackageSignatureVerifier;"
+        "0.8.10.242 dev" -> "Lo/zzaB;"
+        else -> "Lo/zzdow;"
+    }
+    // These small catalogs provide both the default and tablet response toolbars.
+    val builders = mutableClassDefBy(catalog).methods.filter {
+        it.returnType == model && it.implementation != null
+    }
+    check(builders.isNotEmpty()) { "242 response toolbar catalog missing" }
+    builders.forEach { builder ->
+    val returns = builder.implementation!!.instructions.withIndex()
+        .filter { it.value.opcode == Opcode.RETURN_OBJECT }.toList().asReversed()
+    returns.forEach { (index, instruction) ->
+        val register = (instruction as OneRegisterInstruction).registerA
+        builder.addInstructionsWithLabels(index, """
+            invoke-static/range {v$register .. v$register}, $EXTENSION->addQuickFilterToolbarChoice(Ljava/lang/Object;)Ljava/lang/Object;
+            move-result-object v$register
+            check-cast v$register, $model
+        """.trimIndent())
+    }
+    }
+    val dispatchers = mutableClassDefBy(fragment).methods.filter {
+        it.returnType == "Z" && it.parameters.map(CharSequence::toString) ==
+            listOf("I", "Ljava/lang/Object;") && it.implementation?.instructions?.isNotEmpty() == true
+    }
+    check(dispatchers.size == 1) { "$version response-toolbar dispatcher count=${dispatchers.size}" }
+    val dispatcher = dispatchers.single()
+    val first = dispatcher.implementation!!.instructions.first()
+    dispatcher.addInstructionsWithLabels(0, """
+        invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/QuickFilterToolbar;->click(Ljava/lang/Object;I)Z
+        move-result v0
+        if-eqz v0, :original_filter_dispatch
+        return v0
+    """.trimIndent(), ExternalLabel("original_filter_dispatch", first))
+    if (version == "0.8.10.242 dev") {
+        val header = mutableClassDefBy("Lo/isAtLeastS;").methods.single { it.name == "invoke" }
+        val original = header.implementation!!.instructions.first()
+        header.addInstructionsWithLabels(0, """
+            invoke-static {}, $EXTENSION->compactQuickFilters()Z
+            move-result v0
+            if-eqz v0, :original_quick_filter_header
+            sget-object v0, Lo/zzbwq;->INSTANCE:Lo/zzbwq;
+            return-object v0
+        """.trimIndent(), ExternalLabel("original_quick_filter_header", original))
+    }
+    // These releases compose their quick-filter row from version-specific
+    // lambdas. Keep the original row intact until a verified owner is known;
+    // the toolbar entry itself remains opt-in and invokes the same VM action.
+}
+
 private val haiagaruBytecodePatch = bytecodePatch {
     compatibleWith(chMateCompatibility)
     extendWith("extensions/chmate.mpe")
@@ -557,6 +660,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         val profile = profileFor(packageMetadata.versionName)
 
         patchEdgeArchiveToolbar(profile, packageMetadata.versionName)
+        patchQuickFilterToolbar(packageMetadata.versionName)
 
         patchNgRegistrationLimit()
 
@@ -842,6 +946,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         }
         patchEdgeReporterHistory(packageMetadata.versionName)
         patchEdgeReporterTitleCopy(packageMetadata.versionName)
+        patchWacchoiLongPressMenu(packageMetadata.versionName)
         patchHissiExternalIntentBoundaries()
         patchHttpsTransport()
     }
@@ -1223,6 +1328,217 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoHissiMenu(
             move-result-object p0
         """,
     )
+}
+
+/** Install the Wacchoi item alongside ChMate's custom response-menu actions. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchWacchoiLongPressMenu(
+    versionName: String,
+) {
+    if (versionName == "0.8.10.242 dev") {
+        val owner = "Ljp/syoboi/a2chMate/ui/reslist/ResListFragmentViewModel;"
+        val method = mutableClassDefBy(owner).methods.single { method ->
+            method.returnType == "V" && method.parameters.map(CharSequence::toString) == listOf(
+                owner, "Lo/isDataValid;", "Ljp/syoboi/a2chMate/client/BoardID;", "Ljava/lang/String;",
+            ) && method.implementation?.instructions?.any {
+                ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "NGName"
+            } == true
+        }
+        mutableClassDefBy(owner).findMutableMethodOf(method).addInstructionsWithLabels(0, """
+            invoke-static/range {p0 .. p3}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendNameSheet(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+        """.trimIndent())
+        println("Wacchoi name-sheet hook: ${method.name}")
+        return
+    }
+    if (versionName == "0.8.10.191 dev") {
+        patchLegacyWacchoiLongPressMenu()
+        return
+    }
+
+    val owner = "Ljp/syoboi/a2chMate/fragment/ResMenuDialogFragment;"
+    val candidates = mutableClassDefBy(owner).methods.filter { method ->
+        method.parameters.isEmpty()
+            && method.returnType != "V"
+            && method.implementation?.instructions?.any { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.name == "findItem"
+                    && reference.parameterTypes.map(CharSequence::toString) == listOf("I")
+            } == true
+            && method.implementation?.instructions?.any { instruction ->
+                (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 70
+            } == true
+            && method.implementation?.instructions?.any { instruction ->
+                val literal = (instruction as? NarrowLiteralInstruction)?.narrowLiteral
+                literal == 74 || literal == 75
+            } == true
+            && method.implementation?.instructions?.any { it.opcode == Opcode.RETURN_OBJECT } == true
+    }
+    check(candidates.size == 1) {
+        "Expected one ${versionName} response context-menu builder, found ${candidates.size}"
+    }
+    val builder = candidates.single()
+    val builderInstructions = builder.implementation!!.instructions.toList()
+    val returns = builderInstructions.mapIndexedNotNull { index, instruction ->
+        if (instruction.opcode == Opcode.RETURN_OBJECT) {
+            index to (instruction as OneRegisterInstruction).registerA
+        } else null
+    }.asReversed()
+    val mutableBuilder = mutableClassDefBy(owner).findMutableMethodOf(builder)
+    returns.forEach { (index, register) ->
+        mutableBuilder.addInstructionsWithLabels(index, """
+            invoke-static/range {v$register .. v$register}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendForCurrentDialog(Ljava/lang/Object;)V
+        """.trimIndent())
+    }
+    mutableBuilder.addInstructionsWithLabels(0, """
+        invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->captureDialog(Ljava/lang/Object;)V
+    """.trimIndent())
+
+    var dispatcherCount = 0
+    classDefForEach { classDef ->
+        classDef.methods.forEach methodLoop@ { method ->
+            if (method.returnType != "Z") return@methodLoop
+            val instructions = method.implementation?.instructions?.toList()
+                ?: return@methodLoop
+            if (instructions.none { instruction ->
+                    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    reference?.definingClass == "Landroid/view/MenuItem;"
+                        && reference.name == "getItemId"
+                        && reference.returnType == "I"
+                        && reference.parameterTypes.isEmpty()
+                }) return@methodLoop
+
+            val upperBounds = instructions.mapIndexedNotNull { index, instruction ->
+                val literal = (instruction as? NarrowLiteralInstruction)?.narrowLiteral
+                if (literal != 74 && literal != 75) return@mapIndexedNotNull null
+                val prior = instructions.subList(maxOf(0, index - 12), index)
+                if (prior.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == 70 }) {
+                    index to literal
+                } else null
+            }
+            if (upperBounds.isEmpty()) return@methodLoop
+            val mutableMethod = mutableClassDefBy(classDef).findMutableMethodOf(method)
+            upperBounds.forEach { (index, literal) ->
+                val register = (instructions[index] as OneRegisterInstruction).registerA
+                val expandedBoundary = if (literal == 74) 75 else 76
+                mutableMethod.replaceInstruction(index,
+                    "const/16 v$register, 0x${expandedBoundary.toString(16)}")
+                dispatcherCount++
+            }
+        }
+    }
+    check(dispatcherCount == 1) {
+        "Expected one ${versionName} custom response-menu dispatcher, patched $dispatcherCount"
+    }
+    println("Wacchoi response-menu hook: builder=${builder.name}, dispatcher=$dispatcherCount")
+}
+
+/**
+ * ChMate 191 builds its response long-press popup from a Menu inflated inside
+ * the legacy ResListFragment callback, then dispatches MenuItems carrying an
+ * Intent directly. Add the same board-aware action at that inflation point.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyWacchoiLongPressMenu() {
+    val owner = "Lo/r8lambdaTb_p0z6z2AqSZIga1YhmAVmiTPk;"
+    val candidates = mutableClassDefBy(owner).methods.filter { method ->
+        method.name == "e"
+            && method.returnType == "Z"
+            && method.parameters.map(CharSequence::toString) == listOf(
+                "I",
+                "Ljava/lang/Object;",
+            )
+            && method.implementation?.instructions?.withIndex()?.any { indexed ->
+                val index = indexed.index
+                val instruction = indexed.value
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.definingClass == "Landroid/view/MenuInflater;"
+                    && reference.name == "inflate"
+                    && reference.parameterTypes.map(CharSequence::toString) == listOf(
+                        "I",
+                        "Landroid/view/Menu;",
+                    )
+                    && method.implementation!!.instructions.subList(maxOf(0, index - 3), index)
+                        .any { (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f0e0006 }
+            } == true
+    }
+    check(candidates.size == 1) {
+        "Expected one ChMate 191 response long-press menu callback, found ${candidates.size}"
+    }
+
+    val callback = candidates.single()
+    val implementation = callback.implementation!!
+    val instructions = implementation.instructions.toList()
+    val parameterWords = 1 + callback.parameters.sumOf { parameter ->
+        if (parameter.type == "J" || parameter.type == "D") 2 else 1
+    }
+    val firstParameterRegister = implementation.registerCount - parameterWords
+    val receiverRegister = firstParameterRegister
+    val targetRegister = firstParameterRegister + 2
+    val receiverLocal = instructions.mapIndexedNotNull { _, instruction ->
+        if (instruction.opcode !in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)) {
+            return@mapIndexedNotNull null
+        }
+        val move = instruction as? TwoRegisterInstruction ?: return@mapIndexedNotNull null
+        if (move.registerB == receiverRegister) move.registerA else null
+    }.firstOrNull()
+    val targetLocal = instructions.mapIndexedNotNull { _, instruction ->
+        if (instruction.opcode !in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)) {
+            return@mapIndexedNotNull null
+        }
+        val move = instruction as? TwoRegisterInstruction ?: return@mapIndexedNotNull null
+        if (move.registerB == targetRegister) move.registerA else null
+    }.firstOrNull()
+    check(receiverLocal != null && targetLocal != null && receiverLocal < 16 && targetLocal < 16) {
+        "ChMate 191 long-press callback register aliases changed"
+    }
+
+    val menuInflate = instructions.mapIndexedNotNull { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        if (reference?.definingClass != "Landroid/view/MenuInflater;"
+            || reference.name != "inflate"
+            || instructions.subList(maxOf(0, index - 3), index)
+                .none { (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f0e0006 }) {
+            return@mapIndexedNotNull null
+        }
+        val registers = when (instruction) {
+            is FiveRegisterInstruction -> when (instruction.registerCount) {
+                3 -> listOf(instruction.registerC, instruction.registerD, instruction.registerE)
+                4 -> listOf(instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF)
+                5 -> listOf(instruction.registerC, instruction.registerD, instruction.registerE,
+                    instruction.registerF, instruction.registerG)
+                else -> emptyList()
+            }
+            is RegisterRangeInstruction -> (instruction.startRegister until
+                    instruction.startRegister + instruction.registerCount).toList()
+            else -> emptyList()
+        }
+        if (registers.size != 3) return@mapIndexedNotNull null
+        index to registers.last()
+    }
+    check(menuInflate.size == 1) { "ChMate 191 response menu inflater anchor changed" }
+    val (inflateIndex, menuRegister) = menuInflate.single()
+    check(menuRegister < 16) { "ChMate 191 response Menu register cannot use invoke-static" }
+
+    val mutableCallback = mutableClassDefBy(owner).findMutableMethodOf(callback)
+    mutableCallback.addInstructionsWithLabels(
+        inflateIndex + 1,
+        """
+            invoke-static { v$receiverLocal, v$menuRegister, v$targetLocal }, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendLegacyForView(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+        """.trimIndent(),
+    )
+    // Legacy popup selection forwards MenuItem.getItemId() and the MenuItem
+    // to e(ILjava/lang/Object;). Handle only our new ID and let every existing
+    // branch keep its original dispatch behavior.
+    mutableCallback.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { p0 .. p2 }, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->dispatchLegacyMenuItem(Ljava/lang/Object;ILjava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :legacy_wacchoi_continue
+            const/4 v0, 0x1
+            return v0
+        """.trimIndent(),
+        ExternalLabel("legacy_wacchoi_continue", instructions.first()),
+    )
+    println("Wacchoi response-menu hook: legacy ChMate 191 Menu inflation")
 }
 
 /**
@@ -2170,6 +2486,21 @@ val haiagaruPatch = resourcePatch(
             publicResources.createPublicId("string", "haiagaru_edge_archive")
             publicResources.createPublicId("drawable", "haiagaru_edge_archive")
         }
+        document("res/values/strings.xml").use { strings ->
+            val entry = strings.createElement("string")
+            entry.setAttribute("name", "haiagaru_quick_filter")
+            entry.textContent = "フィルタ"
+            strings.documentElement.appendChild(entry)
+        }
+        PublicXmlManager(get("res/values/public.xml")).use {
+            it.createPublicId("string", "haiagaru_quick_filter")
+            it.createPublicId("drawable", "haiagaru_quick_filter")
+        }
+        get("res").resolve("drawable/haiagaru_quick_filter.xml").writeText("""
+            <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+                <path android:fillColor="#FFFFFFFF" android:pathData="M3,4h18l-7,8v7l-4,2V12z"/>
+            </vector>
+        """.trimIndent())
         val iconSourcePath = edgeArchiveToolbarIconPath.value.orEmpty().trim()
         if (iconSourcePath.isEmpty()) {
             val iconTarget = get("res").resolve("drawable/haiagaru_edge_archive.xml")

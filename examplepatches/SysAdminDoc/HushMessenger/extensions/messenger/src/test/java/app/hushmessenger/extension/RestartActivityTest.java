@@ -54,6 +54,16 @@ public class RestartActivityTest {
             launch.getFlags() & (Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
     }
 
+    @Test public void disabledLauncherCannotBeSelectedForRestart() {
+        var app = RuntimeEnvironment.getApplication();
+        Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage(app.getPackageName());
+        ResolveInfo disabled = entry("com.facebook.orca.DisabledIcon", "com.facebook.messenger.neue.MainActivity");
+        disabled.activityInfo.enabled = false;
+        Shadows.shadowOf(app.getPackageManager()).addResolveInfoForIntent(query, List.of(disabled,
+            entry("com.facebook.orca.ActiveIcon", "com.facebook.messenger.neue.MainActivity")));
+        assertEquals("com.facebook.orca.ActiveIcon", RestartActivity.launcherIntent(app).getComponent().getClassName());
+    }
+
     @Test public void restartScreenFollowsTheSavedTheme() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         for (boolean light : new boolean[] {false, true}) {

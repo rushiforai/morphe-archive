@@ -123,14 +123,16 @@ internal fun parseLanguageSelection(raw: String?, available: Set<String>): Set<S
         .map { it.trim().lowercase(Locale.ROOT) }
         .filter(String::isNotEmpty)
         .toMutableSet()
-    selected.add("en")
-
-    val unknown = selected - available
+    val unknown = selected - available - "all"
     if (unknown.isNotEmpty()) {
         throw PatchException(
             "Language Pack Purger: unknown language code(s): ${unknown.sorted().joinToString()}.",
         )
     }
+
+    // Validate even a mixed "all, ..." list before keeping the full reviewed inventory.
+    if (selected.isEmpty() || "all" in selected) return available.toSet()
+    selected.add("en")
 
     // TikTok carries both the modern and legacy Android codes for these two languages.
     if ("he" in selected || "iw" in selected) selected.addAll(setOf("he", "iw").filter { it in available })

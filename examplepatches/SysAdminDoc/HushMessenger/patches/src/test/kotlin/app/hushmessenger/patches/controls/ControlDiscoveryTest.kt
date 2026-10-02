@@ -31,6 +31,8 @@ class ControlDiscoveryTest {
                 if (key == "people_tab") return@map peopleTabMethod()
                 if (key == "people_search") return@map peopleSearchMethod()
                 if (key == "people_story") return@map peopleStoryMethod()
+                if (key == "bubbles") return@map bubbleEligibilityMethod()
+                if (key == "bubble_mode") return@map nativeBubbleModeMethod()
                 val body = when (key) {
                     in pluginGates -> pluginBody(pluginGates.getValue(key).anchors.first())
                     "stories" -> """
@@ -70,13 +72,6 @@ class ControlDiscoveryTest {
                         id.contains("onClick") -> "const-string v0, \"$DRAWER_FOLDER_SELECTED\"\nreturn-void"
                         else -> "const-string v0, \"Unknown ViewHolder\"\nreturn-void"
                     }
-                    "bubbles" -> """
-                        sget v0, Landroid/os/Build${'$'}VERSION;->SDK_INT:I
-                        const/4 v1, 0x0
-                        invoke-virtual {v1}, Landroid/app/ActivityManager;->isLowRamDevice()Z
-                        move-result v0
-                        return v0
-                    """.trimIndent()
                     "browser" -> """
                         const-string v0, "iab_skipped_reason"
                         const-string v0, "user_prefers_external"
@@ -131,7 +126,7 @@ class ControlDiscoveryTest {
     @Test fun discoversTheCompleteHookUnionThroughRealClassDefinitions() {
         val found = findControls(completeFixture())
         validateControls(found)
-        assertEquals(89, found.values.sumOf { it.size })
+        assertEquals(90, found.values.sumOf { it.size })
         for (key in expectedHooks.keys) validateControls(found, setOf(key))
     }
 

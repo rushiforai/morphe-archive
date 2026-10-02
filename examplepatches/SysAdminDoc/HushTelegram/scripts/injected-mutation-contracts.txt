@@ -1,0 +1,25 @@
+# Call sites a patched Telegram must have, checked across every dex of the APK by DexDiff.java.
+#   single-call <method reference> in <caller method name>
+#   first-call <method reference> on <class>
+#   first-call <method reference> on-type-named <type name>
+#   first-call <method reference> outside <package prefix>
+#   start-call <method reference> [in [static|instance] <(parameters)return, * for any run>] holding <string> [<string> ...]
+#   no-call <method reference> outside <package prefix>
+#   next-call <method reference> after <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+#   sole-call <method reference> replacing <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+#   once-call <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+# A start-call, next-call, sole-call or once-call rule picks its method by every string it names
+# and its shape, and exactly one of Telegram's methods may answer that; name as much as the patch
+# itself finds the method by. scripts/test-injected-registers.ps1 builds bad fixtures for every
+# rule here, and fails on a rule it has none for.
+# The settings patch sends each of these ShortcutManager calls to SettingsEntry, which makes the
+# real call and puts the HushTelegram shortcut back in front after it. One left in Telegram's own code
+# could rank Telegram's shortcuts ahead again and push the HushTelegram one out of the long-press
+# menu. 12.10.6 makes pushDynamicShortcut once, addDynamicShortcuts twice, updateShortcuts once,
+# removeAllDynamicShortcuts once and setDynamicShortcuts nowhere; its rule catches a later build
+# that starts making it.
+no-call Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V outside Lapp/hushtelegram/extension/
+no-call Landroid/content/pm/ShortcutManager;->addDynamicShortcuts(Ljava/util/List;)Z outside Lapp/hushtelegram/extension/
+no-call Landroid/content/pm/ShortcutManager;->setDynamicShortcuts(Ljava/util/List;)Z outside Lapp/hushtelegram/extension/
+no-call Landroid/content/pm/ShortcutManager;->updateShortcuts(Ljava/util/List;)Z outside Lapp/hushtelegram/extension/
+no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outside Lapp/hushtelegram/extension/

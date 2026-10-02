@@ -64,6 +64,124 @@ public class SettingsTest {
         assertTrue(Settings.hideStories());
     }
 
+    @Test @Config(sdk = {28, 36}) public void legacyUnsendHelpersRetainAndLabelOnlyRecordedMessages() {
+        Settings.activeAt.clear();
+        Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+        assertTrue(Settings.keepUnsent());
+        assertEquals("Eligibility is not an interception", 0, Settings.lastActive("keep_unsent"));
+        assertEquals("ordinary text", Settings.labelKeptUnsent("ordinary text", "other-message"));
+        assertTrue(Settings.suppressUnsent(true, "other-message"));
+        assertEquals("Ordinary message reads are not interceptions", 0, Settings.lastActive("keep_unsent"));
+        Settings.recordUnsent("retained-message");
+        assertTrue(Settings.lastActive("keep_unsent") > 0);
+        Settings.recordUnsent(null);
+        Settings.recordUnsent("");
+        assertEquals(java.util.Set.of("retained-message"), Settings.preferences.getStringSet("kept_unsent_ids", java.util.Set.of()));
+        assertTrue(Settings.isKeptUnsent("retained-message"));
+        assertFalse(Settings.isKeptUnsent(null));
+        assertEquals("[unsent] original text", Settings.labelKeptUnsent("original text", "retained-message"));
+        assertEquals("ordinary text", Settings.labelKeptUnsent("ordinary text", "other-message"));
+        assertNull(Settings.labelKeptUnsent(null, "retained-message"));
+        assertFalse(Settings.suppressUnsent(true, "retained-message"));
+        assertFalse(Settings.suppressUnsent(false, "retained-message"));
+        assertTrue(Settings.suppressUnsent(true, "other-message"));
+        for (String disabled : new String[] {"paused", "keep_unsent"}) {
+            Settings.preferences.edit().putBoolean(disabled, "paused".equals(disabled)).commit();
+            assertFalse(Settings.keepUnsent());
+            assertEquals("original text", Settings.labelKeptUnsent("original text", "retained-message"));
+            assertTrue(Settings.suppressUnsent(true, "retained-message"));
+            assertFalse(Settings.suppressUnsent(false, "retained-message"));
+            assertTrue(Settings.isKeptUnsent("retained-message"));
+            Settings.preferences.edit().putBoolean("paused", false).commit();
+        }
+    }
+
+    @Test @Config(sdk = {28, 36}) public void retainedUnsendChoiceSurvivesRestartWithoutClaimingChatCoverage() {
+        Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+        Settings.recordUnsent("retained-message");
+        Settings.preferences = null;
+        Settings.activeAt.clear();
+        Settings.initialize(RuntimeEnvironment.getApplication());
+        assertTrue(Settings.preferences.getBoolean("keep_unsent", false));
+        assertTrue(Settings.isKeptUnsent("retained-message"));
+        assertEquals(0, Settings.lastActive("keep_unsent"));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            var root = screen.get().getWindow().getDecorView();
+            Switch choice = root.findViewWithTag("keep_unsent");
+            assertTrue(choice.isChecked());
+            String spoken = choice.getContentDescription().toString();
+            assertTrue(spoken.contains("legacy unsend routes"));
+            assertTrue(spoken.contains("End-to-end encrypted chats aren't supported"));
+            assertTrue(spoken.contains("group coverage isn't verified"));
+            assertTrue(spoken.contains("not whether a chat is supported"));
+            assertEquals("No unsend activity observed since restart",
+                ((android.widget.TextView) root.findViewWithTag("active_keep_unsent")).getText().toString());
+        }
+        assertEquals("[unsent] original text", Settings.labelKeptUnsent("original text", "retained-message"));
+        assertFalse(Settings.suppressUnsent(true, "retained-message"));
+        assertEquals("Reading an old retained message is not a new interception", 0, Settings.lastActive("keep_unsent"));
+    }
+
+    @Test @Config(sdk = {28, 36}) public void concurrentUnsendIdentifiersSurviveADiskReload() throws Exception {
+        Settings.preferences.edit().putBoolean("keep_unsent", true)
+            .putStringSet("kept_unsent_ids", java.util.Set.of("from-old-version")).commit();
+        assertTrue(Settings.keepUnsent());
+        java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicReference<Throwable> failure = new java.util.concurrent.atomic.AtomicReference<>();
+        Thread[] workers = new Thread[100];
+        java.util.Set<String> expected = new java.util.HashSet<>(java.util.Set.of("from-old-version", "shared-message"));
+        for (int i = 0; i < workers.length; i++) {
+            String id = "message-" + i;
+            expected.add(id);
+            workers[i] = new Thread(() -> {
+                try {
+                    start.await();
+                    Settings.recordUnsent(id);
+                    Settings.recordUnsent("shared-message");
+                    Settings.recordUnsent(id);
+                } catch (Throwable error) { failure.compareAndSet(null, error); }
+            });
+            workers[i].start();
+        }
+        start.countDown();
+        for (Thread worker : workers) {
+            worker.join(10_000);
+            assertFalse("Writer finished", worker.isAlive());
+        }
+        assertNull(failure.get());
+        assertEquals(expected, Settings.preferences.getStringSet("kept_unsent_ids", java.util.Set.of()));
+        assertTrue(Settings.preferences.edit().commit());
+        java.io.File file = new java.io.File(RuntimeEnvironment.getApplication().getApplicationInfo().dataDir,
+            "shared_prefs/hushmessenger.xml");
+        assertTrue(file.isFile());
+        // A new framework instance reads the actual file instead of Context's cached in-memory preferences.
+        var constructor = Class.forName("android.app.SharedPreferencesImpl").getDeclaredConstructor(java.io.File.class, int.class);
+        constructor.setAccessible(true);
+        var reloaded = (android.content.SharedPreferences) constructor.newInstance(file, Context.MODE_PRIVATE);
+        assertNotSame(Settings.preferences, reloaded);
+        Settings.preferences = reloaded;
+        assertEquals(expected, reloaded.getStringSet("kept_unsent_ids", java.util.Set.of()));
+        assertTrue(reloaded.getBoolean("keep_unsent", false));
+        assertFalse(Settings.suppressUnsent(true, "from-old-version"));
+        assertEquals("[unsent] text", Settings.labelKeptUnsent("text", "message-99"));
+    }
+
+    @Test @Config(sdk = {28, 36}) public void inactiveUnsendCallsAddNothingAndKeepStockBehavior() {
+        for (String inactive : new String[] {"off", "paused", "safe_mode", "uninstalled"}) {
+            Settings.installed = "uninstalled".equals(inactive) ? java.util.Set.of() : java.util.Set.of("keep_unsent");
+            Settings.preferences.edit().clear().putBoolean("keep_unsent", !"off".equals(inactive))
+                .putBoolean("paused", "paused".equals(inactive)).putBoolean("safe_mode", "safe_mode".equals(inactive))
+                .putStringSet("kept_unsent_ids", java.util.Set.of("existing-message")).commit();
+            CrashGuard.resetForTests();
+            CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+            Settings.recordUnsent("must-not-be-added");
+            assertEquals(inactive, java.util.Set.of("existing-message"), Settings.preferences.getStringSet("kept_unsent_ids", java.util.Set.of()));
+            assertEquals("text", Settings.labelKeptUnsent("text", "existing-message"));
+            assertTrue(Settings.suppressUnsent(true, "existing-message"));
+            assertFalse(Settings.suppressUnsent(false, "existing-message"));
+        }
+    }
+
     @Test public void encryptedTypingFlagDropsOnlyWhileTheSwitchIsOn() {
         assertTrue(Settings.outgoingTyping(true));
         assertFalse(Settings.outgoingTyping(false));
@@ -314,6 +432,41 @@ public class SettingsTest {
             assertEquals(application.getPackageName(), launched.getComponent().getPackageName());
             assertTrue((launched.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
             assertTrue((launched.getFlags() & Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED) != 0);
+        }
+    }
+
+    @Test public void openSkipsExtensionAliasesDisabledAndMalformedLauncherEntries() {
+        var app = RuntimeEnvironment.getApplication();
+        Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+            .setPackage(app.getPackageName());
+        var entries = new java.util.ArrayList<ResolveInfo>();
+        entries.add(new ResolveInfo());
+        for (String name : new String[] {RestartActivity.class.getName(), SettingsActivity.DRAWER_ALIAS,
+                "settings.Alias", "com.facebook.orca.Disabled", "com.facebook.orca.auth.StartScreenActivity"}) {
+            ResolveInfo entry = new ResolveInfo();
+            entry.activityInfo = new ActivityInfo();
+            entry.activityInfo.packageName = app.getPackageName();
+            entry.activityInfo.name = name;
+            entry.activityInfo.enabled = !name.endsWith("Disabled");
+            if (name.equals("settings.Alias")) entry.activityInfo.targetActivity = SettingsActivity.class.getName();
+            entries.add(entry);
+        }
+        Shadows.shadowOf(app.getPackageManager()).addResolveInfoForIntent(query, entries);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            screen.get().getWindow().getDecorView().findViewWithTag("open_messenger").performClick();
+            Intent launched = Shadows.shadowOf(screen.get()).getNextStartedActivity();
+            assertNotNull(launched);
+            assertEquals("com.facebook.orca.auth.StartScreenActivity", launched.getComponent().getClassName());
+            assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, launched.getFlags());
+        }
+    }
+
+    @Test public void missingHostLauncherExplainsHowToRecover() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            screen.get().getWindow().getDecorView().findViewWithTag("open_messenger").performClick();
+            assertNull(Shadows.shadowOf(screen.get()).getNextStartedActivity());
+            assertEquals(new SettingsText(screen.get()).get("open_help"),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
         }
     }
 }

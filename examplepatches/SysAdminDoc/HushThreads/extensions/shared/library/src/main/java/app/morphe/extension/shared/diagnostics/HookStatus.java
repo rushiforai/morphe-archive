@@ -221,8 +221,8 @@ public final class HookStatus {
     }
 
     /**
-     * One more of something a hook decided, under a name the caller holds as a constant: a feed
-     * page with an ad taken out of it, or an upload address that was replaced. It says which way a
+     * One more of something a hook decided, under a name the caller holds as a constant: an ad
+     * post taken out, or an upload address that was replaced. It says which way a
      * hook went where nothing else is counted, such as a filter that ran and found nothing to take.
      *
      * <p>The name is written into the report as it is, so it is fixed text, never anything read
@@ -230,7 +230,12 @@ public final class HookStatus {
      * {@link #invoked}, a repeat costs a hash lookup and an increment, and it never throws.
      */
     public static void counted(String family, String what) {
-        if (family == null || what == null) return;
+        counted(family, what, 1);
+    }
+
+    /** Adds positive outcomes, saturating at Long.MAX_VALUE rather than wrapping negative. */
+    public static void counted(String family, String what, long amount) {
+        if (family == null || what == null || amount <= 0) return;
         try {
             Family entry = FAMILIES.get(family);
             AtomicLong count = entry == null ? null : entry.counts.get(what);
@@ -240,7 +245,7 @@ public final class HookStatus {
                 }
                 if (count == null) return;
             }
-            count.incrementAndGet();
+            count.updateAndGet(value -> value > Long.MAX_VALUE - amount ? Long.MAX_VALUE : value + amount);
         } catch (Throwable ignored) {
             // A count that can't be kept is not worth failing the host's call over.
         }
@@ -555,7 +560,8 @@ public final class HookStatus {
                     String count = saved.countNames.get(i);
                     AtomicLong value = current.counts.get(count);
                     if (value == null) current.counts.put(count, value = new AtomicLong());
-                    value.addAndGet(saved.countValues.get(i));
+                    long amount = saved.countValues.get(i);
+                    value.updateAndGet(total -> total > Long.MAX_VALUE - amount ? Long.MAX_VALUE : total + amount);
                     current.countOrder.add(count);
                 }
                 for (String count : laterCounts) {

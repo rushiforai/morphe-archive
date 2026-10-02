@@ -47,6 +47,9 @@ class CompatProfileTest {
         "browserPreferenceIndex $browserPreferenceIndex",
         "adFilterSize $adFilterSize",
         "adFilterExits ${adFilterExits.joinToString(" ")}",
+        "bubbleCapabilityGetter $bubbleCapabilityGetter",
+        "bubbleRolloutGetter $bubbleRolloutGetter",
+        "nativeBubbleRoutes $nativeBubbleRoutes",
     )
 
     private fun source(file: String) =

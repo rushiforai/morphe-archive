@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.PatchLogCapture
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
@@ -21,8 +22,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 /**
@@ -49,6 +52,8 @@ class DisableAnalyticsFixtureTest {
     @Test
     fun `each declared build has all three address sites, and each address goes through the extension`() {
         for (build in Fixtures.declaredBuilds()) {
+            PigeonUrlFingerprint.clearMatch()
+            MqttSettingsFingerprint.clearMatch()
             val where = build.name
             val classes = FixtureDex.classesWhere(build, { dex -> markers.any { it in dex.stringSection } }) { method ->
                 method.instructions().any { it.string() in markers }
@@ -110,6 +115,55 @@ class DisableAnalyticsFixtureTest {
             assertEquals("$where: SettingsStatus.disableAnalytics() answers true", Opcode.CONST_4, status[0].opcode)
             assertEquals(1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(Opcode.RETURN, status[1].opcode)
+            val coverage = context.mutableClassDefBy(SETTINGS_STATUS).methods
+                .single { it.name == "analyticsAddressMask" }.instructions()
+            assertEquals("$where: all address kinds recorded", 7, (coverage.first() as NarrowLiteralInstruction).narrowLiteral)
+        }
+    }
+
+    @Test
+    fun `each partial address selection persists its exact coverage and zero matches refuse`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = FixtureDex.classesWhere(build, { dex -> markers.any { it in dex.stringSection } }) { method ->
+                method.instructions().any { it.string() in markers }
+            }
+            for (mask in 0..7) {
+                PigeonUrlFingerprint.clearMatch()
+                MqttSettingsFingerprint.clearMatch()
+                val selected = classes.map { source ->
+                    val methods = source.methods.filter { method ->
+                        (mask and 1 != 0 && method.isPigeonBuilder()) ||
+                            (mask and 2 != 0 && method.defaultAnswers().isNotEmpty()) ||
+                            (mask and 4 != 0 && method.isMqttSettings())
+                    }
+                    ImmutableClassDef(source.type, source.accessFlags, source.superclass, source.interfaces,
+                        source.sourceFile, source.annotations, source.fields, methods)
+                }.filter { it.methods.any() }
+                val context = PatchContexts.of(ExtensionDex.classes() + selected)
+                if (mask == 0) {
+                    assertThrows(PatchException::class.java) { disableAnalyticsPatch.execute(context) }
+                } else {
+                    var output = emptyList<String>()
+                    val warnings = PatchLogCapture.warnings {
+                        output = PatchLogCapture.info { disableAnalyticsPatch.execute(context) }
+                    }
+                    assertEquals("mask $mask: missing target kinds", 3 - Integer.bitCount(mask), warnings.size)
+                    val kinds = listOf("PIGEON", "DEFAULT", "MQTT")
+                    val found = kinds.filterIndexed { i, _ -> mask and (1 shl i) != 0 }.joinToString()
+                    val missing = kinds.filterIndexed { i, _ -> mask and (1 shl i) == 0 }.joinToString().ifEmpty { "none" }
+                    assertEquals(listOf("Disable analytics: matched $found; missing $missing."), output)
+                    kinds.forEachIndexed { i, kind ->
+                        assertEquals("mask $mask: $kind warning", mask and (1 shl i) == 0,
+                            warnings.any { it.startsWith("Disable analytics: $kind:") })
+                    }
+                    val coverage = context.mutableClassDefBy(SETTINGS_STATUS).methods
+                        .single { it.name == "analyticsAddressMask" }.instructions()
+                    assertEquals("mask $mask: persisted coverage", mask, (coverage.first() as NarrowLiteralInstruction).narrowLiteral)
+                    assertEquals(Opcode.RETURN, coverage.last().opcode)
+                    val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "disableAnalytics" }.instructions()
+                    assertEquals("partial selection remains included", 1, (status.first() as NarrowLiteralInstruction).narrowLiteral)
+                }
+            }
         }
     }
 

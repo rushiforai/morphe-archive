@@ -25,7 +25,6 @@ public final class CaptionStyle {
     private static final Map<View, Drawable.ConstantState> BACKGROUNDS = new WeakHashMap<>();
     private static final Map<TextView, Float> SIZES = new WeakHashMap<>();
 
-    private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     /**
      * The caption text view and the strip behind it, by their obfuscated names.
      *
@@ -224,7 +223,7 @@ public final class CaptionStyle {
 
     /** Lets a test stand in for a TikTok resource id, which only the real APK resolves. */
     static void resolveForTests(String name, int id) {
-        RESOURCE_IDS.putForTests(APP_PACKAGE, name, id);
+        RESOURCE_IDS.putForTests(Utils.getContext().getPackageName(), name, id);
     }
 
     /** Forgets what has been looked up, between tests. */
@@ -235,12 +234,14 @@ public final class CaptionStyle {
 
     /** Resolves a caption view id by this build's name, saying so once when this build has none. */
     private static int identifier(View view, String[] names) {
-        for (String name : names) {
-            int id = RESOURCE_IDS.resolve(
-                    view == null ? null : view.getResources(), APP_PACKAGE, name, false);
-            if (id != 0) {
-                HookStatus.bound("captions", name);
-                return id;
+        if (view != null) {
+            for (String name : names) {
+                int id = RESOURCE_IDS.resolve(
+                        view.getResources(), view.getContext().getPackageName(), name, false);
+                if (id != 0) {
+                    HookStatus.bound("captions", name);
+                    return id;
+                }
             }
         }
         HookStatus.missingViewId("captions", String.join("|", names));

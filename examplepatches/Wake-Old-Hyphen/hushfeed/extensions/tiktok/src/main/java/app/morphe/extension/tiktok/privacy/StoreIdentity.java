@@ -4,12 +4,10 @@
  */
 package app.morphe.extension.tiktok.privacy;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.os.Build;
 import android.util.Base64;
 
 import androidx.annotation.Nullable;
@@ -24,10 +22,14 @@ import app.morphe.extension.tiktok.settings.Settings;
  * both go out with TikTok's reports: AppLog's {@code sig_hash} and the security SDK's callbacks,
  * which hand its native side the signing certificate and the install source.
  *
- * <p>Every one of TikTok's own reads of its certificate goes through one cached
- * {@code getPackageInfo} wrapper, which the patch answers from {@link #packageInfo}. The security
- * SDK's install source callback goes through {@link #installer} and {@link #originator}. What
- * TikTok's native code reads for itself, from the APK on disk, is out of reach here.
+ * <p>Every one of TikTok's own reads of its certificate goes through one {@code getPackageInfo}
+ * wrapper, which caches some flag combinations and which the patch answers from
+ * {@link #packageInfo}. Its reads of the installer go through {@link #installerFor} and, from
+ * Android 11, {@link StoreInstallSource}. What TikTok's native code reads for itself, from the
+ * APK on disk, is out of reach here.
+ *
+ * <p>Before Hushfeed has a context the setting can't be read, and every answer here is the
+ * real one.
  */
 @SuppressWarnings("unused")
 public final class StoreIdentity {
@@ -72,8 +74,7 @@ public final class StoreIdentity {
      */
     @Nullable
     public static PackageInfo packageInfo(PackageManager manager, String packageName, int flags) {
-        if ((flags & PackageManager.GET_SIGNATURES) == 0 || !Settings.STORE_IDENTITY.get()) return null;
-        if (packageName == null || !packageName.equals(ownPackage())) return null;
+        if ((flags & PackageManager.GET_SIGNATURES) == 0 || !answersFor(packageName)) return null;
         try {
             if (flags == PackageManager.GET_SIGNATURES) {
                 PackageInfo cached = signedOnly;
@@ -96,18 +97,20 @@ public final class StoreIdentity {
     /**
      * In place of {@link PackageManager#getInstallerPackageName(String)}: the Play Store for
      * TikTok's own package, and the real installer for anything else it asks about. The patch
-     * puts this in front of each call site.
+     * puts this in place of each call site, so anything else, and everything with the switch
+     * off, gets the real call with whatever it throws.
      */
     @Nullable
     public static String installerFor(PackageManager manager, String packageName) {
-        String actual;
-        try {
-            actual = manager.getInstallerPackageName(packageName);
-        } catch (Exception ex) {
-            actual = null;
-        }
-        if (!Settings.STORE_IDENTITY.get()) return actual;
-        return packageName != null && packageName.equals(ownPackage()) ? STORE : actual;
+        if (answersFor(packageName)) return STORE;
+        return manager.getInstallerPackageName(packageName);
+    }
+
+    /** Whether the switch is on and {@code packageName} is TikTok's own. */
+    static boolean answersFor(@Nullable String packageName) {
+        Context context = Utils.getContext();
+        if (context == null || packageName == null || !Settings.STORE_IDENTITY.get()) return false;
+        return packageName.equals(context.getPackageName());
     }
 
     static Signature[] signatures() {
@@ -117,17 +120,5 @@ public final class StoreIdentity {
             original = known;
         }
         return known.clone();
-    }
-
-    /** TikTok's package name, even before the extension has been handed a context. */
-    @Nullable
-    static String ownPackage() {
-        Context context = Utils.getContext();
-        if (context != null) return context.getPackageName();
-        if (Build.VERSION.SDK_INT < 28) return null;
-        String process = Application.getProcessName();
-        if (process == null) return null;
-        int colon = process.indexOf(':');
-        return colon < 0 ? process : process.substring(0, colon);
     }
 }

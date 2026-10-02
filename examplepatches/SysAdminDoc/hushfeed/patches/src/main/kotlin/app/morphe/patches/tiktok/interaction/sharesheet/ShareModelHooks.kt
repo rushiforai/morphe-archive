@@ -8,20 +8,15 @@ package app.morphe.patches.tiktok.interaction.sharesheet
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.util.addInstructions
-import app.morphe.util.addInstructionsWithLabels
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -34,11 +29,10 @@ private const val IM_CONTACT = "Lcom/ss/android/ugc/aweme/im/contacts/api/model/
 private const val BASE_CONTACT = "Lcom/ss/android/ugc/aweme/im/common/model/BaseContact;"
 private const val IM_CONVERSATION =
     "Lcom/ss/android/ugc/aweme/im/contacts/api/model/IMConversation;"
-private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 private const val SHARE_TOOLS = "Lapp/morphe/extension/tiktok/share/ShareSheetTools;"
 private const val BASE_SHARE_PACKAGE = "Lcom/ss/android/ugc/aweme/share/base/model/BaseSharePackage;"
 
-private object ShareSnapshotFingerprint : Fingerprint(
+internal object ShareSnapshotFingerprint : Fingerprint(
     strings = listOf("click_to_respond_duration", "config_duration"),
     custom = { method, _ -> method.name == "<init>" && method.parameterTypes.size == 1 },
 )
@@ -53,15 +47,6 @@ private object ShareRecipientBinderFingerprint : Fingerprint(
     parameters = listOf(VIEW_HOLDER, "I"),
     returnType = "V",
     custom = { method, _ -> method.isShareRecipientBinder() },
-)
-
-/**
- * The small native click branch that invokes a contact component's Function0. It is downstream
- * of View click dispatch, so touch, keyboard and accessibility all reach this one boundary.
- */
-private object ShareRecipientClickFingerprint : Fingerprint(
-    returnType = "V",
-    custom = { method, _ -> method.isShareRecipientClickDispatcher() },
 )
 
 context(patchContext: BytecodePatchContext)
@@ -124,10 +109,13 @@ internal fun MutableMethod.injectShareSurface(packageField: String) {
     )
 }
 
+/**
+ * Tells the extension each time a contact cell in the Send to row is bound, so it can run its
+ * hiding pass on a panel window the activity's layout listener doesn't see being built.
+ */
 context(patchContext: BytecodePatchContext)
-internal fun hookShareRecipientConfirmation() {
-    ShareRecipientBinderFingerprint.method.bindShareRecipient()
-    ShareRecipientClickFingerprint.method.interceptShareRecipientClick()
+internal fun hookShareContactBinds() {
+    ShareRecipientBinderFingerprint.method.notifyContactBound()
 }
 
 internal fun Method.isShareRecipientBinder(): Boolean {
@@ -164,105 +152,17 @@ internal fun Method.isShareRecipientBinder(): Boolean {
         )
 }
 
-/**
- * The native recipient click dispatcher in either of the shapes R8 has given it.
- *
- * <p>Up to 46.8.3 it is an outlined static body on the listener group, `(group, View, String)V`,
- * reading the captured component out of an `Object` field and casting it. 46.9.3 keeps it as an
- * ordinary `(View, String)V` on a listener class of its own whose component field is typed, so
- * the cast is gone and the body is five instructions instead of six. In both, p0 is the listener,
- * p1 the view and p2 the string, which is what the hook writes to, and the body is: read the
- * component, read its Function0, skip if null, invoke it, return.
- */
-internal fun Method.isShareRecipientClickDispatcher(): Boolean {
-    val static = AccessFlags.STATIC.isSet(accessFlags)
-    if (!AccessFlags.PUBLIC.isSet(accessFlags) || returnType != "V") return false
-    val expectedParameters = if (static) listOf(definingClass, ANDROID_VIEW, "Ljava/lang/String;")
-    else listOf(ANDROID_VIEW, "Ljava/lang/String;")
-    if (parameterTypes.map(CharSequence::toString) != expectedParameters) return false
-    val implementation = implementation ?: return false
-    val instructions = implementation.instructions.toList()
-    val cast = instructions.size == 6
-    val expectedOpcodes = if (cast) listOf(
-        Opcode.IGET_OBJECT, Opcode.CHECK_CAST, Opcode.IGET_OBJECT,
-        Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE, Opcode.RETURN_VOID,
-    ) else listOf(
-        Opcode.IGET_OBJECT, Opcode.IGET_OBJECT,
-        Opcode.IF_EQZ, Opcode.INVOKE_INTERFACE, Opcode.RETURN_VOID,
-    )
-    if (instructions.map { it.opcode } != expectedOpcodes) return false
-
-    val firstField = (instructions[0] as? ReferenceInstruction)?.reference as? FieldReference
-        ?: return false
-    val componentRead = instructions[0] as? TwoRegisterInstruction ?: return false
-    val component = componentRead.registerA
-    val componentType: String
-    val callbackAt: Int
-    if (cast) {
-        val componentCast = instructions[1] as? OneRegisterInstruction ?: return false
-        val castType = (instructions[1] as? ReferenceInstruction)?.reference as? TypeReference
-            ?: return false
-        if (firstField.type != "Ljava/lang/Object;" || componentCast.registerA != component) return false
-        componentType = castType.type
-        callbackAt = 2
-    } else {
-        componentType = firstField.type
-        callbackAt = 1
-    }
-    val callbackField = (instructions[callbackAt] as? ReferenceInstruction)?.reference as? FieldReference
-        ?: return false
-    val callbackRead = instructions[callbackAt] as? TwoRegisterInstruction ?: return false
-    val nullGuard = instructions[callbackAt + 1] as? OneRegisterInstruction ?: return false
-    val callbackCall = instructions[callbackAt + 2] as? FiveRegisterInstruction ?: return false
-    val callback = (instructions[callbackAt + 2] as? ReferenceInstruction)?.reference as? MethodReference
-        ?: return false
-    val self = implementation.registerCount - numberOfParameterRegisters
-    val callbackRegister = callbackRead.registerA
-    return componentRead.registerB == self && firstField.definingClass == definingClass &&
-        callbackRead.registerB == component && callbackField.definingClass == componentType &&
-        callbackField.type == FUNCTION0 && nullGuard.registerA == callbackRegister &&
-        callbackCall.registerCount == 1 && callbackCall.registerC == callbackRegister &&
-        callback.definingClass == FUNCTION0 && callback.name == "invoke" &&
-        callback.parameterTypes.none() && callback.returnType == "Ljava/lang/Object;"
-}
-
-internal fun MutableMethod.bindShareRecipient() {
+internal fun MutableMethod.notifyContactBound() {
     check(isShareRecipientBinder()) {
         "Share sheet: the recipient binder no longer has its verified native shape."
     }
-    val instructions = implementation!!.instructions.toList()
-    val holder = (instructions.first() as TwoRegisterInstruction).registerA
-    val castIndex = instructions.indexOfFirst { instruction ->
+    val castIndex = implementation!!.instructions.indexOfFirst { instruction ->
         instruction.opcode == Opcode.CHECK_CAST &&
             ((instruction as? ReferenceInstruction)?.reference as? TypeReference)?.type == IM_CONTACT
     }
-    val contact = (instructions[castIndex] as OneRegisterInstruction).registerA
-    check(holder != contact && holder < 16 && contact < 16) {
-        "Share sheet: recipient binder registers do not fit its model hook."
-    }
-    // Preserve any labels on the null check. A null model also reaches the extension so a
-    // recycled row cannot retain the previous recipient's identity.
-    addInstructionsAtControlFlowLabel(
-        castIndex + 1,
-        "invoke-static { v$holder, v$contact }, " +
-            "$SHARE_TOOLS->bindRecipient(Ljava/lang/Object;Ljava/lang/Object;)V",
-    )
-}
-
-internal fun MutableMethod.interceptShareRecipientClick() {
-    check(isShareRecipientClickDispatcher()) {
-        "Share sheet: the native recipient click dispatcher no longer has its verified shape."
-    }
-    addInstructionsWithLabels(
-        0,
-        """
-            invoke-static { p1 }, $SHARE_TOOLS->allowRecipientClick(Landroid/view/View;)Z
-            move-result p2
-            if-nez p2, :native_share_recipient_click
-            return-void
-        """,
-        ExternalLabel("native_share_recipient_click", getInstruction(0)),
-    )
+    // After the cast and on any labels of the null check that follows it, so a null model
+    // reaches the call too.
+    addInstructionsAtControlFlowLabel(castIndex + 1, "invoke-static {}, $SHARE_TOOLS->contactBound()V")
 }
 
 private fun Method.referencesMethod(

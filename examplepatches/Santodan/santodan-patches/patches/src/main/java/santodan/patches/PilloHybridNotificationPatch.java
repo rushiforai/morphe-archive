@@ -25,7 +25,7 @@ import kotlin.Unit;
 public final class PilloHybridNotificationPatch {
     public static final String NAME = "Pillo - Hybrid Lock-Screen Notifications";
     static final String PACKAGE = "xyz.rtrvr.pillo";
-    static final String VERSION = "0.6.19";
+    static final Set<String> VERSIONS = new LinkedHashSet<>(Arrays.asList("0.6.20", "0.6.19"));
     static final String TARGET = "Lxyz/rtrvr/pillo/alarm/process/StartAlarmProcess;";
     static final String ACTIVITY_UTIL = "Lxyz/rtrvr/pillo/utils/ActivityUtil;";
     static final String POWER_UTIL = "Lxyz/rtrvr/pillo/utils/PowerManagerUtil;";
@@ -45,13 +45,16 @@ public final class PilloHybridNotificationPatch {
                     ApkFileType.APK,
                     null,
                     null,
-                    Collections.singletonList(new AppTarget(VERSION, false, null)),
+                    Arrays.asList(
+                        new AppTarget("0.6.20", false, null),
+                        new AppTarget("0.6.19", false, null)
+                    ),
                     false
                 ));
                 builder.execute(context -> {
                     if (!PACKAGE.equals(context.getPackageMetadata().getPackageName())
-                        || !VERSION.equals(context.getPackageMetadata().getVersionName()))
-                        throw unsupported("Expected " + PACKAGE + " " + VERSION);
+                        || !VERSIONS.contains(context.getPackageMetadata().getVersionName()))
+                        throw unsupported("Expected " + PACKAGE + " version " + String.join(" or ", VERSIONS));
                     List<ClassDef> classes = new ArrayList<>();
                     context.classDefForEach(c -> { classes.add(c); return Unit.INSTANCE; });
                     if (classes.stream().noneMatch(c -> POWER_UTIL.equals(c.getType())))
@@ -81,7 +84,7 @@ public final class PilloHybridNotificationPatch {
 
     static IllegalStateException unsupported(String reason) {
         return new IllegalStateException("Unsupported Pillo bytecode: " + reason
-            + ". No fallback patch was applied. Use the original Pillo 0.6.19 APK.");
+            + ". No fallback patch was applied. Use the original Pillo 0.6.19 or 0.6.20 app bundle.");
     }
 
     static List<Instruction> instructions(Method method) {

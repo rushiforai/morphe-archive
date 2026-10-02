@@ -1,5 +1,5 @@
 {
-  "version": "0.2.6",
+  "version": "0.2.13",
   "patches": [
     "Fix install conflict with stock VK",
     "Bypass native signature check",
@@ -12,7 +12,7 @@
     "Block deep midroll ads",
     "Hide home showcase ads",
     "Disable video ad repository",
-    "Hide profile ad-free promo",
+    "Disable ad-free subscription promo",
     "Hide promoted banner content",
     "Disable ad pixel tracking"
   ]

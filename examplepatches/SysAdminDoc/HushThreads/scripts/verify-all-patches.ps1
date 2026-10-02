@@ -231,16 +231,16 @@ try {
             $registerReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-registers-$runId.txt") -Root $workRoot
             $global:LASTEXITCODE = 0
             & (Join-Path $PSScriptRoot 'verify-injected-registers.ps1') -CleanApk $stockApk -CleanMerged $patchInput `
-                -PatchedApk $out -ReportPath $registerReport -Java $Java -DesktopJar $DesktopJar -Aapt2 $Aapt2
+                -PatchedApk $out -ReportPath $registerReport -Java $Java -DesktopJar $DesktopJar -Aapt2 $Aapt2 -SelectedPatches $names
             $registerExitCode = $LASTEXITCODE
             Write-Host "[verify] register report: $registerReport"
             if ($registerExitCode -eq 0) {
                 Write-Host ('[verify] success: every requested patch applied to a valid APK whose manifest changes ' +
                     'are all approved, whose resource table holds every stock resource and whose injected code ' +
-                    'passes the structural checks.')
+                    'passes structural and selected feature contracts.')
                 $exitCode = 0
             } else {
-                Write-Warning "[verify] the injected code failed its structural checks (exit $registerExitCode)."
+                Write-Warning "[verify] the injected code failed its structural or feature contracts (exit $registerExitCode)."
             }
         } else {
             Write-Warning "[verify] the patched resource table failed its check against the stock one (exit $resourceExitCode)."

@@ -14,8 +14,26 @@ import app.morphe.util.addInstruction
 import app.morphe.util.addInstructionsWithLabels
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/privacy/StoreIdentity;"
+private const val INSTALL_SOURCE_EXTENSION = "Lapp/morphe/extension/tiktok/privacy/StoreInstallSource;"
+private const val PACKAGE_MANAGER = "Landroid/content/pm/PackageManager;"
+private const val INSTALL_SOURCE_INFO = "Landroid/content/pm/InstallSourceInfo;"
 private const val GET_INSTALLER =
-    "Landroid/content/pm/PackageManager;->getInstallerPackageName(Ljava/lang/String;)Ljava/lang/String;"
+    "$PACKAGE_MANAGER->getInstallerPackageName(Ljava/lang/String;)Ljava/lang/String;"
+
+/**
+ * The Android 11 install source reads, each to the extension method that stands in for it. TikTok
+ * asks for the install source first and reads these three off it; nothing else on it is read.
+ */
+internal val INSTALL_SOURCE_READS = mapOf(
+    "$PACKAGE_MANAGER->getInstallSourceInfo(Ljava/lang/String;)$INSTALL_SOURCE_INFO" to
+        "$INSTALL_SOURCE_EXTENSION->sourceFor(${PACKAGE_MANAGER}Ljava/lang/String;)$INSTALL_SOURCE_INFO",
+    "$INSTALL_SOURCE_INFO->getInstallingPackageName()Ljava/lang/String;" to
+        "$INSTALL_SOURCE_EXTENSION->installingOf($INSTALL_SOURCE_INFO)Ljava/lang/String;",
+    "$INSTALL_SOURCE_INFO->getInitiatingPackageName()Ljava/lang/String;" to
+        "$INSTALL_SOURCE_EXTENSION->initiatingOf($INSTALL_SOURCE_INFO)Ljava/lang/String;",
+    "$INSTALL_SOURCE_INFO->getOriginatingPackageName()Ljava/lang/String;" to
+        "$INSTALL_SOURCE_EXTENSION->originatingOf($INSTALL_SOURCE_INFO)Ljava/lang/String;",
+)
 
 @Suppress("unused")
 val storeIdentityPatch = bytecodePatch(
@@ -60,8 +78,13 @@ val storeIdentityPatch = bytecodePatch(
         replaceSites(
             sites,
             sites.associate {
-                it.target to "$EXTENSION->installerFor(Landroid/content/pm/PackageManager;Ljava/lang/String;)Ljava/lang/String;"
+                it.target to "$EXTENSION->installerFor(${PACKAGE_MANAGER}Ljava/lang/String;)Ljava/lang/String;"
             },
         )
+
+        // From Android 11 TikTok reads the install source instead, and only falls back to the call
+        // above. The install source itself comes back real and the three reads off it answer.
+        val sourceSites = invokeSitesOf(INSTALL_SOURCE_READS.keys)
+        replaceSites(sourceSites, sourceSites.associate { it.target to INSTALL_SOURCE_READS.getValue(it.target) })
     }
 }

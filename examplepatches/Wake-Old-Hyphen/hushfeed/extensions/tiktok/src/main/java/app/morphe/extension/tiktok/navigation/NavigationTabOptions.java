@@ -24,7 +24,8 @@ public final class NavigationTabOptions {
 
     public static final TabOption[] OPTIONS = {
             new TabOption(HOT, "For You"),
-            new TabOption(EXPLORE, "Explore"),
+            // TikTok renames Explore to Community on some accounts; the tag stays the same (#62).
+            new TabOption(EXPLORE, "Explore or Community"),
             new TabOption(FOLLOWING, "Following"),
             new TabOption(MALL, "Shop"),
             new TabOption(NEARBY, "Nearby"),

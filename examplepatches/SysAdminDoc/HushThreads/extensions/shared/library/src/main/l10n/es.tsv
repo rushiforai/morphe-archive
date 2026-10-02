@@ -67,7 +67,11 @@ The app holding the last settings file still hasn't answered. Try again later.	L
 The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	La app que guarda el archivo de configuración tarda demasiado, así que HushThreads dejó de esperar. Esa app aún puede terminar de guardarlo, así que revisa el archivo antes de confiar en él.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	No se pudo eliminar el archivo %1$s. Bórralo de %2$s y luego vuelve a tocar Reanudar.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	El archivo de configuración se guardó, pero al volver a leerlo no coincide con lo que se escribió. Guárdalo de nuevo como un archivo nuevo.
-The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.	Los registros de uso y de eventos que Threads envía a Meta van a una dirección que no responde. Tu feed, tus publicaciones y tus respuestas funcionan como antes.
+Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.	Las direcciones de análisis detectadas se redirigen a una dirección que no responde. Puede quedar otra telemetría. Desactiva esto para usar las direcciones originales.
+Analytics address coverage	Cobertura de direcciones de análisis
+Patched: %1$s. Missing: %2$s.	Modificadas: %1$s. Faltantes: %2$s.
+Coverage wasn't recorded in this build. Patch again to see the matched address kinds.	La cobertura no se registró en esta compilación. Vuelve a aplicar los parches para ver los tipos de direcciones detectados.
+none	ninguna
 Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads no puede leer el ID de publicidad de tu teléfono. El permiso para ello ya no está en esta versión.
 Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Tres veces seguidas, Threads falló o se congeló durante el primer minuto tras iniciarse, así que HushThreads se pausó solo.
 Threads' web addresses are selected for this app in Android's settings, so their links open here.	Las direcciones web de Threads están seleccionadas para esta app en los ajustes de Android, así que sus enlaces se abren aquí.

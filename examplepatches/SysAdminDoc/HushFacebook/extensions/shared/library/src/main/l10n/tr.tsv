@@ -11,7 +11,7 @@
 %1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Yamaladığında ayarlandıkları için Duraklatma bunları kapatamaz. Birini elemek için yeniden yamala ve onun ardından parantez içinde yazan yamayı dışarıda bırak.
 A change here applies after Facebook restarts.	Buradaki bir değişiklik Facebook yeniden başladıktan sonra geçerli olur.
 A diagnostic report is already being saved.	Bir tanılama raporu zaten kaydediliyor.
-Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return.	Reels’e indirme kalitenizle İndir düğmesi ekler. Kapalı veya duraklatılmışken Facebook’un kendi düğmeleri geri gelir.
+Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return.	Reels'e indirme kalitenizle İndir düğmesi ekler. Kapalı veya duraklatılmışken Facebook'un kendi düğmeleri geri gelir.
 A file named %1$s in %2$s paused Hushfacebook.	%2$s içindeki %1$s adlı bir dosya Hushfacebook'u duraklattı.
 About	Hakkında
 Ad cards between the stories people posted.	İnsanların paylaştığı hikayeler arasındaki reklam kartları.
@@ -73,8 +73,12 @@ The app holding the settings file is taking too long, so Hushfacebook stopped wa
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	%1$s dosyası kaldırılamadı. Onu %2$s içinden sil, sonra yeniden Devam et'e dokun.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Ayar dosyası kaydedildi, ancak geri okunduğunda yazılanla aynı değil. Yeni bir dosya olarak tekrar kaydet.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Devam ettirene kadar Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır.
-Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.	Telefonunuzun emojilerini kullanır. İfadeler ve çıkartmalar aynı kalır. Değiştirdikten sonra Facebook’u yeniden başlatın.
-Use your phone's font or a file chosen below. Restart Facebook after changing it.	Telefonunuzun yazı tipini veya aşağıdan seçilen dosyayı kullanır. Değiştirdikten sonra Facebook’u yeniden başlatın.
+Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.	Telefonunuzun emojilerini kullanır. İfadeler ve çıkartmalar aynı kalır. Değiştirdikten sonra Facebook'u yeniden başlatın.
+# context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
+Tab bar at the bottom	Sekme çubuğu altta
+# context: description of that switch; Facebook shows the tab bar at the top of the screen on some accounts and at the bottom on others
+Put Facebook's tab bar at the bottom of the screen on accounts that have it at the top. Restart Facebook after changing it.	Facebook'un sekme çubuğunu, onu üstte gösteren hesaplarda ekranın altına taşır. Değiştirdikten sonra Facebook'u yeniden başlatın.
+Use your phone's font or a file chosen below. Restart Facebook after changing it.	Telefonunuzun yazı tipini veya aşağıdan seçilen dosyayı kullanır. Değiştirdikten sonra Facebook'u yeniden başlatın.
 Font file	Yazı tipi dosyası
 Use your phone's font	Telefonun yazı tipini kullan
 Stops using the font file and goes back to your phone's font.	Yazı tipi dosyasını bırakır ve telefonunun yazı tipine geri döner.
@@ -168,7 +172,7 @@ Saved. Restart Facebook to apply this change.	Kaydedildi. Bu değişikliği uygu
 Save your switches and download settings to a file. Pause and Debug logging aren't included, and neither is the release check.	Anahtarlarını ve indirme ayarlarını bir dosyaya kaydet. Duraklatma ve Hata ayıklama günlüğü dahil edilmez, sürüm denetimi de edilmez.
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new Hushfacebook releases	Yeni Hushfacebook sürümlerini denetle
-Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.	Başlangıçta günde bir kez GitHub’ı kontrol eder ve yeni sürümleri genel bakışta gösterir. Varsayılan olarak kapalıdır. Hiçbir şey indirilmez.
+Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.	Başlangıçta günde bir kez GitHub'ı kontrol eder ve yeni sürümleri genel bakışta gösterir. Varsayılan olarak kapalıdır. Hiçbir şey indirilmez.
 Check now	Şimdi denetle
 Asks GitHub for the newest release right now, even with the switch above off.	Yukarıdaki anahtar kapalı olsa bile GitHub'a en yeni sürümü hemen sorar.
 Checking GitHub now.	GitHub şu anda denetleniyor.
@@ -216,7 +220,7 @@ the re-signed build fix	yeniden imzalanmış sürüm düzeltmesi
 the start-up fix for x86 devices	x86 cihazlar için açılış düzeltmesi
 the recoloured dark mode	yeniden renklendirilmiş karanlık mod
 The row of friend suggestions between posts, and the one on your own profile.	Gönderilerin arasındaki arkadaş önerileri satırı ve kendi profilindeki satır.
-The row of stories at the top of the feed, Create story included.	Akışın en üstündeki hikaye şeridi, “Hikaye oluştur” da dahil.
+The row of stories at the top of the feed, Create story included, and the rows of stories between posts.	Akışın en üstündeki hikaye şeridi, “Hikaye oluştur” da dahil, ve gönderilerin arasındaki hikaye sıraları.
 The rows of reels between posts, and the reels Facebook adds where your feed ends.	Gönderilerin arasındaki Reels sıraları ve Facebook'un akışının bittiği yere eklediği Reels videoları.
 The setting couldn't finish updating. Its saved value is shown.	Ayarın güncellenmesi tamamlanamadı. Kayıtlı değeri gösteriliyor.
 There's no diagnostic data to clear.	Temizlenecek tanılama verisi yok.
@@ -278,7 +282,7 @@ Stop update prompts	Güncelleme uyarılarını durdur
 Facebook stops asking you to update through Meta App Manager and stops having it look for one. Chat promotions aimed at older versions go too. A patched build can't install Meta's updates anyway.	Facebook, Meta App Manager üzerinden güncelleme istemeyi ve ona güncelleme aratmayı bırakır. Eski sürümlere yönelik sohbet tanıtımları da kalkar. Yamalı bir sürüm zaten Meta'nın güncellemelerini yükleyemez.
 Reels and Watch videos that Facebook's own detection marks as made with AI, starting with the next batch Facebook loads. One that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real account yet.	Facebook'un kendi tespitinin yapay zekâ ile üretildiğini işaretlediği reels ve Watch videoları, Facebook'un yüklediği bir sonraki gruptan itibaren. Yalnızca oluşturan kişinin yapay zekâ olarak etiketlediği bir video kalır. Bu anahtar henüz gerçek bir hesapla test edilmediği için varsayılan olarak kapalıdır.
 Don't send reel watch history	Reels izleme geçmişini gönderme
-Stop sending watched-reel lists to Facebook. It uses them to rank your feed, so watched reels may return.	İzlenen Reels listelerini Facebook’a göndermeyi durdurur. Listeler akışı sıraladığından izlenen Reels tekrar görünebilir.
+Stop sending watched-reel lists to Facebook. It uses them to rank your feed, so watched reels may return.	İzlenen Reels listelerini Facebook'a göndermeyi durdurur. Listeler akışı sıraladığından izlenen Reels tekrar görünebilir.
 the rename of the shared permissions	paylaşılan izinlerin yeniden adlandırılması
 Room for Meta's apps	Meta uygulamalarına yer
 Messenger, Facebook Lite, Business Suite and Workplace install beside this Facebook. It gives the two permissions they share with it names of its own.	Messenger, Facebook Lite, Business Suite ve Workplace bu Facebook'un yanına yüklenebilir. Onlarla paylaştığı iki izne kendi adlarını verir.
@@ -322,7 +326,7 @@ Playback	Oynatma
 # context: switch title; on, videos and music wait for a tap before they play
 Tap to play	Oynatmak için dokun
 # context: summary of that switch; Autoplay and Off are the name and value of Facebook's own setting, as Facebook shows them in this language
-Videos, reels, stories and music wait for your tap. Facebook's Autoplay setting temporarily reads Off.	Videolar, Reels, hikayeler ve müzik dokunmanızı bekler. Facebook’un Otomatik Oynatma ayarı geçici olarak Kapalı görünür.
+Videos, reels, stories and music wait for your tap. Facebook's Autoplay setting temporarily reads Off.	Videolar, Reels, hikayeler ve müzik dokunmanızı bekler. Facebook'un Otomatik Oynatma ayarı geçici olarak Kapalı görünür.
 # context: switch title under Opening Facebook; Marketplace is Facebook's tab and keeps its name
 Marketplace only	Yalnızca Marketplace
 # context: summary of that switch; the tab names are Facebook's own, as its tab bar shows them
@@ -467,7 +471,7 @@ Writing	Yazma
 # context: switch title under Writing; @ is the at sign that starts a mention and stays as it is
 Tag suggestions only after @	Etiket önerileri yalnızca @ sonrasında
 # context: summary of that switch; the list is Facebook's list of people to tag, and @ stays as it is
-Type @ before Facebook suggests someone to tag in posts or comments. Your text stays unchanged.	Facebook’un gönderi ve yorumlarda etiketlenecek kişi önermesi için @ yazın. Metniniz değişmez.
+Type @ before Facebook suggests someone to tag in posts or comments. Your text stays unchanged.	Facebook'un gönderi ve yorumlarda etiketlenecek kişi önermesi için @ yazın. Metniniz değişmez.
 # context: switch title under Playback; on, a long video you left partway starts again where you left it
 Resume long videos	Uzun videolara kaldığın yerden devam et
 # context: summary of that switch; the seek bar is the bar under a video you drag to move through it; Reels is Facebook's name for its short videos
@@ -617,6 +621,18 @@ Open the setting	Ayarı aç
 Hide post prompts	Gönderi altındaki soruları gizle
 # context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
 The strip on some posts, like "Are you interested in this post?", "Show less" or who recently commented, and the follow and chat suggestions in the same place. The post stays.	Bazı gönderilerdeki şerit, örneğin “Bu gönderiyle ilgileniyor musun?”, “Daha az göster” veya kimin az önce yorum yaptığı, ve aynı yerdeki takip ve sohbet önerileri. Gönderi kalır.
+# context: switch title under News feed; Meta AI is the name of Meta's assistant, and the questions are the row of suggested questions for it that Facebook puts under some posts
+Hide Meta AI questions under posts	Gönderilerin altındaki Meta AI sorularını gizle
+# context: description of that switch; a link card is the preview of a shared link inside a post
+The row of Meta AI questions under some posts. The post, its link card and its buttons stay.	Bazı gönderilerin altındaki Meta AI soruları satırı. Gönderi, bağlantı kartı ve düğmeleri kalır.
+# context: switch title under News feed; it keeps the date shown under the name of whoever posted
+Keep post dates	Gönderi tarihlerini koru
+# context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
+The line under the poster's name keeps the post's date instead of Facebook's rotating details, which go blank on some phones.	Paylaşan kişinin adının altındaki satır, Facebook'un sırayla gösterdiği ayrıntılar yerine gönderinin tarihini gösterir. Bu ayrıntılar bazı telefonlarda boş kalır.
+# context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
+Hide the Feeds header	Akışlar başlığını gizle
+# context: description of that switch; the Feeds tab is where Facebook lists posts by those filters, and the title row is the one with the tab's name
+Open the Feeds tab on its posts, without the title row or the filters under it. Restart Facebook after changing it.	Akışlar sekmesini başlık satırı ve altındaki filtreler olmadan, doğrudan gönderilerle açar. Değiştirdikten sonra Facebook'u yeniden başlatın.
 # context: switch title under Reels and Watch; the prompt is Facebook's "Are you interested in this reel?" question on a reel
 Hide reel interest prompts	Reels'teki ilgi sorusunu gizle
 # context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it

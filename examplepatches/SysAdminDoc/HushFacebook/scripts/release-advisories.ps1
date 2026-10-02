@@ -274,7 +274,8 @@ function Test-AdvisoryFindings {
     #>
     param(
         [object[]]$Findings = @(),
-        [object[]]$Exceptions = @()
+        [object[]]$Exceptions = @(),
+        [switch]$Tooling
     )
 
     $findingsIn = @(@($Findings) | Where-Object { $null -ne $_ })
@@ -296,11 +297,19 @@ function Test-AdvisoryFindings {
         $aliases = if (@($finding.Aliases).Count -gt 0) { ", $(@($finding.Aliases) -join ', ')" } else { '' }
         $described = ("$($finding.Advisory) ($($finding.Severity.Level)$aliases) in $($finding.Package) " +
             "$($finding.Version): $($finding.Summary)")
-        if (-not $finding.Severity.Serious) {
+        $current = @($matching | Where-Object { -not $_.Expired })
+        $lapsed = @($matching | Where-Object { $_.Expired })
+        if ($Tooling -and $lapsed.Count -gt 0) {
+            $refused.Add("$described; its reachability exception expired on $($lapsed[0].Until.ToString('yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture))")
+            continue
+        }
+        # The vendor rates Guava Moderate. Requiring its review is a tooling policy, not a
+        # change to the advisory's severity or a claim about Facebook's shipped payload.
+        $vendorReview = $Tooling -and 'GHSA-xxph-c9ww-hj94' -in $names
+        if (-not $finding.Severity.Serious -and -not $vendorReview) {
             $minor.Add("$described; $($finding.Severity.Why)")
             continue
         }
-        $current = @($matching | Where-Object { -not $_.Expired })
         if ($current.Count -gt 0) {
             $excused.Add("$described; accepted until $($current[0].Until.ToString('yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)): $($current[0].Reason)")
             continue
@@ -321,13 +330,22 @@ function Test-AdvisoryFindings {
 
     $reasons = @()
     if ($refused.Count -gt 0) {
-        $reasons += ('OSV reports high or critical advisories for what the bundle carries: ' + ($refused -join '; ') +
-            '. Move to a version without them, or accept one in scripts/advisory-exceptions.txt with the reason ' +
-            'it does not apply and a date within 90 days.')
+        if ($Tooling) {
+            $reasons += ('Tooling advisories require remediation or a current reachability review: ' + ($refused -join '; ') +
+                '. Use scripts/tooling-advisory-exceptions.txt with an applicability reason and a date within 90 days.')
+        } else {
+            $reasons += ('OSV reports high or critical advisories for what the bundle carries: ' + ($refused -join '; ') +
+                '. Move to a version without them, or accept one in scripts/advisory-exceptions.txt with the reason ' +
+                'it does not apply and a date within 90 days.')
+        }
     }
     if ($stale.Count -gt 0) {
-        $reasons += ('scripts/advisory-exceptions.txt accepts advisories OSV no longer reports for what the bundle ' +
-            'carries: ' + ($stale -join '; ') + '. Take them out.')
+        if ($Tooling) {
+            $reasons += ('scripts/tooling-advisory-exceptions.txt accepts advisories no longer reported in this audit: ' + ($stale -join '; ') + '. Take them out.')
+        } else {
+            $reasons += ('scripts/advisory-exceptions.txt accepts advisories OSV no longer reports for what the bundle ' +
+                'carries: ' + ($stale -join '; ') + '. Take them out.')
+        }
     }
     return [pscustomobject]@{
         Valid   = $reasons.Count -eq 0
@@ -337,6 +355,72 @@ function Test-AdvisoryFindings {
         Minor   = $minor.ToArray()
         Stale   = $stale.ToArray()
     }
+}
+
+function Get-ToolingAdvisories {
+    <# The Guava vendor advisory is retained even when OSV returns no match. Findings merge
+       scopes by advisory and full coordinate, preserving different versions and editions. #>
+    param([Parameter(Mandatory = $true)]$Tooling)
+
+    $byPurl = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
+    foreach ($library in @($Tooling.Libraries)) { $byPurl[$library.Purl] = $library }
+    $all = New-Object System.Collections.Generic.List[object]
+    foreach ($finding in @(Get-SbomAdvisories -Sbom $Tooling)) { $all.Add($finding) }
+    foreach ($library in @($Tooling.Libraries)) {
+        if ($library.Group -cne 'com.google.guava' -or $library.Name -cne 'guava') { continue }
+        $version = $null
+        $comparable = [version]::TryParse(($library.Version -replace '-(jre|android)$', ''), [ref]$version)
+        if ($comparable -and ($version -lt [version]'4.0' -or $version -ge [version]'33.7.2')) { continue }
+        $severity = if ($comparable) {
+            [pscustomobject]@{ Level = 'MODERATE'; Serious = $false
+                Why = 'The Guava vendor rates GHSA-xxph-c9ww-hj94 Moderate (CVSS 3.1 5.9); tooling policy requires a reachability review' }
+        } else {
+            [pscustomobject]@{ Level = 'UNRATED'; Serious = $true
+                Why = 'This Guava version cannot be compared with the published affected range' }
+        }
+        $all.Add([pscustomobject]@{ Package = 'com.google.guava:guava'; Version = $library.Version
+            Purl = $library.Purl; Advisory = 'GHSA-xxph-c9ww-hj94'; Aliases = @('CVE-2026-102554')
+            Summary = 'Guava vendor denial-of-service advisory (4.0 through 33.7.1, both editions)'; Severity = $severity })
+    }
+    $merged = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
+    $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; HIGH = 3; CRITICAL = 4; UNRATED = 5 }
+    foreach ($finding in $all) {
+        $library = $byPurl[$finding.Purl]
+        $names = @($finding.Advisory) + @($finding.Aliases)
+        $id = if ('GHSA-xxph-c9ww-hj94' -in $names) { 'GHSA-xxph-c9ww-hj94' } else { $finding.Advisory }
+        $key = "$($library.Group):$($library.Name):$($library.Version)|$id"
+        if (-not $merged.ContainsKey($key)) {
+            $merged[$key] = [pscustomobject]@{ Package = $finding.Package; Version = $finding.Version
+                Purl = $finding.Purl; Advisory = $id; Aliases = @($names | Where-Object { $_ -and $_ -cne $id } | Sort-Object -Unique)
+                Summary = $finding.Summary; Severity = $finding.Severity; Scopes = @($library.Scopes | Sort-Object -Unique) }
+        } else {
+            $entry = $merged[$key]
+            $entry.Aliases = @((@($entry.Aliases) + $names) | Where-Object { $_ -and $_ -cne $id } | Sort-Object -Unique)
+            if ($rank[$finding.Severity.Level] -gt $rank[$entry.Severity.Level]) { $entry.Severity = $finding.Severity }
+        }
+    }
+    return @($merged.Keys | Sort-Object | ForEach-Object { $merged[$_] })
+}
+
+function Invoke-ToolingAdvisoryGate {
+    param(
+        [Parameter(Mandatory = $true)]$Tooling,
+        [Parameter(Mandatory = $true)][string]$ExceptionsPath,
+        [switch]$SkipAdvisoryCheck,
+        [datetime]$Today = [datetime]::Today
+    )
+    $exceptions = @(Read-AdvisoryExceptions -Path $ExceptionsPath -Today $Today)
+    if ($SkipAdvisoryCheck) {
+        Write-Warning '-SkipAdvisoryCheck: tooling advisories were not checked. This receipt cannot authorize publication.'
+        return 'skipped'
+    }
+    $findings = @(Get-ToolingAdvisories -Tooling $Tooling)
+    $verdict = Test-AdvisoryFindings -Findings $findings -Exceptions $exceptions -Tooling
+    foreach ($line in @($verdict.Minor)) { Write-Host "[tooling advisories] below high: $line" }
+    foreach ($line in @($verdict.Excused)) { Write-Host "[tooling advisories] accepted: $line" }
+    if (-not $verdict.Valid) { throw $verdict.Reason }
+    Write-Host "[tooling advisories] checked $(@($Tooling.Libraries).Count) coordinates across $(@($Tooling.Scopes).Count) scopes; no refused advisory"
+    return 'checked'
 }
 
 function Invoke-ReleaseAdvisoryGate {

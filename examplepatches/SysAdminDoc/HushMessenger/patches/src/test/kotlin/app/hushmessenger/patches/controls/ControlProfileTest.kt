@@ -24,8 +24,8 @@ class ControlProfileTest {
                 assertEquals(BASE_PROFILE.hooks.getValue(key).size, profile.hooks.getValue(key).size, key)
             }
         }
-        assertEquals(89, PROFILE_346013370.hooks.values.sumOf { it.size })
-        assertEquals(89, PROFILE_346013423.hooks.values.sumOf { it.size })
+        assertEquals(90, PROFILE_346013370.hooks.values.sumOf { it.size })
+        assertEquals(90, PROFILE_346013423.hooks.values.sumOf { it.size })
     }
 
     @Test fun theVersionCodePicksTheProfile() {

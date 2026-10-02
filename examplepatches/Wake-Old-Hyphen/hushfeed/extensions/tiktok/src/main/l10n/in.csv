@@ -68,7 +68,6 @@ A field value couldn't be read. Check the values and try again.,Nilai kolom tida
 "A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.","Host pengganti tiktok.com saat kamu membagikan atau menyalin tautan, misalnya vxtiktok.com. Kosongkan untuk membagikan tautan TikTok sendiri. Hanya tautan TikTok yang diubah, dan hanya bagian host-nya, tidak ada yang dikirim ke mana pun."
 "A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.",Label kecil di feed menunjukkan menit atau video yang tersisa dari anggaran hari ini.
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.,Mengetuk Beranda atau tab Untuk Kamu saat Untuk Kamu sedang tampil tidak lagi memuat ulang feed. Video yang sedang kamu tonton tetap.
-A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.,Satu ketukan pada orang di baris Kirim ke hanya memilihnya. Ketukan kedua pada orang yang sama dalam %1$d detik mengirim videonya.
 A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.,Video yang kamu jeda tetap dijeda saat kamu kembali ke aplikasi alih-alih diputar lagi. Video yang kamu tinggalkan saat diputar mulai seperti biasa. Berfungsi mulai Android 10.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.,"Alamat web yang ditulis seseorang di komentar bisa diketuk, bukan disalin manual. Mengetuk bagian lain dari komentar tetap seperti sebelumnya."
 AI-generated posts,Kiriman buatan AI
@@ -81,6 +80,7 @@ Added to this account.,Ditambahkan ke akun ini.
 Caption languages,Bahasa takarir
 "Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds, countries and caption languages, and seen videos still apply.","Nama akun atau id pengguna yang dipisahkan koma. Video mereka tetap ada bila hanya filter jenis postingan, label, umur, durasi, atau jumlahnya yang akan menyembunyikannya. Iklan, kreator, kata, suara, negara, dan bahasa takarir yang diblokir, serta video yang sudah ditonton tetap berlaku."
 "Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.","Kode bahasa yang dipisahkan koma, seperti en, es. Video yang takarir aslinya dalam bahasa lain disembunyikan. Video tanpa takarir, atau hanya dengan takarir terjemahan, selalu tetap ada."
+"Comma separated names exactly as the row under a profile's bio shows them, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Nama dipisahkan koma, persis seperti yang ditampilkan baris di bawah bio profil, seperti TikTok Studio atau Pesananmu. Mulai ulang TikTok agar berlaku."
 Couldn't add the older seen videos. Try again.,Tidak dapat menambahkan video lama yang dilihat. Coba lagi.
 Couldn't copy the report. Use Save report instead.,Laporan tidak bisa disalin. Gunakan Simpan laporan.
 Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.,Tidak bisa membaca nilai TikTok saat ini (%1$s). Perbarui nilai dari menu untuk mencoba lagi.
@@ -91,21 +91,27 @@ Forget the %1$s videos @%2$s has seen.,Lupakan %1$s video yang telah dilihat @%2
 Forget the seen video.,Lupakan video yang telah dilihat.
 Forget the video @%2$s has seen.,Lupakan video yang telah dilihat @%2$s.
 Got it,Mengerti
+Hide profile shortcuts,Sembunyikan pintasan profil
+Hide profile shortcuts by name,Sembunyikan pintasan profil berdasarkan nama
 Hide the status bar in LIVE rooms,Sembunyikan bilah status di ruang LIVE
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.,Berapa banyak video yang kamu tonton sebelum video itu disembunyikan lain kali. Nol menghitungnya setelah beberapa detik.
 Later,Nanti
 Let a LIVE fill the screen up to the top edge. The status bar comes back when you leave the LIVE. Swipe down from the top to peek at it.,Biarkan LIVE memenuhi layar sampai tepi atas. Bilah status kembali saat kamu keluar dari LIVE. Geser ke bawah dari atas untuk melihatnya sebentar.
 Loading the gate list and TikTok's current values…,Memuat daftar gate dan nilai TikTok saat ini…
 New value,Nilai baru
+No profile shortcuts have been seen yet,Belum ada pintasan profil yang terlihat
 One video was recorded before each account kept its own list. It hides nothing until you add it here.,Satu video direkam sebelum setiap akun punya daftarnya sendiri. Video itu tidak menyembunyikan apa pun sampai kamu menambahkannya di sini.
 Only these caption languages,Hanya bahasa takarir ini
+"Open your profile once, then return here to choose its shortcuts.","Buka profilmu sekali, lalu kembali ke sini untuk memilih pintasannya."
 "Photos can't be saved to the folder in that file, so your photo folder was kept","Foto tidak bisa disimpan ke folder di file itu, jadi folder fotomu tetap dipakai"
+"Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Pilih pintasan yang dihapus dari baris di bawah bio profil, seperti TikTok Studio atau Pesananmu. Mulai ulang TikTok agar berlaku."
 Preview shortened. Save report keeps the full report.,Pratinjau dipersingkat. Simpan laporan menyimpan laporan lengkap.
 Refreshing TikTok's current values…,Memperbarui nilai TikTok saat ini…
 Restart TikTok to apply this,Mulai ulang TikTok agar berlaku
 Save report,Simpan laporan
 Stay on the video in full screen,Tetap di video saat layar penuh
 "Stickers can't be saved to the folder in that file, so your sticker folder was kept","Stiker tidak bisa disimpan ke folder di file itu, jadi folder stikermu tetap dipakai"
+Stop TikTok's benchmark runs,Hentikan uji benchmark TikTok
 "That creator pattern could stall the feed, so it was skipped: %1$s","Pola kreator itu bisa membuat feed macet, jadi dilewati: %1$s"
 "That creator pattern could stall the feed, so it wasn't added: %1$s","Pola kreator itu bisa membuat feed macet, jadi tidak ditambahkan: %1$s"
 "This key isn't in Hushfeed's list, so its type can't be checked. Reset the override.","Kunci ini tidak ada di daftar Hushfeed, jadi jenisnya tidak bisa diperiksa. Setel ulang penggantian."
@@ -116,6 +122,7 @@ Add,Tambah
 "Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts.","Blokir kreator dengan satu ketukan. Setelah TikTok mengonfirmasi, lanjut ke video berikutnya. Tombol Buka blokir kecil muncul di kiri atas selama dua detik. Kamu juga bisa membuka blokir nanti di Privasi > Akun yang diblokir di TikTok."
 No app on this phone opens that file,Tidak ada aplikasi di ponsel ini yang bisa membuka file itu
 Open,Buka
+"TikTok sometimes tests how fast your phone is in a background process of its own, which can hold a lot of memory. This keeps that process from starting. One that's already running stops when TikTok restarts.","TikTok kadang menguji kecepatan ponselmu di proses latar belakangnya sendiri, yang bisa memakai banyak memori. Ini mencegah proses itu dimulai. Proses yang sudah berjalan berhenti saat TikTok dimulai ulang."
 Try a different word or clear the search. Switches from patches you didn't tick in Morphe Manager aren't listed.,Coba kata lain atau hapus pencarian. Sakelar dari patch yang tidak kamu centang di Morphe Manager tidak muncul.
 Unblock,Buka blokir
 Add a button beside the block control to send feedback about the current video.,Tambahkan tombol di samping kontrol blokir untuk mengirim masukan tentang video ini.
@@ -261,7 +268,6 @@ Confirm before following,Konfirmasi sebelum mengikuti
 Confirm before liking,Konfirmasi sebelum menyukai
 Confirm before liking a comment,Konfirmasi sebelum menyukai komentar
 Confirm before liking a story,Konfirmasi sebelum menyukai Story
-Confirm before sending to a friend,Konfirmasi sebelum mengirim ke teman
 Continue supported videos from where you stopped when you scroll back to them.,Lanjutkan video yang didukung dari titik terakhir saat kamu menggulir kembali ke video itu.
 Controls,Kontrol
 Feature gate report copied,Laporan gate disalin
@@ -368,7 +374,7 @@ Entry %1$d has a field with the wrong data type.,Entri %1$d memiliki kolom denga
 Entry %1$d isn't an object.,Entri %1$d bukan objek.
 Errors,Kesalahan
 Expand activity list,Bentangkan daftar aktivitas
-Explore,Jelajahi
+Explore or Community,Jelajahi atau Komunitas
 Export diagnostic report,Ekspor laporan diagnostik
 Export loaded values,Ekspor nilai yang dimuat
 Exported %1$d loaded values,%1$d nilai yang dimuat diekspor
@@ -985,14 +991,12 @@ Subtitles,Subtitel
 System,Sistem
 Feed tabs to keep,Tab feed yang dipertahankan
 Hide the streak button in a chat and the reminder message that goes with it.,Sembunyikan tombol rentetan di obrolan beserta pesan pengingatnya.
-Tap %1$s again to send,Ketuk %1$s lagi untuk mengirim
 Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.,Ketuk ikon hati komentar dua kali dalam %1$d detik. Ketuk dua kali pada komentar juga perlu diulang. Membatalkan suka tetap langsung berlaku.
 Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.,Ketuk ikon hati Story dua kali dalam %1$d detik. Membatalkan suka tetap langsung berlaku.
 Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.,Ketuk Repost di bilah bawah video dua kali dalam %1$d detik. Repost dengan catatan dibiarkan.
 Tap again to follow,Ketuk lagi untuk mengikuti
 Tap again to like,Ketuk lagi untuk menyukai
 Tap again to repost,Ketuk lagi untuk me-repost
-Tap again to send,Ketuk lagi untuk mengirim
 Tap the feed Follow button twice within %1$d seconds.,Ketuk tombol Ikuti di feed dua kali dalam %1$d detik.
 Tap the like heart twice within %1$d seconds. Removing a like stays immediate.,Ketuk ikon hati dua kali dalam %1$d detik. Membatalkan suka tetap langsung berlaku.
 Tap to start the feed,Ketuk untuk memulai feed
@@ -1429,3 +1433,29 @@ Found %1$s in your chats.,%1$s ditemukan di obrolanmu.
 App checks,Pemeriksaan aplikasi
 Look like the store app to TikTok's checks,Tampak seperti aplikasi dari toko bagi pemeriksaan TikTok
 "Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.","Menjawab pemeriksaan TikTok sendiri tentang cara ia ditandatangani dan dipasang seperti yang dilakukan aplikasi Play Store. Untuk follow atau suka yang batal sendiri saat disegarkan. TikTok juga bisa memeriksa dari kode native yang tidak dijangkau ini, jadi mungkin tidak membantu."
+Add apps to Share via,Tambahkan aplikasi ke Bagikan via
+"Pick apps to add to the Share via row, before More. Each gets the same link the other apps get.","Pilih aplikasi untuk ditambahkan ke baris Bagikan via, sebelum Lainnya. Masing-masing mendapat tautan yang sama dengan aplikasi lain."
+Search apps,Cari aplikasi
+Looking for apps,Mencari aplikasi
+No other app takes shared text,Tidak ada aplikasi lain yang menerima teks yang dibagikan
+"Install one, then come back here.","Pasang satu, lalu kembali ke sini."
+No apps match this search,Tidak ada aplikasi yang cocok dengan pencarian ini
+LIVE feed,Feed LIVE
+Filter the LIVE feed,Filter feed LIVE
+"Hide rooms in the LIVE feed you swipe through, using the rules below. Blocked creators and Creators hidden on this phone apply here too, Blocked caption words are matched against each LIVE's title, and Creator exceptions works the way it does for videos. The LIVE button picks the first room itself, so the rules start with the next one. If they hide every room for a while, one gets through so the feed keeps loading.","Sembunyikan LIVE di feed LIVE yang kamu geser, sesuai aturan di bawah. “Kreator yang diblokir” dan “Kreator yang disembunyikan di ponsel ini” juga berlaku di sini, “Kata yang diblokir di keterangan” dicocokkan dengan judul setiap LIVE, dan “Pengecualian kreator” bekerja seperti pada video. Tombol LIVE memilih LIVE pertama sendiri, jadi aturan mulai berlaku dari LIVE berikutnya. Kalau aturan menyembunyikan semua LIVE untuk beberapa saat, satu tetap lolos supaya feed terus memuat."
+Hide gaming LIVEs,Sembunyikan LIVE game
+Hide LIVEs that TikTok tags with a game or a gaming category.,Sembunyikan LIVE yang ditandai TikTok dengan game atau kategori game.
+Hide shopping LIVEs,Sembunyikan LIVE belanja
+Hide LIVEs that sell products or carry a TikTok Shop tag.,Sembunyikan LIVE yang menjual produk atau punya tag TikTok Shop.
+Hide sponsored LIVEs,Sembunyikan LIVE bersponsor
+Hide LIVEs that TikTok labels as a paid partnership or promotional content.,Sembunyikan LIVE yang ditandai TikTok sebagai kemitraan berbayar atau konten promosi.
+Hide verified creators' LIVEs,Sembunyikan LIVE kreator terverifikasi
+Hide LIVEs hosted by verified accounts.,Sembunyikan LIVE dari akun terverifikasi.
+Hidden LIVE categories,Kategori LIVE yang disembunyikan
+"Comma separated words, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Case doesn't matter.","Kata dipisahkan koma, misalnya musik, chat. LIVE disembunyikan kalau kategori, tag topik, atau nama game-nya mengandung salah satunya. Huruf besar kecil tidak berpengaruh."
+LIVE viewers range,Rentang penonton LIVE
+Show only LIVEs with this many people watching.,Hanya tampilkan LIVE dengan jumlah penonton sebanyak ini.
+LIVE followers range,Rentang pengikut LIVE
+Show only LIVEs from creators with this many followers.,Hanya tampilkan LIVE dari kreator dengan jumlah pengikut sebanyak ini.
+Hide the comment bar on opened videos,Sembunyikan bilah komentar di video yang dibuka
+"Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Sembunyikan bilah untuk menulis komentar di video yang kamu buka dari profil, hashtag, suara, atau pencarian, agar video memenuhi layar sampai ke bawah. Tombol komentar di kanan tetap membuka komentar."

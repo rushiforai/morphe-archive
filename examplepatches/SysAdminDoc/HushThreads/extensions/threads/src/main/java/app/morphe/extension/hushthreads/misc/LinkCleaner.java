@@ -66,7 +66,11 @@ public final class LinkCleaner {
             HookStatus.threw(FamilyNames.SANITIZE_SHARING_LINKS, "switch read", t);
             return url;
         }
-        return clean(url);
+        String cleaned = clean(url);
+        if (url != null && !url.equals(cleaned)) {
+            HookStatus.counted(FamilyNames.SANITIZE_SHARING_LINKS, "shared links changed");
+        }
+        return cleaned;
     }
 
     /**

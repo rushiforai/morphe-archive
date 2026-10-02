@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(314);
+        Map<String, String> table = new HashMap<>(322);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -81,6 +81,8 @@ public final class L10nTranslations {
                 "Info");
         table.put("Advertising ID removed",
                 "Werbe-ID entfernt");
+        table.put("Analytics address coverage",
+                "Abdeckung der Analyseadressen");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 und \u00e4lter melden nicht, welche Links sich hier \u00f6ffnen. Tippe, um die Einstellungen dieser App zu \u00f6ffnen, dann auf \u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c.");
         table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
@@ -141,6 +143,8 @@ public final class L10nTranslations {
                 "Der Export des Berichts lie\u00df sich nicht starten. Versuche es gleich noch einmal.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "HushThreads lie\u00df sich nicht wieder einschalten. Versuche es noch einmal.");
+        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
+                "Die Abdeckung wurde in diesem Build nicht erfasst. Patche erneut, um die gefundenen Adresstypen zu sehen.");
         table.put("Debug logging",
                 "Debug-Protokollierung");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -171,13 +175,13 @@ public final class L10nTranslations {
                 "Mit der Antwort von GitHub lie\u00df sich nichts anfangen. Versuche es sp\u00e4ter noch einmal.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Direkt zu einer Gruppe von Einstellungen. Zur\u00fcck bringt dich dorthin, wo du warst.");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
         table.put("Hide ads",
                 "Werbung ausblenden");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "HushThreads %1$s ist erschienen. Aktualisiere es im Morphe Manager.");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
         table.put("HushThreads %1$s on Threads %2$s",
                 "HushThreads %1$s auf Threads %2$s");
         table.put("HushThreads %1$s targets Threads %2$s.",
@@ -210,6 +214,8 @@ public final class L10nTranslations {
                 "Links");
         table.put("Links, updates, backup and more",
                 "Links, Updates, Sicherung und mehr");
+        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
+                "Gefundene Analyseadressen werden an eine Adresse umgeleitet, die nicht antwortet. Andere Telemetrie kann bleiben. Schalte dies aus, um die urspr\u00fcnglichen Adressen zu verwenden.");
         table.put("More settings",
                 "Weitere Einstellungen");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -224,6 +230,8 @@ public final class L10nTranslations {
                 "Nur einige Webadressen von Threads sind f\u00fcr diese App ausgew\u00e4hlt, und Links zu den \u00fcbrigen \u00f6ffnen sich woanders. Tippe, um sie in den Android-Einstellungen auszuw\u00e4hlen.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201eUnterst\u00fctzte Links \u00f6ffnen\u201c ist f\u00fcr diese App in den Android-Einstellungen aus. Tippe, um es einzuschalten.");
+        table.put("Patched: %1$s. Missing: %2$s.",
+                "Gepatcht: %1$s. Fehlend: %2$s.");
         table.put("Pause",
                 "Pausieren");
         table.put("Pause HushThreads",
@@ -290,6 +298,9 @@ public final class L10nTranslations {
                 "Unterst\u00fctzte Links");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
                 "Entfernt Tracking-Tags wie xmt und slof aus den Beitragslinks, die du kopierst oder teilst. Der Rest des Links bleibt, wie er war.");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Zum Wiedereinschalten tippen.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -298,9 +309,6 @@ public final class L10nTranslations {
                 "Diese Datei ist kein lesbarer Text, sie wurde also wom\u00f6glich bei der \u00dcbertragung besch\u00e4digt. Es wurde nichts ge\u00e4ndert.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "Diese Datei f\u00fchrt eine Einstellung zweimal auf, daher ist unklar, welcher Wert gilt. Es wurde nichts ge\u00e4ndert.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("That isn't a HushThreads settings file. Nothing was changed.",
                 "Das ist keine HushThreads-Einstellungsdatei. Es wurde nichts ge\u00e4ndert.");
         table.put("That settings file holds a value HushThreads can't read. Nothing was changed.",
@@ -329,8 +337,6 @@ public final class L10nTranslations {
                 "Die Einstellung lie\u00df sich nicht vollst\u00e4ndig aktualisieren. Der gespeicherte Wert wird angezeigt.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Die Einstellungsdatei wurde gespeichert, liest sich aber nicht so zur\u00fcck, wie sie geschrieben wurde. Speichere sie noch einmal als neue Datei.");
-        table.put("The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.",
-                "Die Nutzungs- und Ereignisprotokolle, die Threads an Meta sendet, gehen an eine Adresse, die nicht antwortet. Dein Feed, deine Beitr\u00e4ge und Antworten funktionieren wie bisher.");
         table.put("There's no diagnostic data to clear.",
                 "Es gibt keine Diagnosedaten zum L\u00f6schen.");
         table.put("There's no diagnostic data to put back.",
@@ -371,6 +377,8 @@ public final class L10nTranslations {
                 "Deine Einstellungen sind aktiv.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Deine Schalter entsprechen bereits dieser Datei, es \u00e4ndert sich also nichts.");
+        table.put("none",
+                "keine");
         table.put("the re-signed build fix",
                 "der Fix f\u00fcr neu signierte Builds");
         table.put("the removed advertising ID permission",
@@ -378,7 +386,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(314);
+        Map<String, String> table = new HashMap<>(322);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -412,6 +420,8 @@ public final class L10nTranslations {
                 "Acerca de");
         table.put("Advertising ID removed",
                 "ID de publicidad eliminado");
+        table.put("Analytics address coverage",
+                "Cobertura de direcciones de an\u00e1lisis");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 y las versiones anteriores no indican qu\u00e9 enlaces se abren aqu\u00ed. Toca para abrir los ajustes de esta app y luego Abrir de forma predeterminada.");
         table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
@@ -472,6 +482,8 @@ public final class L10nTranslations {
                 "No se pudo iniciar la exportaci\u00f3n del informe. Int\u00e9ntalo de nuevo en breve.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "No se pudo volver a activar HushThreads. Int\u00e9ntalo de nuevo.");
+        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
+                "La cobertura no se registr\u00f3 en esta compilaci\u00f3n. Vuelve a aplicar los parches para ver los tipos de direcciones detectados.");
         table.put("Debug logging",
                 "Registro de depuraci\u00f3n");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -502,13 +514,13 @@ public final class L10nTranslations {
                 "No se pudo usar la respuesta de GitHub. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Ve directo a un grupo de ajustes. Atr\u00e1s te devuelve a donde estabas.");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
         table.put("Hide ads",
                 "Ocultar anuncios");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "Ya sali\u00f3 HushThreads %1$s. Actual\u00edzalo en Morphe Manager.");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
         table.put("HushThreads %1$s on Threads %2$s",
                 "HushThreads %1$s en Threads %2$s");
         table.put("HushThreads %1$s targets Threads %2$s.",
@@ -541,6 +553,8 @@ public final class L10nTranslations {
                 "Enlaces");
         table.put("Links, updates, backup and more",
                 "Enlaces, actualizaciones, copia de seguridad y m\u00e1s");
+        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
+                "Las direcciones de an\u00e1lisis detectadas se redirigen a una direcci\u00f3n que no responde. Puede quedar otra telemetr\u00eda. Desactiva esto para usar las direcciones originales.");
         table.put("More settings",
                 "M\u00e1s ajustes");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -555,6 +569,8 @@ public final class L10nTranslations {
                 "Solo algunas direcciones web de Threads est\u00e1n seleccionadas para esta app, y los enlaces a las dem\u00e1s se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cAbrir enlaces compatibles\u201d est\u00e1 desactivado para esta app en los ajustes de Android. Toca para activarlo.");
+        table.put("Patched: %1$s. Missing: %2$s.",
+                "Modificadas: %1$s. Faltantes: %2$s.");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushThreads",
@@ -621,6 +637,9 @@ public final class L10nTranslations {
                 "Enlaces compatibles");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
                 "Quita las etiquetas de seguimiento, como xmt y slof, de los enlaces de publicaciones que copias o compartes. El resto del enlace se queda como estaba.");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Toca para volver a activarlo.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -629,9 +648,6 @@ public final class L10nTranslations {
                 "Ese archivo no es texto legible, as\u00ed que puede haberse da\u00f1ado por el camino. No se cambi\u00f3 nada.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "Ese archivo incluye un ajuste dos veces, as\u00ed que no se sabe qu\u00e9 valor usar. No se cambi\u00f3 nada.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("That isn't a HushThreads settings file. Nothing was changed.",
                 "Eso no es un archivo de configuraci\u00f3n de HushThreads. No se cambi\u00f3 nada.");
         table.put("That settings file holds a value HushThreads can't read. Nothing was changed.",
@@ -660,8 +676,6 @@ public final class L10nTranslations {
                 "No se pudo terminar de actualizar el ajuste. Se muestra su valor guardado.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "El archivo de configuraci\u00f3n se guard\u00f3, pero al volver a leerlo no coincide con lo que se escribi\u00f3. Gu\u00e1rdalo de nuevo como un archivo nuevo.");
-        table.put("The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.",
-                "Los registros de uso y de eventos que Threads env\u00eda a Meta van a una direcci\u00f3n que no responde. Tu feed, tus publicaciones y tus respuestas funcionan como antes.");
         table.put("There's no diagnostic data to clear.",
                 "No hay datos de diagn\u00f3stico que borrar.");
         table.put("There's no diagnostic data to put back.",
@@ -702,6 +716,8 @@ public final class L10nTranslations {
                 "Tus controles est\u00e1n activos.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Tus interruptores ya coinciden con ese archivo, as\u00ed que no cambiar\u00e1 nada.");
+        table.put("none",
+                "ninguna");
         table.put("the re-signed build fix",
                 "el arreglo para la nueva firma");
         table.put("the removed advertising ID permission",
@@ -709,7 +725,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(314);
+        Map<String, String> table = new HashMap<>(322);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -743,6 +759,8 @@ public final class L10nTranslations {
                 "Tentang");
         table.put("Advertising ID removed",
                 "ID iklan dihapus");
+        table.put("Analytics address coverage",
+                "Cakupan alamat analitik");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.");
         table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
@@ -803,6 +821,8 @@ public final class L10nTranslations {
                 "Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "HushThreads tidak dapat diaktifkan lagi. Coba lagi.");
+        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
+                "Cakupan tidak dicatat dalam build ini. Terapkan patch lagi untuk melihat jenis alamat yang ditemukan.");
         table.put("Debug logging",
                 "Pencatatan debug");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -833,13 +853,13 @@ public final class L10nTranslations {
                 "Jawaban GitHub tidak dapat digunakan. Coba lagi nanti.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
         table.put("Hide ads",
                 "Sembunyikan iklan");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "HushThreads %1$s sudah dirilis. Perbarui di Morphe Manager.");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
         table.put("HushThreads %1$s on Threads %2$s",
                 "HushThreads %1$s di Threads %2$s");
         table.put("HushThreads %1$s targets Threads %2$s.",
@@ -872,6 +892,8 @@ public final class L10nTranslations {
                 "Tautan");
         table.put("Links, updates, backup and more",
                 "Tautan, pembaruan, cadangan, dan lainnya");
+        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
+                "Alamat analitik yang ditemukan dialihkan ke alamat yang tidak merespons. Telemetri lain mungkin masih ada. Nonaktifkan ini untuk menggunakan alamat asli.");
         table.put("More settings",
                 "Pengaturan lainnya");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -886,6 +908,8 @@ public final class L10nTranslations {
                 "Hanya sebagian alamat web Threads yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cBuka link yang didukung\u201d nonaktif untuk aplikasi ini di pengaturan Android. Ketuk untuk mengaktifkannya.");
+        table.put("Patched: %1$s. Missing: %2$s.",
+                "Dipatch: %1$s. Tidak ditemukan: %2$s.");
         table.put("Pause",
                 "Jeda");
         table.put("Pause HushThreads",
@@ -952,6 +976,9 @@ public final class L10nTranslations {
                 "Tautan yang didukung");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
                 "Menghapus tag pelacakan seperti xmt dan slof dari tautan postingan yang Anda salin atau bagikan. Bagian lain tautan tetap seperti semula.");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Ketuk untuk mengaktifkan HushThreads lagi.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -960,9 +987,6 @@ public final class L10nTranslations {
                 "File itu bukan teks yang dapat dibaca, jadi mungkin rusak saat ditransfer. Tidak ada yang diubah.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "File itu mencantumkan satu pengaturan dua kali, jadi tidak jelas nilai mana yang harus dipakai. Tidak ada yang diubah.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("That isn't a HushThreads settings file. Nothing was changed.",
                 "Itu bukan file pengaturan HushThreads. Tidak ada yang diubah.");
         table.put("That settings file holds a value HushThreads can't read. Nothing was changed.",
@@ -991,8 +1015,6 @@ public final class L10nTranslations {
                 "Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.");
-        table.put("The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.",
-                "Log penggunaan dan peristiwa yang dikirim Threads ke Meta diarahkan ke alamat yang tidak merespons. Feed, postingan, dan balasan Anda tetap berfungsi seperti biasa.");
         table.put("There's no diagnostic data to clear.",
                 "Tidak ada data diagnostik yang dapat dihapus.");
         table.put("There's no diagnostic data to put back.",
@@ -1033,6 +1055,8 @@ public final class L10nTranslations {
                 "Kontrol Anda aktif.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.");
+        table.put("none",
+                "tidak ada");
         table.put("the re-signed build fix",
                 "perbaikan build yang ditandatangani ulang");
         table.put("the removed advertising ID permission",
@@ -1040,7 +1064,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(314);
+        Map<String, String> table = new HashMap<>(322);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1074,6 +1098,8 @@ public final class L10nTranslations {
                 "Sobre");
         table.put("Advertising ID removed",
                 "ID de publicidade removido");
+        table.put("Analytics address coverage",
+                "Cobertura dos endere\u00e7os de an\u00e1lise");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "O Android 11 e as vers\u00f5es anteriores n\u00e3o informam quais links abrem aqui. Toque para abrir as configura\u00e7\u00f5es deste app e depois Abrir por padr\u00e3o.");
         table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
@@ -1134,6 +1160,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel iniciar a exporta\u00e7\u00e3o do relat\u00f3rio. Tente de novo daqui a pouco.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "N\u00e3o foi poss\u00edvel reativar o HushThreads. Tente novamente.");
+        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
+                "A cobertura n\u00e3o foi registrada nesta compila\u00e7\u00e3o. Aplique os patches novamente para ver os tipos de endere\u00e7o encontrados.");
         table.put("Debug logging",
                 "Registro de depura\u00e7\u00e3o");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -1164,13 +1192,13 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel usar a resposta do GitHub. Tente novamente mais tarde.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "V\u00e1 diretamente para um grupo de configura\u00e7\u00f5es. Voltar leva voc\u00ea de volta ao ponto em que estava.");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Hide ads",
                 "Ocultar an\u00fancios");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "O HushThreads %1$s est\u00e1 dispon\u00edvel. Atualize-o pelo Morphe Manager.");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("HushThreads %1$s on Threads %2$s",
                 "HushThreads %1$s no Threads %2$s");
         table.put("HushThreads %1$s targets Threads %2$s.",
@@ -1203,6 +1231,8 @@ public final class L10nTranslations {
                 "Links");
         table.put("Links, updates, backup and more",
                 "Links, atualiza\u00e7\u00f5es, backup e mais");
+        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
+                "Os endere\u00e7os de an\u00e1lise encontrados s\u00e3o redirecionados para um endere\u00e7o que n\u00e3o responde. Outras telemetrias podem permanecer. Desative isto para usar os endere\u00e7os originais.");
         table.put("More settings",
                 "Mais configura\u00e7\u00f5es");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1217,6 +1247,8 @@ public final class L10nTranslations {
                 "S\u00f3 alguns endere\u00e7os web do Threads est\u00e3o selecionados para este app, e os links para os outros abrem em outro lugar. Toque para selecion\u00e1-los nas configura\u00e7\u00f5es do Android.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cAbrir links compat\u00edveis\u201d est\u00e1 desativado para este app nas configura\u00e7\u00f5es do Android. Toque para ativar.");
+        table.put("Patched: %1$s. Missing: %2$s.",
+                "Modificados: %1$s. Ausentes: %2$s.");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushThreads",
@@ -1283,6 +1315,9 @@ public final class L10nTranslations {
                 "Links compat\u00edveis");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
                 "Remove dos links de publica\u00e7\u00f5es que voc\u00ea copia ou compartilha as tags de rastreamento, como xmt e slof. O resto do link continua como estava.");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Toque para reativar.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -1291,9 +1326,6 @@ public final class L10nTranslations {
                 "Esse arquivo n\u00e3o cont\u00e9m texto leg\u00edvel, ent\u00e3o pode ter sido corrompido durante o processo. Nada foi alterado.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "Esse arquivo cont\u00e9m uma configura\u00e7\u00e3o duplicada, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel saber qual valor usar. Nada foi alterado.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("That isn't a HushThreads settings file. Nothing was changed.",
                 "Isso n\u00e3o \u00e9 um arquivo de configura\u00e7\u00f5es do HushThreads. Nada foi alterado.");
         table.put("That settings file holds a value HushThreads can't read. Nothing was changed.",
@@ -1322,8 +1354,6 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel concluir a atualiza\u00e7\u00e3o da configura\u00e7\u00e3o. O valor salvo est\u00e1 sendo mostrado.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "O arquivo de configura\u00e7\u00f5es foi salvo, mas ao ser lido de volta n\u00e3o corresponde ao que foi gravado. Salve de novo como um arquivo novo.");
-        table.put("The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.",
-                "Os registros de uso e de eventos que o Threads envia para a Meta v\u00e3o para um endere\u00e7o que n\u00e3o responde. Seu feed, suas publica\u00e7\u00f5es e respostas funcionam como antes.");
         table.put("There's no diagnostic data to clear.",
                 "N\u00e3o h\u00e1 dados de diagn\u00f3stico para limpar.");
         table.put("There's no diagnostic data to put back.",
@@ -1364,6 +1394,8 @@ public final class L10nTranslations {
                 "Seus controles est\u00e3o ativos.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Suas op\u00e7\u00f5es j\u00e1 correspondem \u00e0s desse arquivo, ent\u00e3o nada ser\u00e1 alterado.");
+        table.put("none",
+                "nenhum");
         table.put("the re-signed build fix",
                 "a corre\u00e7\u00e3o para vers\u00e3o reassinada");
         table.put("the removed advertising ID permission",
@@ -1371,7 +1403,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(314);
+        Map<String, String> table = new HashMap<>(322);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1405,6 +1437,8 @@ public final class L10nTranslations {
                 "Hakk\u0131nda");
         table.put("Advertising ID removed",
                 "Reklam kimli\u011fi kald\u0131r\u0131ld\u0131");
+        table.put("Analytics address coverage",
+                "Analiz adresi kapsam\u0131");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 ve \u00f6ncesi burada hangi ba\u011flant\u0131lar\u0131n a\u00e7\u0131ld\u0131\u011f\u0131n\u0131 bildirmez. Bu uygulaman\u0131n ayarlar\u0131n\u0131 a\u00e7mak i\u00e7in dokunun, ard\u0131ndan Varsay\u0131lan olarak a\u00e7'a gidin.");
         table.put("Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.",
@@ -1465,6 +1499,8 @@ public final class L10nTranslations {
                 "Rapor d\u0131\u015fa aktar\u0131m\u0131 ba\u015flat\u0131lamad\u0131. Birazdan tekrar dene.");
         table.put("Couldn't turn HushThreads back on. Try again.",
                 "HushThreads yeniden a\u00e7\u0131lamad\u0131. Tekrar dene.");
+        table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
+                "Bu derlemede kapsam kaydedilmedi. Bulunan adres t\u00fcrlerini g\u00f6rmek i\u00e7in yeniden yama uygula.");
         table.put("Debug logging",
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -1495,13 +1531,13 @@ public final class L10nTranslations {
                 "GitHub'\u0131n yan\u0131t\u0131 kullan\u0131lamad\u0131. Daha sonra tekrar dene.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Do\u011frudan bir ayar grubuna git. Geri, bulundu\u011fun yere d\u00f6nd\u00fcr\u00fcr.");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
         table.put("Hide ads",
                 "Reklamlar\u0131 gizle");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "HushThreads %1$s \u00e7\u0131kt\u0131. Morphe Manager'da g\u00fcncelle.");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
         table.put("HushThreads %1$s on Threads %2$s",
                 "Threads %2$s \u00fczerinde HushThreads %1$s");
         table.put("HushThreads %1$s targets Threads %2$s.",
@@ -1534,6 +1570,8 @@ public final class L10nTranslations {
                 "Ba\u011flant\u0131lar");
         table.put("Links, updates, backup and more",
                 "Ba\u011flant\u0131lar, g\u00fcncellemeler, yedekleme ve daha fazlas\u0131");
+        table.put("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. Turn this off to use the original addresses.",
+                "Bulunan analiz adresleri yan\u0131t vermeyen bir adrese y\u00f6nlendirilir. Di\u011fer telemetri devam edebilir. \u00d6zg\u00fcn adresleri kullanmak i\u00e7in bunu kapat.");
         table.put("More settings",
                 "Di\u011fer ayarlar");
         table.put("No app on this phone can open the link. The address is %1$s.",
@@ -1548,6 +1586,8 @@ public final class L10nTranslations {
                 "Threads'in web adreslerinden yaln\u0131zca baz\u0131lar\u0131 bu uygulama i\u00e7in se\u00e7ili ve di\u011ferlerinin ba\u011flant\u0131lar\u0131 ba\u015fka yerde a\u00e7\u0131l\u0131r. Android ayarlar\u0131nda se\u00e7mek i\u00e7in dokunun.");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cDesteklenen ba\u011flant\u0131lar\u0131 a\u00e7\u201d Android ayarlar\u0131nda bu uygulama i\u00e7in kapal\u0131. A\u00e7mak i\u00e7in dokunun.");
+        table.put("Patched: %1$s. Missing: %2$s.",
+                "Yamalanan: %1$s. Eksik: %2$s.");
         table.put("Pause",
                 "Duraklat");
         table.put("Pause HushThreads",
@@ -1614,6 +1654,9 @@ public final class L10nTranslations {
                 "Desteklenen ba\u011flant\u0131lar");
         table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
                 "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n g\u00f6nderi ba\u011flant\u0131lar\u0131ndan xmt ve slof gibi izleme etiketlerini kald\u0131r\u0131r. Ba\u011flant\u0131n\u0131n geri kalan\u0131 oldu\u011fu gibi kal\u0131r.");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Tap to turn it back on.",
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -1622,9 +1665,6 @@ public final class L10nTranslations {
                 "Bu dosya okunabilir bir metin de\u011fil, aktar\u0131m s\u0131ras\u0131nda hasar g\u00f6rm\u00fc\u015f olabilir. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("That file lists a setting twice, so there's no telling which value to use. Nothing was changed.",
                 "Bu dosyada bir ayar iki kez ge\u00e7iyor, bu y\u00fczden hangi de\u011ferin kullan\u0131laca\u011f\u0131 belli de\u011fil. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("That isn't a HushThreads settings file. Nothing was changed.",
                 "Bu bir HushThreads ayar dosyas\u0131 de\u011fil. Hi\u00e7bir \u015fey de\u011fi\u015ftirilmedi.");
         table.put("That settings file holds a value HushThreads can't read. Nothing was changed.",
@@ -1653,8 +1693,6 @@ public final class L10nTranslations {
                 "Ayar\u0131n g\u00fcncellenmesi tamamlanamad\u0131. Kay\u0131tl\u0131 de\u011feri g\u00f6steriliyor.");
         table.put("The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.",
                 "Ayar dosyas\u0131 kaydedildi, ancak geri okundu\u011funda yaz\u0131lanla ayn\u0131 de\u011fil. Yeni bir dosya olarak tekrar kaydet.");
-        table.put("The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.",
-                "Threads'in Meta'ya g\u00f6nderdi\u011fi kullan\u0131m ve olay g\u00fcnl\u00fckleri yan\u0131t vermeyen bir adrese gider. Ak\u0131\u015f\u0131n, g\u00f6nderilerin ve yan\u0131tlar\u0131n eskisi gibi \u00e7al\u0131\u015f\u0131r.");
         table.put("There's no diagnostic data to clear.",
                 "Temizlenecek tan\u0131lama verisi yok.");
         table.put("There's no diagnostic data to put back.",
@@ -1695,6 +1733,8 @@ public final class L10nTranslations {
                 "Kontrolleriniz etkin.");
         table.put("Your switches already match that file, so nothing will change.",
                 "Anahtarlar\u0131n zaten o dosyayla ayn\u0131, bu y\u00fczden hi\u00e7bir \u015fey de\u011fi\u015fmeyecek.");
+        table.put("none",
+                "yok");
         table.put("the re-signed build fix",
                 "yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
         table.put("the removed advertising ID permission",

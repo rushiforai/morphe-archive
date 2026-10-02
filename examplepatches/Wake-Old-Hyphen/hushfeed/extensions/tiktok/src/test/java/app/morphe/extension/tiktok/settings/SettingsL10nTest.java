@@ -819,6 +819,24 @@ public class SettingsL10nTest {
                 "Hide the caption"));
     }
 
+    @Test
+    public void englishAheadOfAnotherLanguageKeepsTheSettingsEnglish() {
+        // English is the text itself. A phone set to English and then German runs TikTok in
+        // English, and the settings used to skip past it to the German table.
+        Configuration configuration = new Configuration(
+                RuntimeEnvironment.getApplication().getResources().getConfiguration());
+        configuration.setLocales(new LocaleList(new Locale("en", "US"), new Locale("de", "DE")));
+        assertEquals("Hide the caption", L10n.t(
+                RuntimeEnvironment.getApplication().createConfigurationContext(configuration),
+                "Hide the caption"));
+        // A language with no table ahead of English falls through to English and stops there.
+        configuration.setLocales(new LocaleList(new Locale("fr", "FR"), new Locale("en", "GB"),
+                new Locale("de", "DE")));
+        assertEquals("Hide the caption", L10n.t(
+                RuntimeEnvironment.getApplication().createConfigurationContext(configuration),
+                "Hide the caption"));
+    }
+
     /** A context whose resources report one locale, which is what the lookup reads. */
     private static Context contextFor(String language, String country) {
         Configuration configuration = new Configuration(
@@ -900,6 +918,177 @@ public class SettingsL10nTest {
             }
             assertEquals("keys of " + language, sourceKeys(GERMAN), plain);
         }
+    }
+
+    /**
+     * A language whose plural rule splits everyday counts more finely than English's two forms
+     * carries a row for each extra form, for every count the code words. Russian says
+     * 1 результат, 2 результата, 5 результатов and 21 результат: a count with no few row read
+     * "2 результатов", and with no one row past 1, "21 результатов".
+     */
+    @Test
+    public void everyCountCarriesTheFormsItsLanguageNeeds() throws Exception {
+        Set<String> others = quantityOtherForms();
+        assertTrue("the scan found too few counts to mean anything: " + others.size(), others.size() > 20);
+        List<String> missing = new ArrayList<>();
+        for (String language : L10nTranslations.LANGUAGES) {
+            Map<String, String> table = L10nTranslations.of(language);
+            String[] tag = language.split("-r", 2);
+            android.icu.text.PluralRules rules = android.icu.text.PluralRules.forLocale(tag.length == 2
+                    ? new Locale(tag[0], tag[1].toUpperCase(Locale.ROOT)) : new Locale(tag[0]));
+            Set<String> needed = new LinkedHashSet<>();
+            for (long count = 0; count <= 200; count++) {
+                String category = rules.select(count);
+                // English's forms cover exactly 1 and everything in "other". A one category
+                // that also takes 0 reads fine in the other form; one that takes 21 doesn't.
+                if (!category.equals("other") && !(category.equals("one") && count <= 1)) {
+                    needed.add(category);
+                }
+            }
+            for (String other : others) {
+                for (String category : needed) {
+                    if (!table.containsKey(other + "|" + category)) {
+                        missing.add(language + ": " + other + "|" + category);
+                    }
+                }
+            }
+        }
+        assertEquals("count forms missing from the tsv files:\n" + String.join("\n", missing),
+                0, missing.size());
+    }
+
+    /**
+     * The other form of every count the code words: the fourth argument of each L10n.quantity
+     * call, and the plural unit of each number row, which NumberInputPreference hands to
+     * L10n.quantity itself ("%1$s s" under Seek by needs its few row as much as a sentence
+     * does). Read by position, so a one form that isn't a literal can't shift another argument
+     * into its place. An other form that isn't written out where the count is worded fails
+     * rather than going unchecked; NumberInputPreference's own call is the one exception, and
+     * its units are read from the rows that pass them. A unit given once, or with the same one
+     * and other form, is a symbol (s, dp, %) that reads the same for every count.
+     */
+    private static Set<String> quantityOtherForms() throws Exception {
+        java.io.File root = new java.io.File("src/main/java/app/morphe/extension/tiktok");
+        if (!root.isDirectory()) root = new java.io.File(
+                "extensions/tiktok/src/main/java/app/morphe/extension/tiktok");
+        assertTrue("could not find the source tree", root.isDirectory());
+        java.util.regex.Pattern call = java.util.regex.Pattern.compile("L10n\\s*\\.\\s*quantity\\s*\\(");
+        java.util.regex.Pattern row = java.util.regex.Pattern.compile(
+                "new\\s+(?:[\\w.]+\\.)?NumberInputPreference\\s*\\(");
+        // A subclass's super(...) and NumberInputPreference's own this(...) pass units too.
+        java.util.regex.Pattern chained = java.util.regex.Pattern.compile("\\b(?:super|this)\\s*\\(");
+        Set<String> others = new LinkedHashSet<>();
+        List<String> unread = new ArrayList<>();
+        try (java.util.stream.Stream<java.nio.file.Path> files =
+                     java.nio.file.Files.walk(root.toPath())) {
+            for (java.nio.file.Path file : files.filter(p -> p.toString().endsWith(".java"))
+                    .collect(java.util.stream.Collectors.toList())) {
+                String text = new String(java.nio.file.Files.readAllBytes(file),
+                        java.nio.charset.StandardCharsets.UTF_8);
+                byte[] kind = classify(text);
+                String name = file.getFileName().toString();
+                boolean numberInput = name.equals("NumberInputPreference.java");
+                java.util.regex.Matcher match = call.matcher(text);
+                while (match.find()) {
+                    if (kind[match.start()] != CODE) continue;
+                    List<int[]> arguments = topLevelArguments(text, kind, match.end() - 1);
+                    String one = arguments.size() > 3 ? literalArgument(text, kind, arguments.get(2)) : null;
+                    String other = arguments.size() > 3 ? literalArgument(text, kind, arguments.get(3)) : null;
+                    if (other != null) {
+                        if (!other.isEmpty() && !other.equals(one)) others.add(other);
+                    } else if (!numberInput) {
+                        unread.add(name + ": " + firstLine(text, match.start()));
+                    }
+                }
+                List<java.util.regex.Matcher> rows = new ArrayList<>();
+                rows.add(row.matcher(text));
+                if (numberInput || text.contains("extends NumberInputPreference")) rows.add(chained.matcher(text));
+                for (java.util.regex.Matcher rowMatch : rows) {
+                    while (rowMatch.find()) {
+                        if (kind[rowMatch.start()] != CODE) continue;
+                        List<int[]> arguments = topLevelArguments(text, kind, rowMatch.end() - 1);
+                        // (context, title, summary, setting, unit) or (..., setting, one, other).
+                        if (arguments.size() != 5 && arguments.size() != 6) continue;
+                        String one = literalArgument(text, kind, arguments.get(4));
+                        String other = literalArgument(text, kind, arguments.get(arguments.size() - 1));
+                        if (other != null) {
+                            if (!other.isEmpty() && arguments.size() == 6 && !other.equals(one)) others.add(other);
+                        } else if (!numberInput) {
+                            unread.add(name + ": " + firstLine(text, rowMatch.start()));
+                        }
+                    }
+                }
+            }
+        }
+        assertEquals("counts worded from something other than a literal, which this can't check:\n"
+                + String.join("\n", unread), 0, unread.size());
+        return others;
+    }
+
+    /** The spans of a call's own arguments, split at its own commas; open is its bracket. */
+    private static List<int[]> topLevelArguments(String text, byte[] kind, int open) {
+        List<int[]> spans = new ArrayList<>();
+        int depth = 0;
+        int start = open + 1;
+        for (int at = open; at < text.length(); at++) {
+            if (kind[at] != CODE) continue;
+            char c = text.charAt(at);
+            if (c == '(' || c == '[' || c == '{') {
+                depth++;
+            } else if (c == ')' || c == ']' || c == '}') {
+                if (--depth == 0) {
+                    if (!text.substring(start, at).trim().isEmpty()) spans.add(new int[]{start, at});
+                    return spans;
+                }
+            } else if (c == ',' && depth == 1) {
+                spans.add(new int[]{start, at});
+                start = at + 1;
+            }
+        }
+        return spans;
+    }
+
+    /** An argument made of string literals and pluses alone, as the one string it is; else null. */
+    private static String literalArgument(String text, byte[] kind, int[] span) {
+        StringBuilder value = new StringBuilder();
+        boolean any = false;
+        for (int at = span[0]; at < span[1]; at++) {
+            char c = text.charAt(at);
+            if (kind[at] == COMMENT) continue;
+            if (kind[at] == CODE) {
+                if (c == '+' || Character.isWhitespace(c)) continue;
+                return null;
+            }
+            if (c != '"') return null;
+            int end = at + 1;
+            while (end < span[1] && kind[end] == LITERAL) end++;
+            int contentEnd = end > at + 1 && text.charAt(end - 1) == '"' ? end - 1 : end;
+            value.append(unescape(text.substring(at + 1, contentEnd)));
+            any = true;
+            at = end - 1;
+        }
+        return any ? value.toString() : null;
+    }
+
+    private static String firstLine(String text, int from) {
+        int end = text.indexOf('\n', from);
+        return text.substring(from, end < 0 ? text.length() : end).trim();
+    }
+
+    /** The positional scan reads an other form wherever it sits, and refuses one it can't read. */
+    @Test public void theCountScanReadsTheOtherFormByPosition() {
+        String source = "L10n.quantity(context, n, flag ? \"a\" : \"b\", \"%1$d c\" + \"s\", n, x);";
+        byte[] kind = classify(source);
+        List<int[]> arguments = topLevelArguments(source, kind, source.indexOf('('));
+        assertEquals(6, arguments.size());
+        assertEquals("%1$d cs", literalArgument(source, kind, arguments.get(3)));
+        assertNull(literalArgument(source, kind, arguments.get(2)));
+        assertNull(literalArgument(source, kind, arguments.get(1)));
+        String nested = "new NumberInputPreference(context, L10n.f(context, \"t %1$d\", 1, 2), \"s\", s, \"%1$s day\", \"%1$s days\")";
+        kind = classify(nested);
+        arguments = topLevelArguments(nested, kind, nested.indexOf('('));
+        assertEquals(6, arguments.size());
+        assertEquals("%1$s days", literalArgument(nested, kind, arguments.get(5)));
     }
 
     /**

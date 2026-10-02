@@ -165,8 +165,9 @@ public class HushfacebookPreferenceFragmentTest {
             List<Preference> rows = rowsOf(controller);
             int tray = indexOfKey(rows, Settings.HIDE_STORIES_TRAY.key);
             assertTrue("the Stories tray row is missing", tray >= 0);
-            assertEquals("The row of stories at the top of the feed, Create story included. "
-                    + "The switch takes effect when Facebook restarts.", String.valueOf(rows.get(tray).getSummary()));
+            assertEquals("The row of stories at the top of the feed, Create story included, and the rows of "
+                    + "stories between posts. The switch takes effect when Facebook restarts.",
+                    String.valueOf(rows.get(tray).getSummary()));
         }
     }
 

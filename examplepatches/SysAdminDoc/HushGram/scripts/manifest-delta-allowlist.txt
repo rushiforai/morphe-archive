@@ -1,0 +1,26 @@
+# Reviewed Android manifest changes the HushGram patches make to a stock Instagram APK.
+#
+# One line per change, as "<kind> <value>":
+#   permission-added     <permission name>      the patched app asks for something stock did not
+#   permission-removed   <permission name>      the patched app no longer asks for it
+#   exported-added       <kind>:<class>         something other apps can now reach
+#   exported-removed     <kind>:<class>         something other apps can no longer reach
+#
+# scripts/verify-all-patches.ps1 reads it and stops a run whose patched manifest changed in a way
+# it doesn't list. That run applies every patch, so it also stops when a change listed here is
+# missing: each line is a change some patch makes.
+#
+# The settings shortcut is published at run time and every hook but one is bytecode, so the patched
+# manifest should read like stock. A patch that asks for a permission, drops one, or changes what
+# other apps can reach stops the run until somebody says why.
+#
+# Taken from Hushfacebook's scripts/manifest-delta-allowlist.txt
+# (https://github.com/SysAdminDoc/Hushfacebook, commit c15d4f7930505824789684d35039d3c78c8b0903).
+# GPL-3.0-only. Modified for HushGram (Instagram), 2026.
+#
+# Remove the advertising ID drops the three permissions behind the advertising ID and Android's ad
+# attribution. Instagram 449 targets Android 16, where Google Play services hands an app without
+# AD_ID a string of zeros, and its one attribution call catches the ad services' refusal.
+permission-removed com.google.android.gms.permission.AD_ID
+permission-removed android.permission.ACCESS_ADSERVICES_AD_ID
+permission-removed android.permission.ACCESS_ADSERVICES_ATTRIBUTION
