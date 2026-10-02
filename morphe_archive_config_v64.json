@@ -2417,6 +2417,46 @@
                 "sortOrder": 320,
                 "createdAt": 1790828581442,
                 "updatedAt": 1790828581442
+            },
+            {
+                "name": "kizu-morphe-patches",
+                "source": "https://raw.githubusercontent.com/K8R8TO/kizu-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 321,
+                "createdAt": 1790915351886,
+                "updatedAt": 1790915351886
+            },
+            {
+                "name": "HushGram",
+                "source": "https://raw.githubusercontent.com/SysAdminDoc/HushGram/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 322,
+                "createdAt": 1790915353909,
+                "updatedAt": 1790915353909
+            },
+            {
+                "name": "HushTelegram",
+                "source": "https://raw.githubusercontent.com/SysAdminDoc/HushTelegram/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 323,
+                "createdAt": 1790915354207,
+                "updatedAt": 1790915354207
+            },
+            {
+                "name": "morphe-fb-lite",
+                "source": "https://raw.githubusercontent.com/ToThangGTVT/morphe-fb-lite/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 324,
+                "createdAt": 1790915354883,
+                "updatedAt": 1790915354883
+            },
+            {
+                "name": "nicoid-re-patches",
+                "source": "https://raw.githubusercontent.com/chikuwadon/nicoid-re-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 325,
+                "createdAt": 1790915358355,
+                "updatedAt": 1790915358355
             }
         ]
     }

@@ -65,6 +65,7 @@ Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
 Joristdh/Platypatch
 Joussflls10/Jouss-Patches
+K8R8TO/kizu-morphe-patches
 Kecerim24/morphe-patches
 LDP924/qqmusic-proxy
 LOCKhart07/morphe-patches
@@ -114,7 +115,9 @@ Supperelias2/sbs-morphe-patches
 Supperelias2/sbs-tv-morphe-patches
 SysAdminDoc/HushFacebook
 SysAdminDoc/HushFeed
+SysAdminDoc/HushGram
 SysAdminDoc/HushMessenger
+SysAdminDoc/HushTelegram
 SysAdminDoc/HushThreads
 SysAdminDoc/Hushfacebook
 SysAdminDoc/hushfeed
@@ -122,6 +125,7 @@ TheRealCrazyfuy/abeja-morphe-patches
 TheRealSkywarp/morphe-patches
 Thewanwan/bestapp
 TimBuckrue/nyt-games-vrr-patch
+ToThangGTVT/morphe-fb-lite
 Tornillo2/movistar-block-ads-morphe
 Trimpsuz/morphe-busuu
 Utsavrajputt/Modx-patches
@@ -184,6 +188,7 @@ catsmoker/anime-witcher-patches
 cesbar/zpatches
 ch3thanhs/stylus
 chicco-carone/morphe-patches-chicco
+chikuwadon/nicoid-re-patches
 chirag127/morphe-patches
 chukfinley/tidal-patches
 cingxcong/morphe.patches.telegram
