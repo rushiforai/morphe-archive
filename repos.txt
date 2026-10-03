@@ -101,6 +101,7 @@ RealCyberwash/max-patches
 Ripthulhu/morphe-google-patches
 RjBiermann/brave-waffle
 RookieEnough/De-Vanced
+Rosaldivo/rosaldivo-morphe-patches
 RoundSalmon4/morphe-patches-template
 Santodan/santodan-patches
 SapitoSucio/FroggoMorphePatches

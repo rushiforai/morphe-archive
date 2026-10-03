@@ -2457,6 +2457,14 @@
                 "sortOrder": 325,
                 "createdAt": 1790915358355,
                 "updatedAt": 1790915358355
+            },
+            {
+                "name": "rosaldivo-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Rosaldivo/rosaldivo-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 326,
+                "createdAt": 1791000125564,
+                "updatedAt": 1791000125564
             }
         ]
     }
