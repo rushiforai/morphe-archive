@@ -30,6 +30,19 @@ function Format-HushfacebookAdbFailure {
     "$Message (ADB exit $($Result.ExitCode)).$suffix"
 }
 
+# The lines after the last one carrying the verifier's log tag and [Mark], or null when no line does.
+function Select-VerifierRunLines {
+    param([AllowEmptyCollection()][string[]]$Lines, [Parameter(Mandatory = $true)][string]$Mark)
+
+    $last = -1
+    for ($i = 0; $i -lt $Lines.Count; $i++) {
+        if ($Lines[$i].Contains('HushfacebookVerify') -and $Lines[$i].Contains($Mark)) { $last = $i }
+    }
+    if ($last -lt 0) { return $null }
+    # The comma keeps an empty or one-line answer an array rather than null or a string.
+    , @($Lines | Select-Object -Skip ($last + 1))
+}
+
 function Invoke-AndroidVerifierTally {
     [CmdletBinding()]
     param(
@@ -67,12 +80,15 @@ function Invoke-AndroidVerifierTally {
                 -Result $setup)
         }
 
-        $clear = Invoke-HushfacebookAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'logcat', '-c')
-        if ($clear.ExitCode -ne 0) {
+        # The phones and emulators are shared, so the log isn't cleared: a line of this run's own
+        # goes in before dex2oat, and only what comes after its last copy counts.
+        $mark = "$Label-$([guid]::NewGuid().ToString('N'))"
+        $marked = Invoke-HushfacebookAdbCommand -Adb $Adb -Invoker $AdbInvoker `
+            -Arguments @('-s', $Serial, 'shell', "log -t HushfacebookVerify $mark")
+        if ($marked.ExitCode -ne 0) {
             throw (Format-HushfacebookAdbFailure `
-                -Message "Could not clear logcat on $Serial before verifying $Label" `
-                -Result $clear)
+                -Message "Could not mark the log on $Serial before verifying $Label" `
+                -Result $marked)
         }
 
         $dexCommand = "dex2oat64 --dex-file=$remote --oat-file=$directory/out.oat " +
@@ -107,7 +123,13 @@ function Invoke-AndroidVerifierTally {
                 -Result $logResult)
         }
 
-        $unread = @($logResult.Output | Where-Object {
+        $runLines = Select-VerifierRunLines -Lines $logResult.Output -Mark $mark
+        if ($null -eq $runLines) {
+            throw ("The log mark for $Label on $Serial was gone from the log by the time it was read, " +
+                'so this run''s lines cannot be told apart from older ones.')
+        }
+
+        $unread = @($runLines | Where-Object {
             $_ -match 'dex2oat' -and $_ -match '(Skipping non-existent dex file|Failed to open dex)' })
         if ($unread.Count -ne 0) {
             throw "dex2oat did not read $Label on ${Serial}: $(($unread[0] -replace '^.*dex2oat[0-9]*:\s*', '').Trim())"
@@ -115,7 +137,7 @@ function Invoke-AndroidVerifierTally {
 
         # The method in the verifier line is its identity. Timestamps and process IDs differ
         # between runs and are stripped. Counts remain significant.
-        $messages = @($logResult.Output |
+        $messages = @($runLines |
             Where-Object { $_ -match 'dex2oat' } |
             Where-Object { $_ -match '(failed lock verification|Verification error|Rejecting class|VerifyError)' } |
             ForEach-Object { ($_ -replace '^.*dex2oat[0-9]*:\s*', '').Trim() })

@@ -55,6 +55,23 @@ function Get-SourceDispositions {
     return @('adopted', 'candidate', 'behavior-only', 'rejected')
 }
 
+function Get-SourceAvailability {
+    # Availability describes the recorded Facebook-family source, not its licence or whether
+    # the forge archived the repository. Older entries remain active unless explicitly retired.
+    param($Entry)
+    if ($null -eq $Entry.PSObject.Properties['availability']) { return 'active' }
+    return [string](Get-SourceProperty (Get-SourceProperty $Entry 'availability') 'status')
+}
+
+function Get-SourceAvailabilityCounts {
+    param([object[]]$Entries)
+    $active = @($Entries | Where-Object { (Get-SourceAvailability $_) -eq 'active' }).Count
+    $retired = @($Entries | Where-Object { (Get-SourceAvailability $_) -eq 'retired' }).Count
+    $unavailable = @($Entries | Where-Object { (Get-SourceAvailability $_) -eq 'unavailable' }).Count
+    return [pscustomobject]@{ activeSources = $active; retiredSources = $retired
+        unavailableSources = $unavailable; historicalSources = $retired + $unavailable }
+}
+
 function Get-SourceKinds {
     return @('morphe-patches', 'revanced-patches', 'xposed-module', 'apk-distribution', 'source-archive', 'readme-only')
 }
@@ -348,6 +365,25 @@ function Test-SourceLedger {
             }
         }
 
+        $availability = Get-SourceAvailability $entry
+        if ($availability -notin @('active', 'retired', 'unavailable')) {
+            $problems.Add("$label availability must be active, retired or unavailable, not '$availability'.")
+        } elseif ($availability -ne 'active') {
+            $record = Get-SourceProperty $entry 'availability'
+            if ([string]::IsNullOrWhiteSpace([string](Get-SourceProperty $record 'reason'))) {
+                $problems.Add("$label $availability availability gives no reason.")
+            }
+            $evidence = [string](Get-SourceProperty $record 'evidence')
+            if (-not (Test-SourceHttpsUrl $evidence @('github.com', 'gitlab.com')) -or
+                (ConvertTo-SourceKey $evidence) -ne $key -or
+                $evidence -notmatch '/(?:commit|(?:-/)?(?:blob|tree))/[0-9a-f]{40}(?:/|$)') {
+                $problems.Add("$label $availability availability needs immutable evidence in its own repository.")
+            }
+            if ($availability -eq 'retired' -and @(Get-SourceProperty $entry 'watchPaths' | Where-Object { $_ }).Count -eq 0) {
+                $problems.Add("$label retired availability needs a watch path to check that its Facebook-family source stays absent.")
+            }
+        }
+
         $license = Get-SourceProperty $entry 'license'
         $spdx = $null
         if ($null -ne $license) {
@@ -588,11 +624,13 @@ function Test-SourceReleaseGate {
     $listings = Test-SourceListings -Ledger $ledger
     $entries = @(Get-SourceProperty $ledger 'entries' | Where-Object { $null -ne $_ })
     $lineages = @($entries | ForEach-Object { [string](Get-SourceProperty $_ 'lineage') } | Sort-Object -Unique)
+    $availability = Get-SourceAvailabilityCounts $entries
     $indexes = if ($listings.Valid) { 'every index lists Hushfacebook or has its submission' } else {
         'Hushfacebook is not listed on ' + ($listings.Pending -join ', ') +
             ' yet and has no submission recorded there (submit it, then record the URL and date)'
     }
     return [pscustomobject]@{ Valid = $true; Reason = $null
         Summary = ("the Facebook-family source census is $($census.AgeDays) day(s) old ($($census.CheckedAt)), " +
-            "$($entries.Count) sources in $($lineages.Count) lineages, and $indexes") }
+            "$($entries.Count) sources in $($lineages.Count) lineages " +
+            "($($availability.activeSources) active, $($availability.retiredSources) retired, $($availability.unavailableSources) unavailable), and $indexes") }
 }

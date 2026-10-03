@@ -32,18 +32,22 @@ import app.morphe.extension.shared.settings.Setting;
  * {@link ShadowFeedAds#AD} is the one post Threads calls an ad.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 30, shadows = ShadowFeedAds.class, instrumentedPackages = "app.morphe.extension.hushthreads.ads")
+@Config(sdk = 30, shadows = {ShadowFeedAds.class, ShadowFeedAds.Status.class},
+        instrumentedPackages = "app.morphe.extension.hushthreads.ads")
 public class FeedAdsTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     @Before
     public void clearCounts() {
+        ShadowFeedAds.Status.ads = true;
+        ShadowFeedAds.Status.suggestions = false;
         HookStatus.clear();
     }
 
     @After
     public void restore() {
         Settings.HIDE_ADS.resetToDefault();
+        Settings.HIDE_SUGGESTED_USERS.resetToDefault();
         HookStatus.clear();
     }
 
@@ -123,6 +127,102 @@ public class FeedAdsTest {
             List<Object> page = Arrays.asList(ShadowFeedAds.AD, "first");
             assertSame(page, FeedAds.filter(page));
             assertEquals(Collections.singletonList("Hide ads: invoked 1, 0 found, 0 missing"), HookStatus.report());
+        } finally {
+            pause.invoke(null, false);
+        }
+    }
+
+    @Test
+    public void mixedPagesUseBothRulesAndCountEachActualRemoval() {
+        ShadowFeedAds.Status.suggestions = true;
+        List<Object> page = Arrays.asList("followed", ShadowFeedAds.AD, ShadowFeedAds.SUGGESTED,
+                "repost", ShadowFeedAds.KICKSTART, "recommended", ShadowFeedAds.AD);
+        assertEquals(Arrays.asList("followed", "repost", "recommended"), FeedAds.filter(page));
+        assertEquals(Arrays.asList("Hide ads: invoked 1, 0 found, 0 missing. Counted: ad posts taken out 2",
+                "Hide suggested users: invoked 1, 0 found, 0 missing. Counted: suggestion cards taken out 2"),
+                HookStatus.report());
+    }
+
+    @Test
+    public void suggestionOnlySelectionLeavesAdsAndDoesNotInvokeTheirRule() {
+        ShadowFeedAds.Status.ads = false;
+        ShadowFeedAds.Status.suggestions = true;
+        assertEquals(Arrays.asList(ShadowFeedAds.AD, "post"),
+                FeedAds.filter(Arrays.asList(ShadowFeedAds.AD, ShadowFeedAds.SUGGESTED, "post")));
+        assertEquals(Collections.singletonList("Hide suggested users: invoked 1, 0 found, 0 missing. "
+                + "Counted: suggestion cards taken out 1"), HookStatus.report());
+    }
+
+    @Test
+    public void theTwoSwitchesActIndependently() {
+        ShadowFeedAds.Status.suggestions = true;
+        List<Object> page = Arrays.asList(ShadowFeedAds.AD, ShadowFeedAds.SUGGESTED, "post");
+        Settings.HIDE_SUGGESTED_USERS.save(false);
+        assertEquals(Arrays.asList(ShadowFeedAds.SUGGESTED, "post"), FeedAds.filter(page));
+        Settings.HIDE_ADS.save(false);
+        Settings.HIDE_SUGGESTED_USERS.save(true);
+        assertEquals(Arrays.asList(ShadowFeedAds.AD, "post"), FeedAds.filter(page));
+        Settings.HIDE_SUGGESTED_USERS.save(false);
+        assertSame(page, FeedAds.filter(page));
+    }
+
+    @Test
+    public void aBrokenSecondRuleRollsBackTheWholePageAndBothCounts() {
+        ShadowFeedAds.Status.suggestions = true;
+        List<Object> page = Arrays.asList(ShadowFeedAds.AD, ShadowFeedAds.SUGGESTED,
+                ShadowFeedAds.BROKEN_SUGGESTED, "post");
+        assertSame(page, FeedAds.filter(page));
+        assertTrue(HookStatus.report().toString(), !HookStatus.report().toString().contains("Counted:"));
+    }
+
+    @Test
+    public void aPageThatBreaksWhileWalkedIsFiledUnderTheSelectedRulesOnly() {
+        List<Object> page = unreadablePage();
+        assertSame(page, FeedAds.filter(page));
+        assertEquals(1, HookStatus.report().size());
+        String line = HookStatus.report().get(0);
+        assertTrue(line, line.startsWith("Hide ads: invoked 1, 0 found, 1 missing"));
+
+        HookStatus.clear();
+        ShadowFeedAds.Status.suggestions = true;
+        assertSame(page, FeedAds.filter(page));
+        List<String> report = HookStatus.report();
+        assertEquals(report.toString(), 2, report.size());
+        assertTrue(report.toString(), report.get(0).startsWith("Hide ads: invoked 1, 0 found, 1 missing"));
+        assertTrue(report.toString(), report.get(1).startsWith("Hide suggested users: invoked 1, 0 found, 1 missing"));
+    }
+
+    /** A page whose items can't be read, the way a list changed under Threads' feet would behave. */
+    private static List<Object> unreadablePage() {
+        return new java.util.AbstractList<Object>() {
+            @Override public Object get(int index) { throw new java.util.ConcurrentModificationException(); }
+            @Override public int size() { return 2; }
+        };
+    }
+
+    @Test
+    public void paginatedRemovalCountsAccumulateWithoutReorderingPosts() {
+        ShadowFeedAds.Status.suggestions = true;
+        assertEquals(Arrays.asList("a", "b"),
+                FeedAds.filter(Arrays.asList("a", ShadowFeedAds.SUGGESTED, "b")));
+        assertEquals(Arrays.asList("c", "d"),
+                FeedAds.filter(Arrays.asList(ShadowFeedAds.KICKSTART, "c", ShadowFeedAds.AD, "d")));
+        assertEquals(Arrays.asList("Hide ads: invoked 2, 0 found, 0 missing. Counted: ad posts taken out 1",
+                "Hide suggested users: invoked 2, 0 found, 0 missing. Counted: suggestion cards taken out 2"),
+                HookStatus.report());
+    }
+
+    @Test
+    public void bothRulesPreserveTheOriginalListWithoutContextOrWhilePaused() throws Exception {
+        ShadowFeedAds.Status.suggestions = true;
+        List<Object> page = Arrays.asList(ShadowFeedAds.AD, ShadowFeedAds.SUGGESTED, "post");
+        SettingsContextRule.withoutContext(() -> assertSame(page, FeedAds.filter(page)));
+        java.lang.reflect.Method pause = Setting.class.getDeclaredMethod("setPausedForProcess", boolean.class);
+        pause.setAccessible(true);
+        try {
+            pause.invoke(null, true);
+            assertSame(page, FeedAds.filter(page));
+            assertTrue(HookStatus.report().toString(), !HookStatus.report().toString().contains("Counted:"));
         } finally {
             pause.invoke(null, false);
         }

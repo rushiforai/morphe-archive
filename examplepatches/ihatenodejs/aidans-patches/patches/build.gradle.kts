@@ -1,9 +1,9 @@
-group = "app.finance"
+group = "app.aidan"
 
 patches {
     about {
         name = "Aidan's Patches"
-        description = "Morphe patches for finance and shopping applications"
+        description = "Morphe patches for supported Android applications"
         source = "git@github.com:ihatenodejs/aidans-patches.git"
         author = "Aidan"
         contact = "https://github.com/ihatenodejs/aidans-patches/issues"

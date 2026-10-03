@@ -36,12 +36,14 @@ import java.io.File
 class HideFeedsHeaderFixtureTest {
     /** Each declared build's container type, the controller's type, and the controller's register. */
     private val expected = mapOf(
+        "581.0.0.45.58" to Triple("LX/3vh;", "LX/a5t;", 5),
         "580.0.0.51.74" to Triple("LX/46j;", "LX/OHa;", 5),
         "577.0.0.50.72" to Triple("LX/1r2;", "LX/aEY;", 6),
     )
 
     /** Each declared build's container controller and the runnable it posts with whether the filters show. */
     private val room = mapOf(
+        "581.0.0.45.58" to ("LX/asB;" to "LX/b6e;"),
         "580.0.0.51.74" to ("LX/eJa;" to "LX/eZX;"),
         "577.0.0.50.72" to ("LX/b0E;" to "LX/bBz;"),
     )

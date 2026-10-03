@@ -1,0 +1,137 @@
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoListFragment.smali b/smali/com/sauzask/nicoid/NicoidVideoListFragment.smali
+--- a/smali/com/sauzask/nicoid/NicoidVideoListFragment.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoListFragment.smali
+@@ -2377,6 +2377,8 @@
+     invoke-virtual {v0, p1}, Landroid/widget/ListView;->setSelection(I)V
+ 
+     :cond_2d
++    invoke-static {p0}, Le/e/a/PullRefresh;->install(Lcom/sauzask/nicoid/NicoidVideoListFragment;)V
++
+     return-void
+ .end method
+ 
+diff --git a/smali/e/e/a/PullRefresh.smali b/smali/e/e/a/PullRefresh.smali
+new file mode 100644
+--- /dev/null
++++ b/smali/e/e/a/PullRefresh.smali
+@@ -0,0 +1,120 @@
++.class public final Le/e/a/PullRefresh;
++.super Ljava/lang/Object;
++.source "PullRefresh.java"
++
++.implements Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout$h;
++.implements Ljava/lang/Runnable;
++
++.field private final fragment:Lcom/sauzask/nicoid/NicoidVideoListFragment;
++.field private final layout:Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;
++
++.method private constructor <init>(Lcom/sauzask/nicoid/NicoidVideoListFragment;Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;)V
++    .locals 0
++    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
++    iput-object p1, p0, Le/e/a/PullRefresh;->fragment:Lcom/sauzask/nicoid/NicoidVideoListFragment;
++    iput-object p2, p0, Le/e/a/PullRefresh;->layout:Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;
++    return-void
++.end method
++
++.method public static install(Lcom/sauzask/nicoid/NicoidVideoListFragment;)V
++    .locals 9
++    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->d0:Ljava/lang/String;
++    if-eqz v0, :done
++    const-string v1, "nvapi.nicovideo.jp/v1/search/video"
++    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
++    move-result v1
++    if-eqz v1, :done
++    iget-object v1, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->b0:Landroid/widget/ListView;
++    if-eqz v1, :done
++    invoke-virtual {v1}, Landroid/view/View;->getParent()Landroid/view/ViewParent;
++    move-result-object v2
++    instance-of v3, v2, Landroid/view/ViewGroup;
++    if-eqz v3, :done
++    instance-of v3, v2, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;
++    if-nez v3, :done
++    move-object v3, v2
++    check-cast v3, Landroid/view/ViewGroup;
++    invoke-virtual {v3, v1}, Landroid/view/ViewGroup;->indexOfChild(Landroid/view/View;)I
++    move-result v4
++    if-ltz v4, :done
++    invoke-virtual {v1}, Landroid/view/View;->getLayoutParams()Landroid/view/ViewGroup$LayoutParams;
++    move-result-object v5
++    invoke-virtual {v3, v1}, Landroid/view/ViewGroup;->removeView(Landroid/view/View;)V
++    new-instance v6, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;
++    invoke-virtual {v1}, Landroid/view/View;->getContext()Landroid/content/Context;
++    move-result-object v7
++    const/4 v8, 0x0
++    invoke-direct {v6, v7, v8}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;-><init>(Landroid/content/Context;Landroid/util/AttributeSet;)V
++    new-instance v8, Le/e/a/PullRefresh;
++    invoke-direct {v8, p0, v6}, Le/e/a/PullRefresh;-><init>(Lcom/sauzask/nicoid/NicoidVideoListFragment;Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;)V
++    invoke-virtual {v6, v8}, Landroid/view/View;->setTag(Ljava/lang/Object;)V
++    invoke-virtual {v6, v8}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;->setOnRefreshListener(Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout$h;)V
++    invoke-virtual {v7}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
++    move-result-object v7
++    invoke-virtual {v7}, Landroid/content/res/Resources;->getDisplayMetrics()Landroid/util/DisplayMetrics;
++    move-result-object v7
++    iget v7, v7, Landroid/util/DisplayMetrics;->density:F
++    const/high16 v8, 0x42e00000  # 112.0f
++    mul-float/2addr v7, v8
++    float-to-int v7, v7
++    invoke-virtual {v6, v7}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;->setDistanceToTriggerSync(I)V
++    new-instance v7, Landroid/view/ViewGroup$LayoutParams;
++    const/4 v8, -0x1
++    invoke-direct {v7, v8, v8}, Landroid/view/ViewGroup$LayoutParams;-><init>(II)V
++    invoke-virtual {v6, v1, v7}, Landroid/view/ViewGroup;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
++    invoke-virtual {v3, v6, v4, v5}, Landroid/view/ViewGroup;->addView(Landroid/view/View;ILandroid/view/ViewGroup$LayoutParams;)V
++    new-instance v8, Landroid/util/TypedValue;
++    invoke-direct {v8}, Landroid/util/TypedValue;-><init>()V
++    invoke-virtual {v6}, Landroid/view/View;->getContext()Landroid/content/Context;
++    move-result-object v7
++    invoke-virtual {v7}, Landroid/content/Context;->getTheme()Landroid/content/res/Resources$Theme;
++    move-result-object v7
++    const v5, 0x7f03005e
++    const/4 v4, 0x1
++    invoke-virtual {v7, v5, v8, v4}, Landroid/content/res/Resources$Theme;->resolveAttribute(ILandroid/util/TypedValue;Z)Z
++    move-result v7
++    if-eqz v7, :color_done
++    iget v7, v8, Landroid/util/TypedValue;->data:I
++    new-array v8, v4, [I
++    const/4 v4, 0x0
++    aput v7, v8, v4
++    invoke-virtual {v6, v8}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;->setColorSchemeColors([I)V
++    :color_done
++    new-instance v8, Landroid/util/TypedValue;
++    invoke-direct {v8}, Landroid/util/TypedValue;-><init>()V
++    const v5, 0x1010031  # android:colorBackground
++    invoke-virtual {v6}, Landroid/view/View;->getContext()Landroid/content/Context;
++    move-result-object v7
++    invoke-virtual {v7}, Landroid/content/Context;->getTheme()Landroid/content/res/Resources$Theme;
++    move-result-object v7
++    const/4 v4, 0x1
++    invoke-virtual {v7, v5, v8, v4}, Landroid/content/res/Resources$Theme;->resolveAttribute(ILandroid/util/TypedValue;Z)Z
++    move-result v7
++    if-eqz v7, :done
++    iget v7, v8, Landroid/util/TypedValue;->data:I
++    invoke-virtual {v6, v7}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;->setProgressBackgroundColorSchemeColor(I)V
++    :done
++    return-void
++.end method
++
++.method public a()V
++    .locals 3
++    iget-object v0, p0, Le/e/a/PullRefresh;->layout:Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;
++    const/4 v1, 0x0
++    invoke-virtual {v0, v1}, Landroidx/swiperefreshlayout/widget/SwipeRefreshLayout;->setRefreshing(Z)V
++    new-instance v0, Landroid/os/Handler;
++    invoke-direct {v0}, Landroid/os/Handler;-><init>()V
++    const-wide/16 v1, 0x12c
++    invoke-virtual {v0, p0, v1, v2}, Landroid/os/Handler;->postDelayed(Ljava/lang/Runnable;J)Z
++    return-void
++.end method
++
++.method public run()V
++    .locals 1
++    iget-object v0, p0, Le/e/a/PullRefresh;->fragment:Lcom/sauzask/nicoid/NicoidVideoListFragment;
++    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
++    if-eqz v0, :done_refresh
++    invoke-virtual {v0}, Landroid/app/Activity;->recreate()V
++    :done_refresh
++    return-void
++.end method

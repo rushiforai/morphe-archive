@@ -126,7 +126,9 @@ public class PatchFamilyTest {
                 PatchFamily.Capability.SEARCH_ADS);
         assertEquals(expectedAds, PatchFamily.HIDE_ADS.expectedCapabilities());
         assertEquals(installedAds, PatchFamily.HIDE_ADS.installedCapabilities());
-        assertEquals(EnumSet.of(PatchFamily.Capability.DEVICE_STATS, PatchFamily.Capability.READ_METRICS),
+        assertEquals(EnumSet.of(PatchFamily.Capability.DEVICE_STATS, PatchFamily.Capability.READ_METRICS,
+                        PatchFamily.Capability.PREMIUM_PROMO_SHOW, PatchFamily.Capability.PREMIUM_PROMO_TAP,
+                        PatchFamily.Capability.PREMIUM_PROMO_ACCEPT, PatchFamily.Capability.PREMIUM_PROMO_FAIL),
                 PatchFamily.DISABLE_ANALYTICS.expectedCapabilities());
         assertEquals(EnumSet.of(PatchFamily.Capability.READ_METRICS),
                 PatchFamily.DISABLE_ANALYTICS.installedCapabilities());
@@ -219,9 +221,9 @@ public class PatchFamilyTest {
         assertEquals(Arrays.asList(
                 "Hide ads: on (hushtelegram_hide_ads=on)",
                 "Disable analytics: disabled by its switch (hushtelegram_disable_analytics=off)",
-                "not in this build: Hide Stories, Hide recommendations, Disable call debug upload, Disable update checks",
+                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Disable chat swipe actions, Quiet contacts nag, Holiday look all year, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks",
                 "Hide ads coverage: channel ads, video ads, search ads",
-                "Disable analytics coverage: device statistics reports, channel read metrics"),
+                "Disable analytics coverage: device statistics reports, channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"),
                 running);
 
         // Every family in this build has a switch, but the line still has room, after the switch's
@@ -250,7 +252,7 @@ public class PatchFamilyTest {
                 PatchFamily.Capability.READ_METRICS);
         List<String> running = PatchFamily.reportLines(build, false);
         assertTrue(running.toString(), running.contains("Hide ads coverage: channel ads; missing: video ads, search ads"));
-        assertTrue(running.toString(), running.contains("Disable analytics coverage: channel read metrics; missing: device statistics reports"));
+        assertTrue(running.toString(), running.contains("Disable analytics coverage: channel read metrics; missing: device statistics reports, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"));
         Settings.HIDE_ADS.save(false);
         Settings.DISABLE_ANALYTICS.save(false);
         List<String> disabled = PatchFamily.reportLines(build, false);
@@ -260,7 +262,7 @@ public class PatchFamilyTest {
         PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
         List<String> none = PatchFamily.reportLines(build, false);
         assertTrue(none.toString(), none.contains("Hide ads coverage: none; missing: channel ads, video ads, search ads"));
-        assertTrue(none.toString(), none.contains("Disable analytics coverage: none; missing: device statistics reports, channel read metrics"));
+        assertTrue(none.toString(), none.contains("Disable analytics coverage: none; missing: device statistics reports, channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"));
     }
 
     /**

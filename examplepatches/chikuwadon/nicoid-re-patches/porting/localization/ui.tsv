@@ -1,0 +1,145 @@
+ショート	Shorts	短片
+ショート動画の視聴	Watch short videos	觀看短片
+アプリを再起動	Restart app	重新啟動應用程式
+デバッグログを共有	Share debug log	分享偵錯紀錄
+その他	Other	其他
+設定を反映して最初から開く	Restart to apply settings	重新啟動以套用設定
+設定	Settings	設定
+アプリ設定	App settings	應用程式設定
+一般設定・再生設定	General and playback settings	一般與播放設定
+サイドバーにショートを表示	Show Shorts in the sidebar	在側邊選單顯示短片
+ランキングの下にショート動画の入口を表示します	Show the Shorts entry below Rankings	在排行榜下方顯示短片入口
+デバッグ	Debug	偵錯
+言語	Language	語言
+再生エラーや通信先、応答コードなどの診断ログを共有します。不具合の報告時に利用できます。共有前にログの内容と送信先を確認してください。	Share diagnostic logs, including playback errors, request destinations and response codes, when reporting a problem. Review the log and recipient before sharing.	回報問題時可分享診斷紀錄，內容包含播放錯誤、連線目標與回應代碼。分享前請確認紀錄內容及接收對象。
+気になる動画を選んで再生	Choose a video to watch	選擇想看的影片
+ショート動画を検索	Search short videos	搜尋短片
+検索	Search	搜尋
+ショート動画を読み込んでいます…	Loading short videos…	正在載入短片…
+再試行	Retry	重試
+ニコニコ動画のホームに戻る	Return to NicoNico home	返回 Niconico 首頁
+ニコニコ動画に戻る	Return to NicoNico	返回 Niconico
+ショート一覧を更新	Refresh short videos	重新整理短片清單
+ショート動画を取得できませんでした。通信状態を確認して再試行してください。	Could not load short videos. Check your connection and try again.	無法載入短片。請確認網路連線後重試。
+ 本の動画	 videos	 部影片
+ニコニコ動画  •  	NicoNico  •  	Niconico  •  
+ショート動画を検索しています…	Searching short videos…	正在搜尋短片…
+検索結果を取得できませんでした。通信状態を確認して再試行してください。	Could not load search results. Check your connection and try again.	無法載入搜尋結果。請確認網路連線後重試。
+ショート動画が見つかりませんでした。キーワードを変えてお試しください。	No short videos found. Try another keyword.	找不到短片。請嘗試其他關鍵字。
+現在のショート	Current short	目前的短片
+前のショート	Previous short	上一部短片
+ショート動画一覧	Short video list	短片清單
+ショートのホーム	Shorts home	短片首頁
+動画情報	Video details	影片資訊
+次のショート	Next short	下一部短片
+上にスワイプで次、下にスワイプで前の動画	Swipe up for the next video or down for the previous one	向上滑動切換下一部，向下滑動切換上一部
+ショート動画	Short videos	短片
+更新	Refresh	重新整理
+閉じる	Close	關閉
+最初の動画です	This is the first video	這是第一部影片
+一覧を取得できませんでした。もう一度お試しください	Could not load the list. Please try again.	無法載入清單。請再試一次。
+新しいショート動画が見つかりませんでした	No more short videos found	沒有找到更多短片
+更新が完了しませんでした。もう一度お試しください。	Refresh did not complete. Please try again.	重新整理未完成。請再試一次。
+最大画質（最大解像度・動画により変動）	Maximum quality (highest available resolution; varies by video)	最高畫質（最高可用解析度，依影片而異）
+高画質（最大解像度・動画により変動）	High quality (highest available resolution; varies by video)	高畫質（最高可用解析度，依影片而異）
+標準画質（2番目の解像度・動画により変動）	Standard quality (second-highest resolution; varies by video)	標準畫質（第二高解析度，依影片而異）
+低画質（3番目の解像度・動画により変動）	Low quality (third-highest resolution; varies by video)	低畫質（第三高解析度，依影片而異）
+最大画質	Maximum quality	最高畫質
+高画質	High quality	高畫質
+標準画質	Standard quality	標準畫質
+低画質	Low quality	低畫質
+標準	Standard	標準
+自動	Auto	自動
+速度	Speed	速度
+画質	Quality	畫質
+ループ	Loop	循環
+再生速度	Playback speed	播放速度
+キャンセル	Cancel	取消
+画質を取得できませんでした	Could not retrieve video quality	無法取得影片畫質
+画質: 	Quality: 	畫質： 
+再生速度: 	Playback speed: 	播放速度： 
+倍	×	倍
+ループ再生: 	Loop playback: 	循環播放： 
+操作に失敗しました。ログを確認してください	Action failed. Please check the log.	操作失敗。請查看紀錄。
+デフォルトの再生速度	Default playback speed	預設播放速度
+何もしない（従来の動作）	No change (original behavior)	維持原本的行為
+バックグラウンド再生	Background playback	背景播放
+ポップアップ再生	Pop-up playback	懸浮視窗播放
+アプリ切替時の動作	When switching apps	切換應用程式時的行為
+再生中に戻る場合の動作	When pressing Back during playback	播放時按下返回的行為
+再生位置の保存	Save playback position	儲存播放進度
+動画ごとに再生位置を保存し、次回の再生時に再開します	Save each video's playback position and resume from it next time	儲存每部影片的播放進度，下次播放時從該位置繼續
+ポップアップ再生には他のアプリの上に表示する権限が必要です	Allow display over other apps to use pop-up playback	使用懸浮視窗播放需要允許顯示在其他應用程式上層
+パッチバージョン	Patch version	修補程式版本
+Android 12以降の壁紙の色をアプリに適用します	Use wallpaper colors on Android 12 and later	在 Android 12 以上版本套用桌布色彩
+コメント取得数の上限を拡張	Increase the comment limit	提高留言載入上限
+従来形式の動画で取得するコメント数を増やします。通信量と描画負荷が増えます	Load more comments for videos using the legacy format. This increases data usage and rendering load.	載入更多舊格式影片的留言。這會增加網路流量與繪製負擔。
+コメントの大きさ	Comment size	留言大小
+最小・小・標準・大・最大（次の再生から反映）	Smallest, small, standard, large or largest (applies on the next playback)	最小、小、標準、大、最大（下次播放時生效）
+最小	Smallest	最小
+小	Small	小
+大	Large	大
+最大	Largest	最大
+接続	Connect	連線
+接続する端末を選択	Choose a device to connect to	選擇要連線的裝置
+接続解除	Disconnect	中斷連線
+Google Cast の接続を解除	Disconnect Google Cast	中斷 Google Cast 連線
+共有ストレージ（アプリ専用領域）	Shared storage (app-specific folder)	共用儲存空間（應用程式專用資料夾）
+本体ストレージ（アプリ内部領域）	Internal storage (private app folder)	內部儲存空間（應用程式私人資料夾）
+共有ストレージ、SDカード、本体内部領域から保存先を選択できます。変更前のキャッシュは移動されません	Choose shared storage, an SD card or internal storage. Existing cached files will not be moved.	可選擇共用儲存空間、SD 卡或內部儲存空間。現有快取檔案不會移動。
+フォロー新着	New from followed users	追蹤對象的新影片
+フォロー中の新着動画	New videos from followed users	追蹤對象的最新影片
+選択中: 	Selected: 	已選取： 
+件の履歴を削除しますか？	 history entries. Delete them?	 筆紀錄，要刪除嗎？
+削除	Delete	刪除
+動画	Video	影片
+削除する履歴を選択	Select history entries to delete	選取要刪除的觀看紀錄
+選択した履歴を削除	Delete selected history	刪除選取的觀看紀錄
+件	 items	 筆
+ログイン画面の表示が停止しました。アプリを再起動して再試行してください。	The sign-in screen stopped responding. Restart the app and try again.	登入畫面沒有回應。請重新啟動應用程式後重試。
+ログイン画面を開けませんでした。\n	Could not open the sign-in screen.\n	無法開啟登入畫面。\n
+ログインしました	Signed in	已登入
+ニコレポはサービスが終了しました。フォロー新着はニコニコ公式サイトで確認できます。	Nico Reports has been discontinued. Visit the official NicoNico website for new videos from followed users.	Nico Reports 已停止服務。請前往 Niconico 官方網站查看追蹤對象的新影片。
+保存先: 	Save location: 	儲存位置： 
+ログイン情報を保存済み（サイト側の認証は未確認）	Sign-in details saved (website authentication not confirmed)	已儲存登入資料（尚未確認網站驗證狀態）
+未ログイン・ログイン情報なし	Not signed in; no saved sign-in details	未登入，沒有已儲存的登入資料
+再生状況と通信結果を送る	Share playback and connection diagnostics	分享播放與連線診斷資訊
+動画の読み込みが進みません。再生をやり直してください	Video loading has stalled. Start playback again.	影片載入停滯。請重新開始播放。
+動画情報を取得できません: 	Could not retrieve video details: 	無法取得影片資訊： 
+動画情報を取得できません。通信状態を確認してください	Could not retrieve video details. Check your connection.	無法取得影片資訊。請確認網路連線。
+この動画に対応する再生形式がありません	No supported playback format is available for this video	這部影片沒有可支援的播放格式
+再生情報の取得に失敗しました。通信状態や視聴権限を確認してください	Could not retrieve playback information. Check your connection and viewing permissions.	無法取得播放資訊。請確認網路連線與觀看權限。
+再生:%,d  コメント:%,d  マイリス:%,d  いいね:%,d	Views: %,d  Comments: %,d  Mylists: %,d  Likes: %,d	觀看：%,d  留言：%,d  播放清單：%,d  按讚：%,d
+動画再生	Play video	播放影片
+キャッシュ取得	Download cache	下載快取
+キャッシュの取得	Download cache	下載快取
+ミニゲームを閉じる	Close mini-game	關閉小遊戲
+自転車ラン。タップで2段ジャンプ。障害物と穴を避けます。終了後はタップで再挑戦。	Bicycle Run. Tap to jump, then tap again in midair for a double jump. Avoid obstacles and gaps. Tap after game over to try again.	自行車跑酷。輕觸跳躍，在空中再次輕觸可二段跳。避開障礙與缺口。遊戲結束後輕觸重試。
+自転車ラン	Bicycle Run	自行車跑酷
+距離 	Distance: 	距離： 
+ m   ベスト 	 m   Best: 	 m   最佳： 
+タップで2段ジャンプ	Tap to jump; tap again in midair	輕觸跳躍，在空中再點一次可二段跳
+ゲームオーバー	Game over	遊戲結束
+障害物と穴をジャンプで避けよう	Jump over obstacles and gaps	跳過障礙與缺口
+タップで再挑戦	Tap to try again	輕觸重試
+タップしてスタート	Tap to start	輕觸開始
+総合	All categories	綜合
+ゲーム	Gaming	遊戲
+アニメ	Anime	動畫
+ボカロ	Vocaloid	VOCALOID
+音声合成実況・解説・劇場	Synthesized voice commentary, explanations and skits	語音合成實況、解說與劇場
+エンタメ	Entertainment	娛樂
+音楽	Music	音樂
+歌ってみた	Singing covers	翻唱
+踊ってみた	Dance covers	翻跳
+演奏してみた	Instrumental covers	演奏
+解説・講座	Explanations and tutorials	解說與教學
+料理	Cooking	料理
+旅行・アウトドア	Travel and outdoors	旅遊與戶外
+自然	Nature	自然
+乗り物	Vehicles	交通工具
+技術・工作	Technology and crafts	技術與手作
+社会・政治・時事	Society, politics and current affairs	社會、政治與時事
+ラジオ	Radio	廣播
+スポーツ	Sports	運動
+動物	Animals	動物

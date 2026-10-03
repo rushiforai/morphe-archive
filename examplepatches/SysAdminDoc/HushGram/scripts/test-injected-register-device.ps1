@@ -26,10 +26,21 @@ function Assert-True {
     if (-not $Condition) { throw $Message }
 }
 
+function Read-LeaseBytes {
+    param([string]$Path)
+    # A reader must share the existing writer's access while its exclusive lease handle is held.
+    $file = [IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)
+    $bytes = [IO.MemoryStream]::new()
+    try { $file.CopyTo($bytes); return ,$bytes.ToArray() }
+    finally { $file.Dispose(); $bytes.Dispose() }
+}
+
 # The helper reads the local file's size, so the fixture is a real file.
 $fixture = Join-Path ([System.IO.Path]::GetTempPath()) ("hushgram-device-fixture-" + [guid]::NewGuid().ToString('N') + '.apk')
 [System.IO.File]::WriteAllBytes($fixture, [byte[]](1..200 | ForEach-Object { $_ % 256 }))
 $fixtureSize = (Get-Item -LiteralPath $fixture).Length
+$leaseDirectory = Join-Path ([IO.Path]::GetTempPath()) ('hushgram-lease-tests-' + [guid]::NewGuid().ToString('N'))
+$deviceLease = $null
 try {
     function New-FakeAdb {
         param(
@@ -46,6 +57,7 @@ try {
             RemotePaths = [System.Collections.Generic.HashSet[string]]::new(
                 [System.StringComparer]::Ordinal)
             CleanupCalls = 0
+            Marker = $null
         }
         $invoker = {
             param([string]$Executable, [string[]]$Arguments)
@@ -63,8 +75,11 @@ try {
                 [void]$state.RemotePaths.Add($directory)
                 if ($FailureStage -eq 'setup') { $exitCode = 12 }
             } elseif ($operation -eq 'logcat' -and $Arguments[3] -eq '-c') {
-                if ($FailureStage -eq 'clear') { $exitCode = 13 }
-            } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'dex2oat64*') {
+                throw 'The verifier cleared the log buffer of a shared phone.'
+            } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'log -t HushGramVerify *') {
+                $state.Marker = $Arguments[3].Substring('log -t HushGramVerify '.Length)
+                if ($FailureStage -eq 'mark') { $exitCode = 13 }
+            } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'dex2oat* --dex-file=*') {
                 $read = if ($FailureStage -eq 'short-read') { 5 } else { $Size }
                 $output = if ($FailureStage -eq 'dex2oat') { @('exit=14', "size=$read") } else { @('exit=0', "size=$read") }
             } elseif ($operation -eq 'logcat' -and $Arguments[3] -eq '-d') {
@@ -72,14 +87,24 @@ try {
                     throw 'fake ADB threw while reading logcat'
                 } elseif ($FailureStage -eq 'log-read') {
                     $exitCode = 15
-                } elseif ($FailureStage -eq 'unread') {
-                    $output = @("W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushgram-verify-case.apk'")
                 } else {
-                    $output = @(
+                    # Another session's lines before this run's marker are left alone and not counted.
+                    $before = @(
                         'I dex2oat64: Verification error in Lfixture/Host;',
-                        'I dex2oat64: Verification error in Lfixture/Host;',
-                        'W dex2oat: VerifyError in Lfixture/Other;'
+                        "W dex2oat64: Skipping non-existent dex file '/data/local/tmp/other.apk'",
+                        "I HushGramVerify: hushgram-verify-case-$('0' * 32)"
                     )
+                    $run = if ($FailureStage -eq 'unread') {
+                        @("W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushgram-verify-case.apk'")
+                    } else {
+                        @(
+                            'I dex2oat64: Verification error in Lfixture/Host;',
+                            'I dex2oat64: Verification error in Lfixture/Host;',
+                            'W dex2oat: VerifyError in Lfixture/Other;'
+                        )
+                    }
+                    $marked = if ($FailureStage -eq 'rotated') { @() } else { @("I HushGramVerify: $($state.Marker)") }
+                    $output = @($before) + @($marked) + @($run)
                 }
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'rm -rf *') {
                 $state.CleanupCalls++
@@ -111,12 +136,213 @@ try {
         }
     }
 
+    $identityInvoker = {
+        param($executable, $arguments)
+        $answer = switch ($arguments[-1]) {
+            'get-serialno' { 'SERIAL' }
+            'ro.product.model' { 'FixtureDevice' }
+            'ro.product.cpu.abi' { 'arm64-v8a' }
+            default { throw 'Unexpected identity query' }
+        }
+        [pscustomobject]@{ExitCode=0;Output=@($answer);Stdout=@($answer)}
+    }
+    $deviceLease = Enter-HushgramDeviceLease -Serial 'SERIAL' -ExpectedModel 'FixtureDevice' -Directory $leaseDirectory
+    $leasePath = Join-Path $leaseDirectory 'SERIAL.json'
+    $before = Read-LeaseBytes $leasePath
+    $occupied = $false
+    try { [void](Enter-HushgramDeviceLease -Serial 'SERIAL' -ExpectedModel 'FixtureDevice' -Directory $leaseDirectory) }
+    catch { $occupied = $true }
+    Assert-True $occupied 'A second test acquired the same whole-device lease.'
+    Assert-True ([Convert]::ToBase64String($before) -ceq [Convert]::ToBase64String((Read-LeaseBytes $leasePath))) `
+        'Lease contention changed the active owner record.'
+    $unleased = New-FakeAdb
+    $denied = $false
+    try { [void](Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' -Local $fixture -Label 'case' -AdbInvoker $unleased.Invoker) }
+    catch { $denied = $true }
+    Assert-True ($denied -and $unleased.State.Calls.Count -eq 0) 'The verifier touched a device without a lease.'
+    $denied = $false
+    try { [void](Invoke-HushgramAdbCommand -Adb 'fake-adb' -Arguments @('-s','SERIAL','install','fixture.apk') -Invoker $unleased.Invoker -DeviceLease $deviceLease) }
+    catch { $denied = $true }
+    Assert-True ($denied -and $unleased.State.Calls.Count -eq 0) 'Unverified device identity allowed an install.'
+    Confirm-HushgramDevice -Adb 'fake-adb' -DeviceLease $deviceLease -AdbInvoker $identityInvoker
+    Assert-True ($deviceLease.Verified -and $deviceLease.InstructionSet -ceq 'arm64') 'Device identity was not verified.'
+    $denied = $false
+    try { [void](Invoke-HushgramAdbCommand -Adb 'fake-adb' -Arguments @('-s','OTHER','install','fixture.apk') -Invoker $unleased.Invoker -DeviceLease $deviceLease) }
+    catch { $denied = $true }
+    Assert-True ($denied -and $unleased.State.Calls.Count -eq 0) 'A lease permitted a different device serial.'
+    $denied = $false
+    try { Remove-AndroidPackageIfInstalled -Adb 'fake-adb' -Serial 'SERIAL' -PackageName 'com.instagram.android' }
+    catch { $denied = $true }
+    Assert-True $denied 'The obsolete replacement helper could uninstall preserved data.'
+    $expired = Join-Path $leaseDirectory 'EXPIRED.json'
+    [IO.File]::WriteAllText($expired, '{"ownershipToken":"foreign","expiresUtc":"2026-01-01T00:00:00Z"}')
+    $denied = $false
+    try { [void](Enter-HushgramDeviceLease -Serial 'EXPIRED' -ExpectedModel 'FixtureDevice' -Directory $leaseDirectory) }
+    catch { $denied = $true }
+    Assert-True ($denied -and [IO.File]::ReadAllText($expired).Contains('foreign')) 'An expired foreign lease was reclaimed without confirming its test stopped.'
+
+    # Contention must hold across processes, not only another call in this PowerShell scope.
+    $before = Read-LeaseBytes $leasePath
+    $helper = (Join-Path $PSScriptRoot 'device-install.ps1').Replace("'", "''")
+    $directoryArgument = $leaseDirectory.Replace("'", "''")
+    $contenderCode = ". '$helper'; try { `$lease = Enter-HushgramDeviceLease -Serial SERIAL -ExpectedModel FixtureDevice -Directory '$directoryArgument'; Exit-HushgramDeviceLease `$lease; exit 23 } catch { exit 0 }"
+    $contender = [Diagnostics.Process]::new()
+    try {
+        $contender.StartInfo = [Diagnostics.ProcessStartInfo]::new((Get-Process -Id $PID).Path)
+        $contender.StartInfo.UseShellExecute = $false
+        $contender.StartInfo.CreateNoWindow = $true
+        foreach ($argument in @('-NoProfile','-EncodedCommand',[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($contenderCode)))) {
+            $contender.StartInfo.ArgumentList.Add($argument)
+        }
+        Assert-True ($contender.Start()) 'The separate lease contender did not start.'
+        $contender.WaitForExit()
+        Assert-True ($contender.ExitCode -eq 0) 'A separate process acquired an active whole-device lease.'
+        Assert-True ([Convert]::ToBase64String($before) -ceq [Convert]::ToBase64String((Read-LeaseBytes $leasePath))) `
+            'A separate lease contender changed the owner record.'
+    } finally { $contender.Dispose() }
+
+    function New-IdentityInvoker {
+        param([string]$Serial = 'SERIAL', [string]$Model = 'FixtureDevice', [string]$Abi = 'arm64-v8a', [string]$Avd = 'FixtureAvd')
+        { param($executable, $arguments)
+            $answer = switch ($arguments[-1]) {
+                'get-serialno' { @($Serial) }
+                'ro.product.model' { @($Model) }
+                'ro.product.cpu.abi' { @($Abi) }
+                'name' { @($Avd,'OK') }
+                default { throw 'Unexpected identity query' }
+            }
+            [pscustomobject]@{ExitCode=0;Output=@($answer);Stdout=@($answer)}
+        }.GetNewClosure()
+    }
+    foreach ($invalid in @(@{Serial='OTHER'}, @{Model='OtherDevice'}, @{Abi='unsupported'})) {
+        $denied = $false
+        try { Confirm-HushgramDevice -Adb fake-adb -DeviceLease $deviceLease -AdbInvoker (New-IdentityInvoker @invalid) }
+        catch { $denied = $true }
+        Assert-True ($denied -and -not $deviceLease.Verified -and $null -eq $deviceLease.InstructionSet) 'A failed identity recheck retained verification.'
+        $denied = $false
+        try { [void](Invoke-HushgramAdbCommand -Adb fake-adb -Arguments @('-s','SERIAL','install','fixture.apk') -Invoker $unleased.Invoker -DeviceLease $deviceLease) }
+        catch { $denied = $true }
+        Assert-True ($denied -and $unleased.State.Calls.Count -eq 0) 'A failed identity recheck permitted an install.'
+    }
+    foreach ($abiCase in @(@{Abi='armeabi-v7a';Isa='arm';Binary='dex2oat'}, @{Abi='x86';Isa='x86';Binary='dex2oat'}, @{Abi='x86_64';Isa='x86_64';Binary='dex2oat64'})) {
+        Confirm-HushgramDevice -Adb fake-adb -DeviceLease $deviceLease -AdbInvoker (New-IdentityInvoker -Abi $abiCase.Abi)
+        $abiFake = New-FakeAdb
+        [void](Invoke-AndroidVerifierTally -Adb fake-adb -Serial SERIAL -Local $fixture -Label case -DeviceLease $deviceLease -AdbInvoker $abiFake.Invoker)
+        Assert-True (@($abiFake.State.Calls | Where-Object { $_ -like "-s SERIAL shell $($abiCase.Binary) --dex-file=*" -and $_.Contains("--instruction-set=$($abiCase.Isa) ") }).Count -eq 1) 'The verifier did not use the verified ABI.'
+    }
+    Confirm-HushgramDevice -Adb fake-adb -DeviceLease $deviceLease -AdbInvoker $identityInvoker
+    $deviceLease.Record.expiresUtc = '2026-01-01T00:00:00Z'
+    Update-HushgramDeviceLease $deviceLease
+    Assert-True ([DateTimeOffset]::Parse($deviceLease.Record.expiresUtc) -gt [DateTimeOffset]::UtcNow.AddMinutes(10)) 'An owned lease was not renewed.'
+    $denied = $false
+    try { [void](Invoke-HushgramAdbCommand -Adb (Join-Path $leaseDirectory 'missing-adb.exe') -Arguments @('-s','SERIAL','get-state') -DeviceLease $deviceLease) }
+    catch { $denied = $true }
+    Assert-True ($denied -and $deviceLease.File.CanWrite) 'A failed native process start lost the owned lease.'
+    # Exercise the real process/stream path. Windows ADB's emulator console writes CR CR LF,
+    # which the injected invoker fixtures cannot reproduce at the byte boundary.
+    $nativeSource = Join-Path $leaseDirectory 'FakeAdb.cs'
+    $nativeAdb = Join-Path $leaseDirectory 'FakeAdb.exe'
+    $nativeMode = Join-Path $leaseDirectory 'FakeAdb.mode'
+    [IO.File]::WriteAllText($nativeSource, @'
+class FakeAdb {
+    static int Main(string[] args) {
+        if (args.Length < 3 || args[0] != "-s" || (args[1] != "SERIAL" && args[1] != "emulator-9998")) return 92;
+        string command = string.Join(" ", args, 2, args.Length - 2);
+        if (command == "get-state") { System.Console.Write("FixtureAvd\r\r\nOK\r\r\n"); return 0; }
+        string modePath = System.IO.Path.ChangeExtension(System.Reflection.Assembly.GetExecutingAssembly().Location, ".mode");
+        string mode = System.IO.File.Exists(modePath) ? System.IO.File.ReadAllText(modePath) : "";
+        if (mode == "failure") {
+            System.Console.Write("offline\r\n");
+            System.Console.Error.Write("error: device offline\r\n");
+            return 93;
+        }
+        string answer;
+        switch (command) {
+            case "get-serialno": answer = mode == "serial" ? "OTHER" : args[1]; break;
+            case "shell getprop ro.product.model": answer = mode == "model" ? "OtherDevice" : "FixtureDevice"; break;
+            case "shell getprop ro.product.cpu.abi":
+                answer = mode == "abi" ? "unsupported" : args[1] == "SERIAL" ? "arm64-v8a" : "x86_64"; break;
+            case "emu avd name": answer = (mode == "avd" ? "OtherAvd" : "FixtureAvd") + "\r\r\nOK"; break;
+            default: return 92;
+        }
+        System.Console.Write(answer + "\r\r\n");
+        System.Console.Error.Write("* daemon not running; starting now at tcp:5037\r\r\n* daemon started successfully\r\r\n");
+        return 0;
+    }
+}
+'@)
+    $compiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+    & $compiler /nologo /target:exe "/out:$nativeAdb" $nativeSource
+    Assert-True ($LASTEXITCODE -eq 0) 'The native ADB-output fixture did not compile.'
+    $nativeResult = Invoke-HushgramAdbCommand -Adb $nativeAdb -Arguments @('-s','SERIAL','get-state') -DeviceLease $deviceLease
+    Assert-True ($nativeResult.ExitCode -eq 0 -and $nativeResult.Output.Count -eq 2 -and $nativeResult.Output[0] -ceq 'FixtureAvd' -and $nativeResult.Output[1] -ceq 'OK') `
+        'Native Windows ADB line endings corrupted the emulator identity response.'
+
+    # A daemon startup is successful, but its stderr notices are not identity answers.
+    Confirm-HushgramDevice -Adb $nativeAdb -DeviceLease $deviceLease
+    Assert-True ($deviceLease.Verified -and $deviceLease.InstructionSet -ceq 'arm64') 'Native identity with daemon startup notices was refused.'
+    $nativeIdentity = Invoke-HushgramAdbCommand -Adb $nativeAdb -Arguments @('-s','SERIAL','get-serialno') -DeviceLease $deviceLease
+    Assert-True ($nativeIdentity.Stdout.Count -eq 1 -and $nativeIdentity.Stdout[0] -ceq 'SERIAL') 'Native stderr contaminated the separate identity output.'
+    Assert-True (($nativeIdentity.Output -join "`n") -ceq "SERIAL`n* daemon not running; starting now at tcp:5037`n* daemon started successfully") `
+        'Separating identity stdout dropped combined ADB diagnostics.'
+
+    function Assert-NativeIdentityRefused {
+        param($Lease, [string]$Mode)
+        [IO.File]::WriteAllText($nativeMode, $Mode)
+        try {
+            $denied = $false
+            try { Confirm-HushgramDevice -Adb $nativeAdb -DeviceLease $Lease }
+            catch { $denied = $true }
+            Assert-True ($denied -and -not $Lease.Verified -and $null -eq $Lease.InstructionSet) "Native $Mode identity failure retained verification."
+            $denied = $false
+            try { [void](Invoke-HushgramAdbCommand -Adb fake-adb -Arguments @('-s',$Lease.Record.serial,'install','fixture.apk') -Invoker $unleased.Invoker -DeviceLease $Lease) }
+            catch { $denied = $true }
+            Assert-True ($denied -and $unleased.State.Calls.Count -eq 0) "Native $Mode identity failure permitted an install."
+        } finally { [IO.File]::Delete($nativeMode) }
+    }
+    foreach ($mode in @('serial','model','abi')) { Assert-NativeIdentityRefused -Lease $deviceLease -Mode $mode }
+    Assert-NativeIdentityRefused -Lease $deviceLease -Mode failure
+    [IO.File]::WriteAllText($nativeMode, 'failure')
+    try {
+        $nativeFailure = Invoke-HushgramAdbCommand -Adb $nativeAdb -Arguments @('-s','SERIAL','get-serialno') -DeviceLease $deviceLease
+        Assert-True ($nativeFailure.ExitCode -eq 93 -and ($nativeFailure.Stdout -join "`n") -ceq 'offline' -and
+            ($nativeFailure.Output -join "`n") -ceq "offline`nerror: device offline") 'Native failure lost its exit code or stdout/stderr diagnostics.'
+        Assert-True ((Format-HushgramAdbFailure -Message 'Could not query fixture' -Result $nativeFailure) -ceq
+            'Could not query fixture (ADB exit 93). Output: offline; error: device offline') 'Native failure formatting lost combined diagnostics.'
+    } finally { [IO.File]::Delete($nativeMode) }
+    Confirm-HushgramDevice -Adb $nativeAdb -DeviceLease $deviceLease
+
+    $emulatorLease = Enter-HushgramDeviceLease -Serial emulator-9998 -ExpectedModel FixtureDevice -ExpectedAvd FixtureAvd -Directory $leaseDirectory
+    try {
+        $denied = $false
+        try { Confirm-HushgramDevice -Adb fake-adb -DeviceLease $emulatorLease -AdbInvoker (New-IdentityInvoker -Serial emulator-9998 -Avd OtherAvd) }
+        catch { $denied = $true }
+        Assert-True ($denied -and -not $emulatorLease.Verified) 'The wrong emulator profile was accepted.'
+        Confirm-HushgramDevice -Adb fake-adb -DeviceLease $emulatorLease -AdbInvoker (New-IdentityInvoker -Serial emulator-9998 -Abi x86_64)
+        Assert-True ($emulatorLease.Verified -and $emulatorLease.InstructionSet -ceq 'x86_64') 'The correct emulator profile was refused.'
+        Confirm-HushgramDevice -Adb $nativeAdb -DeviceLease $emulatorLease
+        Assert-True ($emulatorLease.Verified -and $emulatorLease.InstructionSet -ceq 'x86_64') 'Native emulator identity with daemon startup notices was refused.'
+        Assert-NativeIdentityRefused -Lease $emulatorLease -Mode avd
+    } finally { Exit-HushgramDeviceLease $emulatorLease }
+    $wrongOwner = Enter-HushgramDeviceLease -Serial OWNER -ExpectedModel FixtureDevice -Directory $leaseDirectory
+    $ownerPath = $wrongOwner.Path
+    $wrongOwner.Record.ownershipToken = 'not-the-owner'
+    $denied = $false
+    try { Exit-HushgramDeviceLease $wrongOwner }
+    catch { $denied = $true }
+    Assert-True ($denied -and (Test-Path -LiteralPath $ownerPath)) 'Release removed a marker with different ownership.'
+    $denied = $false
+    try { Assert-HushgramDeviceLease -DeviceLease $wrongOwner -Serial OWNER }
+    catch { $denied = $true }
+    Assert-True $denied 'A disposed lease allowed further device work.'
+
     $failures = [ordered]@{
         push = 'Could not push case to SERIAL (ADB exit 11).'
         setup = 'Could not prepare the verifier output directory for case on SERIAL (ADB exit 12).'
-        clear = 'Could not clear logcat on SERIAL before verifying case (ADB exit 13).'
+        mark = 'Could not mark logcat on SERIAL before verifying case (ADB exit 13).'
         dex2oat = 'dex2oat on case exited 14.'
         'log-read' = 'Could not read logcat on SERIAL after verifying case (ADB exit 15).'
+        rotated = "The log on SERIAL no longer holds the start of the case run, so its verifier messages can't be counted. Retry when the phone is quieter."
         'short-read' = "dex2oat on case read a file of 5 bytes on SERIAL, not the $fixtureSize bytes pushed."
         unread = "dex2oat did not read case on SERIAL: Skipping non-existent dex file '/data/local/tmp/hushgram-verify-case.apk'"
     }
@@ -125,7 +351,7 @@ try {
         $caught = $null
         try {
             [void](Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' `
-                -Local $fixture -Label 'case' -AdbInvoker $fake.Invoker)
+                -Local $fixture -Label 'case' -DeviceLease $deviceLease -AdbInvoker $fake.Invoker)
         } catch {
             $caught = $_
         }
@@ -140,7 +366,7 @@ try {
     $caught = $null
     try {
         [void](Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' `
-            -Local $fixture -Label 'case' -AdbInvoker $thrownFailure.Invoker)
+            -Local $fixture -Label 'case' -DeviceLease $deviceLease -AdbInvoker $thrownFailure.Invoker)
     } catch {
         $caught = $_
     }
@@ -150,17 +376,17 @@ try {
     Assert-True ($thrownFailure.State.RemotePaths.Count -eq 0) `
         'A thrown ADB error left fake remote files behind.'
 
-    $primaryWithCleanupFailure = New-FakeAdb -FailureStage 'clear' -CleanupThrowNumber 1
+    $primaryWithCleanupFailure = New-FakeAdb -FailureStage 'mark' -CleanupThrowNumber 1
     $warnings = @()
     $caught = $null
     try {
         [void](Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' `
-            -Local $fixture -Label 'case' -AdbInvoker $primaryWithCleanupFailure.Invoker `
+            -Local $fixture -Label 'case' -DeviceLease $deviceLease -AdbInvoker $primaryWithCleanupFailure.Invoker `
             -WarningVariable warnings)
     } catch {
         $caught = $_
     }
-    Assert-True ($caught.Exception.Message -eq $failures.clear) `
+    Assert-True ($caught.Exception.Message -eq $failures.mark) `
         'A cleanup failure replaced the original verification failure.'
     Assert-BothCleanupCalls -State $primaryWithCleanupFailure.State -Context 'secondary cleanup failure'
     Assert-True (($warnings | ForEach-Object { "$_" }) -join "`n" -match 'cleanup also failed') `
@@ -168,7 +394,7 @@ try {
 
     $success = New-FakeAdb
     $tally = Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' `
-        -Local $fixture -Label 'case' -AdbInvoker $success.Invoker
+        -Local $fixture -Label 'case' -DeviceLease $deviceLease -AdbInvoker $success.Invoker
     Assert-True ($tally.Count -eq 2 -and $tally['Verification error in Lfixture/Host;'] -eq 2 -and
         $tally['VerifyError in Lfixture/Other;'] -eq 1) 'The successful fake verifier tally was wrong.'
     Assert-BothCleanupCalls -State $success.State -Context 'success'
@@ -178,7 +404,7 @@ try {
     $caught = $null
     try {
         [void](Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' `
-            -Local $fixture -Label 'case' -AdbInvoker $successWithCleanupFailure.Invoker)
+            -Local $fixture -Label 'case' -DeviceLease $deviceLease -AdbInvoker $successWithCleanupFailure.Invoker)
     } catch {
         $caught = $_
     }
@@ -191,6 +417,17 @@ try {
     # the clean APK and one of the patched APK, compared with each other.
     $verifier = Join-Path $PSScriptRoot 'verify-injected-registers.ps1'
     $prePush = Join-Path $PSScriptRoot 'pre-push.ps1'
+    $watchAssignments = @((Get-ScriptAst $prePush).FindAll({ param($Node)
+        $Node -is [Management.Automation.Language.AssignmentStatementAst] -and
+        $Node.Left.Extent.Text -eq '$injectedRegisterDevicePaths'
+    }, $true))
+    Assert-True ($watchAssignments.Count -eq 1) 'The device-suite changed-path gate is missing or ambiguous.'
+    $watched = @($watchAssignments[0].Right.FindAll({ param($Node)
+        $Node -is [Management.Automation.Language.StringConstantExpressionAst]
+    }, $true) | ForEach-Object Value)
+    foreach ($path in @('scripts/device-install.ps1','scripts/injected-register-device.ps1','scripts/patch-for-device.ps1','scripts/pre-push.ps1','scripts/test-injected-register-device.ps1','scripts/verify-injected-registers.ps1')) {
+        Assert-True ($watched -ccontains $path) "The device-suite gate does not watch $path."
+    }
     Assert-True ((Test-DotSourcesFile $verifier 'injected-register-device.ps1') -and (Test-TalliesBothSides $verifier)) `
         'The device verifier does not use the cleanup helper for both sides.'
     # The line that adds the suite to the run, not the path list that only decides when to run it.
@@ -387,6 +624,10 @@ try {
     }
 
 } finally {
+    if ($deviceLease -and $deviceLease.File.CanWrite) { Exit-HushgramDeviceLease $deviceLease }
+    $resolvedLeaseDirectory = [IO.Path]::GetFullPath($leaseDirectory)
+    if (-not $resolvedLeaseDirectory.StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()), [StringComparison]::OrdinalIgnoreCase)) { throw 'Lease test directory left the temporary workspace.' }
+    if (Test-Path -LiteralPath $resolvedLeaseDirectory) { Remove-Item -LiteralPath $resolvedLeaseDirectory -Recurse -Force }
     [System.IO.File]::Delete($fixture)
 }
 

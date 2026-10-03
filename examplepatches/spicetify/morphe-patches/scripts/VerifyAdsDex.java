@@ -14,11 +14,15 @@ class VerifyAdsDex {
     static final String HELPER = "Lapp/spicetify/extension/spotify/ads/BrandAds;";
     static final String PLAYER_HELPER = "Lapp/spicetify/extension/spotify/ads/PlayerAdCards;";
     static final String INSTALLED = "Lapp/spicetify/extension/spotify/settings/InstalledPatches;";
-    static final Map<String, String> CALLERS = Map.of("Lp/jb20;", "invoke", "Lp/vot;", "g", "Lp/x7v0;", "a");
-    static final List<String> MODELS = List.of("Lp/ih40;",
+    static final Map<String, String> CALLERS = Map.of("Lp/s840;", "invoke", "Lp/wwo;", "k", "Lp/pqy0;", "a");
+    static final String BROWSE_CALLER = "Lp/pqy0;";
+    static final String IMAGE_AD_CALLER = "Lp/t771;";
+    static final String EMBEDDED_AD_OWNER = "Lp/uur;";
+    static final String EMBEDDED_AD_METHOD = "n";
+    static final List<String> MODELS = List.of("Lp/uj60;",
             "Lcom/spotify/casita/v1/resolved/Section;", "Lcom/spotify/browsita/v1/resolved/Section;",
             "Lcom/spotify/casita/v1/resolved/HomeStructure;", "Lcom/spotify/browsita/v1/resolved/BrowseStructure;");
-    static final List<String> PLAYER_MODELS = List.of("Lcom/spotify/scrollsita/v1/Section;", "Lp/uti0;", "Lp/v7r;", "Lp/yit;");
+    static final List<String> PLAYER_MODELS = List.of("Lcom/spotify/scrollsita/v1/Section;", "Lp/jol0;", "Lp/rms;", "Lp/x0v;");
 
     static void require(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
@@ -73,9 +77,9 @@ class VerifyAdsDex {
                         || !target.getDefiningClass().equals(HELPER) || cls.getType().equals(HELPER)) continue;
                 require(enabled && method.getName().equals(CALLERS.get(cls.getType())) && seen.add(cls.getType()),
                         "Unexpected or duplicate brand-ad caller");
-                boolean browse = cls.getType().equals("Lp/x7v0;");
-                String getter = browse ? "Lcom/spotify/browsita/v1/resolved/BrowseStructure;->o()Lp/ih40;"
-                        : "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/ih40;";
+                boolean browse = cls.getType().equals(BROWSE_CALLER);
+                String getter = browse ? "Lcom/spotify/browsita/v1/resolved/BrowseStructure;->o()Lp/uj60;"
+                        : "Lcom/spotify/casita/v1/resolved/HomeStructure;->p()Lp/uj60;";
                 require(index >= 2 && index + 1 < code.size()
                         && code.get(index - 2).getOpcode() == Opcode.INVOKE_VIRTUAL
                         && reference(code.get(index - 2)).equals(getter)
@@ -91,7 +95,7 @@ class VerifyAdsDex {
                         && code.get(index + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
                         && ((OneRegisterInstruction) code.get(index + 1)).getRegisterA() == register,
                         "Brand-ad hook must preserve the section list register and filter type");
-                int iterator = index + (cls.getType().equals("Lp/jb20;") ? 5 : 4);
+                int iterator = index + 4;
                 require(iterator < code.size() && code.get(iterator).getOpcode() == Opcode.INVOKE_INTERFACE
                         && reference(code.get(iterator)).equals("Ljava/lang/Iterable;->iterator()Ljava/util/Iterator;")
                         && code.get(iterator) instanceof FiveRegisterInstruction call
@@ -131,12 +135,12 @@ class VerifyAdsDex {
                     continue;
                 }
                 hooks++;
-                require(enabled && cls.getType().equals("Lp/ja31;") && method.getName().equals("invoke")
+                require(enabled && cls.getType().equals(IMAGE_AD_CALLER) && method.getName().equals("invoke")
                         && method.getParameterTypes().equals(List.of("Ljava/lang/Object;"))
                         && reference(code.get(index)).equals(PLAYER_HELPER + "->showImageBrandAd(Z)Z")
-                        && index >= 2 && index + 3 < code.size()
+                        && index >= 2 && index + 2 < code.size()
                         && code.get(index - 2).getOpcode() == Opcode.INVOKE_VIRTUAL
-                        && reference(code.get(index - 2)).equals("Lcom/spotify/scrollsita/v1/Section;->o0()Z")
+                        && reference(code.get(index - 2)).equals("Lcom/spotify/scrollsita/v1/Section;->Z()Z")
                         && code.get(index - 1).getOpcode() == Opcode.MOVE_RESULT
                         && code.get(index).getOpcode() == Opcode.INVOKE_STATIC_RANGE
                         && code.get(index) instanceof RegisterRangeInstruction call
@@ -144,8 +148,8 @@ class VerifyAdsDex {
                         && call.getStartRegister() == ((OneRegisterInstruction) code.get(index - 1)).getRegisterA()
                         && code.get(index + 1).getOpcode() == Opcode.MOVE_RESULT
                         && ((OneRegisterInstruction) code.get(index + 1)).getRegisterA() == call.getStartRegister()
-                        && code.get(index + 3).getOpcode() == Opcode.IF_EQZ
-                        && ((OneRegisterInstruction) code.get(index + 3)).getRegisterA() == call.getStartRegister(),
+                        && code.get(index + 2).getOpcode() == Opcode.IF_EQZ
+                        && ((OneRegisterInstruction) code.get(index + 2)).getRegisterA() == call.getStartRegister(),
                         "Player-ad hook must feed the image-brand-ad null branch");
             }
         }
@@ -155,7 +159,8 @@ class VerifyAdsDex {
     }
 
     static boolean isEmbeddedAdGuard(ClassDef cls, Method method, List<Instruction> code, int index) {
-        if (!cls.getType().equals("Lp/onq;") || !method.getName().equals("z") || !method.getReturnType().equals("Z")
+        if (!cls.getType().equals(EMBEDDED_AD_OWNER) || !method.getName().equals(EMBEDDED_AD_METHOD)
+                || !method.getReturnType().equals("Z")
                 || !method.getParameterTypes().equals(List.of("Lcom/spotify/player/model/ContextTrack;"))
                 || index != 0 || code.size() < 6) return false;
         if (code.get(0).getOpcode() != Opcode.INVOKE_STATIC || ((FiveRegisterInstruction) code.get(0)).getRegisterCount() != 0
@@ -172,14 +177,13 @@ class VerifyAdsDex {
         return register < method.getImplementation().getRegisterCount() - parameters
                 && ((OffsetInstruction) code.get(2)).getCodeOffset() == guardUnits
                 && code.get(5).getOpcode() == Opcode.IGET_OBJECT
-                && ((TwoRegisterInstruction) code.get(5)).getRegisterA() == register
-                && reference(code.get(5)).equals("Lp/onq;->b:Ljava/lang/Object;");
+                && reference(code.get(5)).equals(EMBEDDED_AD_OWNER + "->b:Ljava/lang/Object;");
     }
 
     static Method embeddedAdPredicate(ClassDef definition) {
-        require(definition != null, "Missing Lp/onq;");
+        require(definition != null, "Missing " + EMBEDDED_AD_OWNER);
         for (var method : definition.getMethods()) {
-            if (method.getName().equals("z") && method.getReturnType().equals("Z")
+            if (method.getName().equals(EMBEDDED_AD_METHOD) && method.getReturnType().equals("Z")
                     && method.getParameterTypes().equals(List.of("Lcom/spotify/player/model/ContextTrack;"))) return method;
         }
         throw new AssertionError("Missing embedded-ad predicate");
@@ -204,8 +208,8 @@ class VerifyAdsDex {
     }
 
     static void verifyEmbeddedAdBody(Map<String, ClassDef> stock, Map<String, ClassDef> patched, boolean enabled) {
-        var original = describe(embeddedAdPredicate(stock.get("Lp/onq;")).getImplementation().getInstructions());
-        var current = describe(embeddedAdPredicate(patched.get("Lp/onq;")).getImplementation().getInstructions());
+        var original = describe(embeddedAdPredicate(stock.get(EMBEDDED_AD_OWNER)).getImplementation().getInstructions());
+        var current = describe(embeddedAdPredicate(patched.get(EMBEDDED_AD_OWNER)).getImplementation().getInstructions());
         require(current.subList(enabled ? 5 : 0, current.size()).equals(original), "Embedded-ad predicate body changed");
     }
 

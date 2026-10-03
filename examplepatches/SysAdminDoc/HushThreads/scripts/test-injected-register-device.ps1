@@ -6,7 +6,9 @@
     Every stage of a device verify can fail, and each failure has to be named and still remove
     what was pushed. Two of them are about evidence rather than errors: a clean Meta build can raise
     no verifier message at all, so a tally only counts once dex2oat has read a file of the pushed size, and
-    dex2oat exits 0 while logging that the file it was given doesn't exist.
+    dex2oat exits 0 while logging that the file it was given doesn't exist. The phone's log buffer
+    is shared, so the helper never clears it: it writes a marker and counts only what follows it,
+    with another run's lines left ahead of the marker in every fake log.
 #>
 [CmdletBinding()]
 param([string]$Root)
@@ -58,6 +60,7 @@ try {
             RemotePaths = [System.Collections.Generic.HashSet[string]]::new(
                 [System.StringComparer]::Ordinal)
             CleanupCalls = 0
+            Marker = $null
         }
         $invoker = {
             param([string]$Executable, [string[]]$Arguments)
@@ -79,23 +82,41 @@ try {
                 [void]$state.RemotePaths.Add($directory)
                 if ($FailureStage -eq 'setup') { $exitCode = 12 }
             } elseif ($operation -eq 'logcat' -and $Arguments[3] -eq '-c') {
-                if ($FailureStage -eq 'clear') { $exitCode = 13 }
+                throw 'The verifier cleared the log buffer of a shared phone.'
+            } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'log -t HushThreadsVerify *') {
+                $state.Marker = ($Arguments[3] -split ' ')[-1]
+                if ($FailureStage -eq 'mark') { $exitCode = 13 }
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'dex2oat64*') {
                 $read = if ($FailureStage -eq 'short-read') { 5 } else { $Size }
                 $output = if ($FailureStage -eq 'dex2oat') { @('exit=14', "size=$read") } else { @('exit=0', "size=$read") }
             } elseif ($operation -eq 'logcat' -and $Arguments[3] -eq '-d') {
-                if ($FailureStage -eq 'log-read-throw') {
-                    throw 'fake ADB threw while reading logcat'
-                } elseif ($FailureStage -eq 'log-read') {
-                    $exitCode = 15
-                } elseif ($FailureStage -eq 'unread') {
-                    $output = @("W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushthreads-verify-case.apk'")
+                # Another run's lines, its own marker first, stay in the shared buffer ahead of this
+                # run's marker. Counting any of them fails the success case.
+                $stale = @(
+                    'I HushThreadsVerify: case-00000000000000000000000000000000',
+                    "W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushthreads-verify-case.apk'",
+                    'I dex2oat64: Verification error in Lfixture/Stale;',
+                    'I dex2oat64: Verification error in Lfixture/Host;'
+                )
+                $current = if ($FailureStage -eq 'unread') {
+                    @("W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushthreads-verify-case.apk'")
                 } else {
-                    $output = @(
+                    @(
                         'I dex2oat64: Verification error in Lfixture/Host;',
                         'I dex2oat64: Verification error in Lfixture/Host;',
                         'W dex2oat: VerifyError in Lfixture/Other;'
                     )
+                }
+                if ($FailureStage -eq 'log-read-throw') {
+                    throw 'fake ADB threw while reading logcat'
+                } elseif ($FailureStage -eq 'log-read') {
+                    $exitCode = 15
+                } elseif ($FailureStage -eq 'rotated') {
+                    # This run's marker is gone but another run's is still there, so taking any
+                    # marker for this run's fails this case.
+                    $output = @($stale) + @($current)
+                } else {
+                    $output = @($stale) + @("I HushThreadsVerify: $($state.Marker)") + @($current)
                 }
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'rm -rf *') {
                 $state.CleanupCalls++
@@ -130,9 +151,10 @@ try {
     $failures = [ordered]@{
         push = 'Could not push case to SERIAL (ADB exit 11).'
         setup = 'Could not prepare the verifier output directory for case on SERIAL (ADB exit 12).'
-        clear = 'Could not clear logcat on SERIAL before verifying case (ADB exit 13).'
+        mark = 'Could not mark logcat on SERIAL before verifying case (ADB exit 13).'
         dex2oat = 'dex2oat on case exited 14.'
         'log-read' = 'Could not read logcat on SERIAL after verifying case (ADB exit 15).'
+        rotated = 'The logcat marker for case on SERIAL was gone by the time the verifier read the log, so the buffer rotated past this run.'
         'short-read' = "dex2oat on case read a file of 5 bytes on SERIAL, not the $fixtureSize bytes pushed."
         unread = "dex2oat did not read case on SERIAL: Skipping non-existent dex file '/data/local/tmp/hushthreads-verify-case.apk'"
     }
@@ -166,7 +188,7 @@ try {
     Assert-True ($thrownFailure.State.RemotePaths.Count -eq 0) `
         'A thrown ADB error left fake remote files behind.'
 
-    $primaryWithCleanupFailure = New-FakeAdb -FailureStage 'clear' -CleanupThrowNumber 1
+    $primaryWithCleanupFailure = New-FakeAdb -FailureStage 'mark' -CleanupThrowNumber 1
     $warnings = @()
     $caught = $null
     try {
@@ -176,7 +198,7 @@ try {
     } catch {
         $caught = $_
     }
-    Assert-True ($caught.Exception.Message -eq $failures.clear) `
+    Assert-True ($caught.Exception.Message -eq $failures.mark) `
         'A cleanup failure replaced the original verification failure.'
     Assert-BothCleanupCalls -State $primaryWithCleanupFailure.State -Context 'secondary cleanup failure'
     Assert-True (($warnings | ForEach-Object { "$_" }) -join "`n" -match 'cleanup also failed') `
@@ -187,6 +209,11 @@ try {
         -Local $fixture -Label 'case' -AdbInvoker $success.Invoker
     Assert-True ($tally.Count -eq 2 -and $tally['Verification error in Lfixture/Host;'] -eq 2 -and
         $tally['VerifyError in Lfixture/Other;'] -eq 1) 'The successful fake verifier tally was wrong.'
+    $calls = @($success.State.Calls)
+    $markAt = [array]::FindIndex([string[]]$calls, [Predicate[string]]{ param($c) $c -like '-s SERIAL shell log -t HushThreadsVerify *' })
+    $dexAt = [array]::FindIndex([string[]]$calls, [Predicate[string]]{ param($c) $c -like '-s SERIAL shell dex2oat64*' })
+    Assert-True ($success.State.Marker -cmatch '^case-[0-9a-f]{32}$' -and $markAt -ge 0 -and $markAt -lt $dexAt) `
+        "The verifier did not write a run marker before dex2oat: $($calls -join ' | ')"
     Assert-BothCleanupCalls -State $success.State -Context 'success'
     Assert-True ($success.State.RemotePaths.Count -eq 0) 'The successful run left fake remote files behind.'
 
@@ -241,6 +268,61 @@ try {
     # The line that adds the suite to the run, not the path list that only decides when to run it.
     Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-injected-register-device.ps1') `
         'The push gate does not run the verifier cleanup fixtures.'
+    # Phones and emulators are shared between sessions, so no device script may clear a log
+    # buffer, including the ones that never reach the fake above. A command or an argument list
+    # gives its words in order, a string's own words split out, so logcat then -c or --clear is
+    # found on one line, across an array's lines or inside one string. Options are case-sensitive.
+    function Test-ClearsDeviceLog {
+        param([string]$Path)
+        $parseErrors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile($Path, [ref]$null, [ref]$parseErrors)
+        if ($parseErrors.Count -ne 0) { throw "Could not parse ${Path}: $($parseErrors[0].Message)" }
+        $groups = $ast.FindAll({ param($Node)
+            $Node -is [System.Management.Automation.Language.CommandAst] -or
+            $Node -is [System.Management.Automation.Language.ArrayExpressionAst] -or
+            $Node -is [System.Management.Automation.Language.ArrayLiteralAst] }, $true)
+        foreach ($group in $groups) {
+            # Not into script blocks, which are groups of their own.
+            $words = [string[]]@($group.FindAll({ param($Node)
+                    $Node -is [System.Management.Automation.Language.StringConstantExpressionAst] -or
+                    $Node -is [System.Management.Automation.Language.ExpandableStringExpressionAst] -or
+                    $Node -is [System.Management.Automation.Language.CommandParameterAst] }, $false) |
+                Sort-Object { $_.Extent.StartOffset } |
+                ForEach-Object {
+                    if ($_ -is [System.Management.Automation.Language.CommandParameterAst]) { '-' + $_.ParameterName }
+                    else { $_.Value -split '\s+' }
+                })
+            $logcat = [array]::IndexOf($words, 'logcat')
+            if ($logcat -ge 0 -and @($words | Select-Object -Skip ($logcat + 1) | Where-Object { $_ -ceq '-c' -or $_ -ceq '--clear' }).Count -gt 0) {
+                return $true
+            }
+        }
+        return $false
+    }
+    $clearing = @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1' -File -Recurse |
+        Where-Object { $_.Name -notlike 'test-*' -and (Test-ClearsDeviceLog $_.FullName) } |
+        ForEach-Object { $_.Name })
+    Assert-True ($clearing.Count -eq 0) "These scripts clear a shared device's log buffer: $($clearing -join ', ')"
+    $clearCases = [ordered]@{
+        'logcat -c on one line' = @($true, '& $Adb -s $Serial logcat -c')
+        'logcat -b all -c' = @($true, '& $Adb -s $Serial logcat -b all -c')
+        'an argument array over several lines' = @($true, "`$arguments = @(`n    '-s', `$Serial,`n    'logcat',`n    '-c'`n)")
+        'an argument array of one word per line' = @($true, "`$arguments = @(`n    '-s'`n    `$Serial`n    'logcat'`n    '--clear'`n)")
+        'logcat -c inside one string' = @($true, '& $Adb -s $Serial shell "logcat -c"')
+        'logcat -c in a script block' = @($true, 'Invoke-Command { & $Adb logcat -c }')
+        'logcat -d' = @($false, '& $Adb -s $Serial logcat -d')
+        'an upper-case -C, which is not the clear flag' = @($false, '& $Adb -s $Serial logcat -C')
+        "another command's -c before logcat" = @($false, 'pwsh -c "adb logcat -d"')
+        'logcat and -c in separate commands' = @($false, "& `$Adb logcat -d`npwsh -c 'Get-Date'")
+    }
+    $clearCopy = Join-Path ([System.IO.Path]::GetTempPath()) ('hushthreads-log-clear-' + [guid]::NewGuid().ToString('N') + '.ps1')
+    try {
+        $clearFailures = @(foreach ($name in $clearCases.Keys) {
+            [System.IO.File]::WriteAllText($clearCopy, $clearCases[$name][1])
+            if ((Test-ClearsDeviceLog $clearCopy) -ne $clearCases[$name][0]) { "${name}: the scan said $(-not $clearCases[$name][0])" }
+        })
+        Assert-True ($clearFailures.Count -eq 0) ("The log clear scan misjudged:`n" + ($clearFailures -join "`n"))
+    } finally { [System.IO.File]::Delete($clearCopy) }
 
     # The checks themselves, on copies with the wiring taken out in ways that leave its text
     # behind. Each copy has to fail the check it was made for, and an untouched copy has to pass.

@@ -72,11 +72,12 @@ public class PrivacySwitchesTest {
         for (var setting : new app.morphe.extension.shared.settings.BooleanSetting[]{
                 Settings.BLOCK_CONTACT_LIST, Settings.BLOCK_INSTALLED_APPS, Settings.BLOCK_LOCATION,
                 Settings.BLOCK_CLIPBOARD_READS, Settings.BLOCK_MOTION_SENSORS, Settings.STOP_BENCHMARK_RUNS,
-                Settings.BLOCK_WEBVIEW_JS_INTERFACES, Settings.CAMERA_MIC_INDICATOR}) {
+                Settings.BLOCK_WEBVIEW_JS_INTERFACES, Settings.CAMERA_MIC_INDICATOR, Settings.STOP_SEARCH_HISTORY}) {
             setting.save(setting.defaultValue);
         }
         CameraMicIndicator.resetForTests();
         SettingsStatus.contactListBlockerEnabled = false;
+        SettingsStatus.searchHistoryEnabled = false;
         SettingsStatus.installedAppsBlockerEnabled = false;
         SettingsStatus.locationGovernorEnabled = false;
         SettingsStatus.devicePrivacyGuardEnabled = false;
@@ -257,6 +258,42 @@ public class PrivacySwitchesTest {
         }
     }
 
+    @Test public void searchHistoryIsSkippedOnlyWhileThePatchedSwitchIsOnAndHushfeedRuns() {
+        assertEquals("picking the patch is the choice, so its switch starts on",
+                Boolean.TRUE, Settings.STOP_SEARCH_HISTORY.defaultValue);
+        Settings.STOP_SEARCH_HISTORY.save(true);
+        assertFalse("a build without the patch never skips a write", SearchHistoryRecording.shouldSkip());
+
+        SettingsStatus.searchHistoryEnabled = true;
+        assertTrue("on: both writers leave before saving", SearchHistoryRecording.shouldSkip());
+        Settings.STOP_SEARCH_HISTORY.save(false);
+        assertFalse("off: TikTok records the search", SearchHistoryRecording.shouldSkip());
+
+        Settings.STOP_SEARCH_HISTORY.save(true);
+        PausedProcess.set(true);
+        try {
+            assertFalse("paused: TikTok records as it ships", SearchHistoryRecording.shouldSkip());
+            assertEquals("the saved choice is kept for after the pause",
+                    Boolean.TRUE, Settings.STOP_SEARCH_HISTORY.savedValue());
+        } finally {
+            PausedProcess.set(false);
+        }
+        assertTrue("the next search after the pause is skipped again", SearchHistoryRecording.shouldSkip());
+    }
+
+    @Test public void theSearchHistorySwitchAloneOpensThePrivacyPageUnderTracking() {
+        SettingsStatus.searchHistoryEnabled = true;
+        assertTrue(app.morphe.extension.tiktok.settings.preference.categories.PrivacyPreferenceCategory.isAvailable());
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            List<String> keys = keysOn(open(activity, "PRIVACY"));
+            assertEquals(List.of(Settings.STOP_SEARCH_HISTORY.key), keys.stream()
+                    .filter(key -> key.startsWith("block_") || key.startsWith("stop_") || key.equals(Settings.GHOST_MODE.key))
+                    .toList());
+        }
+    }
+
     @Test public void theDotFollowsTheCountsAndTheSwitch() {
         try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = owner.get();
@@ -431,13 +468,14 @@ public class PrivacySwitchesTest {
         SettingsStatus.ghostModeEnabled = true;
         SettingsStatus.disableTelemetryEnabled = true;
         SettingsStatus.foldableSplitViewEnabled = true;
+        SettingsStatus.searchHistoryEnabled = true;
         try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = owner.get();
             Utils.setContext(activity);
             TikTokPreferenceFragment privacy = open(activity, "PRIVACY");
             List<String> keys = keysOn(privacy);
             List<String> expected = List.of(Settings.DISABLE_ANALYTICS.key, Settings.GHOST_MODE.key,
-                    Settings.BLOCK_CONTACT_LIST.key, Settings.BLOCK_INSTALLED_APPS.key,
+                    Settings.STOP_SEARCH_HISTORY.key, Settings.BLOCK_CONTACT_LIST.key, Settings.BLOCK_INSTALLED_APPS.key,
                     Settings.BLOCK_LOCATION.key, Settings.BLOCK_CLIPBOARD_READS.key,
                     Settings.BLOCK_MOTION_SENSORS.key, Settings.STOP_BENCHMARK_RUNS.key,
                     Settings.CAMERA_MIC_INDICATOR.key, Settings.BLOCK_WEBVIEW_JS_INTERFACES.key);

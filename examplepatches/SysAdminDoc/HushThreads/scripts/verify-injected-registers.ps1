@@ -20,7 +20,8 @@
     placement and try ranges, and the whole APK is held to
     scripts/injected-mutation-contracts.txt: none of the ShortcutManager calls the settings patch
     sends to SettingsEntry may be left anywhere outside the extension. Selected Threads features
-    must retain their feed helpers, owned permalink hook, recorded analytics address mutations
+    must retain their feed helpers, typed active-card guards and exact raw-wrapper recording,
+    owned permalink hook, recorded analytics address mutations
     and signature wrapper with its stock fallback. -SelectedPatches supplies the independent
     validated CLI selection; a standalone check uses the patched SettingsStatus flags.
 
@@ -131,7 +132,9 @@ function Invoke-DexDiff {
     if ($null -ne $SelectedPatches) {
         $featureNames = [ordered]@{
             'Hide ads' = 'hideAds'
+            'Hide suggested users' = 'hideSuggestedUsers'
             'Sanitize sharing links' = 'sanitizeSharingLinks'
+            'Open links in browser' = 'openLinksExternally'
             'Disable analytics' = 'disableAnalytics'
             'Restore screens on re-signed builds' = 'restoreTrust'
         }

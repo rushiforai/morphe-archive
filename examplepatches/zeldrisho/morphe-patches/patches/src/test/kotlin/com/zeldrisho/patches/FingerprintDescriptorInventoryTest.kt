@@ -8,6 +8,7 @@ import com.zeldrisho.patches.zalo.ads.OfflineAdsGate
 import com.zeldrisho.patches.zalo.ads.OfflineAdsWindow
 import com.zeldrisho.patches.zalo.ads.StoryAdsConfig
 import com.zeldrisho.patches.zalo.backup.BackupConfiguration
+import com.zeldrisho.patches.zalo.backup.BackupScheduler
 import com.zeldrisho.patches.zalo.chat.businessBoxFingerprints
 import com.zeldrisho.patches.zalo.media.mediaFingerprints
 import com.zeldrisho.patches.zalo.notif.StoryChannelArm
@@ -29,6 +30,7 @@ class FingerprintDescriptorInventoryTest {
             AdtimaLatRead,
             CommunityAdsConfig,
             BackupConfiguration,
+            BackupScheduler,
             StoryChannelArm,
             VideoChannelArm,
         )

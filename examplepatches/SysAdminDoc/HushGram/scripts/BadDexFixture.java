@@ -8,11 +8,16 @@
  */
 
 import com.android.tools.smali.dexlib2.AccessFlags;
+import com.android.tools.smali.dexlib2.DexFileFactory;
 import com.android.tools.smali.dexlib2.Opcode;
 import com.android.tools.smali.dexlib2.Opcodes;
 import com.android.tools.smali.dexlib2.iface.ClassDef;
+import com.android.tools.smali.dexlib2.iface.DexFile;
 import com.android.tools.smali.dexlib2.iface.Method;
+import com.android.tools.smali.dexlib2.iface.MultiDexContainer;
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction;
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction;
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef;
 import com.android.tools.smali.dexlib2.immutable.ImmutableDexFile;
 import com.android.tools.smali.dexlib2.immutable.ImmutableExceptionHandler;
@@ -211,6 +216,10 @@ public class BadDexFixture {
     private static final String SHORTCUT_LIST = "Ljava/util/List;";
     private static final String SHORTCUTS = "Lfixture/Shortcuts;";
     private static final String SETTINGS_ENTRY = "Lapp/hushgram/extension/fixture/settings/SettingsEntry;";
+    private static final String OVERRIDE_TABLE = "Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;";
+    private static final String OVERRIDE_WRITER = "Lcom/facebook/mobileconfig/troubleshooting/MobileConfigOverridesWriterHolder;";
+    private static final String OVERRIDES_ALLOWED = "Lcom/facebook/mobileconfig/fixture/OverrideCalls;";
+    private static final String OVERRIDES_OUTSIDE = "Lapp/hushgram/extension/fixture/misc/OverrideCalls;";
 
     private static final String TOP_BAR = "Lfixture/TopBar;";
     private static final String CONTEXT = "Landroid/content/Context;";
@@ -352,6 +361,16 @@ public class BadDexFixture {
             "no-call Landroid/content/pm/ShortcutManager;->setDynamicShortcuts(Ljava/util/List;)Z outside Lapp/hushgram/extension/",
             "no-call Landroid/content/pm/ShortcutManager;->updateShortcuts(Ljava/util/List;)Z outside Lapp/hushgram/extension/",
             "no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outside Lapp/hushgram/extension/",
+            "no-call Lcom/facebook/mobileconfig/troubleshooting/MobileConfigOverridesWriterHolder;->importOverridesFromUser(Ljava/lang/String;)Ljava/lang/String; outside Lcom/facebook/mobileconfig/",
+            "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->reload()V outside Lcom/facebook/mobileconfig/",
+            "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->removeAllOverrides()V outside Lcom/facebook/mobileconfig/",
+            "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->removeOverrideForParam(J)V outside Lcom/facebook/mobileconfig/",
+            "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->removeOverridesForQEUniverse(Ljava/lang/String;)V outside Lcom/facebook/mobileconfig/",
+            "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForQE(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V outside Lcom/facebook/mobileconfig/",
+            "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForBool(JZ)V outside Lcom/facebook/mobileconfig/",
+            "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForInt(JJ)V outside Lcom/facebook/mobileconfig/",
+            "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForString(JLjava/lang/String;)V outside Lcom/facebook/mobileconfig/",
+            "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->updateOverrideForDouble(JD)V outside Lcom/facebook/mobileconfig/",
             "next-call Lapp/hushgram/extension/fixture/settings/SettingsEntry;->setLogoTouchListener(Landroid/view/View;Landroid/view/View$OnTouchListener;)V after Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V in static (Landroid/content/Context;Lcom/facebook/navigation/navbar/legacy/search/WordmarkNavigationBar;)V holding WordmarkNavigationBar#createWordmarkView WordmarkNavigationBar.initContents",
             "sole-call Lapp/hushgram/extension/fixture/reels/ReelWatchHistory;->send(Ljava/util/concurrent/Executor;Ljava/lang/Runnable;)V replacing Ljava/util/concurrent/Executor;->execute(Ljava/lang/Runnable;)V in instance ()V holding FbShortsSeenStateMutation video_ids",
             "shared-call Lapp/hushgram/extension/fixture/links/LinkFilter;->clean(Ljava/lang/String;)Ljava/lang/String; in instance (*)Ljava/lang/Object; holding permalink XDTPermalinkResponse",
@@ -403,6 +422,39 @@ public class BadDexFixture {
             new ShortcutCall("setDynamicShortcuts", SHORTCUT_LIST, "Z", "set", "set", false),
             new ShortcutCall("updateShortcuts", SHORTCUT_LIST, "Z", "update", "update", true),
             new ShortcutCall("removeAllDynamicShortcuts", null, "V", "removeAll", "remove-all", false));
+
+    /** A real native override boundary, with a receiver followed by its exact typed arguments. */
+    private static final class OverrideCall {
+        final String owner, name, answers, caseName;
+        final String[] takes;
+        OverrideCall(String owner, String name, String answers, String caseName, String... takes) {
+            this.owner = owner; this.name = name; this.answers = answers; this.caseName = caseName; this.takes = takes;
+        }
+        String[] parameters() {
+            String[] parameters = new String[takes.length + 1];
+            parameters[0] = owner;
+            System.arraycopy(takes, 0, parameters, 1, takes.length);
+            return parameters;
+        }
+        int words() {
+            int words = 1;
+            for (String type : takes) words += type.equals("J") || type.equals("D") ? 2 : 1;
+            return words;
+        }
+        ImmutableMethodReference nativeMethod() { return method(owner, name, answers, takes); }
+    }
+
+    private static final List<OverrideCall> OVERRIDE_CALLS = Arrays.asList(
+            new OverrideCall(OVERRIDE_WRITER, "importOverridesFromUser", "Ljava/lang/String;", "import-user", "Ljava/lang/String;"),
+            new OverrideCall(OVERRIDE_TABLE, "reload", "V", "reload"),
+            new OverrideCall(OVERRIDE_TABLE, "removeAllOverrides", "V", "remove-all"),
+            new OverrideCall(OVERRIDE_TABLE, "removeOverrideForParam", "V", "remove-param", "J"),
+            new OverrideCall(OVERRIDE_TABLE, "removeOverridesForQEUniverse", "V", "remove-universe", "Ljava/lang/String;"),
+            new OverrideCall(OVERRIDE_TABLE, "updateOverrideForQE", "V", "update-qe", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"),
+            new OverrideCall(OVERRIDE_TABLE, "updateOverrideForBool", "V", "update-bool", "J", "Z"),
+            new OverrideCall(OVERRIDE_TABLE, "updateOverrideForInt", "V", "update-long", "J", "J"),
+            new OverrideCall(OVERRIDE_TABLE, "updateOverrideForString", "V", "update-string", "J", "Ljava/lang/String;"),
+            new OverrideCall(OVERRIDE_TABLE, "updateOverrideForDouble", "V", "update-double", "J", "D"));
 
     private static final ImmutableTypeReference STRING_TYPE = new ImmutableTypeReference("Ljava/lang/String;");
     private static final ImmutableTypeReference INT_ARRAY = new ImmutableTypeReference("[I");
@@ -1217,6 +1269,47 @@ public class BadDexFixture {
                 OBJECT, null, null, null, null, methods);
     }
 
+    /** Native calls in the permitted package, or one forbidden caller in an extension method. */
+    private static ClassDef overrideCalls(String owner, Set<String> made) {
+        List<Method> methods = new ArrayList<>();
+        for (OverrideCall call : OVERRIDE_CALLS) {
+            boolean answers = !call.answers.equals("V");
+            int locals = answers ? 1 : 0;
+            List<Instruction> instructions = new ArrayList<>();
+            if (made.contains(call.caseName)) {
+                instructions.add(new ImmutableInstruction3rc(Opcode.INVOKE_VIRTUAL_RANGE, locals, call.words(), call.nativeMethod()));
+                if (answers) instructions.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+            } else if (answers) instructions.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+            instructions.add(answers ? op(Opcode.RETURN_OBJECT, 0) : op(Opcode.RETURN_VOID));
+            methods.add(define(owner, call.name, call.answers, true,
+                    new ImmutableMethodImplementation(locals + call.words(), instructions, null, null), call.parameters()));
+        }
+        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
+                OBJECT, null, null, null, null, methods);
+    }
+
+    private static Set<String> allOverrideCalls() {
+        Set<String> names = new LinkedHashSet<>();
+        for (OverrideCall call : OVERRIDE_CALLS) names.add(call.caseName);
+        return names;
+    }
+
+    /** Read the serialized good DEX, so allowed-call coverage cannot pass on absent calls. */
+    private static void inspectNativeCalls(File dex) throws Exception {
+        MultiDexContainer<? extends DexFile> container = DexFileFactory.loadDexContainer(dex, Opcodes.forApi(30));
+        for (String entry : container.getDexEntryNames()) for (ClassDef owner : container.getEntry(entry).getDexFile().getClasses()) {
+            if (!owner.getType().equals(OVERRIDES_ALLOWED)) continue;
+            for (Method caller : owner.getMethods()) for (Instruction instruction : caller.getImplementation().getInstructions()) {
+                if (instruction instanceof ReferenceInstruction &&
+                        ((ReferenceInstruction) instruction).getReference() instanceof MethodReference) {
+                    MethodReference call = (MethodReference) ((ReferenceInstruction) instruction).getReference();
+                    if (call.getDefiningClass().equals(OVERRIDE_TABLE) || call.getDefiningClass().equals(OVERRIDE_WRITER))
+                        System.out.println("[fixture] native-call " + call + " in " + caller);
+                }
+            }
+        }
+    }
+
     /** A framework View call on [registers], the view first. */
     private static Instruction onView(ImmutableMethodReference call, int... registers) {
         int[] r = Arrays.copyOf(registers, 5);
@@ -1775,6 +1868,7 @@ public class BadDexFixture {
         return Arrays.asList(host, adapters, trayController(Collections.<Instruction>emptyList()), filter(), genAiLabel,
                 recommendationLabel, showcaseUnit(), showcaseType, preEof, returnController(returnHook()), returnRefresh(),
                 shortcuts(Collections.<String>emptySet()), settingsEntry(), followCheck(followHook()), reelDeclutter(),
+                overrideCalls(OVERRIDES_ALLOWED, allOverrideCalls()), overrideCalls(OVERRIDES_OUTSIDE, Collections.<String>emptySet()),
                 topBar(false, true, 1), finderStub(FILLED_FINDER_STUB),
                 emojiProvider(emojiHook(), Collections.<Instruction>emptyList()), systemEmoji(),
                 emojiPictures(emojiPicturesHook(), Collections.<Instruction>emptyList()),
@@ -1923,6 +2017,7 @@ public class BadDexFixture {
     }
 
     public static void main(String[] args) throws Exception {
+        if (args.length == 2 && args[0].equals("--native-calls")) { inspectNativeCalls(new File(args[1])); return; }
         if (args.length != 1) {
             System.err.println("usage: BadDexFixture <outDir>");
             System.exit(2);
@@ -2359,6 +2454,10 @@ public class BadDexFixture {
             shortcutLeft.removeIf(cd -> cd.getType().equals(SHORTCUTS));
             shortcutLeft.add(shortcuts(Collections.singleton(call.name)));
             dexes.put("bad-shortcut-" + call.caseName + "-left", shortcutLeft);
+        }
+        for (OverrideCall call : OVERRIDE_CALLS) {
+            dexes.put("bad-native-override-" + call.caseName,
+                    replaced(good(), overrideCalls(OVERRIDES_OUTSIDE, Collections.singleton(call.caseName))));
         }
 
         // contract: the logo's touch listener call left as Facebook makes it, so the long press

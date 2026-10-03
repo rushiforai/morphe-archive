@@ -21,6 +21,12 @@ import app.morphe.util.matchAllInDefiningClasses
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 
+// The classes each reporter lives in, a suffix like /Name;, shared by its fingerprint and the
+// narrowed search below.
+internal const val STORY_API = "/StoryApi;"
+internal const val PROFILE_VIEWER_API = "/ProfileViewerApiService;"
+internal const val TYPING_STATUS_SENDER = "/TypingStatusSenderTimer;"
+
 /**
  * Reports that a story was seen, opened or interacted with.
  *
@@ -28,26 +34,26 @@ import com.android.tools.smali.dexlib2.AccessFlags
  * names (matchAllInDefiningClasses); without it every method of TikTok was tried (#54).
  */
 internal object StoryViewReportFingerprint : Fingerprint(
-    definingClass = "/StoryApi;",
+    definingClass = STORY_API,
     custom = { method, classDef ->
-        classDef.endsWith("/StoryApi;") &&
+        classDef.endsWith(STORY_API) &&
             method.name in setOf("reportStoryViewed", "reportUserInteraction", "reportStoryReveal")
     },
 )
 
 /** Records a profile visit against the profile's viewer list. */
 internal object ProfileViewReportFingerprint : Fingerprint(
-    definingClass = "/ProfileViewerApiService;",
+    definingClass = PROFILE_VIEWER_API,
     custom = { method, classDef ->
-        classDef.endsWith("/ProfileViewerApiService;") && method.name == "reportView"
+        classDef.endsWith(PROFILE_VIEWER_API) && method.name == "reportView"
     },
 )
 
 /** Pushes the "typing…" indicator into a conversation. */
 internal object TypingStatusSenderFingerprint : Fingerprint(
-    definingClass = "/TypingStatusSenderTimer;",
+    definingClass = TYPING_STATUS_SENDER,
     custom = { method, classDef ->
-        classDef.endsWith("/TypingStatusSenderTimer;") &&
+        classDef.endsWith(TYPING_STATUS_SENDER) &&
             method.parameterTypes.size == 1 &&
             method.parameterTypes[0] == "Ljava/lang/String;" &&
             method.returnType == "V"
@@ -130,12 +136,12 @@ val ghostModePatch = bytecodePatch(
         )
 
         listOf(
-            StoryViewReportFingerprint to "shouldBlockStoryView",
-            ProfileViewReportFingerprint to "shouldBlockProfileView",
-            TypingStatusSenderFingerprint to "shouldBlockTypingStatus",
-        ).forEach { (fingerprint, guard) ->
+            Triple(StoryViewReportFingerprint, STORY_API, "shouldBlockStoryView"),
+            Triple(ProfileViewReportFingerprint, PROFILE_VIEWER_API, "shouldBlockProfileView"),
+            Triple(TypingStatusSenderFingerprint, TYPING_STATUS_SENDER, "shouldBlockTypingStatus"),
+        ).forEach { (fingerprint, suffix, guard) ->
             // Retrofit declarations have no body. Every concrete reporting method is mandatory.
-            val reporters = matchAllInDefiningClasses(fingerprint).map { it.method }.filter { it.implementation != null }
+            val reporters = matchAllInDefiningClasses(fingerprint, suffix).map { it.method }.filter { it.implementation != null }
             if (reporters.isEmpty()) {
                 throw PatchException("Ghost mode: no concrete reporter for $guard.")
             }

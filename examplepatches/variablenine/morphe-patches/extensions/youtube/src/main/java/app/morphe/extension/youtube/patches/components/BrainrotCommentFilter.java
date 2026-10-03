@@ -37,7 +37,7 @@ public final class BrainrotCommentFilter extends Filter {
 
     @Override
     public boolean isFiltered(ContextInterface contextInterface, String identifier, String accessibility,
-                              String path, byte[] buffer, BufferAsciiStrings asciiStrings,
+                              CharSequence path, byte[] buffer, BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == commentThread) {
             // asciiStrings holds the printable runs in the component buffer (the comment text,

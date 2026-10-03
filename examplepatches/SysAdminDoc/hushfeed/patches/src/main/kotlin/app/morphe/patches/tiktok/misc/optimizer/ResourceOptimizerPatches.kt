@@ -8,6 +8,10 @@ package app.morphe.patches.tiktok.misc.optimizer
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.tiktok.misc.diagnostics.BUILD_DETAILS_ASSET
+import app.morphe.patches.tiktok.misc.diagnostics.BuildChoice
+import app.morphe.patches.tiktok.misc.diagnostics.BuildDetails
+import app.morphe.patches.tiktok.misc.diagnostics.buildChoicePatch
 import java.util.Locale
 
 @Suppress("unused")
@@ -18,6 +22,7 @@ val p2pRelayBlockerPatch = rawResourcePatch(
 ) {
     category("Performance")
     compatibleWith(*AppCompatibilities.tiktok())
+    dependsOn(buildChoicePatch(BuildChoice.P2P))
 
     execute {
         val nativeFiles = listOf(
@@ -35,6 +40,7 @@ val p2pRelayBlockerPatch = rawResourcePatch(
             resolveStandaloneFile = { path -> get(path) },
             versionName = packageMetadata.versionName,
         )
+        BuildDetails.stripped(get(BUILD_DETAILS_ASSET), BuildChoice.P2P, result)
         result.report("P2P Relay Blocker")
     }
 }
@@ -47,6 +53,7 @@ val coreAssetDebloatPatch = rawResourcePatch(
 ) {
     category("Performance")
     compatibleWith(*AppCompatibilities.tiktok())
+    dependsOn(buildChoicePatch(BuildChoice.CORE))
 
     execute {
         // Only libraries nothing else in the APK links against. An emptied .so that another
@@ -86,6 +93,7 @@ val coreAssetDebloatPatch = rawResourcePatch(
             coreAssetProfiles,
             resolveStandaloneFile = { path -> get(path) },
         )
+        BuildDetails.stripped(get(BUILD_DETAILS_ASSET), BuildChoice.CORE, result)
         result.report("Core Asset De-bloat")
     }
 }
@@ -98,6 +106,7 @@ val languagePackPurgerPatch = rawResourcePatch(
 ) {
     category("Performance")
     compatibleWith(*AppCompatibilities.tiktok())
+    dependsOn(buildChoicePatch(BuildChoice.LANGUAGES))
     val targetLocales by stringOption(
         key = "locales",
         title = "Languages to keep",
@@ -109,6 +118,7 @@ val languagePackPurgerPatch = rawResourcePatch(
 
     execute {
         val result = stripVerifiedLanguagePacks(get("."), targetLocales, languageInventories)
+        BuildDetails.languages(get(BUILD_DETAILS_ASSET), result)
         if (result.files == 0) {
             println("[Language Pack Purger] Kept every reviewed language pack.")
         } else {
@@ -125,6 +135,7 @@ val studioCreationDebloatPatch = rawResourcePatch(
 ) {
     category("Performance")
     compatibleWith(*AppCompatibilities.tiktok())
+    dependsOn(buildChoicePatch(BuildChoice.CREATION))
 
     execute {
         val nativeFiles = listOf(
@@ -145,6 +156,7 @@ val studioCreationDebloatPatch = rawResourcePatch(
             studioAssetProfiles,
             resolveStandaloneFile = { path -> get(path) },
         )
+        BuildDetails.stripped(get(BUILD_DETAILS_ASSET), BuildChoice.CREATION, result)
         result.report("Studio & Creation De-bloat")
     }
 }
@@ -157,7 +169,7 @@ val liveStreamSuiteOptimizerPatch = rawResourcePatch(
 ) {
     category("Performance")
     compatibleWith(*AppCompatibilities.tiktok())
-    dependsOn(liveGiftEffectOptimizerPatch)
+    dependsOn(buildChoicePatch(BuildChoice.LIVE), liveGiftEffectOptimizerPatch)
 
     execute {
         val nativeFiles = listOf(
@@ -175,6 +187,7 @@ val liveStreamSuiteOptimizerPatch = rawResourcePatch(
             liveAssetProfiles,
             resolveStandaloneFile = { path -> get(path) },
         )
+        BuildDetails.stripped(get(BUILD_DETAILS_ASSET), BuildChoice.LIVE, result)
         result.report("LIVE Stream Suite Optimizer")
     }
 }

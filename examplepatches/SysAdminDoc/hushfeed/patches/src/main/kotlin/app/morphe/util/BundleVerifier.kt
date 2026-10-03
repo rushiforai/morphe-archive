@@ -7,6 +7,7 @@
 package app.morphe.util
 
 import app.morphe.patcher.patch.loadPatchesFromJar
+import app.morphe.patches.shared.compat.AppCompatibilities
 import com.google.gson.JsonParser
 import java.io.File
 import java.nio.ByteBuffer
@@ -40,6 +41,7 @@ object BundleVerifier {
             require(jar.manifest.mainAttributes.getValue("Version") == args[2]) {
                 "Bundle version does not match ${args[2]}"
             }
+            requireTargetDescription(jar.manifest.mainAttributes.getValue("Description"))
         }
         val expectedDigest = File(args[3]).readText().trim()
         val actualDigest = MessageDigest.getInstance("SHA-256").digest(bundle.readBytes())
@@ -60,6 +62,19 @@ object BundleVerifier {
                 "missing=${listed.toSet() - bundled.toSet()}, extra=${bundled.toSet() - listed.toSet()}"
         }
         println("Verified ${bundle.name}: ${bundled.size} patches and all three non-empty DEX payloads")
+    }
+
+    /** The delivered description must name every declared host as an exact version. */
+    fun requireTargetDescription(description: String?) {
+        val targets = AppCompatibilities.tiktok().flatMap { it.targets }
+            .mapNotNull { it.version }.distinct()
+        val missing = targets.filter { version ->
+            !Regex("(?<![\\d.])${Regex.escape(version)}(?![\\d.])")
+                .containsMatchIn(description.orEmpty())
+        }
+        require(targets.isNotEmpty() && missing.isEmpty()) {
+            "Bundle description omits declared TikTok versions: $missing"
+        }
     }
 
     /**

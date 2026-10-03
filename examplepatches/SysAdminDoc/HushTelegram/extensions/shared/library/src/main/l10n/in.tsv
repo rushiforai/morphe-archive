@@ -20,7 +20,7 @@ About	Tentang
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.
 Back	Kembali
 Cancel	Batal
-Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Pilih file pengaturan. Sebelum apa pun diimpor, Anda akan melihat berapa sakelar yang berubah.
+Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.	Pilih file pengaturan. Sebelum apa pun diimpor, Anda akan melihat berapa sakelar yang berubah. Yang Anda impor berlaku untuk semua akun di aplikasi Telegram ini.
 Clear diagnostic data	Hapus data diagnostik
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
 Copy quick report	Salin laporan singkat
@@ -45,7 +45,7 @@ From the next start, every switch but Debug logging acts as if it were off. Chan
 Hide ads	Sembunyikan iklan
 Links, updates, backup and more	Tautan, pembaruan, cadangan, dan lainnya
 Privacy	Privasi
-Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
+Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Telegram ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
 Settings exported. The app holding the file wouldn't let HushTelegram read it back, so it wasn't checked.	Pengaturan diekspor. Aplikasi yang menyimpan file itu tidak mengizinkan HushTelegram membacanya kembali, jadi file itu tidak diperiksa.
 The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.	Aplikasi yang menyimpan file itu terlalu lama, jadi HushTelegram berhenti menunggu. Tidak ada yang diubah.
 The app holding the last settings file still hasn't answered. Try again later.	Aplikasi yang menyimpan file pengaturan terakhir masih belum merespons. Coba lagi nanti.
@@ -150,7 +150,10 @@ It targets Telegram %1$s.	Rilis ini ditujukan untuk Telegram %1$s.
 None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Tidak ada alamat web Telegram yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
 Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Hanya sebagian alamat web Telegram yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
 Saved. Restart Telegram to apply this change.	Tersimpan. Mulai ulang Telegram untuk menerapkan perubahan ini.
-Sponsored messages and video ads	Pesan bersponsor dan iklan video
+Ads in channels and search	Iklan di saluran dan pencarian
+Ads in channels	Iklan di saluran
+Ads in search	Iklan di pencarian
+%1$s, and more	%1$s, dan lainnya
 Stop usage reports	Hentikan laporan penggunaan
 # context: Immutable hook coverage shown when a patch has missing targets.
 channel ads	iklan saluran
@@ -161,9 +164,10 @@ channel read metrics	metrik pembacaan saluran
 This build has no coverage for %1$s.	Versi ini tidak mencakup %1$s.
 This build covers %1$s. Missing coverage: %2$s.	Versi ini mencakup %1$s. Cakupan yang belum tersedia: %2$s.
 Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	Telegram berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushTelegram menjeda dirinya sendiri.
-Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.	Telegram tidak mengirim folder penyimpanan Anda sebagai laporan perangkat saat server-nya meminta, atau berapa lama Anda melihat setiap postingan saluran. Pesan dan panggilan tetap berfungsi seperti biasa.
 Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Alamat web Telegram dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.
-Device statistics and read time	Statistik perangkat dan waktu baca
+Usage reports and call diagnostics	Laporan penggunaan dan diagnostik panggilan
+Usage reports	Laporan penggunaan
+Call diagnostics	Diagnostik panggilan
 Try again, or go back to Telegram.	Coba lagi, atau kembali ke Telegram.
 Turn off Telegram's update checks	Matikan pemeriksaan pembaruan Telegram
 Your choices are saved. Tap Resume, then restart Telegram.	Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Telegram.
@@ -178,3 +182,50 @@ Stops automatic call debug reports and log-file uploads requested by Telegram's 
 call debug reports	laporan debug panggilan
 call log file uploads	unggahan berkas log panggilan
 call log reports	laporan log panggilan
+Hide Premium, gifts and Stars	Sembunyikan Premium, hadiah dan Stars
+Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.	Menyembunyikan Premium, Stars, My Grams, Business dan Kirim Hadiah di Pengaturan, tab Hadiah pada profil dan tombol Hadiah pada kanal. Pembelian dan kontrol akun tetap berfungsi seperti biasa.
+Settings sales rows	Penawaran di Pengaturan
+profile Gifts tabs	tab Hadiah pada profil
+channel Gift button	tombol Hadiah pada kanal
+Hide promotional banners	Sembunyikan banner promosi
+Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.	Menyembunyikan banner Premium, ulang tahun dan saldo Stars rendah di daftar chat. Pemberitahuan keamanan akun dan saran lainnya tetap ada. Tidak ada yang ditutup atas nama Anda.
+promotional suggestions	saran promosi
+birthday gift banner	banner hadiah ulang tahun
+Hide sponsored proxy channel	Sembunyikan kanal bersponsor proxy
+Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.	Menyembunyikan kanal bersponsor milik proxy dari daftar chat dan folder. Pengaturan proxy dan pembaruan data promosi bersama tetap seperti biasa.
+cached proxy channel	kanal proxy tersimpan
+cached proxy folder entries	entri proxy tersimpan di folder
+Open links externally	Buka tautan di luar aplikasi
+Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.	Membuka tautan HTTP(S) biasa di browser Anda. Tautan Telegram serta jalur login, pembayaran dan autentikasi tetap berperilaku seperti biasa.
+Strip link tracking	Hapus pelacakan tautan
+Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.	Pembersihan lokal opsional saat membuka tautan dan di pemilih Bagikan Tautan. Hanya menghapus utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid dan fbclid. Parameter kueri yang tidak dikenal membuat seluruh URL tetap utuh. Secara default nonaktif di pengaturan.
+external browser routing	pengarahan ke browser eksternal
+opened link tracking	pelacakan tautan yang dibuka
+shared link tracking	pelacakan tautan yang dibagikan
+Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.	Telegram tidak mengirim statistik jenis penyimpanannya saat server meminta, atau berapa lama Anda melihat setiap postingan saluran. Laporan tentang tampilan layar Premium, ketukan fitur, persetujuan dan kegagalan pembelian juga tidak dikirim. Pesan dan panggilan tetap berfungsi seperti biasa.
+Premium promo views	tampilan promosi Premium
+Premium promo taps	ketukan promosi Premium
+Premium promo accepts	persetujuan promosi Premium
+Premium promo failures	kegagalan promosi Premium
+Accounts	Akun
+Every switch here applies to all the accounts in this Telegram app, not only the one you have open.	Setiap sakelar di sini berlaku untuk semua akun di aplikasi Telegram ini, bukan hanya akun yang sedang Anda buka.
+No previews before sending	Tanpa pratinjau sebelum mengirim
+Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.	Telegram tidak meminta pratinjau tautan ke servernya selama pesan belum dikirim. Ini berlaku untuk chat, lembar berbagi, polling, tautan cerita, dan pesan yang dibagikan bot. Pesan yang sudah terkirim tetap mendapat pratinjaunya. Secara default nonaktif di pengaturan.
+Draft link previews	Pratinjau tautan di draf
+chat drafts	draf chat
+share sheet comments	komentar di lembar berbagi
+poll links	tautan polling
+story links	tautan cerita
+bot shares	pesan yang dibagikan bot
+Camera only on tap	Kamera hanya saat diketuk
+Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.	Membuka galeri lampiran tidak menyalakan kamera atau meminta akses kamera. Ketuk ubin kamera untuk menyalakannya. Secara default nonaktif di pengaturan.
+Gallery camera	Kamera galeri
+No swipe actions on chats	Tanpa aksi geser pada chat
+A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.	Menggeser chat ke samping di daftar chat tidak lagi mengarsipkan, membisukan, menyematkan, menghapus, atau menandainya sebagai dibaca, jadi geseran tak sengaja tidak mengubah chat. Tekan lama tetap menampilkan semua aksi. Secara default nonaktif di pengaturan.
+Hide popular apps	Sembunyikan aplikasi populer
+Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.	Tab Aplikasi di pencarian melewati daftar Aplikasi populer dari Telegram, beserta judul dan baris pemuatannya, dan Telegram tidak memintanya. Aplikasi yang pernah kamu buka dan hasil lainnya tetap ada.
+Quiet contacts prompts	Senyapkan permintaan kontak
+Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Setelah kamu menolak akses kontak, tab Kontak berhenti meminta lagi dan lencana peringatannya hilang. Permintaan pertama, tombol milik tab itu sendiri, dan sinkronisasi kontak tetap ada.
+
+New Year look all year	Tampilan Tahun Baru sepanjang tahun
+Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Salju Tahun Baru Telegram turun setiap hari di bilah atas daftar chat dan, saat latar belakang chat animasi aktif, di latar belakang chat. Secara default nonaktif di pengaturan.

@@ -10,6 +10,7 @@ package app.morphe.extension.hushthreads.settings;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -17,8 +18,11 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
+import android.view.Choreographer;
 
 import org.junit.After;
 import org.junit.Before;
@@ -42,6 +46,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -83,6 +89,52 @@ public class SettingsL10nTest {
         HushThreadsPreferenceFragment.failNextInitialization = null;
         PauseForTests.resume();
         ShadowToast.reset();
+    }
+
+    @Test
+    public void mainCompletionLeavesRecurringFramesQueued() {
+        Choreographer choreographer = Choreographer.getInstance();
+        int[] frames = {0};
+        Choreographer.FrameCallback recurring = new Choreographer.FrameCallback() {
+            @Override public void doFrame(long frameTimeNanos) {
+                frames[0]++;
+                choreographer.postFrameCallback(this);
+            }
+        };
+        try {
+            choreographer.postFrameCallback(recurring);
+            ShadowLooper main = ShadowLooper.getShadowMainLooper();
+            for (int tasks = 0; frames[0] == 0 && tasks < 1000; tasks++) main.runOneTask();
+            assertTrue("The recurring frame must have started", frames[0] > 0);
+            int before = frames[0];
+            drainMainTasks();
+            assertTrue("The completion fence must stop draining recurring frames", frames[0] <= before + 1);
+            int after = frames[0];
+            for (int tasks = 0; frames[0] == after && tasks < 1000; tasks++) main.runOneTask();
+            assertTrue("Frame scheduling must remain enabled after completion", frames[0] > after);
+        } finally {
+            choreographer.removeFrameCallback(recurring);
+        }
+    }
+
+    @Test
+    public void missingMainCompletionFailsWithinTheTaskBound() {
+        Handler main = new Handler(Looper.getMainLooper());
+        int[] calls = {0};
+        Runnable starving = new Runnable() {
+            @Override public void run() {
+                calls[0]++;
+                main.postAtFrontOfQueue(this);
+            }
+        };
+        try {
+            main.postAtFrontOfQueue(starving);
+            AssertionError failure = assertThrows(AssertionError.class, SettingsL10nTest::drainMainTasks);
+            assertTrue(failure.getMessage().contains("Main completion"));
+            assertTrue("The starving queue must actually have run", calls[0] > 0);
+        } finally {
+            main.removeCallbacks(starving);
+        }
     }
 
     /**
@@ -341,7 +393,7 @@ public class SettingsL10nTest {
             // The export row's dialog.
             Preference export = find(rows, "action_export_diagnostic_report");
             export.getOnPreferenceClickListener().onPreferenceClick(export);
-            ShadowLooper.idleMainLooper();
+            drainMainTasks();
             AlertDialog choices = (AlertDialog) ShadowAlertDialog.getLatestDialog();
             assertNotNull("the export row opened no dialog", choices);
             ShadowAlertDialog shadow = org.robolectric.Shadows.shadowOf(choices);
@@ -357,7 +409,7 @@ public class SettingsL10nTest {
             // The licences dialog's title; the notice under it stays English, as the licences do.
             Preference licenses = rows.get(rows.size() - 1);
             licenses.getOnPreferenceClickListener().onPreferenceClick(licenses);
-            ShadowLooper.idleMainLooper();
+            drainMainTasks();
             AlertDialog notice = (AlertDialog) ShadowAlertDialog.getLatestDialog();
             assertNotNull("the licences row opened no dialog", notice);
             shown.add(String.valueOf(org.robolectric.Shadows.shadowOf(notice).getTitle()));
@@ -374,16 +426,16 @@ public class SettingsL10nTest {
             addToast(shown);
             Preference clear = find(rows, "action_clear_diagnostic_data");
             clear.getOnPreferenceClickListener().onPreferenceClick(clear);
-            ShadowLooper.idleMainLooper();
+            drainMainTasks();
             addToast(shown);
             if (LogBufferManager.canUndoClear()) {
                 // Whatever an earlier test left is put back, and the undo says so in a toast too.
                 clear.getOnPreferenceClickListener().onPreferenceClick(clear);
-                ShadowLooper.idleMainLooper();
+                drainMainTasks();
                 addToast(shown);
             }
             dialog.dismissAllowingStateLoss();
-            ShadowLooper.idleMainLooper();
+            drainMainTasks();
 
             // Paused, for each reason, and the card after a tap.
             for (HushThreadsPause.Reason reason : HushThreadsPause.Reason.values()) {
@@ -396,7 +448,7 @@ public class SettingsL10nTest {
                 card.getOnPreferenceClickListener().onPreferenceClick(card);
                 shown.add(String.valueOf(card.getSummary()));
                 paused.dismissAllowingStateLoss();
-                ShadowLooper.idleMainLooper();
+                drainMainTasks();
                 PauseForTests.resume();
             }
 
@@ -405,7 +457,7 @@ public class SettingsL10nTest {
             SettingsDialog failed = show(activity);
             collect(pageOf(failed).getPreferenceScreen(), new ArrayList<>(), shown);
             failed.dismissAllowingStateLoss();
-            ShadowLooper.idleMainLooper();
+            drainMainTasks();
 
             // What saving a restart-gated switch says.
             app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment.showRestartDialog(activity);
@@ -463,7 +515,7 @@ public class SettingsL10nTest {
         try {
             Preference importRow = find(rows, "action_import_settings");
             importRow.getOnPreferenceClickListener().onPreferenceClick(importRow);
-            ShadowLooper.idleMainLooper();
+            drainMainTasks();
             addToast(shown);
         } finally {
             application.checkActivities(false);
@@ -512,9 +564,27 @@ public class SettingsL10nTest {
 
     private static void settle() throws Exception {
         app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
-        ShadowLooper.idleMainLooper();
+        drainMainTasks();
         app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
-        ShadowLooper.idleMainLooper();
+        drainMainTasks();
+    }
+
+    /** Run already queued work to a completion fence without exhausting recurring animations. */
+    private static void drainMainTasks() {
+        Handler handler = new Handler(Looper.getMainLooper());
+        AtomicBoolean completed = new AtomicBoolean();
+        Runnable fence = () -> completed.set(true);
+        assertTrue("The main looper refused its completion fence", handler.post(fence));
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        ShadowLooper main = ShadowLooper.getShadowMainLooper();
+        try {
+            for (int tasks = 0; !completed.get() && tasks < 1000 && System.nanoTime() < deadline; tasks++) {
+                main.runOneTask();
+            }
+            assertTrue("Main completion wasn't reached within 1000 tasks or five seconds", completed.get());
+        } finally {
+            handler.removeCallbacks(fence);
+        }
     }
 
     private static void addToast(Set<String> shown) {
@@ -535,7 +605,7 @@ public class SettingsL10nTest {
         SettingsDialog dialog = new SettingsDialog();
         dialog.show(activity.getFragmentManager(), "hushthreads_settings");
         activity.getFragmentManager().executePendingTransactions();
-        ShadowLooper.idleMainLooper();
+        drainMainTasks();
         return dialog;
     }
 

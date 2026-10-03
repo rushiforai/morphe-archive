@@ -1,5 +1,9 @@
 package app.morphe.patches.tiktok.interaction.cleardisplay
 
+import app.morphe.declaredAccessFlags
+import app.morphe.declaredDefiningClass
+import app.morphe.declaredName
+import app.morphe.declaredReturnType
 import app.morphe.patches.tiktok.shared.OnRenderFirstFrameFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -73,15 +77,15 @@ class RenderFirstFrameAnchorTest {
         // static (PlayerController, something)V methods on 46.8.3 and a second, synthetic
         // onRenderFirstFrame taking a String as well, so the flags and the defining class are
         // doing work and deleting either line leaves the rest of this suite green.
-        assertEquals("/feed/controller/PlayerController;", OnRenderFirstFrameFingerprint.definingClass)
-        assertEquals("onRenderFirstFrame", OnRenderFirstFrameFingerprint.name)
-        assertEquals("V", OnRenderFirstFrameFingerprint.returnType)
+        assertEquals("/feed/controller/PlayerController;", OnRenderFirstFrameFingerprint.declaredDefiningClass)
+        assertEquals("onRenderFirstFrame", OnRenderFirstFrameFingerprint.declaredName)
+        assertEquals("V", OnRenderFirstFrameFingerprint.declaredReturnType)
 
-        assertEquals("/feed/controller/PlayerController;", OnRenderFirstFrameBodyFingerprint.definingClass)
-        assertEquals("V", OnRenderFirstFrameBodyFingerprint.returnType)
+        assertEquals("/feed/controller/PlayerController;", OnRenderFirstFrameBodyFingerprint.declaredDefiningClass)
+        assertEquals("V", OnRenderFirstFrameBodyFingerprint.declaredReturnType)
         assertEquals(
             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
-            OnRenderFirstFrameBodyFingerprint.accessFlags,
+            OnRenderFirstFrameBodyFingerprint.declaredAccessFlags,
         )
     }
 

@@ -49,6 +49,9 @@ object Constants {
         packageName = "com.meesho.supply",
         appIconColor = 0x9F2089,
         apkFileType = ApkFileType.XAPK,
-        targets = listOf(AppTarget(version = "29.5", versionCode = 868))
+        targets = listOf(
+            AppTarget(version = "29.6", versionCode = 870),
+            AppTarget(version = "29.5", versionCode = 868),
+        )
     )
 }

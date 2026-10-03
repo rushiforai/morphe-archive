@@ -51,6 +51,7 @@ public final class ModernEnhancements {
         catch (RuntimeException ex) { return base; }
     }
     public static void settings(PreferenceActivity activity) {
+        UiStrings.selectLanguage(prefs(activity).getString("app_lang", "0"));
         PlaybackSession.settings(activity);
         ListPreference quality = (ListPreference) activity.findPreference("quality_mode");
         if (quality != null) {
@@ -79,6 +80,7 @@ public final class ModernEnhancements {
     }
     public static void attach(Object object) {
         Service service = (Service) object;
+        UiStrings.selectLanguage(prefs(service).getString("app_lang", "0"));
         try {
             View root = (View) get(object, "a");
             if (root instanceof PopupPinchLayout) ((PopupPinchLayout) root).bind(object);
@@ -255,3 +257,4 @@ public final class ModernEnhancements {
         Toast.makeText(c, "操作に失敗しました。ログを確認してください", Toast.LENGTH_SHORT).show();
     }
 }
+

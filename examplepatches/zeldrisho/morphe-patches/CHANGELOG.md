@@ -4,15 +4,24 @@ Release and changelog policy: [docs/release.md](docs/release.md#changelog-policy
 
 ## Unreleased
 
+## [1.7.0](https://github.com/zeldrisho/morphe-patches/compare/v1.6.3...v1.7.0) (2026-10-02)
+
+### ✨ New Features
+* **Threads - Open links externally:** Opens HTTP(S) links in an external app when available; otherwise Threads handles them normally.
+* **Zalo - Configurable native backup interval:** Add an opt-in option for automatic backup checks every 1, 3, 6, or 12 hours. Device behavior is not yet validated.
+
+### 🚀 Updated App Support
+* **Threads:** Add support for 449.0.0.54.82.
+
 ## [1.6.3](https://github.com/zeldrisho/morphe-patches/compare/v1.6.2...v1.6.3) (2026-09-27)
 
 ### 🐛 Bug Fixes
-* **Zalo - Prefer original photo quality:** Corrects instruction targeting so the original-quality photo flag is set on the outgoing media model, fixing image sending on Zalo `26.08.01`.
+* **Zalo - Prefer original photo quality:** Fixes image sending by applying the original-quality option to outgoing photos.
 
 ## [1.6.2](https://github.com/zeldrisho/morphe-patches/compare/v1.6.1...v1.6.2) (2026-09-26)
 
 ### 🐛 Bug Fixes
-* **Zalo - Enable Google Drive photo backup:** Fixes a patching error on Zalo `26.08.01`.
+* **Zalo - Enable Google Drive photo backup:** Fixes an error when patching the app.
 
 ## [1.6.1](https://github.com/zeldrisho/morphe-patches/compare/v1.6.0...v1.6.1) (2026-09-26)
 
@@ -22,52 +31,47 @@ Release and changelog policy: [docs/release.md](docs/release.md#changelog-policy
 ## [1.6.0](https://github.com/zeldrisho/morphe-patches/compare/v1.5.0...v1.6.0) (2026-09-22)
 
 ### 🐛 Bug Fixes
-* **Zalo - microG Drive support:** Declares MicroG-RE package visibility so Android package filtering does not hide the installed provider.
-* **Zalo - microG Drive support:** Corrects the installation prompt's download link to the official Morphe MicroG page.
-* **Zalo - microG Drive support:** Cancels the previous pending Drive refresh when another account is selected for the same backup view.
+* **Zalo - microG Drive support:** Makes the provider visible to Android package queries, fixes the installation link, and cancels stale refreshes when switching accounts.
 
 ### ✨ New Features
-* **Zalo - Suppress outbound seen status:** Disables the dedicated outbound seen-status packet path by default for `26.08.01`; message delivery and incoming status rendering are not modified.
-* **Zalo - Enable Google Drive photo backup:** Restores Zalo's existing Google Drive photo-backup option for `26.08.01`; Google authorization, server retention, encryption, and media exclusions remain unchanged.
+* **Zalo - Suppress outbound seen status:** Stops sending seen-status updates by default; message delivery and incoming status display are unaffected.
+* **Zalo - Enable Google Drive photo backup:** Restores the app's existing Google Drive photo-backup option.
 
 ## [1.5.0](https://github.com/zeldrisho/morphe-patches/compare/v1.4.0...v1.5.0) (2026-09-17)
 
 ### ✨ New Features
-* **Zalo - Remove media backup age limit:** Includes media of any age in Zalo's existing Google Drive backup and restore pipeline for `26.08.01`; Drive retention and unsupported media remain unchanged.
-* **Zalo - Suppress outbound typing status:** Stops Zalo from sending typing indicators by default while leaving incoming status rendering unchanged.
+* **Zalo - Remove media backup age limit:** Includes older media in the existing Google Drive backup and restore flow.
+* **Zalo - Suppress outbound typing status:** Stops sending typing indicators by default; incoming status display is unaffected.
 
 ### 🐛 Bug Fixes
-* **Zalo - Prefer original photo quality:** Enables Original-quality photo sending by default, bypasses the client-side entitlement gate, and keeps the picker send-mode label consistent on Zalo `26.08.01`; server limits and remote media availability are unchanged.
+* **Zalo - Prefer original photo quality:** Enables original-quality photo sending by default and keeps the picker mode label consistent.
 
 ## [1.4.0](https://github.com/zeldrisho/morphe-patches/compare/v1.3.0...v1.4.0) (2026-09-15)
 
 ### ✨ New Features
-* **Zalo - Prefer original photo quality:** Enables Zalo's existing original-quality photo path for `26.08.01`; picker defaults, video handling, server limits, and account restrictions are unchanged.
+* **Zalo - Prefer original photo quality:** Enables the app's existing original-quality photo sending option.
 
 ### 🐛 Bug Fixes
-* **Zalo - Keep expired media accessible:** Fixes patching Zalo `26.08.01` APKMirror bundles by matching the final media-status classifier method correctly.
-* **Zalo - microG Drive support:** Delays the first Drive refresh after account selection so photo backup works without reopening the backup screen.
+* **Zalo - Keep expired media accessible:** Fixes patching APKMirror bundles.
+* **Zalo - microG Drive support:** Refreshes Drive data after account selection without requiring the backup screen to be reopened.
 
 ## [1.3.0](https://github.com/zeldrisho/morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-14)
 
 ### ✨ New Features
-* **Zalo - Hide Business Box:** Removes the Business Box entry from the main chat list without filtering ordinary conversations for `26.08.01`.
-* **Zalo - Disable telemetry and crash reporting:** Suppresses Zalo's Room analytics writes, Firebase Crashlytics diagnostics, and native crash-handler registration for `26.08.01`.
-* **Zalo - Keep expired media accessible:** Keeps locally stored large chat media usable after Zalo marks it expired for `26.08.01`; missing local files and server authorization are unchanged.
-* **Zalo - Clone branding:** Optionally changes the app name and package name so a branded Zalo clone can be installed beside stock Zalo for `26.08.01`.
-
-### 🐛 Bug Fixes
-* **Zalo - microG Drive support:** Validated the missing-provider launch prompt and the complete initial OAuth + Google Drive photo-restore flow for `26.08.01` on-device.
+* **Zalo - Hide Business Box:** Hides the Business Box entry without hiding ordinary chats.
+* **Zalo - Disable telemetry and crash reporting:** Stops selected analytics recording and crash-report uploads.
+* **Zalo - Keep expired media accessible:** Keeps locally stored large chat media available after expiry.
+* **Zalo - Clone branding:** Optionally changes the app name and package name to allow installing a branded clone alongside the original app.
 
 ## [1.2.0](https://github.com/zeldrisho/morphe-patches/compare/v1.1.0...v1.2.0) (2026-09-11)
 
 ### ✨ New Features
-* **Zalo - microG Drive support:** Adds provider-backed Google Drive account selection and backup/restore support for `26.08.01`.
-* **Zalo - Bypass native startup tamper check:** Initial patch for `26.08.01` — preserves native initialization while disabling the verified re-signing exit dispatch on arm64.
-* **Zalo - Disable ads:** Initial patch for `26.08.01` — forces the Adtima offline gates closed, always drops admob/dfp/ima from the supported-network map, and reports limit-ad-tracking opted-out without calling the Play API.
-* **Zalo - Disable sponsored placements:** Initial patch for `26.08.01` — forces the Story/community ad-enable flags off at their config reads (normal content path kept; server-stitched or OA-message promos may remain).
-* **Zalo - Remove AD_ID permission:** Initial patch for `26.08.01` — strips the advertising-id manifest entries (in-app readers fall back to "unknown"); pairs with the limit-ad-tracking opt-out now in Disable Zalo ads.
-* **Zalo - Filter promo notifications:** Initial patch for `26.08.01` — drops Timeline/Stories and Zalo Video pushes in the push dispatcher; message, call, friend-request and birthday notifications are untouched.
+* **Zalo - microG Drive support:** Adds provider-backed Google Drive account selection and photo backup/restore.
+* **Zalo - Bypass native startup tamper check:** Preserves native initialization while bypassing the re-signing exit check on arm64.
+* **Zalo - Disable ads:** Disables selected offline and Google ad-network paths.
+* **Zalo - Disable sponsored placements:** Disables selected Story and Community ad slots; server-stitched or OA-message promotions may remain.
+* **Zalo - Remove AD_ID permission:** Removes advertising-ID manifest permissions; in-app readers may report an unknown ID.
+* **Zalo - Filter promo notifications:** Filters Timeline, Stories, and Zalo Video promotions while retaining message, call, friend-request, and birthday notifications.
 
 ## [1.1.0](https://github.com/zeldrisho/morphe-patches/compare/v1.0.0...v1.1.0) (2026-09-09)
 
@@ -77,7 +81,7 @@ Release and changelog policy: [docs/release.md](docs/release.md#changelog-policy
 ## 1.0.0 (2026-09-07)
 
 ### ✨ New Features
-* **Threads - Hide ads:** Initial patch for 434.0.0.41.74 — removes sponsored posts from the feed.
-* **Threads - Remove AD_ID permission:** Initial patch for 434.0.0.41.74.
-* **Threads - Change app name:** Initial patch for 434.0.0.41.74.
-* **Threads - Change package name:** Initial patch for 434.0.0.41.74 (opt-in; renaming can break login, providers, or push).
+* **Threads - Hide ads:** Removes sponsored posts from the feed.
+* **Threads - Remove AD_ID permission:** Removes the advertising-ID permission.
+* **Threads - Change app name:** Lets you customize the app name.
+* **Threads - Change package name:** Allows installing a renamed clone; may affect login, providers, or push notifications.

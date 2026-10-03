@@ -1,3 +1,14 @@
+## [1.7.0](https://github.com/debakarr/morphe-patches/compare/v1.6.0...v1.7.0) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* confirm Myntra and Meesho against real responses; support Meesho 29.6 ([b6e9bec](https://github.com/debakarr/morphe-patches/commit/b6e9bec8aa31fb0e34dc7614e03a638cd955b421))
+* overlay sizing, Flipkart price, and Amazon panel layering found on-device ([1818647](https://github.com/debakarr/morphe-patches/commit/1818647217f9b810304c3dba1fec682b0952cd10))
+
+### ✨ New Features
+
+* sort by top rated, 4★+ filter and a cross-page Ranked list ([86d030a](https://github.com/debakarr/morphe-patches/commit/86d030a23c3fe858e4f998f7d6dea1cb0632797f))
+
 ## [1.6.0](https://github.com/debakarr/morphe-patches/compare/v1.5.0...v1.6.0) (2026-09-29)
 
 ### ✨ New Features

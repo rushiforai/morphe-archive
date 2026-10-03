@@ -100,7 +100,7 @@ private class ReelLikeAnchors(
 private fun BytecodePatchContext.findReelLikeAnchors(): ReelLikeAnchors {
     val likes = classDefByStrings(MUTATE_LIKE, StringComparisonType.EQUALS).flatMap { owner -> owner.methods.filter(::isReelLike) }
     val like = likes.singleOrNull()
-        ?: refuse("expected one reel like holding \"$MUTATE_LIKE\" and taking the session first and the source last, found ${likes.size}")
+        ?: refuse("expected one reel like holding \"$MUTATE_LIKE\" and taking the session first and the source as its last string, found ${likes.size}")
     val helper = classDefBy(like.definingClass)
     val doubleTapLike = doubleTapLikes(helper).singleOrNull()
         ?: refuse("expected the reel like helper to have one double-tap like taking two objects and a boolean")
@@ -204,15 +204,15 @@ private fun MutableMethod.askAfterRead(read: Int, handler: FieldReference, hook:
 }
 
 /**
- * First thing in the reel like helper's like: hand the extension the source, the last parameter,
- * and return while it holds a double tap's like back. v0 is free at index 0, checked by
+ * First thing in the reel like helper's like: hand the extension the source, the [likeSource]
+ * parameter, and return while it holds a double tap's like back. v0 is free at index 0, checked by
  * [requireOneLocal] before this or any other hook of this patch changes anything.
  */
 private fun MutableMethod.holdBackDoubleTapLike() {
     addInstructionsWithLabels(
         0,
         """
-            move-object/from16 v0, ${parameterRegister(parameterTypes.lastIndex)}
+            move-object/from16 v0, ${parameterRegister(likeSource(this)!!)}
             invoke-static { v0 }, $HOLD_BACK_LIKE
             move-result v0
             if-eqz v0, :like

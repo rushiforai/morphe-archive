@@ -4,39 +4,30 @@
  */
 package app.morphe.patches.instagram.stories.seen
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
-import app.morphe.patches.instagram.misc.extension.requireLocals
-import app.morphe.patches.instagram.misc.extension.uniqueMethod
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-private const val PATCH = "View stories anonymously"
-internal const val HOLD_BACK = "$EXTENSION_PACKAGE/stories/StorySeen;->holdBack()Z"
+internal const val PATCH = "View stories anonymously"
 
 /**
  * Keeps the stories you watch from being reported, which is what puts you on their viewer lists.
  * Only the viewing report stops: replies and reactions go out through their own requests.
  *
  * Off in the default selection, since it changes what other people see. Picked, its switch starts
- * on.
+ * on. A second switch, off to start, adds a Mark as seen button to the story viewer's header: a
+ * story you tap it on is reported, alone, and the rest stay held back.
  */
 @Suppress("unused")
 val viewStoriesAnonymouslyPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "View stories anonymously",
     description = "Keeps you off the viewer list of the stories you watch, because Instagram isn't told which " +
-        "ones you've seen. Replying or reacting still shows you, and stories you've watched keep showing as new.",
+        "ones you've seen. Replying or reacting still shows you, and stories you've watched keep showing as new. " +
+        "A second switch, off to start, adds a Mark as seen button to each story, so you can still show up on the ones you pick.",
     default = false,
 ) {
     category("Privacy")
@@ -54,37 +45,26 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
  * Instagram gathers the stories you've seen into a batch and posts it to media/seen/ from one
  * method of PendingReelSeenStateStore, the send: it builds the request from the batch and schedules
  * it, and returns without either when the batch is empty. Each caller (the viewer stopping or
- * closing, the tray loading) hands it a copy of its batch and clears its own. The guard goes first
- * in the send and returns the same way when the extension says the views stay on the phone, so a
- * batch held back is dropped, not kept for later. The store's retry queue is filled only from
- * batches a session before this one saved to disk, and Instagram 449 saves none there.
+ * closing, the tray loading) hands it a copy of its batch and clears its own. The hook goes first in
+ * the send and answers the batch that goes out in its place: Instagram's own, one of the
+ * extension's holding only the stories you marked, or none, and then the send returns, so a batch
+ * held back is dropped, not kept for later. The store also retries batches, read back from what a
+ * session before this one saved to disk; a second hook goes right before the retry builds its
+ * request and, while views are held back, answers an empty batch for a retried one with stories in
+ * it. The only other call of the request on 449, the Reset NUX developer option, sends a batch it
+ * makes right there with nothing but a NUX in it, and the patch refuses any build with another
+ * route to the request ([findStorySeen]).
+ *
+ * The Mark as seen button goes in from the story header binder, which every story on screen runs
+ * through with its account, the story and its view holder.
+ *
+ * Everything is found and checked first ([findStorySeen]); nothing is written unless all of it is
+ * there.
  */
 internal fun BytecodePatchContext.holdBackStoryViews() {
-    val request = uniqueMethod(PATCH, "story seen request", StorySeenRequestFingerprint)
-    val batch = request.definingClass
-    val store = uniqueMethod(PATCH, "pending story seen store", PendingStorySeenStoreFingerprint).definingClass
-    val senders = mutableClassDefBy(store).methods.filter { method ->
-        !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
-            method.parameterTypes.map(Any::toString) == listOf(batch) &&
-            method.implementation?.instructions?.any { instruction ->
-                ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.let {
-                    it.definingClass == batch && it.name == request.name && it.returnType == request.returnType &&
-                        it.parameterTypes.map(Any::toString) == request.parameterTypes.map(Any::toString)
-                } == true
-            } == true
-    }
-    val send = senders.singleOrNull() ?: throw PatchException(
-        "$PATCH: expected one instance method ($batch)V in $store that builds the seen request, found ${senders.size}",
-    )
-    send.requireLocals(PATCH, 1)
-    send.addInstructionsWithLabels(
-        0,
-        """
-            invoke-static { }, $HOLD_BACK
-            move-result v0
-            if-eqz v0, :send
-            return-void
-        """,
-        ExternalLabel("send", send.getInstruction(0)),
-    )
+    val found = findStorySeen()
+    hookStorySend(found)
+    hookStoryRetry(found)
+    hookStoryHeader(found)
+    found.fillStubs()
 }

@@ -4,13 +4,13 @@
 
 .DESCRIPTION
     The checked-in ledger has to keep every rule of scripts/threads-sources.ps1, and
-    docs/sources.md can't link a source the ledger doesn't know or call a behavior-only source
-    portable. Then each rule is broken once on a copy, and each has to be refused by name: an
+    README.md's source section can't link a source the ledger doesn't know or call a
+    behavior-only source portable. Then each rule is broken once on a copy, and each has to be refused by name: an
     adopted source missing its pinned commit, compatible licence, NOTICE entry, provenance rule or
     two-fixture evidence, an unlicensed or contaminated source that isn't behavior-only, a
     provenance rule crediting a source the ledger doesn't allow, an index with no listing record.
-    The checked-in ledger adopts nothing and holds no behavior-only source, so the copy gets an
-    adopted, an unlicensed and a contaminated fixture source for those rules to bite on. The census
+    The checked-in ledger adopts nothing. The copy gets adopted, unlicensed and contaminated
+    fixture sources so each rule has a case that breaks it. The census
     is held to its 14 days on both sides of the line.
 
     scripts/audit-threads-sources.ps1 then runs against a stand-in for every forge and index it
@@ -22,7 +22,7 @@
     ledger's dates, and a parse of its source finds nothing that clones, downloads to disk or
     copies files, with a copy that does each of those as the proof the parse can see them.
 
-    The pre-push hook runs this for the audit, its rules, the ledger, provenance.json and NOTICE.
+    The pre-push hook runs this for the audit, its rules, the ledger, README.md, provenance.json and NOTICE.
 #>
 [CmdletBinding()]
 param([string]$Root)
@@ -78,15 +78,14 @@ foreach ($package in Get-SourcePackages) {
     Assert-True (@($entries | Where-Object { @($_.packages) -contains $package }).Count -gt 0) "The checked-in ledger has no $package source."
 }
 
-# Fixture sources for the rules the checked-in ledger has nothing to test with: it adopts nothing
-# and holds no unlicensed or contaminated source. The rule cases below add them to a copy, with the
-# NOTICE line and provenance rule the adopted one needs.
+# Fixture sources let adoption, missing licenses and contamination each be broken once. Add them
+# to a copy, with the NOTICE line and provenance rule the adopted fixture needs.
 $catalogBuilds = @((Get-PatchTarget -PatchList ([IO.File]::ReadAllText((Join-Path $Root 'patches-list.json')) | ConvertFrom-Json)).PackageVersions)
 Assert-True ($catalogBuilds.Count -ge 1) 'The catalog declares no Threads build, so the two-fixture cases would prove nothing.'
-# Two-fixture evidence is two builds, every declared one among them. Threads declares one, so the
-# fixture adds the build before it.
-$olderBuild = '448.0.0.54.85'
-Assert-True ($catalogBuilds -notcontains $olderBuild) "The catalog declares $olderBuild, so the fixture's second build is no second build."
+# Two-fixture evidence includes every declared build. Only a single-build catalog needs a
+# synthetic second build in these rule fixtures; no compatibility is claimed for that value.
+$fixtureBuilds = @($catalogBuilds)
+if ($fixtureBuilds.Count -lt 2) { $fixtureBuilds += '0.0.0.0.1' }
 $fixtureLicenseHash = 'a' * 64
 $fixtureAdoptedRepository = 'https://github.com/fixture-owner/adopted-patches'
 $fixtureAdoptedCommit = 'ad' * 20
@@ -105,7 +104,7 @@ function Add-RuleFixtures {
         ([pscustomobject]@{ spdx = 'GPL-3.0'; url = "$fixtureAdoptedRepository/blob/main/LICENSE"; sha256 = $fixtureLicenseHash }) 'adopted' $null @()
     $adopted | Add-Member -NotePropertyName adopted -NotePropertyValue ([pscustomobject]@{ commit = $fixtureAdoptedCommit
         fixtures = [pscustomobject]@{ receipt = 'https://github.com/SysAdminDoc/HushThreads/releases/download/v9.9.9/release-receipt-9.9.9.json'
-            builds = @($catalogBuilds + $olderBuild) } })
+            builds = @($fixtureBuilds) } })
     $unlicensed = New-RuleFixtureEntry 'fixture-unlicensed' $fixtureUnlicensedRepository 'xposed-module' $null 'behavior-only' $null @('someone/unlicensed-module')
     $contaminated = New-RuleFixtureEntry 'fixture-contaminated' 'https://github.com/fixture-owner/contaminated-patches' 'morphe-patches' `
         ([pscustomobject]@{ spdx = 'GPL-3.0'; url = 'https://github.com/fixture-owner/contaminated-patches/blob/main/LICENSE'; sha256 = $fixtureLicenseHash }) `
@@ -114,7 +113,7 @@ function Add-RuleFixtures {
     return $Copy
 }
 
-# docs/sources.md is the readable version of the ledger. A source it links has to be one the
+# README.md's source section is the readable version of the ledger. A source it links has to be one the
 # ledger knows, and a behavior-only source can never be described as portable, which prose alone
 # can't stop: a sibling's docs once called a port of an unlicensed module portable with credit.
 $known = @{}
@@ -143,33 +142,57 @@ foreach ($rule in @(([IO.File]::ReadAllText((Join-Path $Root 'provenance.json'))
 function Test-SourcesDoc {
     param([string]$Text, $Entries = $entries)
     $problems = New-Object System.Collections.Generic.List[string]
+    $sections = @([regex]::Matches($Text,
+        '(?ms)^##[ \t]+Where the patches come from[ \t]*\r?$(?<body>.*?)(?=^##[ \t]+|\z)'))
+    if ($sections.Count -ne 1) {
+        $problems.Add("README.md needs exactly one 'Where the patches come from' section. Found $($sections.Count).")
+        return $problems.ToArray()
+    }
+    $Text = $sections[0].Groups['body'].Value
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        $problems.Add('README.md source section is empty.')
+        return $problems.ToArray()
+    }
     foreach ($match in [regex]::Matches($Text, 'https://(?:github\.com|gitlab\.com)/[A-Za-z0-9_.\-/]+')) {
         $key = ConvertTo-SourceKey ($match.Value.TrimEnd('.', ')'))
-        if ($key -and -not $known.ContainsKey($key)) { $problems.Add("docs/sources.md links $key, which the ledger doesn't know.") }
+        if ($key -and -not $known.ContainsKey($key)) { $problems.Add("README.md source section links $key, which the ledger doesn't know.") }
     }
     $portable = '(?i)\b(can be ported|ported with credit|port(ed)? it with credit|can be copied|copy its code)\b'
     foreach ($line in ($Text -split "`r?`n")) {
         if ($line -notmatch $portable) { continue }
         foreach ($entry in $Entries | Where-Object { $_.disposition -eq 'behavior-only' }) {
             if ($line.IndexOf([string]$entry.repository, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
-                $problems.Add("docs/sources.md calls $($entry.repository) portable, and the ledger says behavior-only: $line")
+                $problems.Add("README.md source section calls $($entry.repository) portable, and the ledger says behavior-only: $line")
             }
         }
     }
     return $problems.ToArray()
 }
-$sourcesDoc = [IO.File]::ReadAllText((Join-Path $Root 'docs/sources.md'))
+$sourcesDoc = [IO.File]::ReadAllText((Join-Path $Root 'README.md'))
 $docProblems = @(Test-SourcesDoc $sourcesDoc)
 Assert-True ($docProblems.Count -eq 0) ($docProblems -join ' | ')
 $docEntries = @((Add-RuleFixtures (Copy-Json $ledger)).entries)
 $contaminated = @($docEntries | Where-Object { $_.id -eq 'fixture-contaminated' })[0]
+$sourceHeading = '## Where the patches come from'
 $oldLine = "- [fixture-owner/contaminated-patches]($($contaminated.repository)) (GPL-3.0) ports those hooks. Its code can be ported with credit."
-Assert-True (@(@(Test-SourcesDoc ($sourcesDoc + "`n" + $oldLine) $docEntries) -like '*calls*portable*').Count -gt 0) `
-    'A docs line calling a contaminated source''s code portable passed the check.'
-Assert-True (@(@(Test-SourcesDoc ($sourcesDoc + "`nSee https://github.com/unknown-owner/new-threads-patches.")) -like '*unknown-owner*').Count -gt 0) `
-    'A docs link to a source the ledger doesn''t know passed the check.'
+$contaminatedDoc = $sourcesDoc.Replace($sourceHeading, "$sourceHeading`n`n$oldLine")
+Assert-True (@(@(Test-SourcesDoc $contaminatedDoc $docEntries) -like '*calls*portable*').Count -gt 0) `
+    'A README source line calling a contaminated source''s code portable passed the check.'
+$unknownLine = 'See https://github.com/unknown-owner/new-threads-patches.'
+$unknownDoc = $sourcesDoc.Replace($sourceHeading, "$sourceHeading`n`n$unknownLine")
+Assert-True (@(@(Test-SourcesDoc $unknownDoc) -like '*unknown-owner*').Count -gt 0) `
+    'A README source link to a source the ledger doesn''t know passed the check.'
 
-Write-Host '[sources] the checked-in ledger and docs/sources.md keep their rules'
+Assert-True (@(@(Test-SourcesDoc ($sourcesDoc.Replace($sourceHeading, '## Retired sources'))) -like '*exactly one*').Count -gt 0) `
+    'A README without its source section passed the check.'
+Assert-True (@(@(Test-SourcesDoc "$sourceHeading`n`n## Building and checking`nBuild instructions.") -like '*source section is empty*').Count -gt 0) `
+    'An empty README source section passed the check.'
+Assert-True (@(@(Test-SourcesDoc ($sourcesDoc + "`n$sourceHeading`nAnother source section.")) -like '*exactly one*').Count -gt 0) `
+    'A README with two source sections passed the check.'
+Assert-True (@(Test-SourcesDoc ($sourcesDoc + "`n$unknownLine`n$oldLine") $docEntries).Count -eq 0) `
+    'Repository links or portability prose outside the README source section were treated as source intake.'
+
+Write-Host '[sources] the checked-in ledger and README source section keep their rules'
 
 # --- each rule, broken once -------------------------------------------------------------------------
 
@@ -269,7 +292,7 @@ Test-Broken { param($c) } '*ports files from*only as a mirror of*' 'A ported pro
 
 # The records themselves.
 Test-Broken { param($c) $c.indexes[0].hushthreads.status = '' } '*records no HushThreads listing*' 'An index with no listing record'
-# No index lists HushThreads before its first release, so the listing is made here.
+# Supply an invalid listing independently of the ledger's actual directory records.
 Test-Broken { param($c) $c.indexes[0].hushthreads = [pscustomobject]@{ status = 'listed'; url = $null; checked = '2026-09-25' } } `
     '*listed but records no https listing url*' 'A listing with no URL'
 Test-Broken { param($c) $c.indexes[0].hushthreads = [pscustomobject]@{ status = 'submitted'; url = 'https://example.com/issue/1' } } `
@@ -361,8 +384,8 @@ New-Item -ItemType Directory -Path (Join-Path $fixtureRoot 'sources'), (Join-Pat
 Copy-Item -LiteralPath (Join-Path $Root 'patches-list.json') -Destination (Join-Path $fixtureRoot 'patches-list.json')
 $adoptedCommit = 'ad' * 20
 $declaredBuilds = $catalogBuilds
-# The adopted source's two fixtures: every declared build, and the one before when Threads declares one.
-$adoptedBuilds = @($catalogBuilds + $olderBuild)
+# Every declared build, with a synthetic second build only for a single-build catalog.
+$adoptedBuilds = @($fixtureBuilds)
 [IO.File]::WriteAllText((Join-Path $fixtureRoot 'NOTICE'), "Fixture NOTICE`n  alpha  https://github.com/fixture-owner/alpha-patches`n")
 [IO.File]::WriteAllText((Join-Path $fixtureRoot 'provenance.json'), (@{ rules = @(@{ paths = @('patches/**'); origin = 'ported'
     upstream = 'https://github.com/fixture-owner/alpha-patches'; commit = $adoptedCommit; license = 'GPL-3.0'; via = @() }) } | ConvertTo-Json -Depth 6))

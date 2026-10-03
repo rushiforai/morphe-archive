@@ -58,7 +58,7 @@ internal object AppCompatibilities {
         packageName = "ipnossoft.rma.free",
         apkFileType = ApkFileType.APKS_REQUIRED,
         appIconColor = 0x1D204B,
-        targets = listOf(AppTarget(version = "26.15", versionCode = 26799, minSdk = 26)),
+        targets = listOf(AppTarget(version = "26.17", versionCode = 26910, minSdk = 26)),
     )
 
     val BLURWALL = Compatibility(
@@ -134,7 +134,7 @@ internal object AppCompatibilities {
         packageName = "com.etsy.android",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0xF1641E,
-        targets = listOf(AppTarget(version = "7.90.0", versionCode = 79000153, minSdk = 32)),
+        targets = listOf(AppTarget(version = "7.97.0", versionCode = 79700150, minSdk = 32)),
     )
 
     val FORUS = Compatibility(
@@ -184,7 +184,7 @@ internal object AppCompatibilities {
         packageName = "de.klassikradio.app",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x000000,
-        targets = listOf(AppTarget(version = "p5.11.1", versionCode = 50126, minSdk = 29)),
+        targets = listOf(AppTarget(version = "p5.12.0", versionCode = 50138, minSdk = 29)),
     )
 
     val MEMONEET = Compatibility(
@@ -267,7 +267,10 @@ internal object AppCompatibilities {
         signatures = setOf(
             "868aa1a8470b4214e88a5c9e65a1dbe475a32e1da7a23079ba6e0be0bd50b621",
         ),
-        targets = listOf(AppTarget(version = "1.791.265", versionCode = 265100, minSdk = 28)),
+        targets = listOf(
+            AppTarget(version = "1.791.265", versionCode = 265100, minSdk = 28),
+            AppTarget(version = "1.802.266", versionCode = 266201, minSdk = 32),
+        ),
     )
 
     val POCKET_WHIP = Compatibility(
@@ -315,7 +318,10 @@ internal object AppCompatibilities {
         signatures = setOf(
             "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853",
         ),
-        targets = listOf(AppTarget(version = "1.40.3", versionCode = 14003373, minSdk = 27)),
+        targets = listOf(
+            AppTarget(version = "1.40.3", versionCode = 14003373, minSdk = 27),
+            AppTarget(version = "1.41.2", versionCode = 14102398, minSdk = 27),
+        ),
     )
 
     val PROTON_VPN = Compatibility(
@@ -326,7 +332,10 @@ internal object AppCompatibilities {
         signatures = setOf(
             "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853",
         ),
-        targets = listOf(AppTarget(version = "5.20.39.0", versionCode = 605203900, minSdk = 26)),
+        targets = listOf(
+            AppTarget(version = "5.20.39.0", versionCode = 605203900, minSdk = 26),
+            AppTarget(version = "5.20.57.0", versionCode = 605205700, minSdk = 26),
+        ),
     )
 
     val PYDROID = Compatibility(
@@ -355,7 +364,7 @@ internal object AppCompatibilities {
         packageName = "com.sry.rateglance",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x0D192C,
-        targets = listOf(AppTarget(version = "1.14.8", versionCode = 278, minSdk = 32)),
+        targets = listOf(AppTarget(version = "1.17.6", versionCode = 304, minSdk = 32)),
     )
 
     val READERA = Compatibility(
@@ -438,7 +447,10 @@ internal object AppCompatibilities {
         packageName = "com.dubox.drive",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x226DF6,
-        targets = listOf(AppTarget(version = "4.26.0", versionCode = 698, minSdk = 23)),
+        targets = listOf(
+            AppTarget(version = "4.26.0", versionCode = 698, minSdk = 23),
+            AppTarget(version = "4.26.5", versionCode = 699, minSdk = 23),
+        ),
     )
 
     val TRAINLINE = Compatibility(
@@ -454,7 +466,7 @@ internal object AppCompatibilities {
         packageName = "com.darinsoft.vimo",
         apkFileType = ApkFileType.APKS_REQUIRED,
         appIconColor = 0xF02050,
-        targets = listOf(AppTarget(version = "13.7.4", versionCode = 130704, minSdk = 32)),
+        targets = listOf(AppTarget(version = "13.9.0", versionCode = 130900, minSdk = 32)),
     )
 
     val VPNIFY = Compatibility(
@@ -463,10 +475,7 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.XAPK_REQUIRED,
         appIconColor = 0x0A84FF,
         signatures = setOf("6a0e2299884977821273e9b69252bc9f53aad9621dd911336b569872cb2b5707"),
-        targets = listOf(
-            AppTarget(version = "2.2.9.9", minSdk = 29),
-            AppTarget(version = "2.3.0", minSdk = 29),
-        ),
+        targets = listOf(AppTarget(version = "2.3.0", minSdk = 29)),
     )
 
     val VPN_SUPER = Compatibility(

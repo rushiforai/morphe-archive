@@ -146,6 +146,7 @@ public final class StartTabRoute {
             // A new main screen: whatever an earlier one asked for isn't this one's.
             starts++;
             settled();
+            FeedsSubtabRoute.disarm();
             HookStatus.invoked(FamilyNames.START_TAB);
             // Settings first: before the context is set, reading a switch would break Facebook's start.
             if (!Utils.settingsReady()) return;
@@ -171,6 +172,11 @@ public final class StartTabRoute {
             // Only once something will clear it again, when the screen is built or goes away.
             Landing.watch(activity, tab);
             pending = new Routed(activity, tab);
+            if (tab == StartTab.FEEDS) {
+                FeedsSubtab subtab = Settings.FEEDS_SUBTAB.get();
+                FeedsSubtabRoute.arm(activity, subtab);
+                if (subtab != FeedsSubtab.ALL) debug(() -> "asked the Feeds tab for " + subtab.fileValue + ".");
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.START_TAB, "start tab", failure);
         }

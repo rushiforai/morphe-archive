@@ -75,8 +75,8 @@ private const val CONTEXT = "Landroid/content/Context;"
  * is swapped for a new one built the way the fragment builds its own, which is never put on
  * screen, so Facebook's container stays hidden. The posts would still sit as far down as the
  * filters are tall, since the controller in [CONTAINER_CONTROLLER_FIELD] moves them there once it
- * hears the filters show, through the runnable Redex names [ROOM_RUNNABLE] (580 `LX/eZX;`, 577
- * `LX/bBz;`). That runnable's answer to whether they show goes through the extension too, which
+ * hears the filters show, through the runnable Redex names [ROOM_RUNNABLE] (581 `LX/b6e;`, 580
+ * `LX/eZX;`, 577 `LX/bBz;`). That runnable's answer to whether they show goes through the extension too, which
  * says no while the switch is on, so the posts start at the top.
  */
 @Suppress("unused")

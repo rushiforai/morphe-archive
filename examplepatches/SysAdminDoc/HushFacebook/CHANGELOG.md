@@ -2,11 +2,55 @@
 
 Every Hushfacebook release, newest first.
 
-## Unreleased
+## 0.7.0 (2026-10-02)
 
-- Record resolved settings-plugin, build and test dependency graphs separately from the payload SBOM. New release receipts bind the tooling report to their source and bundle, and publication refuses skipped audits, serious advisories and expired applicability reviews. Align Guava, Commons Lang and jose4j with their reviewed fixes.
+* **Facebook:** This release gathers everything since v0.6.0: 60 patches, up from 59, now for Facebook 581.0.0.45.58, the newest release. Facebook 580.0.0.51.74 and 577.0.0.50.72 still work. The new patch is `Force dark mode`, for tablets whose Settings page has no Dark mode row. Morphe Manager 1.33.0 or newer is required.
 
-* **Docs:** Troubleshooting now reflects the confirmed Media settings, WhatsApp-compatible saves and top-bar Reels results. The original-quality Xiaomi Gallery file and the separate RTL and other top-layout checks remain open.
+* **Facebook:** Hushfacebook now supports Facebook 581.0.0.45.58, the newest release. Take its (arm64-v8a) (320-640dpi) (Android 11+) bundle from APKMirror, build 475215365. Facebook 580.0.0.51.74 and 577.0.0.50.72 still work. Every patch applies to 581 without forcing anything, though three needed a new way to find their spot. Facebook's build tools moved some of the text they looked for out of the code that uses it and into shared lookup lists, so `Download any story` and `Hide Meta AI in search` now read those lists as well as the code. `Turn off double tap to like` finds the like's source wherever the call puts it, since 581 added callbacks after it.
+
+* **Tooling:** The bundle is now built on Morphe patcher 1.15.0, the one Morphe Manager 1.33.0 ships, so Morphe Manager 1.33.0 or newer is required. Manager 1.32.0 turns the bundle down and asks you to update. Every patch applies the same way on Facebook 581, 580 and 577.
+
+* **Facebook:** The diagnostic report has a new **Last screen left** section for the missing reel Download button (issue #18). Each time you leave a Facebook screen, it notes which kinds of views sit under two points at that screen's right edge, where a reel's buttons are, by class and resource name only. Nothing the screen says goes in. Reports from affected phones showed neither of the two sidebars the button goes into, so a report taken after leaving one of those reels (press Home while it's on screen, then open Hushfacebook settings and export) should show what draws their buttons instead.
+
+* **Facebook:** When Meta App Manager is on your phone and Facebook's web addresses don't open in Hushfacebook, a new **Meta App Manager** row under Supported links opens App Manager's link page (issue #30). App Manager comes preinstalled on many phones and Android verifies it for facebook.com, so the switches on Hushfacebook's own Open by default page kept turning themselves back off. Turn off Open supported links for App Manager, then select the addresses for Hushfacebook. Diagnostic reports now say whether App Manager is installed and enabled.
+
+* **Facebook:** New **Force dark mode** switch under Appearance keeps Facebook dark whatever its own Dark mode setting says (issue #64). Facebook's Settings page comes from its servers, and on some tablets it has no Dark mode row at all, so there was no way to turn it on. The switch starts off. Turn it on and restart Facebook, and both dark themes follow it too. Pause Hushfacebook and Facebook goes back to its own setting once it restarts. Export settings carries the switch.
+
+* **Facebook:** A copy made with Morphe's **Clone app** now installs next to the official Facebook (issue #60). With Clone app's **Update permissions** off, which is how it comes, the copy kept five of Facebook's own permission names, and Android won't let a second app signed with another key declare them. Hushfacebook now moves those under the copy's own name and points everything that asks for one at the moved name, the same way it already moved the copy's providers.
+
+* **Facebook:** With **Open on a chosen tab** set to Feeds, the new **Feeds opens on** row picks the filter the Feeds tab opens on: All, Favorites, Friends, Groups or Pages (issue #56). Hushfacebook asks the Feeds tab once, the first time it shows after Facebook starts from its icon, through the same route Facebook uses for a link to a filter. When your tab bar has no Feeds tab, Facebook opens Home, and the filter is picked the first time you open Feeds from the Menu. Every filter you tap after that stays as you tapped it, and a link to the Feeds tab still opens where it leads. Friends, Groups and Pages are only on the Feeds tab that opens on the most recent posts, so the usual Feeds tab opens as it always does for those. Export settings carries the choice, and an import refuses a filter this version doesn't know.
+
+* **Facebook:** **Words to hide** and **Words that keep a post** now hold up to 1,000 phrases each, up from 50 (issue #58). The two lists share 56 KB of room, enough for 1,000 short phrases in each, so they always fit in an exported settings file. The line under each editor says how full that room would be as you type. Save turns down a list with too many phrases, or one that would overfill the room, and leaves the editor open with everything you typed, so nothing gets cut off. An import whose lists wouldn't fit changes nothing. Each post's text is now read once, however long the lists are, where before every phrase was looked for on its own.
+
+* **Tooling:** Run the fixture checks of every patch on Facebook 581 as well. Where a build keeps a piece of text as a literal and another moves it into a lookup list (feed type names, Stories between posts, Messenger's link check), the tests accept either and check that the list really answers with that text.
+
+* **Tooling:** Check that every supported Facebook build still names Meta App Manager in its manifest's package queries. Facebook doesn't ask to see every app, so without that entry Android hides App Manager from it and the new row under Supported links would never show.
+
+* **Tooling:** Give the settings rows their own classes instead of borrowing the settings page's name, so code outside the settings package can't reach them and tests name them where they live. The page now keeps its Downloads section to itself. The translation check also reads a row helper called through the page's name, which it used to skip.
+
+* **Tooling:** Tighten how the system font patch spots a typeface compare. A static call on two objects now counts only when its own code does nothing but compare them, the way Kotlin's areEqual does, and any other call like that gets the picked font file. Both supported Facebook builds patch exactly as before.
+
+* **Tooling:** Stop the injected-register device check from clearing the log of a shared phone or emulator. It writes a line of its own to the log before dex2oat runs and counts only what comes after it, and it refuses the run when that line has already rolled out of the buffer. The fixture suite's fake ADB fails on any log clear and puts another run's lines ahead of the marker, so a tally that counts them fails too. It also puts another run's marker after this one, so a check that stops at any run's marker instead of its own fails as well.
+
+* **Tooling:** Review a new GPL Facebook Lite candidate, four forks and changed branch history. Shared Messenger compatibility constants now have a watch path. The 2026-10-02 census keeps historical and licensing restrictions and its public counts match the records.
+
+* **Tooling:** All 59 patches were verified on both supported Facebook builds with English, Arabic and Persian patcher locales. Each run passed the manifest, resource-table and injected-code checks, and every generated DEX matched the English run byte for byte. Existing instruction formatting already meets this requirement.
+
+* **Tooling:** Keep retired Facebook sources separate from active records while retaining their reachable historical code and license evidence. The census now checks whether a watched path still exists, so its deletion commit can't be mistaken for current Facebook code. A returning source or lost historical pin requires review.
+
+* **Facebook:** Copied and saved diagnostic reports now include each declared domain's supported-link state, along with the link-handling permission, and say so plainly when a state isn't available. Unicode domain labels, including combining marks, survive only in their structured manifest-state lines. Visited URLs and other report data keep their privacy filters. Link ownership is read without changing it.
+
+* **Tooling:** Enforce the real-codec test's subprocess deadline during execution. Temporary output files retain failure diagnostics without waiting for a pipe to close. Regression checks cover hanging tools, tracked descendants, nonzero exits and complete large output.
+
+* **Tooling:** Reuse expanded fixture DEX files between patch-anchor scans. The temporary cache checks the bundle's content hash and every reused DEX, refuses changed or corrupt bytes, and cleans up when the test worker exits. Existing checks still run on both exact Facebook builds.
+
+* **Tooling:** Align the Android test result-listener's HttpClient and HttpMime with 4.5.14. The compatibility gate rejects malformed URI authorities that the old parser routed to a host, while checking ordinary host selection and multipart report construction.
+
+* **Tooling:** Update the Android test transports to Netty 4.1.138.Final and Jetifier's settings dependency to JDOM2 2.0.6.1. Dependency changes now exercise both gRPC transports and the JDOM parser before a push, using the resolved artifact hashes. The shipping payload and Android plugin pairing stay the same.
+
+* **Tooling:** Record resolved settings-plugin, build and test dependency graphs separately from the payload SBOM. New release receipts bind the tooling report to their source and bundle, and publication refuses skipped audits, serious advisories and expired applicability reviews. Align Guava, Commons Lang and jose4j with their reviewed fixes.
+
+* **Facebook:** The README's troubleshooting section now reflects the confirmed Media settings, WhatsApp-compatible saves and top-bar Reels results.
 
 * **Facebook:** Marketplace search now limits the size and depth of an answer before building its result tree. A large complete answer could bypass the old limit, and deeply nested data could exhaust the parser stack. When a limit is reached, its listings stay available and deferred fields still reach the correct result after an earlier ad was removed. Diagnostics count the reason without recording search content.
 

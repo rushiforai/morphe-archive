@@ -7,6 +7,8 @@
 -keep class dev.carlsen.mega.Mega { *; }
 -keep class io.ktor.client.engine.okhttp.OkHttpEngineContainer { *; }
 -keep class io.ktor.client.HttpClientEngineContainer { *; }
+-keep class dev.whyoleg.cryptography.CryptographyProviderContainer { *; }
+-keep class dev.whyoleg.cryptography.providers.jdk.JdkCryptographyProviderContainer { *; }
 -keep class rikka.shizuku.** {
     *;
 }

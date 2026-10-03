@@ -22,6 +22,7 @@ import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.implementationOrPatchException
+import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.Opcode
@@ -78,12 +79,56 @@ internal fun settingsRowMoveToFrontInstructions(
     """
 
 /**
+ * The state constructor OpenDebugCellVM.defaultState() builds its row with. 47.1.16 passes it six
+ * registers, so it's called with invoke-direct/range there and plain invoke-direct before.
+ */
+internal fun openDebugStateConstructor(defaultState: SmaliMethod, stateClass: String): MethodReference =
+    defaultState.implementation?.instructions?.firstNotNullOfOrNull { instruction ->
+        if (instruction.opcode != Opcode.INVOKE_DIRECT && instruction.opcode != Opcode.INVOKE_DIRECT_RANGE) {
+            return@firstNotNullOfOrNull null
+        }
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ?: return@firstNotNullOfOrNull null
+        reference.takeIf { it.name == "<init>" && it.definingClass == stateClass }
+    } ?: throw PatchException("Settings: could not resolve the OpenDebug state constructor.")
+
+/**
+ * Swaps the OpenDebug row's icon for the settings gear where TikTok loads it. Through 47.1.4 the
+ * state's constructor reads it from a static. On 47.1.16 defaultState() reads it and hands the one
+ * value to both icon parameters, so swapping it there covers both.
+ */
+internal fun swapOpenDebugIcon(
+    constructor: MutableMethod,
+    defaultState: MutableMethod,
+    vectorResource: String,
+    iconResourceId: Int,
+) {
+    fun MutableMethod.iconLoadIndex() = indexOfFirstInstruction {
+        opcode == Opcode.SGET_OBJECT && getReference<FieldReference>()?.type == vectorResource
+    }
+    val method = listOf(constructor, defaultState).firstOrNull { it.iconLoadIndex() >= 0 }
+        ?: throw PatchException("Settings: neither the OpenDebug state nor defaultState() loads a $vectorResource icon.")
+    val iconLoadIndex = method.iconLoadIndex()
+    val iconRegister = method.getInstruction<OneRegisterInstruction>(iconLoadIndex).registerA
+    val tempRegister = method.findFreeRegister(iconLoadIndex + 1, iconRegister)
+
+    method.addInstructions(
+        iconLoadIndex + 1,
+        """
+            new-instance v$iconRegister, $vectorResource
+            const v$tempRegister, $iconResourceId
+            invoke-direct {v$iconRegister, v$tempRegister}, $vectorResource-><init>(I)V
+        """,
+    )
+}
+
+/**
  * The type of TikTok's `VectorResource(resId: Int)` data class, found by the string constant its
  * generated toString() appends. Exactly one class carries it, and it has to have the one-int
  * constructor the patch calls, or the patch says so rather than assembling a call to nothing.
  */
 private fun BytecodePatchContext.vectorResourceClass(): String {
-    val carriers = getAllClassesWithString(VECTOR_RESOURCE_TO_STRING)
+    val carriers = classDefByStrings(VECTOR_RESOURCE_TO_STRING)
     val carrier = carriers.singleOrNull() ?: throw PatchException(
         "Settings: expected one class carrying \"$VECTOR_RESOURCE_TO_STRING\", found ${carriers.size}.",
     )
@@ -197,7 +242,7 @@ private fun BytecodePatchContext.settingsIconResourceId(): Int {
     )
     return resolveSettingsIconResourceId(
         renderer,
-        getAllClassesWithString(AD_BROWSER_SETTINGS_KEY),
+        classDefByStrings(AD_BROWSER_SETTINGS_KEY),
     )
 }
 
@@ -536,13 +581,8 @@ val settingsPatch = bytecodePatch(
         composeMutable.addInstruction(moveResultIndex + 1, "const-string v$titleStringRegister, \"Hushfeed\"")
 
         OpenDebugCellVmDefaultStateFingerprint.methodOrNull?.let { defaultState ->
-            val constructorReference = defaultState.implementationOrPatchException("Settings")
-                .instructions.firstNotNullOfOrNull { instruction ->
-                if (instruction.opcode != Opcode.INVOKE_DIRECT) return@firstNotNullOfOrNull null
-                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                    ?: return@firstNotNullOfOrNull null
-                reference.takeIf { it.name == "<init>" && it.definingClass == openDebugStateClass }
-            } ?: throw PatchException("Settings: could not resolve the OpenDebug state constructor.")
+            defaultState.implementationOrPatchException("Settings")
+            val constructorReference = openDebugStateConstructor(defaultState, openDebugStateClass)
 
             var stateConstructor: MutableMethod? = null
             classDefForEach { classDef ->
@@ -560,22 +600,7 @@ val settingsPatch = bytecodePatch(
             // changes with every build, so its generated toString label is the type anchor. The
             // value comes from TikTok's own Ad Browser settings action, whose stable renderer says
             // which interface method supplies the gear it puts in a TuxIconView.
-            val vectorResource = vectorResourceClass()
-            val iconLoadIndex = constructor.indexOfFirstInstructionOrThrow {
-                opcode == Opcode.SGET_OBJECT && getReference<FieldReference>()?.type == vectorResource
-            }
-            val iconRegister = constructor.getInstruction<OneRegisterInstruction>(iconLoadIndex).registerA
-            val tempRegister = constructor.findFreeRegister(iconLoadIndex + 1, iconRegister)
-            val iconResourceId = settingsIconResourceId()
-
-            constructor.addInstructions(
-                iconLoadIndex + 1,
-                """
-                    new-instance v$iconRegister, $vectorResource
-                    const v$tempRegister, $iconResourceId
-                    invoke-direct {v$iconRegister, v$tempRegister}, $vectorResource-><init>(I)V
-                """,
-            )
+            swapOpenDebugIcon(constructor, defaultState, vectorResourceClass(), settingsIconResourceId())
         }
 
         val clickWrapperMethod = resolveClickWrapperMethod()

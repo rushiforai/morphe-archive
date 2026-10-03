@@ -216,6 +216,24 @@ public class ActiveSavesTest {
         assertNull("a finished save is still listed", row(id));
     }
 
+    @Test public void aFilteredSavesPhaseChangesKeepTheSameCancelButton() {
+        int id = SavesForTests.begin(RuntimeEnvironment.getApplication(), true);
+        show();
+        page.searchSettings("zzzz-no-match");
+        layout();
+        Button cancel = cancelOf(row(id));
+
+        SavesForTests.joining(id);
+        ShadowLooper.idleMainLooper();
+        assertSame("filtering rebound the live Cancel button", cancel, cancelOf(row(id)));
+        assertEquals("Joining the picture and sound", summaryOf(row(id)));
+        SavesForTests.saving(id);
+        ShadowLooper.idleMainLooper();
+        assertSame(cancel, cancelOf(row(id)));
+        assertTrue(cancel.performClick());
+        assertTrue(SavesForTests.cancelled(id));
+    }
+
     /** A save that starts while the page is open is listed, and one that starts after it closed isn't followed. */
     @Test public void aSaveStartedWhileThePageIsOpenIsListedAndAClosedPageStopsFollowing() {
         show();

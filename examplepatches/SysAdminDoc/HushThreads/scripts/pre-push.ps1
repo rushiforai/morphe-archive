@@ -519,10 +519,10 @@ try {
         $_ -in $fingerprintCandidatePaths
     }).Count -gt 0
     # The source ledger's rules read NOTICE, provenance.json and the catalog's declared builds, and
-    # hold docs/sources.md to the ledger, so a push of any of them runs the ledger's suite too.
+    # hold the README source section to the ledger, so a push of any of them runs the ledger's suite too.
     $threadsSourcePaths = @(
         'NOTICE',
-        'docs/sources.md',
+        'README.md',
         'patches-list.json',
         'provenance.json',
         'scripts/audit-threads-sources.ps1',

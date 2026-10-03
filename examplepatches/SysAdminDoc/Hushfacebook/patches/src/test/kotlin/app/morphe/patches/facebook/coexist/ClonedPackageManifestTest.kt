@@ -23,8 +23,9 @@ import org.xml.sax.InputSource
 /**
  * A Facebook renamed by Morphe's Clone app, after Install beside Meta's apps renamed the shared
  * permissions: every component guarded by a permission the stock app declared names the clone's
- * own declaration of it, and no provider authority is the stock app's, with each of Clone app's
- * options on or off. A Facebook nobody renamed is left exactly as it was.
+ * own declaration of it, no provider authority is the stock app's, and it declares nothing Meta's
+ * own Facebook declares, with each of Clone app's options on or off. A Facebook nobody renamed is
+ * left exactly as it was.
  */
 class ClonedPackageManifestTest {
     private val facebook = "com.facebook.katana"
@@ -101,6 +102,9 @@ class ClonedPackageManifestTest {
 
     /** The stock app's permissions, after the rename, as the stock app declares them. */
     private val stockDeclared = patched().declared()
+
+    /** What Meta's own Facebook declares, signed with Meta's key. */
+    private val metaDeclared = manifest(facebookLike).declared()
     private val stockAuthorities = setOf(
         "com.facebook.katana.ClientMessagePushDedupInfoProvider",
         "com.facebook.katana.provider.ContactsConnectionsProvider",
@@ -108,15 +112,18 @@ class ClonedPackageManifestTest {
         "com.facebook.katana.apkfileprovider",
         "com.facebook.katana.integration.appmanager.sso",
     )
+    private val stockPermissions = setOf("com.facebook.katana.provider.ACCESS", "com.facebook.katana.permission.CREATE_SHORTCUT")
 
     /**
      * The acceptance, on one manifest: each mention of a permission the stock app declared names
-     * one this manifest declares, and no authority is one the stock app claims.
+     * one this manifest declares, no authority is one the stock app claims, and it declares nothing
+     * Meta's own Facebook declares, so it installs beside that too.
      */
     private fun assertSelfConsistent(document: Document, where: String) {
         val declared = document.declared()
         val strays = document.mentions().filter { (_, value) -> value in stockDeclared && value !in declared }
         assertEquals("$where: mentions of a permission only the stock app declares", emptyList<Pair<String, String>>(), strays)
+        assertEquals("$where: declarations Meta's Facebook owns", emptySet<String>(), declared.intersect(metaDeclared))
         val claimed = document.authorities().map { it.trim() }.filter { it in stockAuthorities }
         assertEquals("$where: authorities the stock app claims", emptyList<String>(), claimed)
     }
@@ -128,6 +135,11 @@ class ClonedPackageManifestTest {
     }
 
     @Test
+    fun theStockPermissionsAreTheDeclarationsUnderThePackage() {
+        assertEquals(stockPermissions, patched().ownPermissions(facebook))
+    }
+
+    @Test
     fun aCloneWithEachOptionIsSelfConsistent() {
         for (permissions in listOf(true, false)) {
             for (providers in listOf(true, false)) {
@@ -135,7 +147,7 @@ class ClonedPackageManifestTest {
                 val document = patched()
                 document.cloneApp(clone, permissions, providers)
 
-                document.followRenamedPackage(facebook, stockAuthorities)
+                document.followRenamedPackage(facebook, stockAuthorities, stockPermissions)
 
                 assertSelfConsistent(document, where)
                 assertEquals(where, clone, document.documentElement.getAttribute("package"))
@@ -152,7 +164,7 @@ class ClonedPackageManifestTest {
         val document = patched()
         document.cloneApp(clone, updatePermissions = true, updateProviders = true)
 
-        val followed = document.followRenamedPackage(facebook, stockAuthorities)
+        val followed = document.followRenamedPackage(facebook, stockAuthorities, stockPermissions)
 
         assertEquals(Followed(permissions = 8, authorities = 0), followed)
         val values = document.mentions().map { it.second }
@@ -172,9 +184,9 @@ class ClonedPackageManifestTest {
         val document = patched()
         document.cloneApp(clone, updatePermissions = false, updateProviders = false)
 
-        val followed = document.followRenamedPackage(facebook, stockAuthorities)
+        val followed = document.followRenamedPackage(facebook, stockAuthorities, stockPermissions)
 
-        assertEquals(Followed(permissions = 0, authorities = 5), followed)
+        assertEquals(Followed(permissions = 5, authorities = 5, declarations = 2), followed)
         assertEquals(
             listOf(
                 "$clone.ClientMessagePushDedupInfoProvider",
@@ -195,8 +207,52 @@ class ClonedPackageManifestTest {
         document.cloneApp(clone, updatePermissions = false, updateProviders = true)
         val before = document.authorities()
 
-        assertEquals(Followed(permissions = 0, authorities = 0), document.followRenamedPackage(facebook, stockAuthorities))
+        assertEquals(
+            Followed(permissions = 5, authorities = 0, declarations = 2),
+            document.followRenamedPackage(facebook, stockAuthorities, stockPermissions),
+        )
         assertEquals(before, document.authorities())
+    }
+
+    /**
+     * Update permissions off, Clone app's default (#60): Facebook's own declarations keep the stock
+     * names, and Android refuses the clone beside a Facebook signed with another key. They move under
+     * the clone, every request and guard follows, and the shared two keep Install beside Meta's apps'
+     * names, which Meta's apps don't declare.
+     */
+    @Test
+    fun declarationsCloneAppLeftMoveUnderTheClone() {
+        val document = patched()
+        document.cloneApp(clone, updatePermissions = false, updateProviders = false)
+
+        document.followRenamedPackage(facebook, stockAuthorities, stockPermissions)
+
+        assertEquals(
+            setOf(
+                "$clone.provider.ACCESS",
+                "app.hushfacebook.permission.prod.FB_APP_COMMUNICATION",
+                "app.hushfacebook.receiver.permission.ACCESS",
+                "$clone.permission.CREATE_SHORTCUT",
+            ),
+            document.declared(),
+        )
+        val values = document.mentions().map { it.second }
+        assertEquals(3, values.count { it == "$clone.provider.ACCESS" })
+        assertEquals(2, values.count { it == "$clone.permission.CREATE_SHORTCUT" })
+        assertEquals(emptyList<String>(), values.filter { it in stockPermissions })
+    }
+
+    /** Update permissions on with the default name, which is itself under the stock package: nothing moves twice. */
+    @Test
+    fun declarationsCloneAppMovedStay() {
+        val document = patched()
+        document.cloneApp(clone, updatePermissions = true, updateProviders = true)
+        val before = document.declared()
+
+        document.followRenamedPackage(facebook, stockAuthorities, stockPermissions)
+
+        assertEquals(before, document.declared())
+        assertTrue(before.toString(), "$clone.provider.ACCESS" in before)
     }
 
     /** Any name the reader chooses in Clone app, not only the default suffix. */
@@ -205,7 +261,7 @@ class ClonedPackageManifestTest {
         val document = patched()
         document.cloneApp("org.example.fb", updatePermissions = true, updateProviders = false)
 
-        document.followRenamedPackage(facebook, stockAuthorities)
+        document.followRenamedPackage(facebook, stockAuthorities, stockPermissions)
 
         val values = document.mentions().map { it.second }
         assertEquals(5, values.count { it == "org.example.fb_app.hushfacebook.permission.prod.FB_APP_COMMUNICATION" })
@@ -218,7 +274,7 @@ class ClonedPackageManifestTest {
         val document = patched()
         val before = document.text()
 
-        assertNull(document.followRenamedPackage(facebook, stockAuthorities))
+        assertNull(document.followRenamedPackage(facebook, stockAuthorities, stockPermissions))
         assertEquals(before, document.text())
     }
 
@@ -234,7 +290,7 @@ class ClonedPackageManifestTest {
     fun aStillStockPackageExplainsWhatToAddForAClone() {
         val document = patched()
 
-        val messages = PatchLogCapture.fine { document.followRenamedPackage(facebook, stockAuthorities) }
+        val messages = PatchLogCapture.fine { document.followRenamedPackage(facebook, stockAuthorities, stockPermissions) }
 
         assertEquals(1, messages.size)
         assertTrue(messages[0], messages[0].contains("Clone app"))

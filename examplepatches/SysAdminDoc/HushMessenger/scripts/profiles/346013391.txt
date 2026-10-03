@@ -11,6 +11,7 @@ hook ai_menu LX/JiI;->A01()Z
 hook ai_search LX/5O3;->A0A(LX/5O3;)Z
 hook ai_search LX/5O3;->A0B(LX/5O3;)Z
 hook ai_search_chip LX/D7q;->render(LX/2MZ;)LX/1GG;
+hook ai_sticker_cell LX/FWm;->render(LX/2MZ;)LX/1GG;
 hook ai_stickers LX/PN4;->A03(LX/PN4;)Z
 hook ai_stickers LX/PNb;->A07(LX/PNb;)Z
 hook ai_tab LX/1iN;->A02(LX/1iN;)Z
@@ -28,6 +29,10 @@ hook bubbles LX/2ZW;->A00()Z
 hook business_suggestions LX/7SD;->A05(LX/7SD;)Z
 hook business_suggestions LX/7TB;->A04(LX/7TB;)Z
 hook business_suggestions LX/Ts4;->A04()Z
+hook chat_animation Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)Landroid/view/animation/Animation;
+hook chat_fragment LX/1hl;-><init>()V
+hook chat_inbox LX/1fs;-><init>()V
+hook chat_legacy LX/1hd;->onCreateAnimation(IZI)Landroid/view/animation/Animation;
 hook chat_promotions LX/Ts2;->A0D()Z
 hook chat_promotions LX/Ts2;->A0E()Z
 hook delta_unsent LX/K0w;->Bta(I)Z
@@ -65,6 +70,7 @@ hook hide_read_receipts LX/AWg;->run()V
 hook inbox_promotions LX/2Ef;->A0J()Z
 hook inbox_promotions LX/2Ef;->A0K()Z
 hook keep_unsent LX/SM8;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V
+hook menu_settings LX/9rb;->A1i()V
 hook menu_settings LX/HEw;->Ax2(LX/0MG;)Ljava/util/ArrayList;
 hook menu_settings LX/JwE;->onClick(Landroid/view/View;)V
 hook menu_settings LX/U8O;->CAm(LX/4jq;I)V
@@ -84,6 +90,9 @@ hook people_tab LX/JYS;->A01(LX/JYS;)V
 hook read_mailbox LX/9sS;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
 hook reels_badge LX/7wp;->A09(LX/7wp;)Z
 hook save_stories LX/Jfc;->onClick(Landroid/view/View;)V
+hook screenshot_viewers Lcom/facebook/messaging/media/ephemeralmedia/viewer/EphemeralMediaViewerFragment;->A1A(Landroid/os/Bundle;)Landroid/app/Dialog;
+hook screenshot_viewers Lcom/facebook/messaging/media/ephemeralmedia/viewer/EphemeralMediaViewerFragment;->onResume()V
+hook screenshot_viewers Lcom/facebook/messaging/quicksnap/consumption/viewer/MsgrQuicksnapViewerFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;
 hook stories LX/1mi;->A00()Z
 hook subtabs LX/2UL;->run()V
 hook suggested_replies LX/7SD;->A06(LX/7SD;)Z

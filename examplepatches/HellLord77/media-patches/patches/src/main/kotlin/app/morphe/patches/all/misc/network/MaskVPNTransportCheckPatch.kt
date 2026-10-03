@@ -13,7 +13,6 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodRefere
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/network/patches/MaskVPNTransportPatch;"
 
-@Suppress("unused")
 val maskVPNTransportPatch = bytecodePatch(
     name = "Mask VPN transport check",
     description = "Masks VPN transport check, allowing to inspect traffic via a proxy.",
@@ -22,8 +21,7 @@ val maskVPNTransportPatch = bytecodePatch(
     extendWith("extensions/network.mpe")
 
     execute {
-        HasTransportInvokerFingerprint.matchAllMethodIndicesForEach {
-            if (definingClass == EXTENSION_CLASS) return@matchAllMethodIndicesForEach
+        HasTransportMethodCallFingerprint.matchAllMethodIndicesForEach {
             val instruction = getInstruction<FiveRegisterInstruction>(it)
             val reference = instruction.getReference<MethodReference>()!!
 

@@ -32,7 +32,7 @@ class SyncUpstreamTests(unittest.TestCase):
             '<string-array name="existing"/>',
             '<string-array name="custom_icon"/>\n    <string-array name="existing"/>',
         )
-        merged = sync_upstream.merge_dev20_yandex_arrays(base, ours, theirs)
+        merged = sync_upstream.merge_yandex_arrays_with_upstream_changes(base, ours, theirs)
         names = [element.attrib["name"] for element in ElementTree.fromstring(merged)]
         self.assertEqual(names, ["custom_icon", "existing", *dual_names])
         self.assertEqual(
@@ -43,8 +43,16 @@ class SyncUpstreamTests(unittest.TestCase):
                 "c723637ecf766a547fd2aff56bcbd9c60f0671f3",
             ),
         )
+        self.assertEqual(
+            sync_upstream.STABLE145_ARRAYS_CONFLICT_BLOBS,
+            (
+                "311894915ee96634ec074a8dc2e3689cc62da532",
+                "e7421a0b11afa4af4679221eed6cc83da862804e",
+                "5da4445db139cc9b711a72b27b2c0efde8183c50",
+            ),
+        )
         with self.assertRaises(sync_upstream.SyncError):
-            sync_upstream.merge_dev20_yandex_arrays(
+            sync_upstream.merge_yandex_arrays_with_upstream_changes(
                 base, ours.replace("existing", "changed"), theirs
             )
 

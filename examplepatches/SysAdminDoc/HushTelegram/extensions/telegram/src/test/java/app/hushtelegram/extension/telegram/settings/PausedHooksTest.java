@@ -12,15 +12,24 @@ package app.hushtelegram.extension.telegram.settings;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
+
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
 
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.shadows.ShadowPackageManager;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -41,6 +50,9 @@ import app.hushtelegram.extension.telegram.misc.AnalyticsTest.DeviceStatsControl
 import app.hushtelegram.extension.telegram.misc.UpdateChecks;
 import app.hushtelegram.extension.telegram.misc.Stories;
 import app.hushtelegram.extension.telegram.misc.Recommendations;
+import app.hushtelegram.extension.telegram.misc.Suggestions;
+import app.hushtelegram.extension.telegram.misc.LinkRouting;
+import app.hushtelegram.extension.telegram.ads.ProxyPromotions;
 import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.settings.BaseSettings;
 import app.hushtelegram.extension.shared.settings.BooleanSetting;
@@ -56,12 +68,17 @@ import app.hushtelegram.extension.shared.settings.PauseForTests;
  * without a probe here fails the first test.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 30, shadows = PausedHooksTest.AvatarScope.class,
-        instrumentedPackages = "app.hushtelegram.extension.telegram.misc")
+@Config(sdk = 30, shadows = {PausedHooksTest.AvatarScope.class, PausedHooksTest.ProxyScope.class, PausedHooksTest.LinkScope.class},
+        instrumentedPackages = {"app.hushtelegram.extension.telegram.misc", "app.hushtelegram.extension.telegram.ads"})
 public class PausedHooksTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     private static final Object DIALOG_AVATAR = new Object();
+    private static final String PROBE_BROWSER = "org.example.probe.browser";
+    private static final String PROBE_URL = "https://example.com/path";
+    private static final String TRACKED_URL = PROBE_URL + "?utm_source=probe";
+    private static final Object SPONSORED_PROXY_CONTROLLER = new Object();
+    private static final Object SPONSORED_PROXY_DIALOG = new Object();
 
     /** The fixture tests cover the real scope bytecode; this supplies a dialog avatar to probes. */
     @Implements(value = Stories.class, isInAndroidSdk = false)
@@ -69,6 +86,22 @@ public class PausedHooksTest {
         @Implementation protected static boolean isDialogAvatar(Object params) {
             return params == DIALOG_AVATAR;
         }
+    }
+
+    /** Supplies a known unjoined proxy sponsor; fixture tests cover the real host bridge. */
+    @Implements(value = ProxyPromotions.class, isInAndroidSdk = false)
+    public static class ProxyScope {
+        static int calls;
+        @Implementation protected static boolean isSponsoredProxyDialog(Object controller, Object dialog) {
+            calls++;
+            return controller == SPONSORED_PROXY_CONTROLLER && dialog == SPONSORED_PROXY_DIALOG;
+        }
+    }
+
+    /** Fixture tests cover native classification; these probes use an ordinary unprotected URL. */
+    @Implements(value = LinkRouting.class, isInAndroidSdk = false)
+    public static class LinkScope {
+        @Implementation protected static boolean protectedByTelegram(Uri uri) { return false; }
     }
 
     /** One hook with its switch on: true when it changed what Telegram would have done. */
@@ -98,6 +131,7 @@ public class PausedHooksTest {
     }
 
     private static Map<PatchFamily, List<Probe>> probes() {
+        registerProbeBrowser();
         Map<PatchFamily, List<Probe>> probes = new EnumMap<>(PatchFamily.class);
         // A sponsored messages, video ads or search ads request is answered without ever being made.
         probes.put(PatchFamily.HIDE_ADS, Arrays.asList(Ads::skipSponsoredMessages, Ads::skipVideoAds, Ads::skipSearchAds));
@@ -108,17 +142,106 @@ public class PausedHooksTest {
                 () -> Stories.hideAvatarStoryTouches(DIALOG_AVATAR)));
         probes.put(PatchFamily.HIDE_RECOMMENDATIONS, Arrays.asList(
                 Recommendations::skipRecommendations, Recommendations::skipCachedRecommendations));
+        probes.put(PatchFamily.HIDE_COMMERCE, Arrays.asList(
+                () -> !app.hushtelegram.extension.telegram.misc.Commerce.addSettingsRow(new ArrayList<>(), new Object()),
+                () -> !app.hushtelegram.extension.telegram.misc.Commerce.showGiftsTab(true)));
+        probes.put(PatchFamily.HIDE_PROMOTIONAL_BANNERS, Arrays.asList(
+                () -> !Suggestions.filterChatList(Collections.singleton("PREMIUM_UPGRADE")).contains("PREMIUM_UPGRADE"),
+                () -> Suggestions.birthdayGiftBannerDismissed(false)));
+        probes.put(PatchFamily.HIDE_SPONSORED_PROXY, Arrays.asList(
+                () -> ProxyPromotions.hideCachedProxyDialog(SPONSORED_PROXY_CONTROLLER, SPONSORED_PROXY_DIALOG),
+                () -> !ProxyPromotions.showSelectedDialog(true, SPONSORED_PROXY_CONTROLLER, SPONSORED_PROXY_DIALOG)));
         probes.put(PatchFamily.DISABLE_CALL_DEBUG, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.CallDebug.skipCallDebugUpload(true),
                 app.hushtelegram.extension.telegram.misc.CallDebug::skipCallLogFileUpload,
                 app.hushtelegram.extension.telegram.misc.CallDebug::skipCallLogUpload));
+        // An unsent message's link preview is never asked for, on any compose surface.
+        probes.put(PatchFamily.DISABLE_DRAFT_PREVIEWS, Arrays.asList(
+                app.hushtelegram.extension.telegram.misc.DraftPreviews::skipChatPreview,
+                app.hushtelegram.extension.telegram.misc.DraftPreviews::skipSharePreview,
+                app.hushtelegram.extension.telegram.misc.DraftPreviews::skipPollPreview,
+                app.hushtelegram.extension.telegram.misc.DraftPreviews::skipStoryLinkPreview,
+                app.hushtelegram.extension.telegram.misc.DraftPreviews::skipBotSharePreview));
+        // Search's Apps tab neither loads nor draws the Popular apps list.
+        probes.put(PatchFamily.HIDE_POPULAR_APPS, Arrays.asList(
+                app.hushtelegram.extension.telegram.misc.PopularApps::skipLoad,
+                app.hushtelegram.extension.telegram.misc.PopularApps::hideSection));
+        // A sideways swipe on a chat row starts nothing.
+        probes.put(PatchFamily.DISABLE_CHAT_SWIPE, Collections.singletonList(
+                app.hushtelegram.extension.telegram.misc.ChatSwipe::keepRowStill));
+        // After a "Not now", the Contacts tab neither asks again nor marks its icon.
+        probes.put(PatchFamily.QUIET_CONTACTS_NAG, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.ContactsNag.skipAsk(declinedContactsPrompt()),
+                () -> app.hushtelegram.extension.telegram.misc.ContactsNag.hideBadge(declinedContactsPrompt())));
+        // Telegram's holiday check skips its date test and shows the New Year look.
+        probes.put(PatchFamily.HOLIDAY_LOOK, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.HolidayLook.mode() == app.hushtelegram.extension.telegram.misc.HolidayLook.SHOW));
+        // The gallery's camera stays off until a tap, and a tap that asks for the permission wakes it.
+        probes.put(PatchFamily.GALLERY_CAMERA_ON_TAP, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.GalleryCamera.keepCameraOff(new Object()),
+                () -> app.hushtelegram.extension.telegram.misc.GalleryCamera.wakeOnTap(new Object(), null),
+                () -> {
+                    Object gallery = new Object();
+                    app.hushtelegram.extension.telegram.misc.GalleryCamera.wakeForPermission(gallery);
+                    return app.hushtelegram.extension.telegram.misc.GalleryCamera.openWhenReady(gallery, new Object());
+                }));
         // A device statistics report is never read or sent, and neither is a channel's read time.
         probes.put(PatchFamily.DISABLE_ANALYTICS, Arrays.asList(
                 () -> Analytics.skipDeviceStats(new DeviceStatsController(true, false)),
-                () -> Analytics.skipReadMetrics(new ArrayList<>())));
+                () -> Analytics.skipReadMetrics(new ArrayList<>()),
+                () -> Analytics.skipPremiumAppLog("premium.promo_screen_show"),
+                () -> Analytics.skipPremiumAppLog("premium.promo_screen_tap"),
+                () -> Analytics.skipPremiumAppLog("premium.promo_screen_accept"),
+                () -> Analytics.skipPremiumAppLog("premium.promo_screen_fail")));
+        probes.put(PatchFamily.OPEN_EXTERNAL_LINKS, Collections.singletonList(PausedHooksTest::externalBrowserOpened));
+        probes.put(PatchFamily.STRIP_LINK_TRACKING, Arrays.asList(
+                () -> PROBE_URL.equals(LinkRouting.cleanOpenedUri(Uri.parse(TRACKED_URL), false, new boolean[1]).toString()),
+                () -> PROBE_URL.equals(LinkRouting.cleanShareIntent(new Intent(Intent.ACTION_SEND).setType("text/plain")
+                        .putExtra(Intent.EXTRA_TEXT, TRACKED_URL)).getStringExtra(Intent.EXTRA_TEXT))));
         // telegram.org's build never asks the server whether a newer one is out.
         probes.put(PatchFamily.DISABLE_UPDATE_CHECKS, Collections.singletonList(UpdateChecks::skipUpdateCheck));
         return probes;
+    }
+
+    /** Telegram's prompt flags after a "Not now" in the Contacts tab. */
+    private static android.content.SharedPreferences declinedContactsPrompt() {
+        android.content.SharedPreferences prefs = org.robolectric.RuntimeEnvironment.getApplication()
+                .getSharedPreferences("paused_hooks_contacts", android.content.Context.MODE_PRIVATE);
+        prefs.edit().putBoolean("askAboutContacts2", false).commit();
+        return prefs;
+    }
+
+    /** A browser handling both schemes without a domain restriction, using the runtime's real query. */
+    private static void registerProbeBrowser() {
+        while (shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity() != null) { }
+        ResolveInfo info = new ResolveInfo();
+        info.activityInfo = new ActivityInfo();
+        info.activityInfo.packageName = PROBE_BROWSER;
+        info.activityInfo.name = PROBE_BROWSER + ".BrowserActivity";
+        info.activityInfo.enabled = true;
+        info.activityInfo.exported = true;
+        info.filter = new IntentFilter(Intent.ACTION_VIEW);
+        info.filter.addCategory(Intent.CATEGORY_DEFAULT);
+        info.filter.addCategory(Intent.CATEGORY_BROWSABLE);
+        info.filter.addDataScheme("http");
+        info.filter.addDataScheme("https");
+        ShadowPackageManager manager = shadowOf(RuntimeEnvironment.getApplication().getPackageManager());
+        for (String scheme : new String[]{"http", "https"}) manager.addResolveInfoForIntent(
+                new Intent(Intent.ACTION_VIEW, Uri.parse(scheme + "://")).addCategory(Intent.CATEGORY_BROWSABLE), info);
+    }
+
+    /** A true probe is an actual sandbox launch; disabled and paused probes must launch nothing. */
+    private static boolean externalBrowserOpened() {
+        boolean redirected = LinkRouting.tryOpenExternal(RuntimeEnvironment.getApplication(),
+                Uri.parse(PROBE_URL), false, new boolean[1], PROBE_BROWSER);
+        Intent launched = shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
+        assertEquals("routing and the actual browser launch disagree", redirected, launched != null);
+        if (launched != null) {
+            assertEquals(Intent.ACTION_VIEW, launched.getAction());
+            assertEquals(PROBE_BROWSER, launched.getPackage());
+            assertEquals(Uri.parse(PROBE_URL), launched.getData());
+        }
+        return redirected;
     }
 
     /** Every switch the settings screen can show, read off the class so a new one can't hide. */
@@ -146,6 +269,7 @@ public class PausedHooksTest {
     /** Adds a line to [wrong] for every probe that didn't answer [changes]. */
     private static void everyProbe(Map<PatchFamily, List<Probe>> probes, boolean changes, String when,
                                    List<String> wrong) {
+        ProxyScope.calls = 0;
         for (Map.Entry<PatchFamily, List<Probe>> entry : probes.entrySet()) {
             for (int i = 0; i < entry.getValue().size(); i++) {
                 if (entry.getValue().get(i).changedTelegram() != changes) {
@@ -153,6 +277,11 @@ public class PausedHooksTest {
                             + (changes ? ": left Telegram alone" : ": still changed Telegram"));
                 }
             }
+        }
+        int expectedProxyScopeCalls = changes ? 2 : 0;
+        if (ProxyScope.calls != expectedProxyScopeCalls) {
+            wrong.add("proxy host scope, " + when + ": expected " + expectedProxyScopeCalls
+                    + " calls, got " + ProxyScope.calls);
         }
     }
 

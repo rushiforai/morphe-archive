@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -28,31 +30,93 @@ jobs:
       - name: Cache Gradle
         uses: burrunan/gradle-cache-action@v3
 
+      - name: Read release version
+        id: version
+        run: |
+          VERSION="$(awk -F '=' '$1 ~ /^[[:space:]]*version[[:space:]]*$/ { gsub(/[[:space:]]/, "", $2); print $2; exit }' gradle.properties)"
+          test -n "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Validate Morphe metadata
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          v = os.environ["VERSION"]
+          if not re.fullmatch(r"\d+\.\d+\.\d+", v): raise SystemExit(f"Invalid version: {v}")
+          bundle = json.loads(pathlib.Path("patches-bundle.json").read_text())
+          plist = json.loads(pathlib.Path("patches-list.json").read_text())
+          if bundle.get("version") != v or plist.get("version") != v:
+              raise SystemExit(f"Version mismatch: gradle={v}, bundle={bundle.get('version')}, list={plist.get('version')}")
+          expected = f"https://github.com/K8R8TO/kizu-morphe-patches/releases/download/v{v}/patches-{v}.mpp"
+          if bundle.get("download_url") != expected:
+              raise SystemExit("patches-bundle.json download_url does not match release version")
+          PY
+
+      - name: Pin local release tag for metadata generation
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git tag -f "v${VERSION}" "${GITHUB_SHA}"
+
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x gradlew
-          ./gradlew :patches:buildAndroid generatePatchesList clean
+          ./gradlew :patches:buildAndroid
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Verify release metadata after build
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          v = os.environ["VERSION"]
+          bundle = json.loads(pathlib.Path("patches-bundle.json").read_text())
+          plist = json.loads(pathlib.Path("patches-list.json").read_text())
+          assert bundle.get("version") == v, f"bundle version changed during build: {bundle.get('version')}"
+          assert plist.get("version") == v, f"patch list version changed during build: {plist.get('version')}"
+          expected = f"https://github.com/K8R8TO/kizu-morphe-patches/releases/download/v{v}/patches-{v}.mpp"
+          assert bundle.get("download_url") == expected, "bundle download URL changed during build"
+          PY
+
+      - name: Verify release artifact
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          test -f "patches/build/libs/patches-${VERSION}.mpp"
+
+      - name: Check release tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish release asset
+        uses: softprops/action-gh-release@v3
         with:
-          node-version: 'lts/*'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Release
-        uses: cycjimmy/semantic-release-action@v5
-        id: release
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          body: Kizu release ${{ steps.version.outputs.version }}.
+          files: patches/build/libs/patches-${{ steps.version.outputs.version }}.mpp
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Attest
-        if: steps.release.outputs.new_release_published == 'true'
-        uses: actions/attest-build-provenance@v3
-        with:
-          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
-          subject-path: patches/build/libs/patches-*.mpp
+      - name: Verify release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release view "v${VERSION}" --json tagName,assets --jq '.tagName + " " + ([.assets[].name] | join(","))' | grep -F "v${VERSION} patches-${VERSION}.mpp"

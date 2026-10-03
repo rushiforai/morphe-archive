@@ -63,7 +63,7 @@ def manifest_blocks(aapt2, apk):
     return blocks
 
 
-def verify_manifest(aapt2, stock, patched, server_files=False):
+def verify_manifest(aapt2, stock, patched, server_files=False, remove_analytics=False):
     before, after = (manifest_blocks(aapt2, apk) for apk in (stock, patched))
     activity_name = "app.spicetify.extension.spotify.settings.SpicetifySettingsActivity"
     activities = [body for kind, body in after if kind == "activity"
@@ -91,8 +91,55 @@ def verify_manifest(aapt2, stock, patched, server_files=False):
     def permissions(blocks):
         return sorted(re.sub(r" \(line=\d+\)", "", body)
                       for kind, body in blocks if kind.startswith("uses-permission"))
-    if permissions(before) != permissions(after):
-        raise AssertionError("Settings patch changed app permissions")
+    before_permissions = permissions(before)
+    after_permissions = permissions(after)
+    if remove_analytics:
+        removed = ["com.google.android.gms.permission.AD_ID",
+                   "android.permission.ACCESS_ADSERVICES_AD_ID",
+                   "android.permission.ACCESS_ADSERVICES_ATTRIBUTION"]
+        for permission in removed:
+            if any(permission in body for body in after_permissions):
+                raise AssertionError(f"Analytics patch did not remove {permission}")
+        after_permissions = sorted(body for body in after_permissions
+                                    if not any(permission in body for permission in removed))
+        before_permissions = sorted(body for body in before_permissions
+                                     if not any(permission in body for permission in removed))
+    if before_permissions != after_permissions:
+        raise AssertionError("Unexpected permission changes")
+
+
+def verify_analytics_manifest(aapt2, stock, patched, remove_analytics):
+    before, after = (manifest_blocks(aapt2, apk) for apk in (stock, patched))
+
+    def meta_data(blocks):
+        values = {}
+        for kind, body in blocks:
+            if kind != "meta-data":
+                continue
+            name = re.search(r":name\(0x[0-9a-f]+\)=\"([^\"]+)\"", body)
+            value = re.search(r":value\(0x[0-9a-f]+\)=\s*(.+)$", body, re.MULTILINE)
+            if name and value:
+                values[name.group(1)] = value.group(1).strip().strip('"')
+        return values
+
+    before_flags, after_flags = meta_data(before), meta_data(after)
+    # The patcher sanitizes Play-distribution stamp metadata out of every build.
+    sanitised = {"com.android.stamp.source", "com.android.stamp.type",
+                 "com.android.vending.derived.apk.id", "com.android.vending.splits.required"}
+    before_flags = {k: v for k, v in before_flags.items() if k not in sanitised}
+    after_flags = {k: v for k, v in after_flags.items() if k not in sanitised}
+    if not remove_analytics:
+        if before_flags != after_flags:
+            raise AssertionError("Analytics flags changed without the analytics patch")
+        return
+    expected = {
+        "firebase_crashlytics_collection_enabled": "false",
+        "firebase_analytics_collection_enabled": "false",
+        "firebase_analytics_collection_deactivated": "true",
+    }
+    for flag, wanted in expected.items():
+        if after_flags.get(flag) != wanted:
+            raise AssertionError(f"{flag} must be {wanted}, got {after_flags.get(flag)!r}")
 
 
 def main():
@@ -111,6 +158,7 @@ def main():
     parser.add_argument("--hide-brand-ads", action="store_true")
     parser.add_argument("--hide-player-ad-cards", action="store_true")
     parser.add_argument("--theme", action="store_true")
+    parser.add_argument("--remove-analytics", action="store_true")
     args = parser.parse_args()
     with zipfile.ZipFile(args.bundle) as bundle:
         try:
@@ -142,7 +190,7 @@ def main():
         "1" if args.sharing or args.theme or args.home_pins or args.server_files or args.hide_premium_tab or args.hide_brand_ads or args.hide_player_ad_cards else "0",
     ], check=True)
     if args.sharing or args.theme or args.home_pins or args.server_files or args.hide_premium_tab or args.hide_brand_ads or args.hide_player_ad_cards:
-        verify_manifest(args.aapt2, args.stock, args.patched, args.server_files)
+        verify_manifest(args.aapt2, args.stock, args.patched, args.server_files, args.remove_analytics)
         subprocess.run([
             args.java, "-Xmx2g", "-cp", str(args.desktop),
             str(Path(__file__).with_name("VerifySettingsDex.java")),
@@ -159,7 +207,7 @@ def main():
         args.java, "-Xmx2g", "-cp", str(args.desktop),
         str(Path(__file__).with_name("VerifyThemeDex.java")),
         str(args.patched), "1" if args.theme else "0",
-        str(Path(__file__).resolve().parent.parent / "patches/src/main/resources/theme/palette-9.1.80.2221.properties"),
+        str(Path(__file__).resolve().parent.parent / "patches/src/main/resources/theme/palette-9.1.88.2204.properties"),
     ], check=True)
     subprocess.run([
         args.java, "-Xmx2g", "-cp", str(args.desktop),
@@ -172,6 +220,12 @@ def main():
         str(args.stock), str(args.patched), str(args.bundle), "1" if args.hide_brand_ads else "0",
         "1" if args.hide_player_ad_cards else "0",
     ], check=True)
+    verify_analytics_manifest(args.aapt2, args.stock, args.patched, args.remove_analytics)
+    subprocess.run([
+        args.java, "-Xmx2g", "-cp", str(args.desktop),
+        str(Path(__file__).with_name("VerifyAnalyticsDex.java")),
+        str(args.patched), "1" if args.remove_analytics else "0",
+    ], check=True)
     subprocess.run([args.apksigner, "verify", str(args.patched)], check=True)
     print(json.dumps({
         "stockSha256": digest(args.stock), "patchedSha256": digest(args.patched),
@@ -180,7 +234,7 @@ def main():
         "sharing": args.sharing, "signatureVerified": True,
         "homePins": args.home_pins, "serverFiles": args.server_files,
         "hidePremiumTab": args.hide_premium_tab, "hideBrandAds": args.hide_brand_ads,
-        "hidePlayerAdCards": args.hide_player_ad_cards,
+        "hidePlayerAdCards": args.hide_player_ad_cards, "removeAnalytics": args.remove_analytics,
     }, indent=2))
 
 

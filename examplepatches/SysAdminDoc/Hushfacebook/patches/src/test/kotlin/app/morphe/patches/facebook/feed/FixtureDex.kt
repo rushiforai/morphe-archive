@@ -12,26 +12,28 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import java.io.File
 import java.nio.ByteBuffer
+import java.nio.file.Files
+import java.nio.file.LinkOption.NOFOLLOW_LINKS
+import java.nio.file.Path
+import java.security.DigestOutputStream
+import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 
 /**
- * Reads the classes a fixture test needs out of a Facebook bundle's base APK, one dex at a time, so
- * no APK lands on disk and no more than one dex is held at once. What it hands back are immutable
- * copies, which keep none of the dex they came from.
+ * Reads one cached dex at a time. Only expanded dex files land in the worker's temporary directory;
+ * no whole APK is buffered. Returned immutable copies keep none of the dex they came from.
  */
 internal object FixtureDex {
-    private val DEX = Regex("""classes\d*\.dex""")
+    private val cache = FixtureDexCache().also { cache ->
+        Runtime.getRuntime().addShutdownHook(Thread({ cache.close() }, "fixture-dex-cleanup"))
+    }
 
     private fun forEachDex(bundle: File, visit: (DexBackedDexFile) -> Unit) {
-        ZipFile(bundle).use { zip ->
-            val base = checkNotNull(zip.getEntry("base.apk")) { "${bundle.name} holds no base.apk" }
-            ZipInputStream(zip.getInputStream(base).buffered()).use { apk ->
-                while (true) {
-                    val entry = apk.nextEntry ?: break
-                    if (DEX.matches(entry.name)) visit(DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(apk.readBytes())))
-                }
-            }
+        cache.forEach(bundle) { bytes ->
+            visit(DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(bytes)))
         }
     }
 
@@ -80,5 +82,105 @@ internal object FixtureDex {
             }
         }
         return found
+    }
+}
+
+/** Content-bound files belong only to this cache. Publication waits for complete extraction. */
+internal class FixtureDexCache : AutoCloseable {
+    internal val directory: Path = Files.createTempDirectory("hushfacebook-fixture-dex-")
+    private data class Entry(val path: Path, val size: Long, val sha256: String)
+    private val expanded = ConcurrentHashMap<String, List<Entry>>()
+    private val lifecycle = ReentrantReadWriteLock()
+    private var closed = false
+
+    fun forEach(bundle: File, visit: (ByteArray) -> Unit) {
+        val lock = lifecycle.readLock()
+        lock.lock()
+        try {
+            check(!closed) { "Fixture cache is closed" }
+            val content = hash(bundle)
+            val entries = expanded.computeIfAbsent(content) { expand(bundle, content) }
+            for (entry in entries) {
+                check(Files.isRegularFile(entry.path, NOFOLLOW_LINKS) && Files.size(entry.path) == entry.size) {
+                    "Fixture cache file changed: ${entry.path.fileName}"
+                }
+                val bytes = Files.readAllBytes(entry.path)
+                check(bytes.size.toLong() == entry.size && digest(MessageDigest.getInstance("SHA-256").digest(bytes)) == entry.sha256) {
+                    "Fixture cache bytes changed: ${entry.path.fileName}"
+                }
+                visit(bytes)
+            }
+            check(hash(bundle) == content) { "Fixture changed while reading: ${bundle.name}" }
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    private fun expand(bundle: File, content: String): List<Entry> {
+        val work = Files.createTempDirectory(directory, "bundle-")
+        try {
+            val entries = mutableListOf<Entry>()
+            ZipFile(bundle).use { zip ->
+                val base = checkNotNull(zip.getEntry("base.apk")) { "${bundle.name} holds no base.apk" }
+                ZipInputStream(zip.getInputStream(base).buffered()).use { apk ->
+                    while (true) {
+                        val entry = apk.nextEntry ?: break
+                        if (!DEX.matches(entry.name)) continue
+                        check(!entry.isDirectory && entries.none { it.path.fileName.toString() == entry.name }) {
+                            "Duplicate or invalid fixture dex: ${entry.name}"
+                        }
+                        val path = work.resolve(entry.name)
+                        val sha = MessageDigest.getInstance("SHA-256")
+                        DigestOutputStream(Files.newOutputStream(path), sha).use { apk.copyTo(it) }
+                        val size = Files.size(path)
+                        check(size in 1..Int.MAX_VALUE.toLong()) { "Invalid fixture dex size: ${entry.name}" }
+                        entries += Entry(path, size, digest(sha.digest()))
+                    }
+                }
+            }
+            check(entries.isNotEmpty()) { "${bundle.name} holds no dex files" }
+            check(hash(bundle) == content) { "Fixture changed while expanding: ${bundle.name}" }
+            return entries.toList()
+        } catch (failure: Throwable) {
+            try { remove(work) } catch (cleanup: Exception) { failure.addSuppressed(cleanup) }
+            throw failure
+        }
+    }
+
+    override fun close() {
+        val lock = lifecycle.writeLock()
+        lock.lock()
+        try {
+            if (closed) return
+            remove(directory)
+            expanded.clear()
+            closed = true
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    private fun hash(file: File): String {
+        val sha = MessageDigest.getInstance("SHA-256")
+        file.inputStream().buffered().use { stream ->
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val count = stream.read(buffer)
+                if (count < 0) break
+                sha.update(buffer, 0, count)
+            }
+        }
+        return digest(sha.digest())
+    }
+
+    private fun digest(bytes: ByteArray) = bytes.joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
+
+    private fun remove(root: Path) {
+        // Files.walk does not follow symlinks. Never traverse outside our owned temporary tree.
+        Files.walk(root).use { paths -> paths.sorted(Comparator.reverseOrder()).forEach { Files.deleteIfExists(it) } }
+    }
+
+    companion object {
+        private val DEX = Regex("""classes\d*\.dex""")
     }
 }

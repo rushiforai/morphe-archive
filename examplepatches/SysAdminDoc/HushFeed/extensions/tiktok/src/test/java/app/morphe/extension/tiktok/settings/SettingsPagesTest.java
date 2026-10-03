@@ -250,6 +250,63 @@ public class SettingsPagesTest {
         }
     }
 
+    @Test @Config(fontScale = 2f)
+    public void independentNativeTextSizesRenderAndSpeakTheirDefaultsInDarkTheme() throws Exception {
+        assertNativeTextSizeRows("dark");
+    }
+
+    @Test @Config(qualifiers = "w480dp-h960dp-notnight-mdpi", fontScale = 2f)
+    public void independentNativeTextSizesRenderAndSpeakTheirDefaultsInLightTheme() throws Exception {
+        assertNativeTextSizeRows("light");
+    }
+
+    private void assertNativeTextSizeRows(String theme) throws Exception {
+        int previousDescription = Settings.FEED_DESCRIPTION_TEXT_SIZE.savedValue();
+        int previousAuthor = Settings.FEED_AUTHOR_TEXT_SIZE.savedValue();
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            for (Field field : statuses.keySet()) field.setBoolean(null, false);
+            Settings.FEED_DESCRIPTION_TEXT_SIZE.save(0);
+            Settings.FEED_AUTHOR_TEXT_SIZE.save(0);
+            TikTokPreferenceFragment absent = attachSection(activity, "INTERFACE");
+            assertNull(absent.findPreference(Settings.FEED_DESCRIPTION_TEXT_SIZE.key));
+            assertNull(absent.findPreference(Settings.FEED_AUTHOR_TEXT_SIZE.key));
+            SettingsStatus.feedTextSizeEnabled = true;
+            TikTokPreferenceFragment page = attachSection(activity, "INTERFACE");
+            String[] keys = {Settings.FEED_DESCRIPTION_TEXT_SIZE.key, Settings.FEED_AUTHOR_TEXT_SIZE.key};
+            String[] titles = {"Description text size", "Author text size"};
+            String[] images = {"description", "author"};
+            ListView list = page.getView().findViewById(android.R.id.list);
+            for (int i = 0; i < keys.length; i++) {
+                Preference row = page.findPreference(keys[i]);
+                assertNotNull(row);
+                assertTrue(row instanceof app.morphe.extension.tiktok.settings.preference.NumberInputPreference);
+                assertTrue(row.isEnabled());
+                assertTrue(row.getSummary().toString().contains(L10n.t(activity, "TikTok's size")));
+                int position = positionOf(list, keys[i]);
+                assertTrue(position >= 0);
+                list.setSelectionFromTop(position, 30);
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                View rendered = list.getChildAt(position - list.getFirstVisiblePosition());
+                assertNotNull(rendered);
+                android.widget.TextView title = rendered.findViewById(android.R.id.title);
+                android.widget.TextView summary = rendered.findViewById(android.R.id.summary);
+                assertNotNull(title);
+                assertNotNull(summary);
+                assertEquals(L10n.t(activity, titles[i]),
+                        String.valueOf(title.createAccessibilityNodeInfo().getText()));
+                assertTrue(String.valueOf(summary.createAccessibilityNodeInfo().getText())
+                        .contains(L10n.t(activity, "TikTok's size")));
+                UiCapture.save(page.getView(), "pages/" + theme + "/feed-text-size-" + images[i] + ".png");
+            }
+            assertNull(page.findPreference(Settings.CAPTION_TEXT_SIZE.key));
+        } finally {
+            Settings.FEED_DESCRIPTION_TEXT_SIZE.save(previousDescription);
+            Settings.FEED_AUTHOR_TEXT_SIZE.save(previousAuthor);
+        }
+    }
+
     @Test public void noPageGatesItsRowsOnAnEarlyReturn() throws Exception {
         // The other half of the same bug, and one a rendering test cannot see. An early return on
         // one patch's flag takes every later patch's rows with it: the offline videos limit set
@@ -593,6 +650,16 @@ public class SettingsPagesTest {
                 String name = "pages/" + theme + "/" + SECTIONS[i].toLowerCase(java.util.Locale.ROOT);
                 UiCapture.save(page.getView(), name + ".png");
                 ListView list = page.getView().findViewById(android.R.id.list);
+                if ("SHARE".equals(SECTIONS[i])) {
+                    for (int row = 0; row < list.getCount(); row++) {
+                        Object item = list.getAdapter().getItem(row);
+                        if (item instanceof Preference) {
+                            assertNotEquals("The removed friend-send confirmation returned to the tour",
+                                    "Confirm before sending to a friend",
+                                    String.valueOf(((Preference) item).getTitle()));
+                        }
+                    }
+                }
                 if ("PLAYBACK".equals(SECTIONS[i])) {
                     int mute = positionOf(list, Settings.FEED_MUTED.key);
                     assertTrue("the Sound controls are missing", mute > 0);

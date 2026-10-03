@@ -22,8 +22,9 @@ import org.junit.Test
  *
  * Every declared build has to carry exactly one `getTypeName()` answering DiscoverFeedUnit, the
  * shared Stories model that also answers StoriesTrayFeedUnit, and that model has to answer the
- * large Stories tile and the single person's Stories viewer for their type tags through its string
- * table. Its reels showcase case is the control: the same switch, a literal of its own. The
+ * large Stories tile and the single person's Stories viewer for their type tags, through its string
+ * table on 577 and 580 and with literals of its own on 581. Its reels showcase case is the
+ * control: the same switch, another answer. The
  * extension's rule has to name the same types. Reads the fixture bundles from
  * HUSHFACEBOOK_FIXTURE_DIR and skips without them.
  */
@@ -53,7 +54,7 @@ class StoriesBetweenPostsFixtureTest {
                     if (instruction.opcode != Opcode.INVOKE_STATIC) return@mapNotNull null
                     (instruction as? ReferenceInstruction)?.reference as? MethodReference
                 }.toSet()
-                assertEquals("${bundle.name}: the string tables ${model.definingClass} asks", 1, tables.size)
+                assertTrue("${bundle.name}: the string tables ${model.definingClass} asks: $tables", tables.size <= 1)
                 val owners = FixtureDex.classes(bundle, tables.map { it.definingClass }.toSet())
                 val resolve = { call: MethodReference -> owners[call.definingClass]?.let { resolveStatic(it, call) } }
 
@@ -63,7 +64,7 @@ class StoriesBetweenPostsFixtureTest {
                 }
                 assertEquals("${bundle.name}: the showcase case", showcase,
                     taggedTypeName(model, treeTypeTag(showcase), resolve))
-                checked[version] = "${model.definingClass}->getTypeName via ${tables.single()}"
+                checked[version] = "${model.definingClass}->getTypeName via ${tables.singleOrNull() ?: "literals"}"
             }
         }
         assertEquals("a declared build went unchecked: $checked", versions.toSet(), checked.keys)

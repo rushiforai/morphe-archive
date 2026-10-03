@@ -37,6 +37,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'probe-log.ps1')
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $serial = $env:HUSHFEED_DEVICE_SERIAL
 if (-not $serial) { throw 'Set HUSHFEED_DEVICE_SERIAL to the serial of the test phone this machine may drive.' }
@@ -63,11 +64,7 @@ function Invoke-Phone([Parameter(ValueFromRemainingArguments = $true)][string[]]
 
 # The keys of the video in front, as "anchor <key>/<type>" and "banner <key>".
 function Get-Keys {
-    & adb -s $serial logcat -c
-    & adb -s $serial shell am broadcast -a app.hushfeed.verification.PROBE -p com.zhiliaoapp.musically `
-        -e action stripkeys | Out-Null
-    Start-Sleep -Milliseconds 1200
-    $line = [string](@(& adb -s $serial logcat -d -s HushfeedProbe:V -v raw) |
+    $line = [string](@(Invoke-ProbeAction -Serial $serial -Action stripkeys) |
         Where-Object { $_ -like 'ok stripkeys *' } | Select-Object -Last 1)
     if ($line -notmatch 'anchors=\[(.*?)\] banners=\[(.*?)\]') { return @() }
     $anchors = @($Matches[1] -split ', ' | Where-Object { $_ } | ForEach-Object { "anchor $_" })

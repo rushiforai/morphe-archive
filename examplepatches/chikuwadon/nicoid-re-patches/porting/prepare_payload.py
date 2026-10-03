@@ -35,7 +35,7 @@ def main():
     jar = args.java_home / 'bin' / ('jar.exe' if os.name == 'nt' else 'jar')
     run(java, '-jar', args.apktool.absolute(), 'd', apk, '-o', decoded)
     shutil.copytree(decoded / 'smali', work / 'original-smali')
-    for patch in ['original-to-mod.patch', 'fixes.patch']:
+    for patch in ['original-to-mod.patch', 'fixes.patch', 'pull-refresh.patch', 'shorts.patch']:
         run('git', '-C', decoded, 'apply', '--check', ROOT / patch)
         run('git', '-C', decoded, 'apply', ROOT / patch)
     helper_classes, helper_dex = work / 'helper-classes', work / 'helper-dex'

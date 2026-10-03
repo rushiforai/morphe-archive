@@ -178,15 +178,18 @@ public class Settings extends BaseSettings {
             new BooleanSetting("allow_duet_and_stitch", FALSE);
     public static final BooleanSetting HIDE_FOLLOWER_NOTIFICATIONS =
             new BooleanSetting("hide_follower_notifications", FALSE);
+    /** TikTok's "Videos you might like" pushes. On by default: they're promotion, not people. */
+    public static final BooleanSetting BLOCK_SUGGESTED_VIDEO_NOTIFICATIONS =
+            new BooleanSetting("block_suggested_video_notifications", TRUE);
     public static final BooleanSetting HIDE_MESSAGE_STREAKS =
             new BooleanSetting("hide_message_streaks", FALSE);
     /**
-     * Sends one message a day to {@link #AUTO_STREAK_RECIPIENT} at {@link #AUTO_STREAK_MINUTE},
+     * Dispatches one message per selected chat a day at {@link #AUTO_STREAK_MINUTE},
      * so a streak with them keeps going on a day nobody opens the app. Off by default. See
      * AutoStreak.
      */
     public static final BooleanSetting AUTO_STREAK = new BooleanSetting("auto_streak", FALSE);
-    /** The handle to message, with or without its @. */
+    /** Handles or profile links, separated by commas or lines. */
     public static final StringSetting AUTO_STREAK_RECIPIENT =
             new StringSetting("auto_streak_recipient", "", false, Setting.parent(AUTO_STREAK));
     /** The time of day to send, in minutes after midnight. Noon leaves room for retries. */
@@ -195,7 +198,7 @@ public class Settings extends BaseSettings {
     public static final StringSetting AUTO_STREAK_MESSAGE = new StringSetting(
             "auto_streak_message", "🔥", false, Setting.parent(AUTO_STREAK));
     /**
-     * The day the last message went, the tries made today and how the last one ended. Kept out
+     * Per-account recipient dispatch reservations and retries. Kept out
      * of backups: it describes one phone's sends, and a restore that carried it could stop
      * today's message on another phone or send a second one.
      */
@@ -494,6 +497,11 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting FEED_MUTED = new BooleanSetting("feed_muted", FALSE, false, false);
     public static final BooleanSetting FEED_MUTE_BUTTON = new BooleanSetting("feed_mute_button", TRUE);
     public static final BooleanSetting HIDE_FEED_CAPTION = new BooleanSetting("hide_feed_caption", FALSE);
+    /** Native description and creator name, independently of spoken subtitles. Zero keeps TikTok's size. */
+    public static final IntegerSetting FEED_DESCRIPTION_TEXT_SIZE =
+            new IntegerSetting("feed_description_text_size", 0).withRange(0, 48);
+    public static final IntegerSetting FEED_AUTHOR_TEXT_SIZE =
+            new IntegerSetting("feed_author_text_size", 0).withRange(0, 48);
     public static final BooleanSetting HIDE_FEED_MUSIC = new BooleanSetting("hide_feed_music", FALSE);
     public static final BooleanSetting HIDE_FEED_ACTION_BAR = new BooleanSetting("hide_feed_action_bar", FALSE);
     public static final BooleanSetting HIDE_FEED_SURVEYS = new BooleanSetting("hide_feed_surveys", FALSE);
@@ -604,6 +612,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting BLOCK_LOCATION = new BooleanSetting("block_location", TRUE);
     public static final BooleanSetting BLOCK_CLIPBOARD_READS = new BooleanSetting("block_clipboard_reads", TRUE);
     public static final BooleanSetting BLOCK_MOTION_SENSORS = new BooleanSetting("block_motion_sensors", TRUE);
+    // On by default for the same reason, and read at each history write, so no restart.
+    public static final BooleanSetting STOP_SEARCH_HISTORY = new BooleanSetting("stop_search_history", TRUE);
     // Off by default, unlike the blocks above: it rides on the sensor patch, so picking that
     // patch is not a choice about the benchmark (#64). Put into effect by BenchmarkRuns.
     public static final BooleanSetting STOP_BENCHMARK_RUNS = new BooleanSetting("stop_benchmark_runs", FALSE);
@@ -627,9 +637,10 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hide_feed_search_button", FALSE, true);
     public static final BooleanSetting HIDE_VISUAL_SEARCH = new BooleanSetting("hide_visual_search", FALSE);
     public static final BooleanSetting HIDE_FULLSCREEN_BUTTON = new BooleanSetting("hide_fullscreen_button", FALSE, true);
-    // Both are read each time TikTok asks, so neither needs a restart.
+    // Read each time TikTok asks, so it doesn't need a restart.
     public static final BooleanSetting HIDE_FEED_REPORT_BUTTON = new BooleanSetting("hide_feed_report_button", FALSE);
-    public static final BooleanSetting HIDE_SEARCH_REWARDS = new BooleanSetting("hide_search_rewards", FALSE);
+    // Each rewards service getter keeps its first answer until TikTok restarts (#21).
+    public static final BooleanSetting HIDE_SEARCH_REWARDS = new BooleanSetting("hide_search_rewards", FALSE, true);
     public static final BooleanSetting HIDE_LOCATION_LABELS = new BooleanSetting("hide_location_labels", FALSE, true);
     // Read each time TikTok builds a video's caption strips, so no restart.
     public static final BooleanSetting HIDE_CREATION_TAGS = new BooleanSetting("hide_creation_tags", FALSE);

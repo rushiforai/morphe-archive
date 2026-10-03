@@ -39,8 +39,16 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
 public enum PatchFamily {
     HIDE_ADS(FamilyNames.HIDE_ADS, "hideAds", null,
             Settings.HIDE_ADS),
+    HIDE_SUGGESTED_USERS(FamilyNames.HIDE_SUGGESTED_USERS, "hideSuggestedUsers", null,
+            Settings.HIDE_SUGGESTED_USERS),
+    RETURN_REFRESH(FamilyNames.RETURN_REFRESH, "returnRefresh", null,
+            Settings.BLOCK_RETURN_REFRESH, Settings.RETURN_REFRESH_NO_LIMIT),
+    VIDEO_AUTOPLAY(FamilyNames.VIDEO_AUTOPLAY, "disableVideoAutoplay", null,
+            Settings.DISABLE_VIDEO_AUTOPLAY),
     SANITIZE_SHARING_LINKS(FamilyNames.SANITIZE_SHARING_LINKS, "sanitizeSharingLinks", null,
             Settings.SANITIZE_SHARING_LINKS),
+    EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "openLinksExternally", null,
+            Settings.OPEN_LINKS_EXTERNALLY),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics", null,
             Settings.DISABLE_ANALYTICS),
     // A manifest can't be switched at run time: the permission is gone from the APK whether or not

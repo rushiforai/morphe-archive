@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +40,8 @@ import app.hushgram.extension.instagram.settings.PatchFamily;
  * The catalog against its sources: the tables, the class generated from them, and the English
  * the code hands to {@link L10n}. It reads the files, and needs Robolectric only for PatchFamily.
  *
- * <p>What reaches the screen is held separately, by SettingsL10nTest under en-XA and in each
- * shipped language. This class holds the tables themselves and the code that feeds them.
+ * <p>L10nTest checks runtime language selection and pseudo-locales. SaveTextL10nTest checks
+ * save text in each shipped language. This class holds the tables and their source literals.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -63,7 +64,8 @@ public class L10nCatalogTest {
 
     private static final Pattern L10N_CALL = Pattern.compile("\\bL10n\\s*\\.\\s*(?:t|f|quantity)\\s*\\(");
 
-    private static final Pattern PLACEHOLDER = Pattern.compile("%(?:\\d+\\$)?[a-zA-Z]");
+    private static final Pattern PLACEHOLDER = Pattern.compile("%(?:[1-9]\\d*\\$)?[sSbBhHcCdoxXeEfgGaA%n]");
+    private static final Pattern PLURAL_VARIANT = Pattern.compile("^(.+)\\|(zero|two|few|many)$");
 
     @Test
     public void theGeneratedClassIsTheTables() throws IOException {
@@ -99,6 +101,10 @@ public class L10nCatalogTest {
     @Test
     public void everyTableCarriesExactlyTheEnglishTheCodeShows() throws IOException {
         Set<String> used = keysInCode();
+        Set<String> allowed = new TreeSet<>(used);
+        for (String other : quantityOthersInCode()) {
+            for (String category : Arrays.asList("zero", "two", "few", "many")) allowed.add(other + "|" + category);
+        }
         assertTrue("the scan found too few strings to mean anything: " + used.size(), used.size() > 60);
         for (String language : L10nTranslations.LANGUAGES) {
             Set<String> carried = new TreeSet<>(L10nTranslations.of(language).keySet());
@@ -106,7 +112,9 @@ public class L10nCatalogTest {
             missing.removeAll(carried);
             assertEquals(language + " has no row for what the code shows: " + missing, Collections.emptySet(), missing);
             Set<String> stale = new TreeSet<>(carried);
-            stale.removeAll(used);
+            // The original exact-set check passed only because no shipped table had extra
+            // plural forms. Runtime pluralRow reaches these rows for actual quantity calls.
+            stale.removeAll(allowed);
             assertEquals(language + " carries rows nothing shows any more: " + stale, Collections.emptySet(), stale);
         }
     }
@@ -126,6 +134,46 @@ public class L10nCatalogTest {
         assertTrue(placeholderProblem("%1$s of %2$s", "%1$s von %1$s") != null);
         assertTrue(placeholderProblem("Saved", "%1$s") != null);
         assertEquals(null, placeholderProblem("%1$s of %2$s", "%2$s: %1$s"));
+        assertTrue(placeholderProblem("%s %d", "%d %s") != null);
+        assertTrue(placeholderProblem("%1$s", "%1$s %999999999s") != null);
+        assertTrue(placeholderProblem("%1$s", "%1$s %") != null);
+        assertTrue(placeholderProblem("%1$s", "%1$999999999s") != null);
+        assertEquals(null, placeholderProblem("%s %% %d", "%% %s %d"));
+        assertTrue(placeholderProblem("%s %%", "%s") != null);
+    }
+
+    @Test
+    public void mixedFormatsLetNumberedArgumentsMoveAroundBareArguments() {
+        // Java's implicit index advances only for bare arguments, independently of explicit indices.
+        assertEquals("second then first", String.format(java.util.Locale.ROOT,
+                "%2$s then %s", "first", "second"));
+        assertEquals("first then second", String.format(java.util.Locale.ROOT,
+                "%s then %2$s", "first", "second"));
+        assertEquals("third first 7 7", String.format(java.util.Locale.ROOT,
+                "%3$s %s %2$d %d", "first", 7, "third"));
+        assertEquals("first 7 7 third", String.format(java.util.Locale.ROOT,
+                "%s %d %2$d %3$s", "first", 7, "third"));
+        String[][] moved = {
+                {"%2$s then %s", "%s then %2$s"},
+                {"%3$s %s %2$d %d", "%s %d %2$d %3$s"},
+                {"%2$s %s %% %2$s %n %d", "%% %s %d %n %2$s %2$s"},
+                {"%s %3$S %d %3$S", "%3$S %s %3$S %d"}
+        };
+        for (String[] pair : moved) assertEquals(pair[1], null, placeholderProblem(pair[0], pair[1]));
+    }
+
+    @Test
+    public void mixedFormatsRejectBareTypeIndexAndCountChanges() {
+        String source = "%3$s %s %2$d %d %3$s";
+        for (String changed : Arrays.asList(
+                "%d %s %2$d %3$s %3$s", "%s %s %2$d %3$s %3$s",
+                "%s %d %2$s %3$s %3$s", "%s %d %1$d %3$s %3$s",
+                "%s %d %2$d %3$s", "%s %d %2$d %3$s %3$s %3$s",
+                "%s %2$d %3$s %3$s", "%s %d %d %2$d %3$s %3$s",
+                "%1$s %d %2$d %3$s %3$s", "%s %d %2$d %3$s %3$s %%",
+                "%s %d %2$d %3$s %3$s %n")) {
+            assertTrue(changed, placeholderProblem(source, changed) != null);
+        }
     }
 
     /**
@@ -155,6 +203,11 @@ public class L10nCatalogTest {
         }
         assertEquals(null, textProblem("Re-signed build fix"));
         assertEquals("accented letters are words, not invisible", null, textProblem("Ausblenden f" + (char) 0x00FC + "r"));
+        assertTrue(textProblem("a" + (char) 0xD800 + "b") != null);
+        assertTrue(textProblem("a" + (char) 0x2028 + "b") != null);
+        assertTrue(textProblem("a" + (char) 0x2029 + "b") != null);
+        assertEquals(null, textProblem("\u0645\u0631\u062d\u0628\u0627 \u05e9\u05dc\u05d5\u05dd "
+                + new String(Character.toChars(0x1F680))));
     }
 
     /** No sentence goes to a view, a toast or a notification without going through the catalog. */
@@ -202,6 +255,30 @@ public class L10nCatalogTest {
                 literalsIn(text, kind, 1, text.length() - 1, null));
     }
 
+    @Test
+    public void tableEscapesKeepLiteralBackslashNAndLineFeedApart() {
+        assertEquals("line\nnext", decodeField("line\\nnext"));
+        assertEquals("C:\\new", decodeField("C:\\\\new"));
+        assertEquals("\\\n", decodeField("\\\\\\n"));
+        for (String malformed : Arrays.asList("end\\", "unknown\\q")) {
+            boolean rejected = false;
+            try { decodeField(malformed); } catch (AssertionError expected) { rejected = true; }
+            assertTrue("malformed TSV escape passed", rejected);
+        }
+    }
+
+    @Test
+    public void pluralRowsHaveToBelongToAnActualOtherForm() throws IOException {
+        Set<String> others = quantityOthersInCode();
+        assertEquals("the source quantity scan must find each call", 3, others.size());
+        String other = others.iterator().next();
+        assertTrue(reachableVariant(other + "|few", others));
+        assertTrue(reachableVariant(other + "|zero", others));
+        assertFalse(reachableVariant(other + "|one", others));
+        assertFalse(reachableVariant("Saved to %1$s|few", others));
+        assertFalse(reachableVariant(other + "|unknown", others));
+    }
+
     // ---- The code's English -------------------------------------------------------------
 
     /**
@@ -227,6 +304,31 @@ public class L10nCatalogTest {
         }
         keys.add("Stays in while paused");
         return keys;
+    }
+
+    static Set<String> quantityOthersInCode() throws IOException {
+        Set<String> others = new TreeSet<>();
+        Pattern quantity = Pattern.compile("\\bL10n\\s*\\.\\s*quantity\\s*\\(");
+        for (Path file : sources()) {
+            String text = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
+            byte[] kind = classify(text);
+            Matcher call = quantity.matcher(text);
+            while (call.find()) {
+                if (kind[call.start()] != CODE) continue;
+                int open = call.end() - 1;
+                int close = closing(text, kind, open);
+                assertTrue(file + ": an unclosed quantity call", close > 0);
+                List<String> forms = literalsIn(text, kind, open + 1, close, null);
+                assertEquals(file + ": quantity needs two literal English forms", 2, forms.size());
+                others.add(forms.get(1));
+            }
+        }
+        return others;
+    }
+
+    static boolean reachableVariant(String key, Set<String> others) {
+        Matcher match = PLURAL_VARIANT.matcher(key);
+        return match.matches() && others.contains(match.group(1));
     }
 
     /** Reports each prose literal inside a showing call and outside any L10n call; answers the calls read. */
@@ -288,7 +390,10 @@ public class L10nCatalogTest {
                 if (line.isEmpty() || (line.startsWith("#") && !line.contains("\t"))) continue;
                 int tab = line.indexOf('\t');
                 assertTrue(file + ": a row with no tab: " + line, tab > 0);
-                rows.put(line.substring(0, tab).replace("\\n", "\n"), line.substring(tab + 1).replace("\\n", "\n"));
+                assertEquals(file + ": more than one tab", tab, line.lastIndexOf('\t'));
+                String english = decodeField(line.substring(0, tab));
+                assertFalse(file + ": duplicate entry " + english, rows.containsKey(english));
+                rows.put(english, decodeField(line.substring(tab + 1)));
             }
             return rows;
         }
@@ -310,11 +415,47 @@ public class L10nCatalogTest {
     }
 
     static String placeholderProblem(String english, String translated) {
-        List<String> wanted = all(PLACEHOLDER, english.replaceFirst("\\|(zero|one|two|few|many)$", ""));
-        List<String> given = all(PLACEHOLDER, translated);
-        Collections.sort(wanted);
-        Collections.sort(given);
-        return wanted.equals(given) ? null : "placeholders " + wanted + " became " + given + " in " + english;
+        List<String> wantedLiterals = new ArrayList<>(), givenLiterals = new ArrayList<>();
+        List<String> wanted = formatTokens(english.replaceFirst("\\|(zero|two|few|many)$", ""), wantedLiterals);
+        List<String> given = formatTokens(translated, givenLiterals);
+        if (wanted == null || given == null) return "unsupported or malformed format in " + english;
+        // Stable sorting retains the bare subsequence while ordering explicit indices separately.
+        Comparator<String> argumentOrder = Comparator.comparing(token -> token.contains("$") ? token : "");
+        wanted.sort(argumentOrder);
+        given.sort(argumentOrder);
+        Collections.sort(wantedLiterals);
+        Collections.sort(givenLiterals);
+        return wanted.equals(given) && wantedLiterals.equals(givenLiterals) ? null
+                : "placeholders " + wanted + " became " + given + " in " + english;
+    }
+
+    private static List<String> formatTokens(String text, List<String> literals) {
+        List<String> arguments = new ArrayList<>();
+        for (int at = text.indexOf('%'); at >= 0; ) {
+            Matcher token = PLACEHOLDER.matcher(text).region(at, text.length());
+            if (!token.lookingAt()) return null;
+            String found = token.group();
+            char conversion = found.charAt(found.length() - 1);
+            if (conversion == '%' || conversion == 'n') {
+                if (found.contains("$")) return null;
+                literals.add(found);
+            } else arguments.add(found);
+            at = text.indexOf('%', token.end());
+        }
+        return arguments;
+    }
+
+    static String decodeField(String text) {
+        StringBuilder decoded = new StringBuilder();
+        for (int at = 0; at < text.length(); at++) {
+            char next = text.charAt(at);
+            if (next != '\\') { decoded.append(next); continue; }
+            assertTrue("a trailing TSV backslash", ++at < text.length());
+            next = text.charAt(at);
+            assertTrue("unknown TSV escape", next == '\\' || next == 'n');
+            decoded.append(next == 'n' ? '\n' : '\\');
+        }
+        return decoded.toString();
     }
 
     /**
@@ -335,18 +476,12 @@ public class L10nCatalogTest {
             if (at == 0x2013 || at == 0x2014) return "has a dash";
             int type = Character.getType(at);
             boolean invisible = type == Character.CONTROL || type == Character.FORMAT
-                    || type == Character.PRIVATE_USE || type == Character.UNASSIGNED;
+                    || type == Character.SURROGATE || type == Character.PRIVATE_USE || type == Character.UNASSIGNED
+                    || type == Character.LINE_SEPARATOR || type == Character.PARAGRAPH_SEPARATOR;
             for (int[] range : INVISIBLE_RANGES) invisible |= at >= range[0] && at <= range[1];
             if (at != '\n' && invisible) return String.format("has U+%04X", at);
         }
         return text.contains(" - ") ? "has a hyphen standing in for a dash" : null;
-    }
-
-    private static List<String> all(Pattern pattern, String text) {
-        List<String> found = new ArrayList<>();
-        Matcher matcher = pattern.matcher(text);
-        while (matcher.find()) found.add(matcher.group());
-        return found;
     }
 
     // ---- Sources --------------------------------------------------------------------------

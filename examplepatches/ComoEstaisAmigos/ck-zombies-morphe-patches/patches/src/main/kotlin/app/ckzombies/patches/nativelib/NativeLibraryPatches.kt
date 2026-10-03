@@ -195,3 +195,25 @@ internal val jniArgumentsPatch = rawResourcePatch {
         editLibraries(NativeEdits.JNI_ARGUMENTS)
     }
 }
+
+/**
+ * Gives the sound cache files a file mode. `CSoundEvent_Android::CreateCacheFile()` creates each
+ * file with `open(path, O_WRONLY | O_CREAT)` and no third argument, so the mode is whatever the
+ * call before left in `r2`: the address of the end of the path on the stack. It changes with the
+ * length of the sound's name and with the device's stack layout. Where the storage keeps the
+ * mode it is asked for, some files come out without read permission, the Java side cannot open
+ * them, and those sounds are silent while the others play.
+ *
+ * `mov r2, #0660` goes in front of the call. There is no spare word, so the three instructions
+ * after it, `cmn r0, #1; mov sl, r0; beq`, become `movs sl, r0; bmi`, which is the same test for
+ * a call that returns a descriptor or -1. Four words per ABI. Files made before this stay as
+ * they are; the extension's `ExternalStorage` deletes the unreadable ones and the engine writes
+ * them again.
+ */
+internal val soundCacheModePatch = rawResourcePatch {
+    dependsOn(nativeLibraryCheckPatch)
+
+    execute {
+        editLibraries(NativeEdits.SOUND_CACHE_MODE)
+    }
+}

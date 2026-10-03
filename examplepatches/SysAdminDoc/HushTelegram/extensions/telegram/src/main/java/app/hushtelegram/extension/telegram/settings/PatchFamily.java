@@ -47,10 +47,32 @@ public enum PatchFamily {
             Settings.HIDE_STORIES),
     HIDE_RECOMMENDATIONS(FamilyNames.HIDE_RECOMMENDATIONS, "hideRecommendations", null,
             Settings.HIDE_RECOMMENDATIONS),
+    HIDE_COMMERCE(FamilyNames.HIDE_COMMERCE, "hideCommerce", null,
+            Settings.HIDE_COMMERCE),
+    HIDE_PROMOTIONAL_BANNERS(FamilyNames.HIDE_PROMOTIONAL_BANNERS, "hidePromotionalBanners", null,
+            Settings.HIDE_PROMOTIONAL_BANNERS),
+    HIDE_SPONSORED_PROXY(FamilyNames.HIDE_SPONSORED_PROXY, "hideSponsoredProxy", null,
+            Settings.HIDE_SPONSORED_PROXY),
+    HIDE_POPULAR_APPS(FamilyNames.HIDE_POPULAR_APPS, "hidePopularApps", null,
+            Settings.HIDE_POPULAR_APPS),
+    DISABLE_CHAT_SWIPE(FamilyNames.DISABLE_CHAT_SWIPE, "disableChatSwipe", null,
+            Settings.DISABLE_CHAT_SWIPE),
+    QUIET_CONTACTS_NAG(FamilyNames.QUIET_CONTACTS_NAG, "quietContactsNag", null,
+            Settings.QUIET_CONTACTS_NAG),
+    HOLIDAY_LOOK(FamilyNames.HOLIDAY_LOOK, "holidayLook", null,
+            Settings.HOLIDAY_LOOK),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics", null,
             Settings.DISABLE_ANALYTICS),
     DISABLE_CALL_DEBUG(FamilyNames.DISABLE_CALL_DEBUG, "disableCallDebug", null,
             Settings.DISABLE_CALL_DEBUG),
+    DISABLE_DRAFT_PREVIEWS(FamilyNames.DISABLE_DRAFT_PREVIEWS, "disableDraftPreviews", null,
+            Settings.DISABLE_DRAFT_PREVIEWS),
+    GALLERY_CAMERA_ON_TAP(FamilyNames.GALLERY_CAMERA_ON_TAP, "galleryCameraOnTap", null,
+            Settings.GALLERY_CAMERA_ON_TAP),
+    OPEN_EXTERNAL_LINKS(FamilyNames.OPEN_EXTERNAL_LINKS, "openExternalLinks", null,
+            Settings.OPEN_EXTERNAL_LINKS),
+    STRIP_LINK_TRACKING(FamilyNames.STRIP_LINK_TRACKING, "stripLinkTracking", null,
+            Settings.STRIP_LINK_TRACKING),
     DISABLE_UPDATE_CHECKS(FamilyNames.DISABLE_UPDATE_CHECKS, "disableUpdateChecks", null,
             Settings.DISABLE_UPDATE_CHECKS);
 
@@ -98,6 +120,11 @@ public enum PatchFamily {
     @Nullable
     static volatile Set<Capability> capabilitiesForTests;
 
+    /** The families whose switches the Chats page holds. The page and its home row both read this. */
+    static final Set<PatchFamily> CHATS_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_STORIES,
+            HIDE_RECOMMENDATIONS, HIDE_COMMERCE, HIDE_PROMOTIONAL_BANNERS, HIDE_SPONSORED_PROXY, HIDE_POPULAR_APPS, DISABLE_CHAT_SWIPE,
+            QUIET_CONTACTS_NAG, HOLIDAY_LOOK));
+
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
     public enum Capability {
         CHANNEL_ADS(HIDE_ADS, "channelAds", "channel ads"),
@@ -112,9 +139,28 @@ public enum PatchFamily {
         CACHED_RECOMMENDATIONS(HIDE_RECOMMENDATIONS, "cachedRecommendations", "cached recommendations"),
         DEVICE_STATS(DISABLE_ANALYTICS, "deviceStats", "device statistics reports"),
         READ_METRICS(DISABLE_ANALYTICS, "readMetrics", "channel read metrics"),
+        PREMIUM_PROMO_SHOW(DISABLE_ANALYTICS, "premiumPromoShow", "Premium promo views"),
+        PREMIUM_PROMO_TAP(DISABLE_ANALYTICS, "premiumPromoTap", "Premium promo taps"),
+        PREMIUM_PROMO_ACCEPT(DISABLE_ANALYTICS, "premiumPromoAccept", "Premium promo accepts"),
+        PREMIUM_PROMO_FAIL(DISABLE_ANALYTICS, "premiumPromoFail", "Premium promo failures"),
         CALL_DEBUG_UPLOAD(DISABLE_CALL_DEBUG, "callDebugUpload", "call debug reports"),
         CALL_LOG_FILE_UPLOAD(DISABLE_CALL_DEBUG, "callLogFileUpload", "call log file uploads"),
-        CALL_LOG_UPLOAD(DISABLE_CALL_DEBUG, "callLogUpload", "call log reports");
+        CALL_LOG_UPLOAD(DISABLE_CALL_DEBUG, "callLogUpload", "call log reports"),
+        CHAT_DRAFT_PREVIEWS(DISABLE_DRAFT_PREVIEWS, "chatDraftPreviews", "chat drafts"),
+        SHARE_DRAFT_PREVIEWS(DISABLE_DRAFT_PREVIEWS, "shareDraftPreviews", "share sheet comments"),
+        POLL_LINK_PREVIEWS(DISABLE_DRAFT_PREVIEWS, "pollLinkPreviews", "poll links"),
+        STORY_LINK_PREVIEWS(DISABLE_DRAFT_PREVIEWS, "storyLinkPreviews", "story links"),
+        BOT_SHARE_PREVIEWS(DISABLE_DRAFT_PREVIEWS, "botSharePreviews", "bot shares"),
+        COMMERCE_SETTINGS_ROWS(HIDE_COMMERCE, "commerceSettingsRows", "Settings sales rows"),
+        COMMERCE_PROFILE_GIFTS(HIDE_COMMERCE, "commerceProfileGifts", "profile Gifts tabs"),
+        COMMERCE_CHANNEL_GIFT(HIDE_COMMERCE, "commerceChannelGift", "channel Gift button"),
+        PROMOTIONAL_SUGGESTIONS(HIDE_PROMOTIONAL_BANNERS, "promotionalSuggestions", "promotional suggestions"),
+        BIRTHDAY_GIFT_BANNER(HIDE_PROMOTIONAL_BANNERS, "birthdayGiftBanner", "birthday gift banner"),
+        CACHED_PROXY_DIALOG(HIDE_SPONSORED_PROXY, "cachedProxyDialog", "cached proxy channel"),
+        CACHED_PROXY_FILTERS(HIDE_SPONSORED_PROXY, "cachedProxyFilters", "cached proxy folder entries"),
+        EXTERNAL_BROWSER_ROUTING(OPEN_EXTERNAL_LINKS, "externalBrowserRouting", "external browser routing"),
+        OPENED_LINK_TRACKING(STRIP_LINK_TRACKING, "openedLinkTracking", "opened link tracking"),
+        SHARED_LINK_TRACKING(STRIP_LINK_TRACKING, "sharedLinkTracking", "shared link tracking");
 
         public final PatchFamily family;
         final String statusMethod;

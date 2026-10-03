@@ -125,7 +125,6 @@ public final class PhotoFlagsRegistry {
         register("45771700", "Outfit Try-on Feature 45771700", "Controls clothing item recognition, virtual wardrobe, and try-on simulation via Lcnzf.", "👗 Create Tab: Tool 4 — Outfit Try-on (My Fits)", "Outfit Try-on & Wardrobe AI", FlagType.BOOLEAN, Boolean.TRUE);
         register("45773219", "Outfit Try-on Feature 45773219", "Controls clothing item recognition, virtual wardrobe, and try-on simulation via Lcnzf.", "👗 Create Tab: Tool 4 — Outfit Try-on (My Fits)", "Outfit Try-on & Wardrobe AI", FlagType.BOOLEAN, Boolean.TRUE);
         register("45778389", "My Fits Wardrobe Engine", "Detects clothing items across photos and organizes them into a virtual wardrobe.", "👗 Create Tab: Tool 4 — Outfit Try-on (My Fits)", "Tool 4: My Fits Wardrobe", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45780002", "Outfit Try-on Tool Chip", "Directly triggers the Outfit Try-on tool card inside the Create Tab tools grid.", "👗 Create Tab: Tool 4 — Outfit Try-on (My Fits)", "Tool 4: Outfit Try-on Card", FlagType.BOOLEAN, Boolean.TRUE);
         register("45781522", "My Fits MVP Suite", "Enables wardrobe browsing, outfit combinations, and try-on simulation.", "👗 Create Tab: Tool 4 — Outfit Try-on (My Fits)", "Tool 4: Try-on Simulation", FlagType.BOOLEAN, Boolean.TRUE);
         register("45782800", "My Fits Flatlay Regeneration", "Generates clean top-down flatlay images of detected clothing items.", "👗 Create Tab: Tool 4 — Outfit Try-on (My Fits)", "Tool 4: Flatlay Generator", FlagType.BOOLEAN, Boolean.TRUE);
         register("45785003", "Outfit Try-on Feature 45785003", "Controls clothing item recognition, virtual wardrobe, and try-on simulation via Lcnzf.", "👗 Create Tab: Tool 4 — Outfit Try-on (My Fits)", "Outfit Try-on & Wardrobe AI", FlagType.BOOLEAN, Boolean.TRUE);
@@ -261,6 +260,18 @@ public final class PhotoFlagsRegistry {
         register("45773083", "Collage Grid Layout 45773083", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45773084", "Collage Grid Layout 45773084", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45818951", "Collage Grid Layout 45818951", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("3756", "Collage Grid Layout 3756", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45398451", "Collage Grid Layout 45398451", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45623041", "Collage Grid Layout 45623041", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45638543", "Collage Grid Layout 45638543", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.LONG, Long.valueOf(5L));
+        register("45721092", "Collage Grid Layout 45721092", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45740262", "Collage Grid Layout 45740262", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45802724", "Collage Grid Layout 45802724", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45810382", "Collage Grid Layout 45810382", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45835544", "Collage Grid Layout 45835544", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45835545", "Collage Grid Layout 45835545", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45836696", "Collage Grid Layout 45836696", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45839387", "Collage Grid Layout 45839387", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Tool 5 — Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45418859", "Cinematic 3D Parallax Generator", "Generates realistic 3D camera pan and tilt movements from single 2D photos.", "🎥 Create Tab: Tool 6 — Cinematic Photo", "Tool 6: 3D Parallax Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45430236", "Cinematic Photo Creation Type", "Triggers the Cinematic Photo tool card in the Create Tab tools grid.", "🎥 Create Tab: Tool 6 — Cinematic Photo", "Tool 6: Cinematic Photo Card", FlagType.BOOLEAN, Boolean.TRUE);
         register("45353606", "Motion & Document Optimizer", "Keystone correction and frame stabilization for animated sequences.", "🎞️ Create Tab: Tool 7 — Animation (GIF Editor)", "Tool 7: Sequence Optimizer", FlagType.BOOLEAN, Boolean.TRUE);
@@ -280,7 +291,6 @@ public final class PhotoFlagsRegistry {
         register("45779285", "Create Tab Storefront Feature 45779285", "Controls storefront banners, category chips, and tools grid integration via Lcnxy.", "🏛️ Create Tab: Master Storefront Hub", "Create Tab Storefront & Hub", FlagType.BOOLEAN, Boolean.TRUE);
         register("45788224", "Create Tab Storefront Feature 45788224", "Controls storefront banners, category chips, and tools grid integration via Lcnxy.", "🏛️ Create Tab: Master Storefront Hub", "Create Tab Storefront & Hub", FlagType.BOOLEAN, Boolean.TRUE);
         register("45795181", "Create Tab Storefront Feature 45795181", "Controls storefront banners, category chips, and tools grid integration via Lcnxy.", "🏛️ Create Tab: Master Storefront Hub", "Create Tab Storefront & Hub", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45806296", "Create Tab Storefront Feature 45806296", "Controls storefront banners, category chips, and tools grid integration via Lcnxy.", "🏛️ Create Tab: Master Storefront Hub", "Create Tab Storefront & Hub", FlagType.BOOLEAN, Boolean.TRUE);
         register("45812600", "Create Tab Storefront Feature 45812600", "Controls storefront banners, category chips, and tools grid integration via Lcnxy.", "🏛️ Create Tab: Master Storefront Hub", "Create Tab Storefront & Hub", FlagType.BOOLEAN, Boolean.TRUE);
         register("45812997", "Create Tab Storefront Feature 45812997", "Controls storefront banners, category chips, and tools grid integration via Lcnxy.", "🏛️ Create Tab: Master Storefront Hub", "Create Tab Storefront & Hub", FlagType.BOOLEAN, Boolean.TRUE);
         register("45815129", "Made For You Carousel", "Horizontal carousel of AI-generated suggestions, recent collages, and highlight reels.", "🏛️ Create Tab: Master Storefront Hub", "Made For You Carousel", FlagType.BOOLEAN, Boolean.TRUE);
@@ -291,7 +301,6 @@ public final class PhotoFlagsRegistry {
         register("4306", "Feature Flag 4306", "Controls functional UI behavior and enhancements for flag 4306.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "UI Enhancement Feature", FlagType.BOOLEAN, Boolean.TRUE);
         register("4311", "Feature Flag 4311", "Controls functional UI behavior and enhancements for flag 4311.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "UI Enhancement Feature", FlagType.BOOLEAN, Boolean.TRUE);
         register("45357085", "Memories 3D Feature 45357085", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45375377", "Feature Flag 45375377", "Controls functional UI behavior and enhancements for flag 45375377.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "UI Enhancement Feature", FlagType.BOOLEAN, Boolean.TRUE);
         register("45377479", "Memories 3D Feature 45377479", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45377748", "Memories 3D Feature 45377748", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45378815", "Memories 3D Feature 45378815", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
@@ -307,7 +316,6 @@ public final class PhotoFlagsRegistry {
         register("45650855", "Memories 3D Feature 45650855", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45658726", "Memories 3D Feature 45658726", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45659276", "3D Graphic Pop-Out Motion Templates", "Animated geometric and organic graphic shapes that pass behind the cutout subject.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Graphic Motion Templates", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45659278", "Animated Pop-Out Story Sharing", "Exports memories with intact 3D pop-out animations directly to messaging apps.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out Video Sharing", FlagType.BOOLEAN, Boolean.TRUE);
         register("45661385", "Memories 3D Feature 45661385", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45664049", "Memories 3D Feature 45664049", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45666907", "Memories 3D Feature 45666907", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
@@ -332,11 +340,9 @@ public final class PhotoFlagsRegistry {
         register("45749793", "Memories 3D Feature 45749793", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45764779", "Flying Memories Carousel (FMC) Physics", "Ultra-fluid spring physics and inertia when swiping through the memories header.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "Flying Memories Physics", FlagType.BOOLEAN, Boolean.TRUE);
         register("45770987", "Memories 3D Feature 45770987", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45785454", "Feature Flag 45785454", "Controls functional UI behavior and enhancements for flag 45785454.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "UI Enhancement Feature", FlagType.BOOLEAN, Boolean.TRUE);
         register("45785531", "Cinematic Story Moments from Video", "Automatically detects and clips the most dynamic video moments into memories.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "Cinematic Video Moments", FlagType.BOOLEAN, Boolean.TRUE);
         register("45790156", "Memories 3D Feature 45790156", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45797069", "Memories 3D Feature 45797069", "Controls 3D subject pop-out cutouts and motion templates in memories via Lcoei.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "3D Pop-Out & Cutout Engine", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45804059", "Feature Flag 45804059", "Controls functional UI behavior and enhancements for flag 45804059.", "✨ Stories & Memories: 3D Pop-Out & Cutouts", "UI Enhancement Feature", FlagType.BOOLEAN, Boolean.TRUE);
         register("3442", "Story Player Feature 3442", "Controls full-screen story player gestures, audio playback, and titling via Lcojt.", "🎵 Stories & Memories: Player Controls & Sound", "Story Player Controls & Titling", FlagType.BOOLEAN, Boolean.TRUE);
         register("3459", "Story Player Feature 3459", "Controls full-screen story player gestures, audio playback, and titling via Lcojt.", "🎵 Stories & Memories: Player Controls & Sound", "Story Player Controls & Titling", FlagType.BOOLEAN, Boolean.TRUE);
         register("3460", "Story Player Feature 3460", "Controls full-screen story player gestures, audio playback, and titling via Lcojt.", "🎵 Stories & Memories: Player Controls & Sound", "Story Player Controls & Titling", FlagType.BOOLEAN, Boolean.TRUE);
@@ -383,7 +389,6 @@ public final class PhotoFlagsRegistry {
         register("45737250", "Story Player Feature 45737250", "Controls full-screen story player gestures, audio playback, and titling via Lcojt.", "🎵 Stories & Memories: Player Controls & Sound", "Story Player Controls & Titling", FlagType.BOOLEAN, Boolean.TRUE);
         register("45737826", "Edge-to-Edge Swipe Navigation", "Android 14/15 predictive back gesture and fluid edge-to-edge story player swiping.", "🎵 Stories & Memories: Player Controls & Sound", "Edge-to-Edge Navigation", FlagType.BOOLEAN, Boolean.TRUE);
         register("45739443", "Story Player Feature 45739443", "Controls full-screen story player gestures, audio playback, and titling via Lcojt.", "🎵 Stories & Memories: Player Controls & Sound", "Story Player Controls & Titling", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45741031", "Skottie Glide Image Loader for Stories", "Hardware-accelerated image pipeline preventing memory stutters in story player.", "🎵 Stories & Memories: Player Controls & Sound", "Story Hardware Image Loader", FlagType.BOOLEAN, Boolean.TRUE);
         register("45755453", "Story Player Feature 45755453", "Controls full-screen story player gestures, audio playback, and titling via Lcojt.", "🎵 Stories & Memories: Player Controls & Sound", "Story Player Controls & Titling", FlagType.BOOLEAN, Boolean.TRUE);
         register("45757528", "Story Player Feature 45757528", "Controls full-screen story player gestures, audio playback, and titling via Lcojt.", "🎵 Stories & Memories: Player Controls & Sound", "Story Player Controls & Titling", FlagType.BOOLEAN, Boolean.TRUE);
         register("45760013", "Story Player Feature 45760013", "Controls full-screen story player gestures, audio playback, and titling via Lcojt.", "🎵 Stories & Memories: Player Controls & Sound", "Story Player Controls & Titling", FlagType.BOOLEAN, Boolean.TRUE);
@@ -415,13 +420,10 @@ public final class PhotoFlagsRegistry {
         register("45802110", "Collections V2 Content Activation", "Populates dynamic categorized content cards within the Collections V2 shelves.", "📁 Collections V2 & Shelves", "Dynamic Shelf Content", FlagType.LONG, Long.valueOf(2L));
         register("45816328", "People & Pets Carousel", "Dedicated round-avatar carousel row showcasing recognized face clusters and pets.", "📁 Collections V2 & Shelves", "People & Pets Shelf", FlagType.BOOLEAN, Boolean.TRUE);
         register("45821034", "Modern Card Animations", "Fluid scale and elevation transitions when tapping or expanding collection albums.", "📁 Collections V2 & Shelves", "Card Expand Animations", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45683026", "Video Thumbnail Seek Scrubbing", "Real-time thumbnail seek preview when dragging across the video playback slider.", "🪄 AI Photo & Video Editor Tools", "Video Seek Scrubbing", FlagType.BOOLEAN, Boolean.TRUE);
         register("45683689", "AI Enhance V2", "Multi-stage neural network image enhancement for exposure, HDR, and detail.", "🪄 AI Photo & Video Editor Tools", "AI Neural Photo Enhance", FlagType.BOOLEAN, Boolean.TRUE);
         register("45705305", "Magic Editor Gesture Lasso Selection", "Circle-to-select and tap-to-select object recognition inside Magic Editor.", "🪄 AI Photo & Video Editor Tools", "Magic Editor Object Lasso", FlagType.BOOLEAN, Boolean.TRUE);
         register("45709528", "Redesigned Video Editor (Varenyky)", "Modern multi-layer video editor timeline with speed controls and text overlays.", "🪄 AI Photo & Video Editor Tools", "Varenyky Video Timeline", FlagType.BOOLEAN, Boolean.TRUE);
         register("45724258", "Ask Photos AI Natural Language Search", "Ask natural conversational questions to find specific photos and memories.", "🪄 AI Photo & Video Editor Tools", "Ask Photos AI Search", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45531621", "Master OneGoogle Avatar Ring Switch", "Forces the Google One multi-color metallic ring around the top-right profile avatar.", "⭕ OneGoogle: Subscriber Avatar Rings", "Subscriber Avatar Ring Switch", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45531625", "Subscriber Ring Gradient Palette", "Selects variant 3 (Premium iridescent 4-color gradient ring).", "⭕ OneGoogle: Subscriber Avatar Rings", "4-Color Gradient Palette", FlagType.LONG, Long.valueOf(3L));
         register("45398940", "Automated Movie Creation (AMC)", "Master engine for automatic highlight reel creation with beat-matched soundtracks.", "🎬 Create Tab: Tool 3 — Highlight Video (AMC)", "Tool 3: Highlight Video Card", FlagType.BOOLEAN, Boolean.TRUE);
         register("45408988", "Highlight Video Rebranding V2", "Modern Material 3 typography and visual branding for highlight video creation.", "🎬 Create Tab: Tool 3 — Highlight Video (AMC)", "Tool 3: Modern Video Branding", FlagType.BOOLEAN, Boolean.TRUE);
         register("45426765", "Create Tab Movie Integration", "Binds the highlight video creator directly to the Create Tab tools grid.", "🎬 Create Tab: Tool 3 — Highlight Video (AMC)", "Tool 3: Create Tab Movie Binding", FlagType.BOOLEAN, Boolean.TRUE);
@@ -443,6 +445,8 @@ public final class PhotoFlagsRegistry {
         register("45805882", "Texture Lab & Looks Presets", "Unlocks texture lab with creative looks presets and visual styling filters.", "🪄 AI Photo & Video Editor Tools", "Texture Lab Presets", FlagType.BOOLEAN, Boolean.TRUE);
         register("45818386", "AllPhotosCore Indexing", "Enables full-index AllPhotosCore pipeline for fast media library querying.", "🪄 AI Photo & Video Editor Tools", "AllPhotosCore Index", FlagType.BOOLEAN, Boolean.TRUE);
         register("45410157", "Settings UI Feature 45410157", "Controls settings UI layout and account configuration panel in Lcnwi.", "🪄 AI Photo & Video Editor Tools", "Settings UI Feature", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45531621", "OneGoogle Avatar Ring Master", "Forces the Google One subscriber metallic ring and Bento profile card layout.", "⭕ OneGoogle: Subscriber Avatar Rings", "OneGoogle Bento & Avatar Ring", FlagType.BOOLEAN, Boolean.TRUE);
+        register("45531625", "Subscriber Ring Style (3 = Blue Pro)", "Controls the ring decoration visual style (3 = solid blue with Pro badge).", "⭕ OneGoogle: Subscriber Avatar Rings", "Avatar Ring Visual Style", FlagType.LONG, 3L);
     }
 
 
@@ -523,9 +527,7 @@ public final class PhotoFlagsRegistry {
         edit.putBoolean("45615213", true);
         edit.putBoolean("45643006", true);
         edit.putBoolean("45666483", true);
-        edit.putBoolean("45806296", true);
         edit.putBoolean("45754546", true);
-        edit.putBoolean("45659278", true);
         edit.putBoolean("45642957", true);
         edit.putBoolean("45659276", true);
         edit.putBoolean("45750626", true);
@@ -538,9 +540,7 @@ public final class PhotoFlagsRegistry {
         edit.putBoolean("2675", true);
         edit.putBoolean("45632449", true);
         edit.putBoolean("45632448", true);
-        edit.putLong("45531625", 3L);
         edit.putBoolean("45715066", true);
-        edit.putBoolean("45531621", true);
         edit.putBoolean("3768", true);
         edit.putBoolean("45816328", true);
         edit.putBoolean("45421095", true);
@@ -549,7 +549,6 @@ public final class PhotoFlagsRegistry {
         edit.putBoolean("45678918", true);
         edit.putBoolean("45795181", true);
         edit.putBoolean("45768005", true);
-        edit.putBoolean("45780002", true);
         edit.putBoolean("45741002", true);
         edit.putBoolean("45391272", true);
         edit.putBoolean("45766984", true);
@@ -558,37 +557,24 @@ public final class PhotoFlagsRegistry {
         edit.putBoolean("45890130", true);
         edit.putBoolean("45680313", true);
         edit.putBoolean("45818951", true);
-        edit.putBoolean("45638543", true);
-        edit.putBoolean("45622835", true);
+        edit.putLong("45638543", 5L);
         edit.putBoolean("45398451", true);
-        edit.putBoolean("45376954", true);
         edit.putBoolean("45623041", true);
         edit.putBoolean("45668764", true);
-        edit.putBoolean("45669003", true);
         edit.putBoolean("45653582", true);
         edit.putBoolean("45740278", true);
         edit.putBoolean("45721092", true);
         edit.putBoolean("45740262", true);
-        edit.putBoolean("45722002", true);
-        edit.putBoolean("45721094", true);
         edit.putBoolean("45773083", true);
         edit.putBoolean("45773084", true);
         edit.putBoolean("45835545", true);
         edit.putBoolean("45835544", true);
         edit.putBoolean("45839387", true);
         edit.putBoolean("45810382", true);
-        edit.putBoolean("45769084", true);
         edit.putBoolean("45802724", true);
-        edit.putBoolean("45836928", true);
-        edit.putBoolean("45766276", true);
-        edit.putBoolean("45768721", true);
         edit.putBoolean("3756", true);
         edit.putBoolean("45836696", true);
-        edit.putBoolean("45779528", true);
         edit.putBoolean("45740594", true);
-        edit.putBoolean("45832857", true);
-        edit.putBoolean("4283", true);
-        edit.putBoolean("4289", true);
         // ── Memories 3D Pop-Out & Cutouts (Lcoei class) ───────────────────
         edit.putBoolean("45477626", true);
         edit.putBoolean("45357085", true);
@@ -622,12 +608,9 @@ public final class PhotoFlagsRegistry {
         edit.putBoolean("45749793", true);
         edit.putBoolean("45764779", true);
         edit.putBoolean("45770987", true);
-        edit.putBoolean("45785454", true);
         edit.putBoolean("45785531", true);
         edit.putBoolean("45790156", true);
         edit.putBoolean("45797069", true);
-        edit.putBoolean("45804059", true);
-        edit.putBoolean("45375377", true);
         edit.putBoolean("4306", true);
         edit.putBoolean("4311", true);
         // ── Story Player Controls & Sound (Lcojt class) ───────────────────
@@ -675,7 +658,6 @@ public final class PhotoFlagsRegistry {
         edit.putBoolean("45737250", true);
         edit.putBoolean("45737826", true);
         edit.putBoolean("45739443", true);
-        edit.putBoolean("45741031", true);
         edit.putBoolean("45755453", true);
         edit.putBoolean("45757528", true);
         edit.putBoolean("45760013", true);
@@ -776,7 +758,6 @@ public final class PhotoFlagsRegistry {
         edit.putLong("45802110", 2L);
         edit.putBoolean("45821034", true);
         // ── AI Photo & Video Editor ───────────────────────────────────────
-        edit.putBoolean("45683026", true);
         edit.putBoolean("45683689", true);
         edit.putBoolean("45705305", true);
         edit.putBoolean("45709528", true);
@@ -880,6 +861,8 @@ public final class PhotoFlagsRegistry {
         edit.putBoolean("45613285", true);
         edit.putBoolean("45618074", true);
         edit.putBoolean("45618486", true);
+        edit.putBoolean("45531621", true);
+        edit.putLong("45531625", 3L);
         edit.apply();
     }
 

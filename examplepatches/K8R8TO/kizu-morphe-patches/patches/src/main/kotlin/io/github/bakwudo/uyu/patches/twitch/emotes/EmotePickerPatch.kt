@@ -17,23 +17,21 @@ internal val thirdPartyEmotePickerPatch = bytecodePatch {
     dependsOn(sharedExtensionPatch)
 
     execute {
-        // Channel capture when the picker opens.
-        val openMethod = EmotePickerOpenFingerprint.method
-        openMethod.addInstructions(
+        // Observe the native picker-open event only. Twitch owns the picker UI.
+        EmotePickerOpenFingerprint.method.addInstructions(
             0,
             "invoke-static {p1}, $PICKER_BRIDGE->onPickerOpened(Ljava/lang/Object;)V",
         )
 
-        // Wrap the state builder's return value. Must check-cast back to Lmtf;
-        // otherwise ART's verifier rejects the method and the presenter class
-        // fails to load, taking the chat/title DI graph down with it.
+        // Augment the existing native ALL picker model. No replacement dialog/UI is created.
         val builderMethod = EmotePickerStateBuilderFingerprint.method
         val returnIndex = builderMethod.instructions.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }
         if (returnIndex < 0) {
             throw PatchException("Kizu emotes: state builder has no return-object.")
         }
+
         val ret = builderMethod.instructions.elementAt(returnIndex) as? OneRegisterInstruction
-            ?: throw PatchException("Kizu emotes: return not single-register.")
+            ?: throw PatchException("Kizu emotes: return is not single-register.")
         val reg = ret.registerA
 
         builderMethod.addInstructions(

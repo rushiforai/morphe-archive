@@ -727,6 +727,10 @@ tasks {
     // The README tests read the README and the patch list, both outside this module. Declare
     // those inputs so Gradle reruns them when either changes.
     test {
+        // The fixture tests walk each declared build's whole dex (SanitizeSharingLinksFixtureTest
+        // reads every method of the APK for the steps that read a post's link). Gradle's default
+        // test heap is 512 MB, where that ran out of memory once the full suite shared the JVM.
+        maxHeapSize = "2g"
         inputs.file(rootProject.file("README.md"))
             .withPropertyName("readme")
             .withPathSensitivity(PathSensitivity.RELATIVE)

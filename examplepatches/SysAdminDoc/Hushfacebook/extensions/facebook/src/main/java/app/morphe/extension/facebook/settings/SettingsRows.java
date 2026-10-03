@@ -38,13 +38,14 @@ import app.morphe.extension.shared.settings.preference.ImmediateAction;
 
 /**
  * The kinds of row the settings page is built from: section titles, rows of text, switches, the
- * running saves and the rows that act on a tap. The page implements this, so a kind is also known
- * by the page's name, {@code HushfacebookPreferenceFragment.Row}, as it was when the kinds were
- * the page's own classes. The builders that put the text on a row are the page's:
+ * running saves and the rows that act on a tap, each known by this class's name, as
+ * {@code SettingsRows.Row}. The builders that put the text on a row are the page's:
  * {@link HushfacebookPreferenceFragment#toggle} and the ones beside it.
  */
 @SuppressWarnings("deprecation")
-interface SettingsRows {
+final class SettingsRows {
+    private SettingsRows() { }
+
     /** A section title, which a screen reader announces as a heading so a reader can jump between sections. */
     static final class Heading extends PreferenceCategory {
         Heading(Context context) {

@@ -39,7 +39,8 @@ class PartialTargetsFixtureTest {
 
     private val expectedMissing = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to droppedIn580,
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to emptySet(),
+        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to droppedIn580,
+        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to emptySet(),
     )
 
     @Test

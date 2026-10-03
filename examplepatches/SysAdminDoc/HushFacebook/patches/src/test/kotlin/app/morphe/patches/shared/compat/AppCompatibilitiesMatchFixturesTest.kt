@@ -61,7 +61,11 @@ class AppCompatibilitiesMatchFixturesTest {
         val targets = AppCompatibilities.facebook().single().targets
         assertEquals(
             "declared versions, newest first",
-            listOf(AppCompatibilities.FACEBOOK_TARGET_VERSION, AppCompatibilities.FACEBOOK_PREVIOUS_VERSION),
+            listOf(
+                AppCompatibilities.FACEBOOK_TARGET_VERSION,
+                AppCompatibilities.FACEBOOK_PREVIOUS_VERSION,
+                AppCompatibilities.FACEBOOK_ORIGINAL_VERSION,
+            ),
             targets.map { it.version },
         )
         var checked = 0

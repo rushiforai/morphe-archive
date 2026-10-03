@@ -220,8 +220,9 @@ public final class HissiMenuActivity extends Activity {
                     boolean goForward = (dx > 0) == (Haiagaru.hissiViewerSwipeHistory() == 1);
                     if (goForward && webView.canGoForward()) {
                         webView.goForward();
-                    } else if (!goForward && webView.canGoBack()) {
-                        webView.goBack();
+                    } else if (!goForward) {
+                        if (webView.canGoBack()) webView.goBack();
+                        else finish();
                     }
                     return true;
                 }

@@ -689,4 +689,58 @@ public class SaveProgressTest {
         assertEquals(3, outcome.cancelled);
         assertEquals("Saved 0 of 3, the rest cancelled", SaveProgress.message(outcome, "all"));
     }
+
+    /** Small photo jobs used the default threshold and had no count or Cancel at all. */
+    @Test public void fileCountModeShowsRunningCountsAndCancelForOneTwoAndThreeFiles() throws Exception {
+        try (var owner = Robolectric.buildActivity(SaveNoticeTest.HostActivity.class).setup().visible()) {
+            Utils.setActivity(owner.get());
+            ViewGroup root = owner.get().findViewById(android.R.id.content);
+            for (int files = 1; files <= 3; files++) {
+                SaveProgress progress = SaveProgress.queuedFiles(files);
+                CountDownLatch inFirst = new CountDownLatch(1);
+                CountDownLatch finishFirst = new CountDownLatch(1);
+                holds.add(finishFirst);
+                List<Integer> ran = java.util.Collections.synchronizedList(new ArrayList<>());
+                MediaJobScheduler.Job job = progress.submit("file-count test", null, () -> progress.run(index -> {
+                    ran.add(index);
+                    if (index == 0) {
+                        inFirst.countDown();
+                        await(finishFirst);
+                    }
+                }), null);
+                assertNotNull(job);
+                assertTrue("The file save never started", inFirst.await(5, TimeUnit.SECONDS));
+                settle();
+                assertNotNull(find(root, "Saving 1 of " + files));
+                assertNull("A one-photo job must not be named video", find(root, "Saving video"));
+                View row = root.findViewWithTag("hushfeed_save_progress");
+                assertNotNull(row);
+                assertFalse("File counts must not pretend to stream byte progress",
+                        containsProgressBar(row));
+                TextView cancel = find(root, "Cancel");
+                assertNotNull(cancel);
+                assertEquals(View.VISIBLE, cancel.getVisibility());
+                cancel.performClick();
+                idle();
+                assertTrue(progress.isCancelled());
+                assertNotNull(find(root, "Stopping after this file"));
+                finishFirst.countDown();
+                drainPool();
+                idle();
+                assertEquals("Only the file already under way may finish", List.of(0), ran);
+                assertNull(root.findViewWithTag("hushfeed_save_progress"));
+            }
+        }
+    }
+
+    private static boolean containsProgressBar(View view) {
+        if (view instanceof android.widget.ProgressBar) return true;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                if (containsProgressBar(group.getChildAt(i))) return true;
+            }
+        }
+        return false;
+    }
 }

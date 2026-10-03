@@ -29,9 +29,9 @@ Contributor docs: [development guide](docs/development.md) (start here),
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.6.3](https://github.com/zeldrisho/morphe-patches/releases/tag/v1.6.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
+> **[v1.7.0](https://github.com/zeldrisho/morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details>
-<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
+<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;17 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -44,6 +44,7 @@ Contributor docs: [development guide](docs/development.md) (start here),
 | Bypass native startup tamper check | Preserves native key initialization and NOPs only the JNI System.exit dispatch in the pinned arm64 26.08.01 build. |  |
 | Change Zalo app name | Changes the name shown for Zalo under the launcher icon. Set the desired name in the patch options. | • App name |
 | Change Zalo package name | Changes Zalo's package name so a clone can be installed beside stock Zalo, including package-owned provider references used after login. WARNING: package- and certificate-bound login, push, sharing, deep links, and backup may not work with the renamed application. | • Package name |
+| Configurable native backup interval | Overrides only Zalo's native auto-backup interval (1, 3, 6, or 12 hours). Native opt-in, account, network, and backup guards remain in place. | • Backup interval (hours) |
 | Disable ads | Disables Zalo offline/Google ad networks (forces the Adtima offline gates closed, always drops admob/dfp/ima, and reports limit-ad-tracking opted-out). Sponsored Story/community placements need the companion patch. |  |
 | Disable sponsored placements | Forces Zalo Story/community ad-enable flags to off at their config reads (normal content path kept). Server-stitched or OA-message promos may remain. |  |
 | Disable telemetry and crash reporting | Stops Zalo's first-party analytics records and diagnostic crash data by suppressing its Room analytics writes, Firebase Crashlytics logs/keys, and native crash-handler registration. Messaging, sockets, and database initialization remain intact. |  |
@@ -61,19 +62,20 @@ Contributor docs: [development guide](docs/development.md) (start here),
 </details>
 
 <details>
-<summary>📦 Threads&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 Threads&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 434.0.0.41.74 | 445.0.0.46.83 |
-| :---: | :---: |
+| 434.0.0.41.74 | 445.0.0.46.83 | 449.0.0.54.82 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | Change app name | Changes the app name shown under the launcher icon. Set the desired name in the patch options. | • App name |
 | Change package name | Changes the app package name so the patched app installs alongside the original. Set the desired name in the patch options. WARNING: hardcoded component/provider references can break login, content providers, or push. Disable this patch if needed. | • Package name |
 | Hide ads | Removes sponsored posts from the Threads feed by filtering ad feed units (detected via Media.DED/DGK) out of the list merged into the feed cache, before they can render. Feed-scoped; other surfaces (clips/reels) are not affected. |  |
+| Open links externally | Opens HTTP(S) links in an external app when one can handle them; otherwise keeps Threads' normal link handling. |  |
 | Remove AD_ID permission | Removes the advertising-id (AD_ID) permissions so the device advertising id cannot be read for ad tracking. Does not disable Meta's core analytics. |  |
 
 </details>

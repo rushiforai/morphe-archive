@@ -9,6 +9,7 @@ public final class BooleanSetting extends Setting<Boolean> {
 
     @Override
     public Boolean get() {
+        if ("emotes_animated".equals(key)) return true;
         SharedPreferences preferences = preferences();
         if (preferences == null) return defaultValue;
         return preferences.getBoolean(key, defaultValue);
@@ -16,6 +17,7 @@ public final class BooleanSetting extends Setting<Boolean> {
 
     @Override
     public void save(Boolean value) {
+        if ("emotes_animated".equals(key)) value = true;
         SharedPreferences preferences = preferences();
         if (preferences == null) return;
         preferences.edit().putBoolean(key, value).apply();

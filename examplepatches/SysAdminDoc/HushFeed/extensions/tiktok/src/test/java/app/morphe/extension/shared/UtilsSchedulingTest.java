@@ -1,6 +1,8 @@
 package app.morphe.extension.shared;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
@@ -31,6 +33,32 @@ public class UtilsSchedulingTest {
     public void tearDown() throws Exception {
         Utils.awaitBackgroundTasksForTests();
         LogBufferManager.clearLogBuffer();
+    }
+
+    @Test
+    public void waitingForBackgroundWorkOutlastsAFullQueue() throws Exception {
+        BackgroundPoolSaturation saturation = BackgroundPoolSaturation.fill();
+        java.util.concurrent.atomic.AtomicReference<Throwable> failure = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.CountDownLatch waited = new java.util.concurrent.CountDownLatch(1);
+        Thread waiter = new Thread(() -> {
+            try {
+                Utils.awaitBackgroundTasksForTests();
+            } catch (Throwable error) {
+                failure.set(error);
+            } finally {
+                waited.countDown();
+            }
+        });
+        waiter.start();
+        try {
+            assertFalse("the wait returned while every worker and queue slot was still held",
+                    waited.await(200, java.util.concurrent.TimeUnit.MILLISECONDS));
+        } finally {
+            saturation.release();
+        }
+        assertTrue("the wait never returned after the queue drained",
+                waited.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        assertNull("a full queue failed the wait instead of being waited out", failure.get());
     }
 
     @Test

@@ -371,7 +371,7 @@ public final class StickerGallerySaver {
                 }
                 return response.contentType();
             } catch (IOException | RuntimeException error) {
-                boolean cleaned = MediaCache.delete(target);
+                boolean cleaned = MediaCache.deletePartial(target);
                 boolean retryable = MediaBudget.isRetryableTransport(error);
                 if (cleaned && retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
                     MediaBudget.waitBeforeRetry(null, attempt, deadline);

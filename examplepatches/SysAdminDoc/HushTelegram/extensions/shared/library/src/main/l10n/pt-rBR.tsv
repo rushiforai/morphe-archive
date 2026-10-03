@@ -20,7 +20,7 @@ About	Sobre
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	O Android 11 e as versões anteriores não informam quais links abrem aqui. Toque para abrir as configurações deste app e depois Abrir por padrão.
 Back	Voltar
 Cancel	Cancelar
-Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Escolha um arquivo de configurações. Antes de importar qualquer coisa, você verá quantas opções serão alteradas.
+Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.	Escolha um arquivo de configurações. Antes de importar qualquer coisa, você verá quantas opções serão alteradas. O que você importar vale para todas as contas deste app do Telegram.
 Clear diagnostic data	Limpar dados de diagnóstico
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copie um relatório rápido ou salve o relatório completo em Download/Morphe. Links, IDs, cookies e tokens de login são omitidos. Verifique se há outros textos privados antes de compartilhar.
 Copy quick report	Copiar relatório rápido
@@ -45,7 +45,7 @@ From the next start, every switch but Debug logging acts as if it were off. Chan
 Hide ads	Ocultar anúncios
 Links, updates, backup and more	Links, atualizações, backup e mais
 Privacy	Privacidade
-Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Salve suas opções em um arquivo. Pausa e Registro de depuração não são incluídos, nem a verificação de novas versões.
+Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.	Salve suas opções em um arquivo. Elas valem para todas as contas deste app do Telegram. Pausa e Registro de depuração não são incluídos, nem a verificação de novas versões.
 Settings exported. The app holding the file wouldn't let HushTelegram read it back, so it wasn't checked.	Configurações exportadas. O app que guarda o arquivo não deixou o HushTelegram lê-lo de volta, então ele não foi conferido.
 The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.	O app que guarda esse arquivo está demorando demais, então o HushTelegram parou de esperar. Nada foi alterado.
 The app holding the last settings file still hasn't answered. Try again later.	O app do último arquivo de configurações ainda não respondeu. Tente de novo mais tarde.
@@ -147,7 +147,10 @@ It targets Telegram %1$s.	Compatível com o Telegram %1$s.
 None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Nenhum endereço web do Telegram está selecionado para este app, então os links deles abrem em outro lugar. Toque para selecioná-los nas configurações do Android.
 Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Só alguns endereços web do Telegram estão selecionados para este app, e os links para os outros abrem em outro lugar. Toque para selecioná-los nas configurações do Android.
 Saved. Restart Telegram to apply this change.	Salvo. Reinicie o Telegram para aplicar esta alteração.
-Sponsored messages and video ads	Mensagens patrocinadas e anúncios em vídeo
+Ads in channels and search	Anúncios em canais e na busca
+Ads in channels	Anúncios em canais
+Ads in search	Anúncios na busca
+%1$s, and more	%1$s, e mais
 Stop usage reports	Parar os relatórios de uso
 # context: Immutable hook coverage shown when a patch has missing targets.
 channel ads	anúncios em canais
@@ -158,9 +161,10 @@ channel read metrics	métricas de leitura de canais
 This build has no coverage for %1$s.	Esta versão não cobre %1$s.
 This build covers %1$s. Missing coverage: %2$s.	Esta versão cobre %1$s. Falta cobertura para %2$s.
 Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	O Telegram fechou com erro ou travou no primeiro minuto após iniciar, três vezes seguidas, então o HushTelegram foi pausado automaticamente.
-Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.	O Telegram não envia suas pastas de armazenamento como relatório do dispositivo quando o servidor dele pede, nem quanto tempo você passou em cada post de um canal. Mensagens e chamadas funcionam como antes.
 Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Os endereços web do Telegram estão selecionados para este app nas configurações do Android, então os links deles abrem aqui.
-Device statistics and read time	Estatísticas do dispositivo e tempo de leitura
+Usage reports and call diagnostics	Relatórios de uso e diagnósticos de chamadas
+Usage reports	Relatórios de uso
+Call diagnostics	Diagnósticos de chamadas
 Try again, or go back to Telegram.	Tente novamente ou volte para o Telegram.
 Turn off Telegram's update checks	Desativar as verificações de atualização do Telegram
 Your choices are saved. Tap Resume, then restart Telegram.	Suas escolhas estão salvas. Toque em Retomar e depois reinicie o Telegram.
@@ -175,3 +179,50 @@ Stops automatic call debug reports and log-file uploads requested by Telegram's 
 call debug reports	relatórios de depuração de chamadas
 call log file uploads	envios de arquivos de registro de chamadas
 call log reports	relatórios de registro de chamadas
+Hide Premium, gifts and Stars	Ocultar Premium, presentes e Stars
+Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.	Oculta Premium, Stars, My Grams, Business e Enviar um presente nas Configurações, as abas de presentes dos perfis e o botão de presente dos canais. As compras e os controles da conta continuam funcionando como antes.
+Settings sales rows	Ofertas nas Configurações
+profile Gifts tabs	abas de presentes dos perfis
+channel Gift button	botão de presente dos canais
+Hide promotional banners	Ocultar banners promocionais
+Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.	Oculta banners de Premium, aniversários e saldo baixo de Stars na lista de conversas. Os avisos de segurança da conta e outras sugestões continuam aparecendo. Nada é descartado em seu nome.
+promotional suggestions	sugestões promocionais
+birthday gift banner	banner de presentes de aniversário
+Hide sponsored proxy channel	Ocultar canal patrocinado do proxy
+Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.	Oculta o canal patrocinado de um proxy da lista de conversas e das pastas. Mantém as configurações do proxy e as atualizações compartilhadas de dados promocionais como estão.
+cached proxy channel	canal do proxy armazenado
+cached proxy folder entries	entradas do proxy armazenadas nas pastas
+Open links externally	Abrir links externamente
+Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.	Abre links HTTP(S) comuns no seu navegador. Links do Telegram e rotas de login, pagamento e autenticação mantêm o comportamento habitual.
+Strip link tracking	Remover rastreamento de links
+Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.	Limpeza local opcional ao abrir links e no seletor Compartilhar Link. Remove apenas utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid e fbclid. Qualquer parâmetro de consulta desconhecido preserva a URL inteira. Desativado por padrão nas configurações.
+external browser routing	abertura em navegador externo
+opened link tracking	rastreamento de links abertos
+shared link tracking	rastreamento de links compartilhados
+Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.	O Telegram não envia sua estatística do tipo de armazenamento quando o servidor pede, nem quanto tempo você passou em cada post de um canal. Também bloqueia relatórios sobre visualizações da tela do Premium, toques em recursos, aceitações e falhas de compra. Mensagens e chamadas funcionam como antes.
+Premium promo views	visualizações de promoções do Premium
+Premium promo taps	toques em promoções do Premium
+Premium promo accepts	aceitações de promoções do Premium
+Premium promo failures	falhas de promoções do Premium
+Accounts	Contas
+Every switch here applies to all the accounts in this Telegram app, not only the one you have open.	Cada opção aqui vale para todas as contas deste app do Telegram, não só para a que está aberta.
+No previews before sending	Sem prévias antes de enviar
+Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.	O Telegram não pede ao servidor uma prévia do link enquanto a mensagem ainda não foi enviada. Isso vale para chats, a tela de compartilhamento, enquetes, links de Stories e mensagens compartilhadas por bots. Mensagens enviadas continuam recebendo a prévia. Desativado por padrão nas configurações.
+Draft link previews	Prévias de links em rascunhos
+chat drafts	rascunhos de chat
+share sheet comments	comentários ao compartilhar
+poll links	links de enquetes
+story links	links de Stories
+bot shares	mensagens compartilhadas por bots
+Camera only on tap	Câmera só ao tocar
+Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.	Abrir a galeria de anexos não liga a câmera nem pede acesso a ela. Toque no quadro da câmera para ligá-la. Desativado por padrão nas configurações.
+Gallery camera	Câmera da galeria
+No swipe actions on chats	Sem ações ao deslizar chats
+A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.	Deslizar um chat para o lado na lista de chats não arquiva, silencia, fixa, apaga nem marca mais o chat como lido, então um deslize sem querer não muda o chat. Tocar e segurar continua mostrando todas as ações. Desativado por padrão nas configurações.
+Hide popular apps	Ocultar apps populares
+Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.	A aba Apps da busca não mostra a lista Apps populares do Telegram, nem o título e as linhas de carregamento, e o Telegram não a solicita. Os apps que você abriu e os outros resultados continuam.
+Quiet contacts prompts	Silenciar pedidos de contatos
+Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Depois que você recusar o acesso aos contatos, a aba Contatos para de pedir de novo e o selo de aviso some. O primeiro pedido, os botões da própria aba e a sincronização de contatos continuam.
+
+New Year look all year	Visual de Ano Novo o ano todo
+Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	A neve de Ano Novo do Telegram cai todos os dias sobre a barra superior da lista de chats e, com os fundos de chat animados ativados, sobre os fundos dos chats. Desativado por padrão nas configurações.

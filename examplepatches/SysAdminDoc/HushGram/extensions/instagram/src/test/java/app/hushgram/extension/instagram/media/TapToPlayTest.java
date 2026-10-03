@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -605,6 +606,157 @@ public class TapToPlayTest {
         assertTrue("2 is a resume too", TapToPlay.resumeHeldStory(2, new Object()));
         holdEnded(now, aHold());
         assertTrue("a hold's release on the held story, handed over as 0, starts it", TapToPlay.resumeHeldStory(0, new Object()));
+    }
+
+    /**
+     * Instagram's auto scroller moving on counts as a tap on the reel it moves to: that reel's first
+     * start within a load window goes ahead and arms its player, so its own restarts go ahead too,
+     * and the move from its end starts the reel after it.
+     */
+    @Test
+    @Config(sdk = {28, 37})
+    public void autoScrollStartsTheReelItMovesToAndArmsIt() {
+        long now = 700_000;
+        Object next = new Object();
+        TapToPlay.scrolledAt(now - 1_500);
+        assertTrue("the reel auto scroll moved to", TapToPlay.decide(next, "autoplay", now, ""));
+        assertTrue(TapToPlay.armed(next));
+        assertTrue("its own play, long after the move", TapToPlay.decide(next, "autoplay", now + 30_000, " (direct)"));
+
+        Object after = new Object();
+        TapToPlay.scrolledAt(now + 40_000);
+        assertTrue("the move from that reel's end starts the one after it", TapToPlay.decide(after, "autoplay", now + 40_400, ""));
+        assertTrue(TapToPlay.armed(after));
+    }
+
+    /** A move covers one start: a second player starting in the same window waits for a tap. */
+    @Test
+    @Config(sdk = {28, 37})
+    public void aMoveStartsOnePlayerOnly() {
+        long now = 710_000;
+        Object next = new Object();
+        Object other = new Object();
+        TapToPlay.scrolledAt(now);
+        assertTrue(TapToPlay.decide(next, "autoplay", now + 300, ""));
+        assertFalse("a second player in the window", TapToPlay.decide(other, "autoplay", now + 600, ""));
+        assertFalse(TapToPlay.armed(other));
+    }
+
+    /** A first start later than a load after the move waits, and so does one the clock has before the move. */
+    @Test
+    @Config(sdk = {28, 37})
+    public void aStartLaterThanALoadAfterTheMoveIsHeld() {
+        long now = 720_000;
+        TapToPlay.scrolledAt(now - TapToPlay.LOAD_WINDOW_MS - 1);
+        assertFalse("just over a load after the move", TapToPlay.decide(new Object(), "autoplay", now, ""));
+        TapToPlay.scrolledAt(now - TapToPlay.LOAD_WINDOW_MS);
+        assertTrue("exactly a load after it", TapToPlay.decide(new Object(), "autoplay", now, ""));
+        TapToPlay.scrolledAt(now + 5);
+        assertFalse("a move the clock hasn't reached yet", TapToPlay.decide(new Object(), "autoplay", now, ""));
+    }
+
+    /**
+     * An armed player's start goes ahead without the move and leaves it to the reel the scroller
+     * moves to, so a reel that loops before the pager settles doesn't use it up. Nor does a start
+     * with no player, which plays nothing.
+     */
+    @Test
+    @Config(sdk = {28, 37})
+    public void anArmedPlayerOrNoPlayerLeavesTheMoveToTheNextReel() {
+        long now = 730_000;
+        Object playing = new Object();
+        tapAt(now - 20_000);
+        assertTrue(TapToPlay.decide(playing, "autoplay", now - 19_900, ""));
+        TapToPlay.scrolledAt(now);
+        assertTrue("the reel that ended, looping", TapToPlay.decide(playing, "paused_for_replay", now + 100, " (direct)"));
+        assertFalse("a start with no player", TapToPlay.decide(null, "autoplay", now + 150, ""));
+        assertTrue("the reel auto scroll moved to", TapToPlay.decide(new Object(), "autoplay", now + 400, ""));
+        assertFalse("and nothing after it", TapToPlay.decide(new Object(), "autoplay", now + 500, ""));
+    }
+
+    /** A swipe after the move ends it, so the reel you swipe to waits for a tap, as it would with auto scroll off. */
+    @Test
+    @Config(sdk = {28, 37})
+    public void aSwipeEndsAMoveNoStartHasUsed() {
+        long now = 740_000;
+        TapToPlay.scrolledAt(now);
+        TapClock.record(MotionEvent.ACTION_DOWN, 50, 500, now + 100, 8);
+        TapClock.record(MotionEvent.ACTION_MOVE, 50, 300, now + 150, 8);
+        TapClock.record(MotionEvent.ACTION_UP, 50, 100, now + 200, 8);
+        assertFalse("the reel the swipe moved to", TapToPlay.decide(new Object(), "autoplay", now + 500, ""));
+    }
+
+    /** Through the hooks Instagram calls, on its clock: the move, then the next reel's playInternal and its IgGrootPlayer's play. */
+    @Test
+    @Config(sdk = {28, 37})
+    public void theAutoScrollHookStartsTheNextReelThroughTheGate() {
+        Object next = new Object();
+        TapToPlay.autoScrolled();
+        SystemClock.sleep(800);
+        assertTrue("playInternal of the reel auto scroll moved to", TapToPlay.allowStart(next, "autoplay"));
+        assertTrue("its IgGrootPlayer's play", TapToPlay.allowDirectStart(next, "autoplay"));
+        assertFalse("another player", TapToPlay.allowStart(new Object(), "autoplay"));
+
+        TapToPlay.autoScrolled();
+        SystemClock.sleep(TapToPlay.LOAD_WINDOW_MS + 1);
+        assertFalse("a start later than a load after the move", TapToPlay.allowStart(new Object(), "autoplay"));
+        assertEquals(Collections.emptyList(), HookStatus.missing(FamilyNames.TAP_TO_PLAY));
+    }
+
+    /** Off, paused or before the settings are ready, a move records nothing, so the next reel waits for a tap. */
+    @Test
+    @Config(sdk = {28, 37})
+    public void offPausedOrNotReadyAMoveRecordsNothing() {
+        Settings.TAP_TO_PLAY.save(false);
+        TapToPlay.autoScrolled();
+        Settings.TAP_TO_PLAY.save(true);
+        assertFalse("after a move while off", TapToPlay.allowStart(new Object(), "autoplay"));
+
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        TapToPlay.autoScrolled();
+        PauseForTests.resume();
+        assertFalse("after a move while paused", TapToPlay.allowStart(new Object(), "autoplay"));
+
+        SettingsContextRule.withoutContext(TapToPlay::autoScrolled);
+        assertFalse("after a move before the settings were there", TapToPlay.allowStart(new Object(), "autoplay"));
+        SettingsContextRule.beforeThePauseIsDecided(TapToPlay::autoScrolled);
+        assertFalse("after a move before the pause was decided", TapToPlay.allowStart(new Object(), "autoplay"));
+
+        TapToPlay.autoScrolled();
+        assertTrue("the control: on, the same move starts the next reel", TapToPlay.allowStart(new Object(), "autoplay"));
+        assertEquals(Collections.emptyList(), HookStatus.missing(FamilyNames.TAP_TO_PLAY));
+    }
+
+    /** A move that throws stays in the hook, records nothing, and the report names it. */
+    @Test
+    @Config(sdk = {28, 37})
+    public void aFailingMoveRecordsNothingAndTheReportSaysSo() {
+        TapToPlay.failNext = new IllegalStateException("the move failed");
+        TapToPlay.autoScrolled();
+        assertEquals(Collections.singletonList("a working 'auto scroll' hook (it threw "
+                        + IllegalStateException.class.getName() + ")"),
+                HookStatus.missing(FamilyNames.TAP_TO_PLAY));
+        assertFalse("nothing was recorded", TapToPlay.allowStart(new Object(), "autoplay"));
+
+        TapToPlay.autoScrolled();
+        assertTrue("the next move works", TapToPlay.allowStart(new Object(), "autoplay"));
+    }
+
+    /** Debug logging says when auto scroll moved on and which start that let through. */
+    @Test
+    @Config(sdk = {28, 37})
+    public void debugLoggingSaysAutoScrollMovedOnAndWhatItStarted() {
+        BaseSettings.DEBUG.save(true);
+        LogBufferManager.clearLogBuffer();
+        TapToPlay.autoScrolled();
+        TapToPlay.allowStart(new Object(), "autoplay");
+        TapToPlay.allowStart(new Object(), "autoplay");
+
+        String report = LogBufferManager.buildExportText();
+        assertEquals(report, 1, occurrences(report, "Tap to play: auto scroll moved on, so the next reel's first start goes ahead"));
+        assertEquals(report, 1, occurrences(report, "after auto scroll"));
+        assertTrue(report, report.contains("Tap to play: allowed autoplay no tap armed no after auto scroll"));
+        assertTrue(report, report.contains("Tap to play: held autoplay no tap armed no"));
     }
 
     @Test

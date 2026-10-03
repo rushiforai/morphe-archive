@@ -1,3 +1,43 @@
+## [1.36.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.35.2...v1.36.0) (2026-10-02)
+
+### ✨ New Features
+
+* **targets:** add explicit compatible version targets for Moises, HSW, Movix, CoinSnap, and reported apps ([51cf459](https://github.com/SatanMerde/D-moniakPatches/commit/51cf45965cf5001fa06f29be136628297df6c1dd))
+
+## [1.35.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.35.1...v1.35.2) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **readme:** correct verified patches list, move Google Drive to experimental, and promote tested Moises patches ([a9115b8](https://github.com/SatanMerde/D-moniakPatches/commit/a9115b8565eb38481bdf747c35d017d23bba38d9))
+
+## [1.35.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.35.0...v1.35.1) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **moises:** resolve crash on launch by eliminating verify error and skipping pairip internals ([7ad430b](https://github.com/SatanMerde/D-moniakPatches/commit/7ad430b857e120c9795628de9fe8a57bdb952cbd))
+
+## [1.35.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.34.0...v1.35.0) (2026-10-02)
+
+### ✨ New Features
+
+* **moises:** add unlock premium and high quality audio export patches ([3c09d12](https://github.com/SatanMerde/D-moniakPatches/commit/3c09d1294d3bf776141a69e4a6a2d62ec9f3eb4b))
+
+## [1.34.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.33.0...v1.34.0) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **googledrive:** overhaul all 7 Google Drive patches with real Android SDK bytecode injection ([3ab354e](https://github.com/SatanMerde/D-moniakPatches/commit/3ab354e0b89378813c4babe19f73cc1616e976a2))
+* overhaul 50+ experimental patches with real AdMob/Unity/AppLovin mediation hooks and Google Play Billing bypass ([ef76298](https://github.com/SatanMerde/D-moniakPatches/commit/ef762986fc4fb4aff7f2a4ad2d351355a1e3c2a5))
+* **patches:** remove hallucinated ad-blocking patches on ad-free apps ([b4e6460](https://github.com/SatanMerde/D-moniakPatches/commit/b4e646010fe15397ab2dd4c0351fb38410e083b7))
+* resolve compileKotlin errors in Google Drive and GmsCore patches ([6eb3bc5](https://github.com/SatanMerde/D-moniakPatches/commit/6eb3bc5b209b54f6ca6e61886f8d242d5e613622))
+
+### ✨ New Features
+
+* add premium and pro feature patches for Duolingo, Waze, SoundCloud, and Pinterest ([6074d38](https://github.com/SatanMerde/D-moniakPatches/commit/6074d381fcbeeb913a385b389a556546ad33bcae))
+* add VIP/Premium/Free Shopping unlock patches for Turbo VPN, TeraBox, Hill Climb Racing and Alto's Adventure ([b9b1645](https://github.com/SatanMerde/D-moniakPatches/commit/b9b1645c390d7775f907a8527828979b46fca550))
+* resolve community issues (silt full game unlock, gmscore support, play store bypass, and patch compatibility docs) ([ff33c50](https://github.com/SatanMerde/D-moniakPatches/commit/ff33c508d07953cb3c17742434de8d579f799529))
+* **vip:** add Brave Origin, Spotify Premium, and Jetpack Joyride VIP patches; sync README to 239 patches ([f9467d1](https://github.com/SatanMerde/D-moniakPatches/commit/f9467d12fae3bb9fb4c47136874b3e73f9ba2584))
+
 ## [1.33.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.32.0...v1.33.0) (2026-09-26)
 
 ### ✨ New Features

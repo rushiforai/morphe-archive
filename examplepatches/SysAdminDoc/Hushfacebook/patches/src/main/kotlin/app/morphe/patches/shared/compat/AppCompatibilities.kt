@@ -39,23 +39,30 @@ internal object AppCompatibilities {
     const val META_ROTATED_SIGNER_SHA256 = "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27"
 
     /** The newest Facebook build every patch here was applied to and read against. */
-    const val FACEBOOK_TARGET_VERSION = "580.0.0.51.74"
+    const val FACEBOOK_TARGET_VERSION = "581.0.0.45.58"
 
     /**
      * The version code of the arm64-v8a build of [FACEBOOK_TARGET_VERSION] (APKMirror's
-     * 240-640dpi, Android 11+ variant). Each APKMirror variant of a Facebook release is its own
+     * 320-640dpi, Android 11+ variant). Each APKMirror variant of a Facebook release is its own
      * build with different DEX, not a split of one bundle, so the code of the tested variant is
-     * pinned: the armeabi-v7a build of a release lacks classes these patches need.
+     * pinned: the armeabi-v7a build of a release lacks classes these patches need. 581 has seven
+     * arm64 Android 11+ builds, with codes from 475215267 to 475408263.
      */
-    const val FACEBOOK_TARGET_VERSION_CODE = 475019344
+    const val FACEBOOK_TARGET_VERSION_CODE = 475215365
+
+    /** The build before [FACEBOOK_TARGET_VERSION], still applied to on every change. */
+    const val FACEBOOK_PREVIOUS_VERSION = "580.0.0.51.74"
+
+    /** The version code of the arm64-v8a build of [FACEBOOK_PREVIOUS_VERSION] (240-640dpi, Android 11+). */
+    const val FACEBOOK_PREVIOUS_VERSION_CODE = 475019344
 
     /** The build Andrew Liang's patches were written against, still applied to on every change. */
-    const val FACEBOOK_PREVIOUS_VERSION = "577.0.0.50.72"
+    const val FACEBOOK_ORIGINAL_VERSION = "577.0.0.50.72"
 
-    /** The version code of the arm64-v8a build of [FACEBOOK_PREVIOUS_VERSION] (360-480dpi). */
-    const val FACEBOOK_PREVIOUS_VERSION_CODE = 474426275
+    /** The version code of the arm64-v8a build of [FACEBOOK_ORIGINAL_VERSION] (360-480dpi). */
+    const val FACEBOOK_ORIGINAL_VERSION_CODE = 474426275
 
-    /** Facebook's own floor on both builds, Android 11. */
+    /** Facebook's own floor on every declared build, Android 11. */
     const val FACEBOOK_TARGET_MIN_SDK = 30
 
     fun facebook(): Array<Compatibility> = arrayOf(
@@ -74,6 +81,11 @@ internal object AppCompatibilities {
                 AppTarget(
                     version = FACEBOOK_PREVIOUS_VERSION,
                     versionCodes = mapOf(SupportedAbi.ARM64_V8A to FACEBOOK_PREVIOUS_VERSION_CODE),
+                    minSdk = FACEBOOK_TARGET_MIN_SDK,
+                ),
+                AppTarget(
+                    version = FACEBOOK_ORIGINAL_VERSION,
+                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to FACEBOOK_ORIGINAL_VERSION_CODE),
                     minSdk = FACEBOOK_TARGET_MIN_SDK,
                 ),
             ),

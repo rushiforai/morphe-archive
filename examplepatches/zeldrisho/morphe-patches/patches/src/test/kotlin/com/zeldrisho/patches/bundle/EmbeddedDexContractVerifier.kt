@@ -10,7 +10,13 @@ import java.util.zip.ZipFile
 /** Verifies the ABI consumed by injected invoke-static instructions in the bundle. */
 private val contractsByArtifact = linkedMapOf(
     "extensions/extension.mpe" to listOf(
-        Contract("Lcom/zeldrisho/threads/extension/FeedAdFilter;", "filterAds", listOf("Ljava/util/List;"), "Ljava/util/List;"),
+        Contract(
+            "Lcom/zeldrisho/threads/extension/FeedAdFilter;",
+            "filterAds",
+            listOf("Ljava/util/List;") + List(5) { "Ljava/lang/String;" },
+            "Ljava/util/List;",
+        ),
+        Contract("Lcom/zeldrisho/threads/extension/OpenLinksExternally;", "open", listOf("Landroid/content/Context;", "Ljava/lang/String;"), "Z"),
     ),
     "extensions/zalo.mpe" to listOf(
         Contract("Lcom/zeldrisho/zalo/extension/ZaloMicroGSupport;", "checkGmsCore", listOf("Landroid/app/Activity;"), "Z"),

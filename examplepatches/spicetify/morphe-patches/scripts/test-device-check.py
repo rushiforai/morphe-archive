@@ -19,7 +19,7 @@ class DeviceCheckTest(unittest.TestCase):
         self.apk.write_bytes(b"new apk")
         self.args = argparse.Namespace(adb="adb", serial="chosen-device", apk=self.apk,
             sha256=device.digest(self.apk), aapt2="aapt2", apksigner="apksigner",
-            version="9.1.80.2221", install=True, album_id=None)
+            version="9.1.88.2204", install=True, album_id=None)
         self.commands = []
         self.installed = b"old apk"
         self.split = False
@@ -27,7 +27,7 @@ class DeviceCheckTest(unittest.TestCase):
     def fake_run(self, command, timeout=60):
         self.commands.append(command)
         if command[0] == "aapt2":
-            return "package: name='com.spotify.music' versionCode='145767611' versionName='9.1.80.2221'"
+            return "package: name='com.spotify.music' versionCode='146816068' versionName='9.1.88.2204'"
         self.assertEqual(command[:3], ["adb", "-s", "chosen-device"])
         action = command[3:]
         if action == ["get-state"]:

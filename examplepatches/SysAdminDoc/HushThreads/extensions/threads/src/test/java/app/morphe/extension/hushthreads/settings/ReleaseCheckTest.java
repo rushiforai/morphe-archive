@@ -639,6 +639,94 @@ public class ReleaseCheckTest {
         assertEquals(1, github.asked.size());
     }
 
+    /** Manual checks keep consent off while failure callbacks and restored rows remain usable. */
+    @Test
+    @Config(sdk = {28, 36})
+    public void platformEndpointsShowOfflineAndHttpFailuresWithoutEnablingAutomaticChecks() {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushThreadsPreferenceFragment page = open(controller);
+            assertFalse(((SwitchPreference) page.findPreference(Settings.CHECK_FOR_RELEASES.key)).isChecked());
+            ReleaseCheck.onThreadsStart(NOW);
+            ReleaseCheckForTests.settle();
+            assertTrue("the default-off switch allowed a request", github.asked.isEmpty());
+
+            github.then(Reply.failing(new UnknownHostException("offline")));
+            Preference checkNow = page.findPreference(HushThreadsPreferenceFragment.CHECK_NOW);
+            checkNow.getOnPreferenceClickListener().onPreferenceClick(checkNow);
+            ReleaseCheckForTests.settle();
+            assertEquals(1, github.asked.size());
+            assertEquals(Result.OFFLINE.name(), Stored.RESULT.get());
+            assertEquals("Couldn't reach GitHub. Try again later.", String.valueOf(checkNow.getSummary()));
+            assertFalse(ReleaseCheck.isRunning());
+            assertFalse(Settings.CHECK_FOR_RELEASES.savedValue());
+
+            controller.recreate();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            page = (HushThreadsPreferenceFragment) controller.get().getFragmentManager().findFragmentById(android.R.id.content);
+            assertNotNull("the release settings page didn't return", page);
+            checkNow = page.findPreference(HushThreadsPreferenceFragment.CHECK_NOW);
+            assertEquals("Couldn't reach GitHub. Try again later.", String.valueOf(checkNow.getSummary()));
+            assertFalse(((SwitchPreference) page.findPreference(Settings.CHECK_FOR_RELEASES.key)).isChecked());
+            assertEquals("recreation made another request", 1, github.asked.size());
+
+            github.then(Reply.status(503));
+            checkNow.getOnPreferenceClickListener().onPreferenceClick(checkNow);
+            ReleaseCheckForTests.settle();
+            assertEquals(Result.HTTP_ERROR.name(), Stored.RESULT.get());
+            assertEquals("GitHub's answer couldn't be used. Try again later.", String.valueOf(checkNow.getSummary()));
+            assertTrue(checkNow.isEnabled());
+            assertFalse(ReleaseCheck.isRunning());
+
+            github.then(Reply.release("v0.2.0", null));
+            checkNow.getOnPreferenceClickListener().onPreferenceClick(checkNow);
+            ReleaseCheckForTests.settle();
+            assertEquals(NEWER, String.valueOf(checkNow.getSummary()));
+            assertEquals(3, github.asked.size());
+            assertFalse("a manual check silently enabled daily checks", Settings.CHECK_FOR_RELEASES.savedValue());
+            ReleaseCheck.onThreadsStart(Stored.CHECKED_AT.get() + DAY);
+            ReleaseCheckForTests.settle();
+            assertEquals("daily checks ran without consent", 3, github.asked.size());
+        }
+    }
+
+    /** A consent choice survives recreation, including turning it off after a failed daily check. */
+    @Test
+    @Config(sdk = {28, 36})
+    public void platformEndpointsPersistReleaseConsentAndThrottleOfflineStartupChecks() {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushThreadsPreferenceFragment page = open(controller);
+            ((SwitchPreference) page.findPreference(Settings.CHECK_FOR_RELEASES.key)).setChecked(true);
+            ReleaseCheckForTests.settle();
+            assertTrue(Settings.CHECK_FOR_RELEASES.savedValue());
+            controller.recreate();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            page = (HushThreadsPreferenceFragment) controller.get().getFragmentManager().findFragmentById(android.R.id.content);
+            assertNotNull(page);
+            assertTrue(((SwitchPreference) page.findPreference(Settings.CHECK_FOR_RELEASES.key)).isChecked());
+            github.then(Reply.failing(new UnknownHostException("offline")));
+            ReleaseCheck.onThreadsStart(NOW);
+            ReleaseCheckForTests.settle();
+            assertEquals(1, github.asked.size());
+            assertEquals(Result.OFFLINE.name(), Stored.RESULT.get());
+            assertEquals(NOW, (long) Stored.CHECKED_AT.get());
+            ReleaseCheck.onThreadsStart(NOW + DAY - 1);
+            ReleaseCheckForTests.settle();
+            assertEquals("an offline start bypassed the daily limit", 1, github.asked.size());
+
+            ((SwitchPreference) page.findPreference(Settings.CHECK_FOR_RELEASES.key)).setChecked(false);
+            ReleaseCheckForTests.settle();
+            assertFalse(Settings.CHECK_FOR_RELEASES.savedValue());
+            controller.recreate();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            page = (HushThreadsPreferenceFragment) controller.get().getFragmentManager().findFragmentById(android.R.id.content);
+            assertNotNull(page);
+            assertFalse(((SwitchPreference) page.findPreference(Settings.CHECK_FOR_RELEASES.key)).isChecked());
+            ReleaseCheck.onThreadsStart(NOW + 2 * DAY);
+            ReleaseCheckForTests.settle();
+            assertEquals("turning consent off didn't survive recreation", 1, github.asked.size());
+        }
+    }
+
     @Test
     public void aSettingsFileNeverCarriesTheCheck() throws Exception {
         Settings.CHECK_FOR_RELEASES.save(true);

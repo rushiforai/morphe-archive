@@ -212,6 +212,10 @@ Camera in use	Kamera in Benutzung
 Cancel	Abbrechen
 Caption background	Untertitel-Hintergrund
 Caption text size	Textgröße der Untertitel
+Description text size	Textgröße der Beschreibung
+Author text size	Textgröße des Creatornamens
+Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling.	Mit 0 gilt TikToks Größe, sonst %1$d bis %2$d. Ändert die Beschreibung unter dem Creatornamen und behält die Schriftvergrößerung von Android bei.
+Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and keeps Android's font scaling.	Mit 0 gilt TikToks Größe, sonst %1$d bis %2$d. Ändert die Größe des Creatornamens und behält die Schriftvergrößerung von Android bei.
 Captions	Untertitel
 Captions, gestures and on-screen controls	Untertitel, Gesten und Bildschirmelemente
 Capture crash reports locally	Absturzberichte lokal speichern
@@ -456,7 +460,7 @@ Hide activity	Aktivität ausblenden
 Hide activity status	Aktivitätsstatus ausblenden
 Hide archive	Archiv ausblenden
 Hide bottom tabs TikTok adds later unless you allow them.	Untere Tabs ausblenden, die TikTok später hinzufügt, sofern du sie nicht erlaubst.
-Hide the CAPTCHA dialogs raised while you browse or watch LIVE. Login, account verification and any CAPTCHA raised over a follow, like, comment or repost stay visible.	CAPTCHA-Dialoge ausblenden, die beim Stöbern oder in LIVE kommen. Anmeldung, Kontobestätigung und jedes CAPTCHA, das bei Folgen, Liken, Kommentieren oder Reposten kommt, bleiben sichtbar.
+Unavailable on these TikTok builds. All verification challenges stay visible.	In diesen TikTok-Versionen nicht verfügbar. Alle Verifizierungsabfragen bleiben sichtbar.
 Hide buttons in the right column	Schaltflächen in der rechten Spalte ausblenden
 Hide comment polls	Kommentarumfragen ausblenden
 Show poll results before voting	Umfrageergebnisse vor dem Abstimmen zeigen
@@ -531,7 +535,7 @@ Hide the magnifying glass at the top right of the feed. Search in Inbox and sugg
 Hide the magnifying glass at the top of Inbox. Search on the feed and in comments is unchanged.	Die Lupe oben im Posteingang ausblenden. Die Suche im Feed und in Kommentaren bleibt unverändert.
 Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.	Blende empfohlene Suchen auf TikToks Suchseite aus, bevor du etwas eingibst. Dein Suchverlauf bleibt erhalten. Vorschläge über Kommentaren werden dadurch nicht ausgeblendet.
 Hide the share prompt after a like	Die Teilen-Aufforderung nach einem Like ausblenden
-Hide the spinning music cover and the track name beside the caption.	Das drehende Musik-Cover und den Titelnamen neben der Beschreibung ausblenden.
+Hide the track name beside the caption.	Den Titelnamen neben der Beschreibung ausblenden.
 Hide the status bar	Statusleiste ausblenden
 Hide stories from the feed.	Storys aus dem Feed ausblenden.
 Hide the whole column on the right, from the avatar down to the music disc.	Die ganze rechte Spalte ausblenden, vom Avatar bis zur Musikscheibe.
@@ -1049,6 +1053,7 @@ Show only videos with this many likes.	Nur Videos mit so vielen Likes zeigen.
 Show only videos with this many shares.	Nur Videos zeigen, die so oft geteilt wurden.
 Show only videos with this many views.	Nur Videos mit so vielen Aufrufen zeigen.
 The original photos aren't available, so TikTok's own save runs instead	Die Originalfotos sind nicht verfügbar, also speichert TikTok selbst
+The original photos aren't available. No video was saved.	Die Originalfotos sind nicht verfügbar. Es wurde kein Video gespeichert.
 The override changes no fields. Edit the field values, or reset the override.	Die Überschreibung ändert keine Felder. Bearbeite die Feldwerte oder setze die Überschreibung zurück.
 The override couldn't be applied: %1$s. Edit the field values, or reset the override.	Die Überschreibung konnte nicht angewendet werden: %1$s. Bearbeite die Feldwerte oder setze die Überschreibung zurück.
 The override doesn't say what list to return. Edit the field values, or reset the override.	Die Überschreibung gibt nicht an, welche Liste zurückgegeben werden soll. Bearbeite die Feldwerte oder setze die Überschreibung zurück.
@@ -1302,6 +1307,7 @@ TikTok default (open the creator's profile)	TikTok-Standard (Profil des Creators
 Saving %1$s of %2$s	Datei %1$s von %2$s wird gespeichert
 Stopping after this file	Wird nach dieser Datei beendet
 Waiting to save %1$s files	%1$s Dateien warten auf das Speichern
+Waiting to save one file	Eine Datei wartet auf das Speichern
 Save cancelled. Nothing was saved.	Speichern abgebrochen. Es wurde nichts gespeichert.
 One more save waiting	Eine weitere Speicherung wartet
 %1$s more saves waiting	%1$s weitere Speicherungen warten
@@ -1413,9 +1419,7 @@ When the budget runs out, the video on screen plays to its end before the hold c
 The feed stops when this video ends.	Der Feed hält an, wenn dieses Video endet.
 Streak	Serie
 Keep a streak going	Eine Serie am Laufen halten
-Sends one message a day to the person below at the time below, so a streak with them keeps going on a day you don't open TikTok.	Schickt der Person unten jeden Tag zur Uhrzeit unten eine Nachricht, damit eure Serie auch an einem Tag weiterläuft, an dem du TikTok nicht öffnest.
 Who to message	Wem schreiben
-Their username, like @name. It has to be someone you already have a chat with.	Der Benutzername, etwa @name. Es muss jemand sein, mit dem du schon einen Chat hast.
 When to send	Wann senden
 The time of day the message goes out.	Die Uhrzeit, zu der die Nachricht rausgeht.
 Message	Nachricht
@@ -1425,9 +1429,7 @@ Sends today's message right away. The daily one then waits for tomorrow.	Schickt
 Turn on Keep a streak going first	Schalte zuerst Eine Serie am Laufen halten ein
 Sending the message	Nachricht wird gesendet
 A message is already on its way	Eine Nachricht ist schon unterwegs
-Sent to @%1$s	An @%1$s gesendet
 Enter who to message below to start.	Trag unten ein, wem geschrieben werden soll, um zu beginnen.
-Sent today at %1$s. The next one goes tomorrow at %2$s.	Heute um %1$s gesendet. Die nächste geht morgen um %2$s raus.
 Next message: today at %1$s.	Nächste Nachricht: heute um %1$s.
 Next message: tomorrow at %1$s.	Nächste Nachricht: morgen um %1$s.
 No chat with @%1$s turned up on this account. Open your chat with them once, then try again.	Auf diesem Konto wurde kein Chat mit @%1$s gefunden. Öffne euren Chat einmal und versuch es dann noch mal.
@@ -1465,3 +1467,18 @@ LIVE followers range	Spanne der LIVE-Follower
 Show only LIVEs from creators with this many followers.	Nur LIVEs von Creatorn mit so vielen Followern zeigen.
 Hide the comment bar on opened videos	Kommentarleiste bei geöffneten Videos ausblenden
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Blende die Kommentarleiste unter Videos aus, die du über ein Profil, einen Hashtag, einen Sound oder die Suche öffnest, damit das Video den Bildschirm bis ganz unten füllt. Die Kommentar-Schaltfläche rechts öffnet die Kommentare weiterhin.
+Build details	Build-Informationen
+Copy or save patch-time choices and build identity.	Kopiere oder speichere die beim Patchen gewählten Optionen und die Build-Kennung.
+Copy build details	Build-Informationen kopieren
+Save build details	Build-Informationen speichern
+Build details copied to the clipboard	Build-Informationen in die Zwischenablage kopiert
+Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open TikTok.	Sendet jeden Tag zur unten angegebenen Zeit eine Nachricht an jede der unten genannten Personen, damit eure Flammen auch an Tagen erhalten bleiben, an denen du TikTok nicht öffnest.
+Their usernames, separated by commas or new lines. Each person must already have a chat with you.	Ihre Benutzernamen, durch Kommas oder Zeilenumbrüche getrennt. Mit jeder Person muss bereits ein Chat bestehen.
+Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.	Zustellung unbestätigt: %1$d/%2$d Chats. Für diese Chats gibt es heute keinen weiteren Versuch.
+Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.	Zustellung unbestätigt: %1$d/%2$d Chats. Die übrigen Chats brauchen noch eine Nachricht.
+TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.	TikTok hat diese Nachricht möglicherweise angenommen. Die Zustellung ist unbestätigt, deshalb wird sie heute nicht erneut versucht.
+Nothing was sent. Check the streak settings and try again.	Es wurde nichts gesendet. Prüfe die Streak-Einstellungen und versuche es erneut.
+Don't save new searches	Neue Suchen nicht speichern
+Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.	Halte deine Suchbegriffe aus dem Suchverlauf heraus, den TikTok auf diesem Telefon speichert. Bereits gespeicherte Suchen bleiben, bis du sie löschst, und TikToks Server können weiterhin eigene Aufzeichnungen führen.
+Block suggested video notifications	Benachrichtigungen zu vorgeschlagenen Videos blockieren
+Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.	Die Benachrichtigungen stoppen, die TikTok zu beliebten Videos schickt, die es für dich ausgesucht hat. Nachrichten, Kommentare, Likes, Follows und Videos von Konten, denen du folgst, kommen weiterhin an.

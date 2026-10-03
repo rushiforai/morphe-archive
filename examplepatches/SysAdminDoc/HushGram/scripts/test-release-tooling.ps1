@@ -1812,9 +1812,14 @@ try {
             Edit = { param($text) $text -replace '(?m)^(\s*manager-floor\s*=\s*)"[^"]+"', '${1}"1.99.0"' } },
         @{ File = 'CHANGELOG.md'; Case = 'no section for the version being built'; Pattern = "*does not describe $versionHere, the version this checkout builds*"
             Edit = { param($text) $text -replace ('(?m)^###\s+HushGram\s+v' + [regex]::Escape($versionHere) + '\s*$'), '### HushGram v9.9.9' } },
+        # The checkout may already scope its Unreleased bullets, so the case unscopes the first one
+        # itself rather than relying on the section's wording.
         @{ File = 'CHANGELOG.md'; Case = 'a dated heading Manager can''t scope'; Pattern = "*Morphe Manager cannot show this release: Line * is a $versionHere bullet*"
-            Edit = { param($text) $text -replace ('(?ms)^## Unreleased\s+###\s+HushGram\s+v' + [regex]::Escape($versionHere) + '\s*$'),
-                "## $versionHere (2026-09-30)" } },
+            Edit = { param($text)
+                $dated = $text -replace ('(?ms)^## Unreleased\s+###\s+HushGram\s+v' + [regex]::Escape($versionHere) + '\s*$'),
+                    "## $versionHere (2026-09-30)"
+                $at = $dated.IndexOf("## $versionHere (2026-09-30)")
+                ([regex]'(?m)^\* \*\*(?:Instagram|Tooling):\*\* ').Replace($dated, '* ', 1, [Math]::Max(0, $at)) } },
         @{ File = $bugFormRelative; Case = 'a bug form naming another HushGram version'; Pattern = '*bug report form version placeholder*'
             Edit = { param($text) $text -replace '(placeholder:\s*HushGram )\S+', '${1}0.0.1' } },
         @{ File = $bugFormRelative; Case = 'a bug form naming another Instagram build'; Pattern = '*bug report form version placeholder*'

@@ -9,8 +9,8 @@ it too.
 
 ## State markers (update on every sync)
 
-- **Upstream baseline:** stable tag `v1.44.0` (commit `92dd0ef86d12`)
-- **Last synced upstream release:** v1.44.0 (2026-09-21)
+- **Upstream baseline:** stable tag `v1.45.0` (commit `7387cc19e7d4`)
+- **Last synced upstream release:** v1.45.0 (2026-10-02)
 
 ## What is fork-local
 
@@ -24,7 +24,7 @@ patch no longer applies cleanly):
 | File | Change |
 |---|---|
 | `extensions/youtube/.../patches/components/BrainrotDetector.java` | **New file.** De-obfuscating meme-lexicon density scorer. |
-| `extensions/youtube/.../patches/components/BrainrotCommentFilter.java` | **New file.** `Filter` subclass; path callbacks on `comment_thread.eml` (expanded list) + `comments_entry_point_teaser`/`comments_entry_point_simplebox` (collapsed preview); calls `detector.shouldHideAnySegment(asciiStrings.getStrings())` (per-segment, to avoid buffer-noise dilution); gated by `Settings.HIDE_BRAINROT_COMMENTS`. |
+| `extensions/youtube/.../patches/components/BrainrotCommentFilter.java` | **New file.** `Filter` subclass; path callbacks on `comment_thread.eml` (expanded list) + `comments_entry_point_teaser`/`comments_entry_point_simplebox` (collapsed preview); calls `detector.shouldHideAnySegment(asciiStrings.getStrings())` (per-segment, to avoid buffer-noise dilution); gated by `Settings.HIDE_BRAINROT_COMMENTS`. Its `isFiltered` override must track upstream's `Filter.isFiltered` signature exactly — it is a non-abstract method, so a drifted parameter type becomes a silent overload (caught only by `@Override`, which is why the annotation must stay). v1.45.0 widened the `path` parameter from `String` to `CharSequence`. |
 | `extensions/youtube/src/test/.../components/BrainrotDetectorSelfTest.java` | **New file.** Plain-javac self-test; must print `27 passed, 0 failed`. |
 | `extensions/youtube/.../settings/Settings.java` | Add `HIDE_BRAINROT_COMMENTS = new BooleanSetting("morphe_hide_brainrot_comments", TRUE)` next to the other comment settings. (Also carries the Cat lock setting below.) |
 | `patches/.../youtube/layout/hide/general/HideLayoutComponentsPatch.kt` | (a) const `BRAINROT_COMMENT_FILTER` = extension class descriptor; (b) `SwitchPreference("morphe_hide_brainrot_comments", summary = true)` in the `morphe_comments_screen` preference screen; (c) `addLithoFilter(BRAINROT_COMMENT_FILTER)` next to the other `addLithoFilter` calls. |
@@ -38,7 +38,7 @@ patch no longer applies cleanly):
 | `extensions/youtube/.../patches/catlock/CatLockOverlay.java` | **New file.** Full-window transparent overlay on the Activity decor view; consumes touches; unlock via `AlternatingTapUnlock`; keep-screen-on + fading hint. |
 | `extensions/youtube/.../videoplayer/CatLockButton.java` | **New file.** Top player-control button (mirrors `ExternalDownloadButton` — keep it mirroring whatever that file currently does); constructs `LegacyPlayerControlButton` passing `Settings.CAT_LOCK_BUTTON` itself (not `::get`), `onClick` calls `CatLockOverlay.engage(view)`. Holds no button reference and exposes no visibility injection points. |
 | `extensions/youtube/src/test/.../catlock/AlternatingTapUnlockSelfTest.java` | **New file.** Plain-javac self-test; must print `11 passed, 0 failed`. |
-| `patches/.../youtube/interaction/catlock/CatLockPatch.kt` | **New file.** Mirrors `DownloadsPatch`: `SwitchPreference("morphe_cat_lock_button")`, `copyResources("catlock", ...)`, `addTopControl("catlock", ...)`, `initializeTopControl(CatLockButton)`. Only the initialize hook — the button derives its own visibility from the setting (upstream removed `injectVisibilityCheckCall` in v1.36.0). |
+| `patches/.../youtube/interaction/catlock/CatLockPatch.kt` | **New file.** Mirrors `DownloadsPatch`: `SwitchPreference("morphe_cat_lock_button")`, `copyResources("catlock", ...)`, `addTopControl("catlock", ...)`, `initializeTopControl(CatLockButton)`. Only the initialize hook — the button derives its own visibility from the setting (upstream removed `injectVisibilityCheckCall` in v1.36.0). Keep the plain `copyResources` call: v1.45.0 moved upstream's own button patches to `copyPlayerButtonIcons(dir, baseName)`, which also registers the base name with the player-icon-style patch so it looks for `_fluent`/`_phosphor`/… variants — the fork ships only the plain and `_bold` cat icons, and `PlayerIcons.resolve` falls back to `_bold` for every style anyway. |
 | `extensions/youtube/.../settings/Settings.java` | Add `CAT_LOCK_BUTTON = new BooleanSetting("morphe_cat_lock_button", FALSE, true)` among the overlay buttons. (Same file as brainrot above.) |
 | `patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml` | **New file.** Top-controls button, anchored `toStartOf @id/morphe_external_download_button`. |
 | `patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button{,_bold}.xml` | **New files.** Cat-face vector icon. |

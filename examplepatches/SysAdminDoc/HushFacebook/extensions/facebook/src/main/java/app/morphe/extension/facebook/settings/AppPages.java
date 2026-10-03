@@ -11,6 +11,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;
 
 import android.content.Context;
+import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 
@@ -144,6 +145,8 @@ final class AppPages {
                             + "facebook.com/share/ link is made for one share, so Facebook can still trace it back to you.")));
         }
         links.addPreference(page.supportedLinksRow(context));
+        Preference appManager = page.appManagerLinksRow(context);
+        if (appManager != null) links.addPreference(appManager);
         links.addPreference(info(context, L10n.t("Selecting links by hand"),
                 L10n.t("Android checks Facebook's links against Meta's signing key, which a re-signed build doesn't have. "
                         + "Selecting the addresses sends their links here again. It doesn't restore Meta's verification, "

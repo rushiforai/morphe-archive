@@ -55,7 +55,14 @@ val openDeveloperOptionsPatch = bytecodePatch(
 
     execute {
         requireStatusMethod("developerOptions")
+        // Resolve the editor and assemble every stub body before changing either entry point, so
+        // nothing after the long press hook can refuse.
+        val editor = findOverrideEditor()
+        val reader = findOverrideReader(editor)
+        val writer = findOverrideWriter(reader.model)
+        val stubs = listOf(prepareOverrideEditor(editor), prepareOverrideReader(reader, editor), writer.stubs)
         openOnLongPress(findOptionsOpener())
+        stubs.forEach { putStubs(it) }
         enableStatus("developerOptions")
     }
 }

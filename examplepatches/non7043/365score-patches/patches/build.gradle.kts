@@ -1,12 +1,11 @@
 group = "non7043"
-version = "1.0.0"
-
+version = "1.1.2"
 
 patches {
     about {
-        name = "365Score Patches"
-        description = "Morphe patches for the 365Score sports app"
-        source = "git@github.com:non7043/365score-patches.git"
+        name = "365Score & TikTok Patches"
+        description = "Morphe patches for 365Score and TikTok"
+        source = "https://github.com/non7043/365score-patches"
         author = "non7043"
         contact = "na"
         website = "https://github.com/non7043/365score-patches"
@@ -16,9 +15,32 @@ patches {
 
 dependencies {
     compileOnly("com.github.REAndroid:ARSCLib:a28c6fb2a7")
+    compileOnly(libs.morphe.patcher)
 
     // Used by JsonGenerator.
     implementation(libs.gson)
 
-    implementation(libs.morphe.patches.library)
+    // Required due to smali, or build fails. Can be removed once smali is bumped.
+    implementation(libs.guava)
+
+    // Android API stubs defined here.
+    compileOnly(project(":patches:stub"))
+}
+
+tasks {
+    register<JavaExec>("generatePatchesList") {
+        description = "Build patch with patch list"
+
+        dependsOn(build)
+
+        classpath = sourceSets["main"].runtimeClasspath
+        mainClass.set("app.morphe.util.PatchListGeneratorKt")
+        args(project.version.toString())
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs = listOf("-Xcontext-receivers")
+    }
 }

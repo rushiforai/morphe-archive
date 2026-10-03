@@ -34,6 +34,20 @@ public final class SettingsStatus {
     public static boolean hideRecommendations() { return false; }
     public static boolean channelRecommendations() { return false; }
     public static boolean cachedRecommendations() { return false; }
+    public static boolean hideCommerce() { return false; }
+    public static boolean commerceSettingsRows() { return false; }
+    public static boolean commerceProfileGifts() { return false; }
+    public static boolean commerceChannelGift() { return false; }
+    public static boolean hidePromotionalBanners() { return false; }
+    public static boolean promotionalSuggestions() { return false; }
+    public static boolean birthdayGiftBanner() { return false; }
+    public static boolean hideSponsoredProxy() { return false; }
+    public static boolean cachedProxyDialog() { return false; }
+    public static boolean cachedProxyFilters() { return false; }
+    public static boolean hidePopularApps() { return false; }
+    public static boolean disableChatSwipe() { return false; }
+    public static boolean quietContactsNag() { return false; }
+    public static boolean holidayLook() { return false; }
     public static boolean storyRequests() { return false; }
     public static boolean storyBar() { return false; }
     public static boolean storyCamera() { return false; }
@@ -48,6 +62,21 @@ public final class SettingsStatus {
     public static boolean callDebugUpload() { return false; }
     public static boolean callLogFileUpload() { return false; }
     public static boolean callLogUpload() { return false; }
+
+    public static boolean disableDraftPreviews() { return false; }
+    public static boolean chatDraftPreviews() { return false; }
+    public static boolean shareDraftPreviews() { return false; }
+    public static boolean pollLinkPreviews() { return false; }
+    public static boolean storyLinkPreviews() { return false; }
+    public static boolean botSharePreviews() { return false; }
+
+    public static boolean galleryCameraOnTap() { return false; }
+
+    public static boolean openExternalLinks() { return false; }
+    public static boolean externalBrowserRouting() { return false; }
+    public static boolean stripLinkTracking() { return false; }
+    public static boolean openedLinkTracking() { return false; }
+    public static boolean sharedLinkTracking() { return false; }
 
     public static boolean disableUpdateChecks() {
         return false;
@@ -72,4 +101,9 @@ public final class SettingsStatus {
     public static boolean readMetrics() {
         return false;
     }
+
+    public static boolean premiumPromoShow() { return false; }
+    public static boolean premiumPromoTap() { return false; }
+    public static boolean premiumPromoAccept() { return false; }
+    public static boolean premiumPromoFail() { return false; }
 }

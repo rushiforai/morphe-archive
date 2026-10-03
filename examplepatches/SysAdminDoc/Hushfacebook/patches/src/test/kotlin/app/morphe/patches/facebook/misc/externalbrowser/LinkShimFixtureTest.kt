@@ -7,6 +7,9 @@ package app.morphe.patches.facebook.misc.externalbrowser
 import app.morphe.Fixtures
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.isStringTableCall
+import app.morphe.patches.facebook.feed.resolveStatic
+import app.morphe.patches.facebook.feed.tableStringsAsked
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -20,7 +23,8 @@ import java.io.File
  * Facebook's own link-shim recognisers on every build the bundle declares, which
  * ExternalBrowser.unwrapLinkShim copies. Its list of shim hosts and paths is theirs, plus /l.php
  * on messenger.com (Meta's shim host for chat links, which neither build names), so a page like
- * sharer.php that merely carries a "u" stays in the app. When one of these
+ * sharer.php that merely carries a "u" stays in the app. A literal a check asks a string table for
+ * counts as its own (581 moved Messenger's /l.php into one). When one of these
  * fails on a new build, Facebook changed its list: change the extension's with it, or an outbound
  * link on the new form stays in the in-app browser (the 2026-09-19 bug). Reads the fixture bundles
  * from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
@@ -53,6 +57,14 @@ class LinkShimFixtureTest {
             reference.parameterTypes.joinToString("", "(", ")") + reference.returnType == target
     }
 
+    /** [method]'s literals and the ones it asks a string table for. */
+    private fun named(bundle: File, method: Method): Set<String> {
+        val calls = method.implementation?.instructions?.filter(::isStringTableCall).orEmpty()
+        val tables = FixtureDex.classes(bundle,
+            calls.mapNotNull { ((it as ReferenceInstruction).reference as? MethodReference)?.definingClass }.toSet())
+        return literals(method) + tableStringsAsked(method) { call -> tables[call.definingClass]?.let { resolveStatic(it, call) } }
+    }
+
     private fun holding(bundle: File, string: String): List<Method> =
         FixtureDex.classesHolding(bundle, string).flatMap { owner -> owner.methods.filter { holdsString(it, string) } }
 
@@ -77,11 +89,11 @@ class LinkShimFixtureTest {
         val hostCheckSignature = signature(hostChecks.single())
         val shimChecks = holding(bundle, "/l.php").filter { calls(it, hostCheckSignature) }
         assertEquals("$name: methods holding /l.php that ask $hostCheckSignature", 1, shimChecks.size)
-        assertEquals("$name: what the shim check compares the path with", shimCheck, literals(shimChecks.single()))
+        assertEquals("$name: what the shim check compares the path with", shimCheck, named(bundle, shimChecks.single()))
 
         val messengerChecks = holding(bundle, "/si/ajax/l/")
         assertEquals("$name: methods holding /si/ajax/l/", 1, messengerChecks.size)
-        assertEquals("$name: the paths Messenger's shim check knows", messengerShimPaths, literals(messengerChecks.single()))
+        assertEquals("$name: the paths Messenger's shim check knows", messengerShimPaths, named(bundle, messengerChecks.single()))
         assertEquals("$name: methods holding Messenger's /l/ pattern", 1, holding(bundle, pathShim).size)
 
         assertEquals("$name: methods holding the browser's warning page pattern", 1, holding(bundle, warningPages).size)

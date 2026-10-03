@@ -176,6 +176,67 @@ class VerifiedResourceStripperTest {
         assertArrayEquals("archive bytes".toByteArray(), outside.readBytes())
     }
 
+    private val bothAbis = ResourceProfile(
+        "fixture",
+        listOf(
+            ResourceFileContract("assets/group/model.bin", sha256("model")),
+            ResourceFileContract("lib/arm64-v8a/first.so", sha256("arm64 first")),
+            ResourceFileContract("lib/arm64-v8a/second.so", sha256("arm64 second")),
+            ResourceFileContract("lib/armeabi-v7a/first.so", sha256("armeabi first")),
+            ResourceFileContract("lib/armeabi-v7a/second.so", sha256("armeabi second")),
+        ),
+    )
+    private val bothAbiLibraries = bothAbis.files.map { it.path }.filter { it.startsWith("lib/") }
+
+    @Test
+    fun `an APK split down to one ABI is verified against what it kept and emptied`() {
+        // #43: a universal APK with the 32-bit libraries taken out matched no reviewed set.
+        for ((abi, kept) in listOf("arm64-v8a" to "arm64", "armeabi-v7a" to "armeabi")) {
+            val root = temporary.newFolder("only-$abi")
+            root.write("assets/group/model.bin", "model")
+            root.write("lib/$abi/first.so", "$kept first")
+            root.write("lib/$abi/second.so", "$kept second")
+
+            val result = stripVerifiedResources(root, "Test resources", listOf("assets/group"), bothAbiLibraries,
+                listOf(bothAbis))
+
+            assertEquals(3, result.files)
+            assertFalse(result.alreadyStripped)
+            assertTrue(root.resolve("lib/$abi/first.so").readBytes().isEmpty())
+            assertTrue(root.resolve("assets/group/model.bin").readBytes().isEmpty())
+        }
+    }
+
+    @Test
+    fun `a one-ABI APK still has its digests checked and cannot drop part of an ABI`() {
+        val altered = temporary.newFolder("altered-split")
+        altered.write("assets/group/model.bin", "model")
+        altered.write("lib/arm64-v8a/first.so", "arm64 first")
+        val changed = altered.write("lib/arm64-v8a/second.so", "patched elsewhere")
+        assertThrows(PatchException::class.java) {
+            stripVerifiedResources(altered, "Test resources", listOf("assets/group"), bothAbiLibraries, listOf(bothAbis))
+        }
+        assertArrayEquals("patched elsewhere".toByteArray(), changed.readBytes())
+
+        // Half of the other ABI gone is not a split, it's a set nobody reviewed.
+        val partial = temporary.newFolder("partial-abi")
+        partial.write("assets/group/model.bin", "model")
+        val first = partial.write("lib/arm64-v8a/first.so", "arm64 first")
+        partial.write("lib/arm64-v8a/second.so", "arm64 second")
+        partial.write("lib/armeabi-v7a/first.so", "armeabi first")
+        assertThrows(PatchException::class.java) {
+            stripVerifiedResources(partial, "Test resources", listOf("assets/group"), bothAbiLibraries, listOf(bothAbis))
+        }
+        assertArrayEquals("arm64 first".toByteArray(), first.readBytes())
+
+        // Nor does dropping every library leave a set the libraries' absence explains.
+        val noLibraries = temporary.newFolder("no-libraries")
+        noLibraries.write("assets/group/model.bin", "model")
+        assertThrows(PatchException::class.java) {
+            stripVerifiedResources(noLibraries, "Test resources", listOf("assets/group"), bothAbiLibraries, listOf(bothAbis))
+        }
+    }
+
     @Test
     fun `a partly emptied group is rejected`() {
         val root = temporary.newFolder("partial")
@@ -218,6 +279,7 @@ class VerifiedResourceStripperTest {
             val result = stripVerifiedLanguagePacks(root, selection, listOf(contract))
             assertEquals(0, result.files)
             assertEquals(0L, result.bytes)
+            assertEquals(setOf("en", "tr"), result.retainedLocales)
             assertArrayEquals("english".toByteArray(), english.readBytes())
             assertArrayEquals("turkish".toByteArray(), turkish.readBytes())
         }
@@ -278,6 +340,8 @@ class VerifiedResourceStripperTest {
         assertEquals(7L, first.bytes)
         assertFalse(first.alreadyStripped)
         assertTrue(second.alreadyStripped)
+        assertEquals(setOf("en"), first.retainedLocales)
+        assertEquals(setOf("en"), second.retainedLocales)
         assertArrayEquals("english".toByteArray(), root.resolve("assets/strings#lang_en/en.xrsc").readBytes())
         assertTrue(root.resolve("assets/strings#lang_es/es.xrsc").readBytes().isEmpty())
     }

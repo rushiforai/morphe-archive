@@ -30,11 +30,11 @@ internal fun Fingerprint.takes(method: Method, classDef: ClassDef): Boolean {
         }
         all.singleOrNull()
     }
-    definingClass?.let { if (!typeMatches(method.definingClass, it)) return false }
-    name?.let { if (method.name != it) return false }
-    accessFlags?.let { if (method.accessFlags != it) return false }
-    returnType?.let { if (!typeMatches(method.returnType, it)) return false }
-    parameters?.let { wanted ->
+    declaredDefiningClass?.let { if (!typeMatches(method.definingClass, it)) return false }
+    declaredName?.let { if (method.name != it) return false }
+    declaredAccessFlags?.let { if (method.accessFlags != it) return false }
+    declaredReturnType?.let { if (!typeMatches(method.returnType, it)) return false }
+    declaredParameters?.let { wanted ->
         val actual = method.parameterTypes.map(CharSequence::toString)
         if (actual.size != wanted.size || actual.zip(wanted).any { (have, want) -> !typeMatches(have, want) }) return false
     }
@@ -50,6 +50,21 @@ internal fun Fingerprint.takes(method: Method, classDef: ClassDef): Boolean {
     custom?.let { if (!it(method, classDef)) return false }
     return true
 }
+
+/*
+ * The fields a fingerprint was declared with. Morphe patcher 1.15 made these internal (its #230:
+ * a partial type written there reads like the matched method's whole one), so tests that judge a
+ * fingerprint by its own declaration read the backing fields.
+ */
+internal val Fingerprint.declaredDefiningClass: String? get() = declared("definingClass")
+internal val Fingerprint.declaredName: String? get() = declared("name")
+internal val Fingerprint.declaredAccessFlags: Int? get() = declared("accessFlags")
+internal val Fingerprint.declaredReturnType: String? get() = declared("returnType")
+internal val Fingerprint.declaredParameters: List<String>? get() = declared("parameters")
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> Fingerprint.declared(field: String): T? =
+    Fingerprint::class.java.getDeclaredField(field).also { it.isAccessible = true }.get(this) as T?
 
 /** The patcher's comparison for a type as a fingerprint writes it (StringComparisonType). */
 internal fun typeMatches(actual: String, wanted: String): Boolean = when {

@@ -33,7 +33,7 @@ private object ExternalAppInfoToStringFingerprint : Fingerprint(
 
 private object ShareCardSnapshotToStringFingerprint : Fingerprint(
     name = "toString",
-    strings = listOf("ShareCardSnapshot(uri="),
+    strings = listOf("ShareCardSnapshot("),
 )
 
 /** Sends a rendered share card to Instagram Stories or Snapchat. */
@@ -72,16 +72,24 @@ val shareAsImagePatch = bytecodePatch(
         // the pending card. The entry added above is handled right after that.
         val snapshot = ShareCardSnapshotToStringFingerprint.classDef.type
         ShareCardCallbackFingerprint.method.apply {
-            fun castTo(type: String) = instructions.first {
-                it.opcode == Opcode.CHECK_CAST && it.getReference<TypeReference>()?.type == type
-            } as OneRegisterInstruction
+            // The callback can be one case of a merged lambda, so everything is looked up around
+            // the cast to the card: the context and app casts just before it, and the clearing of
+            // the pending card just after.
+            fun isCastTo(instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction, type: String) =
+                instruction.opcode == Opcode.CHECK_CAST && instruction.getReference<TypeReference>()?.type == type
 
-            val context = castTo("Landroid/content/Context;").registerA
-            val app = castTo(entry.type).registerA
-            val card = castTo(snapshot).registerA
+            val cardCast = instructions.first { isCastTo(it, snapshot) }
+            val cardIndex = cardCast.location.index
+            val before = instructions.take(cardIndex)
+
+            val context = (before.last { isCastTo(it, "Landroid/content/Context;") } as OneRegisterInstruction).registerA
+            val app = (before.last { isCastTo(it, entry.type) } as OneRegisterInstruction).registerA
+            val card = (cardCast as OneRegisterInstruction).registerA
             val cleared = instructions.first { instruction ->
-                instruction.opcode == Opcode.INVOKE_INTERFACE && instruction.getReference<MethodReference>()?.name == "setValue"
+                instruction.location.index > cardIndex && instruction.opcode == Opcode.INVOKE_INTERFACE &&
+                    instruction.getReference<MethodReference>()?.name == "setValue"
             }.location.index
+            if (cleared - cardIndex > 4) throw PatchException("The share card callback does not clear the pending card")
             if (maxOf(context, app, card) > 15) throw PatchException("The share card callback keeps its values above v15")
 
             val result = getFreeRegisterProvider(cleared + 1, 1, listOf(context, app, card)).getFreeRegister()

@@ -43,6 +43,7 @@ class MenuSectionsFixtureTest {
      * Read from assets/strings/default.frsc.xz, where Facebook keeps its English strings.
      */
     private val headerLabel = mapOf(
+        "581.0.0.45.58" to 0x7f14044e,
         "580.0.0.51.74" to 0x7f140436,
         "577.0.0.50.72" to 0x7f14042d,
     )

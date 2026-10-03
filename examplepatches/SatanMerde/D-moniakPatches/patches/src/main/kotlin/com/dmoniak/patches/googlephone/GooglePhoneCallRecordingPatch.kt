@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googlePhoneCallRecordingPatch = bytecodePatch(
     name = "Enable Call Recording - Phone by Google (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enables native call recording buttons and settings in Google Phone, bypassing regional carrier and country restrictions.",
+    description = "⚠️ [En cours de développement / Non testé] Enables native call recording in Google Phone. NOTE: Requires ROOT + Core Patch because Google Phone is a pre-installed system app on most devices.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_PHONE)
 

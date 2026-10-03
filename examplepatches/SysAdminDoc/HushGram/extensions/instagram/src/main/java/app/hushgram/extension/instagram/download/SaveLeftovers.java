@@ -337,7 +337,15 @@ public final class SaveLeftovers {
                 // Only while it's still pending: a row the stopped save had already published is a
                 // finished file that was crossed off too late. MediaStore matches a pending row
                 // when it's named by its own address.
-                int deleted = resolver.delete(address, MediaStore.MediaColumns.IS_PENDING + "=1", null);
+                int deleted = 0;
+                RuntimeException deletionFailure = null;
+                try {
+                    deleted = resolver.delete(address, MediaStore.MediaColumns.IS_PENDING + "=1", null);
+                } catch (RuntimeException failure) {
+                    // Samsung can reject an already-absent URI. The query below must prove its
+                    // state before retirement; a delete exception alone proves nothing.
+                    deletionFailure = failure;
+                }
                 removed += deleted;
                 if (deleted == 0) {
                     // Zero also means a provider refused deletion. Cross off only a confirmed
@@ -347,8 +355,11 @@ public final class SaveLeftovers {
                         if (remaining == null) retry.add(row);
                         else if (remaining.moveToFirst()) {
                             int column = remaining.getColumnIndex(MediaStore.MediaColumns.IS_PENDING);
-                            if (column < 0 || remaining.getInt(column) != 0) retry.add(row);
+                            if (column < 0 || remaining.isNull(column) || remaining.getInt(column) != 0) retry.add(row);
                         }
+                    }
+                    if (retry.contains(row) && deletionFailure != null) {
+                        MediaSave.failure(() -> "could not remove a pending gallery row a stopped save left", deletionFailure);
                     }
                 }
             } catch (Throwable t) {

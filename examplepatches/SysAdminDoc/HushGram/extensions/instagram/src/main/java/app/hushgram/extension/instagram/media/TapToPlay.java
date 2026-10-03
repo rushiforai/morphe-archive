@@ -50,6 +50,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *   <li>A tap ended no more than {@link #TAP_WINDOW_MS} ago ({@link TapClock}).</li>
  *   <li>A tap ended no more than {@link #LOAD_WINDOW_MS} ago and nothing has started on it yet:
  *       a story or a video the tap opened can take that long to load.</li>
+ *   <li>Instagram's Reels auto scroller moved on to the next reel no more than
+ *       {@link #LOAD_WINDOW_MS} ago, and this is the first start of a player that isn't armed since
+ *       ({@link #autoScrolled}). Moving on counts as a tap on the reel it moves to, so that reel
+ *       plays, and its own end moves on again, reel after reel, while auto scroll is on.</li>
  * </ul>
  *
  * <p>Every other start is held, and the player stays where it was, showing its first frame or its
@@ -118,11 +122,19 @@ public final class TapToPlay {
     private static final Object TAP_LOCK = new Object();
     /** The end of the last tap a start went ahead on, so only its first start gets the load window. */
     private static long usedTap = TapClock.NO_TAP;
+    /** No move of the auto scroller is waiting for its start. */
+    static final long NO_SCROLL = Long.MIN_VALUE;
+    /**
+     * When Instagram's auto scroller last moved on, until a start uses that move or a swipe ends
+     * it: {@link #NO_SCROLL} then. Guarded by {@link #TAP_LOCK}.
+     */
+    private static long autoScrolledAt = NO_SCROLL;
     private static final Object LOG_LOCK = new Object();
     private static int decisions;
     private static int allowedSinceSummary;
     private static int heldSinceSummary;
     private static int endedStarts;
+    private static int autoScrolls;
     private static boolean checkLogged;
     private static boolean viewlessClickLogged;
 
@@ -177,9 +189,60 @@ public final class TapToPlay {
         }
     }
 
-    /** A swipe keeps the current video armed, but the next video must wait for its own start. */
+    /**
+     * A swipe keeps the current video armed, but the next video must wait for its own start. It
+     * also ends a move of the auto scroller that no start has used yet, so the reel you swipe to
+     * waits for a tap, as it would with auto scroll off.
+     */
     static void nonTapGesture() {
         ARMED.expireBindGrace();
+        synchronized (TAP_LOCK) {
+            autoScrolledAt = NO_SCROLL;
+        }
+    }
+
+    /**
+     * The hook in Instagram's Reels auto scroller, right before it moves the Reels pager on to the
+     * next reel. The scroller moves on only while Instagram's auto scroll is on, when a reel ends or
+     * nearly does, or when a photo's timer runs out. Moving on counts as a tap on the reel it moves
+     * to: that reel's first start within {@link #LOAD_WINDOW_MS} goes ahead and arms its player, if
+     * that player isn't armed already ({@link #decide}). A held reel never plays, so it never ends,
+     * and the scroller never moves on from it, and a reel you pause doesn't end either, so the chain
+     * stops there. Without this the reel auto scroll moved to sat on its first frame and auto scroll
+     * stopped for good. Off, paused, before the settings are ready, or when anything here throws,
+     * nothing is recorded, and the next reel waits for a tap.
+     */
+    public static void autoScrolled() {
+        try {
+            HookStatus.invoked(FamilyNames.TAP_TO_PLAY);
+            RuntimeException failure = failNext;
+            if (failure != null) {
+                failNext = null;
+                throw failure;
+            }
+            if (!on()) return;
+            HookStatus.bound(FamilyNames.TAP_TO_PLAY, "auto scroll");
+            scrolledAt(SystemClock.uptimeMillis());
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.TAP_TO_PLAY, "auto scroll", failure);
+        }
+    }
+
+    /** Records a move of the auto scroller at [now], for the start of the reel it moves to. */
+    static void scrolledAt(long now) {
+        synchronized (TAP_LOCK) {
+            autoScrolledAt = now;
+        }
+        int count;
+        synchronized (LOG_LOCK) {
+            count = ++autoScrolls;
+        }
+        if (count <= LOGGED_ONE_BY_ONE) {
+            Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE,
+                    () -> "Tap to play: auto scroll moved on, so the next reel's first start goes ahead");
+        } else if ((count - LOGGED_ONE_BY_ONE) % SUMMED_UP_BY == 0) {
+            Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE, () -> "Tap to play: " + SUMMED_UP_BY + " more auto scrolls");
+        }
     }
 
     /**
@@ -391,13 +454,31 @@ public final class TapToPlay {
         boolean armed = ARMED.contains(player);
         long sinceTap = TapClock.msSinceTap(now);
         boolean covered = tapCovers(sinceTap, now, armed);
-        boolean allowed = armed || covered;
+        boolean scrolled = player != null && !armed && autoScrollCovers(now);
+        boolean allowed = armed || covered || scrolled;
         if (allowed && !armed) ARMED.add(player, now);
         if (allowed) HELD.remove(player);
         else HELD.add(player, now);
         if (covered) PlayButtons.started(player, now);
-        logDecision(allowed, reason, sinceTap, armed, path);
+        logDecision(allowed, reason, sinceTap, armed, scrolled, path);
         return allowed;
+    }
+
+    /**
+     * Whether the auto scroller's last move covers a start at [now], of a player that isn't armed:
+     * the first such start within {@link #LOAD_WINDOW_MS} of the move, as a tap's load window covers
+     * its first start. That start uses the move, whether or not a tap covers it too, so a second
+     * player can't start on it. An armed player's start goes ahead by itself and never asks, so a
+     * reel that loops before the pager settles leaves the move to the reel it moves to, and a start
+     * with no player at all, which plays nothing, doesn't use it up either.
+     */
+    private static boolean autoScrollCovers(long now) {
+        synchronized (TAP_LOCK) {
+            long at = autoScrolledAt;
+            if (at == NO_SCROLL || now < at || now - at > LOAD_WINDOW_MS) return false;
+            autoScrolledAt = NO_SCROLL;
+            return true;
+        }
     }
 
     /**
@@ -417,13 +498,14 @@ public final class TapToPlay {
         }
     }
 
-    private static void logDecision(boolean allowed, @Nullable String reason, long sinceTap, boolean armed, String path) {
+    private static void logDecision(boolean allowed, @Nullable String reason, long sinceTap, boolean armed, boolean scrolled, String path) {
         String line;
         synchronized (LOG_LOCK) {
             decisions++;
             if (decisions <= LOGGED_ONE_BY_ONE) {
                 line = "Tap to play: " + (allowed ? "allowed " : "held ") + (reason == null ? "no reason" : reason)
-                        + " " + (sinceTap < 0 ? "no tap" : sinceTap + " ms") + " armed " + (armed ? "yes" : "no") + path;
+                        + " " + (sinceTap < 0 ? "no tap" : sinceTap + " ms") + " armed " + (armed ? "yes" : "no")
+                        + (scrolled ? " after auto scroll" : "") + path;
             } else {
                 if (allowed) allowedSinceSummary++;
                 else heldSinceSummary++;
@@ -456,8 +538,8 @@ public final class TapToPlay {
     }
 
     /**
-     * Forgets every armed and held player, the hidden play button and the log's counts, and puts the
-     * patched readers back. For tests.
+     * Forgets every armed and held player, the hidden play button, the auto scroller's move and the
+     * log's counts, and puts the patched readers back. For tests.
      */
     static void forget() {
         ARMED.clear();
@@ -466,6 +548,7 @@ public final class TapToPlay {
         PlayButtons.forget();
         synchronized (TAP_LOCK) {
             usedTap = TapClock.NO_TAP;
+            autoScrolledAt = NO_SCROLL;
         }
         reelStates = ReelStateReader::reelState;
         synchronized (LOG_LOCK) {
@@ -473,6 +556,7 @@ public final class TapToPlay {
             allowedSinceSummary = 0;
             heldSinceSummary = 0;
             endedStarts = 0;
+            autoScrolls = 0;
             checkLogged = false;
             viewlessClickLogged = false;
         }

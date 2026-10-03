@@ -43,6 +43,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction;
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload;
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 import com.android.tools.smali.dexlib2.iface.reference.StringReference;
@@ -75,6 +76,8 @@ public class CompatReport {
     static final String IMMUTABLE_LIST = "Lcom/google/common/collect/ImmutableList;";
     static final String PREFERENCES = "Lcom/facebook/prefs/shared/FbSharedPreferences;";
     static final String MONTAGE_CARD = "Lcom/facebook/messaging/montage/model/MontageCard;";
+    static final String ANIMATION = "Landroid/view/animation/Animation;";
+    static final String FRAGMENT_ANIMATION = "Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)" + ANIMATION;
     static final String PEOPLE_TAB_FETCH = "Lcom/facebook/messaging/peopletab/segments/friendrequests/usecase/"
         + "PeopleTabPYMKHandler$fetchPymkSuggestions$$inlined$CoroutineExceptionHandler$1;";
     static final String PEOPLE_JEWEL_KEY = "pymk_jewel_section_hidden";
@@ -153,7 +156,7 @@ public class CompatReport {
         PATCHES.put("Hide Meta AI", List.of("ai_menu", "ai_fab", "ai_toolbar", "ai_tab", "ai_search", "ai_search_chip"));
         PATCHES.put("Hide Chat Moments", List.of("moments"));
         PATCHES.put("Hide Reels badge", List.of("reels_badge"));
-        PATCHES.put("Hide AI sticker tools", List.of("ai_stickers"));
+        PATCHES.put("Hide AI sticker tools", List.of("ai_stickers", "ai_sticker_cell"));
         PATCHES.put("Hide avatar stickers", List.of("avatar_stickers", "avatar_tabs"));
         PATCHES.put("Hide chat promotions", List.of("chat_promotions"));
         PATCHES.put("Hide business reply suggestions", List.of("suggested_replies"));
@@ -164,11 +167,12 @@ public class CompatReport {
         PATCHES.put("Allow chat bubbles", List.of("bubbles", "bubble_mode"));
         PATCHES.put("Use system emoji", List.of("emoji_typeface"));
         PATCHES.put("Send photos at original quality", List.of("original_photo"));
-        PATCHES.put("Allow screenshots", List.of("allow_screenshot"));
+        PATCHES.put("Allow screenshots", List.of("allow_screenshot", "screenshot_viewers"));
         PATCHES.put("Hide read receipts", List.of("hide_read_receipts", "read_mailbox"));
         PATCHES.put("Keep unsent messages", List.of("keep_unsent", "unsent_indicator", "delta_unsent"));
         PATCHES.put("View stories anonymously", List.of("anonymous_stories"));
         PATCHES.put("Save any story", List.of("save_stories"));
+        PATCHES.put("Slide chats in and out", List.of("chat_animation", "chat_fragment", "chat_inbox", "chat_legacy"));
         PATCHES.put("Open settings from menu", List.of("menu_settings"));
     }
 
@@ -1226,9 +1230,148 @@ public class CompatReport {
         return null;
     }
 
+    static final String EPHEMERAL_VIEWER = "Lcom/facebook/messaging/media/ephemeralmedia/viewer/EphemeralMediaViewerFragment;";
+    static final String QUICKSNAP_VIEWER = "Lcom/facebook/messaging/quicksnap/consumption/viewer/MsgrQuicksnapViewerFragment;";
+    static final String WINDOW = "Landroid/view/Window;";
+    static final String SET_FLAGS = WINDOW + "->setFlags(II)V", ADD_FLAGS = WINDOW + "->addFlags(I)V";
+    static final int GENERATE_AI_LABEL = 0x7f1404fe;
+
+    static int mediaTarget(List<Instruction> code, int at) {
+        if (!(code.get(at) instanceof OffsetInstruction jump)) return -1;
+        int offset = 0;
+        for (int i = 0; i < at; i++) offset += code.get(i).getCodeUnits();
+        int target = offset + jump.getCodeOffset(); offset = 0;
+        for (int i = 0; i < code.size(); i++) { if (offset == target) return i; offset += code.get(i).getCodeUnits(); }
+        return -1;
+    }
+    static Set<Integer> mediaTargets(Method method) {
+        var code = instructions(method); var offsets = new HashMap<Integer, Integer>(); int offset = 0;
+        for (int i = 0; i < code.size(); i++) { offsets.put(offset, i); offset += code.get(i).getCodeUnits(); }
+        var targets = new HashSet<Integer>(); offset = 0;
+        for (var i : code) {
+            if (i instanceof OffsetInstruction jump) {
+                Integer landing = offsets.get(offset + jump.getCodeOffset());
+                if (i.getOpcode() == Opcode.PACKED_SWITCH || i.getOpcode() == Opcode.SPARSE_SWITCH) {
+                    if (landing != null && code.get(landing) instanceof SwitchPayload payload)
+                        for (var e : payload.getSwitchElements()) targets.add(offsets.getOrDefault(offset + e.getOffset(), -1));
+                } else if (landing != null) targets.add(landing);
+            }
+            offset += i.getCodeUnits();
+        }
+        if (method.getImplementation() != null) for (var b : method.getImplementation().getTryBlocks())
+            for (var h : b.getExceptionHandlers()) targets.add(offsets.getOrDefault(h.getHandlerCodeAddress(), -1));
+        return targets;
+    }
+    static boolean mediaWrites(Instruction i, int r) {
+        return i.getOpcode().setsRegister() && (register(i) == r || (i.getOpcode().name().contains("WIDE") && register(i) + 1 == r));
+    }
+    static boolean mediaOp(List<Instruction> c, int at, Opcode op) { return at < c.size() && c.get(at).getOpcode() == op; }
+    static boolean mediaCall(List<Instruction> c, int at, String id, Integer... args) {
+        return mediaOp(c, at, Opcode.INVOKE_VIRTUAL) && id.equals(ref(c.get(at))) && bubbleArgs(c.get(at)).equals(List.of(args));
+    }
+    static boolean mediaLiteral(List<Instruction> c, int at, int r) {
+        return mediaOp(c, at, Opcode.CONST_16) && register(c.get(at)) == r && c.get(at) instanceof NarrowLiteralInstruction n && n.getNarrowLiteral() == 0x2000;
+    }
+    static boolean mediaNull(List<Instruction> c, int at, int r, int target) {
+        return mediaOp(c, at, Opcode.IF_EQZ) && register(c.get(at)) == r && mediaTarget(c, at) == target;
+    }
+    static boolean mediaResult(List<Instruction> c, int at, String type, int r) {
+        return at > 0 && mediaOp(c, at, Opcode.MOVE_RESULT_OBJECT) && register(c.get(at)) == r &&
+            c.get(at - 1).getOpcode().name().startsWith("INVOKE") && c.get(at - 1) instanceof ReferenceInstruction ri &&
+            ri.getReference() instanceof MethodReference mr && mr.getReturnType().equals(type);
+    }
+    static boolean mediaWindow(List<Instruction> c, int at, String owner, int source, int result, int target) {
+        return mediaCall(c, at, owner + "->getWindow()" + WINDOW, source) && mediaOp(c, at + 1, Opcode.MOVE_RESULT_OBJECT) &&
+            register(c.get(at + 1)) == result && mediaNull(c, at + 2, result, target);
+    }
+    /** Mirrors NativeMediaControls.kt. No lifecycle body is eligible for an entry return. */
+    static List<Integer> screenshotViewerSites(Method method) {
+        if (!Set.of(EPHEMERAL_VIEWER, QUICKSNAP_VIEWER).contains(method.getDefiningClass())) return List.of();
+        var impl = method.getImplementation(); var c = instructions(method); var p = bubbleParameters(method);
+        if (impl == null || AccessFlags.STATIC.isSet(method.getAccessFlags()) || !impl.getTryBlocks().isEmpty()) return List.of();
+        List<Integer> sites; boolean valid, resume = false;
+        if (method.getDefiningClass().equals(EPHEMERAL_VIEWER) && Set.of("A1A", "A1C").contains(method.getName()) &&
+                p.equals(List.of("Landroid/os/Bundle;")) && method.getReturnType().equals("Landroid/app/Dialog;")) {
+            sites = List.of(9);
+            valid = impl.getRegisterCount() == 5 && c.size() == 15 && mediaResult(c, 4, "Landroid/app/Dialog;", 2) &&
+                mediaWindow(c, 5, "Landroid/app/Dialog;", 2, 1, 10) && mediaLiteral(c, 8, 0) && mediaCall(c, 9, SET_FLAGS, 1, 0, 0);
+        } else if (method.getDefiningClass().equals(EPHEMERAL_VIEWER) && method.getName().equals("onResume") && p.isEmpty() && method.getReturnType().equals("V")) {
+            sites = List.of(14, 21); resume = true;
+            valid = impl.getRegisterCount() == 5 && c.size() == 48 && mediaResult(c, 8, "Landroid/app/Activity;", 0) && mediaLiteral(c, 9, 1) &&
+                mediaNull(c, 10, 0, 15) && mediaWindow(c, 11, "Landroid/app/Activity;", 0, 0, 15) && mediaCall(c, 14, SET_FLAGS, 0, 1, 1) &&
+                mediaOp(c, 15, Opcode.INVOKE_VIRTUAL) && bubbleArgs(c.get(15)).equals(List.of(4)) &&
+                c.get(15) instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference mr && mr.getReturnType().equals("Landroid/app/Dialog;") &&
+                mediaOp(c, 16, Opcode.MOVE_RESULT_OBJECT) && register(c.get(16)) == 0 && mediaNull(c, 17, 0, 22) &&
+                mediaWindow(c, 18, "Landroid/app/Dialog;", 0, 0, 22) && mediaCall(c, 21, SET_FLAGS, 0, 1, 1);
+            if (valid) for (int i = 10; i <= 21; i++) if (mediaWrites(c.get(i), 1)) valid = false;
+        } else if (method.getDefiningClass().equals(QUICKSNAP_VIEWER) && method.getName().equals("onCreateView") &&
+                p.equals(List.of("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;")) && method.getReturnType().equals("Landroid/view/View;")) {
+            sites = List.of(32);
+            valid = impl.getRegisterCount() == 23 && Set.of(438, 439, 441, 442, 448).contains(c.size()) && mediaResult(c, 26, "Landroid/app/Dialog;", 0) &&
+                mediaNull(c, 27, 0, 33) && mediaWindow(c, 28, "Landroid/app/Dialog;", 0, 1, 33) && mediaLiteral(c, 31, 0) && mediaCall(c, 32, ADD_FLAGS, 1, 0);
+        } else return List.of();
+        var setters = new ArrayList<Integer>();
+        for (int i = 0; i < c.size(); i++) if (ref(c.get(i)) != null && Set.of(SET_FLAGS, ADD_FLAGS, WINDOW + "->clearFlags(I)V").contains(ref(c.get(i)))) setters.add(i);
+        if (!valid || !setters.equals(sites)) return List.of();
+        if (resume && c.stream().anyMatch(i -> i.getOpcode().name().contains("SWITCH") || i.getOpcode().name().contains("PAYLOAD"))) return List.of();
+        for (int t : mediaTargets(method)) if (t >= 1 && t <= sites.getLast() && (!resume || t != 15)) return List.of();
+        if (resume) for (int i = 0; i < c.size(); i++) if (i != 10 && i != 13 && c.get(i) instanceof OffsetInstruction && mediaTarget(c, i) == 15) return List.of();
+        return sites;
+    }
+
+    record AiCell(String type, String superclass, String scope, String component, int size) {
+        String render() { return type + "->render(" + scope + ")" + component; }
+    }
+    static List<Method> findAiStickerCells(List<ClassDef> classes) {
+        var shapes = List.of(new AiCell("LX/FXP;", "LX/1Hx;", "LX/2MZ;", "LX/1GG;", 104),
+            new AiCell("LX/FWm;", "LX/1Hx;", "LX/2MZ;", "LX/1GG;", 104), new AiCell("LX/FTy;", "LX/1Hw;", "LX/2MY;", "LX/1GF;", 104),
+            new AiCell("LX/FfQ;", "LX/1Hw;", "LX/2MY;", "LX/1GF;", 106), new AiCell("LX/FSU;", "LX/1IL;", "LX/2Nf;", "LX/1Gf;", 104));
+        var result = new ArrayList<Method>();
+        for (var shape : shapes) {
+            var matching = classes.stream().filter(c -> c.getType().equals(shape.type())).toList();
+            if (matching.size() != 1) continue;
+            var cls = matching.getFirst();
+            if (!Objects.equals(cls.getSuperclass(), shape.superclass())) continue;
+            int fields = 0; for (var f : cls.getFields()) if (f.getName().equals("A00") && f.getType().equals("I") && !AccessFlags.STATIC.isSet(f.getAccessFlags())) fields++;
+            if (fields != 1) continue;
+            var ctors = new ArrayList<Method>();
+            for (var m : cls.getMethods()) { var p = bubbleParameters(m);
+                if (m.getName().equals("<init>") && p.size() == 11 && p.getFirst().equals(BUBBLE_SESSION) && p.getLast().equals("I") &&
+                        p.subList(7, 9).equals(List.of("Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function0;"))) ctors.add(m); }
+            if (ctors.size() != 1) continue;
+            var ctor = ctors.getFirst(); var b = instructions(ctor);
+            if (AccessFlags.STATIC.isSet(ctor.getAccessFlags()) || ctor.getImplementation() == null || ctor.getImplementation().getRegisterCount() != 12 || b.size() != 15 ||
+                    b.get(5).getOpcode() != Opcode.IPUT || !(b.get(5) instanceof TwoRegisterInstruction store) || store.getRegisterA() != 11 || store.getRegisterB() != 0 ||
+                    !Objects.equals(ref(b.get(5)), shape.type() + "->A00:I") || b.stream().filter(i -> Objects.equals(ref(i), shape.type() + "->A00:I")).count() != 1 ||
+                    b.subList(0, 5).stream().anyMatch(i -> mediaWrites(i, 0) || mediaWrites(i, 11)) ||
+                    b.stream().anyMatch(i -> i instanceof OffsetInstruction) || !ctor.getImplementation().getTryBlocks().isEmpty()) continue;
+            int sources = 0;
+            for (var sourceClass : classes) for (var source : sourceClass.getMethods()) {
+                if (!source.getName().equals("render")) continue;
+                var c = instructions(source);
+                for (int at = 0; at < c.size(); at++) {
+                    if (!Set.of(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE).contains(c.get(at).getOpcode()) || !Objects.equals(ref(c.get(at)), hookId(ctor))) continue;
+                    var args = bubbleArgs(c.get(at)); if (args.isEmpty()) continue; int arg = args.getLast(), literal = -1;
+                    for (int j = at - 1; j >= Math.max(0, at - 24); j--) if (mediaWrites(c.get(j), arg)) { literal = j; break; }
+                    if (literal < 0 || !(c.get(literal) instanceof NarrowLiteralInstruction n) || n.getNarrowLiteral() != GENERATE_AI_LABEL) continue;
+                    boolean straight = true; for (int j = literal + 1; j < at; j++) if (c.get(j) instanceof OffsetInstruction) straight = false;
+                    for (int t : mediaTargets(source)) if (t > literal && t <= at) straight = false;
+                    if (straight) sources++;
+                }
+            }
+            if (sources != 4) continue;
+            for (var m : cls.getMethods()) if (hookId(m).equals(shape.render()) && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null &&
+                    m.getImplementation().getRegisterCount() == 23 && instructions(m).size() == shape.size() && m.getImplementation().getTryBlocks().size() == 4) result.add(m);
+        }
+        return result;
+    }
+
     static Map<String, List<Method>> findControls(List<ClassDef> classes) {
         var found = new LinkedHashMap<String, List<Method>>();
         for (var key : CONTROL_KEYS) found.put(key, new ArrayList<>());
+        found.get("ai_sticker_cell").addAll(findAiStickerCells(classes));
+        for (var cls : classes) for (var method : cls.getMethods())
+            if (!screenshotViewerSites(method).isEmpty()) found.get("screenshot_viewers").add(method);
         var jewelCandidates = new ArrayList<Map.Entry<Method, Set<String>>>();
 
         boolean hasAdItem = false, hasImmutableCopy = false;
@@ -1596,6 +1739,21 @@ public class CompatReport {
                     found.get("save_stories").add(method);
                 }
 
+                // chat_animation: androidx's answer of no animation, which every fragment is asked for first
+                if (FRAGMENT_ANIMATION.equals(hookId(method))) found.get("chat_animation").add(method);
+
+                // chat_fragment and chat_inbox: the chat and the inbox under it, named by the constructor androidx needs
+                if ("<init>".equals(method.getName()) && paramTypes.isEmpty()) {
+                    if ("MsysThreadViewFragment".equals(original)) found.get("chat_fragment").add(method);
+                    if ("M4TabNavigationFragment".equals(original)) found.get("chat_inbox").add(method);
+                }
+
+                // chat_legacy: the chat fragment on Messenger's older route, which loads its own animation
+                if ("ThreadViewFragment".equals(original) &&
+                    (cls.getType() + "->onCreateAnimation(IZI)" + ANIMATION).equals(hookId(method))) {
+                    found.get("chat_legacy").add(method);
+                }
+
                 // growth_notes: the launcher every notes tip sheet (Make my notes public, Add lyrics) goes through
                 if (!isStatic && "Ljava/lang/Object;".equals(method.getReturnType()) &&
                     strings.contains("NotesMigNuxBottomSheet") && strings.contains("arg_nux_type")) {
@@ -1643,7 +1801,7 @@ public class CompatReport {
                     found.get("avatar_tabs").add(method);
                 }
 
-                // menu_settings: Settings folder builder, grid binder and the drawer's folder click
+                // menu_settings: Settings folder builder, grid binder, folder click and legacy section refresh.
                 if ("Ljava/util/ArrayList;".equals(method.getReturnType()) && paramTypes.size() == 1 && !isStatic &&
                     strings.stream().anyMatch(s -> s.contains("settingsfolder.folderitem.SettingsFolderItem"))) {
                     found.get("menu_settings").add(method);
@@ -1655,6 +1813,10 @@ public class CompatReport {
                 if ("onClick".equals(method.getName()) && "V".equals(method.getReturnType()) &&
                     paramTypes.equals(List.of("Landroid/view/View;")) &&
                     strings.contains("HomeDrawerFragmentBase.handleOnFolderSelected")) {
+                    found.get("menu_settings").add(method);
+                }
+                if ("V".equals(method.getReturnType()) && paramTypes.isEmpty() && !isStatic &&
+                    strings.contains("HomeDrawerFragmentBase.refreshDrawerItems")) {
                     found.get("menu_settings").add(method);
                 }
             }

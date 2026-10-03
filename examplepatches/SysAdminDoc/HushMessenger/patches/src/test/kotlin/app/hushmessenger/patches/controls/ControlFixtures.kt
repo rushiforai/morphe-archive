@@ -4,6 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Field
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
@@ -33,12 +34,14 @@ internal fun fixtureClass(
     originalName: String? = null,
     interfaces: List<String> = emptyList(),
     superclass: String = "Ljava/lang/Object;",
+    extraFields: List<Field> = emptyList(),
+    flags: Int = AccessFlags.PUBLIC.value,
 ): MutableClass {
     val fields = originalName?.let {
         listOf(ImmutableField(type, "__redex_internal_original_name", "Ljava/lang/String;",
             AccessFlags.STATIC.value, ImmutableStringEncodedValue(it), null, null))
-    }.orEmpty()
-    return MutableClass(ImmutableClassDef(type, AccessFlags.PUBLIC.value, superclass,
+    }.orEmpty() + extraFields
+    return MutableClass(ImmutableClassDef(type, flags, superclass,
         interfaces, null, emptySet(), fields, methods))
 }
 

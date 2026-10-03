@@ -48,11 +48,11 @@ class NarrowedFingerprintsTest {
 
     /** The fingerprint as it was before #54: the same fields, less what was added. */
     private fun Narrowed.unnarrowed() = Fingerprint(
-        definingClass = if (addedClassAndName) null else fingerprint.definingClass,
-        name = if (addedClassAndName) null else fingerprint.name,
-        accessFlags = fingerprint.accessFlags?.let { AccessFlags.getAccessFlagsForMethod(it).toList() },
-        returnType = fingerprint.returnType,
-        parameters = fingerprint.parameters,
+        definingClass = if (addedClassAndName) null else fingerprint.declaredDefiningClass,
+        name = if (addedClassAndName) null else fingerprint.declaredName,
+        accessFlags = fingerprint.declaredAccessFlags?.let { AccessFlags.getAccessFlagsForMethod(it).toList() },
+        returnType = fingerprint.declaredReturnType,
+        parameters = fingerprint.declaredParameters,
         filters = null,
         strings = fingerprint.strings,
         custom = fingerprint.custom,
@@ -104,7 +104,7 @@ class NarrowedFingerprintsTest {
             assertTrue("${item.label}: ${filter.javaClass.simpleName} on $type", type != null && type.startsWith("L") && type.endsWith(";"))
         }
         for (item in narrowed.filter { it.addedClassAndName }) {
-            val suffix = item.fingerprint.definingClass
+            val suffix = item.fingerprint.declaredDefiningClass
             assertTrue("${item.label}: $suffix", suffix != null && suffix.startsWith("/") && suffix.endsWith(";"))
         }
     }

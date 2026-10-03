@@ -59,9 +59,12 @@ Settings exported. The app holding the file wouldn't let HushThreads read it bac
 Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.	As publicações patrocinadas saem de Para você e Seguindo antes que o Threads as mostre, então nenhum espaço fica vazio.
 # context: summary of the Feed section link on the overview; the same two feed names as the Hide ads switch
 Sponsored posts in For you and Following	Publicações patrocinadas em Para você e Seguindo
+# context: Feed overview summaries when suggestions alone, or both feed rules, are selected
+Suggested accounts in your feed	Contas sugeridas no seu feed
+Ads and suggested accounts in your feed	Anúncios e contas sugeridas no seu feed
 Stop analytics uploads	Parar o envio de dados de análise
 # context: xmt and slof are the tags' own names in the link and stay as they are
-Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.	Remove dos links de publicações que você copia ou compartilha as tags de rastreamento, como xmt e slof. O resto do link continua como estava.
+Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.	Remove dos links de publicações que você copia ou compartilha as tags de rastreamento, como xmt e slof. Um link curto de compartilhamento vira o link da própria publicação.
 The app holding that file is taking too long, so HushThreads stopped waiting. Nothing was changed.	O app que guarda esse arquivo está demorando demais, então o HushThreads parou de esperar. Nada foi alterado.
 The app holding the last settings file still hasn't answered. Try again later.	O app do último arquivo de configurações ainda não respondeu. Tente de novo mais tarde.
 The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	O app que guarda o arquivo de configurações está demorando demais, então o HushThreads parou de esperar. Esse app ainda pode terminar de salvá-lo, então confira o arquivo antes de confiar nele.
@@ -75,7 +78,7 @@ none	nenhum
 Threads can't read your phone's advertising ID. The permission for it is gone from this build.	O Threads não consegue ler o ID de publicidade do seu celular. A permissão para isso foi removida desta versão.
 Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	O Threads fechou com erro ou travou no primeiro minuto após iniciar, três vezes seguidas, então o HushThreads foi pausado automaticamente.
 Threads' web addresses are selected for this app in Android's settings, so their links open here.	Os endereços web do Threads estão selecionados para este app nas configurações do Android, então os links deles abrem aqui.
-Tracking in shared links and analytics uploads	Rastreamento em links compartilhados e envio de dados de análise
+Tracking in links and analytics uploads	Rastreamento em links e envio de dados de análise
 Try again, or go back to Threads.	Tente novamente ou volte para o Threads.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Até você retomar, todas as opções, menos o Registro de depuração, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo.
 Full report saved to %1$s	Relatório completo salvo em %1$s
@@ -165,3 +168,17 @@ Android didn't say which links open here. Tap to check in Android's settings.	O 
 Selecting links by hand	Selecionar links manualmente
 # context: an item in the sentence about what Pause can't turn off; the patch name Remove the advertising ID follows it in brackets, so it mustn't repeat that name
 the removed advertising ID permission	a permissão do ID de publicidade removida
+
+# context: optional feed rule and its scope
+Hide suggested users	Ocultar usuários sugeridos
+Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.	Remove cartões verificados que sugerem contas para seguir. Publicações comuns e reposts permanecem.
+Keep feed position on return	Manter a posição no feed ao voltar
+Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	Ao voltar ao Threads em até dez minutos, você continuará no ponto em que estava. O gesto de puxar para baixo para atualizar continuará funcionando.
+No time limit	Sem limite de tempo
+With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Com a opção acima ativada, você continua no ponto em que estava, não importa quanto tempo fique fora. Puxar para atualizar e iniciar o Threads novamente continuam carregando novas publicações.
+Where you left off in your feed	Onde você parou no seu feed
+Open links in your browser	Abrir links no seu navegador
+Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.	Links da web que você toca abrem no seu navegador padrão, ou no app desse site, sem o rastreador de cliques do Threads. Páginas do Threads, do Instagram e outras da Meta continuam abrindo no Threads.
+Tap to play videos	Tocar para reproduzir vídeos
+Videos in your feed wait for a tap instead of playing as you scroll.	Os vídeos do seu feed esperam um toque em vez de começar a tocar enquanto você rola a tela.
+Videos in your feed	Vídeos do seu feed

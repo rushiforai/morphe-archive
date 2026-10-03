@@ -10,8 +10,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val googleDriveAllowScreenshotsPatch = bytecodePatch(
-    name = "Allow Screenshots & Secure Share - Google Drive",
-    description = "Removes Android FLAG_SECURE window restrictions in Google Drive to permit taking screenshots and screen recordings of documents, spreadsheets, and presentation previews.",
+    name = "Allow Screenshots & Secure Share - Google Drive (Experimental)",
+    description = "⚠️ [En cours de développement / Non testé] Removes Android FLAG_SECURE window restrictions in Google Drive to permit taking screenshots and screen recordings of documents, spreadsheets, and presentation previews.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_DRIVE)
 
@@ -32,7 +32,7 @@ fun BytecodePatchContext.executeGoogleDriveAllowScreenshotsLogic(logger: Logger)
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
         // 1. Hook all Google Drive Activity classes (DocListActivity, PdfActivity, PreviewActivity, etc.)
-        val superType = classDef.superType ?: ""
+        val superType = classDef.superclass ?: ""
         val isActivity = superType.contains("Activity") || type.contains("Activity")
 
         if (isActivity && tl.contains("com/google/android/apps/docs")) {

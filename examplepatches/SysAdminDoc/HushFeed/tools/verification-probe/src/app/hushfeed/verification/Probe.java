@@ -218,6 +218,9 @@ public final class Probe extends Instrumentation {
                     case "mediacache":
                         Log.i(TAG, "ok mediacache " + mediaCache(intent.getStringExtra("op")));
                         break;
+                    case "storage":
+                        StorageProbe.request(app, intent, this);
+                        break;
                     case "webviews": {
                         // Which page a WebView is showing and what it was built with. Hosts and
                         // paths only: a query can carry tokens, so it is never printed.

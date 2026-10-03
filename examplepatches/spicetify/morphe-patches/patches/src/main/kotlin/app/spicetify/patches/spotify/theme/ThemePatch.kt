@@ -19,13 +19,19 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import java.util.Properties
 
-internal const val COLOR = "Lp/iae1;->g(J)J"
+internal const val COLOR = "Lp/evi1;->e(J)J"
 private const val MAP = "Lapp/spicetify/extension/spotify/theme/EncorePalette;->map(J)J"
 
 // Stock Encore background and accent constants that the in-app theme replaces.
 internal val paletteColors = listOf(
-    0xFF121212L, 0xFF1F1F1FL, 0xFF2A2A2AL, 0xFF191919L, 0xFF282828L,
-    0xFF1ED760L, 0xFF3BE477L, 0xFF1ABC54L,
+    0xFF121212L,
+    0xFF1F1F1FL,
+    0xFF2A2A2AL,
+    0xFF191919L,
+    0xFF282828L,
+    0xFF1ED760L,
+    0xFF3BE477L,
+    0xFF1ABC54L,
 )
 
 private val themeResourcesPatch = resourcePatch {
@@ -44,12 +50,12 @@ val themePatch = bytecodePatch(
 
     execute {
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/theme/palette-9.1.80.2221.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/theme/palette-9.1.88.2204.properties")!!.use(::load)
         }
         for (type in snapshot.stringPropertyNames()) {
             val definition = classDefByOrNull(type) ?: throw PatchException("Spotify palette ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify palette ABI changed: $type. Use the verified Spotify 9.1.80.2221 APK.")
+                throw PatchException("Spotify palette ABI changed: $type. Use the verified Spotify 9.1.88.2204 APK.")
             }
         }
 
@@ -65,17 +71,20 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.hookPalette(type: Stri
         instructions[it].opcode == Opcode.CONST_WIDE && (instructions[it] as WideLiteralInstruction).wideLiteral in paletteColors
     }
     if (sites.isEmpty()) throw PatchException("Encore palette $type has no theme colors.")
-    val colors = sites.map { (instructions[it] as WideLiteralInstruction).wideLiteral }
-    if (colors.size != colors.toSet().size) throw PatchException("Encore palette $type repeats a theme color constant.")
+    // R8 may materialize one constant at several sites; each is hooked on its own, and
+    // feedsColor proves every one of them only ever reaches Color().
     sites.forEach { index ->
         if (!feedsColor(instructions, index)) throw PatchException("Encore palette $type constant no longer feeds Color().")
     }
     sites.sortedDescending().forEach { index ->
         val register = initializer.getInstruction<OneRegisterInstruction>(index).registerA
-        initializer.addInstructions(index + 1, """
+        initializer.addInstructions(
+            index + 1,
+            """
             invoke-static/range {v$register .. v${register + 1}}, $MAP
             move-result-wide v$register
-        """.trimIndent())
+            """.trimIndent(),
+        )
     }
 }
 
@@ -112,6 +121,7 @@ private fun colorReads(instructions: List<Instruction>, index: Int): Boolean? {
                     sawColor = true
                 }
             }
+
             else -> {
                 val wide = "WIDE" in name
                 val operands = buildList {

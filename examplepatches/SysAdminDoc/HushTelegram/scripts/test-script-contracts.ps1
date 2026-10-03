@@ -1958,8 +1958,10 @@ try {
                 Edit = { param($text) $text -replace '(latest release is \[v)\d+(?:\.\d+)+(\]\([^)\s]*/tag/v)\d+(?:\.\d+)+', '${1}0.1.0${2}0.1.0' } },
             @{ Name = 'a latest release linked to another tag'; Pattern = '*links it to*/tag/v0.1.0*'
                 Edit = { param($text) $text -replace '(latest release is \[v\d+(?:\.\d+)+\]\([^)\s]*/tag/v)\d+(?:\.\d+)+', '${1}0.1.0' } },
-            @{ Name = 'a latest release counting other patches'; Pattern = '*latest release has 13 patches*'
-                Edit = { param($text) $text -replace '(latest release is \[v[^\]]+\]\([^)\s]*\), with )\d+( patches)', '${1}13${2}' } },
+            # One more than the catalog, so the count never lands on the one the seeded README already states.
+            @{ Name = 'a latest release counting other patches'; Pattern = "*latest release has $(@($catalog.patches).Count + 1) patches*"
+                Edit = { param($text) $text -replace '(latest release is \[v[^\]]+\]\([^)\s]*\), with )\d+( patches)',
+                    ('${1}' + (@($catalog.patches).Count + 1) + '${2}') } },
             @{ Name = 'no sentence naming the latest release'; Pattern = '*does not say which release is the latest*'
                 Edit = { param($text) $text -replace 'The latest release is \[v[^\]]+\]\([^)\s]*\), with \d+ patches\.', 'Releases are on GitHub.' } })) {
         $unedited = Get-Content -LiteralPath (Join-Path $factsRoot 'README.md') -Raw

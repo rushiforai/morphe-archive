@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.Window;
+import android.view.WindowManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -92,7 +94,7 @@ public final class Settings {
         android.util.Log.e("HushMessenger", what + ": " + recordHookError(key, error));
     }
 
-    private static String recordHookError(String key, Throwable error) {
+    private static synchronized String recordHookError(String key, Throwable error) {
         StackTraceElement[] stack = error.getStackTrace();
         StackTraceElement frame = stack.length == 0 ? null : stack[0];
         for (StackTraceElement element : stack) {
@@ -102,11 +104,15 @@ public final class Settings {
             + "." + frame.getMethodName() + (frame.getLineNumber() >= 0 ? ":" + frame.getLineNumber() : "");
         String failure = error.getClass().getName() + " at " + where;
         long now = System.currentTimeMillis();
-        String previous = hookErrors.put(key, failure + "|" + now);
+        hookErrors.put(key, failure + "|" + now);
         SharedPreferences prefs = preferences;
         // A hook can fail on every screen draw, so the saved copy changes only for a new failure or once a minute.
-        if (prefs != null && (previous == null || !previous.startsWith(failure + "|") || now - hookErrorTime(previous) >= 60_000))
-            prefs.edit().putString(HOOK_ERROR + key, failure + "|" + now).apply();
+        if (prefs != null) {
+            String previous = prefs.getString(HOOK_ERROR + key, null);
+            if (previous == null || !previous.startsWith(failure + "|") || now - hookErrorTime(previous) >= 60_000
+                    || now < hookErrorTime(previous))
+                prefs.edit().putString(HOOK_ERROR + key, failure + "|" + now).apply();
+        }
         return failure;
     }
 
@@ -167,7 +173,12 @@ public final class Settings {
     public static boolean suppressTyping() { return enabled("typing"); }
     /** Encrypted chats send typing through one mailbox call; "not typing" is always allowed through. */
     public static boolean outgoingTyping(boolean typing) { return typing && !enabled("typing"); }
-    static boolean available(String key) { return !"bubbles".equals(key) || (Build.VERSION.SDK_INT >= 30 && bubbleRoutes); }
+    static boolean available(String key) {
+        if (!"bubbles".equals(key)) return true;
+        if (Build.VERSION.SDK_INT < 30) return false;
+        if (!HostScreens.started) HostScreens.initializeLate();
+        return !HostScreens.failed && bubbleRoutes;
+    }
     public static boolean enableBubbles() {
         return available("bubbles") && enabled("bubbles") && !preferences.getBoolean(BUBBLE_CHAT_HEADS, false);
     }
@@ -182,6 +193,12 @@ public final class Settings {
         return preferences.getBoolean(BUBBLE_CHAT_HEADS, false) ? "chat_heads" : "native";
     }
     public static boolean allowScreenshot() { return enabled("allow_screenshot"); }
+    public static void addScreenshotFlags(Window window, int flags) {
+        window.addFlags(allowScreenshot() ? flags & ~WindowManager.LayoutParams.FLAG_SECURE : flags);
+    }
+    public static void setScreenshotFlags(Window window, int flags, int mask) {
+        window.setFlags(allowScreenshot() ? flags & ~WindowManager.LayoutParams.FLAG_SECURE : flags, mask);
+    }
     public static boolean hideReadReceipts() { return enabled("hide_read_receipts"); }
     public static boolean keepUnsent() { return wouldUse("keep_unsent"); }
     public static boolean viewStoriesAnonymously() { return enabled("anonymous_stories"); }
@@ -284,22 +301,66 @@ public final class Settings {
         return original;
     }
 
-    /** Where Android keeps its color emoji font. Tests point this at a missing file. */
-    static String systemEmojiFont = "/system/fonts/NotoColorEmoji.ttf";
+    /** Android's standard color emoji font, used when the phone can't say which font it draws emoji with. */
+    static final String NOTO_EMOJI_FONT = "/system/fonts/NotoColorEmoji.ttf";
+    /** Null asks Android which font it draws emoji with. Tests point this at a missing file. */
+    static String systemEmojiFont;
     static android.graphics.Typeface systemEmoji;
     static boolean systemEmojiMissing;
+    /** Which font the emoji typeface came from, for diagnostics and tests. */
+    static String systemEmojiSource;
     public static android.graphics.Typeface systemEmojiTypeface() {
         // Checked before enabled(), so a font that failed to load doesn't count as a use.
         if (systemEmojiMissing || !enabled("use_system_emoji")) return null;
         if (systemEmoji != null) return systemEmoji;
         try {
-            systemEmoji = android.graphics.Typeface.createFromFile(systemEmojiFont);
+            // Samsung, many other phones and emoji modules draw emoji with a font other than NotoColorEmoji.ttf (#25).
+            android.graphics.Typeface shaped = systemEmojiFont == null ? shapedEmojiTypeface() : null;
+            if (shaped != null) {
+                systemEmoji = shaped;
+            } else {
+                String path = systemEmojiFont != null ? systemEmojiFont : NOTO_EMOJI_FONT;
+                systemEmoji = android.graphics.Typeface.createFromFile(path);
+                systemEmojiSource = path;
+            }
         } catch (Exception error) {
             // The font file won't appear later, so Messenger's own emoji stay without retrying on every draw.
             systemEmojiMissing = true;
             hookFailed("use_system_emoji", "Can't load the system emoji font", error);
         }
         return systemEmoji;
+    }
+
+    /** Default emoji presentation, so Android picks its emoji font rather than a text symbol font. */
+    static final String EMOJI_PROBE = "😀";
+
+    /**
+     * Android 12 and newer report the font they shape an emoji with, which is the phone's own emoji set. The typeface
+     * keeps Android's usual fallback, so flags in a separate font still draw. Null means use the font file path instead.
+     */
+    static android.graphics.Typeface shapedEmojiTypeface() {
+        if (android.os.Build.VERSION.SDK_INT < 31) return null;
+        try {
+            android.graphics.text.PositionedGlyphs glyphs = android.graphics.text.TextRunShaper.shapeTextRun(
+                EMOJI_PROBE, 0, EMOJI_PROBE.length(), 0, EMOJI_PROBE.length(), 0f, 0f, false, new android.graphics.Paint());
+            // Glyph 0 is the missing-glyph box: the phone has no emoji font, so Messenger's set should stay.
+            if (glyphs.glyphCount() == 0 || glyphs.getGlyphId(0) == 0) return null;
+            android.graphics.fonts.Font font = glyphs.getFont(0);
+            java.io.File file = font.getFile();
+            android.graphics.Typeface typeface;
+            if (file != null && file.canRead()) {
+                typeface = android.graphics.Typeface.createFromFile(file);
+            } else {
+                // Updated emoji fonts can live where the app can't open them; the shaped font is already loaded.
+                typeface = new android.graphics.Typeface.CustomFallbackBuilder(
+                    new android.graphics.fonts.FontFamily.Builder(font).build()).setSystemFallback("sans-serif").build();
+            }
+            systemEmojiSource = file != null ? file.getPath() : "shaped emoji font";
+            return typeface;
+        } catch (RuntimeException error) {
+            android.util.Log.w("HushMessenger", "Can't find the phone's emoji font, using " + NOTO_EMOJI_FONT, error);
+            return null;
+        }
     }
 
     /** Null means return the exact original list. Only typed ad rows are removed. */
@@ -366,6 +427,93 @@ public final class Settings {
         return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) || original;
     }
 
+    private static Object legacyDrawerKey;
+
+    /** Replaced by the menu patch with constructors from the validated host build. */
+    public static Object legacyDrawerSection(Context context) {
+        return null;
+    }
+
+    /** Only the independent folder identity survives refreshes, never a context or a row. */
+    public static synchronized Object cachedLegacyDrawerKey(Object proposed) {
+        if (proposed == null) return null;
+        if (legacyDrawerKey == null) legacyDrawerKey = proposed;
+        return legacyDrawerKey.getClass() == proposed.getClass() ? legacyDrawerKey : null;
+    }
+
+    /** The legacy drawer can omit Settings entirely, so construct a separate native section. */
+    @SuppressWarnings("unchecked")
+    public static List addLegacyDrawerEntry(Object fragment, List sections) {
+        if (fragment == null || sections == null) return sections;
+        try {
+            java.lang.reflect.Method getContext = fragment.getClass().getMethod("getContext");
+            getContext.setAccessible(true);
+            Object current = getContext.invoke(fragment);
+            if (!(current instanceof Context)) return sections;
+            Context context = (Context) current;
+            Object section = legacyDrawerSection(context);
+            if (section == null) return sections;
+
+            Class<?> sectionClass = section.getClass();
+            java.lang.reflect.Field rowsField = sectionClass.getDeclaredField("A06");
+            if (rowsField.getType() != List.class) throw new IllegalArgumentException("Drawer rows changed");
+            rowsField.setAccessible(true);
+            Object rows = rowsField.get(section);
+            if (!(rows instanceof List) || ((List) rows).size() != 1)
+                throw new IllegalArgumentException("Drawer factory rows changed");
+            Object row = ((List) rows).get(0);
+            if (row == null) throw new IllegalArgumentException("Drawer factory row missing");
+            Class<?> rowClass = row.getClass();
+            java.lang.reflect.Field title = rowClass.getDeclaredField("A06");
+            java.lang.reflect.Field owner = rowClass.getDeclaredField("A00");
+            java.lang.reflect.Field key = rowClass.getDeclaredField("A03");
+            java.lang.reflect.Field metadata = rowClass.getDeclaredField("A04");
+            if (title.getType() != String.class || owner.getType() != Context.class
+                    || !key.getType().getName().endsWith("DrawerFolderKey")
+                    || !metadata.getType().getName().endsWith("HeterogeneousMap"))
+                throw new IllegalArgumentException("Drawer row fields changed");
+            title.setAccessible(true);
+            owner.setAccessible(true);
+            key.setAccessible(true);
+            metadata.setAccessible(true);
+            Object ownKey = key.get(row);
+            if (!"HushMessenger".equals(title.get(row)) || owner.get(row) != context
+                    || ownKey == null || !ownKey.getClass().getName().endsWith("SettingsFolderKey")
+                    || !key.getType().isInstance(ownKey) || metadata.get(row) == null
+                    || !metadata.getType().isInstance(metadata.get(row)))
+                throw new IllegalArgumentException("Drawer factory values changed");
+
+            boolean present = false;
+            // Validate the complete input even when an earlier section already contains our row.
+            for (Object originalSection : sections) {
+                if (originalSection == null || originalSection.getClass() != sectionClass)
+                    throw new IllegalArgumentException("Drawer section changed");
+                Object originalRows = rowsField.get(originalSection);
+                if (!(originalRows instanceof List)) throw new IllegalArgumentException("Drawer rows missing");
+                for (Object originalRow : (List) originalRows) {
+                    if (originalRow == null || originalRow.getClass() != rowClass)
+                        throw new IllegalArgumentException("Drawer row changed");
+                    Object originalKey = key.get(originalRow);
+                    Object originalMetadata = metadata.get(originalRow);
+                    Object originalTitle = title.get(originalRow);
+                    if (originalKey == null || !key.getType().isInstance(originalKey)
+                            || originalTitle == null || !(originalTitle instanceof String)
+                            || (originalMetadata != null && !metadata.getType().isInstance(originalMetadata)))
+                        throw new IllegalArgumentException("Drawer row values changed");
+                    if ("HushMessenger".equals(originalTitle) && originalKey.getClass() == ownKey.getClass())
+                        present = true;
+                }
+            }
+            if (present) return sections;
+            ArrayList result = new ArrayList(sections);
+            result.add(section);
+            return result;
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {
+            hookFailedPrivately("menu_row", "Legacy drawer entry unavailable", error);
+            return sections;
+        }
+    }
+
     /** Appends a HushMessenger copy of the Menu tab's Settings folder row (one title String per row). */
     @SuppressWarnings("unchecked")
     public static void addMenuSettingsEntry(ArrayList list) {
@@ -414,8 +562,9 @@ public final class Settings {
     /** Opens settings for the HushMessenger folder row and returns null; other rows come back unchanged. */
     public static Object drawerFolderClicked(Object item) {
         if (item == null) return null;
+        boolean recognized = false;
+        Context context = null;
         try {
-            Context context = null;
             boolean titled = false, settingsKey = false;
             for (java.lang.reflect.Field f : item.getClass().getDeclaredFields()) {
                 if (java.lang.reflect.Modifier.isStatic(f.getModifiers())) continue;
@@ -427,11 +576,19 @@ public final class Settings {
                 else if (value != null && value.getClass().getName().endsWith("SettingsFolderKey")) settingsKey = true;
             }
             if (!titled || !settingsKey || context == null) return item;
+            recognized = true;
             HostScreens.open(context, HostScreens.SETTINGS);
             return null;
-        } catch (Exception e) {
-            hookFailed("menu_row", "drawerFolderClicked failed", e);
-            return item;
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {
+            hookFailedPrivately("menu_row", "Opening the drawer entry failed", error);
+            if (recognized) try {
+                android.widget.Toast.makeText(context, new SettingsText(context).get("settings_open_failed"),
+                        android.widget.Toast.LENGTH_LONG).show();
+            } catch (RuntimeException | LinkageError feedbackError) {
+                hookFailedPrivately("menu_row", "Drawer entry feedback unavailable", feedbackError);
+            }
+            // Our independent row has no native dispatcher, including when Android rejects the launch.
+            return recognized ? null : item;
         }
     }
 

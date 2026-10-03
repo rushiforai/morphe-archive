@@ -52,9 +52,9 @@ final class CrashGuard {
     static boolean isSafeMode() { return safeModeActive; }
 
     static void clearSafeMode() {
+        safeModeActive = false;
         SharedPreferences prefs = Settings.preferences;
         if (prefs != null) prefs.edit().putBoolean("safe_mode", false).apply();
-        safeModeActive = false;
         File dir = filesDir;
         if (dir != null) write(new File(dir, CRASH_STREAK), "0");
     }

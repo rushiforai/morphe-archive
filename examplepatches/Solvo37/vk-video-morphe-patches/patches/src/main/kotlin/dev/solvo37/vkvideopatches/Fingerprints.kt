@@ -336,6 +336,29 @@ internal object VideoGetAdsResponseConstructorFingerprint : Fingerprint(
     )
 )
 
+// Primary Clips SDK list converter. Unlike the StaticAds/MarketAds converter
+// above, this path receives ordinary-looking SdkVideoFile entries whose
+// embedded SdkVideoAdInfo/ORD payload marks them as full-screen ads.
+internal object ClipSdkVideoListMapperFingerprint : Fingerprint(
+    classFingerprint = ClipSdkAdVideoMapperFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/util/ArrayList;",
+    parameters = listOf(
+        "Ljava/util/List;",
+        "Lcom/vk/clips/sdk/shared/api/routing/models/ClipFeedCacheInfo;"
+    ),
+    filters = listOf(
+        methodCall(
+            definingClass = "this",
+            parameters = listOf(
+                "Lcom/vk/clips/sdk/shared/api/deps/video/SdkVideoFile;",
+                "Lcom/vk/clips/sdk/shared/api/routing/models/ClipFeedCacheInfo;"
+            ),
+            returnType = "Lcom/vk/clips/sdk/shared/feed/model/FeedItem\$d;"
+        )
+    )
+)
+
 // Legacy per-video ad payload embedded directly in VideoVideoFullDto. This is
 // the source consumed by VideoFullToVideoFileMapper for ordinary-video
 // preroll/midroll playback, independently of VideoGetAdsResponseDto.

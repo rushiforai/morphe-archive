@@ -9,6 +9,8 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -33,6 +35,37 @@ class PatchContractsTest {
         }
         assertTrue(ambiguous.message.orEmpty().contains("Test patch: settings row"))
         assertTrue(ambiguous.message.orEmpty().contains("found 2"))
+    }
+
+    @Test
+    fun `ambiguous selectors list their candidates and empty ones list none`() {
+        val ambiguous = assertThrows(PatchException::class.java) {
+            listOf("LX/first;->a()V", "LX/second;->b()V").singleOrPatchException("Test patch: getter")
+        }
+        assertTrue(ambiguous.message, ambiguous.message.orEmpty().contains("Candidates: LX/first;->a()V, LX/second;->b()V"))
+
+        val instructions = assertThrows(PatchException::class.java) {
+            listOf(ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0), ImmutableInstruction11n(Opcode.CONST_4, 1, 0))
+                .withIndex().toList().singleOrPatchException("Test patch: store")
+        }
+        assertTrue(instructions.message, instructions.message.orEmpty().contains("Candidates: 0: return-object, 1: const/4"))
+
+        val calls = assertThrows(PatchException::class.java) {
+            listOf("first", "second").map { ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0, ImmutableMethodReference("LX/Feed;", it, emptyList(), "V")) }
+                .singleOrPatchException("Test patch: call")
+        }
+        assertTrue(calls.message, calls.message.orEmpty().contains("Candidates: invoke-static LX/Feed;->first()V, invoke-static LX/Feed;->second()V"))
+
+        // Twelve are named and the rest are counted, so a broad selector can't flood the message.
+        val many = assertThrows(PatchException::class.java) {
+            (1..13).map { "c$it" }.singleOrPatchException("Test patch: getter")
+        }
+        assertTrue(many.message, many.message.orEmpty().contains("found 13") && many.message.orEmpty().contains("c12, ...") && !many.message.orEmpty().contains("c13"))
+
+        val empty = assertThrows(PatchException::class.java) {
+            emptyList<String>().singleOrPatchException("Test patch: getter")
+        }
+        assertTrue(empty.message, !empty.message.orEmpty().contains("Candidates"))
     }
 
     /**

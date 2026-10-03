@@ -78,6 +78,10 @@ Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook a
 Tab bar at the bottom	Barra de abas embaixo
 # context: description of that switch; Facebook shows the tab bar at the top of the screen on some accounts and at the bottom on others
 Put Facebook's tab bar at the bottom of the screen on accounts that have it at the top. Restart Facebook after changing it.	Coloca a barra de abas do Facebook na parte de baixo da tela nas contas que a têm em cima. Reinicie o Facebook depois de alterar esta opção.
+# context: switch title under Appearance; it keeps Facebook's dark mode on whatever Facebook's own Dark mode setting says
+Force dark mode	Forçar modo escuro
+# context: description of that switch; on some tablets Facebook's own Settings page has no Dark mode row
+Keep Facebook in dark mode whatever its own setting says, for tablets where Facebook's settings have no Dark mode. Restart Facebook after changing it.	Mantém o Facebook no modo escuro, seja qual for a configuração dele, para tablets em que as configurações do Facebook não têm o Modo escuro. Reinicie o Facebook depois de alterar esta opção.
 Use your phone's font or a file chosen below. Restart Facebook after changing it.	Usa a fonte do seu dispositivo ou um arquivo escolhido abaixo. Reinicie o Facebook depois de alterar esta opção.
 Font file	Arquivo de fonte
 Use your phone's font	Usar a fonte do celular
@@ -199,6 +203,8 @@ That file isn't readable text, so it may have been damaged on the way. Nothing w
 That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	Esse arquivo contém uma configuração duplicada, então não é possível saber qual valor usar. Nada foi alterado.
 That isn't a Hushfacebook settings file. Nothing was changed.	Isso não é um arquivo de configurações do Hushfacebook. Nada foi alterado.
 That settings file holds a value Hushfacebook can't read. Nothing was changed.	Esse arquivo de configurações tem um valor que o Hushfacebook não consegue ler. Nada foi alterado.
+# context: a settings file refused on import: its word lists, beside one it leaves as it is, take more than the room the two lists share
+The word lists in that file are longer than the two lists have room for. Nothing was changed.	As listas de palavras desse arquivo ocupam mais espaço do que as duas listas têm. Nada foi alterado.
 That settings file is damaged or only partly downloaded. Nothing was changed.	Esse arquivo de configurações está corrompido ou foi baixado apenas parcialmente. Nada foi alterado.
 That settings file was written by a newer Hushfacebook than this one. Nothing was changed.	Esse arquivo de configurações foi criado por uma versão do Hushfacebook mais nova que esta. Nada foi alterado.
 the Audience Network block	o bloqueio do Audience Network
@@ -359,12 +365,18 @@ Words that keep a post	Palavras que mantêm uma publicação
 One word or phrase per line, up to %1$d, each %2$d to %3$d characters long, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. Capital letters don't matter, and a phrase matches anywhere in a post's text, inside longer words too.	Uma palavra ou frase por linha, até %1$d no total, com %2$d a %3$d caracteres cada, ou só um se for um emoji, um caractere chinês, um kana ou uma sílaba hangul. Maiúsculas e minúsculas não fazem diferença, e uma frase corresponde a qualquer trecho do texto de uma publicação, inclusive dentro de palavras maiores.
 A post with any of these stays, even when it also has a word to hide. One per line, up to %1$d, each %2$d to %3$d characters long, or just one for an emoji, a Chinese character, a kana or a Hangul syllable.	Uma publicação que contenha qualquer uma destas palavras ou frases permanece, mesmo que também contenha uma palavra a ocultar. Uma por linha, até %1$d no total, com %2$d a %3$d caracteres cada, ou só um se for um emoji, um caractere chinês, um kana ou uma sílaba hangul.
 One word or phrase per line	Uma palavra ou frase por linha
-%1$d line was left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once, and a list holds %4$d.	%1$d linha foi ignorada. Uma frase precisa ter de %2$d a %3$d caracteres, ou só um se for um emoji, um caractere chinês, um kana ou uma sílaba hangul. Uma frase repetida conta apenas uma vez e uma lista comporta %4$d.
-%1$d lines were left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once, and a list holds %4$d.	%1$d linhas foram ignoradas. Uma frase precisa ter de %2$d a %3$d caracteres, ou só um se for um emoji, um caractere chinês, um kana ou uma sílaba hangul. Uma frase repetida conta apenas uma vez e uma lista comporta %4$d.
+%1$d line was left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once.	%1$d linha foi ignorada. Uma frase precisa ter de %2$d a %3$d caracteres, ou só um se for um emoji, um caractere chinês, um kana ou uma sílaba hangul. Uma frase repetida conta apenas uma vez.
+%1$d lines were left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once.	%1$d linhas foram ignoradas. Uma frase precisa ter de %2$d a %3$d caracteres, ou só um se for um emoji, um caractere chinês, um kana ou uma sílaba hangul. Uma frase repetida conta apenas uma vez.
 No words yet, so no post is hidden.	Ainda não há palavras, então nenhuma publicação será ocultada.
 No words yet.	Ainda não há palavras.
 %1$d word or phrase.	%1$d palavra ou frase.
 %1$d words or phrases.	%1$d palavras ou frases.
+# context: line under a word list being edited: how full the room both lists share would be; %1$d is a whole percent
+Both lists together fill %1$d%% of the room they share.	Juntas, as duas listas ocupam %1$d%% do espaço que compartilham.
+# context: under a word list being edited, and when its Save is refused: more phrases than a list holds; %1$d is the most a list holds
+A list holds up to %1$d phrases, and this one has more. Remove some, then save again.	Uma lista comporta até %1$d frases, e esta tem mais. Remova algumas e salve de novo.
+# context: under a word list being edited, and when its Save is refused: both lists would take more than the room they share; %1$d is a whole percent past 100
+Both lists together would fill %1$d%% of the room they share. Remove or shorten some phrases, then save again.	Juntas, as duas listas ocupariam %1$d%% do espaço que compartilham. Remova ou encurte algumas frases e salve de novo.
 Hid %1$d post since Facebook started.	%1$d publicação ocultada desde que o Facebook foi iniciado.
 Hid %1$d posts since Facebook started.	%1$d publicações ocultadas desde que o Facebook foi iniciado.
 Your list of words to hide will be empty.	Sua lista de palavras a ocultar ficará vazia.
@@ -431,6 +443,14 @@ Android 11 doesn't say which links open here. Tap to open this app's settings, t
 Selecting links by hand	Selecionar links manualmente
 Android checks Facebook's links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.	O Android confere os links do Facebook com a chave de assinatura da Meta, que uma versão com nova assinatura não tem. Selecionar os endereços faz os links deles voltarem para cá. Isso não restaura a verificação da Meta, e suas outras configurações de links continuam como estão.
 Android's settings for this app didn't open. Open App info from Facebook's icon, then Open by default.	As configurações do Android para este app não abriram. Abra Informações do app pelo ícone do Facebook e depois Abrir por padrão.
+# context: title of a row under Links; Meta App Manager is the name of Meta's preinstalled app, keep it as is
+Meta App Manager	Meta App Manager
+# context: that row once Facebook's web addresses go to this app
+Facebook's web addresses open here now.	Os endereços web do Facebook agora abrem aqui.
+# context: that row's description; "Open supported links" is Android's own switch, "Supported links" is the row above
+Meta App Manager can keep Facebook's web addresses for itself, so their links skip this app. Tap and turn off Open supported links there, then check Supported links above.	O Meta App Manager pode ficar com os endereços web do Facebook, e aí os links deles não chegam a este app. Toque e desative “Abrir links compatíveis” lá, depois confira Links compatíveis acima.
+# context: message when Android's page for Meta App Manager doesn't open; "Open by default" is Android's page name
+Meta App Manager's settings didn't open. Find it in Android's app list with system apps shown, then Open by default.	As configurações do Meta App Manager não abriram. Procure o app na lista de apps do Android com os apps do sistema à mostra e depois Abrir por padrão.
 # context: message when a save starts and its notification can't show (Facebook's notifications or the saves channel are off); Downloads is the settings section that lists running saves, each with its own Cancel
 Saving... Cancel: Downloads in Hushfacebook.	Salvando... Cancelar: Downloads no Hushfacebook.
 # context: switch title under Reels and Watch; on, a double tap on a reel or a video doesn't like it
@@ -577,3 +597,12 @@ Hide "Find friends from contacts"	Ocultar “Encontrar amigos nos contatos”
 The Stories tray card asking to upload your contacts. Applies when Facebook next loads the tray.	O cartão na bandeja de Stories que pede para enviar seus contatos. A alteração será aplicada na próxima vez que o Facebook carregar a bandeja.
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 The row of friend suggestions between posts, the one on your own profile, and the cards with an Add button in the Stories tray.	A linha de sugestões de amizade entre as publicações, a linha no seu próprio perfil e os cartões com o botão Adicionar na bandeja de Stories.
+Feeds opens on	Feeds abre em
+All	Tudo
+Favorites	Favoritos
+Groups	Grupos
+Pages	Páginas
+When Facebook opens on Feeds, the Feeds tab opens on the filter Facebook picks.	Quando o Facebook abre em Feeds, a aba Feeds abre no filtro que o Facebook escolher.
+When Facebook opens on Feeds, the Feeds tab opens on %1$s. If your Feeds tab doesn't have it, it opens as usual.	Quando o Facebook abre em Feeds, a aba Feeds abre em %1$s. Se a sua aba Feeds não tiver esse filtro, ela abre como sempre.
+The Feeds tab will open on the filter Facebook picks.	A aba Feeds vai abrir no filtro que o Facebook escolher.
+The Feeds tab will open on %1$s.	A aba Feeds vai abrir em %1$s.

@@ -180,7 +180,7 @@ def main():
         for name in owned_names
     }
     text = changelog.read_text()
-    lines, unreleased, next_section, previous = changelog_state(text, version, repo)
+    lines, unreleased, _next_section, previous = changelog_state(text, version, repo)
 
     # All validation is complete. Generated files are transactional: a failed
     # generator or commit restores only files this script owns.

@@ -35,6 +35,7 @@ class ProfilePostsFixtureTest {
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to 35,
         AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to 35,
+        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to 35,
     )
 
     private fun locals(method: Method): Int = method.implementation!!.registerCount - 1 - method.parameterTypes.size

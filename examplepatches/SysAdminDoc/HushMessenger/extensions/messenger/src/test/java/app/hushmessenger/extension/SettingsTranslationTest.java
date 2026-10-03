@@ -121,6 +121,17 @@ public class SettingsTranslationTest {
         return false;
     }
 
+    /** #27: "Messenger's icon" read as the Messenger title inside the app, where a long-press does nothing. */
+    @Test public void settingsDirectionsNameTheHomeScreenIcon() {
+        int directed = 0;
+        for (Map.Entry<String, String> entry : englishIds().entrySet()) {
+            if (!entry.getValue().contains("Patch controls")) continue;
+            directed++;
+            assertTrue(entry.getKey(), entry.getValue().contains("Messenger's home screen icon"));
+        }
+        assertEquals(8, directed);
+    }
+
     @Test public void everyShippedLocaleCoversEveryIdAndKeepsItsPlaceholders() {
         for (Map.Entry<String, Map<String, String>> locale : SettingsTranslations.LOCALES.entrySet())
             assertEquals(locale.getKey(), List.of(), problems(locale.getValue()));

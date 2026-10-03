@@ -9,6 +9,10 @@ package app.morphe.patches.tiktok.misc.update
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.tiktok.misc.diagnostics.BUILD_DETAILS_ASSET
+import app.morphe.patches.tiktok.misc.diagnostics.BuildChoice
+import app.morphe.patches.tiktok.misc.diagnostics.BuildDetails
+import app.morphe.patches.tiktok.misc.diagnostics.buildChoicePatch
 
 private const val MAX_VERSION_CODE = Int.MAX_VALUE
 
@@ -22,6 +26,7 @@ val hidePlayStoreUpdatePatch = resourcePatch(
 ) {
     category("Performance")
     compatibleWith(*AppCompatibilities.tiktok())
+    dependsOn(buildChoicePatch(BuildChoice.VERSION_CODE))
 
     execute {
         document("AndroidManifest.xml").use { xml ->
@@ -36,5 +41,12 @@ val hidePlayStoreUpdatePatch = resourcePatch(
             }
             versionCode.nodeValue = MAX_VERSION_CODE.toString()
         }
+        document("AndroidManifest.xml").use { xml ->
+            val attributes = xml.documentElement.attributes
+            check((0 until attributes.length).map { attributes.item(it) }
+                .singleOrNull { it.nodeName.substringAfterLast(':') == "versionCode" }
+                ?.nodeValue == MAX_VERSION_CODE.toString()) { "Raised TikTok version code was not saved" }
+        }
+        BuildDetails.raisedVersionCode(get(BUILD_DETAILS_ASSET))
     }
 }

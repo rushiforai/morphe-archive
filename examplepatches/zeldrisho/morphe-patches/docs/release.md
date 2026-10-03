@@ -94,10 +94,15 @@ To retry a failed run, use the Actions "Re-run jobs" control or `gh run rerun <r
 ## Changelog policy
 
 User-visible app patch changes only: added/changed/fixed support, supported
-versions, removals, warnings. Omit CI, refactoring, reviewer fixes,
-dependencies, commit hashes/links, issue-number links, and contributor lists.
-Keep this hand-curated: one entry per stable release, no dev builds or permanent
-prerelease headings. Use one `* **App:**` or `* **App - Feature:**` bullet per change.
+versions, removals, warnings. Lead with the user-visible result; omit internal
+implementation detail, repeated unchanged-scope disclaimers, CI, refactoring,
+reviewer fixes, dependencies, commit hashes/links, issue-number links, and
+contributor lists. Mention an app version in a feature/fix bullet only when
+needed to explain a compatibility boundary or version-specific behavior; use
+`🚀 Updated App Support` for support changes. Keep opt-in status, important
+limitations, and unvalidated behavior clear. Keep this hand-curated: one entry
+per stable release, no dev builds or permanent prerelease headings. Use one
+`* **App:**` or `* **App - Feature:**` bullet per change.
 
 Group bullets under these `###` category headings; omit empty categories:
 
@@ -141,6 +146,12 @@ The URL must immediately follow `[VERSION]` in parentheses. Keep a Changelog's
 `[VERSION] - date` syntax and reference-style footer links are incompatible with
 Manager's parser. Existing released headings are not retroactively converted;
 `1.0.0` stays bare. Compare links do not permit per-bullet commit/issue links.
+Historical release-note edits require explicit maintainer approval; after approval,
+update the matching GitHub release body and regenerate the current
+`patches-bundle.json` description from its changelog section when that version is
+current, using `python3 scripts/sync_bundle_description.py CHANGELOG.md
+patches-bundle.json <owner/repo>`. Never hand-edit generated metadata, rewrite
+tags, or replace published assets.
 The GitHub release notes and the `patches-bundle.json` description are the same
 section body, excluding its version heading.
 
@@ -163,8 +174,9 @@ section body, excluding its version heading.
 - Never hand-edit `patches-list.json`, `patches-bundle.json`, `README.md`
   patch list, or the `gradle.properties` version — the release staging owns
   them (`prepare_release.py` regenerates and commits all four).
-- In `CHANGELOG.md`, add bullets under `## Unreleased` only — versioned
-  entries are promoted by `prepare_release.py`, never edited by hand.
+- Normally add bullets under `## Unreleased` only — versioned entries are
+  promoted by `prepare_release.py`. Editing historical notes requires explicit
+  maintainer approval and matching GitHub release-body updates.
 - Keep unrelated pending work out of release staging commits.
 - The Manager serves the `.mpp` from the GitHub release named in
   `patches-bundle.json` — pushing source does nothing until a versioned

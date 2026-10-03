@@ -95,7 +95,8 @@ internal const val PEOPLE_YOU_MAY_KNOW_TYPE = "PaginatedPeopleYouMayKnowFeedUnit
  * Its model is the People you may know one (`LX/3zk;` in 580, `LX/3zc;` in 577), which answers
  * three type tags: its own literal for People you may know, and a string table entry for this one
  * (tag 0x363babe0, `LX/18Z;->A00(266)` in 580, `LX/19t;->A00(223)` in 577) and for
- * `FriendRequestsFeedUnit`. So the literal alone isn't evidence here; the tag's branch is.
+ * `FriendRequestsFeedUnit`. On 581 (`LX/40I;`) all three are literals of its own. So a literal
+ * alone isn't evidence here; the tag's branch is, whichever way it answers.
  */
 internal const val GROUPS_YOU_SHOULD_JOIN_TYPE = "GroupsYouShouldJoinFeedUnit"
 

@@ -7,6 +7,7 @@ package app.morphe.patches.bettersleep.misc.premium
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.bettersleep.misc.fix.iterable.restoreIterableRequestsPatch
 import app.morphe.patches.bettersleep.misc.fix.signature.spoofSignaturePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.pairip.removePairipVirtualizationPatch
@@ -20,8 +21,6 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.util.ReferenceUtil
 
 internal const val PURCHASE_CLASS = "Lcom/ipnossoft/api/purchasemanager/purchaserepo/localdb/Purchase;"
-internal const val DATA_SOURCE_NAME_CLASS = "Lcom/ipnossoft/api/purchasemanager/datasource/DataSourceName;"
-internal const val PURCHASE_TYPE_CLASS = "Lcom/ipnossoft/api/purchasemanager/data/PurchaseType;"
 
 private const val LIFETIME_PURCHASE_METHOD = "lifetimePurchase"
 private const val PURCHASE_TIME = 1735689600000L
@@ -34,7 +33,7 @@ val unlockPremiumPatch = bytecodePatch(
 ) {
     compatibleWith(AppCompatibilities.BETTERSLEEP)
 
-    dependsOn(removePairipVirtualizationPatch, spoofSignaturePatch)
+    dependsOn(removePairipVirtualizationPatch, restoreIterableRequestsPatch, spoofSignaturePatch)
 
     execute {
         IsContentUnlockedFingerprint.matchSingle().method.returnEarly(true)
@@ -54,17 +53,25 @@ val unlockPremiumPatch = bytecodePatch(
                 """,
             )
 
-        listOf(DATA_SOURCE_NAME_CLASS to "GOOGLE", PURCHASE_TYPE_CLASS to "PURCHASE").forEach { (type, name) ->
+        val constructor = PurchaseConstructorFingerprint.matchSingle().originalMethod
+        val dataSourceName = constructor.parameterTypes[6].toString()
+        val purchaseType = constructor.parameterTypes[7].toString()
+        listOf(dataSourceName to "GOOGLE", purchaseType to "PURCHASE").forEach { (type, name) ->
             check(mutableClassDefBy(type).staticFields.any { it.name == name && it.type == type }) { "$type->$name not found" }
         }
 
         featureManager.directMethods.add(
-            lifetimePurchaseMethod(featureManager.type, PurchaseConstructorFingerprint.matchSingle().originalMethod),
+            lifetimePurchaseMethod(featureManager.type, constructor, dataSourceName, purchaseType),
         )
     }
 }
 
-private fun lifetimePurchaseMethod(definingClass: String, constructor: MethodReference) = ImmutableMethod(
+private fun lifetimePurchaseMethod(
+    definingClass: String,
+    constructor: MethodReference,
+    dataSourceName: String,
+    purchaseType: String,
+) = ImmutableMethod(
     definingClass,
     LIFETIME_PURCHASE_METHOD,
     emptyList<ImmutableMethodParameter>(),
@@ -84,8 +91,8 @@ private fun lifetimePurchaseMethod(definingClass: String, constructor: MethodRef
             const-wide v4, ${PURCHASE_TIME}L
             const-wide v6, ${EXPIRY_TIME}L
             const-string v8, "GOOGLE"
-            sget-object v9, $DATA_SOURCE_NAME_CLASS->GOOGLE:$DATA_SOURCE_NAME_CLASS
-            sget-object v10, $PURCHASE_TYPE_CLASS->PURCHASE:$PURCHASE_TYPE_CLASS
+            sget-object v9, $dataSourceName->GOOGLE:$dataSourceName
+            sget-object v10, $purchaseType->PURCHASE:$purchaseType
             const/4 v11, 0x0
             const/4 v12, 0x0
             const/4 v13, 0x0

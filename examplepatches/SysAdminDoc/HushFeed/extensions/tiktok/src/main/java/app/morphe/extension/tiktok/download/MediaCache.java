@@ -23,11 +23,16 @@ import app.morphe.extension.shared.Utils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.RandomAccessFile;
 import java.io.Writer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Iterator;
@@ -44,6 +49,7 @@ public final class MediaCache {
     static final String DIRECTORY_NAME = "hushfeed-media";
     static final long STALE_AFTER_MS = 24L * 60 * 60 * 1000;
     private static final String PENDING_FILE_NAME = "pending-uris.tsv";
+    private static final String PENDING_LOCK_FILE_NAME = "pending-uris.lock";
     private static final String PENDING_INTENT_PREFIX = "intent:";
     /** What a row is called between the insert and the publish. */
     static final String TEMPORARY_NAME_PREFIX = "hushfeed-pending-";
@@ -61,20 +67,31 @@ public final class MediaCache {
         return file;
     }
 
+    /** Final cleanup: the job no longer owns this file, even if its deletion must be retried. */
     static boolean delete(File file) {
-        if (file == null) return true;
-        boolean deleted = !file.exists() || file.delete();
-        if (deleted) ACTIVE_FILES.remove(file.getAbsolutePath());
-        return deleted;
+        try {
+            return deletePartial(file);
+        } finally {
+            if (file != null) ACTIVE_FILES.remove(file.getAbsolutePath());
+        }
+    }
+
+    /** Removes a partial transfer while its caller still owns the file for a retry or cleanup. */
+    static boolean deletePartial(File file) {
+        return file == null || !file.exists() || file.delete();
     }
 
     static void markPending(Context context, Uri uri) throws IOException {
         if (uri == null) throw new IOException("MediaStore returned no URI");
         synchronized (LOCK) {
-            File directory = directory(context);
-            Map<String, Long> records = readPending(directory);
-            records.put(uri.toString(), System.currentTimeMillis());
-            writePending(directory, records);
+            File directory = journalDirectory(context);
+            try (RandomAccessFile access = openJournalLock(directory);
+                 FileChannel channel = access.getChannel();
+                 FileLock ignored = channel.lock()) {
+                Map<String, Long> records = readPendingAndMigrate(context, directory);
+                records.put(uri.toString(), System.currentTimeMillis());
+                writePending(directory, records);
+            }
         }
     }
 
@@ -94,10 +111,14 @@ public final class MediaCache {
                 + encode(collection.toString()) + ":" + encode(displayName)
                 + ":" + encode(relativePath == null ? "" : relativePath);
         synchronized (LOCK) {
-            File directory = directory(context);
-            Map<String, Long> records = readPending(directory);
-            records.put(token, System.currentTimeMillis());
-            writePending(directory, records);
+            File directory = journalDirectory(context);
+            try (RandomAccessFile access = openJournalLock(directory);
+                 FileChannel channel = access.getChannel();
+                 FileLock ignored = channel.lock()) {
+                Map<String, Long> records = readPendingAndMigrate(context, directory);
+                records.put(token, System.currentTimeMillis());
+                writePending(directory, records);
+            }
         }
         return token;
     }
@@ -154,11 +175,15 @@ public final class MediaCache {
     private static void markPending(Context context, String token, Uri uri) throws IOException {
         if (uri == null) throw new IOException("MediaStore returned no URI");
         synchronized (LOCK) {
-            File directory = directory(context);
-            Map<String, Long> records = readPending(directory);
-            records.remove(token);
-            records.put(uri.toString(), System.currentTimeMillis());
-            writePending(directory, records);
+            File directory = journalDirectory(context);
+            try (RandomAccessFile access = openJournalLock(directory);
+                 FileChannel channel = access.getChannel();
+                 FileLock ignored = channel.lock()) {
+                Map<String, Long> records = readPendingAndMigrate(context, directory);
+                records.remove(token);
+                records.put(uri.toString(), System.currentTimeMillis());
+                writePending(directory, records);
+            }
         }
     }
 
@@ -174,9 +199,13 @@ public final class MediaCache {
     private static void clearPendingKey(Context context, String key) throws IOException {
         if (key == null) return;
         synchronized (LOCK) {
-            File directory = directory(context);
-            Map<String, Long> records = readPending(directory);
-            if (records.remove(key) != null) writePending(directory, records);
+            File directory = journalDirectory(context);
+            try (RandomAccessFile access = openJournalLock(directory);
+                 FileChannel channel = access.getChannel();
+                 FileLock ignored = channel.lock()) {
+                Map<String, Long> records = readPendingAndMigrate(context, directory);
+                if (records.remove(key) != null) writePending(directory, records);
+            }
         }
     }
 
@@ -185,8 +214,8 @@ public final class MediaCache {
      * application's attachBaseContext, where getApplicationContext() is still null (the
      * application object is only handed to the package after attach), so the context it was
      * given stands in; with null here every sweep returned at once and nothing was ever cleaned.
-     * TikTok's main process only: the other processes never save, and one of them rewriting the
-     * journal while the main one publishes could drop the entry a crash needs.
+     * Only the main process starts a sweep. All journal readers and writers also take the
+     * durable file lock, so another process cannot overwrite a publication's recovery record.
      */
     public static void reconcileAsync(Context context) {
         if (context == null || !Utils.isMainProcess()
@@ -222,10 +251,12 @@ public final class MediaCache {
                 long cutoff = System.currentTimeMillis() - STALE_AFTER_MS;
                 File pendingBase = new File(directory, PENDING_FILE_NAME);
                 File pendingBackup = new File(directory, PENDING_FILE_NAME + ".bak");
+                File pendingNew = new File(directory, PENDING_FILE_NAME + ".new");
                 File[] files = directory.listFiles();
                 if (files != null) {
                     for (File file : files) {
                         if (!file.isFile() || file.equals(pendingBase) || file.equals(pendingBackup)
+                                || file.equals(pendingNew)
                                 || ACTIVE_FILES.contains(file.getAbsolutePath())) continue;
                         if (file.lastModified() < cutoff && !file.delete()) {
                             Logger.printInfo(() -> "Could not remove stale media file " + file.getName());
@@ -233,18 +264,23 @@ public final class MediaCache {
                     }
                 }
 
-                Map<String, Long> records = readPending(directory);
-                boolean changed = false;
-                Iterator<Map.Entry<String, Long>> iterator = records.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Map.Entry<String, Long> entry = iterator.next();
-                    if (entry.getValue() >= cutoff) continue;
-                    if (reconcilePendingEntry(app.getContentResolver(), entry.getKey())) {
-                        iterator.remove();
-                        changed = true;
+                File journal = journalDirectory(app);
+                try (RandomAccessFile access = openJournalLock(journal);
+                     FileChannel channel = access.getChannel();
+                     FileLock ignored = channel.lock()) {
+                    Map<String, Long> records = readPendingAndMigrate(app, journal);
+                    boolean changed = false;
+                    Iterator<Map.Entry<String, Long>> iterator = records.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                        Map.Entry<String, Long> entry = iterator.next();
+                        if (entry.getValue() >= cutoff) continue;
+                        if (reconcilePendingEntry(app.getContentResolver(), entry.getKey())) {
+                            iterator.remove();
+                            changed = true;
+                        }
                     }
+                    if (changed) writePending(journal, records);
                 }
-                if (changed) writePending(directory, records);
             }
         } catch (IOException | RuntimeException error) {
             Logger.printException(() -> "Media cache reconciliation failed", error);
@@ -262,24 +298,81 @@ public final class MediaCache {
         return directory;
     }
 
+    /** Recovery metadata is neither evictable cache nor portable across a restored install. */
+    private static File journalDirectory(Context context) throws IOException {
+        if (context == null || context.getNoBackupFilesDir() == null) {
+            throw new IOException("Application publication storage is unavailable");
+        }
+        File directory = new File(context.getNoBackupFilesDir(), DIRECTORY_NAME);
+        if (!directory.isDirectory() && !directory.mkdirs() && !directory.isDirectory()) {
+            throw new IOException("Could not create publication journal storage");
+        }
+        return directory;
+    }
+
+    /** Never delete the lock file: every process must keep locking the same inode. */
+    private static RandomAccessFile openJournalLock(File directory) throws IOException {
+        return new RandomAccessFile(new File(directory, PENDING_LOCK_FILE_NAME), "rw");
+    }
+
+    /** Called under both the thread lock and the durable process lock. */
+    private static Map<String, Long> readPendingAndMigrate(Context context, File directory) throws IOException {
+        Map<String, Long> records = readPending(directory);
+        File cache = context.getCacheDir();
+        if (cache == null) return records;
+        File legacy = new File(cache, DIRECTORY_NAME);
+        if (legacy.equals(directory) || !hasPendingJournal(legacy)) return records;
+        Map<String, Long> previous = readPending(legacy);
+        for (Map.Entry<String, Long> entry : previous.entrySet()) {
+            Long current = records.get(entry.getKey());
+            // A freshly journaled publication must not inherit a legacy record's old age.
+            if (current == null || entry.getValue() > current) records.put(entry.getKey(), entry.getValue());
+        }
+        // Commit all readable ownership before retiring the old journal. Failure keeps it.
+        writePending(directory, records);
+        for (String suffix : new String[]{".new", ".bak", ""}) {
+            File old = new File(legacy, PENDING_FILE_NAME + suffix);
+            if (old.exists() && !old.delete()) throw new IOException("Could not retire legacy publication journal");
+        }
+        return records;
+    }
+
+    private static boolean hasPendingJournal(File directory) {
+        return new File(directory, PENDING_FILE_NAME).exists()
+                || new File(directory, PENDING_FILE_NAME + ".bak").exists()
+                || new File(directory, PENDING_FILE_NAME + ".new").exists();
+    }
+
     private static Map<String, Long> readPending(File directory) throws IOException {
         Map<String, Long> records = new LinkedHashMap<>();
         File base = new File(directory, PENDING_FILE_NAME);
-        if (!base.exists() && !new File(directory, PENDING_FILE_NAME + ".bak").exists()) return records;
+        File backup = new File(directory, PENDING_FILE_NAME + ".bak");
+        if (!hasPendingJournal(directory)) return records;
+        for (String suffix : new String[]{"", ".bak", ".new"}) {
+            File file = new File(directory, PENDING_FILE_NAME + suffix);
+            if (file.exists() && !file.isFile()) throw new IOException("Unreadable media publication journal");
+        }
+        if (!base.exists() && !backup.exists()) throw new IOException("Uncommitted media publication journal");
         try {
-            AtomicFile atomic = new AtomicFile(base);
+            // A backup is the committed record until a write retires it. AtomicFile.openRead
+            // replaces base/deletes .new before decoding; an unreadable source must stay intact.
+            File committed = backup.exists() ? backup : base;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    atomic.openRead(), StandardCharsets.UTF_8))) {
+                    new FileInputStream(committed), StandardCharsets.UTF_8.newDecoder()
+                            .onMalformedInput(CodingErrorAction.REPORT)
+                            .onUnmappableCharacter(CodingErrorAction.REPORT)))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
+                    if (line.isEmpty()) continue;
                     int tab = line.indexOf('\t');
-                    if (tab <= 0 || tab == line.length() - 1) continue;
+                    if (tab <= 0 || tab == line.length() - 1) throw new IOException("Malformed media publication record");
                     try {
                         long timestamp = Long.parseLong(line.substring(0, tab));
                         String uri = line.substring(tab + 1);
-                        if (!uri.isEmpty() && timestamp > 0) records.put(uri, timestamp);
-                    } catch (NumberFormatException ignored) {
-                        // A torn line is discarded. Other records remain recoverable.
+                        if (timestamp <= 0) throw new IOException("Invalid media publication timestamp");
+                        records.put(uri, timestamp);
+                    } catch (NumberFormatException error) {
+                        throw new IOException("Unreadable media publication timestamp", error);
                     }
                 }
             }
@@ -310,10 +403,22 @@ public final class MediaCache {
                 writer.write('\n');
             }
             writer.flush();
+            // AtomicFile logs some sync/rename failures instead of throwing. A successful
+            // return alone must not authorize an insert or retire legacy ownership.
+            output.getFD().sync();
             atomic.finishWrite(output);
         } catch (IOException | RuntimeException error) {
             atomic.failWrite(output);
             throw error;
+        }
+        // A finished write is no longer eligible for rollback. Older AtomicFile versions
+        // delete the committed base if failWrite is called after its backup is retired.
+        if (!base.isFile() || new File(directory, PENDING_FILE_NAME + ".new").exists()
+                || new File(directory, PENDING_FILE_NAME + ".bak").exists()) {
+            throw new IOException("Media publication journal commit is incomplete");
+        }
+        if (!readPending(directory).equals(records)) {
+            throw new IOException("Media publication journal commit did not retain its records");
         }
     }
 

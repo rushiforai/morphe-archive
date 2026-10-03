@@ -343,8 +343,8 @@ public class ScreenColorsTest {
             SettingsDialog dialog = show(controller.get());
             HushfacebookPreferenceFragment page = (HushfacebookPreferenceFragment)
                     dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
-            HushfacebookPreferenceFragment.FolderRow row =
-                    (HushfacebookPreferenceFragment.FolderRow) page.findPreference(Settings.SAVE_FOLDER.key);
+            ValueRows.FolderRow row =
+                    (ValueRows.FolderRow) page.findPreference(Settings.SAVE_FOLDER.key);
             assertNotNull("no save folder row", row);
             row.showDialog(null);
             ShadowLooper.idleMainLooper();
@@ -390,8 +390,8 @@ public class ScreenColorsTest {
             SettingsDialog dialog = show(controller.get());
             HushfacebookPreferenceFragment page = (HushfacebookPreferenceFragment)
                     dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
-            HushfacebookPreferenceFragment.QualityRow row =
-                    (HushfacebookPreferenceFragment.QualityRow) page.findPreference(Settings.DOWNLOAD_QUALITY.key);
+            ValueRows.QualityRow row =
+                    (ValueRows.QualityRow) page.findPreference(Settings.DOWNLOAD_QUALITY.key);
             assertNotNull("no download quality row", row);
             row.showDialog(null);
             ShadowLooper.idleMainLooper();

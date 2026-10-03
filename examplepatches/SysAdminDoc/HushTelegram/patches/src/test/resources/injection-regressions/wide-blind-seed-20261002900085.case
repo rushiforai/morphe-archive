@@ -1,0 +1,37 @@
+# Shrunk from seed 20261002900085, which WIDE_BLIND got wrong:
+# guard off: (-962439021, 0) instruction 7 reads v1, which the hook borrowed
+mode=skip
+anchor=4
+target=5
+trap=-2
+inputs=-962439021,0
+jump=verifies
+control=wide-blind
+---
+.method public static run(II)I
+    .registers 6
+    int-to-long v0, v5
+    if-ltz v4, :else_52
+    goto :end_52
+    :else_52
+    packed-switch v5, :switch_56
+    long-to-int v1, v0
+    invoke-static {v4}, Lseeded/Probe;->mix(I)I
+    move-result v3
+    goto :end_56
+    :case_56_0
+    goto :end_56
+    :case_56_1
+    goto :end_56
+    :case_56_2
+    goto :end_56
+    :end_56
+    :end_52
+    return v5
+    :switch_56
+    .packed-switch 1
+        :case_56_0
+        :case_56_1
+        :case_56_2
+    .end packed-switch
+.end method

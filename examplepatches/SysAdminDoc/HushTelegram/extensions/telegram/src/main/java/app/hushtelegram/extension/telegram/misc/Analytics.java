@@ -16,11 +16,12 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * Keeps Telegram's usage reports on the phone.
  *
  * <p>When the server's app config turns on {@code collectDeviceStats}, the messages controller's
- * {@code logDeviceStats()} reads the phone's storage directories and sends what it found as a
+ * {@code logDeviceStats()} classifies the selected root as emulated storage and reports that boolean as a
  * {@code help.saveAppLog} event. While you scroll a channel, Telegram also times how long each post
  * stays on screen and sends the batch as {@code messages.reportReadMetrics}. Both ask this class
  * first, and while the switch is on neither is read nor sent. Messages, calls, view counts and
- * everything else Telegram needs go on as before.
+ * everything else Telegram needs go on as before. Four verified Premium screen interactions also
+ * ask before their telemetry send. Their payload construction and billing cleanup stay intact.
  */
 public final class Analytics {
     private Analytics() {}
@@ -71,6 +72,18 @@ public final class Analytics {
             HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "read metrics clear", t);
         }
         return true;
+    }
+
+    /** Only verified Premium screen interactions are eligible; unknown and diagnostic types stay stock. */
+    public static boolean skipPremiumAppLog(String type) {
+        if (type == null) return false;
+        switch (type) {
+            case "premium.promo_screen_show": return skip("premium promo show report skipped");
+            case "premium.promo_screen_tap": return skip("premium promo tap report skipped");
+            case "premium.promo_screen_accept": return skip("premium promo accept report skipped");
+            case "premium.promo_screen_fail": return skip("premium promo fail report skipped");
+            default: return false;
+        }
     }
 
     private static boolean skip(String what) {

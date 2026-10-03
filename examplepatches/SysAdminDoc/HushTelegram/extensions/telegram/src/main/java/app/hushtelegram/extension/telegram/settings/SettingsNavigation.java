@@ -27,10 +27,13 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.preference.SwitchPreference;
 
+import androidx.annotation.Nullable;
+
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import app.hushtelegram.extension.shared.L10n;
 import app.hushtelegram.extension.shared.settings.BaseSettings;
@@ -51,6 +54,7 @@ final class SettingsNavigation extends BaseAdapter {
     private final HushTelegramPreferenceFragment page;
     private final SettingsDialog host;
     private final ListView list;
+    private final int normalBottomPadding;
     private final PreferenceScreen screen;
     private final ListAdapter source;
     private final List<Section> sections = new ArrayList<>();
@@ -87,11 +91,13 @@ final class SettingsNavigation extends BaseAdapter {
         this.host = host;
         screen = page.getPreferenceScreen();
         list = page.getView().findViewById(android.R.id.list);
+        normalBottomPadding = list.getPaddingBottom();
         source = screen.getRootAdapter();
         Context context = screen.getContext();
         // Stable English route IDs survive a locale change; the displayed names are localized.
-        section("Chats", L10n.t("Chats"), L10n.t("Sponsored messages and video ads"), SettingsIcons.CHAT, true);
-        section("Privacy", L10n.t("Privacy"), L10n.t("Device statistics and read time"), SettingsIcons.BLOCK, true);
+        Set<PatchFamily> build = PatchFamily.inThisBuild();
+        section("Chats", L10n.t("Chats"), chatsSummary(build), SettingsIcons.CHAT, true);
+        section("Privacy", L10n.t("Privacy"), privacySummary(build), SettingsIcons.BLOCK, true);
         section("Links", L10n.t("Links"), null, SettingsIcons.LINKS, false);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES, false);
         section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED, false);
@@ -149,6 +155,47 @@ final class SettingsNavigation extends BaseAdapter {
         }
     }
 
+    /**
+     * The Chats row's line, from what this build hides: the ads its hooks cover, and "and more"
+     * only when another Chats switch is there too. Null when Hide ads covers nothing, since the
+     * page then holds only switches the line would leave unnamed.
+     */
+    @Nullable
+    static String chatsSummary(Set<PatchFamily> build) {
+        if (!build.contains(PatchFamily.HIDE_ADS)) return null;
+        Set<PatchFamily.Capability> installed = PatchFamily.HIDE_ADS.installedCapabilities();
+        boolean channels = installed.contains(PatchFamily.Capability.CHANNEL_ADS)
+                || installed.contains(PatchFamily.Capability.VIDEO_ADS);
+        boolean search = installed.contains(PatchFamily.Capability.SEARCH_ADS);
+        if (!channels && !search) return null;
+        String ads = channels && search ? L10n.t("Ads in channels and search")
+                : channels ? L10n.t("Ads in channels") : L10n.t("Ads in search");
+        for (PatchFamily family : PatchFamily.CHATS_PAGE) {
+            if (family != PatchFamily.HIDE_ADS && build.contains(family)) return L10n.f("%1$s, and more", ads);
+        }
+        return ads;
+    }
+
+    /**
+     * The Privacy row's line, naming only the switches this build put on that page. The draft
+     * preview and gallery camera switches are off as shipped, so they add "and more" rather than
+     * names of their own, unless one of them is all the page holds.
+     */
+    @Nullable
+    static String privacySummary(Set<PatchFamily> build) {
+        boolean reports = build.contains(PatchFamily.DISABLE_ANALYTICS);
+        boolean calls = build.contains(PatchFamily.DISABLE_CALL_DEBUG);
+        boolean drafts = build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS);
+        boolean camera = build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP);
+        String named = reports && calls ? L10n.t("Usage reports and call diagnostics")
+                : reports ? L10n.t("Usage reports") : calls ? L10n.t("Call diagnostics") : null;
+        if (named == null) {
+            if (drafts && camera) return L10n.f("%1$s, and more", L10n.t("Draft link previews"));
+            return drafts ? L10n.t("Draft link previews") : camera ? L10n.t("Gallery camera") : null;
+        }
+        return drafts || camera ? L10n.f("%1$s, and more", named) : named;
+    }
+
     private static Preference link(Context context, String title, String summary, String icon) {
         Preference row = new HushTelegramPreferenceFragment.Row(context);
         row.setTitle(title);
@@ -172,6 +219,7 @@ final class SettingsNavigation extends BaseAdapter {
     void navigate(String destination) {
         refocus = null;
         rememberIndex();
+        pageStatusHeight = 0;
         query = "";
         route = destination;
         if (!MORE.equals(route) && selected() == null) route = "";
@@ -197,6 +245,7 @@ final class SettingsNavigation extends BaseAdapter {
         if (query.equals(text)) return;
         refocus = null;
         if (query.isEmpty()) rememberIndex();
+        pageStatusHeight = 0;
         query = text;
         route = "";
         rebuild();
@@ -212,6 +261,7 @@ final class SettingsNavigation extends BaseAdapter {
         if (route.isEmpty()) return false;
         Section section = selected();
         Preference left = section != null ? section.link : more;
+        pageStatusHeight = 0;
         route = section != null && !section.primary ? MORE : "";
         rebuild();
         host.showPage(title(), route.isEmpty(), query);
@@ -222,7 +272,6 @@ final class SettingsNavigation extends BaseAdapter {
     }
 
     private void showAt(int position, int offset) {
-        pageStatusHeight = 0;
         // A header resize otherwise syncs the old page's visible children back over this
         // selection in touch mode. Rebind when changing pages; normal preference updates
         // still keep their current views and scroll position through notifyDataSetChanged.
@@ -291,6 +340,12 @@ final class SettingsNavigation extends BaseAdapter {
             visible.add(more);
         }
         if (terms.isEmpty()) host.showResults(-1);
+        // Undo can remove the entire status card. Reserve its former scroll range at the
+        // bottom until navigation, without retaining a stale status row or changing choices.
+        int bottom = normalBottomPadding + (visible.contains(pageStatus) ? 0 : pageStatusHeight);
+        if (list.getPaddingBottom() != bottom) {
+            list.setPadding(list.getPaddingLeft(), list.getPaddingTop(), list.getPaddingRight(), bottom);
+        }
         notifyDataSetChanged();
     }
 
@@ -388,9 +443,9 @@ final class SettingsNavigation extends BaseAdapter {
             if (title != null) title.setTypeface(android.graphics.Typeface.create("sans-serif-medium", 0));
         }
         if (item == screen.getPreference(0)) bindStatus(row);
-        if (item == pageStatus && pageAction) {
+        if (item == pageStatus) {
             row.setMinimumHeight(Math.max(row.getMinimumHeight(), pageStatusHeight));
-            bindAction(row, HushTelegramPause.isPaused(), HushTelegramPause.pausesNextStart(screen.getContext()), true);
+            if (pageAction) bindAction(row, HushTelegramPause.isPaused(), HushTelegramPause.pausesNextStart(screen.getContext()), true);
         }
         return row;
     }

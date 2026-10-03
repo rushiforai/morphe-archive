@@ -7,7 +7,13 @@
  */
 package app.morphe.patches.facebook.downloads.story
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.facebook.feed.namesString
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /** Kept name. The "More" menu of the story viewer, where the save item is added. */
 internal const val STORY_VIEWER_MORE_MENU =
@@ -27,17 +33,27 @@ internal const val VIDEO_DATA_SOURCE = "Lcom/facebook/video/engine/api/VideoData
 /** Kept name. The app builds one for each player. It holds the video id and the source. */
 internal const val VIDEO_PLAYER_PARAMS = "Lcom/facebook/video/engine/api/VideoPlayerParams;"
 
+/** The analytics event the save action reports. */
+internal const val SAVE_STORY_ATTEMPTED = "save_story_attempted"
+
 /**
- * The action behind the save item. The analytics event that it reports is what finds it.
+ * The action behind the save item: a `void` with one parameter that reports [SAVE_STORY_ATTEMPTED],
+ * a literal of its own on 577 and 580 and a string table entry [resolve] reads on 581.
  *
- * The event name is in three methods. One of the other two is a string table, which returns a
- * `String`. The second is the orchestrator further down the chain, which takes eight parameters.
- * Only this method is a `void` with one parameter.
+ * The patch looks for it among the types the story viewer's "More" menu creates ([typesCreated]).
+ * Elsewhere the event is in a string table, which returns a `String`, in the orchestrator further
+ * down the chain, which takes eight parameters, and on 581 in the composer's
+ * InspirationSaveButtonController, a `void` with one parameter the menu doesn't create.
  *
  * The patch does not edit this method. It reads the class of the action from it. That class is what
  * the menu builder creates, and thus what identifies the builder without a name that Redex moves.
  */
-internal object SaveStoryActionFingerprint : Fingerprint(
-    returnType = "V",
-    strings = listOf("save_story_attempted"),
-)
+internal fun isSaveStoryAction(method: Method, resolve: (MethodReference) -> Method?): Boolean =
+    method.returnType == "V" && method.parameterTypes.size == 1 && method.implementation != null &&
+        namesString(method, SAVE_STORY_ATTEMPTED, resolve)
+
+/** The types [owner]'s methods create with new-instance. */
+internal fun typesCreated(owner: ClassDef): Set<String> = owner.methods.flatMap { method ->
+    method.implementation?.instructions?.toList().orEmpty().filter { it.opcode == Opcode.NEW_INSTANCE }
+        .mapNotNull { ((it as ReferenceInstruction).reference as? TypeReference)?.type }
+}.toSet()

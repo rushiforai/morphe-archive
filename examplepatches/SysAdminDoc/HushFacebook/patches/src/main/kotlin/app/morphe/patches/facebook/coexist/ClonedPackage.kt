@@ -22,7 +22,9 @@ import org.w3c.dom.Element
  * Clone app renames the package in its finalize block. With Update permissions on it renames each
  * permission Facebook declares, com.facebook.katana.X to <package>.X and any other name to
  * <package>_<name>, and the first <uses-permission> of each, but not the components that require
- * one: they went on naming permissions only the stock app declares. With Update providers on it
+ * one: they went on naming permissions only the stock app declares. With it off, which is its
+ * default, the declarations keep the stock names, and Android refuses the clone beside a Facebook
+ * signed with another key (INSTALL_FAILED_DUPLICATE_PERMISSION). With Update providers on it
  * renames the provider authorities the same way. With it off they stay the stock app's, and Android
  * refuses a second app claiming one (INSTALL_FAILED_CONFLICTING_PROVIDER). And Facebook's code
  * spells some of its own authorities out, content://com.facebook.katana.ClientMessagePushDedupInfoProvider/mutestatus
@@ -63,18 +65,38 @@ internal fun Document.ownAuthorities(packageName: String): Set<String> = element
     .filter { it.startsWith("$packageName.") }
     .toSet()
 
-/** What following a renamed package moved: mentions of a permission, and authorities. */
-internal data class Followed(val permissions: Int, val authorities: Int)
+/** Facebook's own permissions: every one it declares under [packageName]. */
+internal fun Document.ownPermissions(packageName: String): Set<String> = elements("permission")
+    .map { it.getAttribute("android:name") }
+    .filter { it.startsWith("$packageName.") }
+    .toSet()
 
 /**
- * After something renamed the package away from [originalPackage]: points every mention of a
- * permission this manifest no longer declares at the renamed declaration Clone app made of it, and
- * moves every authority still in [stockAuthorities] under the new package, which is where Clone
- * app's Update providers would have put it. Answers what it moved, or null when the package is
- * still [originalPackage], and then it changes nothing but a fine message, since this could be an
- * ordinary install as easily as a clone whose "Clone app" hasn't finalized yet.
+ * What following a renamed package moved: mentions of a permission, authorities, and declarations
+ * Clone app left under the stock package.
  */
-internal fun Document.followRenamedPackage(originalPackage: String, stockAuthorities: Set<String>): Followed? {
+internal data class Followed(val permissions: Int, val authorities: Int, val declarations: Int = 0)
+
+/**
+ * After something renamed the package away from [originalPackage]: moves every permission still
+ * declared under one of [stockPermissions] under the new package, which is where Clone app's Update
+ * permissions would have put it, points every mention of a permission this manifest no longer
+ * declares at the renamed declaration, and moves every authority still in [stockAuthorities] under
+ * the new package, which is where its Update providers would have put it. Answers what it moved, or
+ * null when the package is still [originalPackage], and then it changes nothing but a fine message,
+ * since this could be an ordinary install as easily as a clone whose "Clone app" hasn't finalized yet.
+ *
+ * Facebook's five own permissions are signature permissions, so a clone that still declares one
+ * under the stock name can't install beside Facebook signed with another key, Meta's own included
+ * (INSTALL_FAILED_DUPLICATE_PERMISSION, #60). Its code names two of them after the running package
+ * (the cross-process broadcast manager's and AndroidX's not-exported receiver's), so in a clone
+ * those only work once the declarations moved too.
+ */
+internal fun Document.followRenamedPackage(
+    originalPackage: String,
+    stockAuthorities: Set<String>,
+    stockPermissions: Set<String>,
+): Followed? {
     val renamedTo = documentElement.getAttribute("package")
     if (renamedTo.isEmpty() || renamedTo == originalPackage) {
         patchLog.fine(
@@ -87,8 +109,16 @@ internal fun Document.followRenamedPackage(originalPackage: String, stockAuthori
         return null
     }
 
-    val declared = elements("permission").map { it.getAttribute("android:name") }.toSet()
     fun movedUnder(name: String) = renamedTo + name.removePrefix(originalPackage)
+    var declarations = 0
+    for (declaration in elements("permission")) {
+        val name = declaration.getAttribute("android:name")
+        if (name !in stockPermissions) continue
+        declaration.setAttribute("android:name", movedUnder(name))
+        declarations++
+    }
+
+    val declared = elements("permission").map { it.getAttribute("android:name") }.toSet()
     fun cloneDeclarationOf(name: String): String? = listOfNotNull(
         movedUnder(name).takeIf { name.startsWith("$originalPackage.") },
         "${renamedTo}_$name",
@@ -118,7 +148,7 @@ internal fun Document.followRenamedPackage(originalPackage: String, stockAuthori
         }
         if (moved != entries) provider.setAttribute("android:authorities", moved.joinToString(";"))
     }
-    return Followed(permissions, authorities)
+    return Followed(permissions, authorities, declarations)
 }
 
 /** The authority [this] names when it's one of [authorities] or a content:// address on one, else null. */
@@ -146,20 +176,25 @@ internal fun BytecodePatchContext.routeOwnAuthorities(packageName: String, autho
     }
 }
 
-/** The stock app's own authorities, read before anything renames the package. */
+/** The stock app's own authorities and permissions, read before anything renames the package. */
 private var stockAuthorities: Set<String> = emptySet()
+private var stockPermissions: Set<String> = emptySet()
 
 private val clonedPackageManifestPatch = resourcePatch {
     execute {
-        stockAuthorities = document("AndroidManifest.xml").use { it.ownAuthorities(packageMetadata.packageName) }
+        document("AndroidManifest.xml").use {
+            stockAuthorities = it.ownAuthorities(packageMetadata.packageName)
+            stockPermissions = it.ownPermissions(packageMetadata.packageName)
+        }
     }
 
     finalize {
         val followed = document("AndroidManifest.xml").use {
-            it.followRenamedPackage(packageMetadata.packageName, stockAuthorities)
+            it.followRenamedPackage(packageMetadata.packageName, stockAuthorities, stockPermissions)
         } ?: return@finalize
         patchLog.info(
-            "The package was renamed, so ${followed.permissions} mention(s) of a permission now name the renamed " +
+            "The package was renamed, so ${followed.declarations} permission declaration(s) still under the old name " +
+                "moved under the new one, ${followed.permissions} mention(s) of a permission now name the renamed " +
                 "declaration, and ${followed.authorities} provider authorities moved under the new name.",
         )
     }

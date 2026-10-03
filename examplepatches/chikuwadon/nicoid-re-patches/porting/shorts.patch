@@ -1,0 +1,441 @@
+diff --git a/smali/e/e/a/b0.smali b/smali/e/e/a/b0.smali
+--- a/smali/e/e/a/b0.smali
++++ b/smali/e/e/a/b0.smali
+@@ -523,7 +523,7 @@
+ 
+     check-cast v3, Ljava/lang/String;
+ 
+-    const-string v1, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v1, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v2, "$1$2"
+ 
+diff --git a/smali/e/e/a/o.smali b/smali/e/e/a/o.smali
+--- a/smali/e/e/a/o.smali
++++ b/smali/e/e/a/o.smali
+@@ -2624,7 +2624,7 @@
+     goto :goto_1
+ 
+     :cond_1
+-    const-string v2, ".*(sm|nm)\\d.*"
++    const-string v2, ".*(sm|nm|ss)\\d.*"
+ 
+     invoke-virtual {p1, v2}, Ljava/lang/String;->matches(Ljava/lang/String;)Z
+ 
+diff --git a/smali/e/e/a/ModernRelated.smali b/smali/e/e/a/ModernRelated.smali
+--- a/smali/e/e/a/ModernRelated.smali
++++ b/smali/e/e/a/ModernRelated.smali
+@@ -18,7 +18,7 @@
+     move-result-object v1
+     :have_id
+     if-eqz v1, :failed
+-    const-string v2, "(sm|so|nm)[0-9]+"
++    const-string v2, "(sm|so|nm|ss)[0-9]+"
+     invoke-virtual {v1, v2}, Ljava/lang/String;->matches(Ljava/lang/String;)Z
+     move-result v2
+     if-eqz v2, :failed
+diff --git a/smali/e/e/a/x1.smali b/smali/e/e/a/x1.smali
+--- a/smali/e/e/a/x1.smali
++++ b/smali/e/e/a/x1.smali
+@@ -1780,7 +1780,7 @@
+     :cond_4
+     iget-object p1, p0, Le/e/a/x1;->a:Ljava/lang/String;
+ 
+-    const-string p2, ".*(sm|nm)\\d.*"
++    const-string p2, ".*(sm|nm|ss)\\d.*"
+ 
+     invoke-virtual {p1, p2}, Ljava/lang/String;->matches(Ljava/lang/String;)Z
+ 
+diff --git a/smali/e/e/a/m0.smali b/smali/e/e/a/m0.smali
+--- a/smali/e/e/a/m0.smali
++++ b/smali/e/e/a/m0.smali
+@@ -500,7 +500,7 @@
+ 
+     invoke-virtual {v1, v12, v3}, Le/e/a/y0;->a(Landroid/widget/ImageView;I)V
+ 
+-    const-string v1, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v1, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     invoke-virtual {v4, v1}, Ljava/lang/String;->matches(Ljava/lang/String;)Z
+ 
+diff --git a/smali/e/e/a/d0.smali b/smali/e/e/a/d0.smali
+--- a/smali/e/e/a/d0.smali
++++ b/smali/e/e/a/d0.smali
+@@ -10930,7 +10930,7 @@
+ 
+     move-result-object v3
+ 
+-    const-string v4, "(http://www.nicovideo.jp/watch/|)(sm|so|nm)([0-9]+)"
++    const-string v4, "(http://www.nicovideo.jp/watch/|)(sm|so|nm|ss)([0-9]+)"
+ 
+     const-string v5, "<a href=\'http://www.nicovideo.jp/watch/$2$3\'>$1$2$3</a>"
+ 
+@@ -13655,7 +13655,7 @@
+ 
+     move-result-object v11
+ 
+-    const-string v13, "(https?://www.nicovideo.jp/watch/|)(sm|so|nm)([0-9]+)"
++    const-string v13, "(https?://www.nicovideo.jp/watch/|)(sm|so|nm|ss)([0-9]+)"
+ 
+     const-string v15, "<a href=\'http://www.nicovideo.jp/watch/$2$3\'>$1$2$3</a>"
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidPopupViewActivity.smali b/smali/com/sauzask/nicoid/NicoidPopupViewActivity.smali
+--- a/smali/com/sauzask/nicoid/NicoidPopupViewActivity.smali
++++ b/smali/com/sauzask/nicoid/NicoidPopupViewActivity.smali
+@@ -74,7 +74,7 @@
+     goto :goto_1
+ 
+     :cond_1
+-    const-string v3, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v3, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v4, "$1$2"
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidCacheManagerActivity$e.smali b/smali/com/sauzask/nicoid/NicoidCacheManagerActivity$e.smali
+--- a/smali/com/sauzask/nicoid/NicoidCacheManagerActivity$e.smali
++++ b/smali/com/sauzask/nicoid/NicoidCacheManagerActivity$e.smali
+@@ -84,7 +84,7 @@
+ 
+     move-result-object v3
+ 
+-    const-string v4, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v4, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v5, "$1$2"
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoListFragment$e.smali b/smali/com/sauzask/nicoid/NicoidVideoListFragment$e.smali
+--- a/smali/com/sauzask/nicoid/NicoidVideoListFragment$e.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoListFragment$e.smali
+@@ -142,7 +142,7 @@
+ 
+     const-string v3, "$1$2"
+ 
+-    const-string v4, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v4, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v5, "videourl"
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoInfoActivity.smali b/smali/com/sauzask/nicoid/NicoidVideoInfoActivity.smali
+--- a/smali/com/sauzask/nicoid/NicoidVideoInfoActivity.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoInfoActivity.smali
+@@ -814,7 +814,7 @@
+     goto :goto_0
+ 
+     :cond_0
+-    const-string v3, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v3, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v4, "$1$2"
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoListFragment$d.smali b/smali/com/sauzask/nicoid/NicoidVideoListFragment$d.smali
+--- a/smali/com/sauzask/nicoid/NicoidVideoListFragment$d.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoListFragment$d.smali
+@@ -310,7 +310,7 @@
+ 
+     move-result-object v0
+ 
+-    const-string v2, "(<weblink>://www.nicovideo.jp/watch/|)(sm|so|nm)([0-9]+)"
++    const-string v2, "(<weblink>://www.nicovideo.jp/watch/|)(sm|so|nm|ss)([0-9]+)"
+ 
+     const-string v3, "<font color=\'#44ddaa\'><a href=\'http://www.nicovideo.jp/watch/$2$3\'>$2$3</a></font>"
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoInfoFragment$i.smali b/smali/com/sauzask/nicoid/NicoidVideoInfoFragment$i.smali
+--- a/smali/com/sauzask/nicoid/NicoidVideoInfoFragment$i.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoInfoFragment$i.smali
+@@ -53,7 +53,7 @@
+ 
+     iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoInfoFragment$i;->a:Ljava/lang/String;
+ 
+-    const-string v1, "^.*?(nm|sm|so)([0-9]+).*?$"
++    const-string v1, "^.*?(nm|sm|so|ss)([0-9]+).*?$"
+ 
+     invoke-virtual {v0, v1}, Ljava/lang/String;->matches(Ljava/lang/String;)Z
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidCacheManagerActivity$b.smali b/smali/com/sauzask/nicoid/NicoidCacheManagerActivity$b.smali
+--- a/smali/com/sauzask/nicoid/NicoidCacheManagerActivity$b.smali
++++ b/smali/com/sauzask/nicoid/NicoidCacheManagerActivity$b.smali
+@@ -141,7 +141,7 @@
+ 
+     const-string v2, "$1$2"
+ 
+-    const-string v3, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v3, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v4, "videourl"
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidTopActivity.smali b/smali/com/sauzask/nicoid/NicoidTopActivity.smali
+--- a/smali/com/sauzask/nicoid/NicoidTopActivity.smali
++++ b/smali/com/sauzask/nicoid/NicoidTopActivity.smali
+@@ -112,6 +112,8 @@
+     move v2, v12
+ 
+     invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
++
++    invoke-static {v0, v7}, Le/e/a/ModernShorts;->addMenu(Landroid/content/Context;Ljava/util/ArrayList;)V
+ 
+     const v1, 0x7f0f01d4
+ 
+@@ -530,6 +532,8 @@
+     invoke-static/range {v1 .. v6}, Lcom/sauzask/nicoid/NicoidTopActivity;->a(Ljava/util/ArrayList;ZLjava/lang/String;Ljava/lang/String;Landroid/content/Intent;I)V
+ 
++    invoke-static {v0, v7}, Le/e/a/ModernShorts;->finishMenu(Landroid/content/Context;Ljava/util/ArrayList;)V
++
+     if-nez p1, :cond_1
+ 
+     new-instance v1, Lcom/sauzask/nicoid/NicoidListView;
+     invoke-direct {v1, v0}, Lcom/sauzask/nicoid/NicoidListView;-><init>(Landroid/content/Context;)V
+diff --git a/smali/com/sauzask/nicoid/NicoidSetting.smali b/smali/com/sauzask/nicoid/NicoidSetting.smali
+--- a/smali/com/sauzask/nicoid/NicoidSetting.smali
++++ b/smali/com/sauzask/nicoid/NicoidSetting.smali
+@@ -701,6 +701,7 @@
+ 
+     invoke-virtual {p0, p1}, Landroid/preference/PreferenceActivity;->addPreferencesFromResource(I)V
+     invoke-static {p0}, Le/e/a/ModernEnhancements;->settings(Landroid/preference/PreferenceActivity;)V
++    invoke-static {p0}, Le/e/a/ModernShorts;->settings(Landroid/preference/PreferenceActivity;)V
+ 
+     const-string p1, "material_you_mode"
+     invoke-virtual {p0, p1}, Landroid/preference/PreferenceActivity;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+diff --git a/smali/com/sauzask/nicoid/NicoidPopupViewService.smali b/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
+--- a/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
++++ b/smali/com/sauzask/nicoid/NicoidPopupViewService.smali
+@@ -2009,7 +2009,7 @@
+ 
+     move-result-object p1
+ 
+-    const-string v4, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v4, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v5, "$1$2"
+ 
+@@ -3246,7 +3246,7 @@
+     goto :goto_6
+ 
+     :cond_e
+-    const-string v1, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v1, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v3, "$1$2"
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidNicorepoActivity$a.smali b/smali/com/sauzask/nicoid/NicoidNicorepoActivity$a.smali
+--- a/smali/com/sauzask/nicoid/NicoidNicorepoActivity$a.smali
++++ b/smali/com/sauzask/nicoid/NicoidNicorepoActivity$a.smali
+@@ -80,7 +80,7 @@
+ 
+     move-result-object p2
+ 
+-    const-string p3, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string p3, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     invoke-virtual {p2, p3}, Ljava/lang/String;->matches(Ljava/lang/String;)Z
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidChormecastSenderService.smali b/smali/com/sauzask/nicoid/NicoidChormecastSenderService.smali
+--- a/smali/com/sauzask/nicoid/NicoidChormecastSenderService.smali
++++ b/smali/com/sauzask/nicoid/NicoidChormecastSenderService.smali
+@@ -523,7 +523,7 @@
+ 
+     move-result-object v4
+ 
+-    const-string v6, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v6, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v7, "$1$2"
+ 
+@@ -1295,7 +1295,7 @@
+     goto :goto_0
+ 
+     :cond_4
+-    const-string v0, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v0, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v5, "$1$2"
+ 
+diff --git a/smali/com/sauzask/nicoid/NicoidVideoActivity.smali b/smali/com/sauzask/nicoid/NicoidVideoActivity.smali
+--- a/smali/com/sauzask/nicoid/NicoidVideoActivity.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoActivity.smali
+@@ -116,6 +116,12 @@
+ 
+     invoke-virtual {p1, v1}, Landroid/view/Window;->setFormat(I)V
+ 
++    invoke-static {p0}, Le/e/a/ModernShorts;->bootstrap(Landroid/app/Activity;)Z
++    move-result v6
++    if-eqz v6, :shorts_normal
++    return-void
++    :shorts_normal
++
+     const p1, 0x7f0b0062
+ 
+     invoke-virtual {p0, p1}, Landroidx/appcompat/app/AppCompatActivity;->setContentView(I)V
+@@ -147,7 +153,7 @@
+     goto :goto_0
+ 
+     :cond_0
+-    const-string v2, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v2, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v3, "$1$2"
+ 
+@@ -448,6 +454,8 @@
+ 
+     invoke-virtual {p1}, Ld/k/a/o;->a()I
+ 
++    invoke-static {p0}, Le/e/a/ModernShorts;->attach(Landroid/app/Activity;)V
++
+     return-void
+ .end method
+ 
+@@ -1161,3 +1169,16 @@
+ 
+     return-void
+ .end method
++
++.method public dispatchTouchEvent(Landroid/view/MotionEvent;)Z
++    .locals 1
++    invoke-static {p0, p1}, Le/e/a/ModernShorts;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z
++    move-result v0
++    if-eqz v0, :normal_touch
++    const/4 v0, 0x1
++    return v0
++    :normal_touch
++    invoke-super {p0, p1}, Landroid/app/Activity;->dispatchTouchEvent(Landroid/view/MotionEvent;)Z
++    move-result v0
++    return v0
++.end method
+diff --git a/smali/com/sauzask/nicoid/intent/NicoidIntentSelect.smali b/smali/com/sauzask/nicoid/intent/NicoidIntentSelect.smali
+--- a/smali/com/sauzask/nicoid/intent/NicoidIntentSelect.smali
++++ b/smali/com/sauzask/nicoid/intent/NicoidIntentSelect.smali
+@@ -56,7 +56,7 @@
+     goto :goto_0
+ 
+     :cond_0
+-    const-string v1, "^.*?/watch/(nm|sm|so|)([0-9]+).*?$"
++    const-string v1, "^.*?/(?:watch|shorts)/(nm|sm|so|ss|)([0-9]+).*?$"
+ 
+     const-string v2, "$1$2"
+ 
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -29,15 +29,21 @@
+                 <category android:name="android.intent.category.DEFAULT"/>
+                 <category android:name="android.intent.category.BROWSABLE"/>
+                 <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/1" android:scheme="http"/>
+-                <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
+-                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
+-                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/1" android:scheme="http"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="https"/>
+@@ -55,15 +61,21 @@
+                 <category android:name="android.intent.category.DEFAULT"/>
+                 <category android:name="android.intent.category.BROWSABLE"/>
+                 <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/1" android:scheme="http"/>
+-                <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
+-                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
+-                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/1" android:scheme="http"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="https"/>
+@@ -81,15 +93,21 @@
+                 <category android:name="android.intent.category.DEFAULT"/>
+                 <category android:name="android.intent.category.BROWSABLE"/>
+                 <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/1" android:scheme="http"/>
+-                <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
+-                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
+-                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/1" android:scheme="http"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="https"/>
+@@ -105,15 +123,21 @@
+                 <category android:name="android.intent.category.DEFAULT"/>
+                 <category android:name="android.intent.category.BROWSABLE"/>
+                 <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="http"/>
+-                <data android:host="nico.ms" android:pathPrefix="/1" android:scheme="http"/>
+-                <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
+-                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
+-                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="http"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="http"/>
++                <data android:host="nico.ms" android:pathPrefix="/1" android:scheme="http"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="www.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="sp.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/watch/.*" android:scheme="https"/>
++                <data android:host="i.nicovideo.jp" android:pathPattern="/shorts/.*" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/sm" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/nm" android:scheme="https"/>
+                 <data android:host="nico.ms" android:pathPrefix="/so" android:scheme="https"/>

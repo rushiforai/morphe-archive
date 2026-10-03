@@ -57,6 +57,24 @@ public class SearchSuggestionsEntryTest {
             assertFalse("an unpatched build answered for a hook it does not have",
                     SearchSuggestions.shouldHideRewards());
             assertEquals(Boolean.FALSE, Settings.HIDE_SEARCH_REWARDS.defaultValue);
+            assertTrue("the getters cache their answer", Settings.HIDE_SEARCH_REWARDS.rebootApp);
+        } finally {
+            Settings.HIDE_SEARCH_REWARDS.resetToDefault();
+        }
+    }
+
+    /** Issue #21: a downloaded rewards feature reads as missing only while the switch is on. */
+    @Test
+    public void rewardsFeatureReadsAsMissingOnlyWhileHidden() {
+        try {
+            assertTrue(SearchSuggestions.filterRewardsLoaded(true));
+            assertFalse("a missing feature stays missing", SearchSuggestions.filterRewardsLoaded(false));
+            Settings.HIDE_SEARCH_REWARDS.save(true);
+            assertFalse(SearchSuggestions.filterRewardsLoaded(true));
+            assertFalse(SearchSuggestions.filterRewardsLoaded(false));
+            SettingsStatus.hideSearchSuggestionsEnabled = false;
+            assertTrue("an unpatched build answered for a hook it does not have",
+                    SearchSuggestions.filterRewardsLoaded(true));
         } finally {
             Settings.HIDE_SEARCH_REWARDS.resetToDefault();
         }

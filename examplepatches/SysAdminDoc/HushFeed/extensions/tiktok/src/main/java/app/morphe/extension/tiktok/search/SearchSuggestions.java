@@ -28,6 +28,15 @@ public final class SearchSuggestions {
         return SettingsStatus.hideSearchSuggestionsEnabled && Settings.HIDE_SEARCH_REWARDS.get();
     }
 
+    /**
+     * TikTok's answer to whether a search rewards feature is downloaded, asked by each rewards
+     * service's lazy getter. Answering no hands out the placeholder service, so no coin or
+     * banner is built until TikTok restarts with the switch off.
+     */
+    public static boolean filterRewardsLoaded(boolean loaded) {
+        return loaded && !shouldHideRewards();
+    }
+
     public static boolean filterCachedSuggestions(boolean nativeValue) {
         return nativeValue && !shouldHide();
     }

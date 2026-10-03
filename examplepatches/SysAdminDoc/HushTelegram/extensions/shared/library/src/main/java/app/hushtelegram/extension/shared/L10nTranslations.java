@@ -47,10 +47,11 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(344);
+        Map<String, String> table = new HashMap<>(444);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
+        fillDe3(table);
         return table;
     }
 
@@ -67,6 +68,8 @@ public final class L10nTranslations {
                 "%1$d Schalter wird ge\u00e4ndert.");
         table.put("%1$d switches will change.",
                 "%1$d Schalter werden ge\u00e4ndert.");
+        table.put("%1$s, and more",
+                "%1$s und mehr");
         table.put("%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.",
                 "%1$s. Das wurde beim Patchen festgelegt, deshalb kann die Pause es nicht ausschalten. Um es auszuschlie\u00dfen, patche erneut und lass diesen Patch weg.");
         table.put("%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.",
@@ -77,8 +80,18 @@ public final class L10nTranslations {
                 "Ein Diagnosebericht wird bereits gespeichert.");
         table.put("A file named %1$s in %2$s paused HushTelegram.",
                 "Eine Datei namens %1$s in %2$s hat HushTelegram pausiert.");
+        table.put("A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.",
+                "Ein seitliches Wischen \u00fcber einen Chat in der Chatliste archiviert ihn nicht mehr, schaltet ihn nicht stumm, heftet ihn nicht an, l\u00f6scht ihn nicht und markiert ihn nicht als gelesen, sodass ein versehentliches Wischen den Chat nicht ver\u00e4ndert. Langes Dr\u00fccken bietet weiterhin alle Aktionen. In den Einstellungen standardm\u00e4\u00dfig ausgeschaltet.");
         table.put("About",
                 "Info");
+        table.put("Accounts",
+                "Konten");
+        table.put("Ads in channels",
+                "Werbung in Kan\u00e4len");
+        table.put("Ads in channels and search",
+                "Werbung in Kan\u00e4len und in der Suche");
+        table.put("Ads in search",
+                "Werbung in der Suche");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 und \u00e4lter melden nicht, welche Links sich hier \u00f6ffnen. Tippe, um die Einstellungen dieser App zu \u00f6ffnen, dann auf \u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
@@ -97,6 +110,10 @@ public final class L10nTranslations {
                 "Zur\u00fcck");
         table.put("Browse settings",
                 "Einstellungen durchsuchen");
+        table.put("Call diagnostics",
+                "Anrufdiagnosen");
+        table.put("Camera only on tap",
+                "Kamera erst beim Tippen");
         table.put("Cancel",
                 "Abbrechen");
         table.put("Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.",
@@ -109,8 +126,8 @@ public final class L10nTranslations {
                 "Jetzt pr\u00fcfen");
         table.put("Checking GitHub now.",
                 "GitHub wird gerade gefragt.");
-        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes.",
-                "W\u00e4hle eine Einstellungsdatei. Vor dem Import siehst du, wie viele Schalter sie \u00e4ndert.");
+        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.",
+                "W\u00e4hle eine Einstellungsdatei. Vor dem Import siehst du, wie viele Schalter sie \u00e4ndert. Was du importierst, gilt f\u00fcr alle Konten in dieser Telegram-App.");
         table.put("Clear diagnostic data",
                 "Diagnosedaten l\u00f6schen");
         table.put("Clear search",
@@ -143,20 +160,25 @@ public final class L10nTranslations {
                 "HushTelegram lie\u00df sich nicht wieder einschalten. Versuche es noch einmal.");
         table.put("Debug logging",
                 "Debug-Protokollierung");
-        table.put("Device statistics and read time",
-                "Ger\u00e4testatistiken und Lesezeit");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Diagnosedaten gel\u00f6scht. Tippe erneut, um sie wiederherzustellen.");
         table.put("Diagnostic data put back.",
                 "Diagnosedaten wiederhergestellt.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Diagnosebericht in die Zwischenablage kopiert.");
+        table.put("Draft link previews",
+                "Linkvorschau in Entw\u00fcrfen");
         table.put("Empties the log and the hook findings a report would include.",
                 "Leert das Protokoll und die Hook-Ergebnisse, die ein Bericht enthalten w\u00fcrde.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Jeder Schalter au\u00dfer der Debug-Protokollierung verh\u00e4lt sich, als w\u00e4re er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.");
+        table.put("Every switch here applies to all the accounts in this Telegram app, not only the one you have open.",
+                "Jeder Schalter hier gilt f\u00fcr alle Konten in dieser Telegram-App, nicht nur f\u00fcr das gerade ge\u00f6ffnete.");
         table.put("Export diagnostic report",
                 "Diagnosebericht exportieren");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
         table.put("Export settings",
                 "Einstellungen exportieren");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -165,21 +187,34 @@ public final class L10nTranslations {
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
+        table.put("Gallery camera",
+                "Galeriekamera");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub weist Anfragen aus diesem Netz gerade ab. Versuche es sp\u00e4ter noch einmal.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "Mit der Antwort von GitHub lie\u00df sich nichts anfangen. Versuche es sp\u00e4ter noch einmal.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Direkt zu einer Gruppe von Einstellungen. Zur\u00fcck bringt dich dorthin, wo du warst.");
+        table.put("Hide Premium, gifts and Stars",
+                "Premium, Geschenke und Stars ausblenden");
         table.put("Hide Stories",
                 "Stories ausblenden");
         table.put("Hide ads",
                 "Werbung ausblenden");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
+        table.put("Hide popular apps",
+                "Beliebte Apps ausblenden");
+        table.put("Hide promotional banners",
+                "Werbebanner ausblenden");
         table.put("Hide recommendations",
                 "Empfehlungen ausblenden");
+        table.put("Hide sponsored proxy channel",
+                "Gesponserten Proxy-Kanal ausblenden");
+        table.put("Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.",
+                "Blendet Premium, Stars, My Grams, Business und Geschenk senden in den Einstellungen, die Geschenke-Tabs in Profilen und die Geschenk-Schaltfl\u00e4che von Kan\u00e4len aus. K\u00e4ufe und Kontofunktionen bleiben unver\u00e4ndert.");
+        table.put("Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.",
+                "Blendet Premium-Banner, Geburtstagsbanner und Hinweise auf einen niedrigen Stars-Kontostand in der Chatliste aus. Sicherheitshinweise zum Konto und andere Empfehlungen bleiben erhalten. Es wird nichts in deinem Namen verworfen.");
+        table.put("Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.",
+                "Blendet den gesponserten Kanal eines Proxys aus der Chatliste und den Ordnern aus. Proxy-Einstellungen und gemeinsame Aktualisierungen von Promo-Daten bleiben unver\u00e4ndert.");
         table.put("Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.",
                 "Blendet \u00e4hnliche Kan\u00e4le und Bots sowie gespeicherte Empfehlungen aus. Solange der Schalter an ist, fragt Telegram keine neuen Empfehlungen ab.");
         table.put("Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.",
@@ -220,20 +255,36 @@ public final class L10nTranslations {
                 "Links, Updates, Sicherung und mehr");
         table.put("More settings",
                 "Weitere Einstellungen");
+        table.put("New Year look all year",
+                "Neujahrs-Look das ganze Jahr");
         table.put("No HushTelegram release is out yet.",
                 "Es gibt noch keine Version von HushTelegram.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
         table.put("No matching settings",
                 "Keine passenden Einstellungen");
+        table.put("No previews before sending",
+                "Keine Vorschau vor dem Senden");
+        table.put("No swipe actions on chats",
+                "Keine Wischaktionen bei Chats");
         table.put("None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Keine Webadresse von Telegram ist f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links woanders. Tippe, um sie in den Android-Einstellungen auszuw\u00e4hlen.");
         table.put("OK",
                 "OK");
+        table.put("Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.",
+                "Sobald du den Kontaktzugriff abgelehnt hast, fragt der Kontakte-Tab nicht erneut und sein Warnhinweis verschwindet. Die erste Anfrage, die eigenen Schaltfl\u00e4chen des Tabs und die Kontaktsynchronisierung bleiben.");
         table.put("Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Nur einige Webadressen von Telegram sind f\u00fcr diese App ausgew\u00e4hlt, und Links zu den \u00fcbrigen \u00f6ffnen sich woanders. Tippe, um sie in den Android-Einstellungen auszuw\u00e4hlen.");
+        table.put("Open links externally",
+                "Links extern \u00f6ffnen");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201eUnterst\u00fctzte Links \u00f6ffnen\u201c ist f\u00fcr diese App in den Android-Einstellungen aus. Tippe, um es einzuschalten.");
+        table.put("Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.",
+                "Beim \u00d6ffnen der Anhang-Galerie startet die Kamera nicht und es wird kein Kamerazugriff angefragt. Tippe auf die Kamerakachel, um sie zu starten. In den Einstellungen standardm\u00e4\u00dfig ausgeschaltet.");
+        table.put("Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.",
+                "\u00d6ffnet normale HTTP(S)-Links in deinem Browser. Telegram-Links sowie Anmelde-, Zahlungs- und authentifizierte Links behalten ihr bisheriges Verhalten.");
+        table.put("Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.",
+                "Optionale lokale Bereinigung beim \u00d6ffnen von Links und in der Auswahl f\u00fcr \u201eLink teilen\u201c. Entfernt nur utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid und fbclid. Bei einem unbekannten Abfrageparameter bleibt die gesamte URL erhalten. In den Einstellungen standardm\u00e4\u00dfig ausgeschaltet.");
         table.put("Pause",
                 "Pausieren");
         table.put("Pause HushTelegram",
@@ -242,8 +293,21 @@ public final class L10nTranslations {
                 "Pause, Sicherung und Diagnose");
         table.put("Post Story button",
                 "Schaltfl\u00e4che zum Posten einer Story");
+        table.put("Premium promo accepts",
+                "Best\u00e4tigungen von Premium-Angeboten");
+        table.put("Premium promo failures",
+                "Fehler bei Premium-Angeboten");
+        table.put("Premium promo taps",
+                "Antippen von Premium-Angeboten");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
+        table.put("Premium promo views",
+                "Aufrufe der Premium-Angebotsseite");
         table.put("Privacy",
                 "Datenschutz");
+        table.put("Quiet contacts prompts",
+                "Kontaktanfragen beruhigen");
         table.put("Reading the settings file",
                 "Einstellungsdatei wird gelesen");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -256,14 +320,16 @@ public final class L10nTranslations {
                 "Vollst\u00e4ndigen Bericht speichern");
         table.put("Save the full report in Download/Morphe.",
                 "Vollst\u00e4ndigen Bericht unter Download/Morphe speichern.");
-        table.put("Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.",
-                "Speichert deine Schalter in einer Datei. Pause und Debug-Protokollierung sind nicht enthalten, die Suche nach neuen Versionen auch nicht.");
+        table.put("Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.",
+                "Speichert deine Schalter in einer Datei. Sie gelten f\u00fcr alle Konten in dieser Telegram-App. Pause und Debug-Protokollierung sind nicht enthalten, die Suche nach neuen Versionen auch nicht.");
         table.put("Saved. Restart Telegram to apply this change.",
                 "Gespeichert. Starte Telegram neu, um diese \u00c4nderung zu \u00fcbernehmen.");
         table.put("Saving the settings file",
                 "Einstellungsdatei wird gespeichert");
         table.put("Search settings",
                 "Einstellungen suchen");
+        table.put("Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.",
+                "Der Apps-Tab der Suche l\u00e4sst die Liste Beliebte Apps von Telegram samt \u00dcberschrift und Ladezeilen weg, und Telegram fragt sie nicht ab. Von dir ge\u00f6ffnete Apps und andere Ergebnisse bleiben.");
         table.put("Selecting links by hand",
                 "Links von Hand ausw\u00e4hlen");
         table.put("Set when you patched",
@@ -282,10 +348,10 @@ public final class L10nTranslations {
                 "Einstellungen importiert. %1$d Schalter wurde ge\u00e4ndert.");
         table.put("Settings imported. %1$d switches changed.",
                 "Einstellungen importiert. %1$d Schalter wurden ge\u00e4ndert.");
+        table.put("Settings sales rows",
+                "Verkaufsangebote in den Einstellungen");
         table.put("Source code and issues",
                 "Quellcode und Issues");
-        table.put("Sponsored messages and video ads",
-                "Gesponserte Nachrichten und Videowerbung");
         table.put("Stays in while paused",
                 "Bleibt w\u00e4hrend der Pause aktiv");
         table.put("Stop call diagnostics",
@@ -294,19 +360,22 @@ public final class L10nTranslations {
                 "Nutzungsberichte stoppen");
         table.put("Stops automatic call debug reports and log-file uploads requested by Telegram's server.",
                 "Stoppt automatische Anrufdiagnoseberichte und Protokolldatei-Uploads, die der Telegram-Server anfordert.");
+        table.put("Strip link tracking",
+                "Link-Tracking entfernen");
         table.put("Supported links",
                 "Unterst\u00fctzte Links");
         table.put("Tap to turn it back on.",
                 "Zum Wiedereinschalten tippen.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.",
                 "Telegram ist dreimal hintereinander innerhalb einer Minute nach dem Start abgest\u00fcrzt oder h\u00e4ngen geblieben, deshalb hat sich HushTelegram selbst pausiert.");
-        table.put("Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.",
-                "Telegram sendet deine Speicherordner nicht als Ger\u00e4tebericht, wenn sein Server danach fragt, und auch nicht, wie lange du jeden Kanalbeitrag angesehen hast. Nachrichten und Anrufe funktionieren wie bisher.");
+        table.put("Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.",
+                "Telegram fragt beim Server keine Linkvorschau an, solange eine Nachricht noch nicht gesendet ist. Das gilt f\u00fcr Chats, das Teilen-Men\u00fc, Umfragen, Story-Links und von Bots geteilte Nachrichten. Gesendete Nachrichten bekommen ihre Vorschau weiterhin. In den Einstellungen standardm\u00e4\u00dfig ausgeschaltet.");
+        table.put("Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.",
+                "Telegram sendet seine Statistik zum Speichertyp nicht, wenn der Server danach fragt, und auch nicht, wie lange du jeden Kanalbeitrag angesehen hast. Auch Berichte \u00fcber Aufrufe des Premium-Bildschirms, angetippte Funktionen, Best\u00e4tigungen und fehlgeschlagene K\u00e4ufe werden nicht gesendet. Nachrichten und Anrufe funktionieren wie bisher.");
         table.put("Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.",
                 "Telegram bietet keine Updates von telegram.org mehr an. Sie lie\u00dfen sich nicht \u00fcber diesen gepatchten Build installieren, also patche jede neue Version stattdessen im Morphe Manager.");
+        table.put("Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.",
+                "Telegrams Neujahrsschnee f\u00e4llt jeden Tag \u00fcber der oberen Leiste der Chatliste und, wenn animierte Chat-Hintergr\u00fcnde an sind, \u00fcber den Chat-Hintergr\u00fcnden. In den Einstellungen standardm\u00e4\u00dfig ausgeschaltet.");
         table.put("Telegram's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Die Webadressen von Telegram sind in den Android-Einstellungen f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links hier.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -353,6 +422,9 @@ public final class L10nTranslations {
                 "Dieser Build deckt %1$s nicht ab.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Dieses Handy hat keine Dateiauswahl, hier l\u00e4sst sich also keine Datei w\u00e4hlen.");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Try a different word or clear the search.",
                 "Versuch ein anderes Wort oder l\u00f6sche die Suche.");
         table.put("Try again, or go back to Telegram.",
@@ -365,6 +437,10 @@ public final class L10nTranslations {
                 "Bis zum Fortsetzen verh\u00e4lt sich jeder Schalter au\u00dfer der Debug-Protokollierung, als w\u00e4re er aus. Was beim Patchen festgelegt wurde, bleibt aktiv.");
         table.put("Updates",
                 "Updates");
+        table.put("Usage reports",
+                "Nutzungsberichte");
+        table.put("Usage reports and call diagnostics",
+                "Nutzungsberichte und Anrufdiagnosen");
         table.put("Version",
                 "Version");
         table.put("You have the newest HushTelegram release.",
@@ -381,6 +457,14 @@ public final class L10nTranslations {
                 "Story-Ringe an Avataren");
         table.put("avatar story taps",
                 "Story-Tipps auf Avatare");
+        table.put("birthday gift banner",
+                "Banner f\u00fcr Geburtstagsgeschenke");
+        table.put("bot shares",
+                "von Bots geteilte Nachrichten");
+        table.put("cached proxy channel",
+                "gespeicherter Proxy-Kanal");
+        table.put("cached proxy folder entries",
+                "gespeicherte Proxy-Eintr\u00e4ge in Ordnern");
         table.put("cached recommendations",
                 "gespeicherte Empfehlungen");
         table.put("call debug reports",
@@ -389,18 +473,38 @@ public final class L10nTranslations {
                 "Uploads von Anrufprotokolldateien");
         table.put("call log reports",
                 "Anrufprotokollberichte");
+        table.put("channel Gift button",
+                "Geschenk-Schaltfl\u00e4che von Kan\u00e4len");
         table.put("channel ads",
                 "Kanalwerbung");
         table.put("channel read metrics",
                 "Kanal-Lesemetriken");
+        table.put("chat drafts",
+                "Chat-Entw\u00fcrfe");
         table.put("chat-list story bar",
                 "Story-Leiste der Chatliste");
         table.put("device statistics reports",
                 "Ger\u00e4testatistikberichte");
+        table.put("external browser routing",
+                "externe Browser-Aufrufe");
+        table.put("opened link tracking",
+                "Tracking beim \u00d6ffnen von Links");
+        table.put("poll links",
+                "Umfrage-Links");
+        table.put("profile Gifts tabs",
+                "Geschenke-Tabs in Profilen");
+        table.put("promotional suggestions",
+                "Werbeempfehlungen");
         table.put("search ads",
                 "Suchwerbung");
+        table.put("share sheet comments",
+                "Kommentare im Teilen-Men\u00fc");
+        table.put("shared link tracking",
+                "Tracking bei geteilten Links");
         table.put("similar channels and bots",
                 "\u00e4hnliche Kan\u00e4le und Bots");
+        table.put("story links",
+                "Story-Links");
         table.put("story list requests",
                 "Anfragen zur Story-Liste");
         table.put("video ads",
@@ -408,10 +512,11 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(344);
+        Map<String, String> table = new HashMap<>(444);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
+        fillEs3(table);
         return table;
     }
 
@@ -428,6 +533,8 @@ public final class L10nTranslations {
                 "Cambiar\u00e1 %1$d interruptor.");
         table.put("%1$d switches will change.",
                 "Cambiar\u00e1n %1$d interruptores.");
+        table.put("%1$s, and more",
+                "%1$s, y m\u00e1s");
         table.put("%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.",
                 "%1$s. Este cambio se aplic\u00f3 al parchear, as\u00ed que Pausar no puede desactivarlo. Para descartarlo, vuelve a parchear sin ese parche.");
         table.put("%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.",
@@ -438,8 +545,18 @@ public final class L10nTranslations {
                 "Ya se est\u00e1 guardando un informe de diagn\u00f3stico.");
         table.put("A file named %1$s in %2$s paused HushTelegram.",
                 "Un archivo llamado %1$s en %2$s paus\u00f3 HushTelegram.");
+        table.put("A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.",
+                "Deslizar un chat hacia un lado en la lista de chats ya no lo archiva, silencia, fija, elimina ni marca como le\u00eddo, as\u00ed que un deslizamiento accidental no cambia el chat. Mantener pulsado sigue ofreciendo todas las acciones. Desactivado por defecto en los ajustes.");
         table.put("About",
                 "Acerca de");
+        table.put("Accounts",
+                "Cuentas");
+        table.put("Ads in channels",
+                "Anuncios en canales");
+        table.put("Ads in channels and search",
+                "Anuncios en canales y en la b\u00fasqueda");
+        table.put("Ads in search",
+                "Anuncios en la b\u00fasqueda");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 y las versiones anteriores no indican qu\u00e9 enlaces se abren aqu\u00ed. Toca para abrir los ajustes de esta app y luego Abrir de forma predeterminada.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
@@ -458,6 +575,10 @@ public final class L10nTranslations {
                 "Atr\u00e1s");
         table.put("Browse settings",
                 "Explorar ajustes");
+        table.put("Call diagnostics",
+                "Diagn\u00f3sticos de llamadas");
+        table.put("Camera only on tap",
+                "C\u00e1mara solo al tocar");
         table.put("Cancel",
                 "Cancelar");
         table.put("Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.",
@@ -470,8 +591,8 @@ public final class L10nTranslations {
                 "Comprobar ahora");
         table.put("Checking GitHub now.",
                 "Consultando GitHub ahora.");
-        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes.",
-                "Elige un archivo de configuraci\u00f3n. Antes de importar nada, ver\u00e1s cu\u00e1ntos interruptores cambia.");
+        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.",
+                "Elige un archivo de configuraci\u00f3n. Antes de importar nada, ver\u00e1s cu\u00e1ntos interruptores cambia. Lo que importes se aplica a todas las cuentas de esta app de Telegram.");
         table.put("Clear diagnostic data",
                 "Borrar datos de diagn\u00f3stico");
         table.put("Clear search",
@@ -504,20 +625,25 @@ public final class L10nTranslations {
                 "No se pudo volver a activar HushTelegram. Int\u00e9ntalo de nuevo.");
         table.put("Debug logging",
                 "Registro de depuraci\u00f3n");
-        table.put("Device statistics and read time",
-                "Estad\u00edsticas del dispositivo y tiempo de lectura");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Se borraron los datos de diagn\u00f3stico. Toca de nuevo para restaurarlos.");
         table.put("Diagnostic data put back.",
                 "Se restauraron los datos de diagn\u00f3stico.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Informe de diagn\u00f3stico copiado en el portapapeles.");
+        table.put("Draft link previews",
+                "Vistas previas de enlaces en borradores");
         table.put("Empties the log and the hook findings a report would include.",
                 "Vac\u00eda el registro y los resultados de los hooks que incluir\u00eda un informe.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados, y lo que se aplic\u00f3 al parchear se mantiene. Tu configuraci\u00f3n no cambia.");
+        table.put("Every switch here applies to all the accounts in this Telegram app, not only the one you have open.",
+                "Cada interruptor de aqu\u00ed se aplica a todas las cuentas de esta app de Telegram, no solo a la que tienes abierta.");
         table.put("Export diagnostic report",
                 "Exportar informe de diagn\u00f3stico");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
         table.put("Export settings",
                 "Exportar configuraci\u00f3n");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -526,21 +652,34 @@ public final class L10nTranslations {
                 "Informe completo guardado en %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
+        table.put("Gallery camera",
+                "C\u00e1mara de la galer\u00eda");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub est\u00e1 rechazando por ahora las consultas desde esta red. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "No se pudo usar la respuesta de GitHub. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Ve directo a un grupo de ajustes. Atr\u00e1s te devuelve a donde estabas.");
+        table.put("Hide Premium, gifts and Stars",
+                "Ocultar Premium, regalos y Stars");
         table.put("Hide Stories",
                 "Ocultar historias");
         table.put("Hide ads",
                 "Ocultar anuncios");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
+        table.put("Hide popular apps",
+                "Ocultar apps populares");
+        table.put("Hide promotional banners",
+                "Ocultar banners promocionales");
         table.put("Hide recommendations",
                 "Ocultar recomendaciones");
+        table.put("Hide sponsored proxy channel",
+                "Ocultar canal patrocinado del proxy");
+        table.put("Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.",
+                "Oculta Premium, Stars, My Grams, Business y Enviar un regalo en Ajustes, las pesta\u00f1as de regalos de los perfiles y el bot\u00f3n de regalo de los canales. Las compras y los controles de la cuenta siguen funcionando igual.");
+        table.put("Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.",
+                "Oculta los banners de Premium, cumplea\u00f1os y saldo bajo de Stars en la lista de chats. Los avisos de seguridad de la cuenta y otras sugerencias se mantienen. No se descarta nada por ti.");
+        table.put("Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.",
+                "Oculta el canal patrocinado de un proxy en la lista de chats y las carpetas. No cambia los ajustes del proxy ni las actualizaciones compartidas de datos promocionales.");
         table.put("Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.",
                 "Oculta canales y bots similares, incluidas las recomendaciones guardadas. Telegram no solicita nuevas recomendaciones mientras el interruptor est\u00e1 activado.");
         table.put("Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.",
@@ -581,20 +720,36 @@ public final class L10nTranslations {
                 "Enlaces, actualizaciones, copia de seguridad y m\u00e1s");
         table.put("More settings",
                 "M\u00e1s ajustes");
+        table.put("New Year look all year",
+                "Aspecto de A\u00f1o Nuevo todo el a\u00f1o");
         table.put("No HushTelegram release is out yet.",
                 "Todav\u00eda no hay ninguna versi\u00f3n de HushTelegram.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
         table.put("No matching settings",
                 "No hay ajustes coincidentes");
+        table.put("No previews before sending",
+                "Sin vistas previas antes de enviar");
+        table.put("No swipe actions on chats",
+                "Sin acciones al deslizar los chats");
         table.put("None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Ninguna direcci\u00f3n web de Telegram est\u00e1 seleccionada para esta app, as\u00ed que sus enlaces se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.");
         table.put("OK",
                 "Aceptar");
+        table.put("Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.",
+                "Cuando hayas rechazado el acceso a los contactos, la pesta\u00f1a Contactos deja de pedirlo y su insignia de aviso desaparece. La primera solicitud, los botones propios de la pesta\u00f1a y la sincronizaci\u00f3n de contactos se mantienen.");
         table.put("Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Solo algunas direcciones web de Telegram est\u00e1n seleccionadas para esta app, y los enlaces a las dem\u00e1s se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.");
+        table.put("Open links externally",
+                "Abrir enlaces externamente");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cAbrir enlaces compatibles\u201d est\u00e1 desactivado para esta app en los ajustes de Android. Toca para activarlo.");
+        table.put("Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.",
+                "Al abrir la galer\u00eda de adjuntos, la c\u00e1mara no se inicia ni se pide acceso a ella. Toca el recuadro de la c\u00e1mara para iniciarla. Desactivado por defecto en los ajustes.");
+        table.put("Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.",
+                "Abre enlaces HTTP(S) normales en tu navegador. Los enlaces de Telegram y las rutas de inicio de sesi\u00f3n, pago o autenticaci\u00f3n conservan su comportamiento habitual.");
+        table.put("Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.",
+                "Limpieza local opcional al abrir enlaces y en el selector Compartir enlace. Elimina solo utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid y fbclid. Si hay alg\u00fan par\u00e1metro de consulta desconocido, conserva la URL completa. Desactivado por defecto en los ajustes.");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushTelegram",
@@ -603,8 +758,21 @@ public final class L10nTranslations {
                 "Pausa, copia de seguridad y diagn\u00f3stico");
         table.put("Post Story button",
                 "bot\u00f3n para publicar una historia");
+        table.put("Premium promo accepts",
+                "aceptaciones de promociones de Premium");
+        table.put("Premium promo failures",
+                "fallos de promociones de Premium");
+        table.put("Premium promo taps",
+                "toques en promociones de Premium");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
+        table.put("Premium promo views",
+                "vistas de promociones de Premium");
         table.put("Privacy",
                 "Privacidad");
+        table.put("Quiet contacts prompts",
+                "Silenciar avisos de contactos");
         table.put("Reading the settings file",
                 "Leyendo el archivo de configuraci\u00f3n");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -617,14 +785,16 @@ public final class L10nTranslations {
                 "Guardar informe completo");
         table.put("Save the full report in Download/Morphe.",
                 "Guarda el informe completo en Download/Morphe.");
-        table.put("Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.",
-                "Guarda tus interruptores en un archivo. La pausa y el Registro de depuraci\u00f3n no se incluyen, y la b\u00fasqueda de nuevas versiones tampoco.");
+        table.put("Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.",
+                "Guarda tus interruptores en un archivo. Cubren todas las cuentas de esta app de Telegram. La pausa y el Registro de depuraci\u00f3n no se incluyen, y la b\u00fasqueda de nuevas versiones tampoco.");
         table.put("Saved. Restart Telegram to apply this change.",
                 "Guardado. Reinicia Telegram para aplicar este cambio.");
         table.put("Saving the settings file",
                 "Guardando el archivo de configuraci\u00f3n");
         table.put("Search settings",
                 "Buscar ajustes");
+        table.put("Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.",
+                "La pesta\u00f1a Apps de la b\u00fasqueda omite la lista Apps populares de Telegram, con su encabezado y sus filas de carga, y Telegram no la solicita. Las apps que has abierto y los dem\u00e1s resultados se mantienen.");
         table.put("Selecting links by hand",
                 "Seleccionar enlaces a mano");
         table.put("Set when you patched",
@@ -643,10 +813,10 @@ public final class L10nTranslations {
                 "Configuraci\u00f3n importada. Cambi\u00f3 %1$d interruptor.");
         table.put("Settings imported. %1$d switches changed.",
                 "Configuraci\u00f3n importada. Cambiaron %1$d interruptores.");
+        table.put("Settings sales rows",
+                "Ofertas en Ajustes");
         table.put("Source code and issues",
                 "C\u00f3digo fuente e incidencias");
-        table.put("Sponsored messages and video ads",
-                "Mensajes patrocinados y anuncios de video");
         table.put("Stays in while paused",
                 "Se mantiene durante la pausa");
         table.put("Stop call diagnostics",
@@ -655,19 +825,22 @@ public final class L10nTranslations {
                 "Detener los informes de uso");
         table.put("Stops automatic call debug reports and log-file uploads requested by Telegram's server.",
                 "Detiene los informes autom\u00e1ticos de depuraci\u00f3n y las subidas de archivos de registro de llamadas solicitados por el servidor de Telegram.");
+        table.put("Strip link tracking",
+                "Eliminar seguimiento de enlaces");
         table.put("Supported links",
                 "Enlaces compatibles");
         table.put("Tap to turn it back on.",
                 "Toca para volver a activarlo.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.",
                 "Tres veces seguidas, Telegram fall\u00f3 o se congel\u00f3 durante el primer minuto tras iniciarse, as\u00ed que HushTelegram se paus\u00f3 solo.");
-        table.put("Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.",
-                "Telegram no env\u00eda tus carpetas de almacenamiento como informe del dispositivo cuando su servidor lo pide, ni cu\u00e1nto tiempo pasaste en cada publicaci\u00f3n de un canal. Los mensajes y las llamadas funcionan como antes.");
+        table.put("Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.",
+                "Telegram no pide a su servidor una vista previa del enlace mientras un mensaje no se ha enviado. Esto cubre los chats, el men\u00fa de compartir, las encuestas, los enlaces de historias y los mensajes que comparten los bots. Los mensajes enviados siguen recibiendo su vista previa. Desactivado por defecto en los ajustes.");
+        table.put("Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.",
+                "Telegram no env\u00eda su estad\u00edstica del tipo de almacenamiento cuando su servidor la pide, ni cu\u00e1nto tiempo pasaste en cada publicaci\u00f3n de un canal. Tambi\u00e9n bloquea los informes sobre vistas de la pantalla de Premium, toques en funciones, aceptaciones y fallos de compra. Los mensajes y las llamadas funcionan como antes.");
         table.put("Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.",
                 "Telegram deja de ofrecer actualizaciones de telegram.org. No se pueden instalar sobre este build parcheado, as\u00ed que parchea cada versi\u00f3n nueva en Morphe Manager.");
+        table.put("Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.",
+                "La nieve de A\u00f1o Nuevo de Telegram cae todos los d\u00edas sobre la barra superior de la lista de chats y, con los fondos de chat animados activados, sobre los fondos de chat. Desactivado por defecto en los ajustes.");
         table.put("Telegram's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Las direcciones web de Telegram est\u00e1n seleccionadas para esta app en los ajustes de Android, as\u00ed que sus enlaces se abren aqu\u00ed.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -714,6 +887,9 @@ public final class L10nTranslations {
                 "Esta versi\u00f3n no cubre %1$s.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este tel\u00e9fono no tiene selector de archivos, as\u00ed que aqu\u00ed no hay forma de elegir un archivo.");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Try a different word or clear the search.",
                 "Prueba otra palabra o borra la b\u00fasqueda.");
         table.put("Try again, or go back to Telegram.",
@@ -726,6 +902,10 @@ public final class L10nTranslations {
                 "Hasta que reanudes, todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados. Lo que se aplic\u00f3 al parchear se mantiene.");
         table.put("Updates",
                 "Actualizaciones");
+        table.put("Usage reports",
+                "Informes de uso");
+        table.put("Usage reports and call diagnostics",
+                "Informes de uso y diagn\u00f3sticos de llamadas");
         table.put("Version",
                 "Versi\u00f3n");
         table.put("You have the newest HushTelegram release.",
@@ -742,6 +922,14 @@ public final class L10nTranslations {
                 "anillos de historias en los avatares");
         table.put("avatar story taps",
                 "toques de historias en los avatares");
+        table.put("birthday gift banner",
+                "banner de regalos de cumplea\u00f1os");
+        table.put("bot shares",
+                "mensajes que comparten los bots");
+        table.put("cached proxy channel",
+                "canal del proxy almacenado");
+        table.put("cached proxy folder entries",
+                "entradas del proxy almacenadas en carpetas");
         table.put("cached recommendations",
                 "recomendaciones guardadas");
         table.put("call debug reports",
@@ -750,18 +938,38 @@ public final class L10nTranslations {
                 "subidas de archivos de registro de llamadas");
         table.put("call log reports",
                 "informes de registro de llamadas");
+        table.put("channel Gift button",
+                "bot\u00f3n de regalo de los canales");
         table.put("channel ads",
                 "anuncios en canales");
         table.put("channel read metrics",
                 "m\u00e9tricas de lectura de canales");
+        table.put("chat drafts",
+                "borradores de chat");
         table.put("chat-list story bar",
                 "barra de historias de la lista de chats");
         table.put("device statistics reports",
                 "informes de estad\u00edsticas del dispositivo");
+        table.put("external browser routing",
+                "apertura en navegador externo");
+        table.put("opened link tracking",
+                "seguimiento de enlaces abiertos");
+        table.put("poll links",
+                "enlaces de encuestas");
+        table.put("profile Gifts tabs",
+                "pesta\u00f1as de regalos de los perfiles");
+        table.put("promotional suggestions",
+                "sugerencias promocionales");
         table.put("search ads",
                 "anuncios en b\u00fasquedas");
+        table.put("share sheet comments",
+                "comentarios del men\u00fa de compartir");
+        table.put("shared link tracking",
+                "seguimiento de enlaces compartidos");
         table.put("similar channels and bots",
                 "canales y bots similares");
+        table.put("story links",
+                "enlaces de historias");
         table.put("story list requests",
                 "consultas de la lista de historias");
         table.put("video ads",
@@ -769,10 +977,11 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(344);
+        Map<String, String> table = new HashMap<>(444);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
+        fillIn3(table);
         return table;
     }
 
@@ -789,6 +998,8 @@ public final class L10nTranslations {
                 "%1$d sakelar akan berubah.");
         table.put("%1$d switches will change.",
                 "%1$d sakelar akan berubah.");
+        table.put("%1$s, and more",
+                "%1$s, dan lainnya");
         table.put("%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.",
                 "%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.");
         table.put("%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.",
@@ -799,8 +1010,18 @@ public final class L10nTranslations {
                 "Sudah ada laporan diagnostik yang sedang disimpan.");
         table.put("A file named %1$s in %2$s paused HushTelegram.",
                 "File bernama %1$s di %2$s menjeda HushTelegram.");
+        table.put("A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.",
+                "Menggeser chat ke samping di daftar chat tidak lagi mengarsipkan, membisukan, menyematkan, menghapus, atau menandainya sebagai dibaca, jadi geseran tak sengaja tidak mengubah chat. Tekan lama tetap menampilkan semua aksi. Secara default nonaktif di pengaturan.");
         table.put("About",
                 "Tentang");
+        table.put("Accounts",
+                "Akun");
+        table.put("Ads in channels",
+                "Iklan di saluran");
+        table.put("Ads in channels and search",
+                "Iklan di saluran dan pencarian");
+        table.put("Ads in search",
+                "Iklan di pencarian");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
@@ -819,6 +1040,10 @@ public final class L10nTranslations {
                 "Kembali");
         table.put("Browse settings",
                 "Jelajahi pengaturan");
+        table.put("Call diagnostics",
+                "Diagnostik panggilan");
+        table.put("Camera only on tap",
+                "Kamera hanya saat diketuk");
         table.put("Cancel",
                 "Batal");
         table.put("Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.",
@@ -831,8 +1056,8 @@ public final class L10nTranslations {
                 "Periksa sekarang");
         table.put("Checking GitHub now.",
                 "Sedang memeriksa GitHub.");
-        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes.",
-                "Pilih file pengaturan. Sebelum apa pun diimpor, Anda akan melihat berapa sakelar yang berubah.");
+        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.",
+                "Pilih file pengaturan. Sebelum apa pun diimpor, Anda akan melihat berapa sakelar yang berubah. Yang Anda impor berlaku untuk semua akun di aplikasi Telegram ini.");
         table.put("Clear diagnostic data",
                 "Hapus data diagnostik");
         table.put("Clear search",
@@ -865,20 +1090,25 @@ public final class L10nTranslations {
                 "HushTelegram tidak dapat diaktifkan lagi. Coba lagi.");
         table.put("Debug logging",
                 "Pencatatan debug");
-        table.put("Device statistics and read time",
-                "Statistik perangkat dan waktu baca");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.");
         table.put("Diagnostic data put back.",
                 "Data diagnostik dikembalikan.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Laporan diagnostik disalin ke papan klip.");
+        table.put("Draft link previews",
+                "Pratinjau tautan di draf");
         table.put("Empties the log and the hook findings a report would include.",
                 "Mengosongkan log dan temuan hook yang akan dimasukkan ke laporan.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.");
+        table.put("Every switch here applies to all the accounts in this Telegram app, not only the one you have open.",
+                "Setiap sakelar di sini berlaku untuk semua akun di aplikasi Telegram ini, bukan hanya akun yang sedang Anda buka.");
         table.put("Export diagnostic report",
                 "Ekspor laporan diagnostik");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
         table.put("Export settings",
                 "Ekspor pengaturan");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -887,21 +1117,34 @@ public final class L10nTranslations {
                 "Laporan lengkap disimpan ke %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
+        table.put("Gallery camera",
+                "Kamera galeri");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "Jawaban GitHub tidak dapat digunakan. Coba lagi nanti.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.");
+        table.put("Hide Premium, gifts and Stars",
+                "Sembunyikan Premium, hadiah dan Stars");
         table.put("Hide Stories",
                 "Sembunyikan Cerita");
         table.put("Hide ads",
                 "Sembunyikan iklan");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
+        table.put("Hide popular apps",
+                "Sembunyikan aplikasi populer");
+        table.put("Hide promotional banners",
+                "Sembunyikan banner promosi");
         table.put("Hide recommendations",
                 "Sembunyikan rekomendasi");
+        table.put("Hide sponsored proxy channel",
+                "Sembunyikan kanal bersponsor proxy");
+        table.put("Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.",
+                "Menyembunyikan Premium, Stars, My Grams, Business dan Kirim Hadiah di Pengaturan, tab Hadiah pada profil dan tombol Hadiah pada kanal. Pembelian dan kontrol akun tetap berfungsi seperti biasa.");
+        table.put("Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.",
+                "Menyembunyikan banner Premium, ulang tahun dan saldo Stars rendah di daftar chat. Pemberitahuan keamanan akun dan saran lainnya tetap ada. Tidak ada yang ditutup atas nama Anda.");
+        table.put("Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.",
+                "Menyembunyikan kanal bersponsor milik proxy dari daftar chat dan folder. Pengaturan proxy dan pembaruan data promosi bersama tetap seperti biasa.");
         table.put("Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.",
                 "Menyembunyikan saluran dan bot serupa, termasuk rekomendasi tersimpan. Telegram tidak meminta rekomendasi baru selama sakelar aktif.");
         table.put("Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.",
@@ -942,20 +1185,36 @@ public final class L10nTranslations {
                 "Tautan, pembaruan, cadangan, dan lainnya");
         table.put("More settings",
                 "Pengaturan lainnya");
+        table.put("New Year look all year",
+                "Tampilan Tahun Baru sepanjang tahun");
         table.put("No HushTelegram release is out yet.",
                 "Belum ada rilis HushTelegram.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
         table.put("No matching settings",
                 "Tidak ada pengaturan yang cocok");
+        table.put("No previews before sending",
+                "Tanpa pratinjau sebelum mengirim");
+        table.put("No swipe actions on chats",
+                "Tanpa aksi geser pada chat");
         table.put("None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Tidak ada alamat web Telegram yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.");
         table.put("OK",
                 "Oke");
+        table.put("Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.",
+                "Setelah kamu menolak akses kontak, tab Kontak berhenti meminta lagi dan lencana peringatannya hilang. Permintaan pertama, tombol milik tab itu sendiri, dan sinkronisasi kontak tetap ada.");
         table.put("Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Hanya sebagian alamat web Telegram yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.");
+        table.put("Open links externally",
+                "Buka tautan di luar aplikasi");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cBuka link yang didukung\u201d nonaktif untuk aplikasi ini di pengaturan Android. Ketuk untuk mengaktifkannya.");
+        table.put("Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.",
+                "Membuka galeri lampiran tidak menyalakan kamera atau meminta akses kamera. Ketuk ubin kamera untuk menyalakannya. Secara default nonaktif di pengaturan.");
+        table.put("Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.",
+                "Membuka tautan HTTP(S) biasa di browser Anda. Tautan Telegram serta jalur login, pembayaran dan autentikasi tetap berperilaku seperti biasa.");
+        table.put("Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.",
+                "Pembersihan lokal opsional saat membuka tautan dan di pemilih Bagikan Tautan. Hanya menghapus utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid dan fbclid. Parameter kueri yang tidak dikenal membuat seluruh URL tetap utuh. Secara default nonaktif di pengaturan.");
         table.put("Pause",
                 "Jeda");
         table.put("Pause HushTelegram",
@@ -964,8 +1223,21 @@ public final class L10nTranslations {
                 "Jeda, cadangan, dan diagnostik");
         table.put("Post Story button",
                 "tombol Kirim Cerita");
+        table.put("Premium promo accepts",
+                "persetujuan promosi Premium");
+        table.put("Premium promo failures",
+                "kegagalan promosi Premium");
+        table.put("Premium promo taps",
+                "ketukan promosi Premium");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
+        table.put("Premium promo views",
+                "tampilan promosi Premium");
         table.put("Privacy",
                 "Privasi");
+        table.put("Quiet contacts prompts",
+                "Senyapkan permintaan kontak");
         table.put("Reading the settings file",
                 "Membaca file pengaturan");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -978,14 +1250,16 @@ public final class L10nTranslations {
                 "Simpan laporan lengkap");
         table.put("Save the full report in Download/Morphe.",
                 "Simpan laporan lengkap di Download/Morphe.");
-        table.put("Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.",
-                "Simpan sakelar Anda ke sebuah file. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.");
+        table.put("Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.",
+                "Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Telegram ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.");
         table.put("Saved. Restart Telegram to apply this change.",
                 "Tersimpan. Mulai ulang Telegram untuk menerapkan perubahan ini.");
         table.put("Saving the settings file",
                 "Menyimpan file pengaturan");
         table.put("Search settings",
                 "Cari pengaturan");
+        table.put("Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.",
+                "Tab Aplikasi di pencarian melewati daftar Aplikasi populer dari Telegram, beserta judul dan baris pemuatannya, dan Telegram tidak memintanya. Aplikasi yang pernah kamu buka dan hasil lainnya tetap ada.");
         table.put("Selecting links by hand",
                 "Memilih tautan secara manual");
         table.put("Set when you patched",
@@ -1004,10 +1278,10 @@ public final class L10nTranslations {
                 "Pengaturan diimpor. %1$d sakelar berubah.");
         table.put("Settings imported. %1$d switches changed.",
                 "Pengaturan diimpor. %1$d sakelar berubah.");
+        table.put("Settings sales rows",
+                "Penawaran di Pengaturan");
         table.put("Source code and issues",
                 "Kode sumber dan laporan masalah");
-        table.put("Sponsored messages and video ads",
-                "Pesan bersponsor dan iklan video");
         table.put("Stays in while paused",
                 "Tetap aktif saat dijeda");
         table.put("Stop call diagnostics",
@@ -1016,19 +1290,22 @@ public final class L10nTranslations {
                 "Hentikan laporan penggunaan");
         table.put("Stops automatic call debug reports and log-file uploads requested by Telegram's server.",
                 "Menghentikan laporan debug panggilan otomatis dan unggahan berkas log yang diminta server Telegram.");
+        table.put("Strip link tracking",
+                "Hapus pelacakan tautan");
         table.put("Supported links",
                 "Tautan yang didukung");
         table.put("Tap to turn it back on.",
                 "Ketuk untuk mengaktifkan HushTelegram lagi.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.",
                 "Telegram berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushTelegram menjeda dirinya sendiri.");
-        table.put("Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.",
-                "Telegram tidak mengirim folder penyimpanan Anda sebagai laporan perangkat saat server-nya meminta, atau berapa lama Anda melihat setiap postingan saluran. Pesan dan panggilan tetap berfungsi seperti biasa.");
+        table.put("Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.",
+                "Telegram tidak meminta pratinjau tautan ke servernya selama pesan belum dikirim. Ini berlaku untuk chat, lembar berbagi, polling, tautan cerita, dan pesan yang dibagikan bot. Pesan yang sudah terkirim tetap mendapat pratinjaunya. Secara default nonaktif di pengaturan.");
+        table.put("Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.",
+                "Telegram tidak mengirim statistik jenis penyimpanannya saat server meminta, atau berapa lama Anda melihat setiap postingan saluran. Laporan tentang tampilan layar Premium, ketukan fitur, persetujuan dan kegagalan pembelian juga tidak dikirim. Pesan dan panggilan tetap berfungsi seperti biasa.");
         table.put("Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.",
                 "Telegram berhenti menawarkan pembaruan dari telegram.org. Pembaruan itu tidak bisa dipasang di atas build yang sudah di-patch ini, jadi patch setiap versi baru di Morphe Manager.");
+        table.put("Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.",
+                "Salju Tahun Baru Telegram turun setiap hari di bilah atas daftar chat dan, saat latar belakang chat animasi aktif, di latar belakang chat. Secara default nonaktif di pengaturan.");
         table.put("Telegram's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Alamat web Telegram dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -1075,6 +1352,9 @@ public final class L10nTranslations {
                 "Versi ini tidak mencakup %1$s.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Try a different word or clear the search.",
                 "Coba kata lain atau hapus pencarian.");
         table.put("Try again, or go back to Telegram.",
@@ -1087,6 +1367,10 @@ public final class L10nTranslations {
                 "Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.");
         table.put("Updates",
                 "Pembaruan");
+        table.put("Usage reports",
+                "Laporan penggunaan");
+        table.put("Usage reports and call diagnostics",
+                "Laporan penggunaan dan diagnostik panggilan");
         table.put("Version",
                 "Versi");
         table.put("You have the newest HushTelegram release.",
@@ -1103,6 +1387,14 @@ public final class L10nTranslations {
                 "lingkaran cerita pada avatar");
         table.put("avatar story taps",
                 "ketukan cerita pada avatar");
+        table.put("birthday gift banner",
+                "banner hadiah ulang tahun");
+        table.put("bot shares",
+                "pesan yang dibagikan bot");
+        table.put("cached proxy channel",
+                "kanal proxy tersimpan");
+        table.put("cached proxy folder entries",
+                "entri proxy tersimpan di folder");
         table.put("cached recommendations",
                 "rekomendasi tersimpan");
         table.put("call debug reports",
@@ -1111,18 +1403,38 @@ public final class L10nTranslations {
                 "unggahan berkas log panggilan");
         table.put("call log reports",
                 "laporan log panggilan");
+        table.put("channel Gift button",
+                "tombol Hadiah pada kanal");
         table.put("channel ads",
                 "iklan saluran");
         table.put("channel read metrics",
                 "metrik pembacaan saluran");
+        table.put("chat drafts",
+                "draf chat");
         table.put("chat-list story bar",
                 "bilah cerita di daftar chat");
         table.put("device statistics reports",
                 "laporan statistik perangkat");
+        table.put("external browser routing",
+                "pengarahan ke browser eksternal");
+        table.put("opened link tracking",
+                "pelacakan tautan yang dibuka");
+        table.put("poll links",
+                "tautan polling");
+        table.put("profile Gifts tabs",
+                "tab Hadiah pada profil");
+        table.put("promotional suggestions",
+                "saran promosi");
         table.put("search ads",
                 "iklan pencarian");
+        table.put("share sheet comments",
+                "komentar di lembar berbagi");
+        table.put("shared link tracking",
+                "pelacakan tautan yang dibagikan");
         table.put("similar channels and bots",
                 "saluran dan bot serupa");
+        table.put("story links",
+                "tautan cerita");
         table.put("story list requests",
                 "permintaan daftar cerita");
         table.put("video ads",
@@ -1130,10 +1442,11 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(344);
+        Map<String, String> table = new HashMap<>(444);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
+        fillPt_rBR3(table);
         return table;
     }
 
@@ -1150,6 +1463,8 @@ public final class L10nTranslations {
                 "%1$d op\u00e7\u00e3o ser\u00e1 alterada.");
         table.put("%1$d switches will change.",
                 "%1$d op\u00e7\u00f5es ser\u00e3o alteradas.");
+        table.put("%1$s, and more",
+                "%1$s, e mais");
         table.put("%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.",
                 "%1$s. Isso foi definido quando voc\u00ea aplicou os patches, ent\u00e3o a pausa n\u00e3o pode desativ\u00e1-lo. Para descartar essa possibilidade, aplique os patches novamente sem esse patch.");
         table.put("%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.",
@@ -1160,8 +1475,18 @@ public final class L10nTranslations {
                 "Um relat\u00f3rio de diagn\u00f3stico j\u00e1 est\u00e1 sendo salvo.");
         table.put("A file named %1$s in %2$s paused HushTelegram.",
                 "Um arquivo chamado %1$s em %2$s pausou o HushTelegram.");
+        table.put("A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.",
+                "Deslizar um chat para o lado na lista de chats n\u00e3o arquiva, silencia, fixa, apaga nem marca mais o chat como lido, ent\u00e3o um deslize sem querer n\u00e3o muda o chat. Tocar e segurar continua mostrando todas as a\u00e7\u00f5es. Desativado por padr\u00e3o nas configura\u00e7\u00f5es.");
         table.put("About",
                 "Sobre");
+        table.put("Accounts",
+                "Contas");
+        table.put("Ads in channels",
+                "An\u00fancios em canais");
+        table.put("Ads in channels and search",
+                "An\u00fancios em canais e na busca");
+        table.put("Ads in search",
+                "An\u00fancios na busca");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "O Android 11 e as vers\u00f5es anteriores n\u00e3o informam quais links abrem aqui. Toque para abrir as configura\u00e7\u00f5es deste app e depois Abrir por padr\u00e3o.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
@@ -1180,6 +1505,10 @@ public final class L10nTranslations {
                 "Voltar");
         table.put("Browse settings",
                 "Explorar configura\u00e7\u00f5es");
+        table.put("Call diagnostics",
+                "Diagn\u00f3sticos de chamadas");
+        table.put("Camera only on tap",
+                "C\u00e2mera s\u00f3 ao tocar");
         table.put("Cancel",
                 "Cancelar");
         table.put("Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.",
@@ -1192,8 +1521,8 @@ public final class L10nTranslations {
                 "Verificar agora");
         table.put("Checking GitHub now.",
                 "Consultando o GitHub agora.");
-        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes.",
-                "Escolha um arquivo de configura\u00e7\u00f5es. Antes de importar qualquer coisa, voc\u00ea ver\u00e1 quantas op\u00e7\u00f5es ser\u00e3o alteradas.");
+        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.",
+                "Escolha um arquivo de configura\u00e7\u00f5es. Antes de importar qualquer coisa, voc\u00ea ver\u00e1 quantas op\u00e7\u00f5es ser\u00e3o alteradas. O que voc\u00ea importar vale para todas as contas deste app do Telegram.");
         table.put("Clear diagnostic data",
                 "Limpar dados de diagn\u00f3stico");
         table.put("Clear search",
@@ -1226,20 +1555,25 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel reativar o HushTelegram. Tente novamente.");
         table.put("Debug logging",
                 "Registro de depura\u00e7\u00e3o");
-        table.put("Device statistics and read time",
-                "Estat\u00edsticas do dispositivo e tempo de leitura");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Dados de diagn\u00f3stico apagados. Toque de novo para restaur\u00e1-los.");
         table.put("Diagnostic data put back.",
                 "Dados de diagn\u00f3stico restaurados.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Relat\u00f3rio de diagn\u00f3stico copiado para a \u00e1rea de transfer\u00eancia.");
+        table.put("Draft link previews",
+                "Pr\u00e9vias de links em rascunhos");
         table.put("Empties the log and the hook findings a report would include.",
                 "Apaga o registro e os resultados dos hooks que seriam inclu\u00eddos em um relat\u00f3rio.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Todas as op\u00e7\u00f5es, exceto Registro de depura\u00e7\u00e3o, funcionam como se estivessem desativadas, e o que foi definido ao aplicar os patches permanece ativo. Suas configura\u00e7\u00f5es n\u00e3o s\u00e3o alteradas.");
+        table.put("Every switch here applies to all the accounts in this Telegram app, not only the one you have open.",
+                "Cada op\u00e7\u00e3o aqui vale para todas as contas deste app do Telegram, n\u00e3o s\u00f3 para a que est\u00e1 aberta.");
         table.put("Export diagnostic report",
                 "Exportar relat\u00f3rio de diagn\u00f3stico");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("Export settings",
                 "Exportar configura\u00e7\u00f5es");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -1248,21 +1582,34 @@ public final class L10nTranslations {
                 "Relat\u00f3rio completo salvo em %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, com os avisos dos projetos em que o HushTelegram se baseia");
+        table.put("Gallery camera",
+                "C\u00e2mera da galeria");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "O GitHub est\u00e1 recusando consultas desta rede por enquanto. Tente novamente mais tarde.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "N\u00e3o foi poss\u00edvel usar a resposta do GitHub. Tente novamente mais tarde.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "V\u00e1 diretamente para um grupo de configura\u00e7\u00f5es. Voltar leva voc\u00ea de volta ao ponto em que estava.");
+        table.put("Hide Premium, gifts and Stars",
+                "Ocultar Premium, presentes e Stars");
         table.put("Hide Stories",
                 "Ocultar Stories");
         table.put("Hide ads",
                 "Ocultar an\u00fancios");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Hide popular apps",
+                "Ocultar apps populares");
+        table.put("Hide promotional banners",
+                "Ocultar banners promocionais");
         table.put("Hide recommendations",
                 "Ocultar recomenda\u00e7\u00f5es");
+        table.put("Hide sponsored proxy channel",
+                "Ocultar canal patrocinado do proxy");
+        table.put("Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.",
+                "Oculta Premium, Stars, My Grams, Business e Enviar um presente nas Configura\u00e7\u00f5es, as abas de presentes dos perfis e o bot\u00e3o de presente dos canais. As compras e os controles da conta continuam funcionando como antes.");
+        table.put("Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.",
+                "Oculta banners de Premium, anivers\u00e1rios e saldo baixo de Stars na lista de conversas. Os avisos de seguran\u00e7a da conta e outras sugest\u00f5es continuam aparecendo. Nada \u00e9 descartado em seu nome.");
+        table.put("Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.",
+                "Oculta o canal patrocinado de um proxy da lista de conversas e das pastas. Mant\u00e9m as configura\u00e7\u00f5es do proxy e as atualiza\u00e7\u00f5es compartilhadas de dados promocionais como est\u00e3o.");
         table.put("Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.",
                 "Oculta canais e bots semelhantes, incluindo recomenda\u00e7\u00f5es armazenadas. O Telegram n\u00e3o solicita novas recomenda\u00e7\u00f5es enquanto a op\u00e7\u00e3o est\u00e1 ativada.");
         table.put("Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.",
@@ -1303,20 +1650,36 @@ public final class L10nTranslations {
                 "Links, atualiza\u00e7\u00f5es, backup e mais");
         table.put("More settings",
                 "Mais configura\u00e7\u00f5es");
+        table.put("New Year look all year",
+                "Visual de Ano Novo o ano todo");
         table.put("No HushTelegram release is out yet.",
                 "Ainda n\u00e3o h\u00e1 nenhuma vers\u00e3o do HushTelegram.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
         table.put("No matching settings",
                 "Nenhuma configura\u00e7\u00e3o encontrada");
+        table.put("No previews before sending",
+                "Sem pr\u00e9vias antes de enviar");
+        table.put("No swipe actions on chats",
+                "Sem a\u00e7\u00f5es ao deslizar chats");
         table.put("None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Nenhum endere\u00e7o web do Telegram est\u00e1 selecionado para este app, ent\u00e3o os links deles abrem em outro lugar. Toque para selecion\u00e1-los nas configura\u00e7\u00f5es do Android.");
         table.put("OK",
                 "OK");
+        table.put("Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.",
+                "Depois que voc\u00ea recusar o acesso aos contatos, a aba Contatos para de pedir de novo e o selo de aviso some. O primeiro pedido, os bot\u00f5es da pr\u00f3pria aba e a sincroniza\u00e7\u00e3o de contatos continuam.");
         table.put("Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "S\u00f3 alguns endere\u00e7os web do Telegram est\u00e3o selecionados para este app, e os links para os outros abrem em outro lugar. Toque para selecion\u00e1-los nas configura\u00e7\u00f5es do Android.");
+        table.put("Open links externally",
+                "Abrir links externamente");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cAbrir links compat\u00edveis\u201d est\u00e1 desativado para este app nas configura\u00e7\u00f5es do Android. Toque para ativar.");
+        table.put("Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.",
+                "Abrir a galeria de anexos n\u00e3o liga a c\u00e2mera nem pede acesso a ela. Toque no quadro da c\u00e2mera para lig\u00e1-la. Desativado por padr\u00e3o nas configura\u00e7\u00f5es.");
+        table.put("Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.",
+                "Abre links HTTP(S) comuns no seu navegador. Links do Telegram e rotas de login, pagamento e autentica\u00e7\u00e3o mant\u00eam o comportamento habitual.");
+        table.put("Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.",
+                "Limpeza local opcional ao abrir links e no seletor Compartilhar Link. Remove apenas utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid e fbclid. Qualquer par\u00e2metro de consulta desconhecido preserva a URL inteira. Desativado por padr\u00e3o nas configura\u00e7\u00f5es.");
         table.put("Pause",
                 "Pausar");
         table.put("Pause HushTelegram",
@@ -1325,8 +1688,21 @@ public final class L10nTranslations {
                 "Pausa, backup e diagn\u00f3stico");
         table.put("Post Story button",
                 "bot\u00e3o de publicar um story");
+        table.put("Premium promo accepts",
+                "aceita\u00e7\u00f5es de promo\u00e7\u00f5es do Premium");
+        table.put("Premium promo failures",
+                "falhas de promo\u00e7\u00f5es do Premium");
+        table.put("Premium promo taps",
+                "toques em promo\u00e7\u00f5es do Premium");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Premium promo views",
+                "visualiza\u00e7\u00f5es de promo\u00e7\u00f5es do Premium");
         table.put("Privacy",
                 "Privacidade");
+        table.put("Quiet contacts prompts",
+                "Silenciar pedidos de contatos");
         table.put("Reading the settings file",
                 "Lendo o arquivo de configura\u00e7\u00f5es");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1339,14 +1715,16 @@ public final class L10nTranslations {
                 "Salvar relat\u00f3rio completo");
         table.put("Save the full report in Download/Morphe.",
                 "Salve o relat\u00f3rio completo em Download/Morphe.");
-        table.put("Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.",
-                "Salve suas op\u00e7\u00f5es em um arquivo. Pausa e Registro de depura\u00e7\u00e3o n\u00e3o s\u00e3o inclu\u00eddos, nem a verifica\u00e7\u00e3o de novas vers\u00f5es.");
+        table.put("Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.",
+                "Salve suas op\u00e7\u00f5es em um arquivo. Elas valem para todas as contas deste app do Telegram. Pausa e Registro de depura\u00e7\u00e3o n\u00e3o s\u00e3o inclu\u00eddos, nem a verifica\u00e7\u00e3o de novas vers\u00f5es.");
         table.put("Saved. Restart Telegram to apply this change.",
                 "Salvo. Reinicie o Telegram para aplicar esta altera\u00e7\u00e3o.");
         table.put("Saving the settings file",
                 "Salvando o arquivo de configura\u00e7\u00f5es");
         table.put("Search settings",
                 "Buscar configura\u00e7\u00f5es");
+        table.put("Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.",
+                "A aba Apps da busca n\u00e3o mostra a lista Apps populares do Telegram, nem o t\u00edtulo e as linhas de carregamento, e o Telegram n\u00e3o a solicita. Os apps que voc\u00ea abriu e os outros resultados continuam.");
         table.put("Selecting links by hand",
                 "Selecionar links manualmente");
         table.put("Set when you patched",
@@ -1365,10 +1743,10 @@ public final class L10nTranslations {
                 "Configura\u00e7\u00f5es importadas. %1$d op\u00e7\u00e3o foi alterada.");
         table.put("Settings imported. %1$d switches changed.",
                 "Configura\u00e7\u00f5es importadas. %1$d op\u00e7\u00f5es foram alteradas.");
+        table.put("Settings sales rows",
+                "Ofertas nas Configura\u00e7\u00f5es");
         table.put("Source code and issues",
                 "C\u00f3digo-fonte e relatos de problemas");
-        table.put("Sponsored messages and video ads",
-                "Mensagens patrocinadas e an\u00fancios em v\u00eddeo");
         table.put("Stays in while paused",
                 "O que continua ativo na pausa");
         table.put("Stop call diagnostics",
@@ -1377,19 +1755,22 @@ public final class L10nTranslations {
                 "Parar os relat\u00f3rios de uso");
         table.put("Stops automatic call debug reports and log-file uploads requested by Telegram's server.",
                 "Interrompe relat\u00f3rios autom\u00e1ticos de depura\u00e7\u00e3o de chamadas e envios de arquivos de registro solicitados pelo servidor do Telegram.");
+        table.put("Strip link tracking",
+                "Remover rastreamento de links");
         table.put("Supported links",
                 "Links compat\u00edveis");
         table.put("Tap to turn it back on.",
                 "Toque para reativar.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.",
                 "O Telegram fechou com erro ou travou no primeiro minuto ap\u00f3s iniciar, tr\u00eas vezes seguidas, ent\u00e3o o HushTelegram foi pausado automaticamente.");
-        table.put("Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.",
-                "O Telegram n\u00e3o envia suas pastas de armazenamento como relat\u00f3rio do dispositivo quando o servidor dele pede, nem quanto tempo voc\u00ea passou em cada post de um canal. Mensagens e chamadas funcionam como antes.");
+        table.put("Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.",
+                "O Telegram n\u00e3o pede ao servidor uma pr\u00e9via do link enquanto a mensagem ainda n\u00e3o foi enviada. Isso vale para chats, a tela de compartilhamento, enquetes, links de Stories e mensagens compartilhadas por bots. Mensagens enviadas continuam recebendo a pr\u00e9via. Desativado por padr\u00e3o nas configura\u00e7\u00f5es.");
+        table.put("Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.",
+                "O Telegram n\u00e3o envia sua estat\u00edstica do tipo de armazenamento quando o servidor pede, nem quanto tempo voc\u00ea passou em cada post de um canal. Tamb\u00e9m bloqueia relat\u00f3rios sobre visualiza\u00e7\u00f5es da tela do Premium, toques em recursos, aceita\u00e7\u00f5es e falhas de compra. Mensagens e chamadas funcionam como antes.");
         table.put("Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.",
                 "O Telegram deixa de oferecer atualiza\u00e7\u00f5es do telegram.org. Elas n\u00e3o podem ser instaladas sobre este build corrigido, ent\u00e3o aplique o patch de cada nova vers\u00e3o pelo Morphe Manager.");
+        table.put("Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.",
+                "A neve de Ano Novo do Telegram cai todos os dias sobre a barra superior da lista de chats e, com os fundos de chat animados ativados, sobre os fundos dos chats. Desativado por padr\u00e3o nas configura\u00e7\u00f5es.");
         table.put("Telegram's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Os endere\u00e7os web do Telegram est\u00e3o selecionados para este app nas configura\u00e7\u00f5es do Android, ent\u00e3o os links deles abrem aqui.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -1436,6 +1817,9 @@ public final class L10nTranslations {
                 "Esta vers\u00e3o n\u00e3o cobre %1$s.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Este dispositivo n\u00e3o tem seletor de arquivos, ent\u00e3o n\u00e3o \u00e9 poss\u00edvel escolher um arquivo aqui.");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Try a different word or clear the search.",
                 "Tente outra palavra ou limpe a busca.");
         table.put("Try again, or go back to Telegram.",
@@ -1448,6 +1832,10 @@ public final class L10nTranslations {
                 "At\u00e9 voc\u00ea retomar, todas as op\u00e7\u00f5es, menos o Registro de depura\u00e7\u00e3o, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo.");
         table.put("Updates",
                 "Atualiza\u00e7\u00f5es");
+        table.put("Usage reports",
+                "Relat\u00f3rios de uso");
+        table.put("Usage reports and call diagnostics",
+                "Relat\u00f3rios de uso e diagn\u00f3sticos de chamadas");
         table.put("Version",
                 "Vers\u00e3o");
         table.put("You have the newest HushTelegram release.",
@@ -1464,6 +1852,14 @@ public final class L10nTranslations {
                 "an\u00e9is de stories nos avatares");
         table.put("avatar story taps",
                 "toques de stories nos avatares");
+        table.put("birthday gift banner",
+                "banner de presentes de anivers\u00e1rio");
+        table.put("bot shares",
+                "mensagens compartilhadas por bots");
+        table.put("cached proxy channel",
+                "canal do proxy armazenado");
+        table.put("cached proxy folder entries",
+                "entradas do proxy armazenadas nas pastas");
         table.put("cached recommendations",
                 "recomenda\u00e7\u00f5es armazenadas");
         table.put("call debug reports",
@@ -1472,18 +1868,38 @@ public final class L10nTranslations {
                 "envios de arquivos de registro de chamadas");
         table.put("call log reports",
                 "relat\u00f3rios de registro de chamadas");
+        table.put("channel Gift button",
+                "bot\u00e3o de presente dos canais");
         table.put("channel ads",
                 "an\u00fancios em canais");
         table.put("channel read metrics",
                 "m\u00e9tricas de leitura de canais");
+        table.put("chat drafts",
+                "rascunhos de chat");
         table.put("chat-list story bar",
                 "barra de stories da lista de conversas");
         table.put("device statistics reports",
                 "relat\u00f3rios de estat\u00edsticas do dispositivo");
+        table.put("external browser routing",
+                "abertura em navegador externo");
+        table.put("opened link tracking",
+                "rastreamento de links abertos");
+        table.put("poll links",
+                "links de enquetes");
+        table.put("profile Gifts tabs",
+                "abas de presentes dos perfis");
+        table.put("promotional suggestions",
+                "sugest\u00f5es promocionais");
         table.put("search ads",
                 "an\u00fancios na busca");
+        table.put("share sheet comments",
+                "coment\u00e1rios ao compartilhar");
+        table.put("shared link tracking",
+                "rastreamento de links compartilhados");
         table.put("similar channels and bots",
                 "canais e bots semelhantes");
+        table.put("story links",
+                "links de Stories");
         table.put("story list requests",
                 "solicita\u00e7\u00f5es da lista de stories");
         table.put("video ads",
@@ -1491,10 +1907,11 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(344);
+        Map<String, String> table = new HashMap<>(444);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
+        fillTr3(table);
         return table;
     }
 
@@ -1511,6 +1928,8 @@ public final class L10nTranslations {
                 "%1$d anahtar de\u011fi\u015fecek.");
         table.put("%1$d switches will change.",
                 "%1$d anahtar de\u011fi\u015fecek.");
+        table.put("%1$s, and more",
+                "%1$s ve fazlas\u0131");
         table.put("%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.",
                 "%1$s. Yamalad\u0131\u011f\u0131nda ayarland\u0131\u011f\u0131 i\u00e7in Duraklatma bunu kapatamaz. Bunu elemek i\u00e7in yeniden yamala ve o yamay\u0131 d\u0131\u015far\u0131da b\u0131rak.");
         table.put("%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.",
@@ -1521,8 +1940,18 @@ public final class L10nTranslations {
                 "Bir tan\u0131lama raporu zaten kaydediliyor.");
         table.put("A file named %1$s in %2$s paused HushTelegram.",
                 "%2$s i\u00e7indeki %1$s adl\u0131 bir dosya HushTelegram'u duraklatt\u0131.");
+        table.put("A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.",
+                "Sohbet listesinde bir sohbeti yana kayd\u0131rmak art\u0131k onu ar\u015fivlemez, sessize almaz, sabitlemez, silmez veya okundu olarak i\u015faretlemez, b\u00f6ylece yanl\u0131\u015fl\u0131kla yap\u0131lan bir kayd\u0131rma sohbeti de\u011fi\u015ftirmez. Uzun basma t\u00fcm eylemleri sunmaya devam eder. Ayarlarda varsay\u0131lan olarak kapal\u0131d\u0131r.");
         table.put("About",
                 "Hakk\u0131nda");
+        table.put("Accounts",
+                "Hesaplar");
+        table.put("Ads in channels",
+                "Kanallarda reklamlar");
+        table.put("Ads in channels and search",
+                "Kanallarda ve aramada reklamlar");
+        table.put("Ads in search",
+                "Aramada reklamlar");
         table.put("Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.",
                 "Android 11 ve \u00f6ncesi burada hangi ba\u011flant\u0131lar\u0131n a\u00e7\u0131ld\u0131\u011f\u0131n\u0131 bildirmez. Bu uygulaman\u0131n ayarlar\u0131n\u0131 a\u00e7mak i\u00e7in dokunun, ard\u0131ndan Varsay\u0131lan olarak a\u00e7'a gidin.");
         table.put("Android didn't say which links open here. Tap to check in Android's settings.",
@@ -1541,6 +1970,10 @@ public final class L10nTranslations {
                 "Geri");
         table.put("Browse settings",
                 "Ayarlar\u0131 ke\u015ffet");
+        table.put("Call diagnostics",
+                "Arama tan\u0131lamalar\u0131");
+        table.put("Camera only on tap",
+                "Kamera yaln\u0131zca dokununca");
         table.put("Cancel",
                 "\u0130ptal");
         table.put("Channels show no sponsored messages, search shows no sponsored accounts, and videos play without ads. Telegram never asks for them, so none are counted as seen.",
@@ -1553,8 +1986,8 @@ public final class L10nTranslations {
                 "\u015eimdi denetle");
         table.put("Checking GitHub now.",
                 "GitHub \u015fu anda denetleniyor.");
-        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes.",
-                "Bir ayar dosyas\u0131 se\u00e7. \u0130\u00e7e aktarmadan \u00f6nce ka\u00e7 anahtar\u0131n de\u011fi\u015fece\u011fini g\u00f6r\u00fcrs\u00fcn.");
+        table.put("Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.",
+                "Bir ayar dosyas\u0131 se\u00e7. \u0130\u00e7e aktarmadan \u00f6nce ka\u00e7 anahtar\u0131n de\u011fi\u015fece\u011fini g\u00f6r\u00fcrs\u00fcn. \u0130\u00e7e aktard\u0131klar\u0131n bu Telegram uygulamas\u0131ndaki t\u00fcm hesaplar i\u00e7in ge\u00e7erli olur.");
         table.put("Clear diagnostic data",
                 "Tan\u0131lama verilerini temizle");
         table.put("Clear search",
@@ -1587,20 +2020,25 @@ public final class L10nTranslations {
                 "HushTelegram yeniden a\u00e7\u0131lamad\u0131. Tekrar dene.");
         table.put("Debug logging",
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc");
-        table.put("Device statistics and read time",
-                "Cihaz istatistikleri ve okuma s\u00fcresi");
         table.put("Diagnostic data cleared. Tap again to put it back.",
                 "Tan\u0131lama verileri temizlendi. Geri getirmek i\u00e7in tekrar dokun.");
         table.put("Diagnostic data put back.",
                 "Tan\u0131lama verileri geri getirildi.");
         table.put("Diagnostic report copied to the clipboard.",
                 "Tan\u0131lama raporu panoya kopyaland\u0131.");
+        table.put("Draft link previews",
+                "Taslaklarda ba\u011flant\u0131 \u00f6nizlemeleri");
         table.put("Empties the log and the hook findings a report would include.",
                 "Bir raporun i\u00e7erece\u011fi g\u00fcnl\u00fc\u011f\u00fc ve hook bulgular\u0131n\u0131 bo\u015falt\u0131r.");
         table.put("Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.",
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r, yamalad\u0131\u011f\u0131nda ayarlananlar ise devrede kal\u0131r. Ayarlar\u0131n oldu\u011fu gibi kal\u0131r.");
+        table.put("Every switch here applies to all the accounts in this Telegram app, not only the one you have open.",
+                "Buradaki her anahtar yaln\u0131zca a\u00e7\u0131k olan hesap i\u00e7in de\u011fil, bu Telegram uygulamas\u0131ndaki t\u00fcm hesaplar i\u00e7in ge\u00e7erlidir.");
         table.put("Export diagnostic report",
                 "Tan\u0131lama raporunu d\u0131\u015fa aktar");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
         table.put("Export settings",
                 "Ayarlar\u0131 d\u0131\u015fa aktar");
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
@@ -1609,21 +2047,34 @@ public final class L10nTranslations {
                 "Tam rapor \u015furaya kaydedildi: %1$s");
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
+        table.put("Gallery camera",
+                "Galeri kameras\u0131");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
                 "GitHub \u015fu an bu a\u011fdan gelen sorgular\u0131 geri \u00e7eviriyor. Daha sonra tekrar dene.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "GitHub'\u0131n yan\u0131t\u0131 kullan\u0131lamad\u0131. Daha sonra tekrar dene.");
         table.put("Go straight to one group of settings. Back returns to where you were.",
                 "Do\u011frudan bir ayar grubuna git. Geri, bulundu\u011fun yere d\u00f6nd\u00fcr\u00fcr.");
+        table.put("Hide Premium, gifts and Stars",
+                "Premium, hediyeler ve Stars'\u0131 gizle");
         table.put("Hide Stories",
                 "Hik\u00e2yeleri gizle");
         table.put("Hide ads",
                 "Reklamlar\u0131 gizle");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
+        table.put("Hide popular apps",
+                "Pop\u00fcler uygulamalar\u0131 gizle");
+        table.put("Hide promotional banners",
+                "Tan\u0131t\u0131m afi\u015flerini gizle");
         table.put("Hide recommendations",
                 "\u00d6nerileri gizle");
+        table.put("Hide sponsored proxy channel",
+                "Proxy'nin sponsorlu kanal\u0131n\u0131 gizle");
+        table.put("Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.",
+                "Ayarlar'daki Premium, Stars, My Grams, Business ve Hediye G\u00f6nder se\u00e7eneklerini, profillerdeki Hediyeler sekmelerini ve kanallardaki Hediye d\u00fc\u011fmesini gizler. Sat\u0131n almalar ve hesap kontrolleri eskisi gibi \u00e7al\u0131\u015f\u0131r.");
+        table.put("Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.",
+                "Sohbet listesinde Premium, do\u011fum g\u00fcn\u00fc ve d\u00fc\u015f\u00fck Stars bakiyesi afi\u015flerini gizler. Hesap g\u00fcvenli\u011fi bildirimleri ve di\u011fer \u00f6neriler g\u00f6sterilmeye devam eder. Hi\u00e7bir \u015fey sizin ad\u0131n\u0131za kapat\u0131lmaz.");
+        table.put("Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.",
+                "Bir proxy'nin sponsorlu kanal\u0131n\u0131 sohbet listesinden ve klas\u00f6rlerden gizler. Proxy ayarlar\u0131n\u0131 ve payla\u015f\u0131lan tan\u0131t\u0131m verisi g\u00fcncellemelerini oldu\u011fu gibi b\u0131rak\u0131r.");
         table.put("Hides similar channels and bots, including cached recommendations. Telegram doesn't ask for new recommendations while the switch is on.",
                 "Benzer kanallar\u0131 ve botlar\u0131, kay\u0131tl\u0131 \u00f6neriler dahil gizler. Anahtar a\u00e7\u0131kken Telegram yeni \u00f6neri istemez.");
         table.put("Hides the chat-list story bar, avatar story rings and Post Story button, and stops fetching the story list. Profile stories and archives remain available.",
@@ -1664,20 +2115,36 @@ public final class L10nTranslations {
                 "Ba\u011flant\u0131lar, g\u00fcncellemeler, yedekleme ve daha fazlas\u0131");
         table.put("More settings",
                 "Di\u011fer ayarlar");
+        table.put("New Year look all year",
+                "Y\u0131l boyu y\u0131lba\u015f\u0131 g\u00f6r\u00fcn\u00fcm\u00fc");
         table.put("No HushTelegram release is out yet.",
                 "Hen\u00fcz bir HushTelegram s\u00fcr\u00fcm\u00fc yay\u0131nlanmad\u0131.");
         table.put("No app on this phone can open the link. The address is %1$s.",
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
         table.put("No matching settings",
                 "E\u015fle\u015fen ayar yok");
+        table.put("No previews before sending",
+                "G\u00f6ndermeden \u00f6nce \u00f6nizleme yok");
+        table.put("No swipe actions on chats",
+                "Sohbetlerde kayd\u0131rma eylemi yok");
         table.put("None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Telegram'\u0131n web adreslerinden hi\u00e7biri bu uygulama i\u00e7in se\u00e7ili de\u011fil, bu y\u00fczden ba\u011flant\u0131lar\u0131 ba\u015fka yerde a\u00e7\u0131l\u0131r. Android ayarlar\u0131nda se\u00e7mek i\u00e7in dokunun.");
         table.put("OK",
                 "Tamam");
+        table.put("Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.",
+                "Ki\u015filere eri\u015fimi reddettikten sonra Ki\u015filer sekmesi yeniden sormaz ve uyar\u0131 rozeti kaybolur. \u0130lk istek, sekmenin kendi d\u00fc\u011fmeleri ve ki\u015fi e\u015fitleme ayn\u0131 kal\u0131r.");
         table.put("Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Telegram'\u0131n web adreslerinden yaln\u0131zca baz\u0131lar\u0131 bu uygulama i\u00e7in se\u00e7ili ve di\u011ferlerinin ba\u011flant\u0131lar\u0131 ba\u015fka yerde a\u00e7\u0131l\u0131r. Android ayarlar\u0131nda se\u00e7mek i\u00e7in dokunun.");
+        table.put("Open links externally",
+                "Ba\u011flant\u0131lar\u0131 harici taray\u0131c\u0131da a\u00e7");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cDesteklenen ba\u011flant\u0131lar\u0131 a\u00e7\u201d Android ayarlar\u0131nda bu uygulama i\u00e7in kapal\u0131. A\u00e7mak i\u00e7in dokunun.");
+        table.put("Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.",
+                "Ek galerisini a\u00e7mak kameray\u0131 ba\u015flatmaz ve kamera eri\u015fimi istemez. Ba\u015flatmak i\u00e7in kamera kutucu\u011funa dokunun. Ayarlarda varsay\u0131lan olarak kapal\u0131d\u0131r.");
+        table.put("Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.",
+                "Normal HTTP(S) ba\u011flant\u0131lar\u0131n\u0131 taray\u0131c\u0131n\u0131zda a\u00e7ar. Telegram ba\u011flant\u0131lar\u0131 ile oturum a\u00e7ma, \u00f6deme ve kimlik do\u011frulama yollar\u0131n\u0131n mevcut davran\u0131\u015f\u0131 korunur.");
+        table.put("Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.",
+                "Ba\u011flant\u0131 a\u00e7arken ve Ba\u011flant\u0131y\u0131 Payla\u015f se\u00e7icisinde iste\u011fe ba\u011fl\u0131 yerel temizleme. Yaln\u0131zca utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid ve fbclid kald\u0131r\u0131l\u0131r. Bilinmeyen herhangi bir sorgu anahtar\u0131 varsa URL'nin tamam\u0131 korunur. Ayarlarda varsay\u0131lan olarak kapal\u0131d\u0131r.");
         table.put("Pause",
                 "Duraklat");
         table.put("Pause HushTelegram",
@@ -1686,8 +2153,21 @@ public final class L10nTranslations {
                 "Duraklatma, yedekleme ve tan\u0131lama");
         table.put("Post Story button",
                 "Hik\u00e2ye Payla\u015f d\u00fc\u011fmesi");
+        table.put("Premium promo accepts",
+                "Premium tan\u0131t\u0131m onaylar\u0131");
+        table.put("Premium promo failures",
+                "Premium tan\u0131t\u0131m hatalar\u0131");
+        table.put("Premium promo taps",
+                "Premium tan\u0131t\u0131m dokunu\u015flar\u0131");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
+        table.put("Premium promo views",
+                "Premium tan\u0131t\u0131m g\u00f6r\u00fcnt\u00fclemeleri");
         table.put("Privacy",
                 "Gizlilik");
+        table.put("Quiet contacts prompts",
+                "Ki\u015fi isteklerini sustur");
         table.put("Reading the settings file",
                 "Ayar dosyas\u0131 okunuyor");
         table.put("Record patch activity and show errors for a bug report. Leave off during normal use.",
@@ -1700,14 +2180,16 @@ public final class L10nTranslations {
                 "Tam raporu kaydet");
         table.put("Save the full report in Download/Morphe.",
                 "Tam raporu Download/Morphe konumuna kaydeder.");
-        table.put("Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.",
-                "Anahtarlar\u0131n\u0131 bir dosyaya kaydet. Duraklatma ve Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc dahil edilmez, s\u00fcr\u00fcm denetimi de edilmez.");
+        table.put("Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.",
+                "Anahtarlar\u0131n\u0131 bir dosyaya kaydet. Anahtarlar bu Telegram uygulamas\u0131ndaki t\u00fcm hesaplar i\u00e7in ge\u00e7erlidir. Duraklatma ve Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc dahil edilmez, s\u00fcr\u00fcm denetimi de edilmez.");
         table.put("Saved. Restart Telegram to apply this change.",
                 "Kaydedildi. Bu de\u011fi\u015fikli\u011fi uygulamak i\u00e7in Telegram'\u0131 yeniden ba\u015flat.");
         table.put("Saving the settings file",
                 "Ayar dosyas\u0131 kaydediliyor");
         table.put("Search settings",
                 "Ayarlarda ara");
+        table.put("Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.",
+                "Aramadaki Uygulamalar sekmesi, Telegram'\u0131n Pop\u00fcler uygulamalar listesini ba\u015fl\u0131\u011f\u0131 ve y\u00fckleme sat\u0131rlar\u0131yla birlikte atlar ve Telegram bu listeyi istemez. A\u00e7t\u0131\u011f\u0131n\u0131z uygulamalar ve di\u011fer sonu\u00e7lar kal\u0131r.");
         table.put("Selecting links by hand",
                 "Ba\u011flant\u0131lar\u0131 elle se\u00e7me");
         table.put("Set when you patched",
@@ -1726,10 +2208,10 @@ public final class L10nTranslations {
                 "Ayarlar i\u00e7e aktar\u0131ld\u0131. %1$d anahtar de\u011fi\u015fti.");
         table.put("Settings imported. %1$d switches changed.",
                 "Ayarlar i\u00e7e aktar\u0131ld\u0131. %1$d anahtar de\u011fi\u015fti.");
+        table.put("Settings sales rows",
+                "Ayarlar'daki sat\u0131\u015f se\u00e7enekleri");
         table.put("Source code and issues",
                 "Kaynak kodu ve sorunlar");
-        table.put("Sponsored messages and video ads",
-                "Sponsorlu mesajlar ve video reklamlar\u0131");
         table.put("Stays in while paused",
                 "Duraklat\u0131lsa da devrede kal\u0131r");
         table.put("Stop call diagnostics",
@@ -1738,19 +2220,22 @@ public final class L10nTranslations {
                 "Kullan\u0131m raporlar\u0131n\u0131 durdur");
         table.put("Stops automatic call debug reports and log-file uploads requested by Telegram's server.",
                 "Telegram sunucusunun istedi\u011fi otomatik arama hata ay\u0131klama raporlar\u0131n\u0131 ve g\u00fcnl\u00fck dosyas\u0131 y\u00fcklemelerini durdurur.");
+        table.put("Strip link tracking",
+                "Ba\u011flant\u0131 takibini kald\u0131r");
         table.put("Supported links",
                 "Desteklenen ba\u011flant\u0131lar");
         table.put("Tap to turn it back on.",
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.",
                 "Telegram a\u00e7\u0131ld\u0131ktan sonraki bir dakika i\u00e7inde \u00fcst \u00fcste \u00fc\u00e7 kez \u00e7\u00f6kt\u00fc veya dondu, bu y\u00fczden HushTelegram kendini duraklatt\u0131.");
-        table.put("Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.",
-                "Telegram, sunucusu istedi\u011finde depolama klas\u00f6rlerinizi cihaz raporu olarak g\u00f6ndermez, her kanal g\u00f6nderisinde ne kadar kald\u0131\u011f\u0131n\u0131z\u0131 da g\u00f6ndermez. Mesajlar ve aramalar eskisi gibi \u00e7al\u0131\u015f\u0131r.");
+        table.put("Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.",
+                "Telegram, bir mesaj hen\u00fcz g\u00f6nderilmemi\u015fken sunucusundan ba\u011flant\u0131 \u00f6nizlemesi istemez. Bu kural sohbetler, payla\u015f\u0131m sayfas\u0131, anketler, hik\u00e2ye ba\u011flant\u0131lar\u0131 ve botlar\u0131n payla\u015ft\u0131\u011f\u0131 mesajlar i\u00e7in ge\u00e7erlidir. G\u00f6nderilen mesajlar \u00f6nizlemelerini almaya devam eder. Ayarlarda varsay\u0131lan olarak kapal\u0131d\u0131r.");
+        table.put("Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.",
+                "Telegram, sunucusu istedi\u011finde depolama t\u00fcr\u00fc istatisti\u011fini veya her kanal g\u00f6nderisinde ne kadar kald\u0131\u011f\u0131n\u0131z\u0131 g\u00f6ndermez. Premium ekran g\u00f6r\u00fcnt\u00fclemeleri, \u00f6zelliklere dokunmalar, kabul i\u015flemleri ve sat\u0131n alma hatalar\u0131yla ilgili raporlar\u0131 da durdurur. Mesajlar ve aramalar eskisi gibi \u00e7al\u0131\u015f\u0131r.");
         table.put("Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.",
                 "Telegram, telegram.org g\u00fcncellemelerini sunmay\u0131 b\u0131rak\u0131r. Bunlar bu yamal\u0131 s\u00fcr\u00fcm\u00fcn \u00fczerine kurulamaz, bu y\u00fczden her yeni s\u00fcr\u00fcm\u00fc Morphe Manager'da yamala.");
+        table.put("Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.",
+                "Telegram'\u0131n y\u0131lba\u015f\u0131 kar\u0131 her g\u00fcn sohbet listesinin \u00fcst \u00e7ubu\u011funa, animasyonlu sohbet arka planlar\u0131 a\u00e7\u0131kken de sohbet arka planlar\u0131na ya\u011far. Ayarlarda varsay\u0131lan olarak kapal\u0131d\u0131r.");
         table.put("Telegram's web addresses are selected for this app in Android's settings, so their links open here.",
                 "Telegram'\u0131n web adresleri Android ayarlar\u0131nda bu uygulama i\u00e7in se\u00e7ili, bu y\u00fczden ba\u011flant\u0131lar\u0131 burada a\u00e7\u0131l\u0131r.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -1797,6 +2282,9 @@ public final class L10nTranslations {
                 "Bu derleme %1$s i\u00e7in kapsam sa\u011flamaz.");
         table.put("This phone has no file picker, so there's no way to choose a file here.",
                 "Bu telefonda dosya se\u00e7ici yok, bu y\u00fczden burada dosya se\u00e7menin bir yolu yok.");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Try a different word or clear the search.",
                 "Ba\u015fka bir kelime deneyin veya aramay\u0131 temizleyin.");
         table.put("Try again, or go back to Telegram.",
@@ -1809,6 +2297,10 @@ public final class L10nTranslations {
                 "Devam ettirene kadar Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r. Yamalad\u0131\u011f\u0131nda ayarlananlar devrede kal\u0131r.");
         table.put("Updates",
                 "G\u00fcncellemeler");
+        table.put("Usage reports",
+                "Kullan\u0131m raporlar\u0131");
+        table.put("Usage reports and call diagnostics",
+                "Kullan\u0131m raporlar\u0131 ve arama tan\u0131lamalar\u0131");
         table.put("Version",
                 "S\u00fcr\u00fcm");
         table.put("You have the newest HushTelegram release.",
@@ -1825,6 +2317,14 @@ public final class L10nTranslations {
                 "avatar hik\u00e2ye halkalar\u0131");
         table.put("avatar story taps",
                 "avatarlardaki hik\u00e2ye dokunu\u015flar\u0131");
+        table.put("birthday gift banner",
+                "do\u011fum g\u00fcn\u00fc hediyesi afi\u015fi");
+        table.put("bot shares",
+                "botlar\u0131n payla\u015ft\u0131\u011f\u0131 mesajlar");
+        table.put("cached proxy channel",
+                "kay\u0131tl\u0131 proxy kanal\u0131");
+        table.put("cached proxy folder entries",
+                "klas\u00f6rlerdeki kay\u0131tl\u0131 proxy girdileri");
         table.put("cached recommendations",
                 "kay\u0131tl\u0131 \u00f6neriler");
         table.put("call debug reports",
@@ -1833,18 +2333,38 @@ public final class L10nTranslations {
                 "arama g\u00fcnl\u00fck dosyas\u0131 y\u00fcklemeleri");
         table.put("call log reports",
                 "arama g\u00fcnl\u00fck raporlar\u0131");
+        table.put("channel Gift button",
+                "kanal Hediye d\u00fc\u011fmesi");
         table.put("channel ads",
                 "kanal reklamlar\u0131");
         table.put("channel read metrics",
                 "kanal okuma \u00f6l\u00e7\u00fcmleri");
+        table.put("chat drafts",
+                "sohbet taslaklar\u0131");
         table.put("chat-list story bar",
                 "sohbet listesindeki hik\u00e2ye \u00e7ubu\u011fu");
         table.put("device statistics reports",
                 "cihaz istatistik raporlar\u0131");
+        table.put("external browser routing",
+                "harici taray\u0131c\u0131ya y\u00f6nlendirme");
+        table.put("opened link tracking",
+                "a\u00e7\u0131lan ba\u011flant\u0131lar\u0131n takibi");
+        table.put("poll links",
+                "anket ba\u011flant\u0131lar\u0131");
+        table.put("profile Gifts tabs",
+                "profil Hediyeler sekmeleri");
+        table.put("promotional suggestions",
+                "tan\u0131t\u0131m \u00f6nerileri");
         table.put("search ads",
                 "arama reklamlar\u0131");
+        table.put("share sheet comments",
+                "payla\u015f\u0131m sayfas\u0131 yorumlar\u0131");
+        table.put("shared link tracking",
+                "payla\u015f\u0131lan ba\u011flant\u0131lar\u0131n takibi");
         table.put("similar channels and bots",
                 "benzer kanallar ve botlar");
+        table.put("story links",
+                "hik\u00e2ye ba\u011flant\u0131lar\u0131");
         table.put("story list requests",
                 "hik\u00e2ye listesi istekleri");
         table.put("video ads",

@@ -351,6 +351,16 @@ foreach ($apk in $Fixture) {
         # bundle, not the base APK's: the merge rewrites the manifest itself, and a delta against
         # the base would record its changes as the patches' own.
         $baseline = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
+        $nativeStock = Get-NativePageFacts -Apk $patchInput -Java $Java -Aapt2 $Aapt2 `
+            -ReportPath (Join-Path $runDir 'native-stock.json') -ExtractNativeLibs $baseline.extractNativeLibs
+        $nativeRaw = Get-NativePageFacts -Apk $out -Java $Java -Aapt2 $Aapt2 `
+            -ReportPath (Join-Path $runDir 'native-unaligned.json') -ExtractNativeLibs $patched.extractNativeLibs
+        Align-UnsignedNativeApk -Apk $out -Aapt2 $Aapt2 -Java $Java -Facts $nativeRaw
+        $nativePatched = Get-NativePageFacts -Apk $out -Java $Java -Aapt2 $Aapt2 `
+            -ReportPath (Join-Path $runDir 'native-patched.json') -ExtractNativeLibs $patched.extractNativeLibs
+        $nativeAlignment = Get-NativePageDelta -Stock $nativeStock -Patched $nativePatched
+        if ($nativeAlignment.packagingDefects.Count -gt 0) { throw "Native packaging defects for ${label}: $($nativeAlignment.packagingDefects -join ', ')" }
+        if (-not $nativeAlignment.alignmentCompatible) { Write-Warning "[receipt] $label retains vendor ELF incompatibility with 16 KB pages." }
         $delta = Get-ManifestDelta -Stock $baseline -Patched $patched
         $verdicts = Get-PatchVerdicts -Report $report -Names $patchNames
         $changes = @(ConvertTo-ManifestDeltaEntries -Delta $delta)
@@ -368,6 +378,7 @@ foreach ($apk in $Fixture) {
                 forced      = $forced
             }
             patches       = $verdicts
+            nativeAlignment = $nativeAlignment
             manifestDelta = [ordered]@{
                 permissionsAdded          = @($delta.permissionsAdded)
                 permissionsRemoved        = @($delta.permissionsRemoved)

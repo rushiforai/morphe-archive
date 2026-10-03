@@ -387,6 +387,28 @@ public class SettingsNavigationTest {
         return null;
     }
 
+    /**
+     * The button's floor is 48 dp, but its frame took the row's height, which the text alone set:
+     * on a Galaxy S22 the overview's Pause laid out 39.5 dp tall. Laid out, it and both Resume
+     * buttons are 48 dp or more.
+     */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w780dp-h1688dp-mdpi")
+    public void theStatusButtonsAreLaidOutAtLeast48dpTall() {
+        layout(dialog.getView());
+        int floor = Math.round(48 * list().getResources().getDisplayMetrics().density);
+        assertTrue("Pause is " + statusAction().getHeight() + " px tall", statusAction().getHeight() >= floor);
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushThreadsPause.Reason.SWITCH);
+        recreate();
+        layout(dialog.getView());
+        assertTrue("Resume is " + statusAction().getHeight() + " px tall", statusAction().getHeight() >= floor);
+        page.navigation.navigate("Feed");
+        layout(dialog.getView());
+        assertTrue("Feed's Resume is " + pageAction().getHeight() + " px tall", pageAction().getHeight() >= floor);
+    }
+
     private android.widget.Button statusAction() {
         android.view.ViewGroup frame = list().getChildAt(0).findViewById(android.R.id.widget_frame);
         assertEquals(1, frame.getChildCount());
@@ -499,8 +521,8 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.SANITIZE_SHARING_LINKS.key));
         recreate();
         assertTrue(contains(Settings.SANITIZE_SHARING_LINKS.key));
-        // Privacy includes both switches and the address coverage disclosed by this build.
-        assertEquals(3, list().getCount());
+        // Privacy includes its three switches and the address coverage disclosed by this build.
+        assertEquals(4, list().getCount());
         assertTrue(titles().contains("Analytics address coverage"));
         page.navigation.back();
         findSearch(dialog.getView()).setText("shared links");
@@ -604,6 +626,36 @@ public class SettingsNavigationTest {
             AnalyticsCoverageTest.Status.mask = 0;
             AnalyticsCoverageTest.Status.included = false;
         }
+    }
+
+    /** The overview describes the feed rules selected for this build, including single-rule builds. */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void feedOverviewAndRowsMatchSelectedRules() throws Exception {
+        List<EnumSet<PatchFamily>> selections = Arrays.asList(
+                EnumSet.of(PatchFamily.HIDE_ADS),
+                EnumSet.of(PatchFamily.HIDE_SUGGESTED_USERS),
+                EnumSet.of(PatchFamily.HIDE_ADS, PatchFamily.HIDE_SUGGESTED_USERS));
+        String[] summaries = {"Sponsored posts in For you and Following",
+                "Suggested accounts in your feed", "Ads and suggested accounts in your feed"};
+        String[] names = {"ads-only", "suggestions-only", "both-rules"};
+        for (int i = 0; i < selections.size(); i++) {
+            PatchFamily.inBuildForTests = selections.get(i);
+            recreate();
+            assertTrue(contains("section_Feed"));
+            Preference feed = (Preference) list().getItemAtPosition(position("section_Feed"));
+            assertEquals(summaries[i], String.valueOf(feed.getSummary()));
+            capture("feed-overview-" + names[i]);
+            tap("section_Feed");
+            assertEquals(selections.get(i).contains(PatchFamily.HIDE_ADS), contains(Settings.HIDE_ADS.key));
+            assertEquals(selections.get(i).contains(PatchFamily.HIDE_SUGGESTED_USERS),
+                    contains(Settings.HIDE_SUGGESTED_USERS.key));
+            ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS);
+            capture("feed-" + names[i]);
+            assertTrue(page.navigation.back());
+        }
+        PatchFamily.inBuildForTests = EnumSet.noneOf(PatchFamily.class);
+        recreate();
+        assertFalse(contains("section_Feed"));
     }
 
     /** All pages are rendered with the same viewport as the design reference. */

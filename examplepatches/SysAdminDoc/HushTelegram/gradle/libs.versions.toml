@@ -1,8 +1,13 @@
 [versions]
-# Align with morphe-patches-template (Compatibility / Manager display names). Hold the patcher
-# at the version the stable Morphe Manager bundles: a newer pin trips the manager's
-# Patcher-Version gate and it refuses the bundle. Stable Manager 1.32.0 bundles 1.14.1, and so
-# does desktop CLI 1.17.0, which the fixture gates run. 1.15.0 is still a prerelease.
+# Align with morphe-patches-template (Compatibility / Manager display names). A Manager that
+# bundles an older patcher than this pin refuses the bundle at its Patcher-Version gate. Manager
+# 1.32.0 and desktop CLI 1.17.0, which the fixture gates run, bundle 1.14.1. Patcher 1.15.0 went
+# stable on 2026-09-30 with Manager 1.33.0 and desktop 1.18.0. Checked on 2026-10-02: this bundle
+# gives the same register and resource reports on desktop 1.17.0 and 1.18.0, and a 1.15.0 build
+# (smali d856bad65f, MorpheApp ARSCLib 88d5e0811f) passes every test, rebuilds byte for byte and
+# gives those reports again. Desktop 1.17.0 doesn't read Patcher-Version and runs it as well.
+# Moving buys nothing the patches use and would shut out Manager 1.32.0, so the pin stays until
+# a patch needs 1.15.0, and manager-floor goes up with it then.
 morphe-patcher = "1.14.1"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
 # README's stated floor to this value.

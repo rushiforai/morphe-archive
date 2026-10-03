@@ -85,8 +85,15 @@ final class SettingsNavigation extends BaseAdapter {
         source = screen.getRootAdapter();
         Context context = screen.getContext();
         // Stable English route IDs survive a locale change; the displayed names are localized.
-        section("Feed", L10n.t("Feed"), L10n.t("Sponsored posts in For you and Following"), SettingsIcons.FEED, true);
-        section("Privacy", L10n.t("Privacy"), L10n.t("Tracking in shared links and analytics uploads"), SettingsIcons.BLOCK, true);
+        String feedDetail = PatchFamily.HIDE_SUGGESTED_USERS.inBuild()
+                ? (PatchFamily.HIDE_ADS.inBuild() ? L10n.t("Ads and suggested accounts in your feed")
+                : L10n.t("Suggested accounts in your feed"))
+                : PatchFamily.HIDE_ADS.inBuild() ? L10n.t("Sponsored posts in For you and Following")
+                : PatchFamily.RETURN_REFRESH.inBuild() ? L10n.t("Where you left off in your feed")
+                : PatchFamily.VIDEO_AUTOPLAY.inBuild() ? L10n.t("Videos in your feed")
+                : L10n.t("Sponsored posts in For you and Following");
+        section("Feed", L10n.t("Feed"), feedDetail, SettingsIcons.FEED, true);
+        section("Privacy", L10n.t("Privacy"), L10n.t("Tracking in links and analytics uploads"), SettingsIcons.BLOCK, true);
         section("Links", L10n.t("Links"), null, SettingsIcons.LINKS, false);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES, false);
         section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED, false);
@@ -408,6 +415,13 @@ final class SettingsNavigation extends BaseAdapter {
     private void bindAction(View row, boolean paused, boolean nextPaused) {
         ViewGroup frame = row.findViewById(android.R.id.widget_frame);
         frame.removeAllViews();
+        // A frame that matches the row's height never adds to it, so the row was as tall as its two
+        // lines of text and the button inside was held under its 48dp floor (39.5dp on a Galaxy S22).
+        ViewGroup.LayoutParams frameSize = frame.getLayoutParams();
+        if (frameSize != null && frameSize.height == ViewGroup.LayoutParams.MATCH_PARENT) {
+            frameSize.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            frame.setLayoutParams(frameSize);
+        }
         Button action = new Button(screen.getContext());
         action.setText(paused != nextPaused ? L10n.t("Undo") : nextPaused ? L10n.t("Resume") : L10n.t("Pause"));
         action.setAllCaps(false);

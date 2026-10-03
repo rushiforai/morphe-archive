@@ -11,12 +11,36 @@ release/PR record. Keep APKs, logs, screenshots, UI dumps, credentials, and toke
 outside Git. Mark assertions **PASS**, **FAIL**, or **BLOCKED**; after a failure,
 mark later steps unexecuted. Do not promote a stable release with required checks blocked.
 
+## Qualification record
+
+Keep a sanitized summary in the release/PR record; keep raw APKs, logs, screenshots,
+UI dumps, device identifiers, and signing material outside Git. A record should
+capture:
+
+```text
+Run / date / commit:
+Input package, versionCode, artifact SHA-256 (and base-APK hash when split):
+Bundle path, SHA-256, Morphe/Gradle/tool versions:
+Enabled patches and package ID:
+Output artifact path and SHA-256:
+Device model / Android version (or N/A):
+Signing certificate fingerprint (private output identity; redact if necessary):
+SDK verification / waiver and rationale:
+Assertions: PASS | FAIL | BLOCKED | UNEXECUTED — include command/evidence reference
+Failure routing / next action:
+```
+
+Record fingerprint resolution, bundle build, patch listing, local application,
+installation, launch, target-path execution, and observed behavior as separate
+assertions. A successful earlier stage does not imply later stages passed. After a
+failure, mark dependent checks UNEXECUTED rather than implying they ran.
+
 ## Build validation
 
 Run the canonical local gates from the repository root:
 
 ```bash
-uvx pre-commit run --all-files --show-diff-on-failure
+pre-commit run --all-files --show-diff-on-failure
 python3 -m unittest discover -s scripts/tests -v
 ./gradlew verify --no-daemon
 ```

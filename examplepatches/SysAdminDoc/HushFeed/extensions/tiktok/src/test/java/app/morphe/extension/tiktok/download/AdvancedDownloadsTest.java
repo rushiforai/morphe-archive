@@ -169,6 +169,7 @@ public class AdvancedDownloadsTest {
     /** A photo post with an id, which is what a save is keyed on. */
     public static final class PhotoPost {
         public final Info photoModeImageInfo;
+        public VideoData video;
         private final String aid;
         PhotoPost(String aid, List<Photo> photos) { this.aid = aid; photoModeImageInfo = new Info(photos); }
         public String getAid() { return aid; }
@@ -333,6 +334,68 @@ public class AdvancedDownloadsTest {
         } finally {
             active.remove("busy-post");
             Settings.DOWNLOAD_ORIGINAL_PHOTOS.resetToDefault();
+        }
+    }
+
+    @Test public void videoQualityNeverTakesAPhotoPostBeforeItsPhotoSave() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        Shadows.shadowOf(RuntimeEnvironment.getApplication())
+                .grantPermissions(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        PhotoPost post = new PhotoPost("photo-with-video", List.of(new Photo("https://example.com/original")));
+        post.video = new VideoData(List.of(new Gear("normal_720_0", 700, "https://example.com/video")));
+        post.video.downloadAddr = new Address("https://example.com/watermarked-video", 100);
+        Set<String> videos = org.robolectric.util.ReflectionHelpers.getStaticField(VideoDownloads.class, "ACTIVE");
+        Set<String> photos = org.robolectric.util.ReflectionHelpers.getStaticField(OriginalPhotos.class, "ACTIVE");
+        String previousQuality = Settings.DOWNLOAD_VIDEO_QUALITY.savedValue();
+        boolean previousOriginals = Settings.DOWNLOAD_ORIGINAL_PHOTOS.savedValue();
+        boolean previousMute = Settings.DOWNLOAD_WITHOUT_SOUND.savedValue();
+        boolean previousDetails = Settings.DOWNLOAD_DETAILS.savedValue();
+        boolean previousCheckSaved = Settings.CHECK_SAVED_VIDEOS.savedValue();
+        boolean previousProgress = Settings.DOWNLOAD_PROGRESS.savedValue();
+        videos.add(post.getAid());
+        photos.add(post.getAid());
+        try {
+            Settings.DOWNLOAD_DETAILS.save(false);
+            Settings.CHECK_SAVED_VIDEOS.save(false);
+            Settings.DOWNLOAD_PROGRESS.save(false);
+            for (String quality : List.of("auto", "highest", "720")) {
+                Settings.DOWNLOAD_VIDEO_QUALITY.save(quality);
+                for (boolean original : List.of(false, true)) {
+                    Settings.DOWNLOAD_ORIGINAL_PHOTOS.save(original);
+                    for (boolean mute : List.of(false, true)) {
+                        Settings.DOWNLOAD_WITHOUT_SOUND.save(mute);
+                        assertFalse("Photo dispatch was swallowed by quality=" + quality
+                                + ", originals=" + original + ", mute=" + mute,
+                                VideoDownloads.start(post, RuntimeEnvironment.getApplication()));
+                    }
+                }
+            }
+            Settings.DOWNLOAD_VIDEO_QUALITY.save("highest");
+            Settings.DOWNLOAD_ORIGINAL_PHOTOS.save(false);
+            assertFalse("With originals off the generic entry must leave the photo save to TikTok",
+                    OriginalPhotos.start(post, RuntimeEnvironment.getApplication()));
+            Settings.DOWNLOAD_ORIGINAL_PHOTOS.save(true);
+            assertTrue(OriginalPhotos.start(post, RuntimeEnvironment.getApplication()));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("The generic download entry must reach the image job",
+                    MediaJobScheduler.busyMessage("photos " + post.getAid()),
+                    org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+            post.photoModeImageInfo.imageList = List.of(new Photo(null));
+            assertFalse("Missing original URLs must leave the generic photo save to TikTok",
+                    OriginalPhotos.start(post, RuntimeEnvironment.getApplication()));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("A native fallback must explain why the originals were not saved",
+                    "The original photos aren't available, so TikTok's own save runs instead",
+                    org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        } finally {
+            videos.remove(post.getAid());
+            photos.remove(post.getAid());
+            Settings.DOWNLOAD_VIDEO_QUALITY.save(previousQuality);
+            Settings.DOWNLOAD_ORIGINAL_PHOTOS.save(previousOriginals);
+            Settings.DOWNLOAD_WITHOUT_SOUND.save(previousMute);
+            Settings.DOWNLOAD_DETAILS.save(previousDetails);
+            Settings.CHECK_SAVED_VIDEOS.save(previousCheckSaved);
+            Settings.DOWNLOAD_PROGRESS.save(previousProgress);
         }
     }
 

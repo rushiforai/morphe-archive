@@ -47,12 +47,15 @@ function Invoke-AndroidVerifierTally {
                 -Result $setup)
         }
 
-        $clear = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker -RequireLease `
-            -Arguments @('-s', $Serial, 'logcat', '-c')
-        if ($clear.ExitCode -ne 0) {
+        # The phone is shared, so its log buffer is evidence for other sessions and is never
+        # cleared. A marker unique to this run bounds the read instead: only lines after it count.
+        $marker = "$Label-$([guid]::NewGuid().ToString('N'))"
+        $mark = Invoke-HushThreadsAdbCommand -Adb $Adb -Invoker $AdbInvoker -RequireLease `
+            -Arguments @('-s', $Serial, 'shell', "log -t HushThreadsVerify $marker")
+        if ($mark.ExitCode -ne 0) {
             throw (Format-HushThreadsAdbFailure `
-                -Message "Could not clear logcat on $Serial before verifying $Label" `
-                -Result $clear)
+                -Message "Could not mark logcat on $Serial before verifying $Label" `
+                -Result $mark)
         }
 
         $dexCommand = "dex2oat64 --dex-file=$remote --oat-file=$directory/out.oat " +
@@ -86,8 +89,17 @@ function Invoke-AndroidVerifierTally {
                 -Message "Could not read logcat on $Serial after verifying $Label" `
                 -Result $logResult)
         }
+        $lines = @($logResult.Output)
+        $markerAt = -1
+        for ($i = $lines.Count - 1; $i -ge 0; $i--) {
+            if (([string]$lines[$i]).Contains($marker)) { $markerAt = $i; break }
+        }
+        if ($markerAt -lt 0) {
+            throw "The logcat marker for $Label on $Serial was gone by the time the verifier read the log, so the buffer rotated past this run."
+        }
+        $run = @($lines | Select-Object -Skip ($markerAt + 1))
 
-        $unread = @($logResult.Output | Where-Object {
+        $unread = @($run | Where-Object {
             $_ -match 'dex2oat' -and $_ -match '(Skipping non-existent dex file|Failed to open dex)' })
         if ($unread.Count -ne 0) {
             throw "dex2oat did not read $Label on ${Serial}: $(($unread[0] -replace '^.*dex2oat[0-9]*:\s*', '').Trim())"
@@ -95,7 +107,7 @@ function Invoke-AndroidVerifierTally {
 
         # The method in the verifier line is its identity. Timestamps and process IDs differ
         # between runs and are stripped. Counts remain significant.
-        $messages = @($logResult.Output |
+        $messages = @($run |
             Where-Object { $_ -match 'dex2oat' } |
             Where-Object { $_ -match '(failed lock verification|Verification error|Rejecting class|VerifyError)' } |
             ForEach-Object { ($_ -replace '^.*dex2oat[0-9]*:\s*', '').Trim() })

@@ -3,143 +3,19 @@
 import importlib.util
 import json
 import os
-import shutil
-import subprocess
-import tempfile
 import unittest
 from pathlib import Path
+
+from scripts.tests.repatch_test_support import RepatchTestSupport
 
 SCRIPT = Path(__file__).resolve().parents[1] / "repatch.py"
 SPEC = importlib.util.spec_from_file_location("repatch", SCRIPT)
 REPATCH = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(REPATCH)
-FAKE_JAVA = r"""#!/usr/bin/env python3
-import json, os, pathlib, sys
-args = sys.argv[1:]
-assert args[0] == "-jar" and args[1].endswith(".jar"), args
-capture = os.environ.get("JAR_CAPTURE")
-if capture:
-    pathlib.Path(capture).write_text(args[1])
-command, args = args[2], args[3:]
-with open(os.environ["CALLS"], "a") as log:
-    log.write(json.dumps([command, args]) + "\n")
-if command == "options-create":
-    assert "-t" not in args, args
-    if os.environ.get("FAIL_OPTIONS"):
-        print("options-create diagnostic", file=sys.stderr)
-        sys.exit(23)
-    patches = {
-        "Hide ads": {"enabled": True},
-        "Change app name": {"enabled": True, "options": {"appName": "Threads"}},
-        "Change package name": {"enabled": False, "options": {}},
-    }
-    pathlib.Path(args[args.index("-o") + 1]).write_text(json.dumps([{"patches": patches}]))
-elif command == "patch":
-    assert "--purge" not in args, args
-    assert any(a.startswith("--keystore=") for a in args), args
-    options = pathlib.Path(args[args.index("--options-file") + 1]).read_text()
-    pathlib.Path(os.environ["OPTIONS_CAPTURE"]).write_text(options)
-    if os.environ.get("FAIL_PATCH"):
-        print("signing diagnostic", file=sys.stderr)
-        sys.exit(24)
-    pathlib.Path(args[args.index("-o") + 1]).touch()
-else:
-    raise AssertionError(command)
-"""
 
 
-class RepatchTest(unittest.TestCase):
-    """Test suite for the repatch.py script, covering patch bundle discovery, signing options, and error paths."""
-
-    def setUp(self):
-        """Set up a temporary test environment with a fake java executable and mock project structure."""
-        self.temp = tempfile.TemporaryDirectory(prefix="repatch test ")
-        self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
-        scripts = self.root / "scripts"
-        scripts.mkdir()
-        self.script = scripts / "repatch.py"
-        shutil.copyfile(SCRIPT, self.script)
-        self.libs = self.root / "patches/build/libs"
-        self.libs.mkdir(parents=True)
-        self.home = self.root / "home"
-        self.home.mkdir()
-        bin_dir = self.root / "bin"
-        bin_dir.mkdir()
-        java = bin_dir / "java"
-        java.write_text(FAKE_JAVA)
-        java.chmod(0o755)
-        self.env = {
-            k: v
-            for k, v in os.environ.items()
-            if k
-            not in {
-                "APP_NAME",
-                "PACKAGE_NAME",
-                "MPP",
-                "KEYSTORE",
-                "KEYSTORE_ALIAS",
-                "KEYSTORE_PASSWORD",
-                "KEYSTORE_ENTRY_PASSWORD",
-                "GITHUB_REPO",
-                "VERIFY_SDK",
-                "BYTECODE_MODE",
-                "FAIL_OPTIONS",
-                "FAIL_PATCH",
-            }
-        }
-        self.env.update(
-            PATH=f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
-            HOME=str(self.home),
-            KEYSTORE=str(self.root / "test.keystore"),
-            MPP=str(self.root / "bundle.mpp"),
-            CALLS=str(self.root / "calls.jsonl"),
-            OPTIONS_CAPTURE=str(self.root / "options.json"),
-            JAR_CAPTURE=str(self.root / "jar.txt"),
-        )
-        for key in ("KEYSTORE", "MPP"):
-            Path(self.env[key]).touch()
-        # Seed JAR discovery: newest morphe-desktop-*-all.jar in the primary share dir.
-        self.share = self.home / ".local/share/morphe"
-        self.share.mkdir(parents=True)
-        self.share_jar = self.share / "morphe-desktop-test-all.jar"
-        self.share_jar.touch()
-        self.input = self.root / "app input.apkm"
-        self.input.touch()
-        self.output = self.root / "output.apk"
-
-    def run_helper(self, *cli_args, **overrides):
-        """Run the repatch.py script with optional CLI args and environment variable overrides.
-
-        Positional args are passed to the script before the input/output paths.
-        An override value of None removes the variable from the environment.
-        """
-        env = dict(self.env)
-        for key, value in overrides.items():
-            if value is None:
-                env.pop(key, None)
-            else:
-                env[key] = value
-        return subprocess.run(
-            [
-                os.environ.get("PYTHON", "python3"),
-                str(self.script),
-                *cli_args,
-                str(self.input),
-                str(self.output),
-            ],
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
-
-    def calls(self):
-        """Parse and return the list of Morphe CLI commands logged during script execution."""
-        return [
-            json.loads(line)
-            for line in Path(self.env["CALLS"]).read_text().splitlines()
-        ]
+class RepatchTest(RepatchTestSupport):
+    """Regression assertions for bundle discovery, signing options, and errors."""
 
     def test_download_url_validation(self):
         """Reject non-HTTPS and non-GitHub destinations."""
@@ -309,18 +185,20 @@ class RepatchTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(Path(self.env["JAR_CAPTURE"]).read_text(), str(primary))
 
-    def test_jar_discovery_finds_newest_share_jar(self):
-        """Verify discovery picks the newest upstream JAR within a share dir."""
+    def test_jar_discovery_selects_highest_version_not_newest_mtime(self):
+        """Choose the highest parsed JAR version despite misleading mtimes."""
         self.share_jar.unlink()
-        old = self.share / "morphe-desktop-1-all.jar"
-        new = self.share / "morphe-desktop-2-all.jar"
-        old.touch()
-        new.touch()
-        os.utime(old, (100, 100))
-        os.utime(new, (200, 200))
+        older_version = self.share / "morphe-desktop-1.9.0-all.jar"
+        highest_version = self.share / "morphe-desktop-1.10.0-all.jar"
+        older_version.touch()
+        highest_version.touch()
+        os.utime(older_version, (200, 200))
+        os.utime(highest_version, (100, 100))
         result = self.run_helper()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(Path(self.env["JAR_CAPTURE"]).read_text(), str(new))
+        self.assertEqual(
+            Path(self.env["JAR_CAPTURE"]).read_text(), str(highest_version)
+        )
 
     def test_jar_discovery_missing_error(self):
         """Verify the missing-JAR error names the filesystem locations and --jar."""

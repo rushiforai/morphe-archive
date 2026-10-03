@@ -26,6 +26,7 @@ import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.feed.PostWordsForTests;
 import app.morphe.extension.facebook.media.PlaybackQuality;
+import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -275,9 +276,9 @@ public class HushfacebookPreferenceFragmentTest {
     public void theFolderRowKeepsOneCleanNameAndSaysWhereSavesGo() {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.STORY_DOWNLOAD);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
-            HushfacebookPreferenceFragment.FolderRow folder = null;
+            ValueRows.FolderRow folder = null;
             for (Preference row : rowsOf(controller)) {
-                if (row instanceof HushfacebookPreferenceFragment.FolderRow) folder = (HushfacebookPreferenceFragment.FolderRow) row;
+                if (row instanceof ValueRows.FolderRow) folder = (ValueRows.FolderRow) row;
             }
             assertNotNull("no folder row with a download in the build", folder);
             assertEquals(Settings.SAVE_FOLDER.key, folder.getKey());
@@ -307,7 +308,7 @@ public class HushfacebookPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             for (Preference row : rowsOf(controller)) {
                 assertFalse("a folder row with no download in the build",
-                        row instanceof HushfacebookPreferenceFragment.FolderRow);
+                        row instanceof ValueRows.FolderRow);
             }
         }
     }
@@ -325,13 +326,13 @@ public class HushfacebookPreferenceFragmentTest {
             int toAt = -1;
             int folderAt = -1;
             for (int i = 0; i < rows.size(); i++) {
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.SaveToRow) toAt = i;
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.FolderRow) folderAt = i;
+                if (rows.get(i) instanceof ValueRows.SaveToRow) toAt = i;
+                if (rows.get(i) instanceof ValueRows.FolderRow) folderAt = i;
             }
             assertTrue("no Save to row with a download in the build", toAt >= 0);
             assertEquals("Save to isn't right above the folder", folderAt - 1, toAt);
-            HushfacebookPreferenceFragment.SaveToRow to = (HushfacebookPreferenceFragment.SaveToRow) rows.get(toAt);
-            HushfacebookPreferenceFragment.FolderRow folder = (HushfacebookPreferenceFragment.FolderRow) rows.get(folderAt);
+            ValueRows.SaveToRow to = (ValueRows.SaveToRow) rows.get(toAt);
+            ValueRows.FolderRow folder = (ValueRows.FolderRow) rows.get(folderAt);
             assertEquals(Settings.SAVE_TO.key, to.getKey());
             assertEquals("Save to", String.valueOf(to.getTitle()));
             List<String> entries = new ArrayList<>();
@@ -374,11 +375,11 @@ public class HushfacebookPreferenceFragmentTest {
         Settings.SAVE_TO.save(SaveTo.DOWNLOAD);
         Settings.SAVE_FOLDER.save("Clips");
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
-            HushfacebookPreferenceFragment.SaveToRow to = null;
-            HushfacebookPreferenceFragment.FolderRow folder = null;
+            ValueRows.SaveToRow to = null;
+            ValueRows.FolderRow folder = null;
             for (Preference row : rowsOf(controller)) {
-                if (row instanceof HushfacebookPreferenceFragment.SaveToRow) to = (HushfacebookPreferenceFragment.SaveToRow) row;
-                if (row instanceof HushfacebookPreferenceFragment.FolderRow) folder = (HushfacebookPreferenceFragment.FolderRow) row;
+                if (row instanceof ValueRows.SaveToRow) to = (ValueRows.SaveToRow) row;
+                if (row instanceof ValueRows.FolderRow) folder = (ValueRows.FolderRow) row;
             }
             assertEquals("DOWNLOAD", to.getValue());
             assertEquals("Videos and photos go to " + L10n.isolate("Download/Clips") + ".", String.valueOf(folder.getSummary()));
@@ -400,16 +401,16 @@ public class HushfacebookPreferenceFragmentTest {
             int actionAt = -1;
             int appAt = -1;
             for (int i = 0; i < rows.size(); i++) {
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.FileNameRow) nameAt = i;
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.DownloadActionRow) actionAt = i;
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.SendAppRow) appAt = i;
+                if (rows.get(i) instanceof ValueRows.FileNameRow) nameAt = i;
+                if (rows.get(i) instanceof ValueRows.DownloadActionRow) actionAt = i;
+                if (rows.get(i) instanceof ValueRows.SendAppRow) appAt = i;
             }
             assertTrue("no download action row with a reel download in the build", actionAt >= 0);
             assertEquals("the action row isn't under the file name", nameAt + 1, actionAt);
             assertEquals("the app row isn't under the action", actionAt + 1, appAt);
 
-            HushfacebookPreferenceFragment.DownloadActionRow action =
-                    (HushfacebookPreferenceFragment.DownloadActionRow) rows.get(actionAt);
+            ValueRows.DownloadActionRow action =
+                    (ValueRows.DownloadActionRow) rows.get(actionAt);
             assertEquals(Settings.DOWNLOAD_ACTION.key, action.getKey());
             assertEquals("When you tap Download", String.valueOf(action.getTitle()));
             assertEquals(Arrays.asList("Save to phone", "Send the link to an app"),
@@ -425,7 +426,7 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals(HushfacebookPreferenceFragment.downloadActionSummary(SendLink.Action.SEND),
                     String.valueOf(action.getSummary()));
 
-            HushfacebookPreferenceFragment.SendAppRow app = (HushfacebookPreferenceFragment.SendAppRow) rows.get(appAt);
+            ValueRows.SendAppRow app = (ValueRows.SendAppRow) rows.get(appAt);
             assertEquals(Settings.SEND_TO_APP.key, app.getKey());
             assertEquals("App to send to", String.valueOf(app.getTitle()));
             assertEquals("Android asks which app each time.", String.valueOf(app.getSummary()));
@@ -454,8 +455,8 @@ public class HushfacebookPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             for (Preference row : rowsOf(controller)) {
                 assertFalse("a send row with only story downloads in the build",
-                        row instanceof HushfacebookPreferenceFragment.DownloadActionRow
-                                || row instanceof HushfacebookPreferenceFragment.SendAppRow);
+                        row instanceof ValueRows.DownloadActionRow
+                                || row instanceof ValueRows.SendAppRow);
             }
         }
     }
@@ -476,8 +477,8 @@ public class HushfacebookPreferenceFragmentTest {
             assertTrue("no word filter switch", switchAt >= 0);
             assertEquals("the hide list isn't under the switch", switchAt + 1, indexOfKey(rows, Settings.HIDDEN_WORDS.key));
             assertEquals("the keep list isn't under the hide list", switchAt + 2, indexOfKey(rows, Settings.KEPT_WORDS.key));
-            HushfacebookPreferenceFragment.WordsRow hide = (HushfacebookPreferenceFragment.WordsRow) rows.get(switchAt + 1);
-            HushfacebookPreferenceFragment.WordsRow keep = (HushfacebookPreferenceFragment.WordsRow) rows.get(switchAt + 2);
+            ValueRows.WordsRow hide = (ValueRows.WordsRow) rows.get(switchAt + 1);
+            ValueRows.WordsRow keep = (ValueRows.WordsRow) rows.get(switchAt + 2);
             assertEquals("Words to hide", String.valueOf(hide.getTitle()));
             assertEquals("No words yet, so no post is hidden.", String.valueOf(hide.getSummary()));
             assertEquals("No words yet.", String.valueOf(keep.getSummary()));
@@ -494,7 +495,7 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals("2 words or phrases.", String.valueOf(hide.getSummary()));
             assertLeftOut("Words to hide", "2 lines were left out. A phrase needs 2 to 60 characters, or just one "
                     + "for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts "
-                    + "once, and a list holds 50.");
+                    + "once.");
 
             ShadowAlertDialog.reset();
             assertTrue("a clean list was changed", ok.onPreferenceChange(hide, "spoiler"));
@@ -510,7 +511,7 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals("1 word or phrase.", String.valueOf(keep.getSummary()));
             assertLeftOut("Words that keep a post", "1 line was left out. A phrase needs 2 to 60 characters, or just "
                     + "one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts "
-                    + "once, and a list holds 50.");
+                    + "once.");
         }
 
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS);
@@ -592,8 +593,8 @@ public class HushfacebookPreferenceFragmentTest {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.POST_WORDS);
         ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup();
         List<Preference> rows = rowsOf(controller);
-        HushfacebookPreferenceFragment.WordsRow hide =
-                (HushfacebookPreferenceFragment.WordsRow) rows.get(indexOfKey(rows, Settings.HIDDEN_WORDS.key));
+        ValueRows.WordsRow hide =
+                (ValueRows.WordsRow) rows.get(indexOfKey(rows, Settings.HIDDEN_WORDS.key));
         hide.showDialog(null);
         AlertDialog edit = (AlertDialog) hide.getDialog();
         hide.getEditText().setText("a\nspoiler");
@@ -640,17 +641,17 @@ public class HushfacebookPreferenceFragmentTest {
             controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
-            HushfacebookPreferenceFragment.QualityRow quality = null;
+            ValueRows.QualityRow quality = null;
             int qualityAt = -1;
             int toAt = -1;
             int folderAt = -1;
             for (int i = 0; i < rows.size(); i++) {
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.QualityRow) {
-                    quality = (HushfacebookPreferenceFragment.QualityRow) rows.get(i);
+                if (rows.get(i) instanceof ValueRows.QualityRow) {
+                    quality = (ValueRows.QualityRow) rows.get(i);
                     qualityAt = i;
                 }
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.SaveToRow) toAt = i;
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.FolderRow) folderAt = i;
+                if (rows.get(i) instanceof ValueRows.SaveToRow) toAt = i;
+                if (rows.get(i) instanceof ValueRows.FolderRow) folderAt = i;
             }
             assertNotNull("no quality row with a download in the build", quality);
             // Save to (#42) goes between them: the top folder, then the folder under it.
@@ -700,7 +701,7 @@ public class HushfacebookPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             for (Preference row : rowsOf(controller)) {
                 assertFalse("a quality row with no download in the build",
-                        row instanceof HushfacebookPreferenceFragment.QualityRow);
+                        row instanceof ValueRows.QualityRow);
             }
         }
     }
@@ -756,8 +757,8 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals("Opening Facebook", String.valueOf(page.getPreferenceScreen().getPreference(2).getTitle()));
             assertEquals(Settings.OPEN_ON_CHOSEN_TAB.key, rows.get(2).getKey());
             assertEquals("Open on a chosen tab", String.valueOf(rows.get(2).getTitle()));
-            assertTrue(rows.get(3) instanceof HushfacebookPreferenceFragment.StartTabRow);
-            HushfacebookPreferenceFragment.StartTabRow start = (HushfacebookPreferenceFragment.StartTabRow) rows.get(3);
+            assertTrue(rows.get(3) instanceof ValueRows.StartTabRow);
+            ValueRows.StartTabRow start = (ValueRows.StartTabRow) rows.get(3);
             assertEquals(Settings.START_TAB.key, start.getKey());
             assertEquals("Tab to open on", String.valueOf(start.getTitle()));
 
@@ -795,9 +796,59 @@ public class HushfacebookPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             for (Preference row : rowsOf(controller)) {
                 assertFalse("a start tab row with no Open on a chosen tab in the build",
-                        row instanceof HushfacebookPreferenceFragment.StartTabRow);
+                        row instanceof ValueRows.StartTabRow);
+                assertFalse("a Feeds filter row with no Open on a chosen tab in the build",
+                        row instanceof ValueRows.FeedsSubtabRow);
                 assertFalse(Settings.OPEN_ON_CHOSEN_TAB.key.equals(row.getKey()));
             }
+        }
+    }
+
+    /**
+     * Under the start tab's list, the Feeds filter's list offers each filter by its name in
+     * Facebook, says what the chosen one does, and reaches the setting the way its dialog sends a
+     * pick (#56).
+     */
+    @Test
+    public void theFeedsFilterRowOffersEveryFilterAndSaysWhatItDoes() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.START_TAB, PatchFamily.SPONSORED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment page = new HushfacebookPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            assertTrue(rows.get(3) instanceof ValueRows.StartTabRow);
+            assertTrue(rows.get(4) instanceof ValueRows.FeedsSubtabRow);
+            ValueRows.FeedsSubtabRow subtab = (ValueRows.FeedsSubtabRow) rows.get(4);
+            assertEquals(Settings.FEEDS_SUBTAB.key, subtab.getKey());
+            assertEquals("Feeds opens on", String.valueOf(subtab.getTitle()));
+
+            List<String> entries = new ArrayList<>();
+            for (CharSequence entry : subtab.getEntries()) entries.add(String.valueOf(entry));
+            assertEquals(Arrays.asList("All", "Favorites", "Friends", "Groups", "Pages"), entries);
+            List<String> values = new ArrayList<>();
+            for (CharSequence value : subtab.getEntryValues()) values.add(String.valueOf(value));
+            List<String> names = new ArrayList<>();
+            for (FeedsSubtab each : FeedsSubtab.values()) names.add(each.name());
+            assertEquals(names, values);
+
+            assertEquals("ALL", subtab.getValue());
+            assertEquals("When Facebook opens on Feeds, the Feeds tab opens on the filter Facebook picks.",
+                    String.valueOf(subtab.getSummary()));
+
+            subtab.setValue("GROUPS");
+            ShadowLooper.idleMainLooper();
+            assertEquals(FeedsSubtab.GROUPS, Settings.FEEDS_SUBTAB.savedValue());
+            assertEquals("When Facebook opens on Feeds, the Feeds tab opens on Groups. If your Feeds tab doesn't "
+                    + "have it, it opens as usual.", String.valueOf(subtab.getSummary()));
+
+            Settings.FEEDS_SUBTAB.save(FeedsSubtab.FAVORITES);
+            page.refreshSwitches();
+            assertEquals("FAVORITES", subtab.getValue());
+            assertEquals(HushfacebookPreferenceFragment.feedsSubtabSummary(FeedsSubtab.FAVORITES),
+                    String.valueOf(subtab.getSummary()));
+        } finally {
+            Settings.FEEDS_SUBTAB.resetToDefault();
         }
     }
 
@@ -877,9 +928,9 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals("Comments", String.valueOf(section.getTitle()));
             assertEquals(2, section.getPreferenceCount());
             assertEquals("Default comment order", String.valueOf(rows.get(toggle).getTitle()));
-            assertTrue(rows.get(toggle + 1) instanceof HushfacebookPreferenceFragment.CommentOrderRow);
-            HushfacebookPreferenceFragment.CommentOrderRow order =
-                    (HushfacebookPreferenceFragment.CommentOrderRow) rows.get(toggle + 1);
+            assertTrue(rows.get(toggle + 1) instanceof ValueRows.CommentOrderRow);
+            ValueRows.CommentOrderRow order =
+                    (ValueRows.CommentOrderRow) rows.get(toggle + 1);
             assertEquals(Settings.COMMENT_ORDER.key, order.getKey());
             assertEquals("Comment order", String.valueOf(order.getTitle()));
 
@@ -917,7 +968,7 @@ public class HushfacebookPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             for (Preference row : rowsOf(controller)) {
                 assertFalse("a comment order row with no Default comment order in the build",
-                        row instanceof HushfacebookPreferenceFragment.CommentOrderRow);
+                        row instanceof ValueRows.CommentOrderRow);
                 assertFalse(Settings.DEFAULT_COMMENT_ORDER.key.equals(row.getKey()));
             }
         }
@@ -954,9 +1005,9 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals("Playback", String.valueOf(section.getTitle()));
             assertEquals(2, section.getPreferenceCount());
             assertEquals("Default playback quality", String.valueOf(rows.get(toggle).getTitle()));
-            assertTrue(rows.get(toggle + 1) instanceof HushfacebookPreferenceFragment.PlaybackQualityRow);
-            HushfacebookPreferenceFragment.PlaybackQualityRow quality =
-                    (HushfacebookPreferenceFragment.PlaybackQualityRow) rows.get(toggle + 1);
+            assertTrue(rows.get(toggle + 1) instanceof ValueRows.PlaybackQualityRow);
+            ValueRows.PlaybackQualityRow quality =
+                    (ValueRows.PlaybackQualityRow) rows.get(toggle + 1);
             assertEquals(Settings.PLAYBACK_QUALITY.key, quality.getKey());
             assertEquals("Playback quality", String.valueOf(quality.getTitle()));
 
@@ -994,7 +1045,7 @@ public class HushfacebookPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             for (Preference row : rowsOf(controller)) {
                 assertFalse("a playback quality row with no Default playback quality in the build",
-                        row instanceof HushfacebookPreferenceFragment.PlaybackQualityRow);
+                        row instanceof ValueRows.PlaybackQualityRow);
                 assertFalse(Settings.DEFAULT_PLAYBACK_QUALITY.key.equals(row.getKey()));
             }
         }
@@ -1045,15 +1096,15 @@ public class HushfacebookPreferenceFragmentTest {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             List<Preference> rows = rowsOf(controller);
-            HushfacebookPreferenceFragment.FileNameRow name = null;
+            ValueRows.FileNameRow name = null;
             int nameAt = -1;
             int folderAt = -1;
             for (int i = 0; i < rows.size(); i++) {
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.FileNameRow) {
-                    name = (HushfacebookPreferenceFragment.FileNameRow) rows.get(i);
+                if (rows.get(i) instanceof ValueRows.FileNameRow) {
+                    name = (ValueRows.FileNameRow) rows.get(i);
                     nameAt = i;
                 }
-                if (rows.get(i) instanceof HushfacebookPreferenceFragment.FolderRow) folderAt = i;
+                if (rows.get(i) instanceof ValueRows.FolderRow) folderAt = i;
             }
             assertNotNull("no file name row with a download in the build", name);
             assertEquals("the file name row isn't next to the folder", folderAt + 1, nameAt);
@@ -1101,7 +1152,7 @@ public class HushfacebookPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             for (Preference row : rowsOf(controller)) {
                 assertFalse("a file name row with no download in the build",
-                        row instanceof HushfacebookPreferenceFragment.FileNameRow);
+                        row instanceof ValueRows.FileNameRow);
             }
         }
     }

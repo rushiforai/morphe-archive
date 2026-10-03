@@ -8,7 +8,6 @@ import app.morphe.Fixtures
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.methodsHolding
 import app.morphe.patches.shared.compat.AppCompatibilities
-import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import java.io.File
@@ -18,8 +17,9 @@ import org.junit.Test
 
 /**
  * The two Stories tray adapter methods, found in every Facebook build the bundle declares the way
- * the patch finds them, each with a local register free for the hook. The tray controller's
- * constructor, which holds the start and stop names too, is there and is not picked. Reads the
+ * the patch finds them, each with a local register free for the hook. The tray controller's own
+ * setup, which holds the start and stop names too, is there and is not picked: its constructor on
+ * 577 and 580, and on 581 a private method taking the constructor's parameters. Reads the
  * fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class StoriesTrayAdapterFixtureTest {
@@ -60,13 +60,21 @@ class StoriesTrayAdapterFixtureTest {
             }
 
             // The control: the start name sits in more methods than the one picked, the tray
-            // controller's constructor among them.
+            // controller's setup among them, which takes the context, the feed type and the
+            // session (its constructor on 577 and 580, a private method on 581).
             val holdingStart = FixtureDex.classesHolding(bundle, TRAY_ADAPTER_START)
                 .flatMap { methodsHolding(it, TRAY_ADAPTER_START) }
             assertTrue("${bundle.name}: only ${holdingStart.size} method holds \"$TRAY_ADAPTER_START\"",
                 holdingStart.size >= 2)
-            assertTrue("${bundle.name}: no constructor holds \"$TRAY_ADAPTER_START\" to tell apart",
-                holdingStart.any { AccessFlags.CONSTRUCTOR.isSet(it.accessFlags) })
+            val picked = setOf(adapters.classic.toString(), adapters.unified.toString())
+            val setup = holdingStart.filter { it.toString() !in picked }
+            assertTrue("${bundle.name}: no tray setup holds \"$TRAY_ADAPTER_START\" to tell apart", setup.any {
+                it.parameterTypes.map(Any::toString) == listOf(
+                    "Landroid/content/Context;",
+                    "Lcom/facebook/api/feedtype/FeedType;",
+                    "Lcom/facebook/auth/usersession/FbUserSession;",
+                )
+            })
             "${adapters.classic} and ${adapters.unified}"
         }
     }

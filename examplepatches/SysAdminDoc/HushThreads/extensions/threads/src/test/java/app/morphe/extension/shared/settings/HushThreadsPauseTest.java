@@ -307,4 +307,63 @@ public class HushThreadsPauseTest {
         assertFalse(HushThreadsPause.diedYoungFromACrash(context, "5199 1000"));
         assertFalse(HushThreadsPause.diedYoungFromACrash(context, "not a pid"));
     }
+
+    /** API 28 has no exit history: the real handler marker must drive a persisted safe-mode start. */
+    @Test @Config(sdk = 28)
+    public void platformApi28PersistsHandlerCrashRecoveryUntilResume() {
+        start(null);
+        for (int crash = 1; crash <= 3; crash++) {
+            HushThreadsPause.markCrash();
+            assertTrue("the handler didn't mark crash " + crash, HushThreadsPause.read(record).trim().endsWith("crashed"));
+            HushThreadsPause.resetForTests();
+            HushThreadsPause.onProcessStart(context);
+            if (crash < 3) {
+                assertEquals(Integer.toString(crash), HushThreadsPause.read(streak));
+                assertFalse("safe mode started before the third crash", Setting.isPaused());
+            }
+        }
+        assertSafeModeSurvivesHealthyStartsUntilResume();
+    }
+
+    /** Android 16's platform exit reason wins over a stale marker, then counts all crash kinds. */
+    @Test @Config(sdk = 36)
+    public void platformApi36PersistsExitHistoryCrashRecoveryUntilResume() {
+        exited(7200, ApplicationExitInfo.REASON_USER_REQUESTED, 11_000);
+        start("7200 1000 crashed");
+        assertEquals("a force stop counted as a crash", "0", HushThreadsPause.read(streak));
+        assertFalse(Setting.isPaused());
+        int[] reasons = {ApplicationExitInfo.REASON_CRASH, ApplicationExitInfo.REASON_CRASH_NATIVE,
+                ApplicationExitInfo.REASON_ANR};
+        for (int index = 0; index < reasons.length; index++) {
+            int pid = 7301 + index;
+            exited(pid, reasons[index], 11_000);
+            start(pid + " 1000");
+            if (index < 2) {
+                assertEquals(Integer.toString(index + 1), HushThreadsPause.read(streak));
+                assertFalse("safe mode started before the third crash", Setting.isPaused());
+            }
+        }
+        assertSafeModeSurvivesHealthyStartsUntilResume();
+    }
+
+    private void assertSafeModeSurvivesHealthyStartsUntilResume() {
+        assertEquals(HushThreadsPause.Reason.CRASH_LOOP, HushThreadsPause.reason());
+        assertTrue(Setting.isPaused());
+        assertTrue("safe mode wasn't persisted", stored(BaseSettings.SAFE_MODE));
+        assertFalse("crash recovery turned on the ordinary Pause switch", stored(BaseSettings.PAUSED));
+        start(null);
+        shadowOf(Looper.getMainLooper()).idleFor(HushThreadsPause.START_WINDOW_MS + 1, TimeUnit.MILLISECONDS);
+        assertTrue("a healthy safe-mode start silently resumed the patches", BaseSettings.SAFE_MODE.savedValue());
+        assertTrue(stored(BaseSettings.SAFE_MODE));
+        assertTrue(HushThreadsPause.pausesNextStart(context));
+        start(null);
+        assertEquals(HushThreadsPause.Reason.CRASH_LOOP, HushThreadsPause.reason());
+
+        assertEquals(HushThreadsPause.Reason.NONE, HushThreadsPause.turnBackOn(context));
+        assertFalse(BaseSettings.SAFE_MODE.savedValue());
+        assertFalse(stored(BaseSettings.SAFE_MODE));
+        start(null);
+        assertFalse(Setting.isPaused());
+        assertFalse(HushThreadsPause.pausesNextStart(context));
+    }
 }

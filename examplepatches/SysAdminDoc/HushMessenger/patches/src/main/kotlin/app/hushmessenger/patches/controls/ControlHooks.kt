@@ -48,6 +48,7 @@ internal const val PEOPLE_SEARCH_SOURCE = "PeopleYouMayKnowSectionDataSource"
 /** The story viewer requests its page of suggested people under this query name. */
 internal const val STORY_SUGGESTIONS_QUERY = "MsgrPeopleYouMayKnowQuery"
 internal const val DRAWER_FOLDER_SELECTED = "HomeDrawerFragmentBase.handleOnFolderSelected"
+internal const val DRAWER_REFRESH = "HomeDrawerFragmentBase.refreshDrawerItems"
 internal const val AVATAR_TAB_EVENT = "Lcom/facebook/xapp/messaging/composer/avatar/composertab/event/ActivateAvatarSticker;"
 internal const val COMPOSER_FACTORY = "Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;"
 internal const val SEARCH_CLEAR_TAG = "messenger_search_clear_button_tag"
@@ -63,6 +64,12 @@ internal const val NOTES_TIP_SHEET = "NotesMigNuxBottomSheet"
 internal const val NOTES_TIP_TYPE_ARG = "arg_nux_type"
 /** The story viewer caps its Share your own story card per day under this preference key. */
 internal const val STORY_CARD_DATE_KEY = "last_date_creation_card_shown"
+internal const val ANDROIDX_FRAGMENT = "Landroidx/fragment/app/Fragment;"
+internal const val ANIMATION = "Landroid/view/animation/Animation;"
+/** androidx asks every fragment for its animation here before it loads one, and the base answer is none. */
+internal const val FRAGMENT_ANIMATION = "$ANDROIDX_FRAGMENT->onCreateAnimation(IZI)$ANIMATION"
+internal const val CHAT_ANIMATION = "Lapp/hushmessenger/extension/ChatAnimation;"
+internal const val CHAT_ANIMATION_CREATE = "$CHAT_ANIMATION->create(Ljava/lang/Object;IZI)$ANIMATION"
 private const val IMMUTABLE_LIST_OF = "$IMMUTABLE_LIST->of(Ljava/lang/Object;)$IMMUTABLE_LIST"
 internal const val TYPING_MAILBOX_CALL = "setTypingIndicatorForThreadWithThreadIdentifier"
 internal const val READ_MAILBOX_CALL = "markAsReadThreadWithThreadIdentifier"
@@ -99,6 +106,7 @@ internal val expectedHooks = mapOf(
     ),
     "ai_menu" to setOf("LX/HFe;->A00()Z", "LX/HFe;->A01()Z", "LX/Jiu;->A00()Z", "LX/Jiu;->A01()Z"),
     "ai_fab" to setOf("LX/6k8;->render(LX/2MZ;)LX/1GG;"),
+    "ai_sticker_cell" to setOf("LX/FXP;->render(LX/2MZ;)LX/1GG;"),
     "subtabs" to setOf("LX/2UL;->run()V"),
     "typing" to setOf("LX/Ahp;->run()V"),
     "typing_mailbox" to setOf("LX/8eb;->A0I(Ljava/lang/String;Z)LX/325;"),
@@ -117,6 +125,7 @@ internal val expectedHooks = mapOf(
         "LX/8xp;->onScreenCaptured()V",
         "LX/4nW;->A00(Landroid/view/Window;)V",
     ),
+    "screenshot_viewers" to screenshotViewerHooks("A1A"),
     "hide_read_receipts" to setOf("LX/AX0;->run()V"),
     "read_mailbox" to setOf("LX/9sm;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V"),
     "keep_unsent" to setOf("LX/SH3;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"),
@@ -134,11 +143,16 @@ internal val expectedHooks = mapOf(
     "original_photo" to setOf(TRANSCODE_IMAGE, TRANSCODE_IMAGE_ASYNC),
     "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A0P()$IMMUTABLE_LIST"),
     "menu_settings" to setOf(
+        "LX/9rv;->A1i()V",
         "LX/HFb;->Ax1(LX/0MG;)Ljava/util/ArrayList;",
         "LX/TxV;->CAo(LX/4jw;I)V",
         "LX/Txc;->A0I(Ljava/util/List;)V",
         "LX/Jwp;->onClick(Landroid/view/View;)V",
     ),
+    "chat_animation" to setOf(FRAGMENT_ANIMATION),
+    "chat_fragment" to setOf("LX/1hl;-><init>()V"),
+    "chat_inbox" to setOf("LX/1fs;-><init>()V"),
+    "chat_legacy" to setOf("LX/1hd;->onCreateAnimation(IZI)$ANIMATION"),
 ) + pluginGates.mapValues { it.value.methods }
 
 internal fun Method.hookId() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
@@ -146,6 +160,7 @@ internal fun Method.hookId() = "$definingClass->$name(${parameterTypes.joinToStr
 /** Match semantics first, then require the complete set from both tested APKs. */
 internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>> {
     val found = expectedHooks.keys.associateWith { mutableListOf<Method>() }
+    found.getValue("ai_sticker_cell").addAll(findAiStickerCells(classes))
     val adContract = classes.any { it.type == AD_ITEM } && classes.any { cls ->
         cls.type == IMMUTABLE_LIST && cls.methods.any {
             it.name == "copyOf" && it.parameterTypes == listOf("Ljava/util/Collection;") &&
@@ -228,6 +243,11 @@ internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>
             val strings = refs.filterIsInstance<StringReference>().map { it.string }.toSet()
             val gate = method.returnType == "Z" && method.parameterTypes.isEmpty()
             fun add(key: String) { found.getValue(key).add(method) }
+            if ((cls.type == EPHEMERAL_VIEWER && method.name in setOf("A1A", "A1C", "onResume")) ||
+                (cls.type == QUICKSNAP_VIEWER && method.name == "onCreateView")) {
+                method.screenshotViewerSites()
+                add("screenshot_viewers")
+            }
             if (method.returnType == "Z" && (method.parameterTypes.isEmpty() ||
                 (AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes == listOf(cls.type)))) {
                 for ((key, spec) in pluginGates) if (strings.any { it in spec.anchors }) add(key)
@@ -313,6 +333,8 @@ internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>
             if (method.name == "onClick" && method.returnType == "V" &&
                 method.parameterTypes == listOf("Landroid/view/View;") &&
                 DRAWER_FOLDER_SELECTED in strings) add("menu_settings")
+            if (method.returnType == "V" && method.parameterTypes.isEmpty() &&
+                !AccessFlags.STATIC.isSet(method.accessFlags) && DRAWER_REFRESH in strings) add("menu_settings")
             // The Litho sticker keyboard's tab list builder reads the avatar tab's activate event.
             if (method.returnType == IMMUTABLE_LIST && method.parameterTypes.isEmpty() &&
                 refs.any { it.toString().startsWith("$AVATAR_TAB_EVENT->") }) add("avatar_tabs")
@@ -337,6 +359,16 @@ internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>
             // The story viewer adds its Share your own story card only while this daily cap check passes.
             if (AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" && method.parameterTypes == listOf(cls.type) &&
                 refs.any { it.toString() in storyCardKeys }) add("growth_story_card")
+            if (cls.type == ANDROIDX_FRAGMENT && method.hookId() == FRAGMENT_ANIMATION) add("chat_animation")
+            // The chat and the inbox under it inherit that answer. androidx needs each fragment's no-argument
+            // constructor, so it names the class the animation hook tells apart.
+            if (method.name == "<init>" && method.parameterTypes.isEmpty()) {
+                if (original == "MsysThreadViewFragment") add("chat_fragment")
+                if (original == "M4TabNavigationFragment") add("chat_inbox")
+            }
+            // Chats on Messenger's older route open in this fragment, which loads its own animation.
+            if (original == "ThreadViewFragment" && method.name == "onCreateAnimation" &&
+                method.hookId() == "${cls.type}->onCreateAnimation(IZI)$ANIMATION") add("chat_legacy")
         }
     }
     val gridBinderType = found["menu_settings"].orEmpty()
@@ -619,7 +651,7 @@ internal fun List<Instruction>.branchTarget(index: Int): Int {
 }
 
 /** Instruction indexes a branch, a switch case or a catch handler can land on. */
-internal fun MutableMethod.jumpTargets(): Set<Int> {
+internal fun Method.jumpTargets(): Set<Int> {
     val code = implementation!!.instructions.toList()
     val addresses = IntArray(code.size + 1)
     for (i in code.indices) addresses[i + 1] = addresses[i] + code[i].codeUnits
@@ -816,7 +848,7 @@ internal fun MutableMethod.injectPeopleStory() {
     """.trimIndent(), ExternalLabel("skip_suggestions", skipped))
 }
 
-internal fun MutableMethod.validateMenuSettingsAdd() {
+internal fun Method.validateMenuSettingsAdd() {
     val impl = implementation ?: throw PatchException("Messenger controls: menu settings item builder has no code")
     val code = impl.instructions.toList()
     val returns = code.count { it.opcode == Opcode.RETURN_OBJECT }
@@ -837,7 +869,7 @@ internal fun MutableMethod.injectMenuSettingsAdd() {
     addInstructions(ret + 1, "return-object v$retReg")
 }
 
-internal fun MutableMethod.validateMenuSettingsBind() {
+internal fun Method.validateMenuSettingsBind() {
     val impl = implementation ?: throw PatchException("Messenger controls: menu settings binder has no code")
     val code = impl.instructions.toList()
     if (code.none { it.opcode == Opcode.RETURN_VOID }) throw PatchException("Messenger controls: menu settings binder has no normal exit")
@@ -859,7 +891,7 @@ internal fun MutableMethod.injectMenuSettingsBind() {
     }
 }
 
-internal fun MutableMethod.validateMenuDrawerAdd() {
+internal fun Method.validateMenuDrawerAdd() {
     if (returnType != "V") throw PatchException("Messenger controls: menu drawer items setter returns $returnType")
     if (parameterTypes != listOf("Ljava/util/List;")) throw PatchException("Messenger controls: menu drawer items setter takes ${parameterTypes.joinToString()}")
     val impl = implementation ?: throw PatchException("Messenger controls: menu drawer items setter has no code")
@@ -947,7 +979,7 @@ internal fun MutableMethod.injectOutgoingTyping() {
 }
 
 /** The Settings folder builder creates exactly one class: the Menu tab's folder row. */
-internal fun MutableMethod.menuFolderItemType(): String {
+internal fun Method.menuFolderItemType(): String {
     val types = implementation!!.instructions.filter { it.opcode == Opcode.NEW_INSTANCE }
         .map { ((it as ReferenceInstruction).reference as TypeReference).type }.toSet()
     return types.singleOrNull()
@@ -955,7 +987,7 @@ internal fun MutableMethod.menuFolderItemType(): String {
 }
 
 /** Messenger casts the tapped folder row just before its folder-selected trace section starts. */
-internal fun MutableMethod.menuFolderCastIndex(folderItemType: String): Int {
+internal fun Method.menuFolderCastIndex(folderItemType: String): Int {
     if (returnType != "V") throw PatchException("Messenger controls: drawer folder click returns $returnType")
     val impl = implementation ?: throw PatchException("Messenger controls: drawer folder click has no code")
     if (AccessFlags.STATIC.isSet(accessFlags) || parameterTypes != listOf("Landroid/view/View;") || impl.registerCount < 2) {
@@ -975,6 +1007,47 @@ internal fun MutableMethod.menuFolderCastIndex(folderItemType: String): Int {
         ?: throw PatchException("Messenger controls: drawer folder click has ${casts.size} row casts before its marker, expected 1")
     if ((code[cast] as OneRegisterInstruction).registerA >= impl.registerCount) {
         throw PatchException("Messenger controls: drawer folder click row register is outside the method")
+    }
+    if ((cast + 1..marker).any { it in jumpTargets() }) {
+        throw PatchException("Messenger controls: drawer folder click can bypass its row cast")
+    }
+    // Other cases in this merged click handler may branch beyond the marker. Only native row handling
+    // must be dominated by the selected cast, where the consuming settings hook will be inserted.
+    val addresses = IntArray(code.size + 1)
+    for (i in code.indices) addresses[i + 1] = addresses[i] + code[i].codeUnits
+    val indexAt = code.indices.associateBy { addresses[it] }
+    val pending = ArrayDeque<Int>()
+    val seen = mutableSetOf<Int>()
+    pending.add(0)
+    while (pending.isNotEmpty()) {
+        val index = pending.removeFirst()
+        if (index == cast || !seen.add(index)) continue
+        val instruction = code[index]
+        val reference = (instruction as? ReferenceInstruction)?.reference
+        val rowOwner = (reference as? FieldReference)?.definingClass
+            ?: (reference as? DexMethodReference)?.definingClass
+        if (index > cast && rowOwner == folderItemType) {
+            throw PatchException("Messenger controls: drawer folder handling can bypass its settings hook")
+        }
+        if (instruction is OffsetInstruction && instruction.opcode != Opcode.FILL_ARRAY_DATA) {
+            val landing = indexAt[addresses[index] + instruction.codeOffset]
+                ?: throw PatchException("Messenger controls: drawer folder click branch is invalid")
+            if (instruction.opcode == Opcode.PACKED_SWITCH || instruction.opcode == Opcode.SPARSE_SWITCH) {
+                val payload = code[landing] as? SwitchPayload
+                    ?: throw PatchException("Messenger controls: drawer folder click switch is invalid")
+                payload.switchElements.forEach { element ->
+                    pending.add(indexAt[addresses[index] + element.offset]
+                        ?: throw PatchException("Messenger controls: drawer folder click case is invalid"))
+                }
+            } else pending.add(landing)
+        }
+        if (instruction.opcode.canThrow()) impl.tryBlocks.filter {
+            addresses[index] >= it.startCodeAddress && addresses[index] < it.startCodeAddress + it.codeUnitCount
+        }.forEach { block -> block.exceptionHandlers.forEach { handler ->
+            pending.add(indexAt[handler.handlerCodeAddress]
+                ?: throw PatchException("Messenger controls: drawer folder click handler is invalid"))
+        } }
+        if (instruction.opcode.canContinue() && index + 1 < code.size) pending.add(index + 1)
     }
     return cast
 }
@@ -1372,3 +1445,115 @@ internal fun MutableMethod.injectStorySave(save: StorySave) {
     addInstructions(save.others, "invoke-static {v${save.fragment}, v${save.menu}}, " +
         "$definingClass->$STORY_SAVE_HELPER(${save.fragmentType}${save.menuType})V")
 }
+
+/** ChatAnimation's roles. */
+private const val CHAT_ROLE = 1
+private const val INBOX_ROLE = 2
+
+/** One local and the four words of (this, transit, enter, nextAnim): v1 is the fragment, v3 enter and v4 nextAnim. */
+private fun Method.requireAnimationFrame(what: String) {
+    if (AccessFlags.STATIC.isSet(accessFlags) || implementation?.registerCount != 5 ||
+        hookId() != "$definingClass->onCreateAnimation(IZI)$ANIMATION") {
+        throw PatchException("Messenger controls: $what no longer has the tested animation signature")
+    }
+}
+
+/** androidx's own answer: no animation, so the one in the transaction loads. */
+internal fun Method.validateFragmentAnimation() {
+    requireAnimationFrame("androidx's fragment animation")
+    val code = implementation!!.instructions.toList()
+    if (hookId() != FRAGMENT_ANIMATION || code.map { it.opcode } != listOf(Opcode.CONST_4, Opcode.RETURN_OBJECT) ||
+        (code[0] as WideLiteralInstruction).wideLiteral != 0L || code.any { (it as OneRegisterInstruction).registerA != 0 }) {
+        throw PatchException("Messenger controls: androidx's fragment animation no longer answers none")
+    }
+}
+
+/** The older chat loads the transaction's animation itself, or answers none. It never reads v0 before setting it. */
+internal fun Method.validateLegacyChatAnimation() {
+    requireAnimationFrame("the older chat")
+    val code = implementation!!.instructions.toList()
+    if (code.map { it.opcode } != listOf(Opcode.IF_EQZ, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT,
+            Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT, Opcode.CONST_4, Opcode.RETURN_OBJECT) ||
+        (code[0] as OneRegisterInstruction).registerA != 4 ||
+        (code[3] as ReferenceInstruction).reference.toString() !=
+            "Landroid/view/animation/AnimationUtils;->loadAnimation(Landroid/content/Context;I)$ANIMATION") {
+        throw PatchException("Messenger controls: the older chat's animation no longer matches the tested build")
+    }
+}
+
+/**
+ * The chat and the inbox must take androidx's answer, or the edit there would never see them.
+ * [classOf] looks a type up in the APK.
+ */
+internal fun validateInheritsFragmentAnimation(type: String, classOf: (String) -> ClassDef?) {
+    var current = classOf(type)
+    while (current != null && current.type != ANDROIDX_FRAGMENT) {
+        if (current.methods.any { it.name == "onCreateAnimation" }) {
+            throw PatchException("Messenger controls: ${current.type} answers its own fragment animation")
+        }
+        current = classOf(current.superclass ?: break)
+    }
+    if (current?.type != ANDROIDX_FRAGMENT) throw PatchException("Messenger controls: $type is no longer an androidx fragment")
+}
+
+/** Asks ChatAnimation for the chat and the inbox under it. Every other fragment keeps androidx's answer. */
+internal fun MutableMethod.injectFragmentAnimation(chat: String, inbox: String) {
+    validateFragmentAnimation()
+    addInstructionsWithLabels(0, """
+        instance-of v0, v1, $chat
+        if-nez v0, :chat
+        instance-of v0, v1, $inbox
+        if-eqz v0, :stock_behavior
+        const/4 v0, $INBOX_ROLE
+        goto :ask
+        :chat
+        const/4 v0, $CHAT_ROLE
+        :ask
+        invoke-static {v1, v0, v3, v4}, $CHAT_ANIMATION_CREATE
+        move-result-object v0
+        return-object v0
+    """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(0)))
+}
+
+/** The older chat asks first and loads its own animation when ChatAnimation has none. */
+internal fun MutableMethod.injectLegacyChatAnimation() {
+    validateLegacyChatAnimation()
+    addInstructionsWithLabels(0, """
+        const/4 v0, $CHAT_ROLE
+        invoke-static {v1, v0, v3, v4}, $CHAT_ANIMATION_CREATE
+        move-result-object v0
+        if-eqz v0, :stock_behavior
+        return-object v0
+    """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(0)))
+}
+
+/** Search and notifications open a chat in this activity instead of over the inbox; the extension matches its name. */
+internal const val CHAT_ACTIVITY = "Lcom/facebook/messaging/msys/thread/fragment/MsysThreadViewActivity;"
+
+private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
+
+private fun chatSlide(from: String, to: String, duration: Int) = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <translate xmlns:android="$ANDROID_NAMESPACE" android:fromXDelta="$from" android:toXDelta="$to"
+        android:duration="$duration" android:interpolator="@anim/hush_chat_ease" />
+""".trimIndent() + "\n"
+
+/**
+ * The chat activity's slide, under the names and lengths the extension's ChatAnimation uses. It eases like the chat
+ * fragment's slide, and the hold keeps the screen underneath drawn while a chat slides over it or away.
+ */
+internal val CHAT_ANIMATION_FILES = mapOf(
+    "res/anim/hush_chat_ease.xml" to """
+        <?xml version="1.0" encoding="utf-8"?>
+        <pathInterpolator xmlns:android="$ANDROID_NAMESPACE" android:controlX1="0.2" android:controlY1="0"
+            android:controlX2="0" android:controlY2="1" />
+    """.trimIndent() + "\n",
+    "res/anim/hush_chat_in.xml" to chatSlide("100%", "0", 300),
+    "res/anim/hush_chat_in_rtl.xml" to chatSlide("-100%", "0", 300),
+    "res/anim/hush_chat_out.xml" to chatSlide("0", "100%", 250),
+    "res/anim/hush_chat_out_rtl.xml" to chatSlide("0", "-100%", 250),
+    "res/anim/hush_chat_hold.xml" to """
+        <?xml version="1.0" encoding="utf-8"?>
+        <alpha xmlns:android="$ANDROID_NAMESPACE" android:fromAlpha="1" android:toAlpha="1" android:duration="300" />
+    """.trimIndent() + "\n",
+)

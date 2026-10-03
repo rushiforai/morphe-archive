@@ -4,6 +4,8 @@
  */
 package app.hushgram.extension.instagram.misc;
 
+import android.app.Activity;
+
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.Logger;
@@ -21,6 +23,45 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
 public final class DeveloperOptions {
     private DeveloperOptions() {
     }
+
+    /** A deliberate settings action; it doesn't enable the Home long-press switch or any flag. */
+    public static boolean openOverrides(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()
+                || activity.getFragmentManager().isStateSaved()) return false;
+        try {
+            HookStatus.invoked(FamilyNames.DEVELOPER_OPTIONS);
+            return openOverridesNative(activity) == 1;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DEVELOPER_OPTIONS, "override editor", failure);
+            return false;
+        }
+    }
+
+    /** Filled by the patch with verified host/session checks and Instagram's native navigation. */
+    static int openOverridesNative(Object activity) {
+        return 0;
+    }
+
+    /** Read-only boundaries filled from the current host's signed-in manager and typed schema. */
+    static Object getOverrideStoreNative(Object activity) { return null; }
+    static java.io.File getOverrideFileNative(Object manager) { return null; }
+    static java.util.List<?> getOverrideSchemaNative(Object manager) { return null; }
+    static OverrideExchange.Parameter getOverrideParameterNative(Object parameter) { return null; }
+
+    /**
+     * Typed writer boundaries filled from Instagram's own override editor. The table is the signed-in
+     * manager's native table or null. Each setter answers 1 only after the typed native call it
+     * makes, and 0 while unfilled or for anything that isn't the native table. Nothing here reaches
+     * a string import, a whole-table wipe or a reload.
+     */
+    static Object getOverrideTableNative(Object manager) { return null; }
+    static int setOverrideBooleanNative(Object table, long id, int value) { return 0; }
+    static int setOverrideLongNative(Object table, long id, long value) { return 0; }
+    static int setOverrideDoubleNative(Object table, long id, double value) { return 0; }
+    static int setOverrideStringNative(Object table, long id, String value) { return 0; }
+    static int removeOverrideNative(Object table, long id) { return 0; }
+    /** The value type Instagram's own decoder reads from a parameter ID, or 0 while unfilled. */
+    static int getOverrideTypeNative(long id) { return 0; }
 
     /**
      * Injected first thing in the Home tab's long press. Answers 1 while the switch is on, and the

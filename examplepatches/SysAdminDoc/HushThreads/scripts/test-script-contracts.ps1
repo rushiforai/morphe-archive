@@ -723,6 +723,10 @@ try {
                 exportedComponentsAdded = @(); exportedComponentsRemoved = @() }
         })
     }
+    foreach ($targetReceipt in $template.targets) {
+        $emptyNative = [pscustomobject]@{ extractNativeLibs = $true; libraries = @(); zipAligned = $null }
+        $targetReceipt.nativeAlignment = Get-NativePageDelta -Stock $emptyNative -Patched $emptyNative
+    }
     $templateJson = $template | ConvertTo-Json -Depth 12
 
     function New-TestReceipt {
@@ -733,11 +737,11 @@ try {
     }
 
     function Test-TestReceipt {
-        param($Receipt, [string[]]$Approved = @())
+        param($Receipt, [string[]]$Approved = @(), [int]$Schema = (Get-ReleaseReceiptSchemaVersion))
         return Test-ReleaseReceipt -Receipt $Receipt -ExpectedVersion '9.9.9' `
             -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
             -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersions $declaredBuilds `
-            -ExpectedPackageVersionCodes $declaredCodes -BundlePath $bundle -ApprovedManifestDelta $Approved
+            -ExpectedPackageVersionCodes $declaredCodes -BundlePath $bundle -ApprovedManifestDelta $Approved -ExpectedSchemaVersion $Schema
     }
 
     $valid = Test-TestReceipt -Receipt (New-TestReceipt)
@@ -746,6 +750,9 @@ try {
     # Every fact the receipt exists to pin, put in front of the check one at a time. A gate that
     # has never been shown to fail is a gate nobody has tested.
     $mutations = [ordered]@{
+        'no native alignment evidence'         = { param($r) $r.targets[0].PSObject.Properties.Remove('nativeAlignment') }
+        'a native compatibility claim without evidence' = { param($r) $r.targets[0].nativeAlignment.alignmentCompatible = $false }
+        'a missing native ZIP verdict field'    = { param($r) $r.targets[0].nativeAlignment.patched.PSObject.Properties.Remove('zipAligned') }
         'a receipt from a different schema'     = { param($r) $r.schemaVersion = 99 }
         'a receipt for a different version'     = { param($r) $r.release.version = '9.9.8' }
         'a tag that does not match the version' = { param($r) $r.release.tag = 'v9.9.8' }
@@ -1080,10 +1087,13 @@ try {
         -ExpectedPatcherVersion '1.12.0' -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
         -ExpectedPackageVersions $declaredBuilds -BundlePath $bundle -ExpectedSchemaVersion 1
     Assert-True $oneAtOne.Valid "A schema 1 receipt was refused at schema 1: $($oneAtOne.Reason)"
-    $oneAtTwo = Test-TestReceipt -Receipt $schemaOne
+    $oneAtTwo = Test-TestReceipt -Receipt $schemaOne -Schema 2
     Assert-True ($oneAtTwo.Reason -like '*schema version 1; its release is read at version 2*') `
         "A schema 1 receipt was not refused where schema 2 is expected: $($oneAtTwo.Reason)"
-    $twoAtOne = Test-ReceiptWithSbom (New-TestReceipt) -Schema 1
+    $schemaTwo = New-TestReceipt -Mutate { param($r) $r.schemaVersion = 2; foreach ($target in $r.targets) { $target.PSObject.Properties.Remove('nativeAlignment') } }
+    $twoAtTwo = Test-ReceiptWithSbom $schemaTwo -Schema 2
+    Assert-True $twoAtTwo.Valid "A schema 2 receipt without newer native fields was refused at schema 2: $($twoAtTwo.Reason)"
+    $twoAtOne = Test-ReceiptWithSbom $schemaTwo -Schema 1
     Assert-True ($twoAtOne.Reason -like '*schema version 2; its release is read at version 1*') `
         "A schema 2 receipt was not refused where schema 1 is expected: $($twoAtOne.Reason)"
     $oneWithSbom = Test-ReceiptWithSbom $schemaOne -Schema 1
@@ -2318,6 +2328,8 @@ try {
         'param([string]$Root)',
         "Set-Content -LiteralPath '$contractsMarker' -Value 'ran'",
         'exit 0')
+    Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/test-threads-sources.ps1') -Encoding UTF8 -Value @(
+        'param([string]$Root)', 'exit 0')
     # The runtime tests start through HUSHTHREADS_BUILD_WRAPPER, which the hook reads from the
     # user's environment when this process lacks it, so a stub stands in for it here: it records
     # that the tests were asked for and builds nothing. The credentials the build path wants first
@@ -2474,17 +2486,20 @@ try {
         $expected = @($verifierRoutes.Keys | Where-Object { $verifierRoutes[$_] -contains $file }) -join ', '
         Assert-True ($ran -eq $expected) "A push of scripts/$file ran [$ran], not [$expected]."
     }
-    # The ledger's rules read NOTICE, provenance.json and the catalog, and hold docs/sources.md to
-    # the ledger. A push of any of those, or of the ledger alone, runs its suite and no other
-    # verifier; the catalog also runs the release facts and the contract tests, held below.
-    foreach ($file in @('sources/threads-sources.json', 'NOTICE', 'provenance.json', 'docs/sources.md', 'patches-list.json')) {
+    # The ledger's rules read NOTICE, provenance.json and the catalog, and hold the README source
+    # section to the ledger. These paths run its suite and no other verifier. README and the
+    # catalog also keep their release facts and contract-test routes.
+    foreach ($file in @('sources/threads-sources.json', 'NOTICE', 'provenance.json', 'README.md', 'patches-list.json')) {
         foreach ($suite in $verifierRoutes.Keys) { Remove-Item -LiteralPath (& $verifierMarker $suite) -Force -ErrorAction SilentlyContinue }
         Invoke-Hook -Paths @($file)
         $ran = @($verifierRoutes.Keys | Where-Object { Test-Path -LiteralPath (& $verifierMarker $_) }) -join ', '
         Assert-True ($ran -eq 'scripts/test-threads-sources.ps1') "A push of $file ran [$ran], not the source ledger's suite alone."
-        if ($file -ne 'patches-list.json') {
+        if ($file -notin @('patches-list.json', 'README.md')) {
             Assert-True (-not (Test-Path -LiteralPath $contractsMarker) -and -not (Test-Path -LiteralPath $factsMarker)) `
                 "A push of $file ran the contract tests or the release facts, which read nothing it changes."
+        } else {
+            Assert-True ((Test-Path -LiteralPath $contractsMarker) -and (Test-Path -LiteralPath $factsMarker)) `
+                "A push of $file skipped its existing contract-test or release-facts route."
         }
     }
 
@@ -2495,11 +2510,14 @@ try {
     Assert-True ((Test-Path -LiteralPath $factsMarker) -and (Test-Path -LiteralPath $contractsMarker)) `
         'A push that changed only the catalog did not run both the release check and the script contract tests.'
 
-    # These tests copy the README into the release facts fixture and hold it to the catalog there,
-    # so a push of only the README runs them as well as the release check.
+    # The README keeps its catalog/facts checks and also guards the source ledger's prose.
+    foreach ($suite in $verifierRoutes.Keys) { Remove-Item -LiteralPath (& $verifierMarker $suite) -Force -ErrorAction SilentlyContinue }
     Invoke-Hook -Paths @('README.md')
     Assert-True ((Test-Path -LiteralPath $factsMarker) -and (Test-Path -LiteralPath $contractsMarker)) `
         'A push that changed only the README did not run both the release check and the script contract tests.'
+    $readmeSuites = @($verifierRoutes.Keys | Where-Object { Test-Path -LiteralPath (& $verifierMarker $_) }) -join ', '
+    Assert-True ($readmeSuites -eq 'scripts/test-threads-sources.ps1') `
+        "A README-only push ran [$readmeSuites], not the source ledger's verifier alone."
 
     Invoke-Hook -Paths @('CHANGELOG.md')
     Assert-True (Test-Path -LiteralPath $factsMarker) `
@@ -3188,14 +3206,16 @@ try {
             # The release facts half checks the files a push carries as well. A stub check, committed
             # the way the real one is, fails on a README that says broken and records where it ran
             # and whether it read test results. Its own commit is never in a pushed range, so no
-            # push below touches scripts/. A README push asks for the contract tests too, since they
-            # hold the README to the catalog, so a stub suite that passes is committed with it.
+            # push below touches scripts/. README asks for the contract and source-ledger suites,
+            # so passing stubs for both are committed with the facts fixture.
             $gateFacts = Join-Path $hookRoot 'gate-facts-ran.txt'
             & git -C $gateRepo checkout --quiet -- extensions/marker.txt
             New-Item -ItemType Directory -Path (Join-Path $gateRepo 'scripts') -Force | Out-Null
-            Set-Content -LiteralPath (Join-Path $gateRepo 'scripts/test-script-contracts.ps1') -Encoding UTF8 -Value @(
-                'param([string]$Root)', 'exit 0')
-            & git -C $gateRepo add scripts/test-script-contracts.ps1
+            foreach ($suite in @('test-script-contracts.ps1', 'test-threads-sources.ps1')) {
+                Set-Content -LiteralPath (Join-Path $gateRepo "scripts/$suite") -Encoding UTF8 -Value @(
+                    'param([string]$Root)', 'exit 0')
+                & git -C $gateRepo add "scripts/$suite"
+            }
             Set-Content -LiteralPath (Join-Path $gateRepo 'scripts/validate-release-facts.ps1') -Encoding UTF8 -Value @(
                 'param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag,',
                 '    [switch]$VerifyPublishedAsset, [string]$ArtifactPath, [switch]$SkipTestResults)',
@@ -4102,6 +4122,12 @@ try {
                 manifestDelta = $approvedDelta
             }
         })
+        if ($Schema -ge 3) {
+            foreach ($targetReceipt in $targets) {
+                $emptyNative = [pscustomobject]@{ extractNativeLibs = $true; libraries = @(); zipAligned = $null }
+                $targetReceipt.nativeAlignment = Get-NativePageDelta -Stock $emptyNative -Patched $emptyNative
+            }
+        }
         $document = [ordered]@{
             schemaVersion = $Schema
             release   = [ordered]@{ version = $releaseVersionHere; tag = "v$releaseVersionHere"; commit = $Commit
@@ -4192,6 +4218,8 @@ try {
         'rem Its own folder, read before shift moves %0 along with the arguments.',
         'set "HERE=%~dp0"',
         'rem -Xmx -cp <jar> <tool>.java and the tool''s arguments.',
+        'if /i "%~nx1"=="NativePageCheck.java" goto native',
+        'if /i "%~nx3"=="SignAlignedApk.java" goto sign',
         'if /i "%~nx4"=="MergeSplits.java" goto merge',
         'if /i "%~nx4"=="ResourceTableCheck.java" goto resources',
         'if /i "%~nx4"=="DexDiff.java" goto dexdiff',
@@ -4256,6 +4284,14 @@ try {
         'copy /y "%~5" "!HERE!resource-stock.txt" >nul || exit /b 8',
         'echo Note: the source launcher compiled with a warning 1>&2',
         'echo [resources] stand-in: every stock resource resolves in the patched table',
+        'exit /b 0',
+        ':native',
+        '>"%~3" echo {"libraries":[]}',
+        'exit /b 0',
+        ':sign',
+        'if exist "!HERE!sign-fails.txt" (echo injected signing failure 1>&2 & exit /b 14)',
+        'copy /y "%~4" "%~5" >nul || exit /b 12',
+        'copy /y "%~4.xmltree" "%~5.xmltree" >nul || exit /b 13',
         'exit /b 0',
         ':dexdiff',
         'echo [diff] structural findings: 0',
@@ -4685,6 +4721,19 @@ try {
             "patch-for-device.ps1 left the base APK it read for $build behind."
         Assert-True ((@(Get-Content -LiteralPath $mergeLog) -join '') -ceq "merge $($fixturePaths[$build])" -and
             -not (Test-Path -LiteralPath (Join-Path $deviceOut 'stock-merged.apk'))) 'The device build did not merge once and clean its generated merge.'
+    }
+    $signingFailure = Join-Path $tools 'sign-fails.txt'
+    $previousSigningPassword = $env:HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD
+    try {
+        $env:HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD = 'native-contract-password'
+        Set-Content -LiteralPath $signingFailure -Value 'on' -Encoding ASCII
+        Assert-Throws { Invoke-DeviceBuild -Apk $fixturePaths[$releaseTarget.PackageVersion] } '*APK signing failed*' 'A signing failure produced a completed device APK.'
+        Assert-True (-not (Test-Path -LiteralPath $deviceApk) -and
+            -not (Test-Path -LiteralPath (Join-Path $deviceOut "hushthreads-$releaseVersionHere-unsigned.apk"))) 'A failed signing run left a final or temporary APK.'
+        Assert-True ($env:HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD -ceq 'native-contract-password') 'The signing password environment was not restored.'
+    } finally {
+        Remove-Item -LiteralPath $signingFailure -Force -ErrorAction SilentlyContinue
+        $env:HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD = $previousSigningPassword
     }
     foreach ($broken in $brokenMerges) {
         $flag = Join-Path $tools $broken.Flag
@@ -5182,7 +5231,7 @@ try {
         Assert-True ($said -like "*the receipt is held to schema 1, which its own commit $($schemaOneCommit.Substring(0, 8)) wrote*" -and
             $said -like "*the receipt proves $($releaseNames.Count) patches on*from commit $($schemaOneCommit.Substring(0, 8))*") `
             "A receipt cut before the SBOM was not read as its own commit wrote it: $said"
-        Save-ReleaseReceipt -Builds $releaseTarget.PackageVersions -Commit $schemaOneCommit -Seconds $schemaOneSeconds
+        Save-ReleaseReceipt -Builds $releaseTarget.PackageVersions -Commit $schemaOneCommit -Seconds $schemaOneSeconds -Schema 2
         Assert-Throws { Invoke-ReleaseCheck } '*schema version 2; its release is read at version 1*' `
             'A schema 2 receipt was accepted for a commit whose builder wrote schema 1.'
     } finally {
@@ -5325,5 +5374,131 @@ Assert-Throws { Find-MachineNames -Root (Join-Path ([System.IO.Path]::GetTempPat
 
 Write-Host '[scripts] tracked-file machine name contracts passed'
 
+# --- upstream drift ----------------------------------------------------------------------------
+#
+# upstream-drift.ps1 lists the ported files Hushfacebook changed after the recorded commit. Two
+# fixture repositories stand in: an upstream with Facebook's names and a tree with Threads' names
+# and its own provenance.json. A Facebook-only change and a change to a file a single-file original
+# rule takes back leave the answer at 0, as does a GIT_DIR left pointing at another repository; a
+# renamed file's change and a deletion are listed with exit 1; a ported file with no upstream
+# counterpart, named or under a ported directory, and an upstream that can't be read, exit 2
+# instead of reading as either answer.
+
+$driftRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('hushthreads-drift-' + [guid]::NewGuid().ToString('N'))
+try {
+    $driftUpstream = Join-Path $driftRoot 'upstream'
+    $driftLocal = Join-Path $driftRoot 'local'
+    $sharedDir = 'extensions/shared/library/src/main/java/app/morphe/extension/shared'
+    $facebookSettings = 'extensions/facebook/src/main/java/app/morphe/extension/facebook/settings'
+    $threadsSettings = 'extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings'
+    function Write-DriftFile {
+        param([string]$Repository, [string]$Path, [string]$Text)
+        $full = Join-Path $Repository $Path
+        New-Item -ItemType Directory -Path (Split-Path -Parent $full) -Force | Out-Null
+        [System.IO.File]::WriteAllText($full, $Text)
+    }
+    function Save-DriftCommit {
+        param([string]$Repository, [string]$Message)
+        Invoke-FixtureGit -Root $Repository -Arguments @('add', '-A') | Out-Null
+        Invoke-FixtureGit -Root $Repository -Arguments @('-c', 'user.name=Contracts', '-c', 'user.email=contracts@example.invalid',
+            '-c', 'core.hooksPath=', 'commit', '--quiet', '--no-verify', '-m', $Message) | Out-Null
+        return "$(Invoke-FixtureGit -Root $Repository -Arguments @('rev-parse', 'HEAD') | Select-Object -First 1)".Trim()
+    }
+    function Invoke-Drift {
+        param([string]$Ref, [string]$Provenance = (Join-Path $driftLocal 'provenance.json'), [string]$UpstreamRepo = $driftUpstream)
+        $output = @(& $shell -NoProfile -File (Join-Path $PSScriptRoot 'upstream-drift.ps1') -Root $driftLocal -Provenance $Provenance `
+            -Upstream 'https://example.invalid/Upstream' -UpstreamRepo $UpstreamRepo -Ref $Ref 2>&1 | ForEach-Object { "$_" })
+        return [pscustomobject]@{ Exit = $LASTEXITCODE; Text = ($output -join "`n") }
+    }
+    $shell = (Get-Process -Id $PID).Path
+
+    foreach ($repository in $driftUpstream, $driftLocal) {
+        New-Item -ItemType Directory -Path $repository -Force | Out-Null
+        Invoke-FixtureGit -Root $repository -Arguments @('init', '--quiet') | Out-Null
+    }
+    foreach ($path in "$sharedDir/Utils.java", "$sharedDir/settings/Setting.java", "$sharedDir/settings/Local.java",
+            "$facebookSettings/HushfacebookPreferenceFragment.java", "$facebookSettings/FacebookOnly.java") {
+        Write-DriftFile $driftUpstream $path 'class A {}'
+    }
+    $recorded = Save-DriftCommit $driftUpstream 'recorded'
+
+    foreach ($path in "$sharedDir/Utils.java", "$sharedDir/settings/Setting.java", "$sharedDir/settings/Local.java",
+            "$sharedDir/settings/AddedHere.java", "$threadsSettings/HushThreadsPreferenceFragment.java", "$threadsSettings/Orphan.java") {
+        Write-DriftFile $driftLocal $path 'class B {}'
+    }
+    $portedRule = { param($paths) [ordered]@{ paths = $paths; origin = 'ported'; upstream = 'https://example.invalid/Upstream'; commit = $recorded } }
+    $driftRules = @(
+        (& $portedRule @("$sharedDir/Utils.java", "$sharedDir/settings/**")),
+        (& $portedRule @("$threadsSettings/HushThreadsPreferenceFragment.java")),
+        [ordered]@{ paths = @("$sharedDir/settings/Local.java", "$sharedDir/settings/AddedHere.java"); origin = 'original'; upstream = 'https://example.invalid/Local' })
+    [System.IO.File]::WriteAllText((Join-Path $driftLocal 'provenance.json'), (@{ rules = $driftRules } | ConvertTo-Json -Depth 6))
+    $orphanProvenance = Join-Path $driftRoot 'orphan-provenance.json'
+    [System.IO.File]::WriteAllText($orphanProvenance, (@{ rules = @($driftRules[0], (& $portedRule @("$threadsSettings/Orphan.java")), $driftRules[2]) } | ConvertTo-Json -Depth 6))
+    $unlistedProvenance = Join-Path $driftRoot 'unlisted-provenance.json'
+    [System.IO.File]::WriteAllText($unlistedProvenance, (@{ rules = @($driftRules[0], $driftRules[1],
+        [ordered]@{ paths = @("$sharedDir/settings/Local.java"); origin = 'original'; upstream = 'https://example.invalid/Local' }) } | ConvertTo-Json -Depth 6))
+    Save-DriftCommit $driftLocal 'local' | Out-Null
+
+    $same = Invoke-Drift $recorded
+    Assert-True ($same.Exit -eq 0 -and $same.Text -like '*Checked 3 ported files*' -and $same.Text -like '*No ported file changed*') `
+        "The drift check didn't read an unchanged upstream as clean: exit $($same.Exit), $($same.Text)"
+    # Pointed at the upstream, an inherited GIT_DIR would list its files as this tree's.
+    $env:GIT_DIR = Join-Path $driftUpstream '.git'
+    try { $hooked = Invoke-Drift $recorded } finally { $env:GIT_DIR = $null }
+    Assert-True ($hooked.Exit -eq 0 -and $hooked.Text -like '*Checked 3 ported files*') `
+        "An inherited GIT_DIR changed what the drift check read: exit $($hooked.Exit), $($hooked.Text)"
+    $unlisted = Invoke-Drift $recorded -Provenance $unlistedProvenance
+    Assert-True ($unlisted.Exit -eq 2 -and $unlisted.Text -like "*settings/AddedHere.java (looked for*") `
+        "A file under a ported directory with no upstream counterpart wasn't refused: exit $($unlisted.Exit), $($unlisted.Text)"
+
+    Write-DriftFile $driftUpstream "$facebookSettings/FacebookOnly.java" 'class A { int x; }'
+    Write-DriftFile $driftUpstream "$sharedDir/settings/Local.java" 'class A { int x; }'
+    Write-DriftFile $driftUpstream "$sharedDir/settings/NewUpstream.java" 'class A {}'
+    $unrelated = Save-DriftCommit $driftUpstream 'unrelated'
+    $quiet = Invoke-Drift $unrelated
+    Assert-True ($quiet.Exit -eq 0 -and $quiet.Text -notmatch 'changed upstream since [0-9a-f]{8}:' -and $quiet.Text -like '*No ported file changed*') `
+        "A Facebook-only change or one to a file an original rule takes back read as drift: exit $($quiet.Exit), $($quiet.Text)"
+
+    Write-DriftFile $driftUpstream "$facebookSettings/HushfacebookPreferenceFragment.java" 'class A { int y; }'
+    $renamed = Save-DriftCommit $driftUpstream 'renamed file changed'
+    $one = Invoke-Drift $renamed
+    Assert-True ($one.Exit -eq 1 -and
+        $one.Text -like "*changed upstream since ????????: $facebookSettings/HushfacebookPreferenceFragment.java (here: $threadsSettings/HushThreadsPreferenceFragment.java)*" -and
+        $one.Text -like '*1 ported file(s) changed*') `
+        "A change to a renamed ported file wasn't listed with exit 1: exit $($one.Exit), $($one.Text)"
+
+    # A rule recording a later commit compares its files from there: the fragment ported again at
+    # the commit that changed it reads as current, beside the older rule's files.
+    $newerProvenance = Join-Path $driftRoot 'newer-provenance.json'
+    [System.IO.File]::WriteAllText($newerProvenance, (@{ rules = @($driftRules[0],
+        [ordered]@{ paths = @("$threadsSettings/HushThreadsPreferenceFragment.java"); origin = 'ported'; upstream = 'https://example.invalid/Upstream'; commit = $renamed },
+        $driftRules[2]) } | ConvertTo-Json -Depth 6))
+    $newer = Invoke-Drift $renamed -Provenance $newerProvenance
+    $newerCommits = @($recorded, $renamed | ForEach-Object { $_.Substring(0, 8) } | Sort-Object) -join ', '
+    Assert-True ($newer.Exit -eq 0 -and $newer.Text -like "*Checked 3 ported files*from $newerCommits up to*") `
+        "A rule at a later commit wasn't compared from that commit: exit $($newer.Exit), $($newer.Text)"
+
+    Invoke-FixtureGit -Root $driftUpstream -Arguments @('rm', '--quiet', "$sharedDir/settings/Setting.java") | Out-Null
+    $deleted = Save-DriftCommit $driftUpstream 'deleted'
+    $two = Invoke-Drift $deleted
+    Assert-True ($two.Exit -eq 1 -and $two.Text -like "*deleted upstream since ????????: $sharedDir/settings/Setting.java*" -and
+        $two.Text -like '*2 ported file(s) changed*') `
+        "An upstream deletion wasn't listed beside the change: exit $($two.Exit), $($two.Text)"
+
+    $orphan = Invoke-Drift $recorded -Provenance $orphanProvenance
+    Assert-True ($orphan.Exit -eq 2 -and $orphan.Text -like "*settings/Orphan.java (looked for*") `
+        "A named file with no upstream counterpart didn't stop the check: exit $($orphan.Exit), $($orphan.Text)"
+    $unreadable = Invoke-Drift 'HEAD' -UpstreamRepo (Join-Path $driftRoot 'absent')
+    Assert-True ($unreadable.Exit -eq 2 -and $unreadable.Text -like '*upstream-drift:*') `
+        "An upstream that couldn't be read didn't exit 2: exit $($unreadable.Exit), $($unreadable.Text)"
+} finally {
+    Remove-Item -LiteralPath $driftRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host '[scripts] upstream drift contracts passed'
+
 $global:LASTEXITCODE = 0
 Write-Host '[scripts] report, target, Java and guarded replacement contracts passed'
+
+& (Join-Path $PSScriptRoot 'test-native-page-alignment.ps1') -Root $Root
+if ($LASTEXITCODE -ne 0) { throw 'Native alignment contract suite failed.' }

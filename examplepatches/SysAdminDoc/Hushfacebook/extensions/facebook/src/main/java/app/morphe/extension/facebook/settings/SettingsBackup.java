@@ -39,6 +39,7 @@ import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
+import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.EnumSetting;
@@ -64,16 +65,20 @@ import app.morphe.extension.shared.settings.StringSetting;
  * one tab, one comment order and one playback quality. The word lists go only into the file the
  * person picks, with the rest. An import applies what it read in one preference commit. A file
  * that is too large, isn't JSON, names something twice, holds a value of the wrong type, a word
- * list that isn't one clean list, a folder or a template that isn't one clean name, an app that
- * isn't a package name, or a top folder, quality, download action, tab or comment order this build
- * doesn't offer, or comes from a newer version changes nothing.
+ * list that isn't one clean list, word lists past the room they share, a folder or a template
+ * that isn't one clean name, an app that isn't a package name, or a top folder, quality, download
+ * action, tab or comment order this build doesn't offer, or comes from a newer version changes
+ * nothing.
  * <p>The release check stays out of the file: it puts the phone online, so it's switched on
  * from the phone's own screen, never by a file.
  *
  * <p>Call the file and preference work on a worker thread.
  */
 public final class SettingsBackup {
-    /** Far more than a settings file needs: one is a few hundred bytes. */
+    /**
+     * Far more than a settings file needs: one is a few hundred bytes, or 62 KB at most with both
+     * word lists filling the room they share.
+     */
     public static final int MAX_BYTES = 64 * 1024;
     public static final String FORMAT = "hushfacebook-settings";
     /** The file shape this build writes and the newest it reads. A file declaring more is refused. */
@@ -146,6 +151,7 @@ public final class SettingsBackup {
             Settings.HIDE_REELS_TAB,
             Settings.HIDE_REELS_TAB_DOT,
             Settings.BOTTOM_TAB_BAR,
+            Settings.FORCE_DARK_MODE,
             Settings.HIDE_REEL_PROMPTS,
             Settings.HIDE_GET_MESSENGER_CARD,
             Settings.OPEN_MESSENGER_APP,
@@ -163,7 +169,8 @@ public final class SettingsBackup {
      * The word filter's two lists, held in a file exactly as the settings row stores them: one
      * phrase per line within {@link PostWords}' bounds. A value {@link PostWords#clean} would change
      * refuses the whole file, as a switch that isn't true or false does, so a file can't slip in a
-     * list longer or looser than the row allows.
+     * list longer or looser than the row allows. So do lists past the room the two share
+     * ({@link PostWords#MAX_LIST_BYTES}), which every file this class writes fits whole.
      */
     static final StringSetting HIDDEN = Settings.HIDDEN_WORDS;
     static final StringSetting KEPT = Settings.KEPT_WORDS;
@@ -216,6 +223,12 @@ public final class SettingsBackup {
     static final EnumSetting<StartTab> START = Settings.START_TAB;
 
     /**
+     * The filter the Feeds tab opens on after such a start, held in a file as its
+     * {@link FeedsSubtab#fileValue}. Anything else refuses the whole file, as a tab does.
+     */
+    static final EnumSetting<FeedsSubtab> SUBTAB = Settings.FEEDS_SUBTAB;
+
+    /**
      * The order comment sheets ask for, held in a file as its {@link CommentOrder#fileValue}.
      * Anything else refuses the whole file, as a tab does.
      */
@@ -229,8 +242,8 @@ public final class SettingsBackup {
 
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, TO, FOLDER, QUALITY, FILE_NAME, ACTION, APP, START, ORDER,
-                    PLAYBACK));
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, TO, FOLDER, QUALITY, FILE_NAME, ACTION, APP, START, SUBTAB,
+                    ORDER, PLAYBACK));
 
     /** The longest name or value a file holds that isn't a word list, far past a package name. */
     private static final int MAX_OTHER_CHARS = 1024;
@@ -274,6 +287,8 @@ public final class SettingsBackup {
         SCHEMA,
         /** A switch whose value isn't true or false. */
         VALUE,
+        /** Word lists that, beside the one it leaves as it is, don't fit in the room the two share. */
+        WORDS,
         /** The file couldn't be opened or read to the end. */
         UNREADABLE
     }
@@ -301,7 +316,7 @@ public final class SettingsBackup {
     /**
      * What a file says: a value for each switch it names, the folder, the quality, the file name,
      * the start tab, the comment order, the playback quality, the download action, the app links go
-     * to and the top folder when it names them, and how many other names it holds.
+     * to, the top folder and the Feeds filter when it names them, and how many other names it holds.
      */
     public static final class Snapshot {
         private static final String SWITCHES = "switches";
@@ -317,6 +332,7 @@ public final class SettingsBackup {
         private static final String ACTION_NAME = "download_action";
         private static final String APP_NAME = "send_to_app";
         private static final String TO_NAME = "save_to";
+        private static final String SUBTAB_NAME = "feeds_subtab";
 
         /** In {@link #ALLOWLIST} order, and only the switches the file named. */
         final Map<BooleanSetting, Boolean> values;
@@ -353,6 +369,9 @@ public final class SettingsBackup {
         /** The top folder saves go to that the file holds, or null when it names none. */
         @Nullable
         final SaveTo to;
+        /** The filter the Feeds tab opens on that the file holds, or null when it names none. */
+        @Nullable
+        final FeedsSubtab subtab;
         /** Names the file holds that aren't settings this build knows. They're left out. */
         final int unknown;
 
@@ -384,6 +403,15 @@ public final class SettingsBackup {
                  @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
                  @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
                  @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to, int unknown) {
+            this(values, folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, null,
+                    unknown);
+        }
+
+        Snapshot(Map<BooleanSetting, Boolean> values, @Nullable String folder, @Nullable DownloadQuality quality,
+                 @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                 @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
+                 @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
+                 @Nullable FeedsSubtab subtab, int unknown) {
             this.values = Collections.unmodifiableMap(values);
             this.folder = folder;
             this.quality = quality;
@@ -396,6 +424,7 @@ public final class SettingsBackup {
             this.action = action;
             this.app = app;
             this.to = to;
+            this.subtab = subtab;
             this.unknown = unknown;
         }
 
@@ -420,6 +449,8 @@ public final class SettingsBackup {
             if (fileNameChange != null) changes.put(FILE_NAME, fileNameChange);
             StartTab startChange = startChange();
             if (startChange != null) changes.put(START, startChange);
+            FeedsSubtab subtabChange = subtabChange();
+            if (subtabChange != null) changes.put(SUBTAB, subtabChange);
             CommentOrder orderChange = orderChange();
             if (orderChange != null) changes.put(ORDER, orderChange);
             String hiddenChange = hiddenChange();
@@ -471,6 +502,12 @@ public final class SettingsBackup {
         @Nullable
         StartTab startChange() {
             return start == null || start == START.savedValue() ? null : start;
+        }
+
+        /** The Feeds filter this file sets, or null when it names none or the one already set. */
+        @Nullable
+        FeedsSubtab subtabChange() {
+            return subtab == null || subtab == SUBTAB.savedValue() ? null : subtab;
         }
 
         /** The comment order this file sets, or null when it names none or the one already set. */
@@ -544,6 +581,7 @@ public final class SettingsBackup {
             if (action != null) state.putString(ACTION_NAME, action.fileValue);
             if (app != null) state.putString(APP_NAME, app);
             if (to != null) state.putString(TO_NAME, to.fileValue);
+            if (subtab != null) state.putString(SUBTAB_NAME, subtab.fileValue);
             state.putInt(UNKNOWN, unknown);
             return state;
         }
@@ -576,7 +614,8 @@ public final class SettingsBackup {
                     hidden instanceof String && PostWords.isClean((String) hidden) ? (String) hidden : null,
                     kept instanceof String && PostWords.isClean((String) kept) ? (String) kept : null,
                     PlaybackQuality.fromFile(state.get(PLAYBACK_NAME)), SendLink.Action.fromFile(state.get(ACTION_NAME)),
-                    SendLink.isFileApp(app) ? (String) app : null, SaveTo.fromFile(state.get(TO_NAME)), unknown);
+                    SendLink.isFileApp(app) ? (String) app : null, SaveTo.fromFile(state.get(TO_NAME)),
+                    FeedsSubtab.fromFile(state.get(SUBTAB_NAME)), unknown);
         }
     }
 
@@ -595,6 +634,7 @@ public final class SettingsBackup {
         switches.put(QUALITY.key, QUALITY.savedValue().fileValue);
         switches.put(FILE_NAME.key, FileNameTemplate.sanitize(FILE_NAME.savedValue()));
         switches.put(START.key, START.savedValue().fileValue);
+        switches.put(SUBTAB.key, SUBTAB.savedValue().fileValue);
         switches.put(ORDER.key, ORDER.savedValue().fileValue);
         switches.put(PLAYBACK.key, PLAYBACK.savedValue().fileValue);
         switches.put(ACTION.key, ACTION.savedValue().fileValue);
@@ -698,6 +738,7 @@ public final class SettingsBackup {
         SendLink.Action action = null;
         String app = null;
         SaveTo to = null;
+        FeedsSubtab subtab = null;
         JSONObject values = (JSONObject) settings;
         for (Iterator<String> names = values.keys(); names.hasNext(); ) {
             String name = names.next();
@@ -727,6 +768,11 @@ public final class SettingsBackup {
             if (START.key.equals(name)) {
                 start = StartTab.fromFile(values.opt(name));
                 if (start == null) throw new Rejected(Reason.VALUE, "Not a start tab: " + name);
+                continue;
+            }
+            if (SUBTAB.key.equals(name)) {
+                subtab = FeedsSubtab.fromFile(values.opt(name));
+                if (subtab == null) throw new Rejected(Reason.VALUE, "Not a Feeds filter: " + name);
                 continue;
             }
             if (ORDER.key.equals(name)) {
@@ -779,13 +825,19 @@ public final class SettingsBackup {
             }
             found.put(setting, (Boolean) value);
         }
+        // The lists share their room. One the file leaves out stays as it is, so it counts as stored.
+        if ((hidden != null || kept != null) && !PostWords.fits(
+                hidden != null ? hidden : PostWords.clean(HIDDEN.savedValue()),
+                kept != null ? kept : PostWords.clean(KEPT.savedValue()))) {
+            throw new Rejected(Reason.WORDS, "Word lists past the room they share");
+        }
         Map<BooleanSetting, Boolean> ordered = new LinkedHashMap<>();
         for (BooleanSetting setting : ALLOWLIST) {
             Boolean value = found.get(setting);
             if (value != null) ordered.put(setting, value);
         }
         return new Snapshot(ordered, folder, quality, fileName, start, order, hidden, kept, playback, action, app, to,
-                unknown);
+                subtab, unknown);
     }
 
     /**

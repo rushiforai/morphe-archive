@@ -223,20 +223,44 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         LogBufferManager.registerReportSection(ReleaseCheck.REPORT);
         Set<PatchFamily> build = PatchFamily.inThisBuild();
 
-        if (build.contains(PatchFamily.HIDE_ADS)) {
+        if (build.contains(PatchFamily.HIDE_ADS) || build.contains(PatchFamily.HIDE_SUGGESTED_USERS)
+                || build.contains(PatchFamily.RETURN_REFRESH) || build.contains(PatchFamily.VIDEO_AUTOPLAY)) {
             PreferenceCategory feed = category(screen, L10n.t("Feed"));
-            feed.addPreference(toggle(context, Settings.HIDE_ADS, L10n.t("Hide ads"),
+            if (build.contains(PatchFamily.HIDE_ADS)) feed.addPreference(toggle(context, Settings.HIDE_ADS, L10n.t("Hide ads"),
                     L10n.t("Sponsored posts come out of For you and Following before Threads shows them, so no gap is "
                             + "left.")));
+            if (build.contains(PatchFamily.HIDE_SUGGESTED_USERS)) {
+                feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_USERS, L10n.t("Hide suggested users"),
+                        L10n.t("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.")));
+            }
+            if (build.contains(PatchFamily.RETURN_REFRESH)) {
+                feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
+                        L10n.t("Keep feed position on return"),
+                        L10n.t("Returning to Threads within ten minutes keeps your place. Pull to refresh still works.")));
+                feed.addPreference(toggle(context, Settings.RETURN_REFRESH_NO_LIMIT,
+                        L10n.t("No time limit"),
+                        L10n.t("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.")));
+            }
+            if (build.contains(PatchFamily.VIDEO_AUTOPLAY)) {
+                feed.addPreference(toggle(context, Settings.DISABLE_VIDEO_AUTOPLAY, L10n.t("Tap to play videos"),
+                        L10n.t("Videos in your feed wait for a tap instead of playing as you scroll.")));
+            }
         }
 
-        if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS) || build.contains(PatchFamily.DISABLE_ANALYTICS)) {
+        if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS) || build.contains(PatchFamily.EXTERNAL_BROWSER)
+                || build.contains(PatchFamily.DISABLE_ANALYTICS)) {
             PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
             if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
                 privacy.addPreference(toggle(context, Settings.SANITIZE_SHARING_LINKS,
                         L10n.t("Remove tracking from shared links"),
-                        L10n.t("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest "
-                                + "of the link stays as it was.")));
+                        L10n.t("Takes tracking tags such as xmt and slof off the post links you copy or share. A short "
+                                + "share link becomes the post's own link.")));
+            }
+            if (build.contains(PatchFamily.EXTERNAL_BROWSER)) {
+                privacy.addPreference(toggle(context, Settings.OPEN_LINKS_EXTERNALLY,
+                        L10n.t("Open links in your browser"),
+                        L10n.t("Web links you tap open in your default browser, or the app for that site, without "
+                                + "Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.")));
             }
             if (build.contains(PatchFamily.DISABLE_ANALYTICS)) {
                 privacy.addPreference(toggle(context, Settings.DISABLE_ANALYTICS, L10n.t("Stop analytics uploads"),

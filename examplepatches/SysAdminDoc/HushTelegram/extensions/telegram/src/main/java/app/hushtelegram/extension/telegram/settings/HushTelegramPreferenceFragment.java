@@ -51,6 +51,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -235,8 +236,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
 
         // Every row carries an icon, so all pages share one text edge. A switch that stops something
         // Telegram does takes the stop sign.
-        if (build.contains(PatchFamily.HIDE_ADS) || build.contains(PatchFamily.HIDE_STORIES)
-                || build.contains(PatchFamily.HIDE_RECOMMENDATIONS)) {
+        if (!Collections.disjoint(build, PatchFamily.CHATS_PAGE)) {
             PreferenceCategory chats = category(screen, L10n.t("Chats"));
             if (build.contains(PatchFamily.HIDE_ADS)) {
                 chats.addPreference(mark(toggle(context, Settings.HIDE_ADS, L10n.t("Hide ads"),
@@ -253,18 +253,73 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         PatchFamily.HIDE_RECOMMENDATIONS.coverageSummary(L10n.t("Hides similar channels and bots, including cached recommendations. "
                                 + "Telegram doesn't ask for new recommendations while the switch is on."))), SettingsIcons.BLOCK));
             }
+            if (build.contains(PatchFamily.HIDE_COMMERCE)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_COMMERCE, L10n.t("Hide Premium, gifts and Stars"),
+                        PatchFamily.HIDE_COMMERCE.coverageSummary(L10n.t("Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs "
+                                + "and the channel Gift button. Purchases and account controls keep their usual behavior."))), SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.HIDE_PROMOTIONAL_BANNERS)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_PROMOTIONAL_BANNERS, L10n.t("Hide promotional banners"),
+                        PatchFamily.HIDE_PROMOTIONAL_BANNERS.coverageSummary(L10n.t("Hides Premium, birthday and low Stars balance banners in the chat list. "
+                                + "Account security notices and other suggestions remain. Nothing is dismissed for you."))), SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.HIDE_SPONSORED_PROXY)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_SPONSORED_PROXY, L10n.t("Hide sponsored proxy channel"),
+                        PatchFamily.HIDE_SPONSORED_PROXY.coverageSummary(L10n.t("Hides a proxy's sponsored channel from the chat list and folders. "
+                                + "Leaves proxy settings and shared promo-data updates alone."))), SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.HIDE_POPULAR_APPS)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_POPULAR_APPS, L10n.t("Hide popular apps"),
+                        PatchFamily.HIDE_POPULAR_APPS.coverageSummary(L10n.t("Search's Apps tab skips Telegram's Popular apps list, "
+                                + "with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay."))),
+                        SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.DISABLE_CHAT_SWIPE)) {
+                chats.addPreference(mark(toggle(context, Settings.DISABLE_CHAT_SWIPE, L10n.t("No swipe actions on chats"),
+                        PatchFamily.DISABLE_CHAT_SWIPE.coverageSummary(L10n.t("A sideways swipe on a chat in the chat list no longer archives, "
+                                + "mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. "
+                                + "Off by default in settings."))), SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.QUIET_CONTACTS_NAG)) {
+                chats.addPreference(mark(toggle(context, Settings.QUIET_CONTACTS_NAG, L10n.t("Quiet contacts prompts"),
+                        PatchFamily.QUIET_CONTACTS_NAG.coverageSummary(L10n.t("Once you've said no to contacts access, the Contacts tab stops "
+                                + "asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay."))),
+                        SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.HOLIDAY_LOOK)) {
+                chats.addPreference(mark(toggle(context, Settings.HOLIDAY_LOOK, L10n.t("New Year look all year"),
+                        PatchFamily.HOLIDAY_LOOK.coverageSummary(L10n.t("Telegram's New Year snow falls every day over the chat list's top bar "
+                                + "and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
         }
 
-        if (build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.DISABLE_CALL_DEBUG)) {
+        if (build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.DISABLE_CALL_DEBUG)
+                || build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS) || build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP)) {
             PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
             if (build.contains(PatchFamily.DISABLE_ANALYTICS)) {
                 privacy.addPreference(mark(toggle(context, Settings.DISABLE_ANALYTICS, L10n.t("Stop usage reports"),
-                    PatchFamily.DISABLE_ANALYTICS.coverageSummary(L10n.t("Telegram doesn't send your storage folders as a device report when its server asks, "
-                            + "or how long you spent on each channel post. Messages and calls work as before."))), SettingsIcons.BLOCK));
+                    PatchFamily.DISABLE_ANALYTICS.coverageSummary(L10n.t("Telegram doesn't send its storage-type statistic when its server asks, "
+                            + "or how long you spent on each channel post. "
+                            + "It also stops reports about Premium screen views, feature taps, accepts and purchase failures. "
+                            + "Messages and calls work as before."))), SettingsIcons.BLOCK));
             }
             if (build.contains(PatchFamily.DISABLE_CALL_DEBUG)) {
                 privacy.addPreference(mark(toggle(context, Settings.DISABLE_CALL_DEBUG, L10n.t("Stop call diagnostics"),
                         PatchFamily.DISABLE_CALL_DEBUG.coverageSummary(L10n.t("Stops automatic call debug reports and log-file uploads requested by Telegram's server."))),
+                        SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS)) {
+                privacy.addPreference(mark(toggle(context, Settings.DISABLE_DRAFT_PREVIEWS, L10n.t("No previews before sending"),
+                        PatchFamily.DISABLE_DRAFT_PREVIEWS.coverageSummary(L10n.t("Telegram doesn't ask its server for a link preview "
+                                + "while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. "
+                                + "Sent messages still get their preview. Off by default in settings."))),
+                        SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP)) {
+                privacy.addPreference(mark(toggle(context, Settings.GALLERY_CAMERA_ON_TAP, L10n.t("Camera only on tap"),
+                        PatchFamily.GALLERY_CAMERA_ON_TAP.coverageSummary(L10n.t("Opening the attachment gallery doesn't start the camera "
+                                + "or ask for camera access. Tap the camera tile to start it. Off by default in settings."))),
                         SettingsIcons.BLOCK));
             }
         }
@@ -272,6 +327,17 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         // In every build: Telegram's own links are never verified for an app, so Android opens them
         // here only for the addresses selected on the app's Open by default page.
         PreferenceCategory links = category(screen, L10n.t("Links"));
+        if (build.contains(PatchFamily.OPEN_EXTERNAL_LINKS)) {
+            links.addPreference(mark(toggle(context, Settings.OPEN_EXTERNAL_LINKS, L10n.t("Open links externally"),
+                    PatchFamily.OPEN_EXTERNAL_LINKS.coverageSummary(L10n.t("Opens ordinary HTTP(S) links in your browser. "
+                            + "Telegram links, login, payment and authenticated routes keep their existing behavior."))), SettingsIcons.LINKS));
+        }
+        if (build.contains(PatchFamily.STRIP_LINK_TRACKING)) {
+            links.addPreference(mark(toggle(context, Settings.STRIP_LINK_TRACKING, L10n.t("Strip link tracking"),
+                    PatchFamily.STRIP_LINK_TRACKING.coverageSummary(L10n.t("Optional local cleaning at link-open and Share Link chooser sites. "
+                            + "Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. "
+                            + "Any unknown query key preserves the entire URL. Off by default in settings."))), SettingsIcons.BLOCK));
+        }
         links.addPreference(mark(supportedLinksRow(context), SettingsIcons.LINKS));
         // An explanation, not a control: the info mark says so, as it does for Version on About.
         links.addPreference(mark(info(context, L10n.t("Selecting links by hand"),
@@ -302,13 +368,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushtelegram.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.EXPORT,
                 L10n.t("Export settings"),
-                L10n.t("Save your switches to a file. Pause and Debug logging aren't included, and neither is the "
-                        + "release check.")), SettingsIcons.EXPORT));
+                L10n.t("Save your switches to a file. They cover all the accounts in this Telegram app. Pause and "
+                        + "Debug logging aren't included, and neither is the release check.")), SettingsIcons.EXPORT));
         // The preview gives a count of the switches, not each switch by name.
         hushtelegram.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.IMPORT,
                 L10n.t("Import settings"),
                 L10n.t("Choose a settings file. Before anything is imported, you'll see how many switches it "
-                        + "changes.")), SettingsIcons.DOWNLOADS));
+                        + "changes. What you import applies to all the accounts in this Telegram app.")), SettingsIcons.DOWNLOADS));
         // Debug logging also fills the exported report and turns on error toasts (Logger).
         hushtelegram.addPreference(mark(toggle(context, BaseSettings.DEBUG, L10n.t("Debug logging"),
                 L10n.t("Record patch activity and show errors for a bug report. Leave off during normal use.")), SettingsIcons.BUG));
@@ -330,6 +396,9 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         PreferenceCategory about = category(screen, L10n.t("About"));
         about.addPreference(mark(info(context, L10n.t("Version"), L10n.f("HushTelegram %1$s on Telegram %2$s",
                 L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()))), SettingsIcons.ABOUT));
+        // Switches live in one application-wide store, while Telegram can hold several accounts.
+        about.addPreference(mark(info(context, L10n.t("Accounts"), L10n.t("Every switch here applies to all the "
+                + "accounts in this Telegram app, not only the one you have open.")), SettingsIcons.ABOUT));
 
         Preference source = new Row(context);
         source.setTitle(L10n.t("Source code and issues"));

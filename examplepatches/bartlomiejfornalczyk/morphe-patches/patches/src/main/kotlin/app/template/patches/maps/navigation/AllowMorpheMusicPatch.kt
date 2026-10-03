@@ -175,65 +175,68 @@ val allowMorpheMusicPatch = bytecodePatch(
             }
         }
 
-        // 2g. Inject Morphe YT Music ResolveInfo fallback into the media providers map (bwyf).
-        // On modern Android (API 30+, Android 14/15/16), queryIntentServices returns empty
-        // for non-system/untrusted packages even with package visibility granted.
-        // We inject a complete ResolveInfo (with valid ApplicationInfo, exported=true, processName)
-        // and call bwyf.d(false) to gracefully suppress duplicate key exceptions if already present.
+
+        // 2e. Set MATCH_ALL (0x20000) flag in queryIntentServices call.
+        // Replace the redundant check-cast immediately preceding getPackageManager (3 instructions before queryIntentServices)
+        // with const/high16 v{flagsReg}, 0x2.
+        // This is a 1-for-1 instruction replacement, keeping the instruction count and switch table 100% aligned.
         val queryIntentIndex = impl.instructions.indexOfFirst { insn ->
             (insn as? ReferenceInstruction)?.reference?.let {
                 (it as? MethodReference)?.name == "queryIntentServices"
             } == true
         }
-
-        var dIndex = -1
-        for (i in queryIntentIndex until impl.instructions.count()) {
-            val insn = impl.instructions.elementAt(i)
-            if ((insn as? ReferenceInstruction)?.reference?.let {
-                (it as? MethodReference)?.definingClass == "Lbwyf;" && (it as? MethodReference)?.name == "d"
-            } == true) {
-                dIndex = i
-                break
+        if (queryIntentIndex != -1) {
+            val invokeInsn = impl.instructions.elementAt(queryIntentIndex) as FiveRegisterInstruction
+            val flagsReg = invokeInsn.registerE
+            for (i in (queryIntentIndex - 1) downTo (queryIntentIndex - 5).coerceAtLeast(0)) {
+                val insn = impl.instructions.elementAt(i)
+                if (insn.opcode == Opcode.CHECK_CAST) {
+                    method.replaceInstruction(i, "const/high16 v$flagsReg, 0x2")
+                    break
+                }
             }
         }
 
-        if (dIndex != -1) {
-            val invokeInsn = impl.instructions.elementAt(dIndex) as FiveRegisterInstruction
-            val builderReg = invokeInsn.registerC
+        // 3. Patch candidate media provider verifier (ampe.a(apxs) in classes6.dex).
+        // By default, Maps tries an asynchronous MediaBrowser test connection to every candidate media app.
+        // When YouTube Music is modded or Maps package name is changed (Change package name patch),
+        // YouTube Music's client allowlist rejects the test connection, causing Maps to silently drop it.
+        // Bypassing the verifier to call apxs.d() directly (identical to how Spotify behaves in ampx.a)
+        // unconditionally accepts the candidate media provider into the navigation settings UI list.
+        val verifyMethod = MediaProviderVerifyFingerprint.method
+        val verifyImpl = verifyMethod.implementation
+        if (verifyImpl != null) {
+            val apxsReg = verifyImpl.registerCount - 1
+            val totalInsn = verifyImpl.instructions.count()
+            for (i in 2 until totalInsn) {
+                verifyMethod.replaceInstruction(i, "nop")
+            }
+            verifyMethod.replaceInstruction(0, "invoke-virtual {v$apxsReg}, Lapxs;->d()V")
+            verifyMethod.replaceInstruction(1, "return-void")
+        }
 
-            // Replace invoke-virtual Lbwyf;->d(Z) with the first instruction so that any
-            // branch jumping to dIndex (such as the if-eqz when queryIntentServices returns empty)
-            // jumps directly to our fallback injection logic without shifting loop branch offsets.
-            val firstSmali = "new-instance v3, Landroid/content/pm/ResolveInfo;"
-            method.replaceInstruction(dIndex, firstSmali)
-
-            val fallbackSmali = """
-                invoke-direct {v3}, Landroid/content/pm/ResolveInfo;-><init>()V
-                new-instance v4, Landroid/content/pm/ServiceInfo;
-                invoke-direct {v4}, Landroid/content/pm/ServiceInfo;-><init>()V
-                const-string v5, "$targetPackage"
-                iput-object v5, v4, Landroid/content/pm/ServiceInfo;->packageName:Ljava/lang/String;
-                const-string v5, "com.google.android.apps.youtube.music.mediabrowser.MusicBrowserService"
-                iput-object v5, v4, Landroid/content/pm/ServiceInfo;->name:Ljava/lang/String;
-                new-instance v5, Landroid/content/pm/ApplicationInfo;
-                invoke-direct {v5}, Landroid/content/pm/ApplicationInfo;-><init>()V
-                const-string v7, "$targetPackage"
-                iput-object v7, v5, Landroid/content/pm/ApplicationInfo;->packageName:Ljava/lang/String;
-                iput-object v5, v4, Landroid/content/pm/ServiceInfo;->applicationInfo:Landroid/content/pm/ApplicationInfo;
-                const/4 v5, 0x1
-                iput-boolean v5, v4, Landroid/content/pm/ServiceInfo;->exported:Z
-                iput-object v7, v4, Landroid/content/pm/ServiceInfo;->processName:Ljava/lang/String;
-                iput-object v4, v3, Landroid/content/pm/ResolveInfo;->serviceInfo:Landroid/content/pm/ServiceInfo;
-                new-instance v4, Lampc;
-                const v5, 0x7f060d3c
-                const v7, 0x7f060d3d
-                const-string v8, "$targetPackage"
-                invoke-direct {v4, v8, v5, v7}, Lampc;-><init>(Ljava/lang/String;II)V
-                invoke-virtual {v$builderReg, v4, v3}, Lbwyf;->e(Ljava/lang/Object;Ljava/lang/Object;)V
-                const/4 v5, 0x0
-                invoke-virtual {v$builderReg, v5}, Lbwyf;->d(Z)Lbwyj;
-            """.trimIndent()
-            method.addInstructions(dIndex + 1, fallbackSmali)
+        // 4. Guard against empty parentId in MediaBrowser.subscribe (bog.n())
+        // Third-party/modded MediaBrowserService might return empty/null root ID initially,
+        // which causes MediaBrowserCompat.subscribe to throw IllegalArgumentException: parentId is empty.
+        val subscribeMethod = MediaBrowserSubscribeFingerprint.method
+        val subscribeImpl = subscribeMethod.implementation
+        if (subscribeImpl != null) {
+            val getRootIndex = subscribeImpl.instructions.indexOfFirst { insn ->
+                (insn as? ReferenceInstruction)?.reference?.let {
+                    (it as? MethodReference)?.definingClass == "Landroid/media/browse/MediaBrowser;" &&
+                        (it as? MethodReference)?.name == "getRoot"
+                } == true
+            }
+            if (getRootIndex != -1) {
+                val guardSmali = """
+                    invoke-static {v2}, Landroid/text/TextUtils;->isEmpty(Ljava/lang/CharSequence;)Z
+                    move-result v3
+                    if-eqz v3, :cond_has_root
+                    return-void
+                    :cond_has_root
+                """.trimIndent()
+                subscribeMethod.addInstructions(getRootIndex + 2, guardSmali)
+            }
         }
     }
 }

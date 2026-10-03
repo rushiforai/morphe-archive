@@ -8,8 +8,8 @@ import app.template.patches.shared.HELPER
 @Suppress("unused")
 val meeshoSortByRatingsCountPatch = bytecodePatch(
     name = "Sort by number of ratings",
-    description = "Sorts Meesho catalog, search and collection feeds by number of ratings " +
-        "(descending) and removes ad catalogs.",
+    description = "Adds Sort (off / most rated / top rated), 4★+, Hide ads and a 'Ranked' list " +
+        "to Meesho catalog, search and collection feeds. The ranked list orders every page the app has loaded.",
     default = false,
 ) {
     compatibleWith(MEESHO_COMPATIBILITY)

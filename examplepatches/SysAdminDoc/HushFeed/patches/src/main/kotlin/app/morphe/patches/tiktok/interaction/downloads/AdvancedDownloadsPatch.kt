@@ -232,6 +232,36 @@ private object PhotoSaveJobFingerprint : Fingerprint(
     custom = { method, classDef -> method.isPhotoSaveJob(classDef) },
 )
 
+private val PHOTO_VIDEO_CONVERSION_STRINGS = listOf(
+    "photo_mode_save_image_as_video", "photo_mode_save_live_photo_as_video", "saveImageAsVideo start aid=",
+)
+
+/** The conversion job, separate from the image picker and generic video download. */
+internal fun Method.isPhotoVideoConversion(): Boolean =
+    AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&
+        parameterTypes.map(CharSequence::toString) == listOf(AWEME, STRING, FUNCTION1) &&
+        PHOTO_VIDEO_CONVERSION_STRINGS.all { containsString(it) }
+
+internal object PhotoVideoConversionFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(AWEME, STRING, FUNCTION1),
+    strings = PHOTO_VIDEO_CONVERSION_STRINGS,
+    custom = { method, _ -> method.isPhotoVideoConversion() },
+)
+
+internal fun MutableMethod.interceptPhotoVideoConversion() {
+    check(isPhotoVideoConversion()) { "Advanced downloads: unexpected photo conversion signature or markers." }
+    requireLocals("Advanced downloads", 1)
+    // Before the native method-id frame and busy/progress state. The native Function1
+    // accepts an MP4 path, so it is not passed to an image job and never gets a fake result.
+    addInstructionsWithLabels(0, """
+        invoke-static/range { p0 .. p0 }, ${EXTENSION}OriginalPhotos;->startImageAsVideo(Ljava/lang/Object;)Z
+        move-result v0
+        if-eqz v0, :native_photo_conversion
+        return-void
+    """, ExternalLabel("native_photo_conversion", getInstruction(0)))
+}
+
 @Suppress("unused")
 val advancedDownloadsPatch = bytecodePatch(
     name = "Advanced downloads",
@@ -277,6 +307,7 @@ val advancedDownloadsPatch = bytecodePatch(
                 return-void
             """, ExternalLabel("original", getInstruction(0)))
         }
+        PhotoVideoConversionFingerprint.method.interceptPhotoVideoConversion()
         ProfileUserResponseFingerprint.method.addInstruction(
             0,
             "invoke-static/range { p0 .. p0 }, ${EXTENSION}ProfileAvatarSaver;->" +

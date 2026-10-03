@@ -9,6 +9,8 @@ package app.morphe.extension.tiktok.share;
 import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.accessibility.AccessibilityNodeInfo;
 
 import app.morphe.extension.shared.GlobalLayoutHook;
 import app.morphe.extension.shared.Logger;
@@ -46,8 +48,8 @@ import java.util.WeakHashMap;
  *   dwr   the share channels row (Repost, Copy link, SMS, Facebook, ...)
  *   a5t   the actions row (Report, Not interested, Download, Create group, ...)
  * </pre>
- * Every cell in the three rows carries its label as its content description, which is
- * what the hidden list matches against.
+ * Contacts put their label on the View. Native actions instead bind a child TextView and
+ * expose its title through their accessibility delegate, so both descriptions are read.
  *
  * There used to be a confirm step here, a second tap before a video went to a friend. On every
  * build Hushfeed supports, a tap on a person only marks them chosen and TikTok's own Send button
@@ -70,6 +72,22 @@ public final class ShareSheetTools {
 
     private static WeakReference<Activity> activityReference = new WeakReference<>(null);
     private static final GlobalLayoutHook LAYOUT_HOOK = new GlobalLayoutHook();
+    private static final GlobalLayoutHook SHEET_LAYOUT_HOOK = new GlobalLayoutHook();
+    private static WeakReference<View> panelRowReference = new WeakReference<>(null);
+    private static WeakReference<ViewGroup> panelDrawRoot = new WeakReference<>(null);
+    private static ViewTreeObserver panelDrawObserver;
+    private static PanelRows panelRows;
+    private static final ViewTreeObserver.OnPreDrawListener PANEL_DRAW_LISTENER = ShareSheetTools::beforePanelDraw;
+    private static final View.OnAttachStateChangeListener PANEL_ATTACH_LISTENER =
+            new View.OnAttachStateChangeListener() {
+                @Override public void onViewAttachedToWindow(View row) {
+                    if (panelRowReference.get() == row) panelBound(row);
+                }
+
+                @Override public void onViewDetachedFromWindow(View row) {
+                    if (panelRowReference.get() == row) detachSheetHooks();
+                }
+            };
 
     private static boolean applyPosted;
 
@@ -88,14 +106,17 @@ public final class ShareSheetTools {
         try {
             if (activity.isFinishing()) {
                 LAYOUT_HOOK.detach();
+                detachPanel();
                 return;
             }
             ViewGroup root = activity.findViewById(android.R.id.content);
             if (root == null) {
                 LAYOUT_HOOK.detach();
+                detachPanel();
                 Logger.printInfo(() -> "Share sheet tools found no content view to watch");
                 return;
             }
+            if (activityReference.get() != activity) detachPanel();
             boolean installed = LAYOUT_HOOK.install(root, ShareSheetTools::apply);
             activityReference = new WeakReference<>(activity);
             if (installed) {
@@ -112,10 +133,12 @@ public final class ShareSheetTools {
             Activity activity = activityReference.get();
             if (activity == null) {
                 LAYOUT_HOOK.detach();
+                detachPanel();
                 return;
             }
             if (activity.isFinishing()) {
                 LAYOUT_HOOK.detach();
+                detachPanel();
                 return;
             }
 
@@ -127,23 +150,16 @@ public final class ShareSheetTools {
             addIds(activity, wanted, ACTIONS_LIST_IDS);
             List<Map<Integer, View>> found = indexRoots(roots, wanted);
             View contacts = find(activity, roots, found, CONTACTS_LIST_IDS);
-            List<String> hidden = entries(ShareModelFilter.hiddenItems());
-
+            View channels = find(activity, roots, found, CHANNELS_LIST_IDS);
+            View actions = find(activity, roots, found, ACTIONS_LIST_IDS);
+            watchSheetRoot(activity, actions != null ? actions : channels != null ? channels : contacts);
             View contactsSection = find(activity, roots, found, CONTACTS_SECTION_IDS);
-            boolean hideContacts = Settings.HIDE_SHARE_CONTACTS.get();
-            if (contactsSection != null) {
-                setVisible(contactsSection, !hideContacts);
+            ViewGroup panel = panelDrawRoot.get();
+            if (panel != null) {
+                panelRows = new PanelRows(panel, contactsSection, contacts, channels,
+                        actions != null ? actions : panelRowReference.get());
             }
-            if (!hideContacts && contacts instanceof ViewGroup) {
-                ViewGroup list = (ViewGroup) contacts;
-                for (int index = 0; index < list.getChildCount(); index++) {
-                    View cell = list.getChildAt(index);
-                    setCellHidden(cell, matches(hidden, labelOf(cell)));
-                }
-            }
-
-            hideByLabel(find(activity, roots, found, CHANNELS_LIST_IDS), hidden);
-            hideByLabel(find(activity, roots, found, ACTIONS_LIST_IDS), hidden);
+            applyRows(contactsSection, contacts, channels, actions);
         } catch (Throwable ex) {
             HookStatus.threw(FAMILY, "layout pass", ex);
             Logger.printException(() -> "Share sheet tools failed", ex);
@@ -151,6 +167,137 @@ public final class ShareSheetTools {
     }
 
     // ---- hiding ------------------------------------------------------------------------
+
+    /** Layouts discover rows. Pre-draw catches title changes that only invalidate their text. */
+    private static void watchSheetRoot(Activity activity, View row) {
+        View root = row == null ? null : row.getRootView();
+        View activityRoot = activity == null || activity.getWindow() == null
+                ? null : activity.getWindow().getDecorView();
+        if (root instanceof ViewGroup && root != activityRoot) {
+            SHEET_LAYOUT_HOOK.install((ViewGroup) root, ShareSheetTools::apply);
+            watchPanelDraw((ViewGroup) root);
+        } else {
+            detachSheetHooks();
+        }
+    }
+
+    private static void watchPanelDraw(ViewGroup root) {
+        ViewTreeObserver current = root.getViewTreeObserver();
+        if (panelDrawRoot.get() == root && panelDrawObserver == current && current.isAlive()) return;
+        detachPanelDraw();
+        current.addOnPreDrawListener(PANEL_DRAW_LISTENER);
+        panelDrawRoot = new WeakReference<>(root);
+        panelDrawObserver = current;
+        // The native action row is known before the first layout or posted pass.
+        panelRows = new PanelRows(root, null, null, null, panelRowReference.get());
+    }
+
+    /** Only known panel rows are read on redraw, never the activity or the window-root index. */
+    private static boolean beforePanelDraw() {
+        try {
+            Activity activity = activityReference.get();
+            if (activity == null || activity.isFinishing()) {
+                LAYOUT_HOOK.detach();
+                detachPanel();
+                return true;
+            }
+            ViewGroup root = panelDrawRoot.get();
+            PanelRows rows = panelRows;
+            if (root != null && root.isAttachedToWindow() && rows != null) {
+                applyRows(rows.get(rows.section, root), rows.get(rows.contacts, root),
+                        rows.get(rows.channels, root), rows.get(rows.actions, root));
+            }
+        } catch (Throwable ex) {
+            HookStatus.threw(FAMILY, "draw pass", ex);
+            Logger.printException(() -> "Share sheet redraw filtering failed", ex);
+        }
+        return true;
+    }
+
+    /** Weak row snapshots are refreshed during layout, including replacement channel lists. */
+    private static final class PanelRows {
+        final WeakReference<View> section, contacts, channels, actions;
+
+        PanelRows(View root, View section, View contacts, View channels, View actions) {
+            this.section = inRoot(section, root);
+            this.contacts = inRoot(contacts, root);
+            this.channels = inRoot(channels, root);
+            this.actions = inRoot(actions, root);
+        }
+
+        private static WeakReference<View> inRoot(View view, View root) {
+            return new WeakReference<>(view != null && view.getRootView() == root ? view : null);
+        }
+
+        View get(WeakReference<View> reference, View root) {
+            View view = reference.get();
+            return view != null && view.isAttachedToWindow() && view.getRootView() == root ? view : null;
+        }
+    }
+
+    private static void applyRows(View section, View contacts, View channels, View actions) {
+        List<String> hidden = entries(ShareModelFilter.hiddenItems());
+        boolean hideContacts = Settings.HIDE_SHARE_CONTACTS.get();
+        if (section != null) setVisible(section, !hideContacts);
+        if (!hideContacts) hideByLabel(contacts, hidden);
+        hideByLabel(channels, hidden);
+        hideByLabel(actions, hidden);
+    }
+
+    /**
+     * Called after the native panel finds and casts its action row in either layout. This runs
+     * even with no contacts, Pause or an empty exclusion list. The panel's onAttachedToWindow
+     * can run before its row attaches, so keep an attach listener for that first layout and for
+     * a reused, nonfocusable Dialog. No listener keeps a detached row or its Activity alive.
+     */
+    public static void panelBound(View row) {
+        if (row == null) return;
+        Utils.runOnMainThreadNowOrLater(() -> {
+            try {
+                View previous = panelRowReference.get();
+                if (previous != row) {
+                    detachPanel();
+                    panelRowReference = new WeakReference<>(row);
+                    row.addOnAttachStateChangeListener(PANEL_ATTACH_LISTENER);
+                }
+                watchSheetRoot(activityReference.get(), row);
+                requestApply();
+            } catch (Throwable ex) {
+                HookStatus.threw(FAMILY, "panel bind", ex);
+                Logger.printException(() -> "Could not watch the native share panel", ex);
+            }
+        });
+    }
+
+    private static void detachPanel() {
+        View previous = panelRowReference.get();
+        if (previous != null) previous.removeOnAttachStateChangeListener(PANEL_ATTACH_LISTENER);
+        panelRowReference = new WeakReference<>(null);
+        detachSheetHooks();
+    }
+
+    private static void detachSheetHooks() {
+        SHEET_LAYOUT_HOOK.detach();
+        detachPanelDraw();
+    }
+
+    private static void detachPanelDraw() {
+        removePanelDrawListener(panelDrawObserver);
+        ViewGroup root = panelDrawRoot.get();
+        if (root != null) removePanelDrawListener(root.getViewTreeObserver());
+        panelDrawRoot = new WeakReference<>(null);
+        panelDrawObserver = null;
+        panelRows = null;
+    }
+
+    private static void removePanelDrawListener(ViewTreeObserver observer) {
+        if (observer == null) return;
+        try {
+            if (observer.isAlive()) observer.removeOnPreDrawListener(PANEL_DRAW_LISTENER);
+        } catch (Throwable ignored) {
+            // A destroyed window can invalidate its observer during removal.
+        }
+    }
 
     private static void hideByLabel(View list, List<String> hidden) {
         if (!(list instanceof ViewGroup)) {
@@ -233,14 +380,25 @@ public final class ShareSheetTools {
         }
     }
 
+    @SuppressWarnings("deprecation")
     static String labelOf(View view) {
-        if (view == null) {
-            return null;
+        if (view == null) return null;
+        String label = trimmedLabel(view.getContentDescription());
+        if (label != null) return label;
+
+        // The native delegate reads the bound child title. Do not search arbitrary descendants:
+        // a vertical action row can also contain a whole channels group with several choices.
+        AccessibilityNodeInfo node = AccessibilityNodeInfo.obtain(view);
+        try {
+            view.onInitializeAccessibilityNodeInfo(node);
+            return trimmedLabel(node.getContentDescription());
+        } finally {
+            node.recycle();
         }
-        CharSequence description = view.getContentDescription();
-        if (description == null) {
-            return null;
-        }
+    }
+
+    private static String trimmedLabel(CharSequence description) {
+        if (description == null) return null;
         String label = description.toString().trim();
         return label.isEmpty() ? null : label;
     }
@@ -338,6 +496,11 @@ public final class ShareSheetTools {
     private static List<View> windowRoots(Activity activity) {
         List<View> roots = new ArrayList<>();
         Set<View> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        View row = panelRowReference.get();
+        if (row != null && row.isAttachedToWindow()) {
+            View panel = row.getRootView();
+            if (seen.add(panel)) roots.add(panel);
+        }
         View decor = activity == null || activity.getWindow() == null
                 ? null : activity.getWindow().getDecorView();
         if (decor != null && seen.add(decor)) roots.add(decor);
@@ -352,8 +515,8 @@ public final class ShareSheetTools {
                 }
             }
         } catch (Throwable ex) {
-            // The activity root still covers retained 46.x builds and every share action filtered
-            // at the model layer. A non-SDK lookup failure must not break the share sheet, and it
+            // The bound native row still supplies its own panel root. A non-SDK lookup failure
+            // must not break the share sheet, and it
             // is not retried: this runs on every layout pass, and a refusal stays a refusal. Once
             // the lookup has worked, a failure is the read itself, a window list changing under
             // the walk say, and the next pass reads it again.

@@ -12,6 +12,7 @@ import app.morphe.patches.telegram.ads.MESSAGES_CONTROLLER
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.util.ControlFlow
+import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -20,6 +21,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -33,6 +35,59 @@ import org.junit.Test
  */
 class DisableAnalyticsFixtureTest {
     private val analytics = "Lapp/hushtelegram/extension/telegram/misc/Analytics;"
+
+    @Test
+    fun storageReportEncodesRootClassificationAsBooleanAndPeerZeroOrOne() {
+        for (build in Fixtures.declaredBuilds()) {
+            val controller = FixtureDex.classes(build, setOf(MESSAGES_CONTROLLER)).getValue(MESSAGES_CONTROLLER)
+            val method = controller.methods.single {
+                it.name == "logDeviceStats" && it.parameterTypes.isEmpty() && it.returnType == "V"
+            }
+            val body = method.instructions()
+            val references = body.map { (it as? ReferenceInstruction)?.reference?.toString() }
+            val json = "Lorg/telegram/tgnet/TLRPC\$TL_jsonBool;"
+            val event = "Lorg/telegram/tgnet/TLRPC\$TL_inputAppEvent;"
+            val classification = references.indices.single {
+                references[it] == "Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z"
+            }
+            assertEquals("emulated-storage classification, not existence or paths", "/storage/emulated/",
+                references[classification - 1])
+            assertEquals(Opcode.CONST_STRING, body[classification - 1].opcode)
+            assertEquals(body[classification - 1].namedRegisters().single(),
+                body[classification].namedRegisters()[1])
+            assertEquals(Opcode.MOVE_RESULT, body[classification + 1].opcode)
+            val booleanRegister = body[classification + 1].namedRegisters().single()
+            val value = references.indices.single { references[it] == "$json->value:Z" }
+            assertEquals(Opcode.IPUT_BOOLEAN, body[value].opcode)
+            assertEquals(booleanRegister, body[value].namedRegisters()[0])
+            val jsonRegister = body[value].namedRegisters()[1]
+            val allocation = references.indices.single { references[it] == json && body[it].opcode == Opcode.NEW_INSTANCE }
+            assertEquals(jsonRegister, body[allocation].namedRegisters().single())
+            val data = references.indices.single {
+                references[it] == "$event->data:Lorg/telegram/tgnet/TLRPC\$JSONValue;"
+            }
+            assertEquals(Opcode.IPUT_OBJECT, body[data].opcode)
+            assertEquals("only the boolean object becomes event data", jsonRegister, body[data].namedRegisters()[0])
+            assertTrue(value in classification + 2 until data)
+            assertTrue("the computed boolean survives until serialization", body.subList(classification + 2, value).none {
+                it.opcode.setsRegister() && (it.namedRegisters().firstOrNull() == booleanRegister ||
+                    it.opcode.setsWideRegister() && it.namedRegisters().firstOrNull()?.plus(1) == booleanRegister)
+            })
+            val peer = references.indices.single { references[it] == "$event->peer:J" }
+            assertEquals(Opcode.IF_EQZ, body[peer - 4].opcode)
+            assertEquals(booleanRegister, body[peer - 4].namedRegisters().single())
+            assertEquals(1L, (body[peer - 3] as WideLiteralInstruction).wideLiteral)
+            assertEquals(0L, (body[peer - 1] as WideLiteralInstruction).wideLiteral)
+            val peerRegister = body[peer].namedRegisters()[0]
+            assertEquals(peerRegister, body[peer - 3].namedRegisters().single())
+            assertEquals(peerRegister, body[peer - 1].namedRegisters().single())
+            val flow = ControlFlow.of(method)
+            assertEquals(listOf(peer - 1, peer - 3), flow.normal[peer - 4])
+            assertEquals(listOf(peer), flow.normal[peer - 2])
+            assertEquals(Opcode.IPUT_WIDE, body[peer].opcode)
+            assertTrue(references.contains("android_sdcard_exists"))
+        }
+    }
 
     @Test
     fun `each declared build has both reports, and the patch hooks both with nothing left to warn about`() {
@@ -55,7 +110,12 @@ class DisableAnalyticsFixtureTest {
             }
             val metrics = metricsClass.methods.single(::sendsReadMetrics)
 
-            val context = PatchContexts.of(ExtensionDex.classes() + classes.values + metricsClass)
+            val appLogClasses = FixtureDex.classesWhere(build, { true }) { method ->
+                method.instructions().any { it.opcode == Opcode.NEW_INSTANCE &&
+                    (it as? ReferenceInstruction)?.reference?.toString() == SAVE_APP_LOG }
+            }
+            val context = PatchContexts.of(ExtensionDex.classes() +
+                (classes.values + metricsClass + appLogClasses).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
             assertEquals("$where: the patch log", emptyList<String>(), warnings)
 

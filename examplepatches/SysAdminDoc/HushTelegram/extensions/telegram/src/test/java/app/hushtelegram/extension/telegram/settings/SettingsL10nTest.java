@@ -399,7 +399,9 @@ public class SettingsL10nTest {
             choices.dismiss();
 
             // The licences dialog's title; the notice under it stays English, as the licences do.
-            Preference licenses = rows.get(rows.size() - 1);
+            Preference licenses = null;
+            for (Preference row : rows) if (L10n.t("Licenses").contentEquals(String.valueOf(row.getTitle()))) licenses = row;
+            assertNotNull("no Licenses row", licenses);
             licenses.getOnPreferenceClickListener().onPreferenceClick(licenses);
             ShadowLooper.idleMainLooper();
             AlertDialog notice = (AlertDialog) ShadowAlertDialog.getLatestDialog();

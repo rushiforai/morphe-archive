@@ -11,8 +11,10 @@
 package app.morphe.patches.tiktok.misc.extension
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.misc.extension.ExtensionHook
-import app.morphe.patches.shared.misc.extension.sharedExtensionPatch
+import app.morphe.patches.shared.misc.extension.sharedExtensionPatch as extendShared
+import app.morphe.patches.tiktok.misc.diagnostics.buildDetailsPatch
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -85,7 +87,7 @@ private val storeRegionInitHook = ExtensionHook(
     contextRegisterResolver = { "p1" },
 )
 
-val sharedExtensionPatch = sharedExtensionPatch(
+private val tiktokExtensionPatch = extendShared(
     extensionName = "tiktok",
     isYouTubeOrYouTubeMusic = false,
     hostApplicationInitHook,
@@ -93,3 +95,7 @@ val sharedExtensionPatch = sharedExtensionPatch(
     jatoInitHook,
     storeRegionInitHook,
 )
+
+val sharedExtensionPatch = bytecodePatch {
+    dependsOn(buildDetailsPatch, tiktokExtensionPatch)
+}

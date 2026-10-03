@@ -64,7 +64,7 @@ class AppCompatibilitiesMatchFixturesTest {
         val targets = AppCompatibilities.threads().single().targets
         assertEquals(
             "declared versions, newest first",
-            listOf(AppCompatibilities.THREADS_TARGET_VERSION),
+            listOf(AppCompatibilities.THREADS_TARGET_VERSION, "448.0.0.54.85"),
             targets.map { it.version },
         )
         var checked = 0

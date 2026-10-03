@@ -165,7 +165,7 @@ public class SettingsScreenStatesTest {
         assertEquals("Abbrechen", L10n.t("Cancel"));
         try (ActivityController<SettingsL10nTest.ActivityInEnglish> controller =
                      Robolectric.buildActivity(SettingsL10nTest.ActivityInEnglish.class).setup()) {
-            HushfacebookPreferenceFragment.FileNameRow row = HushfacebookPreferenceFragment.fileNameRow(controller.get());
+            ValueRows.FileNameRow row = HushfacebookPreferenceFragment.fileNameRow(controller.get());
             assertEquals(L10n.t("Save"), String.valueOf(row.getPositiveButtonText()));
             assertEquals(L10n.t("Cancel"), String.valueOf(row.getNegativeButtonText()));
         }
@@ -187,7 +187,7 @@ public class SettingsScreenStatesTest {
     @Test
     public void aDisabledRowIsDimmedAndAnEnabledOneIsNot() {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
-            HushfacebookPreferenceFragment.Row row = new HushfacebookPreferenceFragment.Row(controller.get());
+            SettingsRows.Row row = new SettingsRows.Row(controller.get());
             row.setTitle("Import settings");
             row.setSummary("Waiting for the export.");
             ListView list = new ListView(controller.get());

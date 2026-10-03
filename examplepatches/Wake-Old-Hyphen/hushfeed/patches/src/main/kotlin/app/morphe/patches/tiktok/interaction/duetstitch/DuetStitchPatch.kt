@@ -92,7 +92,7 @@ val duetStitchPatch = bytecodePatch(
                     .map { it.index }
                     .toList()
                 check(returns.isNotEmpty()) {
-                    "Allow Duet and Stitch: ${fingerprint.name} does not return a value."
+                    "Allow Duet and Stitch: $definingClass->$name does not return a value."
                 }
                 returns.asReversed().forEach { index ->
                     // The range form names any register a return can hold.

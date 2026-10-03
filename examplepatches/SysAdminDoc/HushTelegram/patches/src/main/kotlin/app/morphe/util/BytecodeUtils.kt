@@ -63,6 +63,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutab
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patcher.util.smali.toInstructions
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcode.CONST_STRING
@@ -229,6 +230,45 @@ fun MutableMethod.addInstructionsAtControlFlowLabel(
     instructions: String,
     vararg externalLabels: ExternalLabel
 ) {
+    // The copy below shares the original's payload until the original is removed, and dexlib2
+    // refuses two switches on one payload halfway through, with the copy already in the method.
+    val original = getInstruction(insertIndex).opcode
+    if (original in PAYLOAD_USERS) {
+        throw PatchException("$definingClass->$name: code can't go in front of the $original at instruction $insertIndex")
+    }
+    // A payload is data after the code. Nothing runs it, and the copy would be a second payload.
+    if (original in PAYLOADS) {
+        throw PatchException("$definingClass->$name: instruction $insertIndex is a $original, data that never runs, so code can't go in front of it")
+    }
+    // A result is taken right after its call and a caught exception at its handler's start. Code in
+    // front of either leaves the move to a place ART refuses it, whether or not the code jumps.
+    if (original == Opcode.MOVE_EXCEPTION || original in MOVE_RESULTS) {
+        throw PatchException("$definingClass->$name: code can't go in front of the $original at instruction $insertIndex, " +
+            "which only a throw or a call may reach")
+    }
+    // Compiled the way the patcher compiles it, with a stand-in nop for each label the code names but
+    // doesn't hold, to know its length. A label's name is internal to the patcher, so the names come
+    // from the code; a type after a colon gets a stand-in too, which is counted the same way.
+    val held = Regex("""^\s*:(\w+)\s*$""", RegexOption.MULTILINE).findAll(instructions).map { it.groupValues[1] }.toSet()
+    val standIns = Regex(""":(\w+)""").findAll(instructions).map { it.groupValues[1] }.toSet() - held
+    val compiled = (instructions + standIns.joinToString("") { "\n:$it\nnop" }).toInstructions(this)
+    // A switch or array table of the hook's own would be checked, and copied, against the method's padding.
+    compiled.firstOrNull { it.opcode in PAYLOAD_USERS || it.opcode == Opcode.FILL_ARRAY_DATA }?.let {
+        throw PatchException("$definingClass->$name: the code at instruction $insertIndex has a ${it.opcode} of its own, which can't be checked")
+    }
+    if (externalLabels.isNotEmpty()) requireJumpsKeepRegisters(insertIndex, instructions, externalLabels, compiled.size - standIns.size)
+    insertAtControlFlowLabel(insertIndex, instructions, *externalLabels)
+}
+
+/**
+ * [addInstructionsAtControlFlowLabel] without its checks. Only for tests that build a hostile
+ * method on purpose, one ART would refuse, to show a patch still turns it down.
+ */
+internal fun MutableMethod.insertAtControlFlowLabel(
+    insertIndex: Int,
+    instructions: String,
+    vararg externalLabels: ExternalLabel
+) {
     // Duplicate original instruction and add to +1 index.
     addInstruction(insertIndex + 1, getInstruction(insertIndex))
 
@@ -242,6 +282,111 @@ fun MutableMethod.addInstructionsAtControlFlowLabel(
     // Original instruction is now after the inserted patch instructions,
     // and the original control flow label is on the first instruction of the patch code.
 }
+
+/**
+ * Refuses, before the method changes, a hook whose jump would bring a register to a read that
+ * can't take what it now holds. ART verifies the whole method when its class loads, so one such
+ * jump fails the class on every run, whatever the guard answers. The hook goes into a copy first,
+ * and every read in the copy is checked against what the same read had in the unchanged method,
+ * so a read the model can't type passes only where nothing about its register changed. A
+ * reference of a class that differs between paths, or an array element of a type not known here,
+ * is taken on trust; dex2oat on a phone still checks those.
+ */
+private fun MutableMethod.requireJumpsKeepRegisters(insertIndex: Int, instructions: String, labels: Array<out ExternalLabel>, hookSize: Int) {
+    fun refuse(reason: String): Nothing = throw PatchException("$definingClass->$name: $reason")
+    val stock = implementation!!.instructions.toList()
+    // The label's instruction is internal to the patcher, but copy and equals are public, and an
+    // instruction is only ever equal to itself.
+    val targets = labels.map { label ->
+        stock.indices.singleOrNull { label.copy(instruction = stock[it]) == label }
+            ?: refuse("a label of the code at instruction $insertIndex points at no instruction of this method")
+    }
+    val trial = MutableMethod(ImmutableMethod.of(this))
+    trial.insertAtControlFlowLabel(insertIndex, instructions,
+        *labels.mapIndexed { n, label -> label.copy(instruction = trial.getInstruction(targets[n])) }.toTypedArray())
+    val copied = trial.implementation!!.instructions.toList()
+    // dexlib2 starts every payload on an even code unit with a nop in front where needed, so a hook
+    // of an odd length adds that nop or drops it, and a goto the hook pushes out of reach grows to
+    // goto/16. The copy is matched to the method one instruction at a time around both, with the
+    // hook's own length taken from its compiled code, or every instruction past a changed nop would
+    // be read against its neighbor.
+    if (stock.isPadding(insertIndex)) refuse("instruction $insertIndex is the padding in front of a payload, which never runs")
+    val toStock = IntArray(copied.size) { -1 }
+    var s = 0
+    var t = 0
+    var hookStart = -1
+    while (s < stock.size || t < copied.size) {
+        if (s == insertIndex && hookStart < 0) {
+            hookStart = t
+            t += hookSize
+            continue
+        }
+        when {
+            s < stock.size && t < copied.size && stock[s].opcode.kind() == copied[t].opcode.kind() -> toStock[t++] = s++
+            s < stock.size && stock.isPadding(s) -> s++
+            t < copied.size && copied.isPadding(t) -> t++
+            else -> refuse("can't line the copy with the code at instruction $insertIndex up with the method at instruction $s")
+        }
+    }
+    val hook = hookStart until hookStart + hookSize
+    val resumed = hookStart + hookSize
+    val stockKinds: RegisterKinds
+    val trialKinds: RegisterKinds
+    val trialFlow: ControlFlow
+    try {
+        stockKinds = RegisterKinds.of(this)
+        trialKinds = RegisterKinds.of(trial)
+        trialFlow = ControlFlow.of(trial)
+    } catch (unreadable: IllegalArgumentException) {
+        refuse("can't tell whether the code at instruction $insertIndex keeps the registers it jumps with: ${unreadable.message}")
+    }
+    for (from in hook) {
+        for (to in trialFlow.normal[from]) {
+            // Inside the hook, or on into the instruction it was put in front of.
+            if (to in hook || to == resumed) continue
+            val target = toStock[to]
+            if (target < 0) refuse("the code at instruction $insertIndex would jump into the padding in front of a payload")
+            val opcode = stock[target].opcode
+            if (opcode == Opcode.MOVE_EXCEPTION || opcode in MOVE_RESULTS) {
+                refuse("the code at instruction $insertIndex would jump to the $opcode at instruction $target, which only a throw or a call may reach")
+            }
+        }
+    }
+    for (index in copied.indices) {
+        // The hook's own reads are the patch's to get right; this checks what it does to the method.
+        if (index in hook) continue
+        val now = trialKinds.at(index) ?: continue
+        val at = toStock[index]
+        if (at < 0) refuse("the code at instruction $insertIndex would run into the padding in front of a payload")
+        val before = stockKinds.at(at)
+            ?: refuse("the code at instruction $insertIndex would jump to instruction $at, which nothing reached before")
+        for ((register, use) in registerReads(copied[index])) {
+            val keeps = if (use == RegisterUse.OTHER) {
+                RegisterKind.merge(before[register], now[register]) == before[register]
+            } else {
+                use.fits(now, register) || !use.fits(before, register)
+            }
+            if (!keeps) {
+                refuse("the code at instruction $insertIndex would bring v$register to instruction $at holding ${now[register]}, " +
+                    "where the method's own paths bring ${before[register]}")
+            }
+        }
+    }
+}
+
+/** A nop in front of a payload, which dexlib2 adds or drops to align it. */
+private fun List<Instruction>.isPadding(index: Int) =
+    this[index].opcode == Opcode.NOP && getOrNull(index + 1)?.opcode in PAYLOADS
+
+/** An opcode with its wider forms folded in, which dexlib2 picks by the distance a jump needs. */
+private fun Opcode.kind() = when (this) {
+    Opcode.GOTO_16, Opcode.GOTO_32 -> Opcode.GOTO
+    else -> this
+}
+
+private val MOVE_RESULTS = setOf(Opcode.MOVE_RESULT, Opcode.MOVE_RESULT_WIDE, Opcode.MOVE_RESULT_OBJECT)
+private val PAYLOAD_USERS = setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH)
+private val PAYLOADS = setOf(Opcode.PACKED_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_PAYLOAD, Opcode.ARRAY_PAYLOAD)
 
 /**
  * Find the index of the first literal instruction with the given long value.

@@ -56,46 +56,72 @@ class FeedAdFilterInjectionTest {
         instructions = null,
     )
 
+    /** Returns the injected opcode sequence after checking that the original NOP body is preserved. */
     private fun injectedOpcodes(registerCount: Int): List<Opcode> {
         val method = targetMethod(registerCount)
         injectFeedAdFilter(method)
         val instructions = method.implementation!!.instructions
-        assertEquals(5, instructions.size, "hook adds 4 instructions before the original NOP")
-        assertEquals(Opcode.NOP, instructions[4].opcode, "original body is preserved after the hook")
+        assertEquals(10, instructions.size, "hook adds 9 instructions before the original NOP")
+        assertEquals(Opcode.NOP, instructions[9].opcode, "original body is preserved after the hook")
         return instructions.map { it.opcode }
     }
 
+    /** Verifies that missing or ambiguous feed matches fail with a diagnostic count. */
+    @Test fun feedFingerprintResultsMustBeUnique() {
+        assertEquals("target", requireSingleFeedMatch("target", listOf("target")))
+        val missing = kotlin.test.assertFailsWith<IllegalStateException> {
+            requireSingleFeedMatch("target", emptyList<String>())
+        }
+        assertEquals("Threads target fingerprint matched 0 methods; expected exactly one", missing.message)
+        val ambiguous = kotlin.test.assertFailsWith<IllegalStateException> {
+            requireSingleFeedMatch("target", listOf("first", "second"))
+        }
+        assertEquals("Threads target fingerprint matched 2 methods; expected exactly one", ambiguous.message)
+    }
+
+    /** Verifies plain object moves and register operands when the feed list fits in four bits. */
     @Test fun lowRegisterHookUsesPlainMoves() {
-        // registerCount 10 -> listReg 6: everything fits 4-bit move-object.
-        val opcodes = injectedOpcodes(10)
+        // registerCount 15 -> listReg 11; v0-v5 are local scratch registers.
+        val opcodes = injectedOpcodes(15)
         assertEquals(
             listOf(
                 Opcode.MOVE_OBJECT,
-                Opcode.INVOKE_STATIC,
+                Opcode.CONST_STRING,
+                Opcode.CONST_STRING,
+                Opcode.CONST_STRING,
+                Opcode.CONST_STRING,
+                Opcode.CONST_STRING,
+                Opcode.INVOKE_STATIC_RANGE,
                 Opcode.MOVE_RESULT_OBJECT,
                 Opcode.MOVE_OBJECT,
                 Opcode.NOP,
             ),
             opcodes,
         )
-        val method = targetMethod(10)
+        val method = targetMethod(15)
         injectFeedAdFilter(method)
         val instructions = method.implementation!!.instructions
         val load = instructions[0] as TwoRegisterInstruction
         assertEquals(0, load.registerA)
-        assertEquals(6, load.registerB)
-        val store = instructions[3] as TwoRegisterInstruction
-        assertEquals(6, store.registerA)
+        assertEquals(11, load.registerB)
+        val store = instructions[8] as TwoRegisterInstruction
+        assertEquals(11, store.registerA)
         assertEquals(0, store.registerB)
     }
 
+    /** Verifies from16 object moves for the pinned feed-merge register frame. */
     @Test fun pinnedFrameHookUsesFrom16Moves() {
         // Pinned A0F frame: registerCount 46 -> listReg 42.
         val opcodes = injectedOpcodes(46)
         assertEquals(
             listOf(
                 Opcode.MOVE_OBJECT_FROM16,
-                Opcode.INVOKE_STATIC,
+                Opcode.CONST_STRING,
+                Opcode.CONST_STRING,
+                Opcode.CONST_STRING,
+                Opcode.CONST_STRING,
+                Opcode.CONST_STRING,
+                Opcode.INVOKE_STATIC_RANGE,
                 Opcode.MOVE_RESULT_OBJECT,
                 Opcode.MOVE_OBJECT_FROM16,
                 Opcode.NOP,
@@ -104,11 +130,12 @@ class FeedAdFilterInjectionTest {
         )
     }
 
+    /** Verifies a move-object/16 store when the feed-list register exceeds eight bits. */
     @Test fun hugeFrameStoreUsesMove16() {
         // registerCount 260 -> listReg 256: from16 cannot address the store destination.
         val opcodes = injectedOpcodes(260)
         assertEquals(Opcode.MOVE_OBJECT_FROM16, opcodes[0])
-        assertEquals(Opcode.MOVE_OBJECT_16, opcodes[3])
+        assertEquals(Opcode.MOVE_OBJECT_16, opcodes[8])
     }
 
     /** Verifies that feed-filter injection rejects methods without a bytecode implementation. */
@@ -119,19 +146,23 @@ class FeedAdFilterInjectionTest {
         kotlin.test.assertEquals("BarcelonaFeedCache merge method has no implementation", error.message)
     }
 
+    /** Verifies the filter ABI, six-register range invoke, and capture of the returned list. */
     @Test fun hookCallsFilterAdsAndPreservesList() {
         val method = targetMethod(46)
         injectFeedAdFilter(method)
         val instructions = method.implementation!!.instructions
-        val invoke = instructions[1] as FiveRegisterInstruction
+        val invoke = instructions[6] as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
         val target = (invoke as ReferenceInstruction).reference as MethodReference
         assertEquals("Lcom/zeldrisho/threads/extension/FeedAdFilter;", target.definingClass)
         assertEquals("filterAds", target.name)
-        assertEquals(listOf("Ljava/util/List;"), target.parameterTypes.map { it.toString() })
+        assertEquals(
+            listOf("Ljava/util/List;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"),
+            target.parameterTypes.map { it.toString() },
+        )
         assertEquals("Ljava/util/List;", target.returnType)
-        assertEquals(0, invoke.registerC, "invoke must consume the scratch register")
-        assertEquals(1, invoke.registerCount)
-        val moveResult = instructions[2]
+        assertEquals(0, invoke.startRegister, "range invoke starts at the scratch register")
+        assertEquals(6, invoke.registerCount)
+        val moveResult = instructions[7]
         assertEquals(Opcode.MOVE_RESULT_OBJECT, moveResult.opcode)
     }
 }

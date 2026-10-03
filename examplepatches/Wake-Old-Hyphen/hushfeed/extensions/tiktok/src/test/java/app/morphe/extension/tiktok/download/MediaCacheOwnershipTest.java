@@ -4,6 +4,8 @@
  */
 package app.morphe.extension.tiktok.download;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -21,6 +23,9 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.util.Base64;
+import java.util.List;
 
 /**
  * The start's sweep runs from TikTok's application attachBaseContext, where the context it gets
@@ -94,5 +99,73 @@ public class MediaCacheOwnershipTest {
         assertTrue(inUse.setLastModified(stale()));
         MediaCache.reconcile(beforeAttach());
         assertFalse("a file nobody owns survived past the guard", inUse.exists());
+    }
+
+    @Test public void aFailedFinalDeletionLetsTheSweepReclaimTheAbandonedFile() throws Exception {
+        File abandoned = MediaCache.createTempFile(context, "selected-video-", ".mp4");
+        File inUse = MediaCache.createTempFile(context, "selected-video-", ".mp4");
+        byte[] bytes = {1, 2, 3};
+        try {
+            Files.write(abandoned.toPath(), bytes);
+            Files.write(inUse.toPath(), bytes);
+            assertFalse("the final deletion should be refused once", MediaCache.delete(refuseDeletion(abandoned)));
+            assertArrayEquals(bytes, Files.readAllBytes(abandoned.toPath()));
+            assertTrue(abandoned.setLastModified(stale()));
+            assertTrue(inUse.setLastModified(stale()));
+
+            MediaCache.reconcile(beforeAttach());
+
+            assertFalse("a finished job's failed cleanup kept permanent ownership", abandoned.exists());
+            assertArrayEquals("a still-active job lost its bytes", bytes, Files.readAllBytes(inUse.toPath()));
+        } finally {
+            MediaCache.delete(abandoned);
+            MediaCache.delete(inUse);
+        }
+    }
+
+    @Test public void anIntermediateDeletionKeepsOwnershipThroughRefusalAndRecreation() throws Exception {
+        File inUse = MediaCache.createTempFile(context, "selected-video-", ".mp4");
+        byte[] bytes = {4, 5, 6};
+        try {
+            Files.write(inUse.toPath(), bytes);
+            assertFalse(MediaCache.deletePartial(refuseDeletion(inUse)));
+            assertTrue(inUse.setLastModified(stale()));
+            MediaCache.reconcile(beforeAttach());
+            assertArrayEquals(bytes, Files.readAllBytes(inUse.toPath()));
+
+            assertTrue(MediaCache.deletePartial(inUse));
+            Files.write(inUse.toPath(), bytes);
+            assertTrue(inUse.setLastModified(stale()));
+            MediaCache.reconcile(beforeAttach());
+            assertArrayEquals("a retry's recreated file lost ownership", bytes, Files.readAllBytes(inUse.toPath()));
+        } finally {
+            MediaCache.delete(inUse);
+        }
+    }
+
+    @Test public void aMirrorFallbackKeepsItsRecreatedFileOwnedUntilFinalCleanup() throws Exception {
+        byte[] png = Base64.getDecoder().decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=");
+        MediaTransport.Client transport = MediaTransportFixtures.publicClient(url ->
+                MediaTransportFixtures.response(url, url.getPath().endsWith("bad") ? 403 : 200, png));
+        File inUse = MediaCache.createTempFile(context, "original-photo-", ".tmp");
+        try {
+            assertEquals("png", RemoteMedia.fetch(List.of(
+                    "https://first.tiktokcdn.com/bad", "https://second.tiktokcdn.com/photo"),
+                    inUse, RemoteMedia.Kind.IMAGE, transport));
+            assertTrue(inUse.setLastModified(stale()));
+            MediaCache.reconcile(beforeAttach());
+            assertArrayEquals("the fallback released a file its caller still needs", png,
+                    Files.readAllBytes(inUse.toPath()));
+        } finally {
+            MediaCache.delete(inUse);
+        }
+    }
+
+    /** Only this cleanup attempt refuses deletion; the sweep sees the ordinary, deletable file. */
+    private static File refuseDeletion(File file) {
+        return new File(file.getAbsolutePath()) {
+            @Override public boolean delete() { return false; }
+        };
     }
 }

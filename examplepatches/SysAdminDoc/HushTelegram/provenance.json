@@ -129,18 +129,50 @@
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/Stories.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/Recommendations.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/CallDebug.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/DraftPreviews.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/GalleryCamera.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ChatSwipe.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/PopularApps.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ContactsNag.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/HolidayLook.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/Commerce.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/Suggestions.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/ads/ProxyPromotions.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/LinkRouting.java",
         "patches/src/main/kotlin/app/morphe/patches/telegram/ads/HideAdsPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/analytics/DisableAnalyticsPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/updates/DisableUpdateChecksPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/stories/HideStoriesPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/recommendations/HideRecommendationsPatch.kt",
-        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/calldebug/DisableCallDebugPatch.kt"
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/calldebug/DisableCallDebugPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/drafts/DisableDraftPreviewsPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/camera/GalleryCameraOnTapPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/chatlist/DisableChatSwipePatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/apps/HidePopularAppsPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/contacts/QuietContactsNagPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/holiday/HolidayLookPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/commerce/HideCommercePatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/suggestions/HideSuggestionsPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/ads/proxy/HideSponsoredProxyPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/links/OpenExternalLinksPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/links/StripLinkTrackingPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/links/LinkRoutingSupport.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/HushTelegram",
       "via": [],
       "license": "GPL-3.0-only",
       "changes": "Telegram request and presentation guards written for version 12.10.6 from its own dex. Runtime switches retain the stock paths when disabled or paused, with separate target capabilities."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/util/RegisterKinds.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Register kind analysis written for HushTelegram, so a hook's jump is checked against what ART's verifier accepts before the method changes."
     }
   ]
 }

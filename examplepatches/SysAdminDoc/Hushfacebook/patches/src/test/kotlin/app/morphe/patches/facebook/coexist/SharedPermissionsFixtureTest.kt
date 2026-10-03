@@ -208,7 +208,8 @@ class SharedPermissionsFixtureTest {
     /**
      * Each declared build as Morphe's Clone app leaves it after the default patches, with each of
      * its two options on and off, then followed by this bundle: nothing names a permission only the
-     * stock app declares, and no authority is one the stock app claims. Two things the runtime half
+     * stock app declares, no authority is one the stock app claims, and nothing it declares is one
+     * Meta's own Facebook declares, so it installs beside that too (#60). Two things the runtime half
      * takes for granted are pinned too: every authority is under Facebook's package, which is what
      * the extension moves, and every process is named after the package, which is how it learns
      * the clone's name before Facebook has a context.
@@ -224,6 +225,9 @@ class SharedPermissionsFixtureTest {
                 val stock = documentOf(xml.duplicate()).apply { renameSharedPermissions() }
                 val stockDeclared = stock.elements("permission").map { it.getAttribute("android:name") }.toSet()
                 val stockAuthorities = stock.ownAuthorities(FACEBOOK)
+                val stockPermissions = stock.ownPermissions(FACEBOOK)
+                val metaDeclared = documentOf(xml.duplicate()).elements("permission").map { it.getAttribute("android:name") }.toSet()
+                assertEquals("${bundle.name}: Facebook's own permissions", 5, stockPermissions.size)
                 assertEquals("${bundle.name}: authorities outside $FACEBOOK", emptyList<String>(),
                     stock.authorities().filterNot { it.trim() in stockAuthorities })
                 assertTrue("${bundle.name}: the dedup provider", "$FACEBOOK.ClientMessagePushDedupInfoProvider" in stockAuthorities)
@@ -237,9 +241,11 @@ class SharedPermissionsFixtureTest {
                         document.renameSharedPermissions()
                         document.cloneApp(clone, permissions, providers)
 
-                        document.followRenamedPackage(FACEBOOK, stockAuthorities)
+                        document.followRenamedPackage(FACEBOOK, stockAuthorities, stockPermissions)
 
                         val declared = document.elements("permission").map { it.getAttribute("android:name") }.toSet()
+                        assertEquals("$where: declarations Meta's Facebook owns", emptySet<String>(), declared.intersect(metaDeclared))
+                        assertEquals("$where: declarations", stockDeclared.size, declared.size)
                         val strays = document.elements("*").flatMap { element ->
                             (0 until element.attributes.length).map { element.attributes.item(it) as Attr }
                                 .filterNot { element.tagName == "permission" && it.name == "android:name" }
@@ -323,13 +329,43 @@ class SharedPermissionsFixtureTest {
         assertEquals("a declared build has no fixture", versions, checked)
     }
 
+    /**
+     * The Meta App Manager row under Supported links (issue #30) reads App Manager's package without
+     * QUERY_ALL_PACKAGES. Android 11 and later only answer for a package the manifest names under
+     * `<queries>`, so a build that drops the name would hide the row on every phone, silently.
+     */
+    @Test
+    fun eachDeclaredBuildQueriesMetaAppManagerByName() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val document = documentOf(manifestOf(bundle))
+                val queried = document.elements("queries").flatMap { queries ->
+                    val packages = queries.getElementsByTagName("package")
+                    (0 until packages.length).map { (packages.item(it) as Element).getAttribute("android:name") }
+                }
+                assertTrue("${bundle.name}: <queries> doesn't name $APP_MANAGER", APP_MANAGER in queried)
+                assertTrue("${bundle.name}: asks for every package, so <queries> isn't what makes App Manager visible",
+                    document.elements("uses-permission").none {
+                        it.getAttribute("android:name") == "android.permission.QUERY_ALL_PACKAGES"
+                    })
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
     private fun Document.authorities(): List<String> =
         elements("provider").flatMap { it.getAttribute("android:authorities").split(';') }
 
     private companion object {
         const val FACEBOOK = AppCompatibilities.FACEBOOK_PACKAGE
 
+        /** SupportedLinks.APP_MANAGER in the extension. */
+        const val APP_MANAGER = "com.facebook.appmanager"
+
         /** Loads of an own authority per build, counted off the fixtures with a separate dex scan. */
-        val AUTHORITY_LOADS = mapOf("580.0.0.51.74" to 13, "577.0.0.50.72" to 13)
+        val AUTHORITY_LOADS = mapOf("581.0.0.45.58" to 13, "580.0.0.51.74" to 13, "577.0.0.50.72" to 13)
     }
 }

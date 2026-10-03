@@ -5,6 +5,7 @@
 package app.morphe.patches.facebook.search
 
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.namesString
 import app.morphe.patches.facebook.feed.treeFieldKey
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -25,7 +26,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /*
- * Where Meta AI comes into Facebook's search, on the 577 and 580 builds.
+ * Where Meta AI comes into Facebook's search, on the 577, 580 and 581 builds.
  *
  * Three ways, each with its own place in the code.
  *
@@ -389,6 +390,10 @@ internal fun routeStores(parser: Method, field: FieldReference): List<RouteStore
     }
 }
 
-/** Whether [method] is the search box's suggestion parser: it logs [KEYWORD_TYPE_FAILURE] and files suggestions as [TYPEAHEAD_SUGGESTION]. */
-internal fun isSuggestionParser(method: Method): Boolean =
-    holdsString(method, KEYWORD_TYPE_FAILURE) && holdsString(method, TYPEAHEAD_SUGGESTION)
+/**
+ * Whether [method] is the search box's suggestion parser: it logs [KEYWORD_TYPE_FAILURE] and files
+ * suggestions as [TYPEAHEAD_SUGGESTION], a literal of its own on 577 and 580 and a string table
+ * entry [resolve] reads on 581.
+ */
+internal fun isSuggestionParser(method: Method, resolve: (MethodReference) -> Method?): Boolean =
+    holdsString(method, KEYWORD_TYPE_FAILURE) && namesString(method, TYPEAHEAD_SUGGESTION, resolve)

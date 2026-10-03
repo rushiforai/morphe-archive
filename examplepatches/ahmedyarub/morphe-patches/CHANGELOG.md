@@ -1,3 +1,15 @@
+## [1.10.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.9.0...v1.10.0) (2026-10-02)
+
+### ✨ New Features
+
+* **X:** Support 12.31.0-prod.01 ([b3ba243](https://github.com/ahmedyarub/morphe-patches/commit/b3ba2435e9d80ea2b2346ad9cc63e250767a795f))
+
+## [1.10.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.9.0...v1.10.0-dev.1) (2026-10-02)
+
+### ✨ New Features
+
+* **X:** Support 12.31.0-prod.01 ([b3ba243](https://github.com/ahmedyarub/morphe-patches/commit/b3ba2435e9d80ea2b2346ad9cc63e250767a795f))
+
 ## [1.9.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.8.1...v1.9.0) (2026-09-30)
 
 ### 🐛 Bug Fixes

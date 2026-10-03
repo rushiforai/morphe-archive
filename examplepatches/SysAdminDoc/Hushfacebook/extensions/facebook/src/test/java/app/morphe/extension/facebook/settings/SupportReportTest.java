@@ -9,7 +9,11 @@ import static org.junit.Assert.assertTrue;
 
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.pm.verify.domain.DomainVerificationManager;
+import android.content.pm.verify.domain.DomainVerificationUserState;
 import android.os.Build;
+import android.os.Process;
+import android.os.UserHandle;
 import android.provider.MediaStore;
 
 import org.junit.After;
@@ -22,11 +26,20 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowContextImpl;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.util.ReflectionHelpers;
+import org.robolectric.util.ReflectionHelpers.ClassParameter;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Proxy;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.facebook.download.ReelDownload;
@@ -104,6 +117,8 @@ public class SupportReportTest {
         assertTrue("no Hushfacebook version: " + report, report.contains("\nmorphe: "));
         assertTrue("Debug logging's state is missing: " + report, report.contains("\ndebug_logging: off\n"));
         assertTrue("no patch list: " + report, report.contains("\n[PATCHES]\n"));
+        assertTrue("no supported-link state: " + report, report.contains("\n[SUPPORTED LINKS]\n"));
+        if (Build.VERSION.SDK_INT == 30) assertTrue(report, report.contains("availability: not_reported (API below 31)"));
         assertTrue(report, report.contains("\nDownload any reel: on (hushfacebook_download_reels=on)\n"));
         assertFalse("events without Debug logging: " + report, report.contains("[SELECTED EVENTS]"));
     }
@@ -114,6 +129,58 @@ public class SupportReportTest {
             assertBuildFacts(report);
             assertTrue("the Pause state is missing: " + report, report.contains("\nhushfacebook: running\n"));
             assertFalse("a healthy run reported hook findings: " + report, report.contains("[HOOK STATUS]"));
+        }
+    }
+
+    @Test @Config(sdk = 31)
+    public void bothExportsContainSortedDomainsWithoutChangingTheAppsLinkOwnership() throws Exception {
+        Context context = RuntimeEnvironment.getApplication();
+        Map<String, Integer> hosts = new LinkedHashMap<>();
+        hosts.put("www.facebook.com", DomainVerificationUserState.DOMAIN_STATE_SELECTED);
+        hosts.put("m.facebook.com", DomainVerificationUserState.DOMAIN_STATE_NONE);
+        hosts.put("z\u0301.facebook.com", DomainVerificationUserState.DOMAIN_STATE_SELECTED);
+        DomainVerificationUserState user = ReflectionHelpers.callConstructor(DomainVerificationUserState.class,
+                ClassParameter.from(UUID.class, UUID.randomUUID()), ClassParameter.from(String.class, context.getPackageName()),
+                ClassParameter.from(UserHandle.class, Process.myUserHandle()), ClassParameter.from(boolean.class, false),
+                ClassParameter.from(Map.class, hosts));
+        Class<?> binder = Class.forName("android.content.pm.verify.domain.IDomainVerificationManager");
+        AtomicInteger reads = new AtomicInteger();
+        Object service = Proxy.newProxyInstance(binder.getClassLoader(), new Class<?>[]{binder}, (proxy, method, args) -> {
+            assertTrue("ownership-changing or unrelated API call", method.getName().equals("getDomainVerificationUserState"));
+            assertTrue("another package was queried", context.getPackageName().equals(args[0]));
+            reads.incrementAndGet();
+            return user;
+        });
+        DomainVerificationManager manager = ReflectionHelpers.callConstructor(DomainVerificationManager.class,
+                ClassParameter.from(Context.class, context), ClassParameter.from(binder, service));
+        ShadowContextImpl shadow = Shadow.extract(RuntimeEnvironment.getApplication().getBaseContext());
+        shadow.setSystemService(Context.DOMAIN_VERIFICATION_SERVICE, manager);
+        PatchFamily.registerDiagnostics();
+        for (String report : bothExports()) {
+            assertBuildFacts(report);
+            assertTrue(report, report.contains("\nlink_handling_allowed: false\nm.facebook.com -> none\nwww.facebook.com -> selected\n"));
+            assertTrue("combining-mark domain omitted or redacted", report.contains("\nz\u0301.facebook.com -> selected\n"));
+            assertTrue("duplicate supported-link section", report.indexOf("[SUPPORTED LINKS]") == report.lastIndexOf("[SUPPORTED LINKS]"));
+            assertFalse(report.contains("http://") || report.contains("https://") || report.contains("certificate:"));
+        }
+        BaseSettings.DEBUG_LOG_FILTERS.save("downloads");
+        LogBufferManager.persistCrashReport(context, "java.io.IOException: " + "long trace ".repeat(10_000));
+        for (String report : bothExports()) {
+            assertTrue("event filters or a long crash hid link state", report.contains(
+                    "\nlink_handling_allowed: false\nm.facebook.com -> none\nwww.facebook.com -> selected\n"));
+            assertFalse("patch sections ignored the selected filter", report.contains("[PATCHES]"));
+            assertTrue("combining-mark domain omitted or redacted", report.contains("\nz\u0301.facebook.com -> selected\n"));
+            assertTrue("link state follows a potentially truncated crash", report.indexOf("[SUPPORTED LINKS]") < report.indexOf("[LATEST JAVA CRASH]"));
+        }
+        assertTrue("both report paths must query the live state", reads.get() >= 2);
+    }
+
+    @Test
+    public void android30KeepsTheNotReportedStateWithAnEventsOnlyFilter() throws Exception {
+        BaseSettings.DEBUG_LOG_FILTERS.save("downloads");
+        for (String report : bothExports()) {
+            assertTrue(report.contains("[SUPPORTED LINKS]\navailability: not_reported (API below 31)"));
+            assertFalse(report.contains("[PATCHES]"));
         }
     }
 

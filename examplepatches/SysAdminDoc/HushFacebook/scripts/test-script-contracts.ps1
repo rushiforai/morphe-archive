@@ -2364,6 +2364,7 @@ try {
     & git -C $hookRoot config user.email 'hook@example.invalid'
     $factsMarker = Join-Path $hookRoot 'facts-ran.txt'
     $contractsMarker = Join-Path $hookRoot 'contracts-ran.txt'
+    $toolingMarker = Join-Path $hookRoot 'tooling-ran.txt'
     Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/validate-release-facts.ps1') -Encoding UTF8 -Value @(
         'param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag,',
         '    [switch]$VerifyPublishedAsset, [string]$ArtifactPath, [switch]$ArtifactIsHosted)',
@@ -2374,6 +2375,10 @@ try {
         'param([string]$Root)',
         "Set-Content -LiteralPath '$contractsMarker' -Value 'ran'",
         'exit 0')
+    Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/test-tooling-classpaths.ps1') -Encoding UTF8 -Value @(
+        'param([string]$Root)',
+        "Set-Content -LiteralPath '$toolingMarker' -Value 'ran'",
+        'exit 0')
     # The runtime tests start through HUSHFACEBOOK_BUILD_WRAPPER, which the hook reads from the
     # user's environment when this process lacks it, so a stub stands in for it here: it records
     # that the tests were asked for and builds nothing. The credentials the build path wants first
@@ -2382,7 +2387,7 @@ try {
     $routingBuild = Join-Path $hookRoot 'routing-build.ps1'
     Set-Content -LiteralPath $routingBuild -Encoding UTF8 -Value @(
         'param([string]$ProjectDir, [string[]]$Tasks)',
-        "Set-Content -LiteralPath '$buildMarker' -Value 'ran'",
+        "Set-Content -LiteralPath '$buildMarker' -Value (`$Tasks -join ',')",
         'exit 0')
     $env:HUSHFACEBOOK_BUILD_WRAPPER = $routingBuild
     $env:GITHUB_ACTOR = 'contract'
@@ -2390,7 +2395,7 @@ try {
 
     function Invoke-Hook {
         param([string[]]$Paths)
-        Remove-Item -LiteralPath $factsMarker, $contractsMarker, $buildMarker -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $factsMarker, $contractsMarker, $buildMarker, $toolingMarker -Force -ErrorAction SilentlyContinue
         $global:LASTEXITCODE = 0
         & $prePushScript -Root $hookRoot -ChangedPaths $Paths 6> $null
         if ($LASTEXITCODE -ne 0) { throw "pre-push exited $LASTEXITCODE for $($Paths -join ', ')" }
@@ -2400,6 +2405,33 @@ try {
     Invoke-Hook -Paths @('CONTRIBUTING.md')
     Assert-True (-not (Test-Path -LiteralPath $factsMarker)) `
         'The release check ran for a push that changed nothing it reads.'
+    Assert-True (-not (Test-Path -LiteralPath $toolingMarker)) `
+        'The tooling compatibility check ran for an unrelated documentation push.'
+
+    foreach ($toolingInput in @('build.gradle.kts', 'settings.gradle.kts', 'patches/build.gradle.kts',
+            'gradle/libs.versions.toml', 'gradle/verification-metadata.xml', 'gradle/tooling-scopes.txt',
+            'scripts/ToolingClasspathSmoke.java', 'scripts/ToolingHttpSmoke.java', 'scripts/test-tooling-classpaths.ps1')) {
+        Invoke-Hook -Paths @($toolingInput)
+        Assert-True ((Get-Content -LiteralPath $buildMarker -Raw) -like '*:patches:releaseTooling*' -and
+            (Test-Path -LiteralPath $toolingMarker)) `
+            "A change to $toolingInput skipped the resolved tooling graph or its compatibility check."
+    }
+    Invoke-Hook -Paths @('extensions/facebook/src/main/java/Any.java')
+    Assert-True ((Get-Content -LiteralPath $buildMarker -Raw) -notlike '*:patches:releaseTooling*' -and
+        -not (Test-Path -LiteralPath $toolingMarker)) `
+        'An ordinary payload change unexpectedly ran the tooling classpath gate.'
+    $toolingStubPath = Join-Path $hookRoot 'scripts/test-tooling-classpaths.ps1'
+    $toolingStubText = Get-Content -LiteralPath $toolingStubPath -Raw
+    Remove-Item -LiteralPath $toolingStubPath -Force
+    try {
+        Assert-Throws { Invoke-Hook -Paths @('settings.gradle.kts') } '*test-tooling-classpaths.ps1 is missing*' `
+            'A dependency change passed with its compatibility check missing.'
+        Set-Content -LiteralPath $toolingStubPath -Encoding UTF8 -Value 'param([string]$Root); exit 7'
+        Assert-Throws { Invoke-Hook -Paths @('settings.gradle.kts') } '*compatibility check did not pass*' `
+            'A dependency change passed after its compatibility check failed.'
+    } finally {
+        Set-Content -LiteralPath $toolingStubPath -Value $toolingStubText -Encoding UTF8 -NoNewline
+    }
 
     # HUSHFACEBOOK_SKIP_PRE_PUSH is the way through the hook's own messages offer, and it has to
     # work whatever the working tree holds. A copy of the hook beside a common.ps1 with conflict

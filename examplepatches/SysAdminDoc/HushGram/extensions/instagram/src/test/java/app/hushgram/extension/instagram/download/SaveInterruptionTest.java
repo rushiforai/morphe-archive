@@ -353,6 +353,87 @@ public class SaveInterruptionTest {
         assertTrue(active().isEmpty());
     }
 
+    @Test @Config(sdk = {30, 37})
+    public void anInaccessibleAbsentRowRetiresAfterAnExactQuery() throws Exception {
+        String token = SaveLeftovers.beginJob(context);
+        File marker = new File(new File(context.getFilesDir(), "hushgram-save-outcomes"), token);
+        java.nio.file.Files.write(marker.toPath(), new byte[]{1});
+        ContentValues pending = new ContentValues();
+        pending.put(MediaStore.MediaColumns.IS_PENDING, 1);
+        Uri own = gallery.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, pending);
+        Uri unrelated = gallery.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, pending);
+        SaveLeftovers.pending(context, own);
+        gallery.rows.remove(android.content.ContentUris.parseId(own));
+        gallery.securityOnDelete = true;
+        SaveLeftovers.forgetSweepForTests();
+        notice();
+        assertEquals(own, gallery.lastQuery);
+        assertEquals(0, SaveLeftovers.interruptedCount());
+        assertNull(ShadowToast.getTextOfLatestToast());
+        assertTrue(active().isEmpty());
+        assertFalse(marker.exists());
+        assertFalse(ledger().contains("pending_rows"));
+        assertEquals(1, gallery.rows.size());
+        assertTrue(gallery.rows.containsKey(android.content.ContentUris.parseId(unrelated)));
+    }
+
+    @Test @Config(sdk = {30, 37})
+    public void anInaccessiblePublishedRowIsKeptButItsStaleLedgerRetires() throws Exception {
+        String token = SaveLeftovers.beginJob(context);
+        File marker = new File(new File(context.getFilesDir(), "hushgram-save-outcomes"), token);
+        java.nio.file.Files.write(marker.toPath(), new byte[]{1});
+        ContentValues published = new ContentValues();
+        published.put(MediaStore.MediaColumns.IS_PENDING, 0);
+        Uri own = gallery.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, published);
+        SaveLeftovers.pending(context, own);
+        gallery.securityOnDelete = true;
+        SaveLeftovers.forgetSweepForTests();
+        notice();
+        assertEquals(own, gallery.lastQuery);
+        assertTrue(active().isEmpty());
+        assertFalse(marker.exists());
+        assertFalse(ledger().contains("pending_rows"));
+        assertEquals(1, gallery.rows.size());
+        assertEquals(0, SaveLeftovers.interruptedCount());
+    }
+
+    @Test @Config(sdk = {30, 37})
+    public void aDeleteExceptionNeverAcknowledgesAStillPendingRow() throws Exception {
+        SaveLeftovers.beginJob(context);
+        ContentValues pending = new ContentValues();
+        pending.put(MediaStore.MediaColumns.IS_PENDING, 1);
+        Uri own = gallery.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, pending);
+        SaveLeftovers.pending(context, own);
+        gallery.securityOnDelete = true;
+        SaveLeftovers.forgetSweepForTests();
+        notice();
+        assertEquals(own, gallery.lastQuery);
+        assertEquals(1, active().size());
+        assertEquals(java.util.Collections.singleton(own.toString()), ledger().getStringSet("pending_rows", null));
+        assertEquals(1, gallery.rows.size());
+        assertEquals(0, SaveLeftovers.interruptedCount());
+    }
+
+    @Test @Config(sdk = {30, 37})
+    public void aDeleteExceptionWithUnknownQueryStateKeepsTheRetryRecord() throws Exception {
+        SaveLeftovers.beginJob(context);
+        ContentValues pending = new ContentValues();
+        pending.put(MediaStore.MediaColumns.IS_PENDING, 1);
+        Uri own = gallery.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, pending);
+        SaveLeftovers.pending(context, own);
+        gallery.securityOnDelete = true;
+        for (int failure : new int[]{1, 2, 3, 4}) {
+            gallery.queryFailure = failure;
+            SaveLeftovers.forgetSweepForTests();
+            notice();
+            assertEquals("query mode " + failure, own, gallery.lastQuery);
+            assertEquals(1, active().size());
+            assertEquals(java.util.Collections.singleton(own.toString()), ledger().getStringSet("pending_rows", null));
+            assertEquals(1, gallery.rows.size());
+            assertEquals(0, SaveLeftovers.interruptedCount());
+        }
+    }
+
     @Test public void aLegacyResourceLedgerDoesNotInventALogicalJobCount() throws Exception {
         File leftover = new File(DashSave.workFolder(context), "legacy.part");
         assertTrue(leftover.createNewFile());

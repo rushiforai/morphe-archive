@@ -37,6 +37,33 @@ final class MeeshoListing {
         }
 
         @Override
+        public double rating(JSONObject item) {
+            JSONObject summary = item.optJSONObject("catalog_reviews_summary");
+            if (summary == null) return -1;
+            // The average's field name is not confirmed on every feed: accept the usual ones.
+            for (String key : new String[]{"average_rating", "avg_rating", "rating", "average"}) {
+                double d = ListingSorter.toDouble(summary.opt(key));
+                if (d > 0) return d;
+            }
+            return -1;
+        }
+
+        @Override
+        public Product describe(JSONObject item) {
+            String id = ListingSorter.firstString(item, "catalog_id", "id", "product_id");
+            if (id.isEmpty()) return null;
+            // Meesho's product links are "meesho.com/<slug>/p/<code>" where <code> is the
+            // base-36 of the catalog's hero product id (hero_pid) — NOT of the catalog id
+            // (verified: /p/99ecyr == hero_pid 559982115 of catalog 197079887).
+            String code = id;
+            long hero = (long) ListingSorter.toDouble(item.opt("hero_pid"));
+            if (hero > 0) code = Long.toString(hero, 36);
+            return new Product(id, ListingSorter.firstString(item, "name", "title"),
+                ListingSorter.firstNumber(item, "min_catalog_price", "price", "min_product_price"),
+                rating(item), ratingCount(item), "https://www.meesho.com/s/p/" + code);
+        }
+
+        @Override
         public boolean isAd(JSONObject item) {
             if (item.optBoolean("isAdProduct", false)) return true;
             JSONObject ad = item.optJSONObject("ad");
@@ -50,7 +77,6 @@ final class MeeshoListing {
         Diag.dump("meesho", json);
         if (json.indexOf("\"catalog_reviews_summary\"") < 0 && json.indexOf("\"ad\"") < 0) return json;
         SortState.noteListing();
-        if (!SortState.sortOn() && !SortState.hideAds()) return json;
         try {
             JSONObject root = new JSONObject(json);
             ListingSorter.Stats stats = new ListingSorter.Stats();

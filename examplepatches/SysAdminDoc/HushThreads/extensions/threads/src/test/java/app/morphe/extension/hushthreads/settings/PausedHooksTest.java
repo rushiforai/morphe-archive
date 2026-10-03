@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Field;
@@ -32,7 +33,10 @@ import java.util.Set;
 
 import app.morphe.extension.hushthreads.ads.FeedAds;
 import app.morphe.extension.hushthreads.ads.ShadowFeedAds;
+import app.morphe.extension.hushthreads.feed.ReturnRefresh;
+import app.morphe.extension.hushthreads.feed.VideoAutoplay;
 import app.morphe.extension.hushthreads.misc.Analytics;
+import app.morphe.extension.hushthreads.misc.ExternalBrowser;
 import app.morphe.extension.hushthreads.misc.LinkCleaner;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -49,7 +53,8 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * without a probe here fails the first test.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 30, shadows = ShadowFeedAds.class, instrumentedPackages = "app.morphe.extension.hushthreads.ads")
+@Config(sdk = 30, shadows = {ShadowFeedAds.class, ShadowFeedAds.Status.class},
+        instrumentedPackages = "app.morphe.extension.hushthreads.ads")
 public class PausedHooksTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
@@ -80,17 +85,58 @@ public class PausedHooksTest {
     }
 
     private static Map<PatchFamily, List<Probe>> probes() {
+        ShadowFeedAds.Status.ads = true;
+        ShadowFeedAds.Status.suggestions = true;
         Map<PatchFamily, List<Probe>> probes = new EnumMap<>(PatchFamily.class);
         // A feed page with a sponsored post in it comes back without the post.
         probes.put(PatchFamily.HIDE_ADS, Collections.singletonList(() -> {
             List<Object> page = Arrays.asList("a post", ShadowFeedAds.AD, "another post");
             return FeedAds.filter(page).size() != page.size();
         }));
-        // A shared post link loses the tracking tags Threads added to it.
-        probes.put(PatchFamily.SANITIZE_SHARING_LINKS, Collections.singletonList(() -> {
-            String shared = "https://www.threads.com/@zuck/post/C8abc?xmt=AQGz&slof=1";
-            return !shared.equals(LinkCleaner.sanitizeShared(shared));
+        probes.put(PatchFamily.HIDE_SUGGESTED_USERS, Collections.singletonList(() -> {
+            List<Object> page = Arrays.asList("a post", ShadowFeedAds.SUGGESTED, "another post");
+            return FeedAds.filter(page).size() != page.size();
         }));
+        // Each of Threads' return checks, straight after its screens were hidden, keeps the feed.
+        probes.put(PatchFamily.RETURN_REFRESH, Arrays.asList(
+                () -> {
+                    ReturnRefresh.uiHidden();
+                    return ReturnRefresh.holdHotStart();
+                },
+                () -> {
+                    ReturnRefresh.uiHidden();
+                    return !ReturnRefresh.resetToFeed(true);
+                },
+                () -> {
+                    ReturnRefresh.uiHidden();
+                    return !ReturnRefresh.warmStart(true);
+                },
+                () -> {
+                    ReturnRefresh.uiHidden();
+                    return !ReturnRefresh.cachedPosts(true);
+                }));
+        // A feed video Threads would play by itself waits for a tap.
+        probes.put(PatchFamily.VIDEO_AUTOPLAY, Collections.singletonList(() -> !VideoAutoplay.play(true)));
+        // A shared post link loses the tracking tags Threads added to it, and a short one becomes the post's own.
+        probes.put(PatchFamily.SANITIZE_SHARING_LINKS, Arrays.asList(
+                () -> {
+                    String shared = "https://www.threads.com/@zuck/post/C8abc?xmt=AQGz&slof=1";
+                    return !shared.equals(LinkCleaner.sanitizeShared(shared));
+                },
+                () -> {
+                    String shared = "https://www.threads.com/share/BAXudaEdTE/";
+                    return !shared.equals(LinkCleaner.postLink(shared, "zuck", "C8abc"));
+                },
+                () -> {
+                    // A share coroutine's post waits in the extension for its link.
+                    Object coroutine = new Object();
+                    Object post = new Object();
+                    LinkCleaner.rememberPost(coroutine, post);
+                    return LinkCleaner.rememberedPost(coroutine) == post;
+                }));
+        // A tapped web link goes to the phone's browser instead of Threads' own.
+        probes.put(PatchFamily.EXTERNAL_BROWSER, Collections.singletonList(
+                () -> ExternalBrowser.open(RuntimeEnvironment.getApplication(), "https://example.org/")));
         // The event log upload address Threads built is swapped for one that answers nothing.
         probes.put(PatchFamily.DISABLE_ANALYTICS, Collections.singletonList(() -> {
             String upload = "https://graph.threads.net/logging_client_events";

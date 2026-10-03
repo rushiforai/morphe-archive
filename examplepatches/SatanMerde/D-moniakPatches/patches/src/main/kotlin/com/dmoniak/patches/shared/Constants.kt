@@ -1,5 +1,6 @@
 package com.dmoniak.patches.shared
 
+import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
@@ -7,7 +8,8 @@ object Constants {
         packageName = "com.ubisoft.hungrysharkworld",
         name = "Hungry Shark World",
         description = "Hungry Shark World by Ubisoft Entertainment / FGOL",
-        appIconColor = 0x0088CC
+        appIconColor = 0x0088CC,
+        targets = listOf(AppTarget("8.1.6"))
     )
 
     val COMPATIBILITY_HUNGRY_SHARK_EVOLUTION = Compatibility(
@@ -28,7 +30,8 @@ object Constants {
         packageName = "com.coinidentifyer.ai",
         name = "CoinSnap",
         description = "CoinSnap: Coin Identifier by Glority Global Group",
-        appIconColor = 0xF5A623
+        appIconColor = 0xF5A623,
+        targets = listOf(AppTarget("2.10.2", isExperimental = true))
     )
 
     val COMPATIBILITY_SHADOW_FIGHT_2 = Compatibility(
@@ -91,7 +94,8 @@ object Constants {
         packageName = "com.spotify.music",
         name = "Spotify",
         description = "Spotify: Music and Podcasts by Spotify AB",
-        appIconColor = 0x1DB954
+        appIconColor = 0x1DB954,
+        targets = listOf(AppTarget("9.1.84.2231", isExperimental = true))
     )
 
     val COMPATIBILITY_DUOLINGO = Compatibility(
@@ -224,7 +228,8 @@ object Constants {
         packageName = "com.google.android.dialer",
         name = "Phone by Google",
         description = "Phone by Google: Caller ID & Spam Protection by Google LLC",
-        appIconColor = 0x1A73E8
+        appIconColor = 0x1A73E8,
+        targets = listOf(AppTarget("161.0.726587057", isExperimental = true))
     )
 
     val COMPATIBILITY_GOOGLE_MAPS = Compatibility(
@@ -343,7 +348,8 @@ object Constants {
         packageName = "com.movix.app",
         name = "Movix",
         description = "Movix: Movies & Series Streaming",
-        appIconColor = 0xE50914
+        appIconColor = 0xE50914,
+        targets = listOf(AppTarget("1.4.8"))
     )
 
     val COMPATIBILITY_BRAVE = Compatibility(
@@ -532,7 +538,8 @@ object Constants {
         packageName = "hideme.android.vpn",
         name = "hide.me VPN",
         description = "hide.me VPN: The Privacy Guard by eVenture Limited",
-        appIconColor = 0x00A3E0
+        appIconColor = 0x00A3E0,
+        targets = listOf(AppTarget("6.1.2", isExperimental = true))
     )
 
     val COMPATIBILITY_CLAUDE = Compatibility(
@@ -561,6 +568,21 @@ object Constants {
         name = "DeepL",
         description = "DeepL Translate: Accurate Multilingual Translator by DeepL SE",
         appIconColor = 0x0F2B46
+    )
+
+    val COMPATIBILITY_SILT = Compatibility(
+        packageName = "com.snapbreak.silt",
+        name = "Silt",
+        description = "Silt: Oceanic Puzzle-Adventure by Snapbreak / Spiral Circus",
+        appIconColor = 0x1A2B3C
+    )
+
+    val COMPATIBILITY_MOISES = Compatibility(
+        packageName = "ai.moises",
+        name = "Moises",
+        description = "Moises: The Musician's App by Moises Systems Inc. (v2.7.2 recommandée - versions 2.73+ protégées par Google Play PairIP)",
+        appIconColor = 0x6C5CE7,
+        targets = listOf(AppTarget("2.7.2"))
     )
 
     // Aliases

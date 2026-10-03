@@ -3,15 +3,19 @@ package app.morphe.extension.chmate;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.util.Log;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
 /** Uses the selected fragment's own filter state, never a global active-tab callback. */
 public final class QuickFilterToolbar {
     public static final int ID = 0x7e000002;
+    private static final ArrayList<WeakReference<Object>> legacyBindings = new ArrayList<>();
     private QuickFilterToolbar() {}
 
     public static boolean supported(Context context) {
@@ -38,10 +42,14 @@ public final class QuickFilterToolbar {
                 Toast.makeText(activity, "Haiagaru設定で「クイックフィルターをツールバーにまとめる」をONにしてください", Toast.LENGTH_LONG).show();
                 return true;
             }
-            Object model = findResponseViewModel(fragment);
-            if (model == null) throw new IllegalStateException("Response view model unavailable");
             String version = activity.getPackageManager()
                     .getPackageInfo(activity.getPackageName(), 0).versionName;
+            if ("0.8.10.226 dev".equals(version)) {
+                show226FilterDialog(fragment, activity);
+                return true;
+            }
+            Object model = findResponseViewModel(fragment);
+            if (model == null) throw new IllegalStateException("Response view model unavailable");
             String actionName = "0.8.10.241".equals(version) ? "d"
                     : "0.8.10.242 dev".equals(version) ? "b"
                     : "0.8.10.243 dev".equals(version) ? "e" : "d";
@@ -88,6 +96,45 @@ public final class QuickFilterToolbar {
         return true;
     }
 
+    /** 226 stores its model in a lazy provider and uses a Kotlin callback to toggle a filter. */
+    private static void show226FilterDialog(Object fragment, Activity activity) throws Exception {
+        java.lang.reflect.Field providerField = fragment.getClass().getDeclaredField("H");
+        providerField.setAccessible(true);
+        Object provider = providerField.get(fragment);
+        if (provider == null) throw new IllegalStateException("226 response model provider unavailable");
+        Method get = provider.getClass().getMethod("e");
+        Object model = get.invoke(provider);
+        if (model == null || !model.getClass().getName().equals("o.getImgAcceptedHeight")) {
+            throw new IllegalStateException("226 response model unavailable");
+        }
+        ClassLoader loader = fragment.getClass().getClassLoader();
+        Class<?> kind = Class.forName("o.setLastGoodStreamIdokhttp", false, loader);
+        Class<?> callbackType = Class.forName("o.listener$setContentView$ComponentActivity", false, loader);
+        java.lang.reflect.Constructor<?> constructor = callbackType.getDeclaredConstructor(Object.class);
+        constructor.setAccessible(true);
+        Object callback = constructor.newInstance(model);
+        Method invoke = callbackType.getDeclaredMethod("invoke", Object.class);
+        invoke.setAccessible(true);
+        String[] names = {"POPULAR", "LINK", "IMAGE", "MOVIE"};
+        Object[] options = kind.getEnumConstants();
+        Object[] values = new Object[names.length];
+        for (int i = 0; i < names.length; i++) {
+            for (Object option : options) {
+                if (((Enum<?>) option).name().equals(names[i])) values[i] = option;
+            }
+            if (values[i] == null) throw new IllegalStateException("226 filter missing: " + names[i]);
+        }
+        new AlertDialog.Builder(activity).setTitle("フィルタ（再選択で解除）")
+                .setItems(new String[]{"人気レス", "リンク", "画像", "動画"}, (dialog, which) -> {
+                    try {
+                        invoke.invoke(callback, values[which]);
+                    } catch (Exception error) {
+                        Log.e("Haiagaru", "226 quick filter failed", error);
+                        Toast.makeText(activity, "フィルタを切り替えられませんでした", Toast.LENGTH_LONG).show();
+                    }
+                }).setNegativeButton("閉じる", null).show();
+    }
+
     /** Legacy 191 keeps its four quick filters as data-bound ToggleButtons. */
     public static boolean clickLegacy(Object fragment, int id) {
         if (id != ID || fragment == null) return false;
@@ -99,14 +146,19 @@ public final class QuickFilterToolbar {
                 Toast.makeText(activity, "Haiagaru設定でクイックフィルターをONにしてください", Toast.LENGTH_LONG).show();
                 return true;
             }
-            Object root = fragment.getClass().getMethod("getView").invoke(fragment);
-            if (!(root instanceof android.view.View)) throw new IllegalStateException("Legacy response view unavailable");
-            Object binding = findLegacyFilterBinding((android.view.View) root);
+            // The filter panel is owned by the activity layout, outside the
+            // response fragment's own view on ChMate 191.
+            Object binding = findLegacyFilterBinding(activity.getWindow().getDecorView());
+            if (binding == null) binding = rememberedLegacyBinding(activity);
             ToggleButton[] buttons = legacyFilterButtons(binding);
             if (buttons == null) throw new IllegalStateException("Legacy quick-filter buttons unavailable");
             String[] labels = {"人気レス", "リンク", "画像", "動画"};
-            new AlertDialog.Builder(activity).setTitle("フィルタ（再選択で解除）")
-                    .setItems(labels, (dialog, which) -> buttons[which].performClick())
+            boolean[] checked = new boolean[buttons.length];
+            for (int index = 0; index < buttons.length; index++) checked[index] = buttons[index].isChecked();
+            new AlertDialog.Builder(activity).setTitle("フィルタ")
+                    .setMultiChoiceItems(labels, checked, (dialog, which, enabled) -> {
+                        if (buttons[which].isChecked() != enabled) buttons[which].performClick();
+                    })
                     .setNegativeButton("閉じる", null).show();
         } catch (Exception error) {
             Log.e("Haiagaru", "Unable to open legacy quick filters", error);
@@ -137,19 +189,63 @@ public final class QuickFilterToolbar {
         return result;
     }
 
-    /** Hide only the legacy filter row; its ToggleButtons still handle menu selections. */
+    /** Hide the entire legacy panel, including its heading and padding. */
     public static void hideLegacyFilterRow(Object binding) {
         if (binding == null || !Haiagaru.compactQuickFilters()) return;
         try {
-            java.lang.reflect.Field row = binding.getClass().getDeclaredField("o");
-            row.setAccessible(true);
-            Object view = row.get(binding);
+            rememberLegacyBinding(binding);
+            Class<?> rootBinding = Class.forName("o.getMraidName", false,
+                    binding.getClass().getClassLoader());
+            java.lang.reflect.Field root = rootBinding.getDeclaredField("a");
+            root.setAccessible(true);
+            Object view = root.get(binding);
             if (view instanceof android.view.View) {
                 ((android.view.View) view).setVisibility(android.view.View.GONE);
             }
         } catch (Exception error) {
             Log.e("Haiagaru", "Unable to hide legacy quick-filter row", error);
         }
+    }
+
+    private static synchronized void rememberLegacyBinding(Object binding) {
+        legacyBindings.removeIf(reference -> reference.get() == null || reference.get() == binding);
+        legacyBindings.add(new WeakReference<>(binding));
+    }
+
+    private static synchronized Object rememberedLegacyBinding(Activity activity) {
+        android.view.View decor = activity.getWindow().getDecorView();
+        for (int index = legacyBindings.size() - 1; index >= 0; index--) {
+            Object binding = legacyBindings.get(index).get();
+            if (binding == null) {
+                legacyBindings.remove(index);
+                continue;
+            }
+            try {
+                Class<?> rootType = Class.forName("o.getMraidName", false,
+                        binding.getClass().getClassLoader());
+                java.lang.reflect.Field root = rootType.getDeclaredField("a");
+                root.setAccessible(true);
+                Object view = root.get(binding);
+                if (view instanceof android.view.View) {
+                    android.view.View panel = (android.view.View) view;
+                    if (panel.getRootView() == decor || belongsToActivity(panel.getContext(), activity)) {
+                        return binding;
+                    }
+                }
+            } catch (Exception ignored) { }
+        }
+        return null;
+    }
+
+    private static boolean belongsToActivity(Context context, Activity activity) {
+        for (int depth = 0; context != null && depth < 8; depth++) {
+            if (context == activity) return true;
+            if (!(context instanceof ContextWrapper)) break;
+            Context base = ((ContextWrapper) context).getBaseContext();
+            if (base == context) break;
+            context = base;
+        }
+        return false;
     }
 
     private static Object findLegacyFilterBinding(android.view.View view) {

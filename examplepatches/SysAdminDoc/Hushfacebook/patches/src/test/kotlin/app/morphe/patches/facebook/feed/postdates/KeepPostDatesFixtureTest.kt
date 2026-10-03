@@ -36,6 +36,7 @@ import java.io.File
 class KeepPostDatesFixtureTest {
     /** Where each declared build keeps the choice: the subtitle's class and the choice's register. */
     private val expected = mapOf(
+        "581.0.0.45.58" to ("LX/34Z;" to 14),
         "580.0.0.51.74" to ("LX/2wH;" to 14),
         "577.0.0.50.72" to ("LX/312;" to 12),
     )

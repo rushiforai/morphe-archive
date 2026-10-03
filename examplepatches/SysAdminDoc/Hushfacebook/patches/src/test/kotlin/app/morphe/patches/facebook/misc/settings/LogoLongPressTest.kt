@@ -166,6 +166,7 @@ class LogoLongPressTest {
     private data class Pin(val index: Int, val registers: List<Int>)
 
     private val pins = mapOf(
+        "581.0.0.45.58" to Pin(155, listOf(11, 1)),
         "580.0.0.51.74" to Pin(155, listOf(9, 1)),
         "577.0.0.50.72" to Pin(139, listOf(11, 1)),
     )

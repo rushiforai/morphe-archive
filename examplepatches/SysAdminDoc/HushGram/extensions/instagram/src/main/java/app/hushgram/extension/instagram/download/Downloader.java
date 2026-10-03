@@ -407,6 +407,7 @@ final class Downloader {
             }
             out.flush();
 
+            if (progress.cancelled()) return cancelled();
             sink.commit();
             committed = true;
             return Result.ok(mime);

@@ -30,6 +30,25 @@ public final class SavesForTests {
         return save.id;
     }
 
+    public static int beginCarousel(Context context, int pages) {
+        SaveControl.Save save = SaveControl.begin(context, false, pages);
+        STARTED.put(save.id, save);
+        return save.id;
+    }
+
+    public static void page(int id, int page, boolean video) {
+        STARTED.get(id).page(page, video);
+    }
+
+    public static void finishCarousel(int id, int saved, int failed, int skipped, int lower, boolean cancelled) {
+        SaveControl.batchFinished(new MediaSave.BatchResult(saved, failed, skipped, lower, cancelled));
+        end(id);
+    }
+
+    public static void resetCarouselOutcome() {
+        SaveControl.batchFinished(null);
+    }
+
     public static void transferred(int id, long done, long total) {
         STARTED.get(id).transferred(done, total);
     }

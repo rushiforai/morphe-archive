@@ -20,8 +20,9 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
- * Two floating buttons ("Sort: Most rated", "Hide ads") drawn over the app's
- * current screen, like the ones the Amazon patch adds to the web page.
+ * Floating buttons drawn over the app's current screen, like the ones the Amazon
+ * patch adds to the web page: "Ranked (N)" (everything loaded so far, across
+ * pages), the sort mode (off / most rated / top rated), "4★+" and "Hide ads".
  *
  * <p>They only show while a product listing has recently loaded, so product
  * pages, the cart, etc. stay clean. Flipping a toggle changes how every page
@@ -102,12 +103,16 @@ final class SortOverlay {
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.END);
 
+        final TextView ranked = button(activity);
         final TextView sort = button(activity);
+        final TextView four = button(activity);
         final TextView ads = button(activity);
         LinearLayout.LayoutParams gap = new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         gap.topMargin = dp(activity, 8);
-        box.addView(ads);
+        box.addView(ranked);
+        box.addView(four, gap);
+        box.addView(ads, gap);
         box.addView(sort, gap);
 
         final Runnable refresh = new Runnable() {
@@ -115,18 +120,39 @@ final class SortOverlay {
                 if (!box.isAttachedToWindow()) return;
                 boolean show = SortState.listingRecent();
                 box.setVisibility(show ? View.VISIBLE : View.GONE);
-                paint(sort, SortState.sortOn(), "Sort: Most rated", "Most rated ✓");
+                SortState.Mode mode = SortState.mode();
+                paint(ranked, false, "Ranked (" + RankedStore.size() + ")", "Ranked (" + RankedStore.size() + ")");
+                paint(sort, mode != SortState.Mode.OFF, "Sort: Off",
+                    mode == SortState.Mode.RATING ? "Top rated ✓" : "Most rated ✓");
+                paint(four, SortState.minFour(), "4★+", "4★+ ✓");
                 paint(ads, SortState.hideAds(), "Hide ads", "Ads hidden ✓");
+                // Labels change length ("Ranked (7)" -> "Ranked (31)"): re-measure so none is clipped.
+                box.requestLayout();
                 box.postDelayed(this, 1500);
             }
         };
 
+        ranked.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { RankedPanel.show(activity); }
+        });
         sort.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                boolean on = !SortState.sortOn();
-                SortState.setSort(on);
-                toast(activity, on ? "Most rated: new results will load sorted"
-                                   : "Most rated: off");
+                SortState.Mode next = SortState.mode().next();
+                SortState.setMode(next);
+                toast(activity, next == SortState.Mode.COUNT
+                    ? "Most rated: new results will load sorted by number of ratings"
+                    : next == SortState.Mode.RATING
+                        ? "Top rated: new results will load sorted by average rating"
+                        : "Sorting: off");
+                refresh.run();
+            }
+        });
+        four.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                boolean on = !SortState.minFour();
+                SortState.setMinFour(on);
+                toast(activity, on ? "4★+: new results will hide products rated below 4"
+                                   : "4★+: off");
                 refresh.run();
             }
         });
@@ -157,6 +183,9 @@ final class SortOverlay {
         t.setTypeface(t.getTypeface(), android.graphics.Typeface.BOLD);
         int h = dp(activity, 14), v = dp(activity, 10);
         t.setPadding(h, v, h, v);
+        t.setGravity(Gravity.CENTER);
+        t.setMinWidth(dp(activity, 132));
+        t.setSingleLine(true);
         t.setClickable(true);
         return t;
     }

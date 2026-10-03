@@ -15,8 +15,21 @@ plugins {
 // makes for itself. The settings classpath is forced separately in settings.gradle.kts, which
 // resolves before this file exists.
 val reviewedBouncyCastle = libs.versions.bouncycastle.get()
+// These two AGP test-tool configurations carry gRPC 1.57.2 and 1.69.1. Keep their
+// standard Netty modules aligned without changing native tcnative/incubator versions.
+val utpNettyScopes = setOf(
+    "_internal-unified-test-platform-core",
+    "_internal-unified-test-platform-android-test-plugin-host-emulator-control",
+)
+val reviewedNettyModules = setOf(
+    "netty-buffer", "netty-codec", "netty-codec-http", "netty-codec-http2",
+    "netty-codec-socks", "netty-common", "netty-handler", "netty-handler-proxy",
+    "netty-resolver", "netty-transport", "netty-transport-native-unix-common",
+)
 allprojects {
     configurations.configureEach {
+        val alignUtpNetty = name in utpNettyScopes
+        val alignUtpHttp = name == "_internal-unified-test-platform-android-test-plugin-result-listener-gradle"
         resolutionStrategy.eachDependency {
             if (requested.group == "org.bouncycastle") {
                 useVersion(reviewedBouncyCastle)
@@ -26,6 +39,15 @@ allprojects {
                 "com.google.guava:guava" -> useVersion("33.7.2-jre")
                 "org.apache.commons:commons-lang3" -> useVersion("3.18.0")
                 "org.bitbucket.b_c:jose4j" -> useVersion("0.9.6")
+            }
+            if (alignUtpNetty && requested.group == "io.netty" && requested.name in reviewedNettyModules) {
+                useVersion("4.1.138.Final")
+                because("AGP's internal gRPC tooling must use the reviewed Netty security release.")
+            }
+            if (alignUtpHttp && requested.group == "org.apache.httpcomponents" &&
+                requested.name in setOf("httpclient", "httpmime")) {
+                useVersion("4.5.14")
+                because("UTP result-listener requests must not use HttpClient's affected URI authority parser.")
             }
         }
     }

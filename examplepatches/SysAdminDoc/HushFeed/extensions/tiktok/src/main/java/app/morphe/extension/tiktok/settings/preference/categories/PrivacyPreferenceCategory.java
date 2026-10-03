@@ -36,7 +36,8 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
     }
 
     private static boolean hasTracking() {
-        return SettingsStatus.disableTelemetryEnabled || SettingsStatus.ghostModeEnabled;
+        return SettingsStatus.disableTelemetryEnabled || SettingsStatus.ghostModeEnabled
+                || SettingsStatus.searchHistoryEnabled;
     }
 
     private static boolean hasDeviceAccess() {
@@ -79,6 +80,16 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             diagnostics.setKey("action_ghost_mode_diagnostics");
             diagnostics.setTitle(L10n.t(context, "Ghost mode diagnostics"));
             addPreference(diagnostics);
+        }
+        if (SettingsStatus.searchHistoryEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Don't save new searches",
+                    "Keep what you search for out of the search history TikTok saves on this phone. "
+                            + "Searches already there stay until you delete them, and TikTok's servers "
+                            + "may still keep their own record.",
+                    Settings.STOP_SEARCH_HISTORY
+            ));
         }
 
         if (hasDeviceAccess()) {

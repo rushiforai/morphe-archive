@@ -8,6 +8,7 @@ package app.morphe.extension.facebook.settings;
 
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.category;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentOrderRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.feedsSubtabRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.startTabRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;
 
@@ -69,6 +70,7 @@ final class FeedPages {
                 opening.addPreference(toggle(context, Settings.OPEN_ON_CHOSEN_TAB, L10n.t("Open on a chosen tab"),
                         L10n.t("Choose where Facebook opens from its icon. Notifications and links still open their destination.")));
                 opening.addPreference(startTabRow(context));
+                opening.addPreference(feedsSubtabRow(context));
             }
         }
     }

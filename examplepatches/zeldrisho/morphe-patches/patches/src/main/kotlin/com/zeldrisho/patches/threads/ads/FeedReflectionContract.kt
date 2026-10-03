@@ -14,10 +14,7 @@ internal data class FeedReflectionMember(val owner: String, val name: String, va
  * their own DED flag, thread-carried items go A02() -> Ckh() -> CDh() -> DED()).
  */
 internal val feedReflectionMembers434 = listOf(
-    FeedReflectionMember("Lcom/instagram/feed/media/Media;", "DED", "Z"),
     FeedReflectionMember("LX/1qQ;", "DED", "Z"),
-    FeedReflectionMember("LX/3oS;", "A05", "Lcom/instagram/feed/media/Media;"),
-    FeedReflectionMember("LX/3oS;", "A02", "Lcom/instagram/barcelona/model/ThreadIntf;"),
     FeedReflectionMember("Lcom/instagram/barcelona/model/ThreadIntf;", "Ckh", "Ljava/util/List;"),
     FeedReflectionMember("Lcom/instagram/api/schemas/ThreadItemIntf;", "CDh", "Lcom/instagram/feed/media/Media;"),
 )
@@ -25,7 +22,7 @@ internal val feedReflectionMembers434 = listOf(
 /**
  * 445.0.0.46.83 member set (versionCode 511507647).
  *
- * Re-hunted from the original APKMirror bundle (base.apk via apktool):
+ * Re-hunted from the original APKMirror bundle (base APK smali):
  * - Feed merge moved BarcelonaFeedCache.A0F -> A0G (same param shape, .locals 37).
  * - Wrapper LX/3oS -> LX/0hJ; A05/A02 method names kept, but A02 now returns
  *   `com.instagram.api.schemas.ThreadIntf` (barcelona/model/ThreadIntf is gone).
@@ -37,22 +34,30 @@ internal val feedReflectionMembers434 = listOf(
  *   interfaces; Media/CDh return types unchanged).
  */
 internal val feedReflectionMembers445 = listOf(
-    FeedReflectionMember("Lcom/instagram/feed/media/Media;", "DGK", "Z"),
     FeedReflectionMember("LX/2xO;", "DGK", "Z"),
-    FeedReflectionMember("LX/0hJ;", "A05", "Lcom/instagram/feed/media/Media;"),
-    FeedReflectionMember("LX/0hJ;", "A02", "Lcom/instagram/api/schemas/ThreadIntf;"),
     FeedReflectionMember("Lcom/instagram/api/schemas/ThreadIntf;", "Cnd", "Ljava/util/List;"),
     FeedReflectionMember("Lcom/instagram/api/schemas/ThreadItemIntf;", "CIV", "Lcom/instagram/feed/media/Media;"),
 )
 
 /**
- * Legacy alias for the 434 set; kept so existing tests and callers keep compiling.
+ * 449.0.0.54.82 member set (versionCode 511908382).
+ *
+ * Verified in the original APKM: Media.DKT is the ad predicate, ThreadIntf.CrL
+ * returns thread items, and ThreadItemIntf.CLK returns the item media. Unlike
+ * earlier builds, the extension receives these names from patch-time resolution.
  */
+internal val feedReflectionMembers449 = listOf(
+    FeedReflectionMember("Lcom/instagram/feed/media/Media;", "DKT", "Z"),
+    FeedReflectionMember("Lcom/instagram/api/schemas/ThreadIntf;", "CrL", "Ljava/util/List;"),
+    FeedReflectionMember("Lcom/instagram/api/schemas/ThreadItemIntf;", "CLK", "Lcom/instagram/feed/media/Media;"),
+)
+
+/** Legacy alias for the 434 set. */
 internal val feedReflectionMembers: List<FeedReflectionMember> = feedReflectionMembers434
 
 /** All supported per-version member sets; an APK must satisfy exactly one of them. */
 internal val feedReflectionMemberSets: List<List<FeedReflectionMember>> =
-    listOf(feedReflectionMembers434, feedReflectionMembers445)
+    listOf(feedReflectionMembers434, feedReflectionMembers445, feedReflectionMembers449)
 
 /** Returns the reflection members absent from the supplied class surface. */
 private fun missingMembers(

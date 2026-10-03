@@ -87,7 +87,7 @@ final class RemoteMedia {
                         return extension;
                 }
                 } catch (IOException | RuntimeException exception) {
-                    boolean cleaned = target == null || MediaCache.delete(target);
+                    boolean cleaned = target == null || MediaCache.deletePartial(target);
                     if (exception instanceof MediaBudget.StopException) {
                         if (!cleaned) exception.addSuppressed(
                                 new IOException("Could not remove partial media output"));
@@ -109,7 +109,7 @@ final class RemoteMedia {
                 }
             }
         }
-        if (target != null) MediaCache.delete(target);
+        if (target != null) MediaCache.deletePartial(target);
         throw failure;
     }
 

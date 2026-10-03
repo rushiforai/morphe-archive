@@ -8,6 +8,7 @@ package app.morphe.extension.facebook.settings;
 
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentOrderSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.downloadActionSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.feedsSubtabSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.fileNameSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.fitAboveKeyboard;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.folderSummary;
@@ -17,11 +18,16 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.sendAppSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.showAllText;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.startTabSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsEditorLine;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsRefusal;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsSummary;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.view.View;
@@ -31,26 +37,31 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import java.util.function.Consumer;
+
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
 import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
+import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
+import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.facebook.settings.SettingsRows.RowSemantics;
 import app.morphe.extension.shared.L10n;
 
 /**
- * The rows that edit a value: the text rows, whose dialogs fit above the keyboard, and the lists.
- * The page implements this, so a row is also known by the page's name,
- * {@code HushfacebookPreferenceFragment.FolderRow}. Each row's builder and summary are the
- * page's, such as {@link HushfacebookPreferenceFragment#qualityRow} and
+ * The rows that edit a value: the text rows, whose dialogs fit above the keyboard, and the lists,
+ * each known by this class's name, as {@code ValueRows.FolderRow}. Each row's builder and summary
+ * are the page's, such as {@link HushfacebookPreferenceFragment#qualityRow} and
  * {@link HushfacebookPreferenceFragment#qualitySummary}.
  */
 @SuppressWarnings("deprecation")
-interface ValueRows {
+final class ValueRows {
+    private ValueRows() { }
+
     /**
      * The save folder's row. Its summary follows its text, whoever sets it: the person, the shared
      * page syncing it from the setting, or an import.
@@ -85,11 +96,17 @@ interface ValueRows {
 
     /**
      * A word list's row. Its summary follows its text, whoever sets it: the person, the shared page
-     * syncing it from the setting, or an import.
+     * syncing it from the setting, or an import. Its dialog says, as the list is typed, how full the
+     * room the two lists share would be, and Save refuses a list that doesn't fit with the dialog
+     * still open, so nothing typed is cut or lost (#58).
      */
     static final class WordsRow extends EditTextPreference {
         final boolean hides;
+        /** Says why Save was refused. The page sets it, since its dialogs close with it. */
+        @Nullable Consumer<String> refused;
         @Nullable private TextView count;
+        /** The other list's share of the room, read when the dialog opens. */
+        private int otherBytes;
 
         WordsRow(Context context, boolean hides) {
             super(context);
@@ -97,7 +114,7 @@ interface ValueRows {
             getEditText().addTextChangedListener(new android.text.TextWatcher() {
                 @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
                 @Override public void onTextChanged(CharSequence text, int start, int before, int after) {
-                    if (count != null) count.setText(wordsSummary(text.toString(), false));
+                    if (count != null) count.setText(wordsEditorLine(PostWords.size(text.toString(), otherBytes)));
                 }
                 @Override public void afterTextChanged(android.text.Editable text) { }
             });
@@ -152,8 +169,24 @@ interface ValueRows {
         /** Its edit dialog takes the screen's colours, as the folder's does. */
         @Override
         protected void showDialog(Bundle state) {
+            // Before the dialog binds the list, which the count line measures against it.
+            otherBytes = PostWords.encodedBytes(PostWords.clean((hides ? Settings.KEPT_WORDS : Settings.HIDDEN_WORDS).savedValue()));
             super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            if (getDialog() instanceof AlertDialog) {
+                AlertDialog dialog = (AlertDialog) getDialog();
+                ScreenColors.dialog(dialog);
+                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(button -> {
+                    String why = wordsRefusal(PostWords.size(getEditText().getText().toString(), otherBytes));
+                    if (why != null) {
+                        if (refused != null) refused.accept(why);
+                        return;
+                    }
+                    // As Android's own button does: the click, then the close, each posted in turn.
+                    Handler main = new Handler(Looper.getMainLooper());
+                    main.post(() -> onClick(dialog, DialogInterface.BUTTON_POSITIVE));
+                    main.post(dialog::dismiss);
+                });
+            }
             fitAboveKeyboard(getDialog());
         }
     }
@@ -423,6 +456,45 @@ interface ValueRows {
                 if (candidate.name().equals(getValue())) tab = candidate;
             }
             setSummary(startTabSummary(tab));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The Feeds filter's row, under the start tab's. Its summary follows its value, whoever sets
+     * it: the person, the shared page syncing it from the setting, or an import.
+     */
+    static final class FeedsSubtabRow extends ListPreference {
+        FeedsSubtabRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            FeedsSubtab subtab = FeedsSubtab.ALL;
+            for (FeedsSubtab candidate : FeedsSubtab.values()) {
+                if (candidate.name().equals(getValue())) subtab = candidate;
+            }
+            setSummary(feedsSubtabSummary(subtab));
         }
 
         @Override

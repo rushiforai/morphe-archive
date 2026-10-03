@@ -8,7 +8,9 @@ import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
+import app.morphe.patches.facebook.feed.isStringTableCall
 import app.morphe.patches.facebook.feed.methodsHolding
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.feed.reels.callsMethod
 import app.morphe.patches.facebook.feed.reels.categoryNames
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
@@ -149,7 +151,14 @@ class MetaAiSearchFixtureTest {
                 assertNotNull("$name: the spec's route field", field)
                 val builderField = builderRouteField(impl, field!!)
                 assertNotNull("$name: the builder's route field", builderField)
-                val parsers = held(KEYWORD_TYPE_FAILURE).flatMap { methodsHolding(it, KEYWORD_TYPE_FAILURE) }.filter(::isSuggestionParser)
+                // 581 asks a string table for the typeahead source the parser files suggestions under.
+                val logging = held(KEYWORD_TYPE_FAILURE).flatMap { methodsHolding(it, KEYWORD_TYPE_FAILURE) }
+                val tableTypes = logging.flatMap { it.implementation!!.instructions.filter(::isStringTableCall) }
+                    .mapNotNull { it.call?.definingClass }.toSet()
+                val tables = FixtureDex.classes(fixture, tableTypes)
+                val parsers = logging.filter { method ->
+                    isSuggestionParser(method) { call -> tables[call.definingClass]?.let { resolveStatic(it, call) } }
+                }
                 assertEquals("$name: suggestion parsers", 1, parsers.size)
                 val parser = parsers.single()
                 val stores = routeStores(parser, builderField!!)
@@ -188,7 +197,7 @@ class MetaAiSearchFixtureTest {
                 // The patch, on this build's own classes.
                 val classes = (held(ANSWER_PAGE) + roleParsers + held(META_AI_TAB) + held(KEYWORD_TYPE_FAILURE) +
                     held(metaAiTabModule) +
-                    callerClasses + module + kept.values +
+                    callerClasses + module + kept.values + tables.values +
                     listOf(ExtensionDex.classDef(SETTINGS_STATUS), ExtensionDex.classDef(META_AI_SEARCH)))
                     .distinctBy { it.type }
                 val context = PatchContexts.of(classes)

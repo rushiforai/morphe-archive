@@ -46,6 +46,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.DiagnosticEvent;
 import app.morphe.extension.shared.diagnostics.DiagnosticRedactor;
+import app.morphe.extension.shared.diagnostics.BuildDetails;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.HushfeedPause;
 
@@ -187,6 +188,14 @@ public final class LogBufferManager {
     }
 
     public static void exportToFile() {
+        exportToFile(false);
+    }
+
+    public static void exportBuildDetailsToFile() {
+        exportToFile(true);
+    }
+
+    private static void exportToFile(boolean buildDetailsOnly) {
         Context context = Utils.getContext();
         if (context == null) {
             Utils.showToastLong(say(noContextMessage, "The diagnostic report couldn't be saved yet. Try again in a moment."));
@@ -201,7 +210,7 @@ public final class LogBufferManager {
         try {
             Utils.submitOnBackgroundThread(() -> {
                 try {
-                    String exportText = buildExportText();
+                    String exportText = buildDetailsOnly ? BuildDetails.report() : buildExportText();
                     if (exportText.isEmpty()) {
                         Utils.showToastShort(say(nothingToExportMessage, "No matching diagnostics found."));
                     } else {
@@ -434,6 +443,8 @@ public final class LogBufferManager {
                     .append("category | timestamp | thread | source | level | message\n")
                     .append(events);
         }
+        // Immutable facts ride along only after the existing no-matching decision.
+        report.append("\n[BUILD DETAILS]\n").append(BuildDetails.section(Utils.getBuildMetadata()));
         // Last, because the quick copy keeps the end of a long report: the layout is bounded
         // below the clipboard limit, so a copied report always carries all of it.
         if (!layout.isEmpty()) {

@@ -12,9 +12,11 @@ import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.L10n;
@@ -71,6 +73,137 @@ public final class MediaSave {
     /** Saves still running. A test waits on this for the ones it started. */
     static int savesInFlight() {
         return IN_FLIGHT.get();
+    }
+
+    /** A batch is one in-flight save, with this many ordered pages at most. */
+    public static final int MAX_BATCH_PAGES = 32;
+
+    /** Plain values read on the tap. No Instagram object or Activity survives into the worker. */
+    public static final class Item {
+        final boolean video;
+        final List<Rendition> renditions;
+        final String manifest;
+        final PostDetails details;
+
+        public Item(boolean video, List<Rendition> renditions, String manifest, PostDetails details) {
+            this.video = video;
+            this.renditions = Collections.unmodifiableList(usable(renditions));
+            this.manifest = video ? manifest : null;
+            this.details = details == null ? PostDetails.NONE : PostDetails.of(details.videoId, details.owner,
+                    details.posted == null ? null : new Date(details.posted.getTime()));
+        }
+    }
+
+    /** Each selected page ends exactly once. Cancelled and unattempted pages count as skipped. */
+    public static final class BatchResult {
+        public final int saved;
+        public final int failed;
+        public final int skipped;
+        public final int lower;
+        public final boolean cancelled;
+
+        BatchResult(int saved, int failed, int skipped, int lower, boolean cancelled) {
+            this.saved = saved;
+            this.failed = failed;
+            this.skipped = skipped;
+            this.lower = lower;
+            this.cancelled = cancelled;
+        }
+
+        String message(Context application) {
+            String text = cancelled
+                    ? L10n.f(application, "Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.", saved, failed, skipped)
+                    : L10n.f(application, "Saved %1$d. Failed %2$d. Skipped %3$d.", saved, failed, skipped);
+            return lower == 0 ? text : text + "\n" + L10n.f(application,
+                    "%1$d saved in lower quality than on Instagram.", lower);
+        }
+    }
+
+    /**
+     * Saves a bounded snapshot in order, with one worker, Cancel and durable logical-job marker.
+     * Null entries are skipped. Quality and compatibility choices are frozen for the whole batch.
+     * The optional completion runs after cleanup, including the terminal marker and in-flight slot.
+     */
+    public static boolean saveBatch(Context context, List<Item> pages, Consumer<BatchResult> completion) {
+        try {
+            if (pages == null || pages.isEmpty()) return false;
+            if (pages.size() > MAX_BATCH_PAGES) {
+                if (context != null) Feedback.show(context, L10n.f(context,
+                        "Not saved: a carousel can have at most %1$d pages", MAX_BATCH_PAGES), true);
+                return false;
+            }
+            List<Item> snapshot = new ArrayList<>(pages);
+            // Check the copy too, if the caller changed its list while it was being read.
+            if (snapshot.size() > MAX_BATCH_PAGES) {
+                if (context != null) Feedback.show(context, L10n.f(context,
+                        "Not saved: a carousel can have at most %1$d pages", MAX_BATCH_PAGES), true);
+                return false;
+            }
+            if (snapshot.isEmpty()) return false;
+            Context application = ready(context);
+            if (application == null) return false;
+            DownloadQuality quality = quality();
+            boolean compatible = compatibleSaves();
+            BatchResult[] outcome = new BatchResult[1];
+            return launch(application, false, snapshot.size(), save -> {
+                int saved = 0, failed = 0, skipped = 0, lower = 0;
+                boolean cancelled = false;
+                for (int index = 0; index < snapshot.size(); index++) {
+                    if (save.cancelled()) {
+                        skipped += snapshot.size() - index;
+                        cancelled = true;
+                        break;
+                    }
+                    Item page = snapshot.get(index);
+                    if (page == null) { skipped++; continue; }
+                    save.page(index + 1, page.video);
+                    if (save.cancelled()) {
+                        skipped += snapshot.size() - index;
+                        cancelled = true;
+                        break;
+                    }
+                    Downloader.Result result;
+                    try {
+                        observeDetails(page.details);
+                        MediaStoreWriter writer = new MediaStoreWriter(application, page.video, page.details);
+                        Job job = page.manifest == null
+                                ? singleJob(application, page.renditions, page.video, !page.video, quality)
+                                : (into, progress) -> saveDash(application, "the carousel page", page.manifest,
+                                        page.renditions, into, progress, quality, compatible);
+                        result = job == null ? Downloader.Result.fail(Downloader.Status.WRITE_ERROR, "nothing to save")
+                                : job.run(writer, save);
+                    } catch (Throwable failure) {
+                        failure(() -> "a carousel page could not be saved", failure);
+                        result = Downloader.Result.fail(Downloader.Status.WRITE_ERROR, "the page could not be saved");
+                    }
+                    final int number = index + 1;
+                    final Downloader.Result ended = result;
+                    info(() -> "carousel page " + number + " finished: " + ended);
+                    if (result.ok()) { saved++; if (result.lower) lower++; }
+                    else if (result.status == Downloader.Status.CANCELLED) {
+                        skipped += snapshot.size() - index;
+                        cancelled = true;
+                        break;
+                    } else failed++;
+                }
+                outcome[0] = new BatchResult(saved, failed, skipped, lower, cancelled || save.cancelled());
+            }, save -> {
+                BatchResult result = outcome[0] != null ? outcome[0]
+                        : save.cancelled() ? new BatchResult(0, 0, snapshot.size(), 0, true)
+                        : new BatchResult(0, snapshot.size(), 0, 0, false);
+                outcome[0] = result;
+                // The settings can show the complete outcome when Android clips a long toast.
+                SaveControl.batchFinished(result);
+                info(() -> "carousel finished: saved " + result.saved + ", failed " + result.failed
+                        + ", skipped " + result.skipped + (result.cancelled ? ", cancelled" : ""));
+                Feedback.show(application, result.message(application), true);
+            }, () -> {
+                if (completion != null) completion.accept(outcome[0]);
+            }) != null;
+        } catch (Throwable failure) {
+            failure(() -> "the carousel save could not start", failure);
+            return false;
+        }
     }
 
     /**
@@ -200,9 +333,20 @@ public final class MediaSave {
      */
     private static boolean begin(Context context, List<Rendition> found, boolean videos, boolean images,
             PostDetails details) {
+        Context safe = ready(context);
+        if (safe == null) return false;
+        DownloadQuality quality = quality();
+        Job job = singleJob(safe, found, videos, images, quality);
+        return job != null && start(safe, videos && RenditionPicker.pickVideo(metaOnly(found), quality) != null,
+                details, job) != null;
+    }
+
+    /** The existing single-file selection and validation, shared by individual and batch saves. */
+    private static Job singleJob(Context application, List<Rendition> found, boolean videos, boolean images,
+            DownloadQuality quality) {
         if (found == null || found.isEmpty()) {
             failure(() -> "nothing to save: the item carried no address", null);
-            return false;
+            return null;
         }
 
         // Only Meta's media servers are candidates, so a foreign address can't outrank a real one.
@@ -210,10 +354,9 @@ public final class MediaSave {
         List<Rendition> renditions = metaOnly(found);
         if (renditions.isEmpty()) {
             failure(() -> "nothing to save: none of the " + count + " addresses was on Meta's media servers", null);
-            return false;
+            return null;
         }
 
-        DownloadQuality quality = quality();
         Rendition video = videos ? RenditionPicker.pickVideo(renditions, quality) : null;
         Rendition image = images && video == null ? RenditionPicker.pickImage(renditions) : null;
 
@@ -224,16 +367,12 @@ public final class MediaSave {
             final int candidates = renditions.size();
             final String kind = videos && images ? "a file" : videos ? "a video file" : "a picture";
             failure(() -> "nothing to save: none of the " + candidates + " addresses was " + kind, null);
-            return false;
+            return null;
         }
-
-        Context safe = ready(context);
-        if (safe == null) return false;
 
         saving(isVideo, chosen, renditions, quality, Dash.SINGLE_FILE, null);
         Downloader.Kind kind = isVideo ? Downloader.Kind.VIDEO : Downloader.Kind.IMAGE;
-        start(safe, isVideo, details, fileJob(safe, chosen.url, kind));
-        return true;
+        return fileJob(application, chosen.url, kind, quality);
     }
 
     /**
@@ -372,7 +511,10 @@ public final class MediaSave {
 
     /** The save of one single file at [url]: the job every save of a single file runs. */
     static Job fileJob(Context application, String url, Downloader.Kind kind) {
-        DownloadQuality quality = quality();
+        return fileJob(application, url, kind, quality());
+    }
+
+    private static Job fileJob(Context application, String url, Downloader.Kind kind, DownloadQuality quality) {
         return (writer, progress) -> saveFile(application, url, kind, null, Collections.emptyList(), null,
             quality, writer, progress);
     }
@@ -521,19 +663,20 @@ public final class MediaSave {
         Context safe = ready(context);
         if (safe == null) return false;
         List<Rendition> candidates = new ArrayList<>(renditions);
-        start(safe, true, details, (writer, progress) -> saveDash(safe, label, manifest, candidates, writer, progress));
-        return true;
+        DownloadQuality quality = quality();
+        boolean compatible = compatibleSaves();
+        return start(safe, true, details, (writer, progress) -> saveDash(safe, label, manifest, candidates, writer,
+                progress, quality, compatible)) != null;
     }
 
     /**
      * {@link #beginDash}'s save, on the worker: the manifest's tracks or the single file. The
-     * quality setting is read once, here at the start, and passed to every helper this calls rather
-     * than read again by each, so a setting changed between those reads can't judge the fallback
-     * against a quality other than the one that picked it.
+     * quality and compatibility choices were read on the tap and are passed to every helper,
+     * so a later setting change can't judge the fallback against a different quality.
      */
     private static Downloader.Result saveDash(Context application, String label, String manifest,
-            List<Rendition> renditions, MediaStoreWriter writer, Downloader.Progress progress) {
-        DownloadQuality quality = quality();
+            List<Rendition> renditions, MediaStoreWriter writer, Downloader.Progress progress,
+            DownloadQuality quality, boolean compatible) {
         if (!DashManifest.withinLimits(manifest)) {
             info(() -> "the manifest of " + label + " is over the limits a save reads (" + manifest.length()
                 + " characters), saving the single file");
@@ -545,7 +688,6 @@ public final class MediaSave {
             if (MediaUrlPolicy.shapeRefusal(track.url) == null) tracks.add(track);
         }
         renditions = metaOnly(renditions);
-        boolean compatible = compatibleSaves();
         boolean allowAv1 = DashSave.canWriteAv1();
         // What a save below is weighed against when it tells the person it's lower. Not with saves
         // other apps can open on: that switch passes better pictures over by choice, and its own
@@ -620,7 +762,7 @@ public final class MediaSave {
      * A video only, since the save was started as one. The save line below reports against the
      * file's stated or guessed quality, since nothing has been fetched yet to measure; once the file
      * is down, {@link #saveFile} weighs the "lower" note against what it actually measures.
-     * [quality] is what {@link #saveDash} already read for this save, not read again here.
+     * [quality] is the choice already handed to {@link #saveDash}, not read again here.
      */
     private static Downloader.Result saveSingleVideo(Context application, List<Rendition> renditions,
             List<DashManifest.Track> tracks, Dash dash, String why, DashManifest.Track writable,
@@ -662,7 +804,7 @@ public final class MediaSave {
         return dashJob(application, video, audio, fallback == null ? null : Rendition.of(fallback), quality());
     }
 
-    /** As above, with [quality] already read by {@link #saveDash} rather than read again here. */
+    /** As above, with [quality] already handed to {@link #saveDash} rather than read again here. */
     private static Job dashJob(Context application, DashManifest.Track video, DashManifest.Track audio,
             Rendition fallback, DownloadQuality quality) {
         return (writer, progress) -> {
@@ -687,11 +829,6 @@ public final class MediaSave {
      */
     private static Context ready(Context context) {
         if (context == null) return null;
-
-        if (IN_FLIGHT.get() >= MAX_IN_FLIGHT) {
-            failure(() -> "too many saves at once", null);
-            return null;
-        }
 
         Context application = context.getApplicationContext();
         return application != null ? application : context;
@@ -721,13 +858,46 @@ public final class MediaSave {
     /** Hands each save's details to a test, which can't see the name of a save that fails. Never set on a phone. */
     static volatile java.util.function.Consumer<PostDetails> detailsForTests;
 
+    private static void observeDetails(PostDetails known) {
+        Consumer<PostDetails> watching = detailsForTests;
+        if (watching != null) watching.accept(known);
+    }
+
     /** As above, naming the video from whatever of the post [details] holds and the file name asks for. */
     static Thread start(Context application, boolean video, PostDetails details, Job job) {
         final PostDetails known = details == null ? PostDetails.NONE : details;
-        java.util.function.Consumer<PostDetails> watching = detailsForTests;
-        if (watching != null) watching.accept(known);
-        IN_FLIGHT.incrementAndGet();
-        SaveControl.Save save = SaveControl.begin(application, video);
+        return launch(application, video, 0, save -> {
+            observeDetails(known);
+            MediaStoreWriter writer = new MediaStoreWriter(application, video, known);
+            Downloader.Result result = job.run(writer, save);
+            boolean cancelled = result.status == Downloader.Status.CANCELLED;
+            if (result.ok() || cancelled) info(() -> "save finished: " + result);
+            else failure(() -> "save finished: " + result, null);
+            Feedback.show(application, message(application, result.status, writer.savedLocation(), result.lower),
+                    !result.ok() && !cancelled);
+        }, save -> {}, () -> {});
+    }
+
+    private interface Work { void run(SaveControl.Save save); }
+
+    /** Atomically admits one logical save and retires it for every normal result. */
+    private static Thread launch(Context application, boolean video, int pages, Work work,
+            Consumer<SaveControl.Save> finishing, Runnable finished) {
+        int running;
+        do {
+            running = IN_FLIGHT.get();
+            if (running >= MAX_IN_FLIGHT) {
+                failure(() -> "too many saves at once", null);
+                return null;
+            }
+        } while (!IN_FLIGHT.compareAndSet(running, running + 1));
+        SaveControl.Save save;
+        try {
+            save = SaveControl.begin(application, video, pages);
+        } catch (Throwable failure) {
+            IN_FLIGHT.decrementAndGet();
+            throw failure;
+        }
         // With no notification to cancel it from, the list of saves in the settings is the only way
         // to stop it, so the start says where that is, for long enough to read.
         if (save.manager != null) {
@@ -744,23 +914,23 @@ public final class MediaSave {
                 // anything. It runs once per process.
                 SaveLeftovers.sweepOnce(application);
                 marker = SaveLeftovers.beginJob(application);
-                MediaStoreWriter writer = new MediaStoreWriter(application, video, known);
-
-                Downloader.Result result = job.run(writer, save);
-                boolean cancelled = result.status == Downloader.Status.CANCELLED;
-                if (result.ok() || cancelled) info(() -> "save finished: " + result);
-                else failure(() -> "save finished: " + result, null);
-                Feedback.show(application, message(application, result.status, writer.savedLocation(), result.lower),
-                    !result.ok() && !cancelled);
+                work.run(save);
             } catch (Throwable t) {
                 // Nothing can leave this thread. The app installs its own handler for uncaught
                 // exceptions and reports them as its own crashes.
                 failure(() -> "the save failed", t);
-                Feedback.show(application, L10n.t(application, "Download failed"), true);
+                if (pages == 0) Feedback.show(application, L10n.t(application, "Download failed"), true);
             } finally {
                 SaveLeftovers.finishJob(application, marker);
+                // Publish the batch outcome before the end notification asks the settings to redraw.
+                if (pages > 0) {
+                    try { finishing.accept(save); }
+                    catch (Throwable failure) { failure(() -> "could not deliver a save's completion", failure); }
+                }
                 save.end();
                 IN_FLIGHT.decrementAndGet();
+                try { finished.run(); }
+                catch (Throwable failure) { failure(() -> "could not deliver a save's completion", failure); }
             }
         }, "hushgram-save");
 
@@ -768,7 +938,12 @@ public final class MediaSave {
         // ours. A pool parks a thread there for as long as the app runs.
         worker.setDaemon(true);
         worker.setPriority(Thread.NORM_PRIORITY - 1);
-        worker.start();
+        try { worker.start(); }
+        catch (Throwable failure) {
+            save.end();
+            IN_FLIGHT.decrementAndGet();
+            throw failure;
+        }
         return worker;
     }
 

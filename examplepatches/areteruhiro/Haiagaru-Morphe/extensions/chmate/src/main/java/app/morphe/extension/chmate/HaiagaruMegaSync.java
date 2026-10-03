@@ -5,6 +5,7 @@ import android.app.Application;
 import android.os.Bundle;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.text.InputType;
 import android.view.ViewGroup;
@@ -28,7 +29,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** MEGA backup controls. Passwords are never persisted. */
+/** MEGA backup controls. Login passwords are not persisted by this component. */
 final class HaiagaruMegaSync {
     private static final String PREFS = "haiagaru.mega-sync.options";
     private static final String CATEGORIES = "categories";
@@ -46,11 +47,12 @@ final class HaiagaruMegaSync {
     private static final int[] CATEGORY_BITS = {
             HaiagaruSyncSnapshot.BOOKMARKS, HaiagaruSyncSnapshot.NG,
             HaiagaruSyncSnapshot.SETTINGS, HaiagaruSyncSnapshot.POST_HISTORY,
-            HaiagaruSyncSnapshot.KAKIKOMI
+            HaiagaruSyncSnapshot.KAKIKOMI, HaiagaruSyncSnapshot.COOKIES
     };
     private static final String[] CATEGORY_NAMES = {
             "お気に入り・閲覧履歴", "NGワード・NG IDなど", "ChMate・Haiagaruの設定",
-            "書き込み履歴 (postDataList.json)", "書き込みメモ (kakikomi.txt)"
+            "書き込み履歴 (postDataList.json)", "書き込みメモ (kakikomi.txt)",
+            "Cookie（ログイン状態を含む・初期OFF）"
     };
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
     private static final AtomicBoolean REGISTERED = new AtomicBoolean(false);
@@ -65,7 +67,8 @@ final class HaiagaruMegaSync {
         parent.addView(button);
         TextView help = new TextView(activity);
         help.setText("自分のMEGAアカウントに保存します。同期対象を選択できます。"
-                + " 自動バックアップは初期状態でOFFです。パスワードは保存しません。");
+                + " 自動バックアップとCookie同期は初期状態でOFFです。"
+                + " Cookieを選ぶとログイン状態がバックアップに含まれます。");
         help.setTextSize(13);
         parent.addView(help);
     }
@@ -84,7 +87,7 @@ final class HaiagaruMegaSync {
                 if (!prefs.getBoolean(AUTO, false) || !HaiagaruMegaSession.hasSession(activity)) return;
                 long elapsed = System.currentTimeMillis() - prefs.getLong(LAST, 0);
                 if (elapsed >= 0 && elapsed < intervalMillis(prefs)) return;
-                int categories = prefs.getInt(CATEGORIES, HaiagaruSyncSnapshot.ALL);
+                int categories = prefs.getInt(CATEGORIES, HaiagaruSyncSnapshot.DEFAULT);
                 if (categories != 0) startSync(activity, categories, false);
             }
             @Override public void onActivityPaused(Activity activity) { if (foreground == activity) foreground = null; }
@@ -107,18 +110,20 @@ final class HaiagaruMegaSync {
 
         TextView description = new TextView(activity);
         description.setText("同期する項目を選択してください。バックアップ時は選択項目のみ保存し、"
-                + "復元時にはもう一度対象を選べます。ChMateの認証情報・Cookieは対象外です。");
+                + "復元時にはもう一度対象を選べます。Cookieにはログイン情報が含まれるため、"
+                + "必要な場合のみ選択してください。MEGA上のバックアップにも保存されます。"
+                + "対象はChMateのCookie用設定で、WebView内のCookieは含みません。");
         content.addView(description);
 
         CheckBox[] choices = new CheckBox[CATEGORY_BITS.length];
-        int saved = options.getInt(CATEGORIES, HaiagaruSyncSnapshot.ALL);
+        int saved = options.getInt(CATEGORIES, HaiagaruSyncSnapshot.DEFAULT);
         for (int index = 0; index < choices.length; index++) {
             final int bit = CATEGORY_BITS[index];
             CheckBox choice = new CheckBox(activity);
             choice.setText(CATEGORY_NAMES[index]);
             choice.setChecked((saved & bit) != 0);
             choice.setOnCheckedChangeListener((button, checked) -> {
-                int flags = options.getInt(CATEGORIES, HaiagaruSyncSnapshot.ALL);
+                int flags = options.getInt(CATEGORIES, HaiagaruSyncSnapshot.DEFAULT);
                 options.edit().putInt(CATEGORIES, checked ? flags | bit : flags & ~bit).apply();
             });
             content.addView(choice);
@@ -236,6 +241,38 @@ final class HaiagaruMegaSync {
             startSync(activity, chosen(choices), true);
         });
         content.addView(restore);
+
+        Button saveLocal = new Button(activity);
+        saveLocal.setText("端末のファイルにバックアップ");
+        saveLocal.setOnClickListener(view -> {
+            int flags = chosen(choices);
+            if (flags == 0) {
+                message(activity, "バックアップする項目を選択してください");
+                return;
+            }
+            Intent intent = new Intent(activity, HaiagaruLocalBackupActivity.class);
+            intent.putExtra(HaiagaruLocalBackupActivity.EXTRA_MODE, HaiagaruLocalBackupActivity.MODE_SAVE);
+            intent.putExtra(HaiagaruLocalBackupActivity.EXTRA_CATEGORIES, flags);
+            activity.startActivity(intent);
+        });
+        content.addView(saveLocal);
+
+        Button openLocal = new Button(activity);
+        openLocal.setText("端末のバックアップファイルから復元");
+        openLocal.setOnClickListener(view -> {
+            Intent intent = new Intent(activity, HaiagaruLocalBackupActivity.class);
+            intent.putExtra(HaiagaruLocalBackupActivity.EXTRA_MODE, HaiagaruLocalBackupActivity.MODE_OPEN);
+            intent.putExtra(HaiagaruLocalBackupActivity.EXTRA_CATEGORIES, chosen(choices));
+            activity.startActivity(intent);
+        });
+        content.addView(openLocal);
+
+        TextView localNote = new TextView(activity);
+        localNote.setText("端末のファイル操作はMEGAログイン不要です。Cookieを含めると、"
+                + "ログイン情報が暗号化されていないJSONファイルに保存されます。"
+                + "共有先と保管場所に注意してください。");
+        localNote.setTextSize(13);
+        content.addView(localNote);
 
         TextView note = new TextView(activity);
         note.setText("MEGA上に「Haiagaru」フォルダを作成します。復元は確認後に実行し、"
@@ -462,6 +499,9 @@ final class HaiagaruMegaSync {
         String message = file.name + "\n作成: " + file.createdTime
                 + "\n\n既存の履歴・NGは残して追加します。設定・書き込み履歴・メモは"
                 + "復元対象の値で上書きします。復元前のコピーを端末内に保存します。";
+        if ((available & HaiagaruSyncSnapshot.COOKIES) != 0) {
+            message += "\nCookieを選ぶとログイン情報も復元されます。別端末では再ログインが必要な場合があります。";
+        }
         if (options(activity).getBoolean(SHOW_DIFF, true)) {
             message += "\n\n変更内容（選択した項目）\n" + buildChangeSummary(activity, snapshot, available);
         }
@@ -518,6 +558,11 @@ final class HaiagaruMegaSync {
         }
         if ((available & HaiagaruSyncSnapshot.KAKIKOMI) != 0) {
             summary.append("・書き込みメモ: 追加候補を確認\n");
+        }
+        if ((available & HaiagaruSyncSnapshot.COOKIES) != 0) {
+            JSONObject stores = snapshot.optJSONObject("cookies");
+            summary.append("・Cookie: ").append(stores == null ? 0 : stores.length())
+                    .append("保存領域を確認（ログイン情報を含む）\n");
         }
         return summary.length() == 0 ? "変更候補はありません" : summary.toString().trim();
     }

@@ -10,16 +10,20 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package, Junk, and Signature Files
 *.jar
 *.war
 *.nar
 *.ear
+*.hbc
 *.zip
 *.tar.gz
 *.rar
 *.apkm
 *.apk
+*.xapk
+*.idsig
+*.bundle
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
@@ -51,6 +55,10 @@ nbdist/
 # VS Code
 .vscode/
 
+# IDE / Build Output
+bin/
+out/
+
 # Node
 node_modules/
 
@@ -59,3 +67,4 @@ node_modules/
 
 # Agents
 .agents
+.claude

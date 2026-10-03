@@ -219,7 +219,7 @@ class FriendshipStatusHookTest {
         ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == value
     } == true
 
-    private companion object {
+    internal companion object {
         const val BINDER = "Lfixture/ProfileBinder;"
         const val HOLDER = "Lfixture/ProfileHolder;"
         const val HEADER = "Lfixture/ProfileHeader;"

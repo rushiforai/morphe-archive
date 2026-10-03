@@ -12,12 +12,28 @@ package app.morphe.util
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.MethodImplementation
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
-/** Selects one bytecode match, with a patch-specific failure instead of Collection.single(). */
+/**
+ * Selects one bytecode match, with a patch-specific failure instead of Collection.single(). Competing
+ * matches are named, so a changed build can be checked before anyone installs it.
+ */
 internal fun <T> Iterable<T>.singleOrPatchException(contract: String): T {
     val matches = if (this is Collection<T>) this else toList()
-    return matches.singleOrNull()
-        ?: throw PatchException("$contract: expected exactly one match, found ${matches.size}.")
+    return matches.singleOrNull() ?: throw PatchException(
+        "$contract: expected exactly one match, found ${matches.size}." +
+            if (matches.isEmpty()) "" else " Candidates: " + matches.joinToString(limit = 12) { describeCandidate(it) },
+    )
+}
+
+/** An instruction prints as its object identity, so name it by opcode and reference instead. */
+internal fun describeCandidate(candidate: Any?): String = when (candidate) {
+    is Instruction -> candidate.opcode.name +
+        ((candidate as? ReferenceInstruction)?.reference?.let { " $it" } ?: "")
+    is IndexedValue<*> -> "${candidate.index}: ${describeCandidate(candidate.value)}"
+    is Pair<*, *> -> "(${describeCandidate(candidate.first)}, ${describeCandidate(candidate.second)})"
+    else -> candidate.toString()
 }
 
 /**

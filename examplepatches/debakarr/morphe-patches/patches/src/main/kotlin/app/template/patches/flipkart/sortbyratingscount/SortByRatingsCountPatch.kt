@@ -9,8 +9,8 @@ private const val HELPER = "Lapp/template/extension/extension/SortByRatingsHelpe
 @Suppress("unused")
 val flipkartSortByRatingsCountPatch = bytecodePatch(
     name = "Sort by number of ratings",
-    description = "Sorts Flipkart search results by number of ratings (descending) " +
-        "and removes ad/sponsored items across all listing pages.",
+    description = "Adds Sort (off / most rated / top rated), 4★+, Hide ads and a 'Ranked' list " +
+        "to Flipkart listings. The ranked list orders every page the app has loaded.",
     default = false,
 ) {
     compatibleWith(FLIPKART_COMPATIBILITY)

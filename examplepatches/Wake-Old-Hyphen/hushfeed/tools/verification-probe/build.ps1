@@ -14,6 +14,8 @@
     for an exported BKS key. Unset passwords retain the local test-key defaults. apksigner receives
     temporary process environment references rather than password values. No key is converted or
     copied. The output, installed probe and TikTok certificates are checked before installation.
+    Keep the key outside -OutDir. Keys and their copies or aliases are protected before output
+    cleanup, and relative paths resolve from PowerShell's working folder.
 
 .EXAMPLE
     tools/verification-probe/build.ps1 -Serial $env:HUSHFEED_DEVICE_SERIAL -Install
@@ -152,14 +154,16 @@ $javaPath = (Get-Command $Java -ErrorAction Stop).Source
 $javac = Join-Path (Split-Path -Parent $javaPath) 'javac.exe'
 if (-not $javac -or -not (Test-Path $javac)) { throw 'No javac found. Set JAVA_HOME.' }
 
-# Not silenced: a directory that cannot be cleared keeps its old classes, and every .class
-# under it is dexed into the probe below, source file or not.
-$OutDir = Initialize-ProbeOutputDirectory -Path $OutDir -RepositoryRoot $root
-New-Item -ItemType Directory -Force -Path "$OutDir\classes", "$OutDir\dex" | Out-Null
+$OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
 $signingSession = $null
 try {
 $signingSession = New-ApkSigningSession -BoundParameters $PSBoundParameters -Root $root -Sdk $Sdk `
-    -Java $Java -Keystore $Keystore -KeyAlias $KeyAlias -KeystoreType $KeystoreType
+    -Java $Java -Keystore $Keystore -KeyAlias $KeyAlias -KeystoreType $KeystoreType -OutputDirectory $OutDir
+
+# Validate and lock the key before any output mutation, including whole-directory cleanup.
+# A directory that cannot be cleared must not contribute stale classes to the new dex.
+$OutDir = Initialize-ProbeOutputDirectory -Path $OutDir -RepositoryRoot $root
+New-Item -ItemType Directory -Force -Path "$OutDir\classes", "$OutDir\dex" | Out-Null
 
 # @() around both of these: with a single file the pipeline hands back a string rather than
 # an array, and splatting a string spreads its characters, so javac is handed the colon out

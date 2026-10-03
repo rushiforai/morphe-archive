@@ -15,6 +15,7 @@ import app.morphe.patches.telegram.ads.GET_SPONSORED_PEERS
 import app.morphe.patches.telegram.ads.MESSAGES_CONTROLLER
 import app.morphe.patches.telegram.ads.hideAdsPatch
 import app.morphe.patches.telegram.misc.analytics.REPORT_READ_METRICS
+import app.morphe.patches.telegram.misc.analytics.PremiumPromoEvent
 import app.morphe.patches.telegram.misc.analytics.disableAnalyticsPatch
 import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -61,6 +62,8 @@ class TargetCapabilitiesTest {
     }
 
     private fun verifySubsets(family: String, targets: List<Target>, execute: (BytecodePatchContext) -> Unit) {
+        val premiumTargets = if (family == "disableAnalytics") PremiumPromoEvent.entries else emptyList()
+        val targetCount = targets.size + premiumTargets.size
         for (mask in 0 until (1 shl targets.size)) {
             val present = targets.filterIndexed { index, _ -> mask and (1 shl index) != 0 }
             val originals = present.associateWith { host(it) }
@@ -68,10 +71,14 @@ class TargetCapabilitiesTest {
             val warnings = PatchLogCapture.warnings {
                 if (present.isEmpty()) {
                     val failure = assertThrows(PatchException::class.java) { execute(context) }
-                    assertTrue(failure.message, failure.message.orEmpty().contains("none of the ${targets.size}"))
+                    assertTrue(failure.message, failure.message.orEmpty().contains("none of the $targetCount"))
                 } else execute(context)
             }
-            assertEquals("$family subset $present warnings", if (present.isEmpty()) 0 else targets.size - present.size, warnings.size)
+            assertEquals("$family subset $present warnings", if (present.isEmpty()) 0 else targetCount - present.size, warnings.size)
+            for (premium in premiumTargets) {
+                assertFlag(context, premium.capability, false)
+                if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { premium.type in it })
+            }
             assertFlag(context, family, present.isNotEmpty())
             for (target in Target.entries) assertFlag(context, target.status, target in present)
             for ((target, original) in originals) {
@@ -126,8 +133,13 @@ class TargetCapabilitiesTest {
         val hosts = reportTargets.associateWith { host(it, supportedShape = it != Target.READ_METRICS) }
         val context = PatchContexts.of(ExtensionDex.classes() + hosts.values)
         val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
-        assertEquals(1, warnings.size)
-        assertTrue(warnings.single(), warnings.single().contains("doesn't check its batch"))
+        assertEquals(1 + PremiumPromoEvent.entries.size, warnings.size)
+        val metricsWarning = warnings.single { "doesn't check its batch" in it }
+        assertTrue(metricsWarning, metricsWarning.contains("doesn't check its batch"))
+        for (premium in PremiumPromoEvent.entries) {
+            assertTrue(warnings.toString(), warnings.any { premium.type in it })
+            assertFlag(context, premium.capability, false)
+        }
         assertFlag(context, "disableAnalytics", true)
         assertFlag(context, "deviceStats", true)
         assertFlag(context, "readMetrics", false)

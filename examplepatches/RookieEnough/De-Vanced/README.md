@@ -64,7 +64,7 @@
 | Angulus | `com.drinkplusplus.angulus` | <ul><li>Hide Ads</li></ul> |
 | Bandcamp | `com.bandcamp.android` | <ul><li>Remove play limits</li></ul> |
 | Cricbuzz | `com.cricbuzz.android` | <ul><li>Disable ads</li><li>Extension</li></ul> |
-| Facebook | `com.facebook.katana` | <ul><li>Hide Ads</li><li>Hide story ads</li></ul> |
+| Facebook | `com.facebook.katana` | <ul><li>AMOLED dark theme</li><li>Clean Home feed</li><li>De-Vanced Settings</li><li>Disable all ads</li><li>Disable analytics and telemetry</li><li>Disable auto refresh</li><li>Download Media</li><li>Facebook signature compatibility</li><li>Material You theme</li><li>Media quality controls</li><li>Messenger install compatibility</li><li>Open Marketplace on launch</li><li>Optimize Facebook</li><li>Picture-in-picture</li><li>Reels 2x speed</li></ul> |
 | GMX Mail | `de.gmx.mobile.android.mail` | <ul><li>Hide Ads</li><li>Force enable FreePhone</li><li>Hide upgrade button</li></ul> |
 | Google Photos | `com.google.android.apps.photos` | <ul><li>Spoof features</li><li>Backup control</li><li>GMS support</li><li>Extension</li><li>Restore backup toggle</li></ul> |
 | Google Recorder | `com.google.android.apps.recorder` | <ul><li>Remove device restrictions</li></ul> |

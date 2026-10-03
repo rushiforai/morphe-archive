@@ -10,6 +10,7 @@ import android.view.DisplayCutout;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.EditText;
 import android.widget.OverScroller;
@@ -36,6 +37,64 @@ public class SettingsReliabilityTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+    }
+
+    @Test @Config(sdk = {28, 36}) public void wholeControlRowIsOneAccessibleSwitchWithLiveState() {
+        CrashGuard.resetForTests();
+        for (boolean light : new boolean[] {false, true}) {
+            Settings.preferences.edit().clear().putBoolean("light", light).commit();
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = layout(screen.get(), 411, 891);
+                assertEquals(View.ACCESSIBILITY_LIVE_REGION_NONE,
+                    root.findViewWithTag("enabled_count").getAccessibilityLiveRegion());
+                Switch choice = root.findViewWithTag("people");
+                View row = (View) choice.getParent();
+                row.requestRectangleOnScreen(new Rect(0, 0, row.getWidth(), row.getHeight()), true);
+                layout(screen.get(), 411, 891);
+                AccessibilityNodeInfo before = row.createAccessibilityNodeInfo();
+                assertEquals("android.widget.Switch", before.getClassName().toString());
+                assertTrue(before.isCheckable());
+                assertFalse(before.isChecked());
+                assertEquals(choice.getContentDescription(), before.getContentDescription());
+                assertEquals(0, before.getChildCount());
+                assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_YES, row.getImportantForAccessibility());
+                assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, choice.getImportantForAccessibility());
+                assertFalse(row.isFocusable());
+                assertTrue(choice.isFocusable());
+                Rect bounds = new Rect();
+                before.getBoundsInScreen(bounds);
+                assertEquals(row.getWidth(), bounds.width());
+                assertEquals(row.getHeight(), bounds.height());
+                assertTrue(row.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+                assertTrue(choice.isChecked());
+                assertTrue(Settings.preferences.getBoolean("people", false));
+                AccessibilityNodeInfo after = row.createAccessibilityNodeInfo();
+                assertTrue(after.isChecked());
+                assertEquals(choice.getContentDescription(), after.getContentDescription());
+                AccessibilityEvent click = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_CLICKED);
+                row.onInitializeAccessibilityEvent(click);
+                assertEquals("android.widget.Switch", click.getClassName().toString());
+                assertTrue(click.isChecked());
+                assertEquals(choice.getContentDescription(), click.getContentDescription());
+                click.recycle();
+                assertTrue(row.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+                assertFalse(choice.isChecked());
+                assertFalse(Settings.preferences.getBoolean("people", true));
+            }
+        }
+    }
+
+    @Test @Config(sdk = 28) public void unavailableRowIsAnnouncedButCannotToggle() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            Switch choice = screen.get().getWindow().getDecorView().findViewWithTag("bubbles");
+            View row = (View) choice.getParent();
+            AccessibilityNodeInfo node = row.createAccessibilityNodeInfo();
+            assertEquals("android.widget.Switch", node.getClassName().toString());
+            assertFalse(node.isEnabled());
+            assertFalse(row.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+            assertFalse(choice.isChecked());
+            assertEquals(choice.getContentDescription(), node.getContentDescription());
+        }
     }
 
     @Test @Config(sdk = {28, 36}) public void statusRefreshesInPlaceAndSpeaksOnlyItsSafeLabel() {
@@ -77,9 +136,9 @@ public class SettingsReliabilityTest {
                     assertEquals(spoken.indexOf(expected), spoken.lastIndexOf(expected));
                     assertFalse(spoken.contains("IllegalStateException"));
                     assertFalse(spoken.contains("Settings.test"));
-                    AccessibilityNodeInfo node = choice.createAccessibilityNodeInfo();
+                    AccessibilityNodeInfo node = ((View) choice.getParent()).createAccessibilityNodeInfo();
                     assertEquals(spoken, node.getContentDescription().toString());
-                    // API 28 adds the ordinary ON/OFF switch text. Status must still be spoken once.
+                    // The accessible row owns the safe status and current switch state.
                     assertFalse(node.getText() != null && node.getText().toString().contains(expected));
                     if (android.os.Build.VERSION.SDK_INT >= 30)
                         assertFalse(node.getStateDescription() != null && node.getStateDescription().toString().contains(expected));

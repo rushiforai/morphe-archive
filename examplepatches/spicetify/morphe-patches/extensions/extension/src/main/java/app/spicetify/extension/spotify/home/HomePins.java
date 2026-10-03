@@ -100,10 +100,10 @@ public final class HomePins {
             String[] titles = new String[input.size()];
             for (int i = 0; i < input.size(); i++) {
                 Object row = input.get(i);
-                if (row == null || !row.getClass().getName().equals("p.goz0")) return input;
+                if (row == null || !row.getClass().getName().equals("p.qe31")) return input;
                 Field itemField = row.getClass().getField("a");
                 Object item = itemField.get(row);
-                if (item == null || !item.getClass().getName().equals("p.nnz0")) return input;
+                if (item == null || !item.getClass().getName().equals("p.be31")) return input;
                 ids[i] = (String) item.getClass().getField("d").get(item);
                 titles[i] = (String) item.getClass().getField("b").get(item);
             }

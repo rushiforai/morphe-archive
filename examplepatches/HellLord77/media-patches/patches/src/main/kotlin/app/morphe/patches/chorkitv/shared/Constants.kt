@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.Compatibility
 
 object Constants {
     val COMPATIBILITY_CHORKITV = Compatibility(
-        name = "Chorki-TV",
+        name = "Chorki TV",
         packageName = "com.prothomalo.chorki",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0XE11D48,

@@ -217,10 +217,11 @@ Assert-True ((Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersi
 
 $allNames = @($catalog.patches | ForEach-Object { $_.name })
 $allDependencies = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $allNames)
-# An unnamed patch is listed by its kind: every unnamed bytecode patch reads BytecodePatch, and
-# the one unnamed resource patch is the manifest half of Keep a streak going.
-Assert-True ((@($allDependencies | Sort-Object) -join ',') -eq 'BytecodePatch,ResourcePatch') `
-    "The real catalog dependency closure was not its two internal patches: $(@($allDependencies) -join ', ')."
+# An unnamed patch is listed by its kind: every unnamed bytecode patch reads BytecodePatch, the
+# one unnamed resource patch is the manifest half of Keep a streak going, and the unnamed raw
+# resource patches record each patch-time choice in Build details.
+Assert-True ((@($allDependencies | Sort-Object) -join ',') -eq 'BytecodePatch,RawResourcePatch,ResourcePatch') `
+    "The real catalog dependency closure was not its three internal patch kinds: $(@($allDependencies) -join ', ')."
 Assert-True (Test-ReportedPatchNames -Expected $allNames `
     -Actual @($allNames + $allDependencies) -AllowedDependencies $allDependencies) `
     'A result that included the real internal dependency was rejected.'
@@ -1671,6 +1672,17 @@ try {
             "An unrelated input $unrelatedInput selected SDK signing fixtures."
     }
 
+    Invoke-Hook -Paths @('tools/verification-probe/tests/app/hushfeed/verification/StorageScanContract.java')
+    Assert-True (Test-Path -LiteralPath $contractsMarker) 'A storage scanner test change skipped its contracts.'
+    Assert-True (-not (Test-Path -LiteralPath $signingMarker)) 'A scanner JVM test selected SDK signing fixtures.'
+
+    foreach ($probeTool in @('tools/verification-probe/probe-log.ps1', 'tools/verification-probe/strip-hunt.ps1',
+            'tools/verification-probe/record-markers.ps1')) {
+        Invoke-Hook -Paths @($probeTool)
+        Assert-True (Test-Path -LiteralPath $contractsMarker) "A probe tool change $probeTool skipped its log-marker contracts."
+        Assert-True (-not (Test-Path -LiteralPath $signingMarker)) "A probe tool change $probeTool selected SDK signing fixtures."
+    }
+
     Invoke-Hook -Paths @('release-receipt-0.31.0.json')
     Assert-True (Test-Path -LiteralPath $factsMarker) `
         'A push that changed only the release receipt ran no release check.'
@@ -2877,6 +2889,49 @@ Assert-True ($machineNames.Count -eq 0) `
     ("Tracked files name the maintainer's machine or phone: " + ($machineNames -join '; '))
 
 Write-Host '[scripts] tracked-file machine name contracts passed'
+
+# --- shared phones keep their log ------------------------------------------------------------
+#
+# Other sessions read the same phones' log buffers, so no tracked script clears one. The probe
+# tools mark the start of each answer instead and read only what follows the last copy of that
+# marker. The pattern is built from parts so this file cannot match itself.
+
+. (Join-Path $Root 'tools/verification-probe/probe-log.ps1')
+$probeMarker = "hushfeed-probe-$('a' * 32)"
+$probeRun = @(Select-ProbeRun -Serial 'SERIAL' -Marker $probeMarker -Lines @(
+    "hushfeed-probe-$('b' * 32)", 'ok stripkeys anchors=[earlier] banners=[]',
+    $probeMarker, 'ok stripkeys anchors=[ours] banners=[]'))
+Assert-True ($probeRun.Count -eq 1 -and $probeRun[0] -eq 'ok stripkeys anchors=[ours] banners=[]') `
+    "A probe answer took in another session's lines from before its marker: $($probeRun -join ' | ')"
+$probeRun = @(Select-ProbeRun -Serial 'SERIAL' -Marker $probeMarker -Lines @(
+    $probeMarker, 'stale', "$probeMarker ", 'fresh'))
+Assert-True ($probeRun.Count -eq 1 -and $probeRun[0] -eq 'fresh') 'A probe answer did not start after the last copy of its marker.'
+Assert-Throws { Select-ProbeRun -Serial 'SERIAL' -Marker $probeMarker -Lines @('ok stripkeys anchors=[] banners=[]') } `
+    '*no longer holds the start of this probe answer*' 'A probe answer whose marker rotated out was read anyway.'
+
+# git grep finds the lines and .NET judges them, since a double quote in a native argument is
+# split under Windows PowerShell 5.1. Flags may sit between the command and its clear.
+$clearPattern = '(?<![\w-])log' + 'cat[\s''",]+(?:-{1,2}[A-Za-z]+(?:[\s''",]+[A-Za-z0-9:*]+)?[\s''",]+)*(?:-c|--clear)(?![\w-])'
+$logCommand = 'log' + 'cat'
+$logLines = @(& git -C $Root grep -n -I -e $logCommand -- '.' 2>$null)
+if ($LASTEXITCODE -gt 1) { throw 'git grep could not search the tracked files for a log buffer clear.' }
+$global:LASTEXITCODE = 0
+$clears = @($logLines | Where-Object { $_ -match $clearPattern })
+foreach ($sample in @("adb $logCommand -c", "@('-s', `$Serial, '$logCommand', '-c')", "adb $logCommand -b all --clear")) {
+    Assert-True ($sample -match $clearPattern) "The log clear check misses: $sample"
+}
+foreach ($sample in @("adb $logCommand -d -s HushfeedProbe:V", "`$operation -eq '$logCommand' -and `$Arguments[3] -eq '-c'")) {
+    Assert-True ($sample -notmatch $clearPattern) "The log clear check flags a read: $sample"
+}
+Assert-True ($clears.Count -eq 0) ("Tracked files clear a shared phone's log buffer: " + ($clears -join '; '))
+foreach ($tool in @('strip-hunt.ps1', 'record-markers.ps1')) {
+    Assert-True ((Get-Content -LiteralPath (Join-Path $Root "tools/verification-probe/$tool") -Raw) -match
+        "probe-log\.ps1[\s\S]*Invoke-ProbeAction") "tools/verification-probe/$tool does not read the probe through its marker."
+}
+
+Write-Host '[scripts] shared phone log contracts passed'
+
+& (Join-Path $Root 'scripts/test-storage-probe.ps1') -Root $Root
 
 $global:LASTEXITCODE = 0
 Write-Host '[scripts] report, target, Java and guarded replacement contracts passed'

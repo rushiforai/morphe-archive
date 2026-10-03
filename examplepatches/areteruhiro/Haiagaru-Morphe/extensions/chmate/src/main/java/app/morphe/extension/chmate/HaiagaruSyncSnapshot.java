@@ -30,7 +30,9 @@ final class HaiagaruSyncSnapshot {
     static final int SETTINGS = 4;
     static final int POST_HISTORY = 8;
     static final int KAKIKOMI = 16;
-    static final int ALL = BOOKMARKS | NG | SETTINGS | POST_HISTORY | KAKIKOMI;
+    static final int COOKIES = 32;
+    static final int ALL = BOOKMARKS | NG | SETTINGS | POST_HISTORY | KAKIKOMI | COOKIES;
+    static final int DEFAULT = ALL & ~COOKIES;
     private static final int SCHEMA = 1;
     private static final int MAX_FILE_BYTES = 16 * 1024 * 1024;
     private static final int MAX_SNAPSHOT_BYTES = 32 * 1024 * 1024;
@@ -85,6 +87,13 @@ final class HaiagaruSyncSnapshot {
         if ((categories & KAKIKOMI) != 0) result.append("書き込みメモ: ")
                 .append(java.util.Objects.equals(local.opt("kakikomi"), remote.opt("kakikomi"))
                         ? "変更なし" : merge ? "不足する記録を追加" : "ファイルを更新").append('\n');
+        if ((categories & COOKIES) != 0) {
+            JSONObject cookies = remote.optJSONObject("cookies");
+            result.append("Cookie（ログイン情報を含む）: ")
+                    .append(cookies == null ? 0 : cookies.length()).append("保存領域を確認");
+            if (cookies != null && cookies.length() == 0) result.append("（保存済みCookieなし）");
+            result.append('\n');
+        }
         return result.toString();
     }
 
@@ -110,6 +119,7 @@ final class HaiagaruSyncSnapshot {
         if ((categories & KAKIKOMI) != 0) {
             snapshot.put("kakikomi", readOptional(kakikomiFile(context)));
         }
+        if ((categories & COOKIES) != 0) snapshot.put("cookies", captureCookies(context));
         byte[] bytes = snapshot.toString().getBytes(StandardCharsets.UTF_8);
         if (bytes.length > MAX_SNAPSHOT_BYTES) {
             throw new IOException("同期データが32 MiBを超えています");
@@ -137,6 +147,9 @@ final class HaiagaruSyncSnapshot {
         }
         if ((categories & SETTINGS) != 0 && snapshot.optJSONObject("settings") == null) {
             throw new IOException("設定データがありません");
+        }
+        if ((categories & COOKIES) != 0 && snapshot.optJSONObject("cookies") == null) {
+            throw new IOException("Cookieデータがありません");
         }
         String source = snapshot.optString("sourcePackage", "");
         if (!source.matches("^[A-Za-z][A-Za-z0-9_.]{2,200}$")) {
@@ -174,6 +187,7 @@ final class HaiagaruSyncSnapshot {
         if ((selected & KAKIKOMI) != 0 && !snapshot.isNull("kakikomi")) {
             writeAtomic(kakikomiFile(context), decodeFile(snapshot.getString("kakikomi")));
         }
+        if ((selected & COOKIES) != 0) restoreCookies(context, snapshot.getJSONObject("cookies"), false);
     }
 
     /**
@@ -195,6 +209,56 @@ final class HaiagaruSyncSnapshot {
         }
         if ((selected & KAKIKOMI) != 0 && !snapshot.isNull("kakikomi")) {
             mergeTextFile(kakikomiFile(context), decodeFile(snapshot.getString("kakikomi")));
+        }
+        if ((selected & COOKIES) != 0) restoreCookies(context, snapshot.getJSONObject("cookies"), true);
+    }
+
+    private static boolean cookieStoreName(String name) {
+        return name != null && name.matches("^[A-Za-z0-9_.-]{1,160}$")
+                && name.toLowerCase(java.util.Locale.ROOT).contains("cookie");
+    }
+
+    private static JSONObject captureCookies(Context context) throws Exception {
+        JSONObject stores = new JSONObject();
+        File directory = new File(context.getApplicationInfo().dataDir, "shared_prefs");
+        File[] entries = directory.listFiles((parent, name) ->
+                name.endsWith(".xml") && cookieStoreName(name.substring(0, name.length() - 4)));
+        if (entries == null) return stores;
+        if (entries.length > 32) throw new IOException("Cookie保存領域が多すぎます");
+        for (File entry : entries) {
+            String name = entry.getName().substring(0, entry.getName().length() - 4);
+            JSONObject values = new JSONObject();
+            for (Map.Entry<String, ?> item : context.getSharedPreferences(name, Context.MODE_PRIVATE)
+                    .getAll().entrySet()) {
+                if (item.getKey().length() > 2048 || !(item.getValue() instanceof String)) continue;
+                String value = (String) item.getValue();
+                if (value.length() <= MAX_FILE_BYTES) values.put(item.getKey(), value);
+            }
+            stores.put(name, values);
+        }
+        return stores;
+    }
+
+    private static void restoreCookies(Context context, JSONObject stores, boolean missingOnly)
+            throws Exception {
+        if (stores.length() > 32) throw new IOException("Cookie保存領域が多すぎます");
+        for (Iterator<String> names = stores.keys(); names.hasNext();) {
+            String name = names.next();
+            if (!cookieStoreName(name)) throw new IOException("Cookie保存領域の名前が不正です");
+            JSONObject values = stores.optJSONObject(name);
+            if (values == null) throw new IOException("Cookieデータが不正です");
+            SharedPreferences prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            for (Iterator<String> keys = values.keys(); keys.hasNext();) {
+                String key = keys.next();
+                if (key.length() > 2048 || !(values.opt(key) instanceof String)) {
+                    throw new IOException("Cookie項目が不正です");
+                }
+                String value = values.getString(key);
+                if (value.length() > MAX_FILE_BYTES) throw new IOException("Cookie項目が大きすぎます");
+                if (!missingOnly || !prefs.contains(key)) editor.putString(key, value);
+            }
+            if (!editor.commit()) throw new IOException("Cookieを復元できませんでした");
         }
     }
 

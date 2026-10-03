@@ -39,6 +39,8 @@ import app.hushgram.extension.shared.settings.BooleanSetting;
  *       video goes to Instagram's own download.
  *   <li>With the photo switch on, a post or carousel page without a video gets the same row, and a
  *       tap saves its picture at the largest size, the way {@link StoryDownload} saves a photo story.
+ *   <li>A carousel also has Save all. It snapshots every ordered page for one cancellable batch,
+ *       respecting the photo and video switches while Download still saves the page on screen.
  * </ul>
  *
  * <p>Every hook fails open: until the settings are ready, while HushGram is paused, with the switch
@@ -50,6 +52,79 @@ public final class VideoDownload {
 
     /** The source a feed video save's lines carry in the diagnostic report. */
     private static final String SOURCE = "VideoDownload";
+
+    /** Process-only identity, never entered in Instagram's native enum arrays. */
+    private static Object batchOption;
+
+    public static synchronized Object allOption() {
+        try {
+            if (batchOption == null) batchOption = InstagramMedia.saveAllOption();
+            return batchOption;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "carousel menu option", failure);
+            return null;
+        }
+    }
+
+    /**
+     * A carousel gets its own action before the builder splits into your own and others' rows,
+     * when at least one page would save with the switches as they are.
+     */
+    public static void offerAll(Object menu, ArrayList<?> rows) {
+        try {
+            HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
+            if (menu == null || rows == null || !videos() && !photos()) return;
+            Object post = InstagramMedia.feedMenuMedia(menu);
+            List<?> pages = post == null ? null : InstagramMedia.carouselMedia(post);
+            if (pages == null || pages.size() < 2 || !anySaves(pages)) return;
+            Object option = allOption();
+            if (option != null) InstagramMedia.addSaveAllRow(menu, rows, option, L10n.t("Save all"));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "carousel menu", failure);
+        }
+    }
+
+    /** Takes plain values from every ordered page on the tap; the worker holds no host object. */
+    public static void saveAll(Object post, Activity activity) {
+        Context context = activity != null ? activity : Utils.getContext();
+        try {
+            boolean videos = videos(), photos = photos();
+            if (!videos && !photos) return;
+            List<?> pages = post == null ? null : InstagramMedia.carouselMedia(post);
+            if (pages == null || pages.size() < 2) return;
+            if (pages.size() > MediaSave.MAX_BATCH_PAGES) {
+                Feedback.show(context, L10n.f(context, "Not saved: a carousel can have at most %1$d pages",
+                        MediaSave.MAX_BATCH_PAGES), true);
+                return;
+            }
+            List<?> ordered = new ArrayList<>(pages);
+            if (ordered.size() > MediaSave.MAX_BATCH_PAGES) {
+                Feedback.show(context, L10n.f(context, "Not saved: a carousel can have at most %1$d pages",
+                        MediaSave.MAX_BATCH_PAGES), true);
+                return;
+            }
+            List<MediaSave.Item> snapshot = new ArrayList<>(ordered.size());
+            for (Object page : ordered) {
+                try {
+                    if (page == null) { snapshot.add(null); continue; }
+                    List<MediaSave.Rendition> renditions = ReelDownload.renditions(page);
+                    String manifest = InstagramMedia.dashManifest(page);
+                    boolean video = !renditions.isEmpty() || manifest != null;
+                    if (video) snapshot.add(videos ? new MediaSave.Item(true, renditions, manifest, details(page, post)) : null);
+                    else snapshot.add(photos ? new MediaSave.Item(false, StoryDownload.pictures(page), null,
+                            details(page, post)) : null);
+                } catch (Throwable failure) {
+                    HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "carousel page snapshot", failure);
+                    // An unreadable page fails once on the worker rather than silently disappearing.
+                    snapshot.add(new MediaSave.Item(true, null, null, null));
+                }
+            }
+            if (!MediaSave.saveBatch(context, snapshot, null)) Feedback.show(context, L10n.t(context, "Download failed"), true);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "carousel save", failure);
+            Feedback.show(context, L10n.t(context, "Download failed"), true);
+        }
+    }
 
     /**
      * Adds the Download row to [rows], the list the feed menu's builder [menu] fills for someone
@@ -72,16 +147,19 @@ public final class VideoDownload {
      * Answers [options], the options the short feed menu keeps, with [download], Instagram's
      * Download option, in front when the switch is on. The menu keeps a row only when its option is
      * on this list and orders the rows by it, so without this the row {@link #offer} added never
-     * shows there. A list that already has Download, or any list with the switch off, comes back
-     * as it came. Never throws.
+     * shows there. Save all follows Download, keeping native options in their existing order.
+     * A list with both actions or the switches off comes back as it came. Never throws.
      */
     public static List<?> allow(List<?> options, Object download) {
         try {
             HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
-            if (options == null || download == null || !videos() && !photos() || options.contains(download)) return options;
-            List<Object> allowed = new ArrayList<>(options.size() + 1);
-            allowed.add(download);
+            if (options == null || download == null || !videos() && !photos()) return options;
+            Object all = allOption();
+            if (options.contains(download) && (all == null || options.contains(all))) return options;
+            List<Object> allowed = new ArrayList<>(options.size() + 2);
+            if (!options.contains(download)) allowed.add(download);
             allowed.addAll(options);
+            if (all != null && !options.contains(all)) allowed.add(allowed.indexOf(download) + 1, all);
             return allowed;
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "short feed menu", t);
@@ -171,6 +249,14 @@ public final class VideoDownload {
 
     /** What a tap on Download saves of [media]. */
     enum Save { VIDEO, PHOTO, NONE }
+
+    /** Whether Save all would save any of [pages]: an all-photo carousel with the photo switch off saves nothing. */
+    static boolean anySaves(List<?> pages) {
+        for (Object page : pages) {
+            if (what(page) != Save.NONE) return true;
+        }
+        return false;
+    }
 
     /** What a tap on Download saves of [media], a post or a carousel page, with the switches as they are. */
     static Save what(Object media) {

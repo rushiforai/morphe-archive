@@ -1,0 +1,353 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.profile;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import android.content.Context;
+import android.view.View;
+import android.widget.TextView;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BooleanSupplier;
+
+import app.hushgram.extension.instagram.settings.FamilyNames;
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
+import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.HushgramPause;
+import app.hushgram.extension.shared.settings.PauseForTests;
+
+/**
+ * What the Following list hook does to a row Instagram has just bound: Doesn't follow you on your
+ * own Following list for an account that doesn't follow you back, and Instagram's row everywhere else.
+ */
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = {28, 37})
+public class FollowingListTest {
+    @Rule public final SettingsContextRule settings = new SettingsContextRule();
+
+    private static final String MARK = "Doesn't follow you";
+    private static final String ME = "1001";
+    private static final BooleanSupplier ON = () -> true;
+    private static final BooleanSupplier OFF = () -> false;
+    private static final BooleanSupplier THROWS = () -> {
+        throw new IllegalStateException("settings went away");
+    };
+
+    /** Instagram's kinds of list as the binder holds them: enum constants, of which only the name is read. */
+    enum Kind { FOLLOWING, FOLLOWING_SIMPLIFIED, FOLLOWERS, MUTUAL, SELF_FOLLOWING }
+
+    private final Object notFollowing = new Object();
+    private final Object following = new Object();
+    private final Object unknown = new Object();
+    private final Object binder = new Object();
+    private Context context;
+
+    @Before
+    public void prepare() {
+        context = RuntimeEnvironment.getApplication();
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        Settings.MARK_FOLLOWING_LIST.save(true);
+        HookStatus.clear();
+    }
+
+    @After
+    public void restore() {
+        Settings.MARK_FOLLOWING_LIST.resetToDefault();
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        HookStatus.clear();
+    }
+
+    /** On your own Following list, only an account Instagram says doesn't follow you gets the mark, after its name. */
+    @Test
+    public void ownFollowingListMarksOnlyWhoDoesNotFollowBack() {
+        for (Kind kind : new Kind[] {Kind.FOLLOWING, Kind.FOLLOWING_SIMPLIFIED}) {
+            Reader reader = new Reader(kind, ME, ME);
+            Row ana = new Row();
+            Row ben = new Row();
+
+            ana.bind(notFollowing, "Ana", reader, ON);
+            ben.bind(following, "Ben", reader, ON);
+
+            assertEquals(kind.name(), "Ana" + FriendshipStatus.SEPARATOR + MARK, ana.text());
+            assertEquals(View.VISIBLE, ana.name.getVisibility());
+            assertEquals(kind.name(), "Ben", ben.text());
+            assertEquals(View.VISIBLE, ben.name.getVisibility());
+        }
+        assertTrue(String.join("\n", HookStatus.report()), HookStatus.report().toString().contains(FamilyNames.FRIENDSHIP_STATUS));
+    }
+
+    /** An account with no name has its name line hidden by Instagram, and the mark takes the line on its own. */
+    @Test
+    public void aRowWithNoNameShowsTheMarkOnItsOwn() {
+        Row row = new Row();
+
+        row.bind(notFollowing, null, new Reader(Kind.FOLLOWING, ME, ME), ON);
+
+        assertEquals(MARK, row.text());
+        assertEquals(View.VISIBLE, row.name.getVisibility());
+    }
+
+    /** Before Instagram has checked, the row says nothing, whether it has a name or not. */
+    @Test
+    public void anUnknownAnswerStaysUnmarked() {
+        Reader reader = new Reader(Kind.FOLLOWING, ME, ME);
+        Row named = new Row();
+        Row nameless = new Row();
+
+        named.bind(unknown, "Cy", reader, ON);
+        nameless.bind(unknown, null, reader, ON);
+
+        assertEquals("Cy", named.text());
+        assertEquals(View.VISIBLE, named.name.getVisibility());
+        assertEquals(View.GONE, nameless.name.getVisibility());
+        assertFalse(nameless.text().contains(MARK));
+    }
+
+    /** Followers, someone else's Following list, any other list and a list that can't be told apart stay as they are. */
+    @Test
+    public void otherListsStayUnmarked() {
+        Reader[] others = {
+                new Reader(Kind.FOLLOWERS, ME, ME),
+                new Reader(Kind.MUTUAL, ME, ME),
+                new Reader(Kind.SELF_FOLLOWING, ME, ME),
+                new Reader(Kind.FOLLOWING, "2002", ME),
+                new Reader(Kind.FOLLOWING_SIMPLIFIED, "2002", ME),
+                new Reader(Kind.FOLLOWING, null, ME),
+                new Reader(Kind.FOLLOWING, ME, null),
+                new Reader(Kind.FOLLOWING, "", ""),
+                new Reader(null, ME, ME),
+                new Reader("FOLLOWING", ME, ME),
+        };
+        for (Reader reader : others) {
+            Row named = new Row();
+            Row nameless = new Row();
+
+            named.bind(notFollowing, "Ana", reader, ON);
+            nameless.bind(notFollowing, null, reader, ON);
+
+            assertEquals(reader.toString(), "Ana", named.text());
+            assertEquals(reader.toString(), View.GONE, nameless.name.getVisibility());
+        }
+    }
+
+    /** Off, paused or before the settings are read, the row is Instagram's, and once on again it's marked. */
+    @Test
+    public void offPausedAndUnreadyKeepInstagramsRow() {
+        Reader reader = new Reader(Kind.FOLLOWING, ME, ME);
+
+        Settings.MARK_FOLLOWING_LIST.save(false);
+        Row off = new Row();
+        off.bind(notFollowing, "Ana", reader, FollowingList::switchedOn);
+        assertEquals("Ana", off.text());
+        Settings.MARK_FOLLOWING_LIST.save(true);
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        Row paused = new Row();
+        paused.bind(notFollowing, null, reader, FollowingList::switchedOn);
+        assertEquals(View.GONE, paused.name.getVisibility());
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+
+        Row unready = new Row();
+        SettingsContextRule.withoutContext(() -> unready.bind(notFollowing, "Ana", reader, FollowingList::switchedOn));
+        assertEquals("Ana", unready.text());
+
+        Row on = new Row();
+        on.bind(notFollowing, "Ana", reader, FollowingList::switchedOn);
+        assertEquals("Ana" + FriendshipStatus.SEPARATOR + MARK, on.text());
+    }
+
+    /** A switch, a reader or a name line that throws leaves the row as Instagram drew it, and the hook says so. */
+    @Test
+    public void aThrowingReaderOrSwitchKeepsTheRowAndIsReported() {
+        Row switched = new Row();
+        switched.bind(notFollowing, "Ana", new Reader(Kind.FOLLOWING, ME, ME), THROWS);
+        assertEquals("Ana", switched.text());
+        assertReported(IllegalStateException.class);
+
+        Reader broken = new Reader(Kind.FOLLOWING, ME, ME) {
+            @Override
+            public Boolean followedBy(Object user) {
+                throw new UnsupportedOperationException("no friendship status");
+            }
+        };
+        Row read = new Row();
+        read.bind(notFollowing, "Ana", broken, ON);
+        assertEquals("Ana", read.text());
+        assertReported(UnsupportedOperationException.class);
+
+        TextView refusing = new TextView(context) {
+            @Override
+            public void setText(CharSequence text, BufferType type) {
+                if (text != null && text.toString().contains(MARK)) throw new IllegalArgumentException("detached");
+                super.setText(text, type);
+            }
+        };
+        Row written = new Row(refusing);
+        written.bind(notFollowing, null, new Reader(Kind.FOLLOWING, ME, ME), ON);
+        assertEquals(View.GONE, written.name.getVisibility());
+        assertFalse(written.text().contains(MARK));
+        assertReported(IllegalArgumentException.class);
+    }
+
+    /** The hook's failure is on the family's line, naming the row hook and what it threw. Cleared for the next. */
+    private static void assertReported(Class<? extends Throwable> thrown) {
+        String missing = HookStatus.missing(FamilyNames.FRIENDSHIP_STATUS).toString();
+        assertTrue(missing, missing.contains("'" + FollowingList.ROW + "'"));
+        assertTrue(missing, missing.contains(thrown.getName()));
+        HookStatus.clear();
+    }
+
+    /**
+     * A recycled row brings its mark along. Instagram writes the name line again on each bind, and a
+     * mark it didn't write over is taken back before the row is looked at for its new account.
+     */
+    @Test
+    public void aRecycledRowLosesItsStaleMark() {
+        Reader reader = new Reader(Kind.FOLLOWING, ME, ME);
+        Row row = new Row();
+
+        row.bind(notFollowing, "Ana", reader, ON);
+        row.bind(following, "Ben", reader, ON);
+        assertEquals("Ben", row.text());
+
+        row.bind(notFollowing, null, reader, ON);
+        assertEquals(MARK, row.text());
+        row.bind(following, null, reader, ON);
+        assertEquals(View.GONE, row.name.getVisibility());
+        assertFalse(row.text(), row.text().contains(MARK));
+
+        // Switched off with nothing written over the mark: the line goes back as it was.
+        row.bind(notFollowing, "Ana", reader, ON);
+        FollowingList.row(binder, row.view, notFollowing, reader, OFF);
+        assertEquals("Ana", row.text());
+        assertEquals(View.VISIBLE, row.name.getVisibility());
+
+        row.bind(notFollowing, null, reader, ON);
+        assertEquals(View.VISIBLE, row.name.getVisibility());
+        FollowingList.row(binder, row.view, notFollowing, reader, OFF);
+        assertEquals(View.GONE, row.name.getVisibility());
+        assertFalse(row.text(), row.text().contains(MARK));
+    }
+
+    /** Unpatched, the stubs know nothing, so the hook leaves every row alone and nothing it's handed makes it throw. */
+    @Test
+    public void theHookNeverThrows() {
+        Row row = new Row();
+        row.name.setText("Ana");
+
+        FollowingList.row(null, 0, null, null);
+        FollowingList.row(new Object(), 0, new View(context), new Object());
+        FollowingList.row(new Object(), 3, row.view, notFollowing);
+
+        assertEquals("Ana", row.text());
+        assertNull(FollowingList.listKind(binder));
+        assertFalse(FollowingList.ownFollowingList(Kind.FOLLOWING, null, null));
+    }
+
+    /** A row of the list: its view, whose tag is the holder, and the holder's name line. */
+    private final class Row {
+        final View view = new View(context);
+        final TextView name;
+
+        Row() {
+            this(new TextView(context));
+        }
+
+        Row(TextView name) {
+            this.name = name;
+            view.setTag(new Holder(name));
+        }
+
+        /** What Instagram's binder does with the name line, then the hook. */
+        void bind(Object user, String fullName, Reader reader, BooleanSupplier on) {
+            if (fullName != null) {
+                name.setText(fullName);
+                name.setVisibility(View.VISIBLE);
+            } else {
+                name.setVisibility(View.GONE);
+            }
+            FollowingList.row(binder, view, user, reader, on);
+        }
+
+        String text() {
+            return name.getText().toString();
+        }
+    }
+
+    private static final class Holder {
+        final TextView name;
+
+        Holder(TextView name) {
+            this.name = name;
+        }
+    }
+
+    /** Instagram's objects as the patch's stubs would read them. */
+    private class Reader implements FollowingList.Reader {
+        private final Object kind;
+        private final String owner;
+        private final String viewer;
+        private final Map<Object, Boolean> follows = new HashMap<>();
+
+        Reader(Object kind, String owner, String viewer) {
+            this.kind = kind;
+            this.owner = owner;
+            this.viewer = viewer;
+            follows.put(notFollowing, false);
+            follows.put(following, true);
+            follows.put(unknown, null);
+        }
+
+        @Override
+        public Object listKind(Object binder) {
+            return kind;
+        }
+
+        @Override
+        public String listOwnerId(Object binder) {
+            return owner;
+        }
+
+        @Override
+        public String viewerId(Object binder) {
+            return viewer;
+        }
+
+        @Override
+        public Boolean followedBy(Object user) {
+            return follows.get(user);
+        }
+
+        @Override
+        public TextView subtitle(Object holder) {
+            return ((Holder) holder).name;
+        }
+
+        @Override
+        public String toString() {
+            return kind + " of " + owner + " seen by " + viewer;
+        }
+    }
+}

@@ -70,6 +70,7 @@ Second \"item\" text"</string>
   <!-- %s is dollar cost, e.g., $0.10 per 100 hours -->
   <!-- interaction.loop.loopVideoPatch -->
   <!-- interaction.loop.loopVideoButtonPatch -->
+  <!-- interaction.pip.pipButtonPatch -->
   <!-- interaction.playall.playAllButtonPatch -->
   <!-- interaction.reload.reloadVideoPatch -->
   <!-- interaction.savetowatchlater.saveToWatchLaterPatch -->
@@ -189,11 +190,13 @@ Second \"item\" text"</string>
   <string name="morphe_shorts_autoplay_title">Automātiski atskaņot īsos video</string>
   <!-- layout.playbackinfeeds.playbackInFeedsPatch -->
   <string name="morphe_playback_in_feeds_entry_off">Izslēgts</string>
+  <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
+  <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <!-- layout.miniplayer.miniplayerPatch -->
   <string name="morphe_miniplayer_type_entry_0">Atspējots</string>
   <!-- misc.fix.fixBackToExitGesturePatch -->
+  <!-- layout.statusbar.hideStatusBarPatch -->
   <!-- layout.theme.themePatch -->
-  <string name="morphe_splash_screen_animation_style_entry_1">Atspējots</string>
   <!-- layout.branding.customBrandingPatch -->
   <!-- layout.branding.header.changeHeaderPatch -->
   <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_7'. -->
@@ -207,10 +210,10 @@ Second \"item\" text"</string>
   <!-- misc.playercontrols.playerControlsPatch -->
   <!-- misc.dimensions.spoof.spoofDeviceDimensionsPatch -->
   <!-- misc.hapticfeedback.disableHapticFeedbackPatch -->
-  <!-- misc.medianotification.mediaNotificationControlsPatch -->
   <!-- misc.gms.accountCredentialsInvalidTextPatch -->
   <!-- misc.links.bypassLinkRedirectsPatch -->
   <!-- misc.links.openLinksExternallyPatch -->
+  <!-- video.buffer.playbackBufferPatch -->
   <!-- video.quality.rememberVideoQualityPatch -->
   <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
   <string name="morphe_shorts_quality_default_wifi_title">Īso video noklusējuma kvalitāte, kad izmanto bezvadu, Wi-Fi, tīklu</string>
@@ -228,4 +231,6 @@ Second \"item\" text"</string>
   <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
   <!-- Quality refers to video quality -->
   <!-- misc.fix.videoactionbar.restoreOldVideoActionBarPatch -->
+  <!-- layout.player.icons.playerIconStylePatch -->
+  <string name="morphe_player_icon_style_entry_auto">Automātiski</string>
 </resources>

@@ -10,17 +10,17 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 
 /**
- * Every match of [fingerprint] in the classes whose type ends with its [Fingerprint.definingClass],
- * a suffix like `/StoryApi;`.
+ * Every match of [fingerprint] in the classes whose type ends with [suffix], like `/StoryApi;`,
+ * the same suffix the fingerprint declares as its definingClass.
  *
- * <p>Morphe patcher 1.14's `matchAll` narrows its search by instruction filters alone. Without one
- * it runs the fingerprint over every method of TikTok, whatever `definingClass` says, which cost
- * about half a second a fingerprint on a desktop and far more on a phone (#54). A single match does
- * use the suffix; this gives `matchAll` the same.
+ * <p>Morphe patcher's `matchAll` (1.14 and 1.15) narrows its search by instruction filters alone.
+ * Without one it runs the fingerprint over every method of TikTok, whatever `definingClass` says,
+ * which cost about half a second a fingerprint on a desktop and far more on a phone (#54). A
+ * single match does use the suffix; this gives `matchAll` the same. Patcher 1.15 no longer lets a
+ * patch read a fingerprint's definingClass, so the caller passes it.
  */
-internal fun BytecodePatchContext.matchAllInDefiningClasses(fingerprint: Fingerprint): List<Match> {
-    val suffix = fingerprint.definingClass
-    require(suffix != null && !suffix.startsWith("L") && suffix.startsWith("/") && suffix.endsWith(";")) {
+internal fun BytecodePatchContext.matchAllInDefiningClasses(fingerprint: Fingerprint, suffix: String): List<Match> {
+    require(!suffix.startsWith("L") && suffix.startsWith("/") && suffix.endsWith(";")) {
         "matchAllInDefiningClasses needs a definingClass suffix like /Name;, not $suffix"
     }
     val matches = mutableListOf<Match>()

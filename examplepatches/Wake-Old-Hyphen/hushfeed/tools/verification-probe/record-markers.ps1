@@ -60,6 +60,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'probe-log.ps1')
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $workDir = Join-Path $root 'work/marker-corpus'
 $routes = @('for-you', 'profile', 'following', 'search', 'paid', 'series', 'playlist', 'drama')
@@ -146,12 +147,8 @@ function Invoke-Phone([Parameter(ValueFromRemainingArguments = $true)][string[]]
 }
 
 function Get-Bound {
-    & adb -s $serial logcat -c
-    & adb -s $serial shell am broadcast -a app.hushfeed.verification.PROBE -p com.zhiliaoapp.musically `
-        -e action marker-corpus -e route $Route | Out-Null
-    Start-Sleep -Milliseconds 1500
     $prefix = "corpus`t$Route`t"
-    foreach ($line in @(& adb -s $serial logcat -d -s HushfeedProbe:V -v raw)) {
+    foreach ($line in @(Invoke-ProbeAction -Serial $serial -Action marker-corpus -WaitMs 1500 -Extras @('-e', 'route', $Route))) {
         if ($line.StartsWith($prefix)) { $line.Substring($prefix.Length) }
     }
 }

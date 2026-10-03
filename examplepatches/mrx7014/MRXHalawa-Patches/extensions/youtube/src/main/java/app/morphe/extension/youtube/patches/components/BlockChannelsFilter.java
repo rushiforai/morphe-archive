@@ -85,18 +85,25 @@ public final class BlockChannelsFilter extends BufferPhraseFilter {
         String current = Settings.BLOCK_CHANNELS_LIST.get();
         Set<String> existing = new LinkedHashSet<>();
         for (String entry : current.split("\\R")) {
-            if (!entry.trim().isEmpty()) existing.add(entry.trim());
+            String normalized = normalizeEntry(entry.trim());
+            if (normalized != null) existing.add(normalized);
         }
 
-        if (existing.contains(channelId)) {
+        boolean addChannelId = !existing.contains(channelId);
+        boolean addHandle = handle != null && HANDLE_PATTERN.matcher(handle).matches()
+                && !containsIgnoreCase(existing, handle);
+        if (!addChannelId && !addHandle) {
             Utils.showToastLong(str("morphe_block_channels_already_blocked"));
             return false;
         }
         StringBuilder updated = new StringBuilder(current.trim());
-        if (updated.length() > 0) updated.append('\n');
-        updated.append(channelId);
-        if (handle != null && HANDLE_PATTERN.matcher(handle).matches() && !existing.contains(handle)) {
-            updated.append('\n').append(handle);
+        if (addChannelId) {
+            if (updated.length() > 0) updated.append('\n');
+            updated.append(channelId);
+        }
+        if (addHandle) {
+            if (updated.length() > 0) updated.append('\n');
+            updated.append(handle);
         }
         Setting.preferences.preferences.edit().putString(
                 Settings.BLOCK_CHANNELS_LIST.key,
@@ -104,6 +111,13 @@ public final class BlockChannelsFilter extends BufferPhraseFilter {
         ).apply();
         Utils.showToastLong(str("morphe_block_channels_added", channelId));
         return true;
+    }
+
+    private static boolean containsIgnoreCase(Set<String> values, String value) {
+        for (String existing : values) {
+            if (existing.equalsIgnoreCase(value)) return true;
+        }
+        return false;
     }
 
     private static String normalizeEntry(String value) {
@@ -124,8 +138,7 @@ public final class BlockChannelsFilter extends BufferPhraseFilter {
 
     private synchronized void parseChannels() {
         String rawChannels = Settings.BLOCK_CHANNELS_LIST.get();
-        //noinspection StringEquality
-        if (rawChannels == lastChannelsParsed) return;
+        if (rawChannels.equals(lastChannelsParsed)) return;
 
         ByteTrieSearch search = new ByteTrieSearch();
         ByteTrieSearch handles = new ByteTrieSearch();
@@ -173,8 +186,8 @@ public final class BlockChannelsFilter extends BufferPhraseFilter {
 
     @Override
     protected void reparseIfNeeded() {
-        //noinspection StringEquality
-        if (Settings.BLOCK_CHANNELS_LIST.get() != lastChannelsParsed) {
+        String rawChannels = Settings.BLOCK_CHANNELS_LIST.get();
+        if (!rawChannels.equals(lastChannelsParsed)) {
             parseChannels();
         }
     }

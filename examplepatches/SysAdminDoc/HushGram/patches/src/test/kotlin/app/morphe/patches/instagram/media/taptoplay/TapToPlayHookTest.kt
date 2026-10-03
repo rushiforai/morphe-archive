@@ -12,6 +12,8 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.misc.extension.PatchLogCapture
+import app.morphe.patches.instagram.misc.extension.markers
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -60,7 +62,15 @@ class TapToPlayHookTest {
     private val storyPlayerInterface = "Lfixture/StoryVideoPlayer;"
     private val storyPlayer = "Lfixture/StoryPlayer;"
     private val storyPlayerOther = "Lfixture/StoryPlayerOverVideoPlayer;"
+    private val scrollerType = "Lfixture/ClipsAutoScroller;"
+    private val scrollerBase = "Lfixture/ScrollerBase;"
+    private val pager = "Lfixture/ClipsViewPager;"
+    private val upNext = "Lfixture/UpNextNavigator;"
     private val dataSaver = "Lfixture/DataSaverDialog;->A00(Landroid/content/Context;Lfixture/Module;$session$function0)V"
+
+    /** What the Reels pager keeps, and the marker of its smooth scroll to the next item, which the fixture check holds the move to. */
+    private val viewPager2 = "Landroidx/viewpager2/widget/ViewPager2;"
+    private val smoothScrollToNextItem = "ClipsViewPagerImpl_smoothScrollToNextItem"
 
     /** What the controller's pause logs, which the fixture check finds it by. */
     private val pauseCurrentPlayerLog = "ClipsVideoPlayerController.pauseCurrentPlayer pauseReason="
@@ -68,7 +78,7 @@ class TapToPlayHookTest {
     /** Every hook the patch writes is in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED, RESUME_HELD_STORY)) {
+        for (hook in listOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED, RESUME_HELD_STORY, AUTO_SCROLLED)) {
             val type = hook.substringBefore("->")
             val declared = ExtensionDex.classDef(type).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
@@ -95,8 +105,9 @@ class TapToPlayHookTest {
     fun eachHookGoesFirst() {
         val context = PatchContexts.of(classes())
 
-        context.holdStartsWithoutATap()
+        val warnings = PatchLogCapture.warnings { context.holdStartsWithoutATap() }
 
+        assertEquals("nothing went without", emptyList<String>(), warnings)
         assertGateFirst("playInternal", context.method(player, "A0J").code(), ALLOW_START, prefix = listOf(Opcode.IGET_OBJECT))
         val internal = context.method(player, "A0J").code()
         assertEquals("the IgGrootPlayer comes from the player's field", "$player->groot:$groot", (internal[0] as ReferenceInstruction).reference.toString())
@@ -140,6 +151,79 @@ class TapToPlayHookTest {
         assertStoryReleaseHooked(context.method(storyPlayer, "Gk2").code(), "$storyPlayer->A0W:Z", flag = 0, playerRegister = 7)
         assertEquals(listOf(storyPlayer, "$storyPlayer->A0E:$groot"), filled(context, GROOT_OF, STORY_PLAYER_READER))
         assertTrue("the player over IgVideoPlayerImpl", context.method(storyPlayerOther, "Gk2").code().none { it.referenceText() == RESUME_HELD_STORY })
+        val scroll = context.method(scrollerType, "A03").code()
+        assertAutoScrollHooked(scroll, "the auto scroll")
+        val pagerRead = scroll[scroll.indexOfFirst { it.referenceText() == AUTO_SCROLLED } - 2] as TwoRegisterInstruction
+        assertEquals("the second read of the pager, off the scroller in v8", listOf("$scrollerBase->A02:$pager", 8), listOf((pagerRead as ReferenceInstruction).reference.toString(), pagerRead.registerB))
+        assertTrue("Up next's own move to the next reel", context.method(upNext, "A00").code().none { it.referenceText() == AUTO_SCROLLED })
+    }
+
+    /**
+     * The extension hears of the auto scroller's move right in front of the pager's call, which comes
+     * straight after its null check of the pager it just read, and nothing jumps to the hook or the call.
+     */
+    private fun assertAutoScrollHooked(code: List<Instruction>, what: String) {
+        val hook = code.indices.single { code[it].referenceText() == AUTO_SCROLLED }
+        assertEquals("$what: the hook names no register", 0, (code[hook] as FiveRegisterInstruction).registerCount)
+        val move = code[hook + 1]
+        val moved = move.referenceText()!!
+        assertEquals("$what: right in front of a virtual call", Opcode.INVOKE_VIRTUAL, move.opcode)
+        assertTrue("$what: $moved takes nothing and returns nothing", moved.endsWith("()V"))
+        val pagerRegister = (move as FiveRegisterInstruction).registerC
+        assertEquals(
+            "$what: right after the pager's null check", listOf(Opcode.IF_EQZ, pagerRegister),
+            listOf(code[hook - 1].opcode, (code[hook - 1] as OneRegisterInstruction).registerA),
+        )
+        assertEquals("$what: whose no lands past the move", hook + 2, code.target(hook - 1))
+        val read = code[hook - 2]
+        assertEquals("$what: and the pager's read", listOf(Opcode.IGET_OBJECT, pagerRegister), listOf(read.opcode, (read as TwoRegisterInstruction).registerA))
+        assertEquals("$what: of the field the move calls on", moved.substringBefore("->"), ((read as ReferenceInstruction).reference as FieldReference).type)
+        code.indices.filter { code[it] is OffsetInstruction && code[it].opcode !in setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH, Opcode.FILL_ARRAY_DATA) }
+            .forEach { assertTrue("$what: the branch at $it lands on the hook or the move", code.target(it) !in setOf(hook, hook + 1)) }
+    }
+
+    /** Each auto scroller the patch can't hook safely fails at patch time with what it found, before anything is written. */
+    @Test
+    fun aReelsAutoScrollerThePatchCantReadFailsBeforeAnythingChanges() {
+        val cases = listOf(
+            Scroller(secondMove = true) to "expected one method marked $SCROLL_TO_NEXT_REEL, found 2",
+            Scroller(instance = true) to "isn't static void ($scrollerType, boolean)",
+            Scroller(extendsObject = true) to "extends no class of Instagram's",
+            Scroller(secondPagerField = true) to "its pager, found 2",
+            Scroller(moveTakesAnInt = true) to "the move, found 0",
+            Scroller(secondMoveCall = true) to "the move, found 2",
+            Scroller(moveOnOther = true) to "doesn't move the pager it reads",
+            Scroller(pagerOffAnother = true) to "doesn't move the pager it reads",
+            Scroller(jumpToMove = true) to "jumps straight to the move",
+            Scroller(jumpBetween = true) to "between the pager's read",
+            Scroller(scrollerWrittenOver = true) to "writes over parameter 0 (v8)",
+        )
+        for ((scroller, expected) in cases) {
+            val context = PatchContexts.of(classes(scroller = scroller))
+            val failure = assertThrows(PatchException::class.java) { context.holdStartsWithoutATap() }
+            assertTrue("$scroller: ${failure.message}", failure.message!!.startsWith("$PATCH: the Reels auto scroller: "))
+            assertTrue("$scroller: ${failure.message}", failure.message!!.contains(expected))
+            assertUntouched(context)
+        }
+    }
+
+    /**
+     * A build with no auto scroller marker, or with it renamed, still gets every other hook, and the
+     * patch log says auto scroll won't start the reel it moves to. Nothing goes into the method that
+     * lost its marker.
+     */
+    @Test
+    fun withoutTheAutoScrollerMarkerTheRestIsHookedAndTheLogSaysSo() {
+        for (marker in listOf(null, "ClipsAutoScrollerImpl_scrollToNextReel")) {
+            val context = PatchContexts.of(classes(scroller = Scroller(marker = marker)))
+            val warnings = PatchLogCapture.warnings { context.holdStartsWithoutATap() }
+            assertEquals("$marker: one warning: $warnings", 1, warnings.size)
+            assertTrue("$marker: ${warnings.single()}", warnings.single().startsWith("$PATCH: no method carries") && SCROLL_TO_NEXT_REEL in warnings.single())
+            assertTrue("$marker: the move", context.method(scrollerType, "A03").code().none { it.referenceText() == AUTO_SCROLLED })
+            assertGateFirst("$marker: playInternal", context.method(player, "A0J").code(), ALLOW_START, prefix = listOf(Opcode.IGET_OBJECT))
+            assertReelTapHooked(context.method(navigator, "A01").code(), decision = 1, navigatorRegister = 5)
+            assertStoryReleaseHooked(context.method(storyPlayer, "Gk2").code(), "$storyPlayer->A0W:Z", flag = 0, playerRegister = 7)
+        }
     }
 
     /**
@@ -310,7 +394,7 @@ class TapToPlayHookTest {
                     FixtureDex.classesHolding(bundle, PLAY_INTERNAL) + FixtureDex.classesHolding(bundle, GROOT_PREPARE) +
                         FixtureDex.classesHolding(bundle, AUTOPLAY_CHECKER.last()) +
                         listOfNotNull(FixtureDex.classes(bundle, setOf(FRAGMENT_ACTIVITY))[FRAGMENT_ACTIVITY]) +
-                        reel + near + returned + playButtonClasses(bundle) + viewer + storyPlayers +
+                        reel + near + returned + playButtonClasses(bundle) + viewer + storyPlayers + scrollToNextReelClasses(bundle) +
                         ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER) + ExtensionDex.classDef(STORY_PLAYER_READER)
                     ).distinctBy { it.type }
                 val context = PatchContexts.of(classes)
@@ -318,6 +402,14 @@ class TapToPlayHookTest {
                 val reelTap = context.findReelTap()
                 val storyRelease = context.findStoryRelease(hooks.prepare.definingClass)
                 val flagField = storyRelease.resume.code()[storyRelease.read].referenceText()!!
+                val autoScroll = context.findAutoScroll()
+                    ?: throw AssertionError("${bundle.name}: no method carries $SCROLL_TO_NEXT_REEL")
+                // The call the patch found by its shape is the Reels pager's smooth scroll to the next item.
+                val moveCall = (autoScroll.move.code()[autoScroll.call] as ReferenceInstruction).reference as MethodReference
+                val pagerClass = FixtureDex.classes(bundle, setOf(moveCall.definingClass)).values.single()
+                val target = pagerClass.methods.single { it.name == moveCall.name && it.parameterTypes.isEmpty() && it.returnType == "V" }
+                assertTrue("${bundle.name}: ${moveCall.definingClass} holds a ViewPager2", pagerClass.fields.any { it.type == viewPager2 })
+                assertEquals("${bundle.name}: $moveCall", listOf(smoothScrollToNextItem), target.markers())
                 assertEquals("${bundle.name}: the player's IgGrootPlayer field", hooks.prepare.definingClass, hooks.grootField.type)
                 assertEquals("${bundle.name}: play and prepare are one class's", hooks.prepare.definingClass, hooks.play.definingClass)
                 assertEquals("${bundle.name}: pause is theirs too", hooks.prepare.definingClass, hooks.pause.definingClass)
@@ -351,6 +443,9 @@ class TapToPlayHookTest {
                 )
                 val click = hooks.playButton.method
                 assertPlayButtonHooked(after(click), click.implementation!!.registerCount - 1, "${bundle.name}: the play button's click")
+                val scroll = after(autoScroll.move)
+                assertAutoScrollHooked(scroll, "${bundle.name}: the auto scroll")
+                assertEquals("${bundle.name}: the hook is in front of the call found", moveCall.toString(), scroll[scroll.indexOfFirst { it.referenceText() == AUTO_SCROLLED } + 1].referenceText())
                 checked += version
             }
         }
@@ -369,7 +464,7 @@ class TapToPlayHookTest {
     }
 
     private fun assertUntouched(context: BytecodePatchContext) {
-        val hooks = setOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED, RESUME_HELD_STORY)
+        val hooks = setOf(ALLOW_START, ALLOW_DIRECT_START, PAUSED, REBOUND, AUTOPLAY_ALLOWED, TOUCH, RESUME_ON_TAP, PLAY_BUTTON_TAPPED, RESUME_HELD_STORY, AUTO_SCROLLED)
         for ((type, name) in listOf(player to "A0J", groot to "A0X", groot to "A0V", groot to "A0S", checker to "A01", navigator to "A01", lambdas to "invoke")) {
             assertTrue("$type->$name changed", context.method(type, name).code().none { it.referenceText() in hooks })
         }
@@ -379,6 +474,11 @@ class TapToPlayHookTest {
         assertEquals("the stub $GROOT_OF was filled", Opcode.SGET_OBJECT, context.method(STORY_PLAYER_READER, GROOT_OF).code().first().opcode)
         context.classDefByOrNull(storyPlayer)?.let { player ->
             assertTrue("$storyPlayer->Gk2 changed", player.methods.first { it.name == "Gk2" }.code().none { it.referenceText() in hooks })
+        }
+        for (type in listOf(scrollerType, "Lfixture/OtherScroller;", upNext)) {
+            context.classDefByOrNull(type)?.methods?.forEach { method ->
+                assertTrue("$type->${method.name} changed", method.code().none { it.referenceText() in hooks })
+            }
         }
     }
 
@@ -408,6 +508,19 @@ class TapToPlayHookTest {
         val address = IntArray(size + 1)
         forEachIndexed { i, instruction -> address[i + 1] = address[i] + instruction.codeUnits }
         return address.indexOf(address[index] + (this[index] as OffsetInstruction).codeOffset)
+    }
+
+    /**
+     * Every class in [bundle] with a method carrying a purge marker that ends in "_scrollToNextReel":
+     * the auto scroller, and on 449 Up next's move as well, which the patch has to tell apart.
+     */
+    private fun scrollToNextReelClasses(bundle: File): List<ClassDef> {
+        val found = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            if (dex.stringSection.none { it.startsWith("android_purge_") && it.endsWith("_scrollToNextReel") }) return@forEach
+            dex.classes.filterTo(found) { classDef -> classDef.methods.any { method -> method.markers().any { it.endsWith("_scrollToNextReel") } } }
+        }
+        return found.map { ImmutableClassDef.of(it) }
     }
 
     // ---- stand-ins shaped like Instagram 449's -------------------------------------------------
@@ -452,6 +565,7 @@ class TapToPlayHookTest {
         enumState: Boolean = true,
         start: Start = Start.HANDED_OVER,
         story: Story = Story(),
+        scroller: Scroller = Scroller(),
     ): List<ClassDef> {
         val videoPlayer = classDef(
             player,
@@ -526,6 +640,7 @@ class TapToPlayHookTest {
         )
         return listOfNotNull(videoPlayer, grootPlayer, autoplayChecker, if (activity) fragmentActivity else null) +
             reelClasses(reel) + playButtonClasses(buttons, twoStarts, clobberedEvent, binder, enumState, start) + storyClasses(story) +
+            scrollerClasses(scroller) +
             ExtensionDex.classDef(TAP_TO_PLAY) + ExtensionDex.classDef(REEL_STATE_READER) + ExtensionDex.classDef(STORY_PLAYER_READER)
     }
 
@@ -807,6 +922,93 @@ class TapToPlayHookTest {
             implementer(storyPlayer, groot),
             implementer(storyPlayerOther, if (story.secondGrootPlayer) groot else player),
         )
+    }
+
+    /** How a test's auto scroller stand-ins differ from 449's. */
+    private data class Scroller(
+        /** The marker after its release, null for none at all. */
+        val marker: String? = SCROLL_TO_NEXT_REEL,
+        /** A second method elsewhere carrying the same marker. */
+        val secondMove: Boolean = false,
+        val instance: Boolean = false,
+        val extendsObject: Boolean = false,
+        /** The move reads a second field the scroller inherits. */
+        val secondPagerField: Boolean = false,
+        /** The pager's move takes the position. */
+        val moveTakesAnInt: Boolean = false,
+        /** A second call on the pager taking nothing and returning nothing. */
+        val secondMoveCall: Boolean = false,
+        /** The move is called on a pager read from the scroller's own field. */
+        val moveOnOther: Boolean = false,
+        /** The move is called on the pager field read off another scroller the scroller holds. */
+        val pagerOffAnother: Boolean = false,
+        /** The no-pager path jumps straight to the move. */
+        val jumpToMove: Boolean = false,
+        /** The no-pager path jumps to the null check between the pager's read and the move. */
+        val jumpBetween: Boolean = false,
+        /** The move writes over the scroller before it reads the pager the second time. */
+        val scrollerWrittenOver: Boolean = false,
+    )
+
+    /**
+     * The auto scroller's move, shaped like 449's 07SD.A03: static, (scroller, flag), ten registers,
+     * the scroller in v8. It reads the pager from the field its superclass keeps first thing, and when
+     * there's none it goes back with no item; then it reads the pager again, checks it, moves it on,
+     * and writes over the scroller once it's done with it. Beside it, Up next's own move, whose marker
+     * ends the same way.
+     */
+    private fun scrollerClasses(s: Scroller): List<ClassDef> {
+        val item = "Lfixture/ClipsItem;"
+        val pagerRead = "iget-object v0, p0, $scrollerBase->A02:$pager"
+        val marker = s.marker?.let { "android_purge_26_q2_$it" } ?: "ClipsAutoScroller"
+        val move = method(scrollerType, "A03", listOf(scrollerType, "Z"), "V", 10, static = !s.instance, body = """
+            const-string v0, "$marker"
+            $pagerRead
+            if-eqz v0, :none
+            invoke-virtual { v0 }, $pager->A0N()$item
+            move-result-object v2
+            :got
+            ${if (s.secondPagerField) "iget-object v5, p0, $scrollerBase->A01:$pager" else ""}
+            iget v3, p0, $scrollerType->A00:I
+            const/4 v4, 0x1
+            iput-boolean v4, p0, $scrollerType->A07:Z
+            ${if (s.scrollerWrittenOver) "iget-object p0, p0, $scrollerType->A0E:$session" else ""}
+            ${if (s.pagerOffAnother) "iget-object v5, p0, $scrollerType->A0T:$scrollerBase" else ""}
+            ${if (s.moveOnOther) "iget-object v0, p0, $scrollerType->A0S:$pager" else if (s.pagerOffAnother) "iget-object v0, v5, $scrollerBase->A02:$pager" else pagerRead}
+            :check
+            if-eqz v0, :moved
+            :move
+            ${if (s.moveTakesAnInt) "invoke-virtual { v0, v3 }, $pager->A0X(I)V" else "invoke-virtual { v0 }, $pager->A0X()V"}
+            ${if (s.secondMoveCall) "invoke-virtual { v0 }, $pager->A0Y()V" else ""}
+            :moved
+            iget-object p0, p0, $scrollerType->A0E:$session
+            const-string v0, "instagram_clips_viewer_autoplay_scroll"
+            return-void
+            :none
+            const/4 v2, 0x0
+            goto ${if (s.jumpToMove) ":move" else if (s.jumpBetween) ":check" else ":got"}
+        """)
+        val field = { owner: String, name: String, type: String -> ImmutableField(owner, name, type, AccessFlags.PUBLIC.value, null, null, null) }
+        val base = ImmutableClassDef(
+            scrollerBase, AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value, objectType, null, null, null,
+            listOf(field(scrollerBase, "A01", pager), field(scrollerBase, "A02", pager)), emptyList(),
+        )
+        val scrollerClass = ImmutableClassDef(
+            scrollerType, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, if (s.extendsObject) objectType else scrollerBase, null, null, null,
+            listOf(field(scrollerType, "A00", "I"), field(scrollerType, "A07", "Z"), field(scrollerType, "A0E", session), field(scrollerType, "A0S", pager), field(scrollerType, "A0T", scrollerBase)),
+            listOf(move),
+        )
+        val upNextClass = classDef(upNext, listOf(method(upNext, "A00", listOf(upNext, "Z"), "V", 3, static = true, body = """
+            const-string v0, "android_purge_26_q3_UpNextNavigator_scrollToNextReel"
+            iget-object v0, p0, $scrollerBase->A02:$pager
+            invoke-virtual { v0 }, $pager->A0X()V
+            return-void
+        """)))
+        val other = if (s.secondMove) classDef("Lfixture/OtherScroller;", listOf(method("Lfixture/OtherScroller;", "A00", emptyList(), "V", 1, static = true, body = """
+            const-string v0, "android_purge_26_q2_$SCROLL_TO_NEXT_REEL"
+            return-void
+        """))) else null
+        return listOfNotNull(base, scrollerClass, upNextClass, other)
     }
 
     private fun abstractMethod(owner: String, name: String, parameters: List<String>, returns: String): Method = ImmutableMethod(

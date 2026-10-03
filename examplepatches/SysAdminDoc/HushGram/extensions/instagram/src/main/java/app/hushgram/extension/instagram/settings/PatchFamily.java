@@ -49,7 +49,10 @@ public enum PatchFamily {
             Settings.DONT_SEND_REEL_WATCH_HISTORY),
     STORY_AUTO_ADVANCE(FamilyNames.STORY_AUTO_ADVANCE, "storyAutoAdvance", null,
             Settings.BLOCK_STORY_AUTO_ADVANCE),
-    STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null, Settings.VIEW_STORIES_ANONYMOUSLY),
+    STORY_TIME(FamilyNames.STORY_TIME, "storyTime", null, Settings.SHOW_STORY_TIME),
+    STORY_LOOP(FamilyNames.STORY_LOOP, "storyLoop", null, Settings.LOOP_STORIES),
+    STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null, Settings.VIEW_STORIES_ANONYMOUSLY,
+            Settings.MARK_STORIES_SEEN),
     STORIES_TRAY(FamilyNames.STORIES_TRAY, "storiesTray", null, Settings.HIDE_SUGGESTED_STORIES,
             Settings.HIDE_STORIES_TRAY),
     STORY_RING(FamilyNames.STORY_RING, "storyRingSize", null, Settings.STORY_RING),
@@ -58,19 +61,29 @@ public enum PatchFamily {
             Settings.HIDE_SUGGESTED_POSTS, Settings.HIDE_THREADS_POSTS),
     FOLLOWING_FEED(FamilyNames.FOLLOWING_FEED, "followingFeed", null, Settings.START_ON_FOLLOWING,
             Settings.ONLY_FOLLOWING),
+    SWIPE_TO_CREATE(FamilyNames.SWIPE_TO_CREATE, "swipeToCreate", null, Settings.STOP_SWIPE_TO_CREATE),
     META_AI(FamilyNames.META_AI, "metaAi", null, Settings.HIDE_META_AI_SEARCH, Settings.HIDE_META_AI_POSTS),
     EXPLORE_GRID(FamilyNames.EXPLORE_GRID, "exploreGrid", null, Settings.HIDE_EXPLORE_GRID),
     SHARE_SHEET(FamilyNames.SHARE_SHEET, "shareSheet", null, Settings.HIDE_SHARE_SHEET_GROUP),
     REPOST_BUTTON(FamilyNames.REPOST_BUTTON, "repostButton", null, Settings.HIDE_REPOST_BUTTON),
     BOTTOM_SPACE(FamilyNames.BOTTOM_SPACE, "bottomSpace", null, Settings.REMOVE_BOTTOM_SPACE),
-    FRIENDSHIP_STATUS(FamilyNames.FRIENDSHIP_STATUS, "friendshipStatus", null, Settings.SHOW_FRIENDSHIP_STATUS),
+    FRIENDSHIP_STATUS(FamilyNames.FRIENDSHIP_STATUS, "friendshipStatus", null, Settings.SHOW_FRIENDSHIP_STATUS,
+            Settings.MARK_FOLLOWING_LIST),
+    PROFILE_SUGGESTIONS(FamilyNames.PROFILE_SUGGESTIONS, "profileSuggestions", null, Settings.HIDE_PROFILE_SUGGESTIONS),
+    PROFILE_HIGHLIGHTS(FamilyNames.PROFILE_HIGHLIGHTS, "profileHighlights", null, Settings.HIDE_HIGHLIGHTS),
+    COMMENT_COPY(FamilyNames.COMMENT_COPY, "commentCopy", null, Settings.COPY_COMMENTS),
+    COMMENT_PHOTO(FamilyNames.COMMENT_PHOTO, "commentPhoto", null, Settings.SAVE_COMMENT_PHOTOS),
     REEL_DECLUTTER(FamilyNames.REEL_DECLUTTER, "reelDeclutter", null, Settings.HIDE_REEL_FOLLOW_BUTTON,
             Settings.HIDE_REEL_CHIPS, Settings.HIDE_REEL_SOCIAL_FOOTER),
     REEL_DOWNLOAD(FamilyNames.REEL_DOWNLOAD, "reelDownload", null, Settings.DOWNLOAD_REELS),
     DOUBLE_TAP_LIKE(FamilyNames.DOUBLE_TAP_LIKE, "doubleTapLike", null, Settings.TURN_OFF_DOUBLE_TAP_LIKE,
             Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_POSTS, Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_REELS),
     REELS_TAB(FamilyNames.REELS_TAB, "reelsTab", null, Settings.HIDE_REELS_TAB),
+    REELS_SUGGESTIONS(FamilyNames.REELS_SUGGESTIONS, "reelsSuggestions", null, Settings.HIDE_REELS_SUGGESTIONS),
     KEEP_REEL_SPEED(FamilyNames.KEEP_REEL_SPEED, "keepReelSpeed", null, Settings.KEEP_REEL_SPEED),
+    REEL_SEEK_BAR(FamilyNames.REEL_SEEK_BAR, "reelSeekBar", null, Settings.REEL_SEEK_BAR),
+    REEL_AUTO_SCROLL(FamilyNames.REEL_AUTO_SCROLL, "reelAutoScroll", null, Settings.KEEP_REEL_AUTO_SCROLL),
+    REEL_SCROLLING(FamilyNames.REEL_SCROLLING, "reelScrolling", null, Settings.STOP_REELS_SCROLLING),
     STORY_DOWNLOAD(FamilyNames.STORY_DOWNLOAD, "storyDownload", null, Settings.DOWNLOAD_STORIES),
     VIDEO_DOWNLOAD(FamilyNames.VIDEO_DOWNLOAD, "videoDownload", null, Settings.DOWNLOAD_VIDEOS, Settings.DOWNLOAD_PHOTOS),
     TAP_TO_PLAY(FamilyNames.TAP_TO_PLAY, "tapToPlay", null, Settings.TAP_TO_PLAY),
@@ -122,6 +135,22 @@ public enum PatchFamily {
         }
     }
 
+    /** Whether a test says this build marks your own Following list, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean followingListMarkForTests;
+
+    /**
+     * Whether this build marks your own Following list. Show if a profile follows you goes in without
+     * it when Instagram's follow list has moved, so its second switch isn't offered then.
+     */
+    public static boolean followingListMarkInBuild() {
+        Boolean forced = followingListMarkForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(FRIENDSHIP_STATUS);
+        return FRIENDSHIP_STATUS.inBuild() && SettingsStatus.followingListMark();
+    }
+
     /** The families this build carries, in declaration order. */
     public static Set<PatchFamily> inThisBuild() {
         Set<PatchFamily> found = EnumSet.noneOf(PatchFamily.class);
@@ -163,6 +192,9 @@ public enum PatchFamily {
         for (PatchFamily family : values()) {
             if (inBuild.contains(family)) {
                 lines.add(family.reportLine(paused));
+                if (family == FRIENDSHIP_STATUS && !followingListMarkInBuild()) {
+                    lines.add("  Mark who doesn't follow you back: not in this build (Instagram's follow list didn't match)");
+                }
                 if (family == DISABLE_ANALYTICS || family == SANITIZE_SHARING_LINKS || family == TRANSLATED_START) {
                     try {
                         String encoded = (String) SettingsStatus.class.getMethod(family.statusMethod + "Coverage").invoke(null);

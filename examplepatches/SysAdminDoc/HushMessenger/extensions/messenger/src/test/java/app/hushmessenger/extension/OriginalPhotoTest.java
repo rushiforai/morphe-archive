@@ -302,6 +302,34 @@ public class OriginalPhotoTest {
         assertArrayEquals(original, Files.readAllBytes(photo.toPath()));
     }
 
+    @Test public void jfifEmbeddedThumbnailIsRemovedFromBothSendRoutes() throws Exception {
+        byte[] encoded = encode(1600, 1200, null);
+        byte[] jfif = {'J', 'F', 'I', 'F', 0, 1, 2, 1, 0, 72, 0, 72, 1, 1, 12, 34, 56};
+        byte[] original = join(Arrays.copyOf(encoded, 2), segment(0xE0, new String(jfif, StandardCharsets.ISO_8859_1)),
+            Arrays.copyOfRange(encoded, 2, encoded.length));
+        File photo = write(original);
+        switchOn();
+        byte[] sent = OriginalPhoto.sync(photo.getPath(), 4096, 4096, null, hd());
+        assertNotNull(sent);
+        Callback callback = new Callback();
+        assertTrue(OriginalPhoto.async(photo.getPath(), 4096, 4096, null, hd(), callback));
+        File[] copies = OriginalPhoto.tempDir.listFiles();
+        assertEquals(1, copies.length);
+        byte[] async = Files.readAllBytes(copies[0].toPath());
+        for (byte[] result : new byte[][] {sent, async}) {
+            int[] header = headerSegments(result).get(0);
+            assertEquals(0xE0, header[0]);
+            // Segment bounds include marker and length. JFIF must keep its 14-byte header without RGB thumbnail data.
+            assertEquals(18, header[2] - header[1]);
+            assertArrayEquals(Arrays.copyOf(jfif, 12), Arrays.copyOfRange(result, header[1] + 4, header[1] + 16));
+            assertEquals(0, result[header[1] + 16]);
+            assertEquals(0, result[header[1] + 17]);
+            assertArrayEquals(Arrays.copyOfRange(original, scanStart(original), endOfImage(original)),
+                Arrays.copyOfRange(result, scanStart(result), endOfImage(result)));
+        }
+        assertArrayEquals(original, Files.readAllBytes(photo.toPath()));
+    }
+
     @Test public void anAsyncSendReportsACopyOfItsOwnImageData() throws Exception {
         File photo = jpeg(1600, 1200);
         switchOn();

@@ -9,8 +9,9 @@ android {
     defaultConfig {
         minSdk = 28
         targetSdk = 36
-        versionCode = 90
+        versionCode = 170
         versionName = project.version.toString()
+        testInstrumentationRunner = "app.hushmessenger.extension.BuildTransportProbe"
     }
     buildFeatures { buildConfig = true }
     testOptions { unitTests.isIncludeAndroidResources = true }

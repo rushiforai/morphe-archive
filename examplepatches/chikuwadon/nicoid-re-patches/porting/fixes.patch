@@ -264,7 +264,7 @@ index dc620db..caca8ab 100644
          <Preference android:title="@string/settingLicense" android:key="license" />
          <Preference android:title="@string/settingTranslation" android:key="app_translation" android:summary="@string/settingTranslator" />
          <Preference android:title="Version.1.0" android:key="info" android:summary="Copyright (c) sauzask" />
-+        <Preference android:title="パッチバージョン" android:key="nicoid_patch_version" android:summary="1.10-dev.2（検証版）" android:selectable="false" />
++        <Preference android:title="パッチバージョン" android:key="nicoid_patch_version" android:summary="v1.3.0-dev.1 @chikuwadon" android:selectable="false" />
      </PreferenceCategory>
  </PreferenceScreen>
 diff --git a/smali/com/sauzask/nicoid/NicoidPopupViewService.smali b/smali/com/sauzask/nicoid/NicoidPopupViewService.smali

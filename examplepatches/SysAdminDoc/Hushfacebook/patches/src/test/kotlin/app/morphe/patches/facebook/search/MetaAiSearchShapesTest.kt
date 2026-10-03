@@ -390,7 +390,7 @@ class MetaAiSearchShapesTest {
 
     @Test
     fun `the parser stores the flag it reads off the tree once, and a constant store isn't one`() {
-        assertTrue(isSuggestionParser(parser()))
+        assertTrue(isSuggestionParser(parser()) { null })
         assertEquals(listOf(RouteStore(3, 0)), routeStores(parser(), builderFlag))
         assertEquals(emptyList<RouteStore>(), routeStores(parser(), ImmutableFieldReference(specBuilder, "A0X", "Z")))
     }

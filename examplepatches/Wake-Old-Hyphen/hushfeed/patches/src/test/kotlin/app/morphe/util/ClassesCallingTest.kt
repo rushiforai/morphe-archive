@@ -90,6 +90,7 @@ class ClassesCallingTest {
             "Landroid/telephony/TelephonyManager;",
             "Landroid/location/LocationManager;",
             "Landroid/content/SharedPreferences\$Editor;",
+            "Landroid/app/NotificationManager;",
         )
     }
 }

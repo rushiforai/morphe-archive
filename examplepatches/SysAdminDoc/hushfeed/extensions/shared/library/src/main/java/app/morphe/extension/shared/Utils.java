@@ -116,6 +116,11 @@ public class Utils {
         return ""; // Value is replaced during patching.
     }
 
+    /** Fixed APK facts, independent of runtime settings and diagnostic events. */
+    public static String getBuildMetadata() {
+        return app.morphe.extension.shared.diagnostics.BuildDetails.readMetadata(getContext());
+    }
+
     public static boolean isPreReleasePatches() {
         return getPatchesReleaseVersion().contains("dev");
     }
@@ -304,7 +309,16 @@ public class Utils {
         while (true) {
             long remaining = deadline - System.nanoTime();
             if (remaining <= 0) throw new TimeoutException("Background tasks did not finish");
-            backgroundThreadPool.submit(() -> { }).get(remaining, TimeUnit.NANOSECONDS);
+            Future<?> marker;
+            try {
+                marker = backgroundThreadPool.submit(() -> { });
+            } catch (RejectedExecutionException full) {
+                // A full queue is work still in flight, so wait for it to drain. A burst bigger
+                // than the queue (twenty quick switch flips) used to fail the wait itself.
+                Thread.sleep(5);
+                continue;
+            }
+            marker.get(remaining, TimeUnit.NANOSECONDS);
             if (backgroundTasksInFlight.get() == 0 && backgroundThreadPool.getQueue().isEmpty()) {
                 return;
             }

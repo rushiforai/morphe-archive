@@ -686,8 +686,7 @@ try {
         'before its first return')) `
         "The good build's GenAI reel stub was not reported calling Facebook's attribution finder.`n$($good.Output -join "`n")"
     # The settings patch sends each of these ShortcutManager calls to SettingsEntry, and the fixture's
-    # publisher makes each one from a method of its own (Caller). Every no-call rule in the contract
-    # file has to be one of them, or a rule with no bad build below would pass on "0 call sites".
+    # publisher makes each one from a method of its own (Caller).
     $shortcutCalls = @(
         [pscustomobject]@{ Case = 'push'; Call = 'pushDynamicShortcut'; Takes = 'Landroid/content/pm/ShortcutInfo;'; Answers = 'V'; Caller = 'push' }
         [pscustomobject]@{ Case = 'add'; Call = 'addDynamicShortcuts'; Takes = 'Ljava/util/List;'; Answers = 'Z'; Caller = 'add' }
@@ -701,17 +700,57 @@ try {
         $shortcut | Add-Member -NotePropertyName Site -NotePropertyValue (
             "Lfixture/Shortcuts;->$($shortcut.Caller)(Landroid/content/pm/ShortcutManager;$($shortcut.Takes))$($shortcut.Answers)")
     }
+    # The override reader must never call these native writers or reloads. The good build makes
+    # real calls inside the exact allowed prefix; each bad build adds one extension call outside it.
+    $overrideTable = 'Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;'
+    $overrideWriter = 'Lcom/facebook/mobileconfig/troubleshooting/MobileConfigOverridesWriterHolder;'
+    $overrideCalls = @(
+        [pscustomobject]@{ Case = 'import-user'; Owner = $overrideWriter; Call = 'importOverridesFromUser'; Takes = 'Ljava/lang/String;'; Answers = 'Ljava/lang/String;' }
+        [pscustomobject]@{ Case = 'reload'; Owner = $overrideTable; Call = 'reload'; Takes = ''; Answers = 'V' }
+        [pscustomobject]@{ Case = 'remove-all'; Owner = $overrideTable; Call = 'removeAllOverrides'; Takes = ''; Answers = 'V' }
+        [pscustomobject]@{ Case = 'remove-param'; Owner = $overrideTable; Call = 'removeOverrideForParam'; Takes = 'J'; Answers = 'V' }
+        [pscustomobject]@{ Case = 'remove-universe'; Owner = $overrideTable; Call = 'removeOverridesForQEUniverse'; Takes = 'Ljava/lang/String;'; Answers = 'V' }
+        [pscustomobject]@{ Case = 'update-qe'; Owner = $overrideTable; Call = 'updateOverrideForQE'; Takes = 'Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;'; Answers = 'V' }
+        [pscustomobject]@{ Case = 'update-bool'; Owner = $overrideTable; Call = 'updateOverrideForBool'; Takes = 'JZ'; Answers = 'V' }
+        [pscustomobject]@{ Case = 'update-long'; Owner = $overrideTable; Call = 'updateOverrideForInt'; Takes = 'JJ'; Answers = 'V' }
+        [pscustomobject]@{ Case = 'update-string'; Owner = $overrideTable; Call = 'updateOverrideForString'; Takes = 'JLjava/lang/String;'; Answers = 'V' }
+        [pscustomobject]@{ Case = 'update-double'; Owner = $overrideTable; Call = 'updateOverrideForDouble'; Takes = 'JD'; Answers = 'V' }
+    )
+    foreach ($override in $overrideCalls) {
+        $override | Add-Member -NotePropertyName Callee -NotePropertyValue (
+            "$($override.Owner)->$($override.Call)($($override.Takes))$($override.Answers)")
+        $shape = "$($override.Call)($($override.Owner)$($override.Takes))$($override.Answers)"
+        $override | Add-Member -NotePropertyName Site -NotePropertyValue (
+            "Lapp/hushgram/extension/fixture/misc/OverrideCalls;->$shape")
+        $override | Add-Member -NotePropertyName AllowedSite -NotePropertyValue (
+            "Lcom/facebook/mobileconfig/fixture/OverrideCalls;->$shape")
+    }
     $noCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*no-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+')[1] } | Sort-Object)
-    $shortcutCallees = @($shortcutCalls | ForEach-Object { $_.Callee } | Sort-Object)
-    Assert-True (($noCallRules -join "`n") -ceq ($shortcutCallees -join "`n")) `
-        ("The contract file's no-call rules and this suite's shortcut builds name different calls.`n" +
-        "Contract file:`n$($noCallRules -join "`n")`nThis suite:`n$($shortcutCallees -join "`n")")
+    $fixtureCallees = @($shortcutCalls + $overrideCalls | ForEach-Object { $_.Callee } | Sort-Object)
+    Assert-True (($noCallRules -join "`n") -ceq ($fixtureCallees -join "`n")) `
+        ("The contract file's no-call rules and this suite's bad builds name different calls.`n" +
+        "Contract file:`n$($noCallRules -join "`n")`nThis suite:`n$($fixtureCallees -join "`n")")
     foreach ($shortcut in $shortcutCalls) {
         Assert-True (($good.Output -join "`n") -match [regex]::Escape(
             "no-call $($shortcut.Callee) outside Lapp/hushgram/extension/: 0 call sites")) `
             ("The good build's $($shortcut.Call), sent to the stand-in whose own call is inside the extension, " +
             "was not reported clean.`n$($good.Output -join "`n")")
+    }
+    foreach ($override in $overrideCalls) {
+        Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+            "no-call $($override.Callee) outside Lcom/facebook/mobileconfig/: 0 call sites")) `
+            "The good build's $($override.Call) was not reported clean.`n$($good.Output -join "`n")"
+    }
+    $allowedOutput = @(& $Java '-cp' $classPath 'BadDexFixture' '--native-calls' (Get-Dex 'good') 2>&1 |
+        ForEach-Object { "$_" })
+    Assert-True ($LASTEXITCODE -eq 0) "Could not inspect the good build's encoded native calls.`n$($allowedOutput -join "`n")"
+    $allowedCalls = @($allowedOutput | Where-Object { $_.StartsWith('[fixture] native-call ') })
+    Assert-True ($allowedCalls.Count -eq $overrideCalls.Count) `
+        "The good build doesn't contain exactly ten allowed native call sites.`n$($allowedOutput -join "`n")"
+    foreach ($override in $overrideCalls) {
+        Assert-True ($allowedCalls -ccontains "[fixture] native-call $($override.Callee) in $($override.AllowedSite)") `
+            "The good build doesn't make $($override.Callee) in its allowed native method.`n$($allowedOutput -join "`n")"
     }
     # The settings patch sends the call that gives the Facebook logo its touch listener to a stand-in,
     # right after the logo gets its tap. The contract file's one next-call rule is that hook, so a
@@ -825,8 +864,8 @@ try {
         "The good build's home tab call was not reported once in the home tab, picked by its static check.`n$($good.Output -join "`n")"
 
     # HushGram's own contract file, which names Instagram's code: it parses, each rule kind it uses is
-    # one the fixture's rules exercise, and its no-call rules are the fixture's, the five shortcut
-    # calls this suite builds a bad fixture for each. The rules themselves are held to Instagram by
+    # one the fixture's rules exercise, and its no-call rules are the fixture's. Each has its own
+    # bad build below. The rules themselves are held to Instagram by
     # verify-injected-registers.ps1, which verify-all-patches.ps1 runs.
     $ruleKind = { param($Path) @(Get-Content -LiteralPath $Path | Where-Object { $_ -match '^\s*[a-z-]+-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+')[0] } | Sort-Object -Unique) }
@@ -1018,6 +1057,7 @@ try {
         'bad-register-changed' = 'register'
     }
     foreach ($shortcut in $shortcutCalls) { $bad["bad-shortcut-$($shortcut.Case)-left"] = 'contract' }
+    foreach ($override in $overrideCalls) { $bad["bad-native-override-$($override.Case)"] = 'contract' }
     $failures = @()
     $badResults = @{}
     foreach ($case in $bad.GetEnumerator()) {
@@ -1052,6 +1092,26 @@ try {
             Assert-True (($badResults[$name].Output -join "`n") -match [regex]::Escape(
                 "no-call $($other.Callee) outside Lapp/hushgram/extension/: $count")) `
                 "$name reported $($other.Call) wrong: expected '$count'.`n$($badResults[$name].Output -join "`n")"
+        }
+    }
+
+    # Each native writer/reload fails only its exact rule and names its own extension call site.
+    foreach ($override in $overrideCalls) {
+        $name = "bad-native-override-$($override.Case)"
+        $fails = @((Get-Findings $badResults[$name]).Fails)
+        $expected = "[diff] FAIL: contract: $($override.Callee) is still called outside Lcom/facebook/mobileconfig/, in $($override.Site)"
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $expected) `
+            "$name did not fail with its own no-call finding alone.`nExpected: $expected`nGot:`n$($fails -join "`n")"
+        foreach ($other in $overrideCalls) {
+            $count = if ($other.Callee -ceq $override.Callee) { '1 call site, in ' } else { '0 call sites' }
+            Assert-True (($badResults[$name].Output -join "`n") -match [regex]::Escape(
+                "no-call $($other.Callee) outside Lcom/facebook/mobileconfig/: $count")) `
+                "$name reported $($other.Call) wrong: expected '$count'.`n$($badResults[$name].Output -join "`n")"
+        }
+        foreach ($shortcut in $shortcutCalls) {
+            Assert-True (($badResults[$name].Output -join "`n") -match [regex]::Escape(
+                "no-call $($shortcut.Callee) outside Lapp/hushgram/extension/: 0 call sites")) `
+                "$name also reported a forbidden shortcut call.`n$($badResults[$name].Output -join "`n")"
         }
     }
 

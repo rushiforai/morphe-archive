@@ -18,6 +18,8 @@ else:
     from verify_changed_apk_failure import recorded_builds
 
 ROOT = Path(__file__).resolve().parent.parent
+# The complete gate needs every patch in the catalog, Material You included.
+PATCH_COUNT = 32
 
 
 def check_build(args, code, expected_hash, names):
@@ -153,12 +155,12 @@ def main():
         catalog = json.loads((ROOT / "patches-list.json").read_text(encoding="utf-8"))
         names = {patch["name"] for patch in catalog["patches"]}
         if (
-            len(catalog["patches"]) != 31
-            or len(names) != 31
+            len(catalog["patches"]) != PATCH_COUNT
+            or len(names) != PATCH_COUNT
             or "Material You theme" not in names
         ):
             raise ValueError(
-                "the complete gate requires 31 distinct patches including the theme"
+                f"the complete gate requires {PATCH_COUNT} distinct patches including the theme"
             )
         # Each process owns its output and temporary root. Inputs remain read-only.
         failures = []

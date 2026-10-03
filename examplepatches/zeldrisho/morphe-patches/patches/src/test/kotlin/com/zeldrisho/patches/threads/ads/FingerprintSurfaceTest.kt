@@ -46,7 +46,9 @@ class FingerprintSurfaceTest {
         val versions = compat.targets.map { it.version }
         assertTrue("434.0.0.41.74" in versions, "Threads target must stay pinned, found: $versions")
         assertTrue("445.0.0.46.83" in versions, "Threads 445 target must stay pinned, found: $versions")
+        assertTrue("449.0.0.54.82" in versions, "Threads 449 target must stay pinned, found: $versions")
         assertEquals(510406926, Constants.TESTED_VERSION_CODE, "tested versionCode must be recorded")
         assertEquals(511507647, Constants.TESTED_VERSION_CODE_445, "tested 445 versionCode must be recorded")
+        assertEquals(511908382, Constants.TESTED_VERSION_CODE_449, "tested 449 versionCode must be recorded")
     }
 }

@@ -123,4 +123,13 @@ public final class InstagramMedia {
      */
     public static void addDownloadRow(Object menu, ArrayList<?> rows) {
     }
+
+    /** A distinct menu option with Download's icon and ordinal, made by its native constructor. */
+    public static Object saveAllOption() {
+        return null;
+    }
+
+    /** Adds a separate labeled row through the same native adder that creates Download. */
+    public static void addSaveAllRow(Object menu, ArrayList<?> rows, Object option, CharSequence label) {
+    }
 }

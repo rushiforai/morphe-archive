@@ -636,20 +636,32 @@ private fun BytecodePatchContext.patchQuickFilterToolbar(version: String) {
         if-eqz v0, :original_filter_dispatch
         return v0
     """.trimIndent(), ExternalLabel("original_filter_dispatch", first))
-    if (version == "0.8.10.242 dev") {
-        val header = mutableClassDefBy("Lo/isAtLeastS;").methods.single { it.name == "invoke" }
+    val quickFilterComposeRow = when (version) {
+        "0.8.10.226 dev" -> "Lo/writeWindowUpdateLaterokhttp;" to "Lo/Ff11;"
+        "0.8.10.241" -> "Lo/getRewardItem;" to "Lo/zzagp;"
+        "0.8.10.242 dev" -> "Lo/isAtLeastS;" to "Lo/zzbwq;"
+        "0.8.10.243 dev" -> "Lo/zzdhn;" to "Lo/zzftg;"
+        else -> null
+    }
+    if (quickFilterComposeRow != null) {
+        val (rowType, unitType) = quickFilterComposeRow
+        val unitField = mutableClassDefBy(unitType).fields.single { field ->
+            field.type == unitType && field.accessFlags and 8 != 0
+        }
+        val header = mutableClassDefBy(rowType).methods.single {
+            it.name == "invoke" && it.parameters.size == 2 && it.returnType == "Ljava/lang/Object;"
+        }
         val original = header.implementation!!.instructions.first()
         header.addInstructionsWithLabels(0, """
             invoke-static {}, $EXTENSION->compactQuickFilters()Z
             move-result v0
             if-eqz v0, :original_quick_filter_header
-            sget-object v0, Lo/zzbwq;->INSTANCE:Lo/zzbwq;
+            sget-object v0, $unitType->${unitField.name}:$unitType
             return-object v0
         """.trimIndent(), ExternalLabel("original_quick_filter_header", original))
     }
-    // These releases compose their quick-filter row from version-specific
-    // lambdas. Keep the original row intact until a verified owner is known;
-    // the toolbar entry itself remains opt-in and invokes the same VM action.
+    // Keep the original filter state and handlers; only omit each version's
+    // Compose row while the compact toolbar option is enabled.
 }
 
 private val haiagaruBytecodePatch = bytecodePatch {
@@ -935,6 +947,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
             "0.8.10.191 dev" -> {
                 EdgeSubjectUrl191Fingerprint.method.rewriteEdgeSubjectUrl()
                 EdgeThreadMenu191Fingerprint.method.preserveEdgeReporterTitle("Lo/isReady;", "k")
+                patchLegacyNextThreadTitleMatch191()
             }
             "0.8.10.226 dev" -> {
                 EdgeSubjectUrl226Fingerprint.method.rewriteEdgeSubjectUrl()
@@ -2533,6 +2546,14 @@ val haiagaruPatch = resourcePatch(
             "io.ktor.client.engine.okhttp.OkHttpEngineContainer\n",
             Charsets.UTF_8,
         )
+        val cryptoProviderService = get("META-INF").resolve(
+            "services/dev.whyoleg.cryptography.CryptographyProviderContainer",
+        )
+        cryptoProviderService.parentFile.mkdirs()
+        cryptoProviderService.writeText(
+            "dev.whyoleg.cryptography.providers.jdk.JdkCryptographyProviderContainer\n",
+            Charsets.UTF_8,
+        )
         val bundledEmojiFont = get("assets").resolve("haiagaru/NotoColorEmoji.ttf")
         bundledEmojiFont.parentFile.mkdirs()
         val requestedEmojiMode = emojiMode.value.orEmpty().trim().lowercase(Locale.ROOT)
@@ -2697,6 +2718,20 @@ val haiagaruPatch = resourcePatch(
                 )
             }
             application.appendChild(openUrlActivity)
+
+            application.appendChild(document.createElement("activity").apply {
+                setAttributeNS(
+                    ANDROID_XML_NAMESPACE,
+                    "android:name",
+                    "app.morphe.extension.chmate.HaiagaruLocalBackupActivity",
+                )
+                setAttributeNS(ANDROID_XML_NAMESPACE, "android:exported", "false")
+                setAttributeNS(
+                    ANDROID_XML_NAMESPACE,
+                    "android:theme",
+                    "@android:style/Theme.Material.Light.NoActionBar",
+                )
+            })
 
             // Keep the archive page in the same lightweight WebView activity as
             // the checker.  It is declared even when the optional Hissi viewer
@@ -3128,6 +3163,61 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageUploadIntegr
         "invoke-static/range { v$register .. v$register }, " +
             "$EXTENSION->normalizeImageUploadIntegrity242([Ljava/lang/Object;)V",
     )
+
+    // The successful path still computes "uploading" from "8/22/uploading"
+    // through an obfuscated integer expression. On 242 this expression can
+    // divide by zero before the image bytes are copied. The intended index is
+    // the constant prefix length (5), so replace only its final division.
+    val filenameStart = instructions.indices.single { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference
+        reference is StringReference && reference.string == "8/22/uploading"
+    }
+    val substring = (filenameStart + 1 until instructions.size).first { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference
+        reference is MethodReference && reference.definingClass == "Ljava/lang/String;"
+            && reference.name == "substring" && reference.parameterTypes.size == 1
+    }
+    val filenameDivision = (filenameStart + 1 until substring).last { index ->
+        instructions[index].opcode == Opcode.DIV_INT_2ADDR
+    }
+    val division = instructions[filenameDivision] as TwoRegisterInstruction
+    check(division.registerA == 13 && division.registerB == 0) {
+        "ChMate 242 image upload filename calculation changed"
+    }
+    method.replaceInstruction(filenameDivision, "const/4 v13, 0x5")
+}
+
+/** Strip only Edge's reporter suffix before 191 compares successor titles. */
+private fun BytecodePatchContext.patchLegacyNextThreadTitleMatch191() {
+    val method = mutableClassDefBy("Lo/o2;").methods.single { candidate ->
+        candidate.name == "b" && candidate.returnType == "Lo/o2\$setContentView;"
+            && candidate.parameterTypes.map(CharSequence::toString) == listOf(
+                "Landroid/content/Context;", "Lo/getLabel;",
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;", "Z",
+                "Lo/r8lambdamHWy7omJVz7G9M7u2KSo5IaRp90;",
+            )
+    }
+    val instructions = method.implementation?.instructions
+        ?: error("ChMate 191 next-thread worker missing")
+    val normalizationCalls = instructions.mapIndexedNotNull { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        if (reference?.definingClass == "Lo/ocd;" && reference.name == "b"
+            && reference.parameterTypes.map(CharSequence::toString) ==
+            listOf("Lo/getAmount;", "Ljava/lang/String;")) index else null
+    }
+    check(normalizationCalls.size == 3) {
+        "ChMate 191 next-thread title normalization changed"
+    }
+    // The third call normalizes the current favorite's title. The first two
+    // normalize candidate/new titles. All three must ignore only the Edge ID.
+    normalizationCalls.asReversed().forEach { index ->
+        val call = instructions[index] as FiveRegisterInstruction
+        val titleRegister = call.registerD
+        method.addInstructionsWithLabels(index, """
+            invoke-static { v$titleRegister }, Lapp/morphe/extension/chmate/EdgeReporterId;->titleForNextThreadMatch(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object v$titleRegister
+        """.trimIndent())
+    }
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageUploadIntegrityComparison() {

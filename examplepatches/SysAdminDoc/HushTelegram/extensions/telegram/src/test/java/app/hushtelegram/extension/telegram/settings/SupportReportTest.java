@@ -171,7 +171,8 @@ public class SupportReportTest {
             if (paused) PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
             for (String report : bothExports()) {
                 assertTrue(report, report.contains("\nHide ads coverage: channel ads, search ads; missing: video ads\n"));
-                assertTrue(report, report.contains("\nDisable analytics coverage: device statistics reports; missing: channel read metrics\n"));
+                assertTrue(report, report.contains("\nDisable analytics coverage: device statistics reports; missing: "
+                        + "channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures\n"));
                 assertTrue(report, report.contains("\ndebug_logging: off\n"));
                 assertFalse(report, report.contains("[SELECTED EVENTS]"));
             }

@@ -40,7 +40,7 @@ val streamPatch = bytecodePatch(
                     BuilderInstruction21c(
                         Opcode.CONST_STRING,
                         register,
-                        ImmutableStringReference("S")
+                        ImmutableStringReference("S"),
                     ),
                 )
             }

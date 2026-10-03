@@ -101,16 +101,16 @@ final class SettingsNavigation extends BaseAdapter {
         section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED, false);
         section("Pause, backup and diagnostics", L10n.t("Pause, backup and diagnostics"), null, SettingsIcons.TOOLS, false);
         section("About", L10n.t("About"), null, SettingsIcons.ABOUT, false);
-        browse = new HushfacebookPreferenceFragment.Heading(context);
+        browse = new SettingsRows.Heading(context);
         browse.setTitle(L10n.t("Browse settings"));
         more = link(context, L10n.t("More settings"), L10n.t("Additional Facebook preferences"), SettingsIcons.SETTINGS);
         more.setOnPreferenceClickListener(ignored -> { navigate(MORE); return true; });
-        empty = new HushfacebookPreferenceFragment.Row(context);
+        empty = new SettingsRows.Row(context);
         empty.setTitle(L10n.t("No matching settings"));
         empty.setSummary(L10n.t("Try a different word or clear the search."));
         empty.setSelectable(false);
         empty.setPersistent(false);
-        pageStatus = new HushfacebookPreferenceFragment.Row(context);
+        pageStatus = new SettingsRows.Row(context);
         pageStatus.setSelectable(false);
         pageStatus.setPersistent(false);
         Bundle state = saved == null ? null : saved.getBundle(STATE);
@@ -153,7 +153,7 @@ final class SettingsNavigation extends BaseAdapter {
     }
 
     private static Preference link(Context context, String title, String summary, String icon) {
-        Preference row = new HushfacebookPreferenceFragment.Row(context);
+        Preference row = new SettingsRows.Row(context);
         row.setTitle(title);
         row.setSummary(summary);
         row.setIcon(SettingsIcons.icon(context, icon, palette().summary));

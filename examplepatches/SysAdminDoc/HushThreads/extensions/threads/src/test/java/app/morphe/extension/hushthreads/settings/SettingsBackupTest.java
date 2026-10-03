@@ -141,6 +141,9 @@ public class SettingsBackupTest {
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
+        // Off the list on purpose, so the loop above misses it, and ReleaseCheckTest starts from a
+        // phone that never checked.
+        Settings.CHECK_FOR_RELEASES.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
@@ -176,8 +179,9 @@ public class SettingsBackupTest {
         }
         assertEquals("a setting in Settings isn't a switch, and a settings file has no format for it",
                 Collections.emptyList(), notSwitches);
-        assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.SANITIZE_SHARING_LINKS, Settings.DISABLE_ANALYTICS),
-                SettingsBackup.ALLOWLIST);
+        assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS, Settings.BLOCK_RETURN_REFRESH,
+                Settings.RETURN_REFRESH_NO_LIMIT, Settings.DISABLE_VIDEO_AUTOPLAY, Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY,
+                Settings.DISABLE_ANALYTICS), SettingsBackup.ALLOWLIST);
     }
 
     @Test
@@ -1204,6 +1208,98 @@ public class SettingsBackupTest {
             assertTrue("the next test started with the rows busy", page.findPreference(EXPORT_ROW).isEnabled());
             export(activity, page, SettingsFileProvider.put(AUTHORITY, "next.json", new byte[0]));
             assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    /** The picker result and a landed-write rollback agree with the rebuilt screen at both endpoints. */
+    @Test
+    @Config(sdk = {28, 36})
+    public void platformEndpointsImportContentUrisAfterRecreationAndRollBackLandedWrites() throws Exception {
+        Uri uri = SettingsFileProvider.put(AUTHORITY, "platform-import.json",
+                fileWith(Settings.HIDE_ADS, false, Settings.SANITIZE_SHARING_LINKS, false)
+                        .getBytes(StandardCharsets.UTF_8));
+        assertEquals("content", uri.getScheme());
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushThreadsPreferenceFragment asked = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+            ShadowActivity.IntentForResult started = tap(controller.get(), asked, IMPORT_ROW);
+            assertEquals(Intent.ACTION_OPEN_DOCUMENT, started.intent.getAction());
+            assertTrue(started.intent.hasCategory(Intent.CATEGORY_OPENABLE));
+            controller.recreate();
+            ShadowLooper.idleMainLooper();
+            Activity activity = controller.get();
+            HushThreadsPreferenceFragment page = SettingsL10nTest.pageOf(dialogOf(activity));
+            assertNotSame("the picker still addresses the old page", asked, page);
+            Map<String, ?> before = store();
+
+            shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK,
+                    new Intent().setData(uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+            settle();
+            assertTrue("the content provider was bypassed", SettingsFileProvider.opened.get() > 0);
+            assertEquals(before, store());
+            assertEquals("2 switches will change.", String.valueOf(shadowOf(shownPreview()).getMessage()));
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING)) {
+                shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                settle();
+            }
+            assertEquals("Couldn't import the settings. Nothing was changed.", ShadowToast.getTextOfLatestToast());
+            assertEquals("the landed values weren't rolled back", before, store());
+            for (BooleanSetting setting : new BooleanSetting[]{Settings.HIDE_ADS, Settings.SANITIZE_SHARING_LINKS}) {
+                assertTrue(setting.key, setting.savedValue());
+                assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
+            }
+            assertNull(page.pendingImport);
+            assertTrue(page.findPreference(IMPORT_ROW).isEnabled());
+            assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
+
+            controller.recreate();
+            ShadowLooper.idleMainLooper();
+            activity = controller.get();
+            page = SettingsL10nTest.pageOf(dialogOf(activity));
+            assertEquals(before, store());
+            assertTrue(((SwitchPreference) page.findPreference(Settings.HIDE_ADS.key)).isChecked());
+            shadowOf(activity).receiveResult(tap(activity, page, IMPORT_ROW).intent, Activity.RESULT_OK,
+                    new Intent().setData(uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+            settle();
+            shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported. 2 switches changed.", ShadowToast.getTextOfLatestToast());
+            assertFalse(Settings.HIDE_ADS.savedValue());
+            assertFalse(Settings.SANITIZE_SHARING_LINKS.savedValue());
+            assertEquals(false, store().get(Settings.HIDE_ADS.key));
+            assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_ADS.key)).isChecked());
+        }
+    }
+
+    /** Scoped-storage and older picker failures both return usable rows without changing a switch. */
+    @Test
+    @Config(sdk = {28, 36})
+    public void platformEndpointsRecoverFromAContentUriReadPermissionFailure() throws Exception {
+        Uri uri = SettingsFileProvider.put(AUTHORITY, "platform-no-grant.json",
+                fileWith(Settings.HIDE_ADS, false).getBytes(StandardCharsets.UTF_8));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushThreadsPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            Map<String, ?> before = store();
+            SettingsFileProvider.readFailure = new SecurityException("the document app revoked its read grant");
+            shadowOf(activity).receiveResult(tap(activity, page, IMPORT_ROW).intent, Activity.RESULT_OK,
+                    new Intent().setData(uri));
+            settle();
+            assertEquals(SettingsBackupPreference.refusal(SettingsBackup.Reason.UNREADABLE), ShadowToast.getTextOfLatestToast());
+            assertNull("a file without permission produced a preview", ShadowAlertDialog.getLatestAlertDialog());
+            assertNull(page.pendingImport);
+            assertEquals(before, store());
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            assertTrue(page.findPreference(IMPORT_ROW).isEnabled());
+            assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
+
+            SettingsFileProvider.readFailure = null;
+            shadowOf(activity).receiveResult(tap(activity, page, IMPORT_ROW).intent, Activity.RESULT_OK,
+                    new Intent().setData(uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+            settle();
+            shownPreview().cancel();
+            settle();
+            assertEquals("a cancelled retry changed a switch", before, store());
+            assertNull(page.pendingImport);
         }
     }
 

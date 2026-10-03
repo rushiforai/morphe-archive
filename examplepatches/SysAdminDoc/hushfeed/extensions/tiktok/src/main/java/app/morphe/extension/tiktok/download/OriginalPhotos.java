@@ -54,6 +54,22 @@ public final class OriginalPhotos {
     }
 
     /**
+     * The separate "Download video" choice that compiles a still photo and its sound into an
+     * MP4. This runs before TikTok starts that job. Its callback expects a video path and opens
+     * video sharing, so the image job never calls it, including on failure or cancellation.
+     * Live Photo video choices stay native. This entry carries no selected-photo indices.
+     */
+    public static boolean startImageAsVideo(Object aweme) {
+        if (!Settings.DOWNLOAD_ORIGINAL_PHOTOS.get()) return false;
+        Object info = Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo");
+        // Keep the null-info video path outside this Photo Mode conversion hook.
+        if (info == null) return false;
+        Object raw = Reflect.property(info, "getImageList", "imageList");
+        if (raw instanceof List<?> && anyChosenIsLive(aweme, null)) return false;
+        return savePhotos(aweme, Utils.getContext(), null, true);
+    }
+
+    /**
      * Whether any photo the save was asked for carries a live-photo video. An unreadable post
      * answers yes: with the flag set, guessing "all stills" could swallow a video save.
      */
@@ -86,22 +102,31 @@ public final class OriginalPhotos {
     }
 
     private static boolean savePhotos(Object aweme, Context context, Set<?> indices) {
-        if (!Settings.DOWNLOAD_ORIGINAL_PHOTOS.get() || context == null) return false;
+        return savePhotos(aweme, context, indices, false);
+    }
+
+    private static boolean savePhotos(Object aweme, Context context, Set<?> indices, boolean conversion) {
+        if (!Settings.DOWNLOAD_ORIGINAL_PHOTOS.get()) return false;
+        if (context == null) return failedConversion(conversion);
         if (Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo") == null) return false;
         if (android.os.Build.VERSION.SDK_INT < 29
                 && context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != android.content.pm.PackageManager.PERMISSION_GRANTED) return false;
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) return failedConversion(conversion);
         List<List<String>> photos = sources(aweme);
         if (photos.isEmpty()) {
-            Utils.showToastShort(L10n.t(
-                    "The original photos aren't available, so TikTok's own save runs instead"));
-            return false;
+            if (conversion) {
+                Utils.showToastShort(L10n.t("The original photos aren't available. No video was saved."));
+            } else {
+                Utils.showToastShort(L10n.t(
+                        "The original photos aren't available, so TikTok's own save runs instead"));
+            }
+            return conversion;
         }
         List<Integer> chosen = positions(indices, photos.size());
         // Asked for photos this post doesn't have: TikTok's own save says what it makes of that.
-        if (chosen.isEmpty()) return false;
+        if (chosen.isEmpty()) return failedConversion(conversion);
         String id = Reflect.string(aweme, "getAid", "aid");
-        if (id == null) return false;
+        if (id == null) return failedConversion(conversion);
         List<List<String>> photoSnapshot = snapshot(photos);
         String path = DownloadFilenameFormatter.destinationPath(aweme, true);
         List<String> names = new ArrayList<>();
@@ -114,9 +139,8 @@ public final class OriginalPhotos {
             return true;
         }
         Context app = context.getApplicationContext();
-        // From three photos up a row follows the save from the moment it is accepted, counts
-        // them once it runs and offers Cancel throughout.
-        SaveProgress progress = SaveProgress.queued(chosen.size(), false);
+        // Every original-photo save has a file count and Cancel, including one chosen still.
+        SaveProgress progress = SaveProgress.queuedFiles(chosen.size());
         MediaJobScheduler.Job job = progress.submit("original photos", key, () -> {
             // The banner's Open lands on the newest photo, which is where the gallery puts the rest.
             MediaFileWriter.Saved[] last = {null};
@@ -148,10 +172,17 @@ public final class OriginalPhotos {
                 Utils.showToastLong(L10n.t("None of the photos could be saved. Try again."));
             }
         }, () -> ACTIVE.remove(id));
-        if (job == null) return false;
+        // The scheduler already reports a refusal. A requested image save must not become a
+        // native converted video merely because the image queue is full.
+        if (job == null) return conversion;
         String saying = L10n.quantity(app, chosen.size(), "Saving one original photo", "Saving %1$s original photos");
         progress.acknowledge(saying, saying);
         return true;
+    }
+
+    private static boolean failedConversion(boolean conversion) {
+        if (conversion) Utils.showToastLong(L10n.t("None of the photos could be saved. Try again."));
+        return conversion;
     }
 
     private static List<List<String>> snapshot(List<List<String>> photos) {

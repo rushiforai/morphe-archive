@@ -13,7 +13,7 @@ Before you sign in	Antes de iniciar sesión
 Cancel	Cancelar
 Changing these	Cómo cambiarlos
 Clear diagnostic data	Borrar datos de diagnóstico
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en Download/Morphe. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa si queda otro texto privado antes de compartirlo.
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa si queda otro texto privado antes de compartirlo.
 Copy a short report to the clipboard.	Copia un informe breve en el portapapeles.
 Copy quick report	Copiar informe rápido
 Copying to the gallery	Copiando a la galería
@@ -64,7 +64,7 @@ Retry	Reintentar
 Sanitize sharing links	Limpiar enlaces compartidos
 Save cancelled	Se canceló el guardado
 Save full report	Guardar informe completo
-Save the full report in Download/Morphe.	Guarda el informe completo en Download/Morphe.
+Save the full report in %1$s.	Guarda el informe completo en %1$s.
 Saved to %1$s	Se guardó en %1$s
 Saved to %1$s in lower quality than on Instagram	Se guardó en %1$s con menos calidad que en Instagram
 Saved to the gallery	Se guardó en la galería
@@ -82,6 +82,7 @@ Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap i
 Stays in while paused	Se mantiene durante la pausa
 Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.	Quita stkn, igsh, utm_source y otras claves de rastreo de los enlaces que copias o compartes, y abre los enlaces de la biografía sin pasar por el rastreador de clics de Instagram. La publicación, el reel o el perfil que abre un enlace sigue siendo el mismo.
 Tap to hide this.	Toca para ocultar esto.
+Couldn't hide this notice. Try again.	No se pudo ocultar este aviso. Inténtalo de nuevo.
 Tap to turn it back on.	Toca para volver a activarlo.
 The diagnostic report couldn't be saved yet. Try again in a moment.	Todavía no se pudo guardar el informe de diagnóstico. Inténtalo de nuevo en un momento.
 The diagnostic report couldn't be saved. Try again.	No se pudo guardar el informe de diagnóstico. Inténtalo de nuevo.
@@ -101,6 +102,10 @@ Instagram isn't told which reels you watched or how far into them you got. It ra
 Reels	Reels
 Stop Story auto-advance	Detener el avance automático de historias
 A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.	Una historia terminada se queda en pantalla hasta que tocas o deslizas. Desactívalo para usar los tiempos de Instagram.
+Loop a story	Repetir una historia
+A story plays again from the start when it ends, until you tap or swipe to move on. Ads still move on. With Stop Story auto-advance on too, stories loop.	Una historia vuelve a empezar desde el principio cuando termina, hasta que tocas o deslizas para pasar. Los anuncios pasan igual. Si también tienes activado Detener el avance automático de historias, las historias se repiten.
+Show a story's exact time	Mostrar la hora exacta de una historia
+A story's header shows the date and time it was posted, like Oct 2, 3:45 PM, instead of how long ago. It follows your phone's language and 12 or 24-hour setting.	La cabecera de una historia muestra la fecha y la hora en que se publicó, como 2 oct, 15:45, en vez de cuánto hace. Sigue el idioma de tu teléfono y su ajuste de 12 o 24 horas.
 Stories	Historias
 Hide Reels in the feed	Ocultar reels en el feed
 The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.	Las filas de reels sugeridos entre las publicaciones de tu feed. Un reel que publica alguien a quien sigues se queda.
@@ -170,6 +175,12 @@ A double tap on a reel doesn't like it. Turn this off to keep double tap to like
 Hide the Reels tab	Ocultar la pestaña de Reels
 Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.	Quita Reels de la barra de pestañas. Los reels de tu feed y los que te envían se siguen abriendo. Reinicia Instagram después de cambiarlo.
 Keep the reel speed	Mantener la velocidad del reel
+Keep a seek bar	Mantener la barra de reproducción
+Instagram's seek bar stays under every reel, short ones too, with the time played and the reel's length above it. Ads keep Instagram's own rules.	La barra de reproducción de Instagram se queda debajo de cada reel, también de los cortos, con el tiempo reproducido y la duración del reel encima. Los anuncios siguen las reglas de Instagram.
+Keep auto scroll on	Mantener el desplazamiento automático
+Once you turn on Instagram's auto scroll in Reels, it stays on after a restart or after you leave Reels, until you turn it off.	Cuando activas el desplazamiento automático de Instagram en Reels, sigue activado después de un reinicio o de salir de Reels, hasta que lo desactives.
+Stop Reels scrolling	Detener el desplazamiento en Reels
+A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram after changing it.	Deslizar en Reels ya no pasa al siguiente reel, y tirar hacia abajo no carga otros nuevos. El reel que abriste se sigue reproduciendo. Reinicia Instagram después de cambiarlo.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Bloquea un reel a 2x (mantén pulsado el borde y desliza hacia abajo) y los siguientes reels también se reproducen a 2x. Desliza el bloqueo para quitarlo, o mantén pulsado el borde y suelta, para volver a la velocidad normal.
 Open links in external browser	Abrir enlaces en el navegador externo
 Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.	Los enlaces web se abren en tu navegador predeterminado, sin el rastreador de clics de Instagram. Las páginas de Instagram y de otros servicios de Meta, y los anuncios, se siguen abriendo en la app.
@@ -180,6 +191,8 @@ Hide suggested posts	Ocultar publicaciones sugeridas
 Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.	Publicaciones y reels de cuentas que no sigues, marcados como Sugerencias para ti. Las publicaciones de las cuentas que sigues se quedan.
 Hide Threads posts	Ocultar publicaciones de Threads
 The posts, accounts and communities from Threads that Instagram mixes into your feed.	Las publicaciones, cuentas y comunidades de Threads que Instagram mezcla en tu feed.
+Stop swipe to create	Desactivar deslizar para crear
+A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Deslizar de lado en Inicio ya no abre la cámara. El botón + y las demás formas de abrir la cámara siguen funcionando.
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	Ocultar Meta AI en la búsqueda y en la barra de Inicio
 The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.	La pestaña Buscar y la parte de arriba de tus mensajes tienen una barra de búsqueda normal, sin Meta AI, los resultados de búsqueda pierden su barra de preguntas de seguimiento y la barra superior de Inicio pierde los botones de Meta AI. Reinicia Instagram después de cambiarlo.
@@ -226,8 +239,15 @@ Takes For you out of the picker at the top of Home, so Home stays on Following o
 Profiles	Perfiles
 Show if a profile follows you	Mostrar si un perfil te sigue
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Añade Te sigue o No te sigue junto al nombre en el perfil de alguien, después de sus pronombres si los tiene. No se muestra nada hasta que Instagram lo haya comprobado.
+Mark who doesn't follow you back	Marcar a quien no te sigue
+On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	En tu propia lista de Seguidos, añade No te sigue después del nombre de cada cuenta que no te sigue. No se muestra nada hasta que Instagram lo haya comprobado.
 Follows you	Te sigue
 Doesn't follow you	No te sigue
+Hide suggested people	Ocultar personas sugeridas
+Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	Quita Sugerencias para ti y el botón Descubrir personas de los perfiles, incluido el tuyo. Las biografías, los contadores, las publicaciones y las listas de seguidores se quedan.
+Hide highlights	Ocultar historias destacadas
+Takes the row of story highlights off profiles, yours included. Bios, counts and posts stay, and so does Add to highlight on your stories.	Quita la fila de historias destacadas de los perfiles, incluido el tuyo. Las biografías, los contadores y las publicaciones se quedan, y también Añadir a destacadas en tus historias.
+The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Las tarjetas de personas y creadores para seguir que Instagram pone entre los reels. Todos los reels se siguen reproduciendo.
 Turn on Start Home on Following to use this choice.	Activa «Abrir Inicio en Siguiendo» para usar esta opción.
 Turn on Story ring size to use this choice.	Activa «Tamaño de los anillos de historias» para usar esta opción.
 Turn on Default playback quality to use this choice.	Activa «Calidad de reproducción predeterminada» para usar esta opción.
@@ -264,3 +284,70 @@ A save stopped. Reopen the media and save again.	Se detuvo un guardado. Vuelve a
 A save was interrupted	Se interrumpió un guardado
 %1$d saves were interrupted	Se interrumpieron %1$d guardados
 Reopen the media and save again.	Vuelve a abrir el contenido y guárdalo otra vez.
+Search settings	Buscar en ajustes
+Clear search	Borrar búsqueda
+No matching settings	No hay ajustes coincidentes
+Try another word or clear the search.	Prueba otra palabra o borra la búsqueda.
+Contacts, location setup, analytics	Contactos, configuración de ubicación, analíticas
+Save all	Guardar todo
+Saving a carousel	Guardando un carrusel
+Cancel saving this carousel	Cancelar el guardado de este carrusel
+Page %1$d of %2$d	Página %1$d de %2$d
+Not saved: a carousel can have at most %1$d pages	No se guardó: un carrusel puede tener como máximo %1$d páginas
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Carrusel cancelado. Guardados %1$d. Fallidos %2$d. Omitidos %3$d.
+Saved %1$d. Failed %2$d. Skipped %3$d.	Guardados %1$d. Fallidos %2$d. Omitidos %3$d.
+%1$d saved in lower quality than on Instagram.	%1$d guardados con menor calidad que en Instagram.
+Last carousel save	Último carrusel guardado
+Open MetaConfig overrides	Abrir anulaciones de MetaConfig
+Opens Instagram's native flag editor. A wrong override can break parts of Instagram.	Abre el editor nativo de opciones de Instagram. Una anulación incorrecta puede impedir que funcionen partes de Instagram.
+MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.	MetaConfig no está disponible en esta pantalla. Abre los ajustes de HushGram desde Inicio con la sesión iniciada.
+Comments	Comentarios
+Copy comment	Copiar comentario
+Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Añade Copiar al menú de un comentario seleccionado. Copia el texto original, incluidos los saltos de línea.
+Comment copied	Comentario copiado
+Couldn't copy comment	No se pudo copiar el comentario
+Save comment photo	Guardar foto del comentario
+Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.	Añade Guardar al menú de un comentario seleccionado cuando el comentario tiene su propia foto. Guarda el tamaño más grande que envió Instagram.
+Export overrides	Exportar valores personalizados
+Save this signed-in session's overrides for the exact Instagram build and schema.	Guarda los valores personalizados de esta sesión para esta versión y este esquema exactos de Instagram.
+Validate an overrides file	Validar un archivo de valores personalizados
+Check a saved file against this session's typed schema. Validation applies nothing.	Comprueba un archivo guardado con el esquema tipado de esta sesión. La validación no aplica nada.
+No document picker is available. Overrides haven't changed.	No hay ningún selector de documentos disponible. Los valores personalizados no han cambiado.
+Couldn't use that overrides document. Native overrides haven't changed.	No se pudo usar ese documento de valores personalizados. Los valores de Instagram no han cambiado.
+Validated %1$d overrides only. Nothing was applied.	Solo se validaron %1$d valores personalizados. No se aplicó nada.
+Overrides exported for this Instagram build and schema.	Valores personalizados exportados para esta versión y este esquema de Instagram.
+Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.	No se pudieron validar los valores personalizados. Comprueba el archivo y abre los ajustes desde Inicio con la sesión iniciada. Nada ha cambiado.
+Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.	No se pudieron exportar los valores personalizados. El archivo elegido podría estar incompleto. Los valores de Instagram no han cambiado.
+Allow importing overrides	Permitir importar valores personalizados
+Shows Import and Restore for overrides. An import changes Instagram's native flags for this signed-in session.	Muestra Importar y Restaurar para los valores personalizados. Una importación cambia las marcas nativas de Instagram en esta sesión.
+Import overrides	Importar valores personalizados
+Apply a file exported from this session and build through Instagram's own override editor. The current overrides are saved for Restore first.	Aplica un archivo exportado desde esta sesión y versión con el propio editor de Instagram. Antes se guardan los valores actuales para poder restaurarlos.
+Restore previous overrides	Restaurar valores anteriores
+Put back the overrides saved before the last import for this session and build.	Devuelve los valores personalizados guardados antes de la última importación en esta sesión y versión.
+An earlier import still needs Restore previous overrides, or Discard saved overrides if Restore can't run. Nothing changed.	Una importación anterior todavía necesita Restaurar valores anteriores, o Descartar valores guardados si Restaurar no puede hacerse. Nada ha cambiado.
+Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.	No se pudieron restaurar los valores personalizados. No hay una copia guardada para esta sesión y versión. Nada ha cambiado.
+Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.	No se pudieron importar los valores personalizados. Comprueba el archivo y abre los ajustes desde Inicio con la sesión iniciada. Nada ha cambiado.
+The current overrides already match the saved copy. Nothing changed.	Los valores actuales ya coinciden con la copia guardada. Nada ha cambiado.
+This file matches the current overrides. Nothing changed.	Este archivo coincide con los valores actuales. Nada ha cambiado.
+Previous overrides restored. Restart Instagram to apply them.	Valores anteriores restaurados. Reinicia Instagram para aplicarlos.
+Imported %1$d override changes. Restart Instagram to apply them.	Se importaron %1$d cambios. Reinicia Instagram para aplicarlos.
+Instagram didn't keep the change, so the overrides were put back as they were.	Instagram no conservó el cambio, así que los valores volvieron a como estaban.
+Instagram didn't keep the change and the overrides couldn't be confirmed. Use Restore previous overrides, then restart Instagram.	Instagram no conservó el cambio y no se pudieron confirmar los valores. Usa Restaurar valores anteriores y luego reinicia Instagram.
+Discard saved overrides	Descartar valores guardados
+Forget the copy saved for Restore so imports can run again. Instagram's overrides don't change.	Olvida la copia guardada para Restaurar y permite volver a importar. Los valores personalizados de Instagram no cambian.
+Discarded the saved copy. Imports can run again, and Instagram's overrides haven't changed.	Se descartó la copia guardada. Ya se puede volver a importar y los valores personalizados de Instagram no cambiaron.
+There's no saved copy to discard. Nothing changed.	No hay ninguna copia guardada que descartar. Nada ha cambiado.
+Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.	No se pudo descartar la copia guardada. Abre los ajustes desde Inicio con la sesión iniciada. Nada ha cambiado.
+Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Imports stay blocked until you use Discard saved overrides. Restart Instagram to apply the rest.	Restaurar devolvió lo que pudo, salvo %1$d valores con el valor nulo de Instagram, que no se pueden devolver de esta forma. Las importaciones siguen bloqueadas hasta que uses Descartar valores guardados. Reinicia Instagram para aplicar el resto.
+Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Restart Instagram to apply the rest.	Restaurar devolvió lo que pudo, salvo %1$d valores con el valor nulo de Instagram, que no se pueden devolver de esta forma. Reinicia Instagram para aplicar el resto.
+Couldn't restore overrides. The saved copy doesn't fit this session and Instagram build. Use Discard saved overrides if you don't need it. Nothing changed.	No se pudieron restaurar los valores personalizados. La copia guardada no corresponde a esta sesión y versión de Instagram. Usa Descartar valores guardados si no la necesitas. Nada ha cambiado.
+Instagram is still saving an override change. Wait a moment and try again. Nothing changed.	Instagram todavía está guardando un cambio en los valores personalizados. Espera un momento y vuelve a intentarlo. Nada ha cambiado.
+Allow importing overrides is off or HushGram is paused. Nothing changed.	Permitir importar valores personalizados está desactivado o HushGram está en pausa. Nada ha cambiado.
+Couldn't restore overrides. Open settings from Home while signed in. Nothing changed.	No se pudieron restaurar los valores personalizados. Abre los ajustes desde Inicio con la sesión iniciada. Nada ha cambiado.
+Couldn't start the override operation. Try again. Nothing changed.	No se pudo iniciar la operación de valores personalizados. Inténtalo de nuevo. Nada ha cambiado.
+# context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
+Mark as seen button	Botón Marcar como vista
+Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.	Añade un botón con un ojo en la parte superior de cada historia mientras ves de forma anónima. Tócalo para aparecer en la lista de espectadores de esa historia. Las demás historias siguen ocultas.
+Mark as seen	Marcar como vista
+Marked as seen. Tap again to undo.	Marcada como vista. Toca de nuevo para deshacer.
+Marked as seen and sent	Marcada como vista y enviada

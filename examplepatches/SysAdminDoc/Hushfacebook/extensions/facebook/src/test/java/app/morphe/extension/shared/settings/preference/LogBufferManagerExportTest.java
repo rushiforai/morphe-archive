@@ -202,6 +202,18 @@ public class LogBufferManagerExportTest {
                 return lines;
             }
         });
+        // The redactor removes Meta hosts; the manifest exception must not widen other sections.
+        lines.add("ordinary.facebook.com -> selected");
+        LogBufferManager.registerReportSection(new LogBufferManager.ReportSection() {
+            @Override public String title() { return "MANIFEST HOST PROBE"; }
+            @Override public java.util.List<String> lines() {
+                return java.util.Arrays.asList("declared.facebook.com -> selected", "unlisted.facebook.com -> none",
+                        "https://declared.facebook.com/private?account_id=private-account-probe -> selected");
+            }
+            @Override public java.util.Set<String> declaredDomainHosts(java.util.List<String> snapshot) {
+                return java.util.Collections.singleton("declared.facebook.com");
+            }
+        });
         try {
             android.content.ClipboardManager clipboard = context.getSystemService(android.content.ClipboardManager.class);
             LogBufferManager.exportToClipboard();
@@ -222,6 +234,10 @@ public class LogBufferManagerExportTest {
                 String where = export[0];
                 String text = export[1];
                 assertTrue(where + " holds no report: " + text, text.startsWith("MORPHE DIAGNOSTIC REPORT\n"));
+                assertTrue(where + " lost the declared domain state", text.contains("declared.facebook.com -> selected"));
+                assertTrue(where + " exempted an ordinary section's host", !text.contains("ordinary.facebook.com"));
+                assertTrue(where + " exempted an undeclared host", !text.contains("unlisted.facebook.com"));
+                assertTrue(where + " leaked a visited path or account", !text.contains("/private") && !text.contains("private-account-probe"));
                 for (String[] row : corpus) {
                     for (int i = 1; i < row.length; i++) {
                         assertTrue(row[i] + " reached the " + where + ":\n" + text, text.indexOf(row[i]) < 0);

@@ -18,6 +18,18 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Check short gesture policy
+        run: |
+          javac -d /tmp/nicoid-shorts-tests extensions/extension/src/main/java/e/e/a/ShortsRules.java porting/tests/ShortsRulesTest.java
+          java -cp /tmp/nicoid-shorts-tests ShortsRulesTest
+      - name: Check bicycle runner physics
+        run: |
+          javac -d /tmp/nicoid-bike-tests extensions/extension/src/main/java/e/e/a/BikeRunModel.java porting/tests/BikeRunModelTest.java
+          java -cp /tmp/nicoid-bike-tests e.e.a.BikeRunModelTest
+      - name: Check UI translations
+        run: |
+          javac -d /tmp/nicoid-ui-tests extensions/extension/src/main/java/e/e/a/UiStrings.java porting/tests/UiStringsTest.java
+          java -cp /tmp/nicoid-ui-tests e.e.a.UiStringsTest
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:
@@ -29,3 +41,4 @@ jobs:
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 7
+

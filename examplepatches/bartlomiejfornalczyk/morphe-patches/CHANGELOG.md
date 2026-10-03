@@ -1,3 +1,21 @@
+## [1.4.30](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.29...v1.4.30) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* bypass media provider test connection and inject match-all flag ([c6bdabb](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/c6bdabba5de6f88ed04ac2c483b8602dcfd24b93))
+
+## [1.4.29](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.28...v1.4.29) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* preserve switch table offsets in navigation media provider resolution ([b4a5483](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/b4a54832ffe78d63f419cdee7d0e58d1ab6e9083))
+
+## [1.4.28](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.27...v1.4.28) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* restore flag register and guard against empty root in media browser ([8459fb4](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/8459fb461595aeaa2a2cc8b21d20b3f8413cd941))
+
 ## [1.4.27](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.26...v1.4.27) (2026-09-30)
 
 ### 🐛 Bug Fixes

@@ -13,7 +13,7 @@ import zlib
 from datetime import datetime, timezone
 from pathlib import Path
 
-PATCH_COUNT = 31
+PATCH_COUNT = 32
 RELEASE_SIGNERS = Path("scripts/release_signers")
 RELEASE_SIGNER = "SysAdminDoc"
 SIGNATURE_NAMESPACE = "hushmessenger-release"

@@ -4,6 +4,8 @@
  */
 package app.morphe.extension.hushthreads.ads;
 
+import app.morphe.extension.hushthreads.settings.SettingsStatus;
+
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 
@@ -17,6 +19,19 @@ import org.robolectric.annotation.Implements;
  */
 @Implements(FeedAds.class)
 public class ShadowFeedAds {
+    public static final Object SUGGESTED = new Object();
+    public static final Object KICKSTART = new Object();
+    public static final Object BROKEN_SUGGESTED = new Object();
+
+    /** Models independently selected named patches, rather than enabling every rule. */
+    @Implements(SettingsStatus.class)
+    public static class Status {
+        public static boolean ads = true;
+        public static boolean suggestions;
+
+        @Implementation protected static boolean hideAds() { return ads; }
+        @Implementation protected static boolean hideSuggestedUsers() { return suggestions; }
+    }
     /** A sponsored post. */
     public static final Object AD = new Object() {
         @Override
@@ -42,5 +57,11 @@ public class ShadowFeedAds {
     protected static boolean isAd(Object media) {
         if (media == BROKEN) throw new IllegalStateException("the check broke on this post");
         return media == AD;
+    }
+
+    @Implementation
+    protected static boolean isSuggestedUserItem(Object item) {
+        if (item == BROKEN_SUGGESTED) throw new IllegalStateException("the card check broke");
+        return item == SUGGESTED || item == KICKSTART;
     }
 }

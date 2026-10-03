@@ -44,6 +44,7 @@ class ObfuscatedIdentityTest {
     @Test
     fun `real names of the same shape are not`() {
         assertTrue(identitiesIn("""category("Ads")""", extensionTree = false).isEmpty())
+        assertTrue(identitiesIn("""return L10n.t("All");""", extensionTree = true).isEmpty())
         assertTrue(identitiesIn("""if (name.startsWith("X.")) walk()""", extensionTree = true).isEmpty())
     }
 
@@ -130,9 +131,9 @@ class ObfuscatedIdentityTest {
         val RESOURCE_NAME = Regex(""""([a-z][a-z0-9_]{1,2})"""")
 
         /**
-         * Names that match a shape above and are nobody's invention: the patch category, framework
-         * members compared by name, and file extensions.
+         * Names that match a shape above and are nobody's invention: the patch category, the Feeds
+         * filter's label, framework members compared by name, and file extensions.
          */
-        val REAL_NAMES = setOf("Ads", "get", "put", "run", "id", "raw", "mp3", "mp4", "m4a", "m4v")
+        val REAL_NAMES = setOf("Ads", "All", "get", "put", "run", "id", "raw", "mp3", "mp4", "m4a", "m4v")
     }
 }

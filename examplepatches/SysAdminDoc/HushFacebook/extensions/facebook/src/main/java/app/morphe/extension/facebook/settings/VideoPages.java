@@ -22,6 +22,8 @@ import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 
+import androidx.annotation.Nullable;
+
 import java.util.Set;
 
 import app.morphe.extension.facebook.settings.SettingsRows.Row;
@@ -158,13 +160,15 @@ final class VideoPages {
         }
     }
 
-    /** Downloads, where the saves running now are listed too. */
-    static void downloads(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
-            Set<PatchFamily> build) {
+    /**
+     * Downloads, where the saves running now are listed too. Answers the section, or null when no
+     * download patch is in.
+     */
+    @Nullable
+    static PreferenceCategory downloads(PreferenceScreen screen, Context context, Set<PatchFamily> build) {
         if (build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.REEL_DOWNLOAD)
                 || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
             PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
-            page.downloads = downloads;
             if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_VIDEOS, L10n.t("Download feed and Watch videos"),
                         L10n.t("Add Download to phone to feed and Watch video menus. Uses the quality below. Off or paused, Facebook's menu returns.")));
@@ -184,7 +188,9 @@ final class VideoPages {
                 downloads.addPreference(downloadActionRow(context));
                 downloads.addPreference(sendAppRow(context));
             }
+            return downloads;
         }
+        return null;
     }
 
     /**

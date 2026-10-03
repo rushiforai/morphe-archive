@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
+import app.morphe.patches.facebook.feed.feedsheader.FEED_FILTERS_FRAGMENT
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.settings.MAIN_TAB_ACTIVITY
@@ -49,6 +50,10 @@ class StartTabFixtureTest {
     /** The marker a queueing stand-in delegate sets as it queues a call of the main screen's. */
     private val queuedDelegateWork = "product_delegate_enqueued_"
     private val wideConstants = setOf(Opcode.CONST_WIDE, Opcode.CONST_WIDE_16, Opcode.CONST_WIDE_32, Opcode.CONST_WIDE_HIGH16)
+
+    /** The feed types the extension's FeedsSubtab asks for, by the names Facebook keeps. */
+    private val subtabFeedTypes = listOf("favorites", "most_recent_favorites", "most_recent_friend",
+        "most_recent_group", "most_recent_page")
 
     /** The tabs the extension offers, by the class Facebook keeps, with the id it asks for. */
     private val offered: Map<String, Long> by lazy {
@@ -158,9 +163,33 @@ class StartTabFixtureTest {
 
                 val kept = setOf(MAIN_TAB_ACTIVITY, fragmentActivity, delegate, navigationConfig, TAB_TAG,
                     STARTUP_DESTINATION_ROUTER, picker.definingClass, sanitizer.definingClass, position.definingClass,
-                    check.definingClass) + offered.keys
+                    check.definingClass, FEED_FILTERS_FRAGMENT, FEED_TYPE) + offered.keys
                 val classes = FixtureDex.classes(fixture, kept)
                 assertEquals("$name: classes missing", emptySet<String>(), kept - classes.keys)
+
+                // The Feeds tab takes the filter hooks, and FeedType keeps, as constants, a feed
+                // type under each name the extension asks for, told apart by what toString answers.
+                // Facebook's lookup compares with the feed type asked for, so a constant is enough.
+                val feeds = classes.getValue(FEED_FILTERS_FRAGMENT)
+                assertEquals("$name: the Feeds tab", null, feedsFragmentRefusal(feeds))
+                val feedType = classes.getValue(FEED_TYPE)
+                assertTrue(
+                    "$name: FeedType keeps too few feed types as constants",
+                    feedType.fields.count {
+                        it.type == FEED_TYPE && AccessFlags.STATIC.isSet(it.accessFlags) &&
+                            AccessFlags.FINAL.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags)
+                    } >= subtabFeedTypes.size,
+                )
+                val clinit = feedType.methods.single { it.name == "<clinit>" }
+                subtabFeedTypes.forEach { assertTrue("$name: FeedType names no $it", holdsString(clinit, it)) }
+                val toString = code(feedType.methods.single { it.name == "toString" && it.parameterTypes.isEmpty() })
+                assertTrue(
+                    "$name: FeedType.toString doesn't answer its id's",
+                    toString.any { it.call?.let { c -> c.definingClass == "Ljava/lang/Object;" && c.name == "toString" } == true },
+                )
+                val handlerAnchors = feedsHandlerAnchors(feeds.methods.single { it.name == FEEDS_HANDLER })!!
+                val resumeReturns = code(feeds.methods.single { it.name == "onResume" && it.parameterTypes.isEmpty() })
+                    .count { it.opcode == Opcode.RETURN_VOID }
 
                 // The router Facebook keeps predicts the main screen's destination by asking the picker.
                 val router = classes.getValue(STARTUP_DESTINATION_ROUTER).methods.single { it.name == "getDestination" }
@@ -199,7 +228,7 @@ class StartTabFixtureTest {
                 // The patch, on this build's main screen classes, picker and start-up steps.
                 val context = PatchContexts.of(
                     listOf(MAIN_TAB_ACTIVITY, fragmentActivity, picker.definingClass, sanitizer.definingClass,
-                        position.definingClass, check.definingClass).distinct().map(classes::getValue) +
+                        position.definingClass, check.definingClass, FEED_FILTERS_FRAGMENT).distinct().map(classes::getValue) +
                         ExtensionDex.classDef(SETTINGS_STATUS),
                 )
                 openOnChosenTabPatch.execute(context)
@@ -235,6 +264,25 @@ class StartTabFixtureTest {
                     assertEquals("$name: what the check's call reads", listOf(register), guarded[index - 2].registers())
                     assertEquals(Opcode.MOVE_RESULT, guarded[index - 1].opcode)
                     assertEquals(register, (guarded[index - 1] as OneRegisterInstruction).registerA)
+                }
+
+                // The Feeds tab's handler asks the extension right after its read and right after
+                // its lookup's answer, and each of onResume's returns hands the extension the tab first.
+                val handled = patched(feeds.methods.single { it.name == FEEDS_HANDLER })
+                val read = handlerAnchors.read
+                assertEquals("$name: the Feeds tab handler's call", FEED_TYPE_ASKED, handled[read + 1].call.toString())
+                assertEquals(Opcode.MOVE_RESULT_OBJECT, handled[read + 2].opcode)
+                assertEquals(Opcode.CHECK_CAST, handled[read + 3].opcode)
+                // The three instructions the read's hook added come before the answer.
+                val answer = handlerAnchors.answer + 3
+                assertEquals(Opcode.MOVE_RESULT, handled[answer].opcode)
+                assertEquals("$name: the call on the lookup's answer", FILTER_FOUND, handled[answer + 1].call.toString())
+                assertEquals(Opcode.MOVE_RESULT, handled[answer + 2].opcode)
+                val resumed = patched(feeds.methods.single { it.name == "onResume" && it.parameterTypes.isEmpty() })
+                val resumedReturns = resumed.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
+                assertEquals("$name: onResume's returns", resumeReturns, resumedReturns.size)
+                resumedReturns.forEach { (index, _) ->
+                    assertEquals("$name: the call before onResume's return", FEEDS_RESUMED, resumed[index - 1].call.toString())
                 }
 
                 assertTrue(

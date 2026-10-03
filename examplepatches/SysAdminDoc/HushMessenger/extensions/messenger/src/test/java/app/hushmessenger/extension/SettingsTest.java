@@ -394,6 +394,44 @@ public class SettingsTest {
         }
     }
 
+    // #25: a phone's emoji font isn't always NotoColorEmoji.ttf (Samsung ships SamsungColorEmoji.ttf, emoji modules
+    // and other phones use their own), so Android 12+ uses the font Android itself shapes emoji with.
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test @Config(sdk = {31, 36}) public void systemEmojiUsesTheFontAndroidDrawsEmojiWith() {
+        try {
+            Settings.systemEmoji = null;
+            Settings.systemEmojiMissing = false;
+            Settings.systemEmojiSource = null;
+            Settings.preferences.edit().putBoolean("use_system_emoji", true).apply();
+            String probe = Settings.EMOJI_PROBE;
+            java.io.File shaped = android.graphics.text.TextRunShaper.shapeTextRun(probe, 0, probe.length(), 0,
+                probe.length(), 0f, 0f, false, new android.graphics.Paint()).getFont(0).getFile();
+            assertNotNull(Settings.systemEmojiTypeface());
+            assertNull(Settings.hookErrors.get("use_system_emoji"));
+            assertEquals(shaped.getPath(), Settings.systemEmojiSource);
+            assertNotEquals(Settings.NOTO_EMOJI_FONT, Settings.systemEmojiSource);
+        } finally {
+            Settings.systemEmoji = null;
+            Settings.systemEmojiMissing = false;
+            Settings.systemEmojiSource = null;
+        }
+    }
+
+    @Test @Config(sdk = 28) public void systemEmojiBeforeAndroid12KeepsAndroidsStandardEmojiFont() {
+        try {
+            Settings.systemEmoji = null;
+            Settings.systemEmojiMissing = false;
+            Settings.systemEmojiSource = null;
+            Settings.preferences.edit().putBoolean("use_system_emoji", true).apply();
+            assertNotNull(Settings.systemEmojiTypeface());
+            assertEquals(Settings.NOTO_EMOJI_FONT, Settings.systemEmojiSource);
+        } finally {
+            Settings.systemEmoji = null;
+            Settings.systemEmojiMissing = false;
+            Settings.systemEmojiSource = null;
+        }
+    }
+
     @Test public void inlineTabListsLoseTheAvatarTabEvenWhenItsEventSitsOneLevelDeeper() {
         KeyboardTab avatar = new KeyboardTab(new X.TabConfig(new com.facebook.xapp.messaging.composer.avatar.composertab.event.ActivateAvatarSticker()));
         KeyboardTab stickers = new KeyboardTab(new X.TabConfig("stickers"));

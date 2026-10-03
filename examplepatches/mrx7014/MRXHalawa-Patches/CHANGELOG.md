@@ -1,3 +1,19 @@
+## [1.49.0](https://github.com/mrx7014/MRXHalawa-Patches/compare/v1.48.0...v1.49.0) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* import bytecodePatch in NSFW patch ([2c4f999](https://github.com/mrx7014/MRXHalawa-Patches/commit/2c4f99901949f977b17925ef0c05838b8fbbdf26))
+* **youtube:** harden Block Channel matching ([e9d1563](https://github.com/mrx7014/MRXHalawa-Patches/commit/e9d1563bfb935f6b7ebe6ddcb24f97be52a2c2d8))
+* **youtube:** relabel native hide user item ([61bb33d](https://github.com/mrx7014/MRXHalawa-Patches/commit/61bb33d7199f40cdb7625744a7e2b5bd8762e2da))
+
+### ✨ New Features
+
+* **reddit:** hide enable NSFW button ([2e9d849](https://github.com/mrx7014/MRXHalawa-Patches/commit/2e9d849be0ff729db07922b8eb0d35ac2441b26c))
+
+### ⚙️ CI
+
+* add authenticated Gradle build workflow ([7a531b2](https://github.com/mrx7014/MRXHalawa-Patches/commit/7a531b29d393c50f9fbc1102fc1c7e5684a13e80))
+
 ## [1.48.0](https://github.com/mrx7014/MRXHalawa-Patches/compare/v1.47.10...v1.48.0) (2026-09-22)
 
 ### ✨ New Features

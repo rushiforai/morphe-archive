@@ -7,6 +7,7 @@ package app.hushgram.extension.instagram.settings;
 import static org.junit.Assert.*;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Insets;
 import android.graphics.Rect;
@@ -30,6 +31,7 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.shadows.ShadowAlertDialog;
 
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.Utils;
@@ -83,6 +85,46 @@ public class SettingsDialogBoundaryTest {
     public void sdk37DialogMirrorsItsLargeTextHeader() throws Exception {
         assertEquals(37, Build.VERSION.SDK_INT);
         checkInsets(true);
+    }
+
+    @Test @Config(sdk = {28, 29, 37})
+    public void diagnosticChooserClosesWithItsSettingsPage() {
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = new SettingsDialog();
+        dialog.show(controller.get().getFragmentManager(), "boundary_settings");
+        controller.get().getFragmentManager().executePendingTransactions();
+        HushgramPreferenceFragment page = (HushgramPreferenceFragment)
+                dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
+        android.preference.Preference export = page.findPreference("action_export_diagnostic_report");
+        assertNotNull(export);
+        assertTrue(export.getOnPreferenceClickListener().onPreferenceClick(export));
+        AlertDialog chooser = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull(chooser);
+        assertTrue(chooser.isShowing());
+        dialog.dismissAllowingStateLoss();
+        controller.get().getFragmentManager().executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+        assertNull(page.getView());
+        assertFalse("report chooser outlived the settings page", chooser.isShowing());
+    }
+
+    @Test @Config(sdk = {28, 29, 37})
+    public void aLateReportTapCannotOpenAChooserAfterPageTeardown() {
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = new SettingsDialog();
+        dialog.show(controller.get().getFragmentManager(), "boundary_settings");
+        controller.get().getFragmentManager().executePendingTransactions();
+        HushgramPreferenceFragment page = (HushgramPreferenceFragment)
+                dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
+        android.preference.Preference export = page.findPreference("action_export_diagnostic_report");
+        AlertDialog previous = ShadowAlertDialog.getLatestAlertDialog();
+        dialog.dismissAllowingStateLoss();
+        controller.get().getFragmentManager().executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+        assertNull(page.getView());
+        assertTrue(export.getOnPreferenceClickListener().onPreferenceClick(export));
+        assertSame("a detached row opened another report chooser", previous,
+                ShadowAlertDialog.getLatestAlertDialog());
     }
 
     private void checkInsets(boolean rtl) throws Exception {

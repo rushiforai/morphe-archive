@@ -1,0 +1,392 @@
+ショート
+ショート動画の視聴
+アプリを再起動
+デバッグログを共有
+その他
+設定を反映して最初から開く
+設定
+アプリ設定
+一般設定・再生設定
+サイドバーにショートを表示
+ランキングの下にショート動画の入口を表示します
+デバッグ
+言語
+再生エラーや通信先、応答コードなどの診断ログを共有します。不具合の報告時に利用できます。共有前にログの内容と送信先を確認してください。
+気になる動画を選んで再生
+ショート動画を検索
+検索
+ショート動画を読み込んでいます…
+再試行
+ニコニコ動画のホームに戻る
+ニコニコ動画に戻る
+ショート一覧を更新
+ショート動画を取得できませんでした。通信状態を確認して再試行してください。
+ 本の動画
+ニコニコ動画  •  
+ショート動画を検索しています…
+検索結果を取得できませんでした。通信状態を確認して再試行してください。
+ショート動画が見つかりませんでした。キーワードを変えてお試しください。
+現在のショート
+前のショート
+ショート動画一覧
+ショートのホーム
+動画情報
+次のショート
+上にスワイプで次、下にスワイプで前の動画
+ショート動画
+更新
+閉じる
+最初の動画です
+一覧を取得できませんでした。もう一度お試しください
+新しいショート動画が見つかりませんでした
+更新が完了しませんでした。もう一度お試しください。
+最大画質（最大解像度・動画により変動）
+高画質（最大解像度・動画により変動）
+標準画質（2番目の解像度・動画により変動）
+低画質（3番目の解像度・動画により変動）
+最大画質
+高画質
+標準画質
+低画質
+標準
+自動
+速度
+画質
+ループ
+再生速度
+キャンセル
+画質を取得できませんでした
+画質: 
+再生速度: 
+倍
+ループ再生: 
+操作に失敗しました。ログを確認してください
+デフォルトの再生速度
+何もしない（従来の動作）
+バックグラウンド再生
+ポップアップ再生
+アプリ切替時の動作
+再生中に戻る場合の動作
+再生位置の保存
+動画ごとに再生位置を保存し、次回の再生時に再開します
+ポップアップ再生には他のアプリの上に表示する権限が必要です
+パッチバージョン
+Android 12以降の壁紙の色をアプリに適用します
+コメント取得数の上限を拡張
+従来形式の動画で取得するコメント数を増やします。通信量と描画負荷が増えます
+コメントの大きさ
+最小・小・標準・大・最大（次の再生から反映）
+最小
+小
+大
+最大
+接続
+接続する端末を選択
+接続解除
+Google Cast の接続を解除
+共有ストレージ（アプリ専用領域）
+本体ストレージ（アプリ内部領域）
+共有ストレージ、SDカード、本体内部領域から保存先を選択できます。変更前のキャッシュは移動されません
+フォロー新着
+フォロー中の新着動画
+選択中: 
+件の履歴を削除しますか？
+削除
+動画
+削除する履歴を選択
+選択した履歴を削除
+件
+ログイン画面の表示が停止しました。アプリを再起動して再試行してください。
+ログイン画面を開けませんでした。\n
+ログインしました
+ニコレポはサービスが終了しました。フォロー新着はニコニコ公式サイトで確認できます。
+保存先: 
+ログイン情報を保存済み（サイト側の認証は未確認）
+未ログイン・ログイン情報なし
+再生状況と通信結果を送る
+動画の読み込みが進みません。再生をやり直してください
+動画情報を取得できません: 
+動画情報を取得できません。通信状態を確認してください
+この動画に対応する再生形式がありません
+再生情報の取得に失敗しました。通信状態や視聴権限を確認してください
+再生:%,d  コメント:%,d  マイリス:%,d  いいね:%,d
+動画再生
+キャッシュ取得
+キャッシュの取得
+ミニゲームを閉じる
+自転車ラン。タップで2段ジャンプ。障害物と穴を避けます。終了後はタップで再挑戦。
+自転車ラン
+距離 
+ m   ベスト 
+タップで2段ジャンプ
+ゲームオーバー
+障害物と穴をジャンプで避けよう
+タップで再挑戦
+タップしてスタート
+総合
+ゲーム
+アニメ
+ボカロ
+音声合成実況・解説・劇場
+エンタメ
+音楽
+歌ってみた
+踊ってみた
+演奏してみた
+解説・講座
+料理
+旅行・アウトドア
+自然
+乗り物
+技術・工作
+社会・政治・時事
+ラジオ
+スポーツ
+動物
+Setting
+nicoidについて
+About nicoid
+關於nicoid
+アプリ全体の言語
+Language of the entire application
+語言的整個應用程序的
+アプリ全体の言語を変更できます
+I will change the language of the entire application.
+我將改變整個應用程序的語言
+外部メモリ（SDカード）
+External memory (SD card)
+外部存儲器（SD卡）
+本体メモリ
+Internal memory
+機身內存
+無制限
+Limitless
+タブレット
+Tablets
+平板電腦
+毎回選択する
+I choose every time
+每次選擇
+Video Info
+動畫情報
+Video playback
+播放動畫
+Pop-up playback
+Popup播放
+強
+Strength
+弱
+Weak
+無(全て表示)
+None (view all)
+無(全部顯示)
+Economy image quality
+經濟畫質
+オリジナル画質
+Original image quality
+原始畫質
+端末の設定に従う
+Follow the configuration of the terminal
+依照客戶端設定
+横画面固定
+Horizontal screen fixed
+固定橫向畫面
+縦画面固定
+Vertical screen fixed
+固定縱向畫面
+センサーに従う
+I follow the sensor
+依照感應器
+常に使用
+モバイル通信時のみ
+使用しない
+ぼかし
+縁取り
+キャッシュを全て削除する
+I delete all the cache
+清除快取
+キャッシュを全て削除しますか？
+Are you sure you want to delete all the cache?
+要清除全部快取嗎？
+キャッシュ保存先
+Cache destination
+緩存目的地
+キャッシュフォルダ非表示
+アルバムなどからキャッシュした動画ファイルを閲覧できないように変更できます
+キャッシュは通常再生のみ実行されます（ポップアップ、nicoidcastでは実行されません）\nシークバーの白のゲージがキャッシュの進行度になります
+Normal playback is executed only for the cache. (Pop-up, it does not run on nicoidcast)\nGauge of white seek bar is the progress of the cache
+快取只使用於一般播放（Popup、nicoidcast不使用）\n在時間軸以白色長條顯示快取進行度
+キャッシュ容量
+Cache capacity
+快取容量
+キャッシュに使用する最大容量を変更できます
+You can set the maximum capacity to be used for cache
+設定快取使用的最大容量
+キャッシュのみを使用し再生
+キャッシュ取得済み(100％)の動画を再生するとき、動画だけでなく動画情報やコメントもキャッシュを使用しデータ通信を行わずに再生します
+キャッシュ高速取得モード(非推奨)
+すべて高速取得モード(非推奨)
+オリジナル画質より劣化しますが高速に取得可能なオプションです。キャッシュのみに適応され画質設定は無視されます。今後の仕様変更で動作しなくなる可能性があります。
+キャッシュだけではなくすべての再生方法で高速取得の方法を使用します。再生開始までの時間やシーク後の読み込みが短くなるわけではありません。
+コメント
+Comment
+評論
+コメントの不透明度
+コメントの表示を透過することができます
+キャスト再生時コメントを減らす
+動作を安定させるため表示するコメント量を少なくしフレームレートを低く制限します。再生側のスペックに余裕がある場合、無効にすると通常のコメント量・フレームレートで表示することができます
+描画フレームレート
+Drawing frame rate
+繪製幀率
+コメント描画フレームレート上限を変更できます
+I set the comment drawing frame rate limit.
+我設置的註釋繪圖幀速率限制。
+コメントを表示しない
+Do not show comment
+不顯示評論
+コメントをデフォルトで非表示します
+I can hide by default comment
+評論預設為不顯示
+コメントのドロップシャドウ
+コメントのドロップシャドウを変更できます
+タブレット・スマートフォンそれぞれに適した表示方法に変更できます
+I will change the display method suitable for each tablet, smartphone
+變更適應平板電腦・智慧型手機等表示方法
+タブレット端末のみ変更可能です
+Can be changed only tablets
+僅平板電腦適用變更
+リンク時の動作
+Operation of the link-time
+連結時的動作
+外部アプリからの呼び出し時の動作を選択できます
+I want the behavior of the call from the external application
+選擇從外部應用程式叫出時的動作
+実験的機能
+実験的機能について
+通常は設定しないでください。こちらのオプションは正しく動作しなかったり予告なく廃止する可能性があります。
+Language
+語
+ログイン中
+Log in
+登入中
+ニコニコ動画のメールアドレス・パスワードを設定
+Set the e-mail address password of Nico Nico Douga
+設定NICONICO動畫的電郵地址・密碼
+ログインに成功しました
+I have successfully logged
+登入成功
+ログインに失敗しました\nメールアドレスとパスワードをお確かめください
+I failed to login
+登入失敗
+ログインに失敗しました\n確認コードが間違っています
+通常画面の向き
+The orientation of the screen
+畫面方向
+通常画面の向きの固定・変更方法を設定できます
+I set the fixed and how to change the orientation of the normal screen
+設定一般畫面方向的固定・變更方法
+モバイル通信時低画質再生
+モバイル通信時、画質設定にかかわらず低画質で取得します
+ログインせずに使用
+The use without logging
+不登入使用
+ログインせずにnicoidを使用できます
+Use nicoid without logging
+不登入使用nicoid
+再生モード
+Play mode
+播放模式
+動画の再生方法（ストリーミング・キャッシュ）を変更できます
+I will change the method of playing videos (streaming / cache)
+動畫播放方法（串流・快取）變更
+コメント・動画情報の言語
+Language of the comment and video information
+語言
+コメント・動画情報の言語を変更できます（デフォルトはアプリ全体の言語に従います）
+I will change the language of the comment and video information. (The default is subject to the language of the entire application.)
+變更評論・動畫情報的語言
+再生画面の向き
+再生画面（プレイヤー）の向きの固定・変更方法を設定できます
+I set the fixed and how to change the screen orientation in player
+設定播放器畫面方向的固定・變更方法
+先行再生
+Preceding Play
+先行播放
+動画の取得が完了した時点でコメントの取得が完了していなくても動画の再生を開始します
+I will start playing the video acquisition of comment even if not completed at the time of acquisition of the video was completed
+動畫取得後尚未取得評論時直接播放
+キャッシュ安定再生（暫定対応）
+一部環境下で外部メモリにキャッシュされた動画を再生時にプツプツ途切れる現象を解消出来ます（再生に問題がない場合設定しないで下さい。暫定対応のため削除される可能性があります）
+Image quality
+畫質
+取得する動画の画質を変更できます
+I can change the quality of the video to get
+能變更取得動畫的畫質
+設定を保存しました
+I have to save the settings
+已儲存設定
+共有NGレベル
+NG share level
+分享NG等級
+共有NGレベルを変更できます
+I will modify the share NG level
+變更分享NG等級
+スリープ再生
+通常再生状態でスリープ（画面オフ）にしても再生を続けます
+ステータスバー非表示
+フルスクリーン時ステータスバーを非表示にします
+タップ時の動作
+Operation of the tap when
+輕觸時動作
+動画をタップした時の動作を選択できます（設定した項目以外は右下の三角形をタップすることで表示されます）
+And what to do when you tap the video list. (Item other than that you set will be displayed by tapping the triangle in the bottom right-hand corner.)
+選擇輕觸時的動作（已設定項目以外請輕觸右下角的三角形）
+全般
+Whole
+全體
+フォロー中のユーザー
+User favorite
+用戶喜愛
+User list of favorite
+喜歡的用戶列表
+アカウントのマイリスト
+My List list of accounts
+帳戶的我的清單一覽
+とりあえずマイリスト
+My List for the time being
+一秒清單
+アカウントのとりあえずマイリスト
+My List list for the time being of the account
+帳戶的一秒清單一覽
+本体に登録したブックマーク
+A list of bookmarks that it has registered with the body
+裝置本體上的書籤一覽
+キャッシュリスト
+Cache list
+緩存列表
+キャッシュ取得済みの動画（オフライン視聴可能）
+Video List of cached (Viewable offline)
+緩存的視頻列表（離線瀏覽）
+本体
+Body
+裝置本體
+本体の視聴履歴
+Viewing history of the body
+裝置本體的視聽紀錄
+動画ID入力
+Video ID input
+輸入動畫ID
+動画IDを直接指定しアクセス
+Accessed directly specify the video ID
+經由直接指定動畫ID進入
+IDが入力されていません
+ID has not been entered
+未輸入ID
+nicoidの設定
+Setting nicoid
+動画のキーワード、タグ検索
+Keywords video, tag search
+動畫的關鍵字、標籤搜尋
+Pop up播放
+バックグラウンドでキャッシュを取得しますか？
+連続再生

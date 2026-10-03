@@ -396,6 +396,10 @@ try {
     $touchesApkSigning = @($paths | Where-Object {
         $_ -in $apkSigningPaths -or $_ -like 'tools/verification-probe/src/*'
     }).Count -gt 0
+    # The probe's device scripts share a log-marker helper whose contracts live with the scripts'.
+    $touchesProbeTests = @($paths | Where-Object {
+        $_ -like 'tools/verification-probe/tests/*' -or $_ -like 'tools/verification-probe/*.ps1'
+    }).Count -gt 0
     # Declarations, catalog generation and its consumed build pins can change the unnamed
     # dependency closure without changing a script. Check that closure before starting a build.
     $touchesCatalog = @($paths | Where-Object {
@@ -506,7 +510,7 @@ try {
             'in a clean worktree of the commit instead.')
     }
 
-    if ($touchesScripts -or $touchesCatalog -or $touchesApkSigning) {
+    if ($touchesScripts -or $touchesCatalog -or $touchesApkSigning -or $touchesProbeTests) {
         # Script, notice, failure message. The two injected-register suites and the resource
         # table check's run only when their own files moved; each one is the pushed commit's
         # copy, run against that commit.

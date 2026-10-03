@@ -6,22 +6,31 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.os.Looper;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 
+import com.ss.android.ugc.aweme.common.widget.VerticalViewPager;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
+import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 
 /**
@@ -297,5 +306,78 @@ public class AuthorRegionTest {
         CharSequence decorated = name.getText();
         assertTrue(decorated instanceof Spanned);
         assertEquals(1, ((Spanned) decorated).getSpans(0, 5, StyleSpan.class).length);
+    }
+
+    private static final int PAGE_WIDTH = 200;
+    private static final int PAGE_HEIGHT = 300;
+
+    /**
+     * TikTok's pager with an author row in a cell for each video: the cell at the pager's
+     * scroll on screen, the others a page away and clipped, all of them attached.
+     */
+    private VerticalViewPager feed(Activity activity, String... names) {
+        FrameLayout root = new FrameLayout(activity);
+        activity.setContentView(root);
+        VerticalViewPager pager = new VerticalViewPager(activity);
+        root.addView(pager, new FrameLayout.LayoutParams(PAGE_WIDTH, PAGE_HEIGHT));
+        for (int i = 0; i < names.length; i++) {
+            FrameLayout cell = new FrameLayout(activity);
+            FrameLayout.LayoutParams place = new FrameLayout.LayoutParams(PAGE_WIDTH, PAGE_HEIGHT);
+            place.topMargin = i * PAGE_HEIGHT;
+            pager.addView(cell, place);
+            cell.addView(feedRow(names[i]));
+        }
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        View decor = root.getRootView();
+        decor.measure(View.MeasureSpec.makeMeasureSpec(400, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(800, View.MeasureSpec.EXACTLY));
+        decor.layout(0, 0, 400, 800);
+        return pager;
+    }
+
+    private static TextView nameIn(VerticalViewPager pager, int index) {
+        return (TextView) ((LinearLayout) ((FrameLayout) pager.getChildAt(index)).getChildAt(0)).getChildAt(0);
+    }
+
+    @Test
+    public void theRowOnScreenIsDecoratedNotTheFirstOneInTheTree() {
+        // #75: after a swipe down the cell above stays attached and comes first in the tree,
+        // so the country went on it, off screen, and only showed after swiping back up.
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            VerticalViewPager pager = feed(activity, "first creator", "second creator", "third creator");
+            View content = activity.findViewById(android.R.id.content);
+
+            assertSame(nameIn(pager, 0), AuthorRegion.findName(content));
+
+            pager.scrollTo(0, PAGE_HEIGHT);
+            TextView onScreen = AuthorRegion.findName(content);
+            assertSame(nameIn(pager, 1), onScreen);
+            AuthorRegion.decorate(onScreen, null, "AZ");
+            assertEquals("second creator · AZ", nameIn(pager, 1).getText().toString());
+            assertEquals("first creator", nameIn(pager, 0).getText().toString());
+
+            // And on to the next, which takes the country off the row it leaves.
+            pager.scrollTo(0, 2 * PAGE_HEIGHT);
+            TextView next = AuthorRegion.findName(content);
+            assertSame(nameIn(pager, 2), next);
+            AuthorRegion.decorate(next, null, "TR");
+            assertEquals("third creator · TR", nameIn(pager, 2).getText().toString());
+            assertEquals("second creator", nameIn(pager, 1).getText().toString());
+
+            AuthorRegion.restore();
+        }
+    }
+
+    @Test
+    public void withNoRowOnScreenNothingIsDecorated() {
+        // A feed behind another page keeps its cells attached with their last layout.
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            VerticalViewPager pager = feed(activity, "first creator", "second creator");
+            pager.setVisibility(View.INVISIBLE);
+
+            assertNull(AuthorRegion.findName(activity.findViewById(android.R.id.content)));
+        }
     }
 }

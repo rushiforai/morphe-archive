@@ -2,6 +2,7 @@ package app.ckzombies.patches.compat
 
 import app.ckzombies.patches.nativelib.jniArgumentsPatch
 import app.ckzombies.patches.nativelib.jniGuardsPatch
+import app.ckzombies.patches.nativelib.soundCacheModePatch
 import app.ckzombies.patches.shared.Constants.COMPATIBILITY_CK_ZOMBIES
 import app.morphe.patcher.patch.bytecodePatch
 
@@ -22,6 +23,7 @@ val modernAndroidPatch = bytecodePatch(
         targetSdkPatch,
         jniGuardsPatch,
         jniArgumentsPatch,
+        soundCacheModePatch,
         openFeintPatch,
         deadServiceRequestsPatch,
         obbMessagePatch,

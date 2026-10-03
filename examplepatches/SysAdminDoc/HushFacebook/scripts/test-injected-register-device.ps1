@@ -6,7 +6,10 @@
     Every stage of a device verify can fail, and each failure has to be named and still remove
     what was pushed. Two of them are about evidence rather than errors: Meta's build raises no
     verifier message, so a tally only counts once dex2oat has read a file of the pushed size, and
-    dex2oat exits 0 while logging that the file it was given doesn't exist.
+    dex2oat exits 0 while logging that the file it was given doesn't exist. The devices are shared,
+    so the log is never cleared: the fake refuses a clear, puts another run's verifier and
+    missing-file lines ahead of this run's mark and another run's mark after it, and can lose the
+    mark to a rotated buffer that keeps only someone else's.
 #>
 [CmdletBinding()]
 param([string]$Root)
@@ -38,6 +41,7 @@ try {
 
         $state = [pscustomobject]@{
             Calls = [System.Collections.Generic.List[string]]::new()
+            Mark = $null
             RemotePaths = [System.Collections.Generic.HashSet[string]]::new(
                 [System.StringComparer]::Ordinal)
             CleanupCalls = 0
@@ -58,21 +62,45 @@ try {
                 [void]$state.RemotePaths.Add($directory)
                 if ($FailureStage -eq 'setup') { $exitCode = 12 }
             } elseif ($operation -eq 'logcat' -and $Arguments[3] -eq '-c') {
-                if ($FailureStage -eq 'clear') { $exitCode = 13 }
+                throw "the verifier cleared the log of a shared device: $line"
+            } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'log -t HushfacebookVerify *') {
+                $state.Mark = $Arguments[3].Substring('log -t HushfacebookVerify '.Length)
+                if ($FailureStage -eq 'mark') { $exitCode = 13 }
             } elseif ($operation -eq 'shell' -and $Arguments[3] -like 'dex2oat64*') {
                 $read = if ($FailureStage -eq 'short-read') { 5 } else { $Size }
                 $output = if ($FailureStage -eq 'dex2oat') { @('exit=14', "size=$read") } else { @('exit=0', "size=$read") }
             } elseif ($operation -eq 'logcat' -and $Arguments[3] -eq '-d') {
+                # Another run on the same device: its mark, a verifier line and a missing file, all
+                # before this run's mark. A tally that counts them is wrong, and one that reads the
+                # missing file refuses a good run.
+                $older = @(
+                    '10-02 12:00:00.000  4000  4000 I HushfacebookVerify: case-0123456789abcdef0123456789abcdef',
+                    'I dex2oat64: Verification error in Lfixture/Stale;',
+                    'I dex2oat64: Verification error in Lfixture/Host;',
+                    "W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushfacebook-verify-other.apk'"
+                )
+                $marked = "10-02 12:00:01.000  4001  4001 I HushfacebookVerify: $($state.Mark)"
+                # A run that started while this one was still going. Only its mark is this run's
+                # business: a helper that takes it for this run's own loses this run's lines.
+                $foreign = '10-02 12:00:02.000  4002  4002 I HushfacebookVerify: case-fedcba9876543210fedcba9876543210'
                 if ($FailureStage -eq 'log-read-throw') {
                     throw 'fake ADB threw while reading logcat'
                 } elseif ($FailureStage -eq 'log-read') {
                     $exitCode = 15
                 } elseif ($FailureStage -eq 'unread') {
-                    $output = @("W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushfacebook-verify-case.apk'")
+                    $output = $older + $marked +
+                        @("W dex2oat64: Skipping non-existent dex file '/data/local/tmp/hushfacebook-verify-case.apk'")
+                } elseif ($FailureStage -eq 'rotated') {
+                    # The buffer rolled over: this run's lines are there, its mark isn't, and a later
+                    # run's mark is.
+                    $output = @('I dex2oat64: Verification error in Lfixture/Host;', $foreign)
                 } else {
-                    $output = @(
+                    # The mark twice, with an older line between: only what follows the last copy counts,
+                    # and another run's mark among those lines doesn't end them.
+                    $output = $older + $marked + @('I dex2oat64: Verification error in Lfixture/Stale;') + $marked + @(
                         'I dex2oat64: Verification error in Lfixture/Host;',
                         'I dex2oat64: Verification error in Lfixture/Host;',
+                        $foreign,
                         'W dex2oat: VerifyError in Lfixture/Other;'
                     )
                 }
@@ -109,11 +137,12 @@ try {
     $failures = [ordered]@{
         push = 'Could not push case to SERIAL (ADB exit 11).'
         setup = 'Could not prepare the verifier output directory for case on SERIAL (ADB exit 12).'
-        clear = 'Could not clear logcat on SERIAL before verifying case (ADB exit 13).'
+        mark = 'Could not mark the log on SERIAL before verifying case (ADB exit 13).'
         dex2oat = 'dex2oat on case exited 14.'
         'log-read' = 'Could not read logcat on SERIAL after verifying case (ADB exit 15).'
         'short-read' = "dex2oat on case read a file of 5 bytes on SERIAL, not the $fixtureSize bytes pushed."
         unread = "dex2oat did not read case on SERIAL: Skipping non-existent dex file '/data/local/tmp/hushfacebook-verify-case.apk'"
+        rotated = "The log mark for case on SERIAL was gone from the log by the time it was read, so this run's lines cannot be told apart from older ones."
     }
     foreach ($stage in $failures.Keys) {
         $fake = New-FakeAdb -FailureStage $stage
@@ -145,7 +174,7 @@ try {
     Assert-True ($thrownFailure.State.RemotePaths.Count -eq 0) `
         'A thrown ADB error left fake remote files behind.'
 
-    $primaryWithCleanupFailure = New-FakeAdb -FailureStage 'clear' -CleanupThrowNumber 1
+    $primaryWithCleanupFailure = New-FakeAdb -FailureStage 'mark' -CleanupThrowNumber 1
     $warnings = @()
     $caught = $null
     try {
@@ -155,7 +184,7 @@ try {
     } catch {
         $caught = $_
     }
-    Assert-True ($caught.Exception.Message -eq $failures.clear) `
+    Assert-True ($caught.Exception.Message -eq $failures.mark) `
         'A cleanup failure replaced the original verification failure.'
     Assert-BothCleanupCalls -State $primaryWithCleanupFailure.State -Context 'secondary cleanup failure'
     Assert-True (($warnings | ForEach-Object { "$_" }) -join "`n" -match 'cleanup also failed') `
@@ -168,6 +197,45 @@ try {
         $tally['VerifyError in Lfixture/Other;'] -eq 1) 'The successful fake verifier tally was wrong.'
     Assert-BothCleanupCalls -State $success.State -Context 'success'
     Assert-True ($success.State.RemotePaths.Count -eq 0) 'The successful run left fake remote files behind.'
+    Assert-True ($success.State.Mark -match '^case-[0-9a-f]{32}$') "The run's mark doesn't name it: $($success.State.Mark)"
+    $markCall = $success.State.Calls.IndexOf("-s SERIAL shell log -t HushfacebookVerify $($success.State.Mark)")
+    $dexCall = @($success.State.Calls | ForEach-Object { $_ }).IndexOf(
+        @($success.State.Calls | Where-Object { $_ -like '-s SERIAL shell dex2oat64*' })[0])
+    Assert-True ($markCall -ge 0 -and $markCall -lt $dexCall) 'The log was not marked before dex2oat ran.'
+    $second = New-FakeAdb
+    [void](Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' -Local $fixture -Label 'case' -AdbInvoker $second.Invoker)
+    Assert-True ($second.State.Mark -ne $success.State.Mark) 'Two runs used the same log mark.'
+
+    # The helper's own text, with the run's lines taken back to the whole log, or cut at any
+    # run's mark rather than this one's: the other runs' lines above have to fail both. A copy
+    # that keeps the scoping has to pass.
+    $helperText = [System.IO.File]::ReadAllText((Join-Path $PSScriptRoot 'injected-register-device.ps1'))
+    $scoping = 'Select-VerifierRunLines -Lines $logResult.Output -Mark $mark'
+    Assert-True ($helperText.Contains($scoping)) 'The helper no longer takes the run''s lines from the log.'
+    $ownMark = ' -and $Lines[$i].Contains($Mark)'
+    Assert-True ($helperText.Contains($ownMark)) 'The helper no longer looks for the run''s own mark.'
+    $helperCopy = Join-Path ([System.IO.Path]::GetTempPath()) `
+        ("hushfacebook-device-helper-" + [guid]::NewGuid().ToString('N') + '.ps1')
+    try {
+        foreach ($copy in @(@{ Name = 'the helper unchanged'; Text = $helperText; Passes = $true },
+                @{ Name = 'the helper counting the whole log'; Text = $helperText.Replace($scoping, ', @($logResult.Output)'); Passes = $false },
+                @{ Name = 'the helper taking any run''s mark'; Text = $helperText.Replace($ownMark, ''); Passes = $false })) {
+            [System.IO.File]::WriteAllText($helperCopy, $copy.Text)
+            $mutant = New-FakeAdb
+            $passed = & {
+                . $helperCopy
+                try {
+                    $copyTally = Invoke-AndroidVerifierTally -Adb 'fake-adb' -Serial 'SERIAL' `
+                        -Local $fixture -Label 'case' -AdbInvoker $mutant.Invoker
+                    $copyTally.Count -eq 2 -and $copyTally['Verification error in Lfixture/Host;'] -eq 2 -and
+                        $copyTally['VerifyError in Lfixture/Other;'] -eq 1
+                } catch { $false }
+            }
+            Assert-True ($passed -eq $copy.Passes) "$($copy.Name): the suite said $passed"
+        }
+    } finally {
+        [System.IO.File]::Delete($helperCopy)
+    }
 
     $successWithCleanupFailure = New-FakeAdb -CleanupFailureNumber 1
     $caught = $null

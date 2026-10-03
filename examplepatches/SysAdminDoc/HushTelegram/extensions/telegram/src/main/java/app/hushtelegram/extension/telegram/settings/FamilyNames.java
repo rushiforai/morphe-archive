@@ -25,8 +25,19 @@ public final class FamilyNames {
     public static final String HIDE_ADS = "Hide ads";
     public static final String HIDE_STORIES = "Hide Stories";
     public static final String HIDE_RECOMMENDATIONS = "Hide recommendations";
+    public static final String HIDE_COMMERCE = "Hide Premium, gifts and Stars";
+    public static final String HIDE_PROMOTIONAL_BANNERS = "Hide promotional banners";
+    public static final String HIDE_SPONSORED_PROXY = "Hide sponsored proxy channel";
+    public static final String HIDE_POPULAR_APPS = "Hide popular apps";
+    public static final String DISABLE_CHAT_SWIPE = "Disable chat swipe actions";
+    public static final String QUIET_CONTACTS_NAG = "Quiet contacts nag";
+    public static final String HOLIDAY_LOOK = "Holiday look all year";
     public static final String DISABLE_ANALYTICS = "Disable analytics";
     public static final String DISABLE_CALL_DEBUG = "Disable call debug upload";
+    public static final String DISABLE_DRAFT_PREVIEWS = "Disable draft link previews";
+    public static final String GALLERY_CAMERA_ON_TAP = "Gallery camera on tap";
+    public static final String OPEN_EXTERNAL_LINKS = "Open links externally";
+    public static final String STRIP_LINK_TRACKING = "Strip link tracking";
     public static final String DISABLE_UPDATE_CHECKS = "Disable update checks";
 
     private FamilyNames() {

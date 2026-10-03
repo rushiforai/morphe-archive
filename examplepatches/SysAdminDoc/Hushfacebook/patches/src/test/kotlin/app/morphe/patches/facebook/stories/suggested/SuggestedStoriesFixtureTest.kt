@@ -40,12 +40,14 @@ class SuggestedStoriesFixtureTest {
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to (7 to 4),
         AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to (7 to 4),
+        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to (7 to 4),
     )
 
     /** The bucket interface's type accessor and the enum it answers, per build. */
     private val expectedType = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to ("C9d" to "LX/2LX;"),
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to ("CAm" to "LX/24X;"),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to ("CB0" to "LX/2OQ;"),
+        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to ("C9d" to "LX/2LX;"),
+        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to ("CAm" to "LX/24X;"),
     )
 
     private fun reference(instruction: Instruction): String {

@@ -18,6 +18,8 @@ import android.view.DisplayCutout;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -53,7 +55,10 @@ public final class SettingsActivity extends Activity {
     private final List<RadioButton> bubbleModes = new ArrayList<>();
     private final Map<String, TextView> activityLabels = new java.util.HashMap<>();
     private final Map<Switch, CharSequence> switchDescriptions = new java.util.HashMap<>();
+    private long documentGeneration;
     private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener = (preferences, key) -> {
+        if (key == null || "paused".equals(key) || Settings.BUBBLE_CHAT_HEADS.equals(key) || Settings.installed.contains(key))
+            documentGeneration++;
         refreshChoices();
         if (key == null || "check_updates".equals(key)) syncUpdateChoice(true);
     };
@@ -75,6 +80,9 @@ public final class SettingsActivity extends Activity {
     static final int SAVE_CHOICES = 7101, READ_CHOICES = 7102;
     private String documentExport;
     private boolean documentImport;
+    private boolean documentBusy;
+    private Button saveChoicesFile, readChoicesFile;
+    private TextView documentStatus;
     // Process-wide so a page recreated by the theme switch can still replace the last toast.
     private static Toast toast;
     static final String[][] CONTROLS = {
@@ -89,7 +97,8 @@ public final class SettingsActivity extends Activity {
         {"meta_ai", "Hide Meta AI", "Hides the floating button, toolbar button, Meta AI tab, menu entries and search AI.", "navigation"},
         {"moments", "Hide Chat Moments", "Hides Chat Moments from the menu.", "navigation"},
         {"reels_badge", "Hide Reels badge", "Hides the Reels notification badge.", "navigation"},
-        {"ai_stickers", "Hide AI sticker tools", "Hides the generated-sticker tab and AI sticker suggestions.", "stickers"},
+        {"chat_animation", "Slide chats in and out", "Slides a chat in from the side when you open it and back out when you go back, while the screen underneath holds still. Chat heads and bubbles keep their own animations.", "navigation"},
+        {"ai_stickers", "Hide AI sticker tools", "Hides the Generate AI sticker buttons, generated-sticker tab and AI sticker suggestions.", "stickers"},
         {"avatar_stickers", "Hide avatar stickers", "Hides the avatar tab in the sticker keyboard.", "stickers"},
         {"chat_promotions", "Hide chat promotions", "Hides Messenger's quick-promotion banners inside conversations.", "conversations"},
         {"suggested_replies", "Hide business reply suggestions", "Hides suggested replies in business conversations.", "conversations"},
@@ -100,7 +109,7 @@ public final class SettingsActivity extends Activity {
         {"original_photo", "Send photos at original quality", "With HD on, sends a JPEG photo's own image data instead of Messenger's re-encoded copy. Its metadata, such as location and camera details, is left out, as it is from Messenger's copy, except the tag that turns a sideways photo upright. Photos over 20 MB and videos still get Messenger's compression.", "conversations"},
         {"external_browser", "Open web links externally", "Uses your default browser for HTTP and HTTPS links. Other link types keep their original behavior.", "links_bubbles"},
         {"bubbles", "Allow chat bubbles", "Choose Stock, Chat Heads or Native Bubbles below. Native Bubbles needs Android 11, account support and notification permissions. Restart Messenger after changing modes.", "links_bubbles"},
-        {"allow_screenshot", "Allow screenshots", "Lets you screenshot photos, media and video Messenger protects in a chat, and stops screenshot notices. View-once media stays protected.", "privacy"},
+        {"allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, including view-once media and Quicksnap, and stops screenshot notices.", "privacy"},
         {"hide_read_receipts", "Hide read receipts", "Stops sending read receipts. Opened encrypted chats can stay unread on this phone. Replying or switching this off may notify the sender. Group coverage isn't verified.", "privacy"},
         {"keep_unsent", "Keep unsent messages", "Keeps messages on verified legacy unsend routes. End-to-end encrypted chats aren't supported, and group coverage isn't verified. Activity records intercepted legacy unsends, not whether a chat is supported. Your own unsend may be limited.", "privacy"},
         {"anonymous_stories", "View stories anonymously", "Opens other people's stories without adding you to their viewer list. Stories you open this way are still marked as seen on your side.", "privacy"},
@@ -253,6 +262,7 @@ public final class SettingsActivity extends Activity {
     }
 
     @Override protected void onDestroy() {
+        documentGeneration++;
         cancelUpdateCheck();
         super.onDestroy();
     }
@@ -387,7 +397,6 @@ public final class SettingsActivity extends Activity {
         ui.add(setup, ui.heading(text.get("setup")), 0);
         enabledCount = ui.text("", 22, ui.text, true);
         enabledCount.setTag("enabled_count");
-        enabledCount.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         ui.add(setup, enabledCount, 8);
         setupNote = ui.text("", 13, ui.muted, false);
         ui.add(setup, setupNote, 6);
@@ -523,23 +532,29 @@ public final class SettingsActivity extends Activity {
         ui.add(content, modes, 8);
         ui.add(content, ui.text(text.get(Settings.available("bubbles") ? "bubble_help" :
             Build.VERSION.SDK_INT >= 30 ? "bubble_unsupported" : "unavailable"), 13, ui.muted, false), 8);
+        if (Build.VERSION.SDK_INT >= 30) {
+            Button permissions = ui.button(text.get("bubble_permissions"));
+            permissions.setTag("bubble_permissions");
+            permissions.setOnClickListener(view -> openNotificationSettings(android.provider.Settings.ACTION_APP_NOTIFICATION_BUBBLE_SETTINGS));
+            ui.add(content, permissions, 8);
+        }
         Button notifications = ui.button(text.get("bubble_notifications"));
         notifications.setTag("bubble_notifications");
-        notifications.setOnClickListener(view -> openNotificationSettings(false));
+        notifications.setOnClickListener(view -> openNotificationSettings(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS));
         ui.add(content, notifications, 8);
         if (Build.VERSION.SDK_INT >= 30) {
             Button conversations = ui.button(text.get("bubble_conversations"));
             conversations.setTag("bubble_conversations");
-            conversations.setOnClickListener(view -> openNotificationSettings(true));
+            conversations.setOnClickListener(view -> openNotificationSettings("android.settings.CONVERSATION_SETTINGS"));
             ui.add(content, conversations, 8);
         }
     }
 
-    private void openNotificationSettings(boolean conversations) {
-        // AOSP exposes this action to system apps; vendor phones may omit its activity.
-        Intent intent = new Intent(conversations ? "android.settings.CONVERSATION_SETTINGS" :
-            android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
-        if (!conversations) intent.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName());
+    private void openNotificationSettings(String action) {
+        // The conversation action may be restricted or absent on a vendor phone.
+        Intent intent = new Intent(action);
+        if (!"android.settings.CONVERSATION_SETTINGS".equals(action))
+            intent.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName());
         // Samsung's settings homepage can otherwise reuse an unrelated screen for a new deep link.
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         try {
@@ -606,7 +621,34 @@ public final class SettingsActivity extends Activity {
         row.setOnClickListener(view -> { if (control.isEnabled()) control.toggle(); });
         row.setEnabled(available);
         row.setFocusable(false);
-        row.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        control.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        row.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+        row.setScreenReaderFocusable(true);
+        row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(Switch.class.getName());
+                info.setCheckable(true);
+                info.setChecked(control.isChecked());
+                info.setEnabled(control.isEnabled());
+                info.setContentDescription(control.getContentDescription());
+                if (Build.VERSION.SDK_INT >= 30) {
+                    AccessibilityNodeInfo switchInfo = control.createAccessibilityNodeInfo();
+                    info.setStateDescription(switchInfo.getStateDescription());
+                    switchInfo.recycle();
+                }
+            }
+            @Override public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+                super.onInitializeAccessibilityEvent(host, event);
+                event.setClassName(Switch.class.getName());
+                event.setChecked(control.isChecked());
+                event.setContentDescription(control.getContentDescription());
+            }
+            @Override public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
+                if (action == AccessibilityNodeInfo.ACTION_CLICK && !control.isEnabled()) return false;
+                return super.performAccessibilityAction(host, action, arguments);
+            }
+        });
         row.setBackground(ui.interactive(ui.background, 0, 0));
         if (divided) {
             row.setBackground(new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[] {
@@ -629,7 +671,7 @@ public final class SettingsActivity extends Activity {
         if (!status.contentEquals(label.getText())) label.setText(status);
         label.setTextColor(!paused && failed ? ui.warning : !paused && used > 0 ? ui.accent : ui.muted);
         label.setVisibility(control.isChecked() ? View.VISIBLE : View.GONE);
-        // The labels' parent hides its descendants from accessibility. The existing switch speaks the status once.
+        // Hidden labels share the description exposed by the row's switch node.
         String description = switchDescriptions.get(control).toString() + (control.isChecked() ? " " + status : "");
         if (!description.contentEquals(control.getContentDescription())) control.setContentDescription(description);
     }
@@ -664,6 +706,11 @@ public final class SettingsActivity extends Activity {
             drawerHelp.setTag("drawer_help");
             ui.add(access, drawerHelp, 14);
         }
+        if (drawerAlias && !hosted) {
+            TextView sharedInstall = ui.text(text.get("shared_install_help"), 14, ui.muted, false);
+            sharedInstall.setTag("shared_install_help");
+            ui.add(access, sharedInstall, 12);
+        }
         ui.add(content, access, 12);
         ui.add(content, ui.heading(text.get("appearance")), 22);
         LinearLayout appearance = ui.panel();
@@ -695,10 +742,11 @@ public final class SettingsActivity extends Activity {
         ui.add(about, importBtn, 8);
         ui.add(about, ui.text(text.get("import_help"), 13, ui.muted, false), 8);
         ui.rule(about, 12);
-        Button saveFile = ui.button(text.get("save_choices_file"));
+        Button saveFile = saveChoicesFile = ui.button(text.get("save_choices_file"));
         saveFile.setTag("save_choices_file");
         saveFile.setOnClickListener(view -> {
-            if (documentImport || documentExport != null) return;
+            if (documentBusy || documentImport || documentExport != null) return;
+            documentGeneration++;
             documentImport = false;
             documentExport = ChoiceCodec.encode(Settings.preferences, Settings.installed);
             Intent picker = new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
@@ -710,10 +758,11 @@ public final class SettingsActivity extends Activity {
             }
         });
         ui.add(about, saveFile, 8);
-        Button readFile = ui.button(text.get("read_choices_file"));
+        Button readFile = readChoicesFile = ui.button(text.get("read_choices_file"));
         readFile.setTag("read_choices_file");
         readFile.setOnClickListener(view -> {
-            if (documentImport || documentExport != null) return;
+            if (documentBusy || documentImport || documentExport != null) return;
+            documentGeneration++;
             documentExport = null;
             documentImport = true;
             Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("text/*");
@@ -724,6 +773,11 @@ public final class SettingsActivity extends Activity {
             }
         });
         ui.add(about, readFile, 8);
+        documentStatus = ui.text("", 13, ui.muted, false);
+        documentStatus.setTag("choices_file_status");
+        documentStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        documentStatus.setVisibility(View.GONE);
+        ui.add(about, documentStatus, 8);
         ui.add(about, ui.text(text.get("choices_file_help"), 13, ui.muted, false), 8);
         ui.add(content, about, 12);
         LinearLayout updates = ui.panel();
@@ -995,6 +1049,7 @@ public final class SettingsActivity extends Activity {
     }
 
     private void importChoices() {
+        documentGeneration++;
         try {
             ClipboardManager clipboard = getSystemService(ClipboardManager.class);
             if (clipboard == null || !clipboard.hasPrimaryClip()) {
@@ -1051,8 +1106,28 @@ public final class SettingsActivity extends Activity {
         if (result != RESULT_OK || data == null || data.getData() == null ||
             (request == SAVE_CHOICES ? export == null : !importing)) return;
         android.net.Uri uri = data.getData();
+        // A document picker must return a provider grant, never a path opened with Messenger's own UID.
+        if (!"content".equals(uri.getScheme())) {
+            feedback(text.get(request == SAVE_CHOICES ? "export_failed" : "import_invalid"), Toast.LENGTH_LONG);
+            return;
+        }
+        long generation = documentGeneration;
+        String before = ChoiceCodec.encode(Settings.preferences, Settings.installed);
+        documentBusy = true;
+        saveChoicesFile.setEnabled(false);
+        readChoicesFile.setEnabled(false);
+        documentStatus.setText(text.get(request == SAVE_CHOICES ? "choices_file_saving" : "choices_file_reading"));
+        documentStatus.setVisibility(View.VISIBLE);
         new Thread(() -> {
             try {
+                String authority = uri.getAuthority();
+                if (authority == null || authority.isEmpty()) throw new SecurityException("Choices document has no provider");
+                // ContentResolver strips Android's userId@ prefix before resolving a provider.
+                authority = authority.substring(authority.lastIndexOf('@') + 1);
+                android.content.pm.ProviderInfo provider = getPackageManager().resolveContentProvider(authority, 0);
+                if (provider != null && (getPackageName().equals(provider.packageName) ||
+                        (provider.applicationInfo != null && provider.applicationInfo.uid == android.os.Process.myUid())))
+                    throw new SecurityException("Choices document belongs to this app");
                 if (request == SAVE_CHOICES) {
                     try (java.io.OutputStream stream = getContentResolver().openOutputStream(uri, "wt")) {
                         if (stream == null) throw new java.io.IOException("No writable document");
@@ -1064,11 +1139,27 @@ public final class SettingsActivity extends Activity {
                     try (java.io.InputStream stream = getContentResolver().openInputStream(uri)) {
                         choices = ChoiceCodec.parse(ChoiceCodec.read(stream));
                     }
-                    runOnUiThread(() -> { if (!isDestroyed()) restoreChoices(choices); });
+                    runOnUiThread(() -> {
+                        if (!isDestroyed()) {
+                            if (generation == documentGeneration && before.equals(ChoiceCodec.encode(Settings.preferences, Settings.installed)))
+                                restoreChoices(choices);
+                            else feedback(text.get("choices_file_changed"), Toast.LENGTH_LONG);
+                        }
+                    });
                 }
-            } catch (java.io.IOException | IllegalArgumentException | SecurityException error) {
-                android.util.Log.e("HushMessenger", "Can't use choices document", error);
+            } catch (java.io.IOException | RuntimeException error) {
+                // Providers run outside this app's trust boundary. Their messages can include private paths or contents.
+                android.util.Log.e("HushMessenger", "Can't use choices document: " + error.getClass().getName());
                 runOnUiThread(() -> { if (!isDestroyed()) feedback(text.get(request == SAVE_CHOICES ? "export_failed" : "import_invalid"), Toast.LENGTH_LONG); });
+            } finally {
+                runOnUiThread(() -> {
+                    if (!isDestroyed()) {
+                        documentBusy = false;
+                        saveChoicesFile.setEnabled(true);
+                        readChoicesFile.setEnabled(true);
+                        documentStatus.setVisibility(View.GONE);
+                    }
+                });
             }
         }, "HushChoicesDocument").start();
     }

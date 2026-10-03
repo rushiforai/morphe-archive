@@ -23,14 +23,25 @@ final class Diag {
     private static int sDumps;
 
     static void dump(String app, String json) {
-        if (!ENABLED || json == null || json.length() < 2000 || sDumps >= MAX_DUMPS) return;
+        if (!ENABLED) return;
+        Log.d(TAG, "dump(" + app + ") len=" + (json == null ? -1 : json.length()));
+        if (json == null || json.length() < 2000 || sDumps >= MAX_DUMPS) return;
         String lower = json.length() > 400000 ? json.substring(0, 400000).toLowerCase() : json.toLowerCase();
         if (!lower.contains("rating")) return;
         try {
             Context ctx = currentApplication();
-            if (ctx == null) return;
-            File dir = new File(ctx.getExternalFilesDir(null), "morphe-dump");
-            if (!dir.isDirectory() && !dir.mkdirs()) return;
+            if (ctx == null) {
+                Log.d(TAG, "dump: no application context");
+                return;
+            }
+            // External files dir can be unavailable (null) on some ROMs: fall back to internal storage.
+            File base = ctx.getExternalFilesDir(null);
+            if (base == null) base = ctx.getFilesDir();
+            File dir = new File(base, "morphe-dump");
+            if (!dir.isDirectory() && !dir.mkdirs()) {
+                Log.d(TAG, "dump: cannot create " + dir);
+                return;
+            }
             int n = ++sDumps;
             File out = new File(dir, app + "-" + n + ".json");
             try (FileOutputStream os = new FileOutputStream(out)) {

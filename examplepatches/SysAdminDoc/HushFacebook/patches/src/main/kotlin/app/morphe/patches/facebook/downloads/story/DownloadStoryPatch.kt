@@ -7,6 +7,7 @@
  */
 package app.morphe.patches.facebook.downloads.story
 
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.shared.reportedFieldNames
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
@@ -81,15 +82,17 @@ val downloadStoryPatch = bytecodePatch(
     execute {
         // The class of the action that the menu creates. The patch finds it through the event that
         // the action reports, because Redex gives the class a new name on every Facebook release.
-        val saveAction = SaveStoryActionFingerprint.let { fingerprint ->
-            val matches = fingerprint.matchAll().filter { it.method.parameterTypes.size == 1 }
+        val saveAction = run {
+            val tables = { call: MethodReference -> classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) } }
+            val matches = typesCreated(classDefBy(STORY_VIEWER_MORE_MENU)).mapNotNull(::classDefByOrNull)
+                .flatMap { owner -> owner.methods.filter { isSaveStoryAction(it, tables) } }
 
             check(matches.size == 1) {
-                "Expected 1 save-story action, found ${matches.size}: " +
-                    matches.joinToString { "${it.method.definingClass}->${it.method.name}" }
+                "Expected 1 save-story action among the types the story menu creates, found ${matches.size}: " +
+                    matches.joinToString { "${it.definingClass}->${it.name}" }
             }
 
-            matches.single().method.definingClass
+            matches.single().definingClass
         }
 
         val menuBuilders = mutableClassDefBy(STORY_VIEWER_MORE_MENU).methods.filter { method ->

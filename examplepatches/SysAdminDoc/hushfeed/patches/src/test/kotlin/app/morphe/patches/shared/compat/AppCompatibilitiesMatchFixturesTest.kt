@@ -1,6 +1,7 @@
 package app.morphe.patches.shared.compat
 
 import app.morphe.Fixtures
+import app.morphe.util.BundleVerifier
 import com.android.apksig.ApkVerifier
 import com.android.apksig.apk.ApkUtils
 import com.android.apksig.util.DataSources
@@ -19,6 +20,30 @@ import org.junit.Test
  * downloaded the genuine release.
  */
 class AppCompatibilitiesMatchFixturesTest {
+
+    @Test
+    fun `the bundle producer description names every declared host`() {
+        val buildScript = File("build.gradle.kts").takeIf { it.isFile }
+            ?: File("patches/build.gradle.kts")
+        assertTrue("patches build script is missing", buildScript.isFile)
+        val description = Regex("""description = "(Hushfeed patches for TikTok[^"]+)"""")
+            .find(buildScript.readText())?.groupValues?.get(1)
+        BundleVerifier.requireTargetDescription(description)
+    }
+
+    @Test
+    fun `the bundle verifier rejects each omitted host and version lookalikes`() {
+        val versions = AppCompatibilities.tiktok().single().targets.map { checkNotNull(it.version) }
+        BundleVerifier.requireTargetDescription("TikTok " + versions.joinToString(", "))
+        for (missing in versions) {
+            val others = versions.filter { it != missing }.joinToString(", ")
+            for (description in listOf<String?>(null, "TikTok $others", "TikTok $others, ${missing}0")) {
+                val failure = runCatching { BundleVerifier.requireTargetDescription(description) }.exceptionOrNull()
+                assertTrue("accepted a description missing $missing: $description", failure is IllegalArgumentException)
+                assertTrue("refusal must name $missing", failure!!.message!!.contains(missing))
+            }
+        }
+    }
 
     @Test
     fun `every retained vendor build is signed by the declared certificate`() {

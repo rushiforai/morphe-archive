@@ -37,6 +37,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
@@ -71,7 +72,7 @@ class DownloadVideoHookTest {
     /** The hooks the patch writes are in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(OFFER_VIDEO, SAVE_VIDEO, ALLOW_VIDEO)) {
+        for (hook in listOf(OFFER_VIDEO, SAVE_VIDEO, ALLOW_VIDEO, OFFER_ALL, SAVE_ALL, ALL_OPTION)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -96,7 +97,7 @@ class DownloadVideoHookTest {
         assertEquals("anyone else's first row follows", "$state->other:Ljava/lang/Object;", code[offer + 1].referenceText())
         val owner = code.indexOfFirst { it.referenceText() == mine }
         assertEquals("the owner check's jump", offer, code.target(owner + 2))
-        assertEquals("one hook in the builder", 1, code.count { it.referenceText()?.startsWith("Lapp/hushgram/") == true })
+        assertEquals("two separate actions in the builder", 2, code.count { it.referenceText()?.startsWith("Lapp/hushgram/") == true })
     }
 
     /**
@@ -170,7 +171,7 @@ class DownloadVideoHookTest {
 
         context.offerDownloadOnEveryVideo()
 
-        val code = context.method(helper, "A09").code()
+        val code = context.method(helper, "A09").code().drop(11)
         assertEquals(
             listOf(
                 Opcode.MOVE_OBJECT_FROM16, Opcode.SGET_OBJECT, Opcode.IF_NE, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC,
@@ -188,6 +189,58 @@ class DownloadVideoHookTest {
         assertEquals("save()'s arguments", listOf(1, 0, 2), listOf(save.registerC, save.registerD, save.registerE))
         assertEquals("the original code moved", Opcode.CONST_STRING, code[12].opcode)
         for (branch in listOf(2, 10)) assertEquals("the branch at $branch", 12, code.target(branch))
+    }
+
+    /** The separate batch action never changes the enum's native constants or Download's route. */
+    @Test
+    fun saveAllHasItsOwnIdentityAndIsOfferedBeforeTheOwnershipSplit() {
+        val original = classes()
+        val context = PatchContexts.of(original)
+        val before = context.classDefBy(OPTION).methods.map { it.code().map { instruction -> instruction.referenceText() } }
+        context.offerDownloadOnEveryVideo()
+        assertEquals(before, context.classDefBy(OPTION).methods.map { it.code().map { instruction -> instruction.referenceText() } })
+        val factory = context.method(INSTAGRAM_MEDIA, "saveAllOption").code()
+        assertEquals(DOWNLOAD, factory.first().referenceText())
+        assertTrue(factory.any { it.referenceText() == "Ljava/lang/Enum;->ordinal()I" })
+        assertTrue(factory.any { it.opcode == Opcode.NEW_INSTANCE && it.referenceText() == OPTION })
+        assertTrue(factory.any { it.opcode == Opcode.INVOKE_DIRECT && it.referenceText() == "$OPTION-><init>(Ljava/lang/String;II)V" })
+        assertTrue("the enum arrays were edited", factory.none { it.opcode == Opcode.SPUT_OBJECT })
+        val row = context.method(INSTAGRAM_MEDIA, "addSaveAllRow").code()
+        assertTrue("the separate row reused Download's identity", row.none { it.referenceText() == DOWNLOAD })
+        assertEquals("same native row adder", adder, row.single { it.opcode == Opcode.INVOKE_STATIC_RANGE }.referenceText())
+        assertTrue("the native adder wasn't handed the localized title", row.any {
+            it.opcode == Opcode.MOVE_OBJECT && (it as TwoRegisterInstruction).registerA == 3 && it.registerB == 10
+        })
+        val builder = context.method(lambda, "invoke").code()
+        val all = builder.indexOfFirst { it.referenceText() == OFFER_ALL }
+        val cast = builder.indexOfFirst { it.opcode == Opcode.CHECK_CAST && it.referenceText() == state }
+        assertEquals("both ownership paths reach Save all", cast + 1, all)
+        assertTrue(all < builder.indexOfFirst { it.referenceText() == mine })
+        val menu = context.method(helper, "A09").code()
+        assertEquals(ALL_OPTION, menu[1].referenceText())
+        assertEquals(SAVE_ALL, menu[9].referenceText())
+        assertEquals("the batch tap stops native dispatch", Opcode.RETURN_VOID, menu[10].opcode)
+        for (branch in listOf(3, 4)) assertEquals("native options reach current-page handling", 11, menu.target(branch))
+    }
+
+    /** Unknown enum initialization and ambiguous or branching entry anchors cannot write half a patch. */
+    @Test
+    fun unknownBatchOptionOrEntryFailsBeforeAnythingChanges() {
+        for ((case, classes) in listOf(
+            "not an enum" to classes(optionEnum = false),
+            "icon initialized from the ordinal" to classes(optionInitializesIcon = false),
+            "no state cast" to classes(stateCasts = 0),
+            "two state casts" to classes(stateCasts = 2),
+            "branch between list and state" to classes(branchBeforeStateCast = true),
+        )) {
+            val context = PatchContexts.of(classes)
+            assertThrows(case, PatchException::class.java) { context.offerDownloadOnEveryVideo() }
+            assertUntouched(context)
+            assertEquals("$case: the option bridge changed", Opcode.CONST_4,
+                context.method(INSTAGRAM_MEDIA, "saveAllOption").code().first().opcode)
+            assertEquals("$case: the batch row bridge changed", Opcode.RETURN_VOID,
+                context.method(INSTAGRAM_MEDIA, "addSaveAllRow").code().first().opcode)
+        }
     }
 
     /**
@@ -285,7 +338,7 @@ class DownloadVideoHookTest {
     @Test
     fun eachDeclaredBuildOffersDownloadOnEveryVideo() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
-        val types = setOf(MEDIA, USER, VIDEO_VERSION, PANDO_VIDEO_VERSION, IMAGE_INFO, PANDO_IMAGE_INFO, IMAGE_URL, MEDIA_EXT)
+        val types = setOf(MEDIA, USER, VIDEO_VERSION, PANDO_VIDEO_VERSION, IMAGE_INFO, PANDO_IMAGE_INFO, IMAGE_URL, MEDIA_EXT, OPTION)
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
@@ -312,8 +365,13 @@ class DownloadVideoHookTest {
                 val menu = classes.single { it.originalName() == FEED_HELPER_NAME }
                 val handler = menu.methods.single { !AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map(Any::toString) == listOf(OPTION) && it.returnType == "V" }
                 val handled = context.method(menu.type, handler.name, listOf(OPTION)).code()
-                val save = handled.indexOfFirst { it.opcode == Opcode.INVOKE_STATIC && it.referenceText()?.startsWith("Lapp/hushgram/") == true }
-                assertEquals("${bundle.name}: the handler's first call", SAVE_VIDEO, handled[save].referenceText())
+                val save = handled.indexOfFirst { it.referenceText() == SAVE_VIDEO }
+                assertEquals("${bundle.name}: the current-page save", SAVE_VIDEO, handled[save].referenceText())
+                assertEquals("${bundle.name}: one batch tap", 1, handled.count { it.referenceText() == SAVE_ALL })
+                val constructor = context.method(INSTAGRAM_MEDIA, "saveAllOption").code().single { it.opcode == Opcode.INVOKE_DIRECT }
+                assertEquals("${bundle.name}: direct native construction", "$OPTION-><init>(Ljava/lang/String;II)V", constructor.referenceText())
+                assertEquals("${bundle.name}: the native option class was preserved", classes.single { it.type == OPTION }.methods.map { it.code().map { instruction -> instruction.referenceText() } },
+                    context.classDefBy(OPTION).methods.map { it.code().map { instruction -> instruction.referenceText() } })
                 // The menu hands save() the feed state whose page the index bridge reads.
                 val itemType = handled[save - 1].referenceText()!!.substringAfterLast(':')
                 val index = context.method(INSTAGRAM_MEDIA, "carouselIndex").code()
@@ -329,6 +387,7 @@ class DownloadVideoHookTest {
                 assertEquals("${bundle.name}: the builders offering Download", 1, builders.size)
                 val code = context.method(builders.single().definingClass, builders.single().name, builders.single().parameterTypes.map(Any::toString)).code()
                 assertEquals("${bundle.name}: offer() calls", 1, code.count { it.referenceText() == OFFER_VIDEO })
+                assertEquals("${bundle.name}: Save all offered once", 1, code.count { it.referenceText() == OFFER_ALL })
                 val offer = code.indexOfFirst { it.referenceText() == OFFER_VIDEO }
                 assertTrue("${bundle.name}: offer() follows the Download row's jump", code[offer - 1].opcode.name.startsWith("goto"))
                 assertTrue("${bundle.name}: a jump reaches offer()", code.indices.any { it < offer && code[it].opcode == Opcode.IF_EQZ && code.target(it) == offer })
@@ -390,6 +449,10 @@ class DownloadVideoHookTest {
         pageReads: Pair<Int, Int> = 3 to 1,
         lookupReadsPages: Boolean = true,
         menuHoldsItem: Boolean = true,
+        stateCasts: Int = 1,
+        branchBeforeStateCast: Boolean = false,
+        optionEnum: Boolean = true,
+        optionInitializesIcon: Boolean = true,
     ): List<ClassDef> {
         val menu = ImmutableClassDef(
             helper, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null,
@@ -423,7 +486,9 @@ class DownloadVideoHookTest {
         val builder = classDef(lambda, listOf(method(lambda, "invoke", emptyList(), "Ljava/lang/Object;", 15, static = false, body = """
             new-instance v3, Ljava/util/ArrayList;
             invoke-direct { v3 }, Ljava/util/ArrayList;-><init>()V
+            ${if (branchBeforeStateCast) "goto :captured\n:captured" else ""}
             iget-object v0, p0, $lambda->state:$state
+            ${List(stateCasts) { "check-cast v0, $state" }.joinToString("\n")}
             iget-object v1, v0, $state->media:$MEDIA
             invoke-static { v1 }, $mine
             move-result v1
@@ -545,6 +610,19 @@ class DownloadVideoHookTest {
             """)
         return listOf(
             menu, builder, eligible, shortMenus, mediaExt, classDef(pager, calls),
+            ImmutableClassDef(OPTION, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or
+                (if (optionEnum) AccessFlags.ENUM.value else 0),
+                "Ljava/lang/Enum;", null, null, null, emptyList(), listOf(
+                    method(OPTION, "<init>", listOf("Ljava/lang/String;", "I", "I"), "V", 4, static = false, body = """
+                        invoke-direct { p0, p1, p2 }, Ljava/lang/Enum;-><init>(Ljava/lang/String;I)V
+                        iput ${if (optionInitializesIcon) "p3" else "p2"}, p0, $OPTION->iconDrawable:I
+                        return-void
+                    """),
+                    method(OPTION, "getIconDrawable", emptyList(), "I", 2, static = false, body = """
+                        iget v0, p0, $OPTION->iconDrawable:I
+                        return v0
+                    """),
+                )),
             classDef(MEDIA, mediaGetters),
             classDef(USER, listOf(getter(USER, "A89", "username", "Ljava/lang/String;"))),
             anInterface(VIDEO_VERSION, versionGetters.map { it.first to it.second.second }),

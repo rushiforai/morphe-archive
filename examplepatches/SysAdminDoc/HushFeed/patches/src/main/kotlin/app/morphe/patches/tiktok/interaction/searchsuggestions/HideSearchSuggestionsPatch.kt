@@ -180,6 +180,7 @@ val hideSearchSuggestionsPatch = bytecodePatch(
         // Resolved before anything is written, so a build without it leaves the patch unapplied
         // rather than half applied.
         val rewards = SearchRewardsServiceFingerprint.method
+        val rewardsGetters = searchRewardsGetters()
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, " +
@@ -193,6 +194,9 @@ val hideSearchSuggestionsPatch = bytecodePatch(
                 return-object v0
             """,
         )
+        // The accessor above reaches the banner's service only. The coin and the other rewards
+        // services come straight from their getters, so those take the not-downloaded branch.
+        rewardsGetters.forEach { (method, getter) -> method.askBeforeLoadingSearchRewards(getter) }
 
         IntermediatePreloadEnableFingerprint.method.guard("const/4 v0, 0x0\n                    return v0")
         SuggestWordsRequestFingerprint.method.guard("return-void")

@@ -406,7 +406,7 @@ public class SettingsNavigationTest {
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Config(qualifiers = "w384dp-h824dp-night-450dpi")
     public void qualityDialogShowsAllSixChoicesWithoutClippingTheLastRow() {
-        HushfacebookPreferenceFragment.QualityRow quality = (HushfacebookPreferenceFragment.QualityRow)
+        ValueRows.QualityRow quality = (ValueRows.QualityRow)
                 page.findPreference(Settings.DOWNLOAD_QUALITY.key);
         quality.showDialog(null);
         try {
@@ -741,15 +741,15 @@ public class SettingsNavigationTest {
         capture("search-empty");
         page.navigation.back();
         page.navigation.navigate("Downloads");
-        HushfacebookPreferenceFragment.QualityRow quality = (HushfacebookPreferenceFragment.QualityRow) page.findPreference(Settings.DOWNLOAD_QUALITY.key);
+        ValueRows.QualityRow quality = (ValueRows.QualityRow) page.findPreference(Settings.DOWNLOAD_QUALITY.key);
         quality.showDialog(null);
         captureDialog("dialog-quality", (AlertDialog) quality.getDialog());
         quality.getDialog().dismiss();
-        HushfacebookPreferenceFragment.FolderRow folder = (HushfacebookPreferenceFragment.FolderRow) page.findPreference(Settings.SAVE_FOLDER.key);
+        ValueRows.FolderRow folder = (ValueRows.FolderRow) page.findPreference(Settings.SAVE_FOLDER.key);
         folder.showDialog(null);
         captureDialog("dialog-folder", (AlertDialog) folder.getDialog());
         folder.getDialog().dismiss();
-        HushfacebookPreferenceFragment.FileNameRow name = (HushfacebookPreferenceFragment.FileNameRow) page.findPreference(Settings.FILENAME_TEMPLATE.key);
+        ValueRows.FileNameRow name = (ValueRows.FileNameRow) page.findPreference(Settings.FILENAME_TEMPLATE.key);
         name.showDialog(null);
         captureDialog("dialog-file-name", (AlertDialog) name.getDialog());
         name.getDialog().dismiss();
@@ -773,11 +773,11 @@ public class SettingsNavigationTest {
     }
 
     @Test public void fileNameExampleUsesTheSameFormatterAndCancelKeepsTheSavedTemplate() {
-        HushfacebookPreferenceFragment.FileNameRow name = (HushfacebookPreferenceFragment.FileNameRow) page.findPreference(Settings.FILENAME_TEMPLATE.key);
+        ValueRows.FileNameRow name = (ValueRows.FileNameRow) page.findPreference(Settings.FILENAME_TEMPLATE.key);
         String before = Settings.FILENAME_TEMPLATE.savedValue();
         name.showDialog(null);
         name.getEditText().setText("Example_{video_id}");
-        assertEquals("Example_123456.mp4", HushfacebookPreferenceFragment.FileNameRow.previewName("Example_{video_id}", new java.util.Date(0)));
+        assertEquals("Example_123456.mp4", ValueRows.FileNameRow.previewName("Example_{video_id}", new java.util.Date(0)));
         ((AlertDialog) name.getDialog()).getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
         assertEquals(before, Settings.FILENAME_TEMPLATE.savedValue());
     }

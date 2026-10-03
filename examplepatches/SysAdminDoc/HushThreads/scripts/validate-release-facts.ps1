@@ -1046,7 +1046,7 @@ function Test-ReleaseReceiptHere {
         ($proved -join ', ') + " from commit " + $receiptCommit.Substring(0, 8) +
         ", with no unreviewed manifest change")
 
-    # And it's the receipt the release publishes. CONTRIBUTING.md tells people the receipt goes out
+    # And it's the receipt the release publishes. README.md tells people the receipt goes out
     # beside the bundle and in SHA256SUMS.txt, and nothing read that copy back: a receipt cut again
     # after the upload, or a different one uploaded, left the published proof unchecked. So the
     # hosted copy is fetched from beside the bundle, held to SHA256SUMS.txt, and has to be this

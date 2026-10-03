@@ -17,6 +17,9 @@ object Constants {
      * ThreadItemIntf.CDh -> CIV. See FeedReflectionContract for the per-version sets. */
     const val TESTED_VERSION_CODE_445 = 511507647
 
+    /** Third tested build: 449.0.0.54.82 / versionCode 511908382 (APKMirror). */
+    const val TESTED_VERSION_CODE_449 = 511908382
+
     // Threads (Meta codename "Barcelona") is built from the Instagram codebase and is heavily
     // R8-obfuscated. Obfuscated class/method names shift on nearly every Meta release, so a
     // null ("any") version is NOT realistic here (and the Morphe Manager cannot parse a null
@@ -37,6 +40,10 @@ object Constants {
             ),
             AppTarget(
                 version = "445.0.0.46.83",
+                minSdk = 28,
+            ),
+            AppTarget(
+                version = "449.0.0.54.82",
                 minSdk = 28,
             ),
         ),

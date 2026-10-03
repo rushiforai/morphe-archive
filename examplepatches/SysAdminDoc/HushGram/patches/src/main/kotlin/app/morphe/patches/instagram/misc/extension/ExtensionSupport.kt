@@ -15,7 +15,9 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.RegisterLiveness
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import java.util.BitSet
 
@@ -125,6 +127,29 @@ private fun Method.requireEntryValueAt(what: String, held: String, registers: Se
                 "${writes.joinToString()}, before instruction(s) ${spoiled.joinToString()} where the hook reads it",
         )
     }
+}
+
+/**
+ * The instructions something jumps to: a branch's or a goto's target, a switch's arms and the
+ * handlers of a try block. Code put in front of one of them with `addInstructions` is skipped by
+ * the jump, which keeps its label on the instruction it went to.
+ */
+internal fun Method.jumpTargets(): Set<Int> {
+    val flow = ControlFlow.of(this)
+    val targets = sortedSetOf<Int>()
+    flow.instructions.forEachIndexed { at, instruction ->
+        val next = flow.normal[at]
+        when {
+            // The arms come first, then the fall through when there is an instruction after it.
+            instruction.opcode == Opcode.PACKED_SWITCH || instruction.opcode == Opcode.SPARSE_SWITCH ->
+                targets += if (at + 1 < flow.instructions.size) next.dropLast(1) else next
+            instruction.opcode == Opcode.FILL_ARRAY_DATA -> {}
+            // A branch's or a goto's target comes first.
+            instruction is OffsetInstruction -> next.firstOrNull()?.let { targets += it }
+        }
+        targets += flow.exceptional[at]
+    }
+    return targets
 }
 
 /** How many of the method's registers are locals rather than parameters. */

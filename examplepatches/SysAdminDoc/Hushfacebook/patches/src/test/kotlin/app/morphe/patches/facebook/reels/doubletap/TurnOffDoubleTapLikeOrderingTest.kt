@@ -16,11 +16,13 @@ import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -299,6 +301,46 @@ class TurnOffDoubleTapLikeOrderingTest {
             assertEquals("$owner->$name changed even though the two hooks collided", originalCount,
                 instructionCount(context, owner, name))
         }
+    }
+
+    private fun like(vararg parameters: String) = method(helper, "like", parameters.toList(), "V", """
+        const-string v0, "$MUTATE_LIKE"
+        return-void
+    """, registers = parameters.size + 2)
+
+    /**
+     * The like's source is its last string: the last parameter on 577 and 580, followed by two
+     * Function1 callbacks on 581. Anything else after it, or no string, isn't a reel like.
+     */
+    @Test
+    fun `the like's source is its last string, with only callbacks after it`() {
+        val callback = "Lkotlin/jvm/functions/Function1;"
+        val older = like(FB_USER_SESSION, "Ljava/lang/Integer;", STRING)
+        assertEquals(2, likeSource(older))
+        assertTrue(isReelLike(older))
+        val newer = like(FB_USER_SESSION, "Ljava/lang/Integer;", STRING, callback, callback)
+        assertEquals(2, likeSource(newer))
+        assertTrue(isReelLike(newer))
+
+        assertEquals(null, likeSource(like(FB_USER_SESSION, STRING, "Ljava/lang/Object;")))
+        assertFalse(isReelLike(like(FB_USER_SESSION, "Ljava/lang/Integer;")))
+        assertFalse(isReelLike(like("Ljava/lang/Object;", STRING)))
+    }
+
+    @Test
+    fun `the like hook reads the source, not the callbacks after it`() {
+        val callback = "Lkotlin/jvm/functions/Function1;"
+        val newer = classDef(helper, like(FB_USER_SESSION, STRING, callback, callback), helperClass().methods.single {
+            it.name == "doubleTapLike"
+        })
+        val context = PatchContexts.of(
+            listOf(newer, attachment(), componentClass(), gestureView(), listenerClass(),
+                eventSubscriberClass(checked = true), ExtensionDex.classDef(SETTINGS_STATUS)),
+        )
+        turnOffDoubleTapLikePatch.execute(context)
+        val hooked = context.mutableClassDefBy(helper).methods.single { it.name == "like" }.implementation!!.instructions.toList()
+        // Registers: one local, this, the session, then the source and the two callbacks.
+        assertEquals(3, (hooked[0] as TwoRegisterInstruction).registerB)
     }
 
     /** SettingsStatus with none of its usual switches, so it has no boolean doubleTapLike(). */

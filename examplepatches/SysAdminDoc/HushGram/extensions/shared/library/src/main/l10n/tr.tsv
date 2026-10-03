@@ -13,7 +13,7 @@ Before you sign in	Giriş yapmadan önce
 Cancel	İptal
 Changing these	Bunları değiştirmek
 Clear diagnostic data	Tanılama verilerini temizle
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu %1$s konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
 Copy a short report to the clipboard.	Kısa raporu panoya kopyalar.
 Copy quick report	Hızlı raporu kopyala
 Copying to the gallery	Galeriye kopyalanıyor
@@ -64,7 +64,7 @@ Retry	Yeniden dene
 Sanitize sharing links	Paylaşım bağlantılarını temizle
 Save cancelled	Kaydetme iptal edildi
 Save full report	Tam raporu kaydet
-Save the full report in Download/Morphe.	Tam raporu Download/Morphe konumuna kaydeder.
+Save the full report in %1$s.	Tam raporu %1$s konumuna kaydeder.
 Saved to %1$s	Şuraya kaydedildi: %1$s
 Saved to %1$s in lower quality than on Instagram	Şuraya Instagram'dakinden düşük kalitede kaydedildi: %1$s
 Saved to the gallery	Galeriye kaydedildi
@@ -82,6 +82,7 @@ Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap i
 Stays in while paused	Duraklatılsa da devrede kalır
 Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.	Kopyaladığın veya paylaştığın bağlantılardan stkn, igsh, utm_source ve diğer izleme anahtarlarını kaldırır, biyografi bağlantılarını Instagram'ın tıklama izleyicisinden geçmeden açar. Bir bağlantının açtığı gönderi, reel veya profil aynı kalır.
 Tap to hide this.	Gizlemek için dokun.
+Couldn't hide this notice. Try again.	Bu bildirim gizlenemedi. Tekrar dene.
 Tap to turn it back on.	Yeniden açmak için dokun.
 The diagnostic report couldn't be saved yet. Try again in a moment.	Tanılama raporu henüz kaydedilemedi. Birazdan tekrar dene.
 The diagnostic report couldn't be saved. Try again.	Tanılama raporu kaydedilemedi. Tekrar dene.
@@ -101,6 +102,10 @@ Instagram isn't told which reels you watched or how far into them you got. It ra
 Reels	Reels
 Stop Story auto-advance	Hikayelerin otomatik geçişini durdur
 A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.	Biten bir hikaye, dokunana veya kaydırana kadar ekranda kalır. Instagram'ın zamanlaması için bunu kapat.
+Loop a story	Hikayeyi döngüde oynat
+A story plays again from the start when it ends, until you tap or swipe to move on. Ads still move on. With Stop Story auto-advance on too, stories loop.	Bir hikaye bittiğinde, geçmek için dokunana ya da kaydırana kadar baştan yeniden oynar. Reklamlar yine geçer. Hikayelerin otomatik geçişini durdur da açıksa hikayeler döngüde oynar.
+Show a story's exact time	Hikayenin tam zamanını göster
+A story's header shows the date and time it was posted, like Oct 2, 3:45 PM, instead of how long ago. It follows your phone's language and 12 or 24-hour setting.	Hikayenin üst kısmı, ne kadar önce paylaşıldığı yerine paylaşıldığı tarihi ve saati gösterir, örneğin 2 Eki 15:45. Telefonunun dilini ve 12 ya da 24 saat ayarını izler.
 Stories	Hikayeler
 Hide Reels in the feed	Akıştaki reelleri gizle
 The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.	Ana akışındaki gönderiler arasına giren önerilen reel sıraları. Takip ettiğin birinin paylaştığı reel kalır.
@@ -170,6 +175,12 @@ A double tap on a reel doesn't like it. Turn this off to keep double tap to like
 Hide the Reels tab	Reels sekmesini gizle
 Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.	Reels'i sekme çubuğundan kaldırır. Akışındaki reels'ler ve sana gönderilen reels'ler açılmaya devam eder. Değiştirdikten sonra Instagram'ı yeniden başlat.
 Keep the reel speed	Reel hızını koru
+Keep a seek bar	İlerleme çubuğu hep görünsün
+Instagram's seek bar stays under every reel, short ones too, with the time played and the reel's length above it. Ads keep Instagram's own rules.	Instagram'ın ilerleme çubuğu kısa olanlar dahil her reel'in altında kalır, üstünde oynatılan süre ve reel'in uzunluğu yazar. Reklamlar Instagram'ın kendi kurallarına uyar.
+Keep auto scroll on	Otomatik kaydırma açık kalsın
+Once you turn on Instagram's auto scroll in Reels, it stays on after a restart or after you leave Reels, until you turn it off.	Reels'te Instagram'ın otomatik kaydırmasını açtığında, yeniden başlatmadan veya Reels'ten çıktıktan sonra da sen kapatana kadar açık kalır.
+Stop Reels scrolling	Reels'te kaydırmayı durdur
+A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram after changing it.	Reels'te kaydırmak artık sonraki reel'e geçmez, aşağı çekmek de yenilerini yüklemez. Açtığın reel oynamaya devam eder. Değiştirdikten sonra Instagram'ı yeniden başlat.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Bir reel'i 2x'te kilitle (kenarını basılı tut, sonra aşağı kaydır), sonraki reels'ler de 2x oynar. Normal hıza dönmek için kilidi kaydırıp kaldır ya da kenarı basılı tutup bırak.
 Open links in external browser	Bağlantıları harici tarayıcıda aç
 Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.	Web bağlantıları, Instagram'ın tıklama izleyicisi olmadan varsayılan tarayıcında açılır. Instagram ve diğer Meta sayfaları ile reklamlar uygulamada açılmaya devam eder.
@@ -180,6 +191,8 @@ Hide suggested posts	Önerilen gönderileri gizle
 Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.	Takip etmediğin hesaplardan gelen, Senin için önerilenler olarak işaretli gönderiler ve reel'ler. Takip ettiğin hesapların gönderileri kalır.
 Hide Threads posts	Threads gönderilerini gizle
 The posts, accounts and communities from Threads that Instagram mixes into your feed.	Instagram'ın akışına karıştırdığı Threads gönderileri, hesapları ve toplulukları.
+Stop swipe to create	Oluşturmak için kaydırmayı durdur
+A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Ana sayfada yana kaydırmak artık kamerayı açmaz. + düğmesi ve kameraya giden diğer yollar çalışmaya devam eder.
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	Aramada ve Ana Sayfa çubuğunda Meta AI'ı gizle
 The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.	Ara sekmesi ve mesajlarının üstü, Meta AI olmadan sade bir arama çubuğu alır, arama sonuçları takip sorusu çubuğunu kaybeder ve Ana Sayfa'nın üst çubuğu Meta AI düğmelerini kaybeder. Değiştirdikten sonra Instagram'ı yeniden başlat.
@@ -226,8 +239,15 @@ Takes For you out of the picker at the top of Home, so Home stays on Following o
 Profiles	Profiller
 Show if a profile follows you	Bir profilin seni takip edip etmediğini göster
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Birinin profilinde adının yanına, zamirleri varsa onlardan sonra, Seni takip ediyor ya da Seni takip etmiyor ekler. Instagram kontrol edene kadar hiçbir şey görünmez.
+Mark who doesn't follow you back	Seni geri takip etmeyenleri işaretle
+On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Kendi Takip edilenler listende, seni geri takip etmeyen her hesabın adından sonra Seni takip etmiyor ekler. Instagram kontrol edene kadar hiçbir şey görünmez.
 Follows you	Seni takip ediyor
 Doesn't follow you	Seni takip etmiyor
+Hide suggested people	Önerilen kişileri gizle
+Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	Senin için önerilenler bölümünü ve Kişileri keşfet düğmesini profillerden, seninki dahil, kaldırır. Biyografiler, sayılar, gönderiler ve takipçi listeleri kalır.
+Hide highlights	Öne çıkanları gizle
+Takes the row of story highlights off profiles, yours included. Bios, counts and posts stay, and so does Add to highlight on your stories.	Hikaye öne çıkanları satırını profillerden, seninki dahil, kaldırır. Biyografiler, sayılar ve gönderiler kalır, hikayelerindeki Öne çıkanlara ekle de kalır.
+The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Instagram'ın reel'ler arasına koyduğu, takip edilecek kişi ve içerik üreticisi kartları. Her reel oynatılmaya devam eder.
 Turn on Start Home on Following to use this choice.	Bu seçimi kullanmak için Ana sayfayı Takip edilenler ile başlat seçeneğini açın.
 Turn on Story ring size to use this choice.	Bu seçimi kullanmak için Hikâye halkası boyutu seçeneğini açın.
 Turn on Default playback quality to use this choice.	Bu seçimi kullanmak için Varsayılan oynatma kalitesi seçeneğini açın.
@@ -264,3 +284,70 @@ A save stopped. Reopen the media and save again.	Bir kaydetme işlemi durdu. Med
 A save was interrupted	Bir kaydetme işlemi kesildi
 %1$d saves were interrupted	%1$d kaydetme işlemi kesildi
 Reopen the media and save again.	Medyayı yeniden açıp tekrar kaydet.
+Search settings	Ayarlarda ara
+Clear search	Aramayı temizle
+No matching settings	Eşleşen ayar yok
+Try another word or clear the search.	Başka bir sözcük deneyin veya aramayı temizleyin.
+Contacts, location setup, analytics	Kişiler, konum kurulumu, analiz
+Save all	Tümünü kaydet
+Saving a carousel	Çoklu gönderi kaydediliyor
+Cancel saving this carousel	Bu çoklu gönderinin kaydını iptal et
+Page %1$d of %2$d	%1$d / %2$d sayfa
+Not saved: a carousel can have at most %1$d pages	Kaydedilmedi: çoklu gönderide en fazla %1$d sayfa olabilir
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Çoklu gönderi iptal edildi. Kaydedilen %1$d. Başarısız %2$d. Atlanan %3$d.
+Saved %1$d. Failed %2$d. Skipped %3$d.	Kaydedilen %1$d. Başarısız %2$d. Atlanan %3$d.
+%1$d saved in lower quality than on Instagram.	%1$d öğe Instagram'dakinden daha düşük kalitede kaydedildi.
+Last carousel save	Son çoklu gönderi kaydı
+Open MetaConfig overrides	MetaConfig geçersiz kılmalarını aç
+Opens Instagram's native flag editor. A wrong override can break parts of Instagram.	Instagram'ın kendi bayrak düzenleyicisini açar. Yanlış bir geçersiz kılma Instagram'ın bazı bölümlerini bozabilir.
+MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.	MetaConfig bu ekranda kullanılamıyor. Oturum açıkken Ana Sayfa'dan HushGram ayarlarını açın.
+Comments	Yorumlar
+Copy comment	Yorumu kopyala
+Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Seçilen yorumun menüsüne Kopyala seçeneğini ekler. Satır sonları dahil özgün metni kopyalar.
+Comment copied	Yorum kopyalandı
+Couldn't copy comment	Yorum kopyalanamadı
+Save comment photo	Yorum fotoğrafını kaydet
+Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.	Kendi fotoğrafı olan seçili bir yorumun menüsüne Kaydet seçeneğini ekler. Instagram'ın gönderdiği en büyük boyutu kaydeder.
+Export overrides	Geçersiz kılmaları dışa aktar
+Save this signed-in session's overrides for the exact Instagram build and schema.	Bu açık oturumun geçersiz kılmalarını aynı Instagram sürümü ve şeması için kaydedin.
+Validate an overrides file	Bir geçersiz kılma dosyasını doğrula
+Check a saved file against this session's typed schema. Validation applies nothing.	Kaydedilmiş bir dosyayı bu oturumun tür bilgili şemasıyla denetleyin. Doğrulama hiçbir şeyi uygulamaz.
+No document picker is available. Overrides haven't changed.	Belge seçici kullanılamıyor. Geçersiz kılmalar değişmedi.
+Couldn't use that overrides document. Native overrides haven't changed.	Bu geçersiz kılma belgesi kullanılamadı. Instagram'ın geçersiz kılmaları değişmedi.
+Validated %1$d overrides only. Nothing was applied.	Yalnızca %1$d geçersiz kılma doğrulandı. Hiçbir şey uygulanmadı.
+Overrides exported for this Instagram build and schema.	Geçersiz kılmalar bu Instagram sürümü ve şeması için dışa aktarıldı.
+Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.	Geçersiz kılmalar doğrulanamadı. Dosyayı denetleyin ve oturum açıkken Ana Sayfa'dan ayarları açın. Hiçbir şey değişmedi.
+Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.	Geçersiz kılmalar dışa aktarılamadı. Seçilen dosya eksik olabilir. Instagram'ın geçersiz kılmaları değişmedi.
+Allow importing overrides	Geçersiz kılmaları içe aktarmaya izin ver
+Shows Import and Restore for overrides. An import changes Instagram's native flags for this signed-in session.	Geçersiz kılmalar için İçe aktar ve Geri yükle seçeneklerini gösterir. İçe aktarma, bu açık oturum için Instagram'ın yerel bayraklarını değiştirir.
+Import overrides	Geçersiz kılmaları içe aktar
+Apply a file exported from this session and build through Instagram's own override editor. The current overrides are saved for Restore first.	Bu oturum ve sürümden dışa aktarılan bir dosyayı Instagram'ın kendi düzenleyicisiyle uygulayın. Geçerli geçersiz kılmalar önce Geri yükleme için kaydedilir.
+Restore previous overrides	Önceki geçersiz kılmaları geri yükle
+Put back the overrides saved before the last import for this session and build.	Bu oturum ve sürüm için son içe aktarmadan önce kaydedilen geçersiz kılmaları geri koyar.
+An earlier import still needs Restore previous overrides, or Discard saved overrides if Restore can't run. Nothing changed.	Önceki bir içe aktarma için hâlâ Önceki geçersiz kılmaları geri yükle gerekiyor. Geri yükleme çalışamıyorsa Kayıtlı geçersiz kılmaları at seçeneğini kullanın. Hiçbir şey değişmedi.
+Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.	Geçersiz kılmalar geri yüklenemedi. Bu oturum ve sürüm için kayıtlı kopya yok. Hiçbir şey değişmedi.
+Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.	Geçersiz kılmalar içe aktarılamadı. Dosyayı denetleyin ve oturum açıkken Ana Sayfa'dan ayarları açın. Hiçbir şey değişmedi.
+The current overrides already match the saved copy. Nothing changed.	Geçerli geçersiz kılmalar kayıtlı kopyayla zaten aynı. Hiçbir şey değişmedi.
+This file matches the current overrides. Nothing changed.	Bu dosya geçerli geçersiz kılmalarla aynı. Hiçbir şey değişmedi.
+Previous overrides restored. Restart Instagram to apply them.	Önceki geçersiz kılmalar geri yüklendi. Uygulamak için Instagram'ı yeniden başlatın.
+Imported %1$d override changes. Restart Instagram to apply them.	%1$d geçersiz kılma değişikliği içe aktarıldı. Uygulamak için Instagram'ı yeniden başlatın.
+Instagram didn't keep the change, so the overrides were put back as they were.	Instagram değişikliği tutmadı, bu yüzden geçersiz kılmalar eski haline getirildi.
+Instagram didn't keep the change and the overrides couldn't be confirmed. Use Restore previous overrides, then restart Instagram.	Instagram değişikliği tutmadı ve geçersiz kılmalar doğrulanamadı. Önceki geçersiz kılmaları geri yükle seçeneğini kullanın, ardından Instagram'ı yeniden başlatın.
+Discard saved overrides	Kayıtlı geçersiz kılmaları at
+Forget the copy saved for Restore so imports can run again. Instagram's overrides don't change.	İçe aktarmalar yeniden çalışabilsin diye Geri yükleme için kaydedilen kopyayı unutur. Instagram'ın geçersiz kılmaları değişmez.
+Discarded the saved copy. Imports can run again, and Instagram's overrides haven't changed.	Kayıtlı kopya atıldı. İçe aktarmalar yeniden çalışabilir ve Instagram'ın geçersiz kılmaları değişmedi.
+There's no saved copy to discard. Nothing changed.	Atılacak kayıtlı kopya yok. Hiçbir şey değişmedi.
+Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.	Kayıtlı kopya atılamadı. Oturum açıkken Ana Sayfa'dan ayarları açın. Hiçbir şey değişmedi.
+Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Imports stay blocked until you use Discard saved overrides. Restart Instagram to apply the rest.	Geri yükleme yapabildiği her şeyi geri koydu. Instagram'ın boş değerini tutan %1$d geçersiz kılma bu yolla geri konamaz. Kayıtlı geçersiz kılmaları at seçeneğini kullanana kadar içe aktarmalar engelli kalır. Kalanını uygulamak için Instagram'ı yeniden başlatın.
+Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Restart Instagram to apply the rest.	Geri yükleme yapabildiği her şeyi geri koydu. Instagram'ın boş değerini tutan %1$d geçersiz kılma bu yolla geri konamaz. Kalanını uygulamak için Instagram'ı yeniden başlatın.
+Couldn't restore overrides. The saved copy doesn't fit this session and Instagram build. Use Discard saved overrides if you don't need it. Nothing changed.	Geçersiz kılmalar geri yüklenemedi. Kayıtlı kopya bu oturuma ve Instagram sürümüne uymuyor. Gerekmiyorsa Kayıtlı geçersiz kılmaları at seçeneğini kullanın. Hiçbir şey değişmedi.
+Instagram is still saving an override change. Wait a moment and try again. Nothing changed.	Instagram hâlâ bir geçersiz kılma değişikliğini kaydediyor. Biraz bekleyip yeniden deneyin. Hiçbir şey değişmedi.
+Allow importing overrides is off or HushGram is paused. Nothing changed.	Geçersiz kılmaları içe aktarmaya izin ver kapalı ya da HushGram duraklatıldı. Hiçbir şey değişmedi.
+Couldn't restore overrides. Open settings from Home while signed in. Nothing changed.	Geçersiz kılmalar geri yüklenemedi. Oturum açıkken Ana Sayfa'dan ayarları açın. Hiçbir şey değişmedi.
+Couldn't start the override operation. Try again. Nothing changed.	Geçersiz kılma işlemi başlatılamadı. Tekrar deneyin. Hiçbir şey değişmedi.
+# context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
+Mark as seen button	Görüldü olarak işaretle düğmesi
+Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.	Anonim izlerken her hikayenin üstüne bir göz düğmesi ekler. O hikayenin izleyici listesinde görünmek için düğmeye dokun. Diğer hikayeler gizli kalır.
+Mark as seen	Görüldü olarak işaretle
+Marked as seen. Tap again to undo.	Görüldü olarak işaretlendi. Geri almak için tekrar dokun.
+Marked as seen and sent	Görüldü olarak işaretlendi ve gönderildi

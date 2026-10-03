@@ -12,6 +12,7 @@
         <meta-data android:name="hush.feature.meta_ai" android:value="true" />
         <meta-data android:name="hush.feature.moments" android:value="true" />
         <meta-data android:name="hush.feature.reels_badge" android:value="true" />
+        <meta-data android:name="hush.feature.chat_animation" android:value="true" />
         <meta-data android:name="hush.feature.ai_stickers" android:value="true" />
         <meta-data android:name="hush.feature.avatar_stickers" android:value="true" />
         <meta-data android:name="hush.feature.chat_promotions" android:value="true" />

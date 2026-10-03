@@ -30,6 +30,10 @@ buildscript {
         resolutionStrategy.eachDependency {
             if (requested.group == "org.jetbrains.kotlin") useVersion("2.4.20")
             if (requested.group == "org.bouncycastle") useVersion("1.86")
+            // 9.4.1 replaces the old UTP/Netty device-test transport with Android Test Engine.
+            if (requested.group == "com.android.application" &&
+                requested.name == "com.android.application.gradle.plugin"
+            ) useVersion("9.4.1")
         }
     }
 }

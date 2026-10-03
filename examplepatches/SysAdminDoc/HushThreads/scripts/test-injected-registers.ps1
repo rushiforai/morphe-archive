@@ -24,7 +24,7 @@
     in a host method. Each of the five ShortcutManager calls the settings patch sends to the
     extension is left in the app's code by a build of its own, which has to fail that call's
     no-call rule and no other. The contract file may hold no no-call rule without such a build,
-    and only the four Threads feature rules with selection and corruption fixtures; a malformed
+    and only the five Threads feature rules with selection and corruption fixtures; a malformed
     line of every kind the grammar knows is refused.
     The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
@@ -453,7 +453,7 @@ function Write-StandIn {
 }
 
 function Invoke-VerifierWithStandIns {
-    param([string]$Name, [int]$DexDiffExit, [switch]$JavaGone)
+    param([string]$Name, [int]$DexDiffExit, [switch]$JavaGone, [string[]]$SelectedPatches)
     $case = Join-Path $standIns $Name
     New-Item -ItemType Directory -Path $case -Force | Out-Null
     $javaStandIn = Join-Path $case 'java.cmd'
@@ -463,6 +463,23 @@ if "%~1"=="-version" (
   echo openjdk version "21.0.0"
   exit /b 0
 )
+shift
+shift
+shift
+shift
+shift
+shift
+shift
+shift
+shift
+shift
+set "standInFamilies=%~1"
+if not "%~2"=="" set "standInFamilies=%standInFamilies%,%~2"
+if not "%~3"=="" set "standInFamilies=%standInFamilies%,%~3"
+if not "%~4"=="" set "standInFamilies=%standInFamilies%,%~4"
+if not "%~5"=="" set "standInFamilies=%standInFamilies%,%~5"
+if not "%~6"=="" set "standInFamilies=%standInFamilies%,%~6"
+echo [diff] requested families: %standInFamilies%
 echo [diff] structural findings: 0
 exit /b $DexDiffExit
 "@
@@ -486,10 +503,23 @@ exit /b 0
     }
     $ErrorActionPreference = 'Continue'
     $global:LASTEXITCODE = 0
-    $output = @(& (Get-Process -Id $PID).Path -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $verifier `
-        -CleanApk (Join-Path $case 'clean.apk') -PatchedApk (Join-Path $case 'patched.apk') `
-        -ReportPath (Join-Path $case 'report.txt') -Java $javaStandIn -DesktopJar (Join-Path $case 'desktop.jar') `
-        -Aapt2 (Join-Path $case 'aapt2.cmd') 2>&1 | ForEach-Object { "$_" })
+    function Quote-StandInArgument([string]$Value) { "'" + $Value.Replace("'", "''") + "'" }
+    $parameters = [ordered]@{
+        CleanApk = (Join-Path $case 'clean.apk'); PatchedApk = (Join-Path $case 'patched.apk')
+        ReportPath = (Join-Path $case 'report.txt'); Java = $javaStandIn
+        DesktopJar = (Join-Path $case 'desktop.jar'); Aapt2 = (Join-Path $case 'aapt2.cmd')
+    }
+    $invocation = '& ' + (Quote-StandInArgument $verifier)
+    foreach ($parameter in $parameters.GetEnumerator()) {
+        $invocation += ' -' + $parameter.Key + ' ' + (Quote-StandInArgument $parameter.Value)
+    }
+    # Native -File binding expands a splatted string[] into repeated named parameters. The
+    # encoded invocation preserves the actual array, with every value quoted as a PS literal.
+    if ($null -ne $SelectedPatches) {
+        $invocation += ' -SelectedPatches @(' + (($SelectedPatches | ForEach-Object { Quote-StandInArgument $_ }) -join ',') + ')'
+    }
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($invocation))
+    $output = @(& (Get-Process -Id $PID).Path -NoProfile -NonInteractive -OutputFormat Text -ExecutionPolicy Bypass -EncodedCommand $encoded 2>&1 | ForEach-Object { "$_" })
     [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output; Text = $output -join "`n" }
 }
 
@@ -501,6 +531,13 @@ try {
     Assert-True ($passed.ExitCode -eq 0 -and $passed.Text -match $reached -and
         $passed.Output -contains '[registers] success.') `
         "The verifier did not pass a comparison DexDiff passed.`n$($passed.Text)"
+    $suggestions = Invoke-VerifierWithStandIns -Name 'selected-suggestions' -DexDiffExit 0 -SelectedPatches @('Hide suggested users')
+    Assert-True ($suggestions.ExitCode -eq 0 -and $suggestions.Text -match '(?m)^\[registers\] \[diff\] requested families: hideSuggestedUsers$') `
+        "The verifier did not forward independent Suggested Users selection to DexDiff.`n$($suggestions.Text)"
+    $allFamilies = Invoke-VerifierWithStandIns -Name 'selected-all-families' -DexDiffExit 0 -SelectedPatches @(
+        'Hide ads', 'Hide suggested users', 'Sanitize sharing links', 'Open links in browser', 'Disable analytics', 'Restore screens on re-signed builds')
+    Assert-True ($allFamilies.ExitCode -eq 0 -and $allFamilies.Text -match '(?m)^\[registers\] \[diff\] requested families: hideAds,hideSuggestedUsers,sanitizeSharingLinks,openLinksExternally,disableAnalytics,restoreTrust$') `
+        "The verifier did not forward all independently selected families to DexDiff.`n$($allFamilies.Text)"
     $refused = Invoke-VerifierWithStandIns -Name 'refused' -DexDiffExit 1
     Assert-True ($refused.ExitCode -eq 1 -and $refused.Text -match $reached -and
         $refused.Text -match 'FAIL: the dex comparison exited 1' -and
@@ -554,6 +591,9 @@ try {
     Assert-True ((Get-Findings $good).Fails.Count -eq 0) "The good build printed a FAIL line.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match 'structural findings: 0') `
         "The good build did not report its structural count.`n$($good.Output -join "`n")"
+    $withoutPayload = Invoke-DexDiff -Clean $cleanApk -Patched (New-DexApk -Name 'good-explicit-none' -Entries ([ordered]@{
+        'classes.dex' = (Get-Dex 'good') })) -Allowlist $emptyAllowlist -Name 'good-explicit-none' -Contracts $contracts -Features 'none'
+    Assert-True ($withoutPayload.ExitCode -eq 0) 'An explicitly empty selection required absent unselected feature statuses.'
     # The settings patch sends each of these ShortcutManager calls to SettingsEntry, and the fixture's
     # publisher makes each one from a method of its own (Caller). Every no-call rule in the contract
     # file has to be one of them, or a rule with no bad build below would pass on "0 call sites".
@@ -582,18 +622,20 @@ try {
             ("The good build's $($shortcut.Call), sent to the stand-in whose own call is inside the extension, " +
             "was not reported clean.`n$($good.Output -join "`n")")
     }
-    # Every rule must have bad builds of its own. The feature fixtures below cover four families.
+    # Every rule must have bad builds of its own. The feature fixtures below cover six families.
     $otherRules = @(Get-Content -LiteralPath $contracts | ForEach-Object { $_.Trim() } |
         Where-Object { $_ -and -not $_.StartsWith('#') -and $_ -notmatch '^no-call\s' })
-    Assert-True ((($otherRules | Sort-Object) -join ',') -ceq 'threads-feature disableAnalytics,threads-feature hideAds,threads-feature restoreTrust,threads-feature sanitizeSharingLinks') `
+    Assert-True ((($otherRules | Sort-Object) -join ',') -ceq 'threads-feature disableAnalytics,threads-feature hideAds,threads-feature hideSuggestedUsers,threads-feature openLinksExternally,threads-feature restoreTrust,threads-feature sanitizeSharingLinks') `
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
 
     $featureClean = New-DexApk -Name 'features-clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-clean') })
     $featureCases = [ordered]@{
-        'features-good' = 'hideAds,sanitizeSharingLinks,disableAnalytics,restoreTrust'
+        'features-good' = 'hideAds,hideSuggestedUsers,sanitizeSharingLinks,openLinksExternally,disableAnalytics,restoreTrust'
         'features-omitted' = 'none'
         'features-only-hideAds' = 'hideAds'
+        'features-only-hideSuggestedUsers' = 'hideSuggestedUsers'
         'features-only-sanitizeSharingLinks' = 'sanitizeSharingLinks'
+        'features-only-openLinksExternally' = 'openLinksExternally'
         'features-only-disableAnalytics' = 'disableAnalytics'
         'features-only-restoreTrust' = 'restoreTrust'
     }
@@ -602,24 +644,210 @@ try {
         $apk = New-DexApk -Name $case.Key -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case.Key) })
         $checked = Invoke-DexDiff -Clean $featureClean -Patched $apk -Allowlist $emptyAllowlist -Name $case.Key -Contracts $contracts -Features $case.Value
         Assert-True ($checked.ExitCode -eq 0 -and (Get-Findings $checked).Fails.Count -eq 0) ("Feature selection $($case.Key) failed. " + ($checked.Output -join [Environment]::NewLine))
-        foreach ($feature in @('hideAds', 'sanitizeSharingLinks', 'disableAnalytics', 'restoreTrust')) {
+        foreach ($feature in @('hideAds', 'hideSuggestedUsers', 'sanitizeSharingLinks', 'openLinksExternally', 'disableAnalytics', 'restoreTrust')) {
             $state = if ($feature -cin ($case.Value -split ',')) { 'verified' } else { 'omitted' }
             Assert-True (($checked.Output -join [Environment]::NewLine) -match [regex]::Escape("threads-feature ${feature}: $state")) "Feature $feature did not report $state."
         }
     }
-    $featureFaults = @('feed-missing', 'feed-replaced', 'feed-register', 'item-stub', 'ad-target',
-        'link-missing', 'link-replaced', 'link-register', 'pigeon-missing', 'pigeon-replaced', 'pigeon-bypass',
+    $discardedClean = New-DexApk -Name 'features-ad-discarded-clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-ad-discarded-clean') })
+    $featureFaults = @('feed-missing', 'feed-replaced', 'feed-register', 'feed-duplicate', 'item-stub', 'ad-target', 'ad-discarded', 'ad-body', 'ad-helper-body', 'getter-body', 'ad-helper-native', 'getter-static',
+        'link-missing', 'link-replaced', 'link-register', 'post-link-missing', 'post-link-register', 'post-link-getter', 'post-link-bypass',
+        'holder-link-missing', 'holder-link-receiver', 'holder-link-field', 'holder-post-link-register', 'holder-post-link-bypass',
+        'resume-remember-missing', 'resume-remember-key', 'resume-recall-missing', 'resume-recall-key', 'resume-recall-cast',
+        'resume-post-link-bypass', 'quick-remember-missing', 'quick-remember-post', 'quick-recall-key', 'quick-post-link-bypass',
+        'browser-missing', 'browser-register', 'browser-bypass', 'browser-clobber',
+        'pigeon-missing', 'pigeon-replaced', 'pigeon-bypass',
         'default-missing', 'mqtt-missing', 'trust-missing', 'trust-replaced', 'trust-fallback',
         'status-missing', 'status-false', 'zero-mask', 'unknown-mask')
     foreach ($fault in $featureFaults) {
         $case = "features-bad-$fault"
         $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
-        $checked = Invoke-DexDiff -Clean $featureClean -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features $featureCases['features-good']
+        $stock = if ($fault -ceq 'ad-discarded') { $discardedClean } else { $featureClean }
+        $checked = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features $featureCases['features-good']
         $findings = Get-Findings $checked
         Assert-True ($checked.ExitCode -ne 0 -and $findings.Fails.Count -gt 0 -and
             @($findings.Categories | Where-Object { $_ -cne 'contract' }).Count -eq 0) "$fault was not rejected solely by a semantic contract."
+        $structural = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
+        Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid."
+    }
+    $suggestionFaults = @('suggestion-stub', 'suggestion-media-guard', 'suggestion-type-guard', 'suggestion-null-guard',
+        'suggestion-item-missing', 'suggestion-media-missing', 'suggestion-type-missing', 'suggestion-null-missing',
+        'suggestion-enum', 'suggestion-slot', 'suggestion-kickstart-slot', 'suggestion-raw', 'suggestion-wire', 'suggestion-kickstart-wire',
+        'suggestion-register', 'suggestion-branch', 'suggestion-false', 'suggestion-extra-call', 'suggestion-active-slot', 'suggestion-owned-raw',
+        'suggestion-wrapper-missing', 'suggestion-identity-missing', 'suggestion-identity-guard',
+        'suggestion-capture-missing', 'suggestion-capture-register', 'suggestion-capture-field', 'suggestion-capture-duplicate',
+        'suggestion-capture-bypass', 'suggestion-capture-flags', 'suggestion-capture-field-missing',
+        'suggestion-parser-body', 'suggestion-parser-slot', 'suggestion-raw-parser-body', 'suggestion-model-body', 'suggestion-enum-body',
+        'suggestion-wrapper-body', 'suggestion-wrapper-field', 'suggestion-kind-body', 'suggestion-kind-flags', 'suggestion-kind-coverage',
+        'suggestion-model-field', 'suggestion-status-missing', 'suggestion-status-false', 'ambiguous-suggestion-slot', 'ambiguous-suggestion-raw', 'ambiguous-suggestion-overwrite',
+        'ambiguous-suggestion-active', 'ambiguous-suggestion-capture-param',
+        'ambiguous-suggestion-branch-constant', 'ambiguous-suggestion-branch-parameter', 'ambiguous-suggestion-catch',
+        'ambiguous-suggestion-parser-constant', 'ambiguous-suggestion-parser-parameter', 'ambiguous-suggestion-parser-loop', 'ambiguous-suggestion-parser-catch',
+        'ambiguous-suggestion-slot-source-new', 'ambiguous-suggestion-slot-source-other', 'ambiguous-suggestion-slot-source-catch',
+        'ambiguous-suggestion-users-key-constant', 'ambiguous-suggestion-users-key-null', 'ambiguous-suggestion-kickstart-key-constant', 'ambiguous-suggestion-kickstart-key-null',
+        'ambiguous-suggestion-raw-key-constant', 'ambiguous-suggestion-raw-key-null', 'ambiguous-suggestion-map-key-constant', 'ambiguous-suggestion-map-key-null',
+        'ambiguous-suggestion-null-bypass-map-key-constant', 'ambiguous-suggestion-null-bypass-map-key-null',
+        'ambiguous-suggestion-users-reader-bypass', 'ambiguous-suggestion-kickstart-reader-bypass', 'ambiguous-suggestion-raw-reader-bypass',
+        'ambiguous-suggestion-raw-reader-catch-bypass', 'ambiguous-suggestion-users-reader-input-other', 'ambiguous-suggestion-users-reader-input-null',
+        'ambiguous-suggestion-kickstart-reader-input-other', 'ambiguous-suggestion-kickstart-reader-input-null',
+        'ambiguous-suggestion-raw-reader-input-other', 'ambiguous-suggestion-raw-reader-input-null',
+        'suggestion-meta-class-annotation', 'suggestion-meta-source-file', 'suggestion-meta-field-annotation', 'suggestion-meta-field-hidden',
+        'suggestion-meta-method-annotation', 'suggestion-meta-method-hidden', 'suggestion-meta-parameter-annotation', 'suggestion-meta-parameter-name',
+        'suggestion-meta-parameter-signature', 'suggestion-meta-capture-annotation', 'suggestion-meta-capture-hidden', 'suggestion-meta-never-inline-removal')
+    foreach ($fault in $suggestionFaults) {
+        $case = "features-bad-$fault"
+        $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
+        $stock = if ($fault.StartsWith('ambiguous-')) {
+            New-DexApk -Name "features-$fault-clean" -Entries ([ordered]@{ 'classes.dex' = (Get-Dex "features-$fault-clean") })
+        } else { $featureClean }
+        $checked = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features 'hideSuggestedUsers'
+        $findings = Get-Findings $checked
+        Assert-True ($checked.ExitCode -ne 0 -and $findings.Fails.Count -gt 0 -and
+            @($findings.Categories | Where-Object { $_ -cne 'contract' }).Count -eq 0) "$fault was not rejected solely by the suggestion contract."
+        Assert-True (($checked.Output -join [Environment]::NewLine) -match 'contract: hideSuggestedUsers:') "$fault failed outside its selected family."
+        if ($fault.StartsWith('ambiguous-suggestion-parser-')) {
+            Assert-True (($checked.Output -join [Environment]::NewLine) -match 'netego_type constructor argument does not preserve its exact parsed result or explicit null on every path') `
+                "$fault did not exercise the raw-parser source proof."
+        } elseif ($fault.StartsWith('ambiguous-suggestion-slot-source-')) {
+            Assert-True (($checked.Output -join [Environment]::NewLine) -match 'JSON slot does not preserve its exact parsed result or explicit null on every path') `
+                "$fault did not exercise the card-slot source proof."
+        } elseif ($fault.Contains('-map-key-')) {
+            Assert-True (($checked.Output -join [Environment]::NewLine) -match 'raw netego_type lookup does not preserve its original raw tag on every path') `
+                "$fault did not exercise the wrapper map-key source proof."
+        } elseif ($fault.Contains('-key-')) {
+            $key = if ($fault.Contains('-raw-key-')) { 'netego_type' } elseif ($fault.Contains('-kickstart-key-')) {
+                'text_app_suggested_users_kickstart_unit'
+            } else { 'suggested_users' }
+            Assert-True (($checked.Output -join [Environment]::NewLine) -match [regex]::Escape(
+                "JSON key $key does not preserve its exact literal on every comparison path")) `
+                "$fault did not exercise its exact JSON key proof."
+        } elseif ($fault.Contains('-reader-')) {
+            $key = if ($fault.Contains('-raw-reader-')) { 'netego_type' } elseif ($fault.Contains('-kickstart-reader-')) {
+                'text_app_suggested_users_kickstart_unit'
+            } else { 'suggested_users' }
+            $failure = if ($fault.Contains('-reader-input-')) {
+                "JSON key $key typed reader does not preserve the original JSON input on every path"
+            } else { "JSON key $key true edge does not control its typed reader" }
+            Assert-True (($checked.Output -join [Environment]::NewLine) -match [regex]::Escape($failure)) `
+                "$fault did not exercise its exact reader control/input proof."
+            $sourceStock = New-DexApk -Name "$case-source-stock" -Entries ([ordered]@{
+                'classes.dex' = (Get-Dex "features-$fault-clean"); 'classes2.dex' = (Get-Dex 'features-structure-marker') })
+            $stockStructure = Invoke-DexDiff -Clean $featureClean -Patched $sourceStock -Allowlist $emptyAllowlist -Name "$case-stock-structure"
+            Assert-True ($stockStructure.ExitCode -eq 0 -and (Get-Findings $stockStructure).Fails.Count -eq 0) `
+                ("$fault corrupted its stock parser structure. " + ($stockStructure.Output -join [Environment]::NewLine))
+        }
+        $structural = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
+        Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid."
+    }
+    $sourceProofs = @('proven-suggestion-branch', 'proven-suggestion-catch', 'metadata',
+        'proven-suggestion-parser-absent', 'proven-suggestion-parser-null', 'proven-suggestion-parser-copy',
+        'proven-suggestion-parser-loop', 'proven-suggestion-parser-catch', 'proven-suggestion-slot-source-null',
+        'proven-suggestion-slot-source-copy', 'proven-suggestion-slot-source-loop', 'proven-suggestion-slot-source-catch',
+        'proven-suggestion-users-key-copy', 'proven-suggestion-users-key-branch', 'proven-suggestion-kickstart-key-copy', 'proven-suggestion-kickstart-key-branch',
+        'proven-suggestion-raw-key-copy', 'proven-suggestion-raw-key-branch', 'proven-suggestion-map-key-copy', 'proven-suggestion-map-key-branch',
+        'proven-suggestion-map-null-bypass', 'proven-suggestion-null-bypass-map-key-copy', 'proven-suggestion-null-bypass-map-key-branch',
+        'proven-suggestion-users-reader-gated', 'proven-suggestion-kickstart-reader-gated', 'proven-suggestion-raw-reader-gated', 'proven-suggestion-raw-reader-catch-gated',
+        'proven-suggestion-users-reader-input-copy', 'proven-suggestion-users-reader-input-branch',
+        'proven-suggestion-kickstart-reader-input-copy', 'proven-suggestion-kickstart-reader-input-branch',
+        'proven-suggestion-raw-reader-input-copy', 'proven-suggestion-raw-reader-input-branch')
+    foreach ($proof in $sourceProofs) {
+        $name = if ($proof -ceq 'metadata') { 'features-metadata-good' } else { "features-$proof" }
+        $stockName = "features-$proof-clean"
+        $stock = New-DexApk -Name $stockName -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $stockName) })
+        $apk = New-DexApk -Name $name -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $name) })
+        $checked = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name $name -Contracts $contracts -Features 'hideSuggestedUsers'
+        Assert-True ($checked.ExitCode -eq 0 -and (Get-Findings $checked).Fails.Count -eq 0) `
+            ("$proof rejected preserved provenance, explicit null or metadata. " + ($checked.Output -join [Environment]::NewLine))
+        if ($proof.Contains('-reader-')) {
+            $sourceStock = New-DexApk -Name "$name-source-stock" -Entries ([ordered]@{
+                'classes.dex' = (Get-Dex $stockName); 'classes2.dex' = (Get-Dex 'features-structure-marker') })
+            $stockStructure = Invoke-DexDiff -Clean $featureClean -Patched $sourceStock -Allowlist $emptyAllowlist -Name "$name-stock-structure"
+            Assert-True ($stockStructure.ExitCode -eq 0 -and (Get-Findings $stockStructure).Fails.Count -eq 0) `
+                ("$proof corrupted its stock parser structure. " + ($stockStructure.Output -join [Environment]::NewLine))
+        }
+    }
+    $omittedFaults = [ordered]@{
+        'omitted-hideAds' = @('hideAds', 'hideSuggestedUsers')
+        'omitted-sanitizeSharingLinks' = @('sanitizeSharingLinks', 'hideSuggestedUsers')
+        'omitted-openLinksExternally' = @('openLinksExternally', 'hideSuggestedUsers')
+        'omitted-disableAnalytics' = @('disableAnalytics', 'hideSuggestedUsers')
+        'omitted-restoreTrust' = @('restoreTrust', 'hideSuggestedUsers')
+        'omitted-suggestion-predicate' = @('hideSuggestedUsers', 'hideAds')
+        'omitted-suggestion-capture' = @('hideSuggestedUsers', 'hideAds')
+        'omitted-suggestion-constructor' = @('hideSuggestedUsers', 'hideAds')
+        'omitted-suggestion-parser' = @('hideSuggestedUsers', 'hideAds')
+        'omitted-suggestion-missing-status-capture' = @('hideSuggestedUsers', 'hideAds')
+        'omitted-feed-hook' = @('hideAds', 'none')
+        'omitted-item-getter' = @('hideAds', 'none')
+    }
+    foreach ($fault in $omittedFaults.Keys) {
+        $case = "features-bad-$fault"
+        $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
+        $checked = Invoke-DexDiff -Clean $featureClean -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features $omittedFaults[$fault][1]
+        $findings = Get-Findings $checked
+        Assert-True ($checked.ExitCode -ne 0 -and $findings.Fails.Count -gt 0 -and
+            @($findings.Categories | Where-Object { $_ -cne 'contract' }).Count -eq 0 -and
+            ($checked.Output -join [Environment]::NewLine) -match "contract: $($omittedFaults[$fault][0]):") "$fault did not reject its omitted family."
         $structural = Invoke-DexDiff -Clean $featureClean -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
         Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid."
+    }
+    $duplicateSuggestion = New-DexApk -Name 'features-suggestion-duplicate' -Entries ([ordered]@{
+        'classes.dex' = (Get-Dex 'features-only-hideSuggestedUsers'); 'classes2.dex' = (Get-Dex 'features-suggestion-copy') })
+    $duplicateChecked = Invoke-DexDiff -Clean $featureClean -Patched $duplicateSuggestion -Allowlist $emptyAllowlist `
+        -Name 'features-suggestion-duplicate' -Contracts $contracts -Features 'hideSuggestedUsers'
+    Assert-True ($duplicateChecked.ExitCode -ne 0 -and ($duplicateChecked.Output -join [Environment]::NewLine) -match 'contract: hideSuggestedUsers: expected one definition .*found 2') `
+        'Duplicate suggestion accessor definitions were accepted.'
+    $duplicateStructural = Invoke-DexDiff -Clean $featureClean -Patched $duplicateSuggestion -Allowlist $emptyAllowlist -Name 'features-suggestion-duplicate-structural'
+    Assert-True ($duplicateStructural.ExitCode -eq 0 -and (Get-Findings $duplicateStructural).Fails.Count -eq 0) `
+        'Duplicate suggestion definitions did not remain a structurally valid semantic rejection fixture.'
+    $historical = New-DexApk -Name 'features-historical' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-historical') })
+    foreach ($selection in @($null, 'hideAds,sanitizeSharingLinks,disableAnalytics,restoreTrust')) {
+        $checked = Invoke-DexDiff -Clean $featureClean -Patched $historical -Allowlist $emptyAllowlist -Name "historical-$selection" -Contracts $contracts -Features $selection
+        $text = $checked.Output -join [Environment]::NewLine
+        Assert-True ($checked.ExitCode -eq 0 -and $text -match 'threads-feature hideSuggestedUsers: omitted' -and $text -match 'threads-feature openLinksExternally: omitted') `
+            'A historical bundle missing only the new statuses was refused.'
+    }
+    $legacyMissingAd = New-DexApk -Name 'features-historical-missing-ad-status' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-historical-missing-ad-status') })
+    $legacyChecked = Invoke-DexDiff -Clean $featureClean -Patched $legacyMissingAd -Allowlist $emptyAllowlist -Name 'historical-missing-ad-status' -Contracts $contracts
+    Assert-True ($legacyChecked.ExitCode -ne 0 -and ($legacyChecked.Output -join [Environment]::NewLine) -match 'contract: hideAds:') `
+        'Historical omission weakened the pre-existing ad status requirement.'
+    $selectedHistorical = Invoke-DexDiff -Clean $featureClean -Patched $historical -Allowlist $emptyAllowlist `
+        -Name 'historical-selected-suggestions' -Contracts $contracts -Features 'hideAds,hideSuggestedUsers,sanitizeSharingLinks,disableAnalytics,restoreTrust'
+    Assert-True ($selectedHistorical.ExitCode -ne 0 -and ($selectedHistorical.Output -join [Environment]::NewLine) -notmatch 'contract: openLinksExternally:') `
+        'An unselected Open links in browser was held to its status on a historical bundle.'
+    $selectedBrowser = Invoke-DexDiff -Clean $featureClean -Patched $historical -Allowlist $emptyAllowlist `
+        -Name 'historical-selected-browser' -Contracts $contracts -Features 'hideAds,sanitizeSharingLinks,openLinksExternally,disableAnalytics,restoreTrust'
+    Assert-True ($selectedBrowser.ExitCode -ne 0 -and ($selectedBrowser.Output -join [Environment]::NewLine) -match 'contract: openLinksExternally:') `
+        'Explicit browser selection accepted a historical bundle without the new status.'
+    Assert-True ($selectedHistorical.ExitCode -ne 0 -and ($selectedHistorical.Output -join [Environment]::NewLine) -match 'contract: hideSuggestedUsers:') `
+        'Explicit suggestion selection accepted a historical bundle without the new status.'
+    $exceptionClean = New-DexApk -Name 'features-exception-clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-exception-clean') })
+    foreach ($case in @('features-exception-good', 'features-exception-bad-range', 'features-exception-bad-type', 'features-exception-bad-target', 'features-exception-bad-order')) {
+        $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
+        $checked = Invoke-DexDiff -Clean $exceptionClean -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features 'disableAnalytics'
+        $findings = Get-Findings $checked
+        if ($case -ceq 'features-exception-good') {
+            Assert-True ($checked.ExitCode -eq 0) 'Correctly relocated typed/catch-all handlers failed.'
+        } else {
+            Assert-True ($checked.ExitCode -ne 0 -and $findings.Fails.Count -gt 0 -and
+                @($findings.Categories | Where-Object { $_ -cne 'contract' }).Count -eq 0) "$case did not fail solely as a semantic contract."
+            $structural = Invoke-DexDiff -Clean $exceptionClean -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
+            Assert-True ($structural.ExitCode -eq 0) "$case was not structurally valid."
+        }
+    }
+    $splitClean = New-DexApk -Name 'features-exception-split-clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-exception-split-clean') })
+    foreach ($case in @('features-exception-split-good', 'features-exception-split-gap')) {
+        $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
+        $checked = Invoke-DexDiff -Clean $splitClean -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features 'disableAnalytics'
+        $findings = Get-Findings $checked
+        if ($case -ceq 'features-exception-split-good') {
+            Assert-True ($checked.ExitCode -eq 0 -and $findings.Fails.Count -eq 0) 'Correctly split relocation beyond 65,535 protected units failed.'
+        } else {
+            Assert-True ($checked.ExitCode -ne 0 -and $findings.Fails.Count -gt 0 -and
+                @($findings.Categories | Where-Object { $_ -cne 'contract' }).Count -eq 0) 'A gap between relocated protected ranges passed.'
+        }
+        $structural = Invoke-DexDiff -Clean $splitClean -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
+        Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$case was not structurally valid."
     }
     $noDefaultClean = New-DexApk -Name 'features-no-default-clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-no-default-clean') })
     foreach ($case in @('features-no-default-pigeon', 'features-bad-default-coverage')) {
@@ -638,7 +866,12 @@ try {
     $featureGood = New-DexApk -Name 'features-all-selected' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-good') })
     $missing = Invoke-DexDiff -Clean $featureClean -Patched $featureGood -Allowlist $emptyAllowlist -Name 'missing-feature-rule' -Contracts $missingFeatureRule -Features $featureCases['features-good']
     Assert-True ($missing.ExitCode -ne 0 -and ($missing.Output -join [Environment]::NewLine) -match 'selected feature has no contract: hideAds') 'A selected family with no contract was silently skipped.'
-    Write-Host "[scripts] selected feature contracts passed (14 good selections, 21 structurally valid corruptions, missing rule refused)"
+    $missingSuggestionRule = Join-Path $caseRoot 'missing-suggestion-rule.txt'
+    [System.IO.File]::WriteAllLines($missingSuggestionRule, @(Get-Content -LiteralPath $contracts | Where-Object { $_.Trim() -cne 'threads-feature hideSuggestedUsers' }))
+    $missing = Invoke-DexDiff -Clean $featureClean -Patched $featureGood -Allowlist $emptyAllowlist -Name 'missing-suggestion-rule' -Contracts $missingSuggestionRule -Features $featureCases['features-good']
+    Assert-True ($missing.ExitCode -ne 0 -and ($missing.Output -join [Environment]::NewLine) -match 'selected feature has no contract: hideSuggestedUsers') `
+        'Selected Suggested Users without its contract was silently skipped.'
+    Write-Host "[scripts] selected feature contracts passed ($($featureCases.Count + $sourceProofs.Count + 5) good selections, $($featureFaults.Count + $suggestionFaults.Count + $omittedFaults.Count + 6) structurally valid corruptions, duplicates and historical omissions checked)"
 
     $bad = [ordered]@{
         'bad-branch' = 'branch'

@@ -49,10 +49,13 @@ public final class DarkMode {
 
     /**
      * Called with each answer Facebook's dark mode controller gives, right before it returns it.
+     * Force dark mode turns a light answer dark first ({@link ForceDarkMode}), and the answer kept
+     * is the one the controller returns.
      *
-     * @return {@code dark}, for the controller to return
+     * @return {@code dark}, or dark when Force dark mode's switch is on, for the controller to return
      */
     public static boolean answer(boolean dark) {
+        dark = ForceDarkMode.answer(dark);
         // The reads keep the usual case, the same answer again, to two volatile reads. Of the answers
         // that change it at the same moment, the swap lets exactly one run the listener.
         boolean flipped = ON.get() != dark && ON.getAndSet(dark) != dark;

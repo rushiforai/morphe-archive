@@ -1,7 +1,6 @@
 # Nai64ExtraPatches_Options.yaml
 # PRIORITY RULE: Hushfeed wins. Any Nai64 patch overlapping a Hushfeed patch
-# is disabled below so Hushfeed owns that surface (avoids double-hooking the
-# same Android methods, which would fail Nai64's fingerprints at patch time).
+# is disabled below so Hushfeed owns that surface.
 # Anything not listed here is disabled by default anyway.
 
 patches:
@@ -19,7 +18,6 @@ patches:
 
   - name: "Spoof Tracking IDs"
     enabled: true
-    # defaults already = zeroed App Set ID / Firebase ID, scope = app
 
   - name: "Disable Crash Reporters"
     enabled: true
@@ -29,7 +27,6 @@ patches:
 
   - name: "Strip Exif Location"
     enabled: true
-    # default already = stripExifLocation: true
 
   - name: "Spoof Play Store Install Source"
     enabled: true
@@ -64,22 +61,32 @@ patches:
 
   # ============ DISABLED: Hushfeed owns these surfaces ============
   - name: "Empty Clipboard Report"
-    enabled: false   # owned by Hushfeed: Device privacy guard
+    enabled: false
+    note: "Hushfeed Device privacy guard owns clipboard"
   - name: "Hide Clipboard"
-    enabled: false   # owned by Hushfeed: Device privacy guard
+    enabled: false
+    note: "Hushfeed Device privacy guard owns clipboard"
   - name: "Hide Clipboard Description"
-    enabled: false   # owned by Hushfeed: Device privacy guard
+    enabled: false
+    note: "Hushfeed Device privacy guard owns clipboard"
   - name: "Spoof SIM Country"
-    enabled: false   # owned by Hushfeed: SIM spoof
+    enabled: false
+    note: "Hushfeed SIM spoof owns telephony identity"
   - name: "Spoof SIM Operator"
-    enabled: false   # owned by Hushfeed: SIM spoof
+    enabled: false
+    note: "Hushfeed SIM spoof owns telephony identity"
   - name: "Spoof SIM Operator Name"
-    enabled: false   # owned by Hushfeed: SIM spoof
+    enabled: false
+    note: "Hushfeed SIM spoof owns telephony identity"
   - name: "Spoof Time Zone"
-    enabled: false   # owned by Hushfeed: Region spoof
+    enabled: false
+    note: "Hushfeed Region spoof owns locale/timezone"
   - name: "Spoof Locale"
-    enabled: false   # owned by Hushfeed: Region spoof
+    enabled: false
+    note: "Hushfeed Region spoof owns locale/timezone"
   - name: "Spoof Last Known Location"
-    enabled: false   # owned by Hushfeed: Location access governor
+    enabled: false
+    note: "Hushfeed Location access governor owns location"
   - name: "Disable Telemetry"
-    enabled: false   # owned by Hushfeed: Disable telemetry
+    enabled: false
+    note: "Hushfeed Disable telemetry owns AppLog/AppsFlyer/Firebase screens"

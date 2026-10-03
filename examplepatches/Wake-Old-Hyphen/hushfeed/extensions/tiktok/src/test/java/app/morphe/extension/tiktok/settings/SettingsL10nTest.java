@@ -854,6 +854,72 @@ public class SettingsL10nTest {
     }
 
     @Test
+    public void theMusicLineSummaryDescribesTheLabelInEveryLocale() throws Exception {
+        String summary = "Hide the track name beside the caption.";
+        String oldSummary = "Hide the spinning music cover and the track name beside the caption.";
+        SettingsStatus.videoOverlaysEnabled = true;
+        List<String> locales = new ArrayList<>(languages());
+        locales.add(ENGLISH_BASE);
+        for (String language : locales) {
+            Map<String, String> source = readTable(language);
+            String expected = source.get(summary);
+            assertNotNull(language + " is missing the label summary", expected);
+            assertFalse(language + " still promises to hide the disc", source.containsKey(oldSummary));
+            if (!language.equals(ENGLISH_BASE)) {
+                assertEquals(language, expected, L10nTranslations.of(language).get(summary));
+                assertNotEquals(language + " fell back to English", summary, expected);
+            }
+            String[] tag = language.split("-r", 2);
+            Context context = contextFor(tag[0], tag.length == 1 ? "" : tag[1].toUpperCase(Locale.ROOT));
+            try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+                PreferenceScreen screen = controller.get().getPreferenceManager().createPreferenceScreen(context);
+                new InterfacePreferenceCategory(context, screen);
+                Preference music = screen.findPreference(Settings.HIDE_FEED_MUSIC.key);
+                assertNotNull(language + " has no music-line row", music);
+                assertEquals(language, expected, music.getSummary().toString());
+            }
+        }
+    }
+
+    @Test
+    public void nativeDescriptionAndAuthorSizingHaveIndependentRowsInEveryLocale() throws Exception {
+        String[] titles = {"Description text size", "Author text size"};
+        String[] summaries = {
+                "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling.",
+                "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and keeps Android's font scaling."};
+        String[] keys = {Settings.FEED_DESCRIPTION_TEXT_SIZE.key, Settings.FEED_AUTHOR_TEXT_SIZE.key};
+        SettingsStatus.feedTextSizeEnabled = true;
+        List<String> locales = new ArrayList<>(languages());
+        locales.add(ENGLISH_BASE);
+        for (String language : locales) {
+            Map<String, String> source = readTable(language);
+            for (String key : new String[]{titles[0], titles[1], summaries[0], summaries[1]}) {
+                assertNotNull(language + " is missing " + key, source.get(key));
+                if (!language.equals(ENGLISH_BASE)) {
+                    assertEquals(language, source.get(key), L10nTranslations.of(language).get(key));
+                    assertNotEquals(language + " fell back to English", key, source.get(key));
+                }
+            }
+            String[] tag = language.split("-r", 2);
+            Context context = contextFor(tag[0], tag.length == 1 ? "" : tag[1].toUpperCase(Locale.ROOT));
+            try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+                PreferenceScreen screen = controller.get().getPreferenceManager().createPreferenceScreen(context);
+                new InterfacePreferenceCategory(context, screen);
+                for (int i = 0; i < keys.length; i++) {
+                    Preference row = screen.findPreference(keys[i]);
+                    assertNotNull(language + " has no " + titles[i], row);
+                    assertEquals(language, L10n.t(context, titles[i]), row.getTitle().toString());
+                    assertTrue(language, row.getSummary().toString().startsWith(L10n.f(context, summaries[i],
+                            app.morphe.extension.tiktok.feed.FeedTextSize.MIN_TEXT_SIZE,
+                            app.morphe.extension.tiktok.feed.FeedTextSize.MAX_TEXT_SIZE)));
+                }
+                assertNull("Native sizing must not require or enable spoken subtitles",
+                        screen.findPreference(Settings.CAPTION_TEXT_SIZE.key));
+            }
+        }
+    }
+
+    @Test
     @Config(sdk = 28, qualifiers = "de")
     public void germanShowsOnARealPreferenceUnderTheGermanLocale() {
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
@@ -2177,6 +2243,8 @@ public class SettingsL10nTest {
             new SimSpoofPreferenceCategory(activity, screen);
             new DebugPreferenceCategory(activity, screen);
             new ExtensionPreferenceCategory(activity, screen);
+            // This About action is unconditional and doesn't belong to a patch-gated category.
+            screen.addPreference(new app.morphe.extension.tiktok.settings.preference.BuildDetailsPreference(activity));
             collect(screen, strings);
             // The master menu's own words: the section titles and subtitles its rows carry,
             // the four group headings above them, and the header. None of these is built by a
@@ -2200,6 +2268,9 @@ public class SettingsL10nTest {
             // The wording the backup row actually uses. This list said "Undo last restore" long
             // after the row started saying "or reset" too, which kept a dead tsv row alive.
             strings.add(L10n.t(activity, "Undo last restore or reset"));
+            strings.add(L10n.t(activity, "Copy build details"));
+            strings.add(L10n.t(activity, "Save build details"));
+            strings.add(L10n.t(activity, "Build details copied to the clipboard"));
         }
         return strings;
     }

@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val spotifyDeclutterUIPatch = bytecodePatch(
     name = "Spicetify Declutter UI - Spotify (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes intrusive Premium upgrade banners, bottom navigation upsell tabs, and promotional carousels for a clean, distraction-free music experience.",
+    description = "⚠️ [En cours de développement / Non testé] Attempts to hide Premium upgrade prompts and promotional elements. NOTE: Spotify uses server-driven UI and code obfuscation; some banners are injected directly from Spotify backend.",
 ) {
     compatibleWith(COMPATIBILITY_SPOTIFY)
 

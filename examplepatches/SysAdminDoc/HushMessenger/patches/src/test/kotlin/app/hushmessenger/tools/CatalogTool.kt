@@ -14,7 +14,7 @@ import org.xml.sax.InputSource
 
 /** Local tooling only. This class is excluded from the distributed bundle. */
 object CatalogTool {
-    private const val CONTROL_KEYS = 28
+    private const val CONTROL_KEYS = 29
 
     private fun dependency(patch: Patch<*>, ancestors: Set<Patch<*>> = emptySet()): JsonObject {
         require(patch !in ancestors) { "Cyclic patch dependency" }
@@ -69,7 +69,7 @@ object CatalogTool {
             .map { it.groupValues[1] to it.groupValues[2] } +
             // Standalone patches that use recordControl directly instead of controlPatch:
             sequenceOf("material_you" to "Material You theme", "anonymous_stories" to "View stories anonymously",
-                "save_stories" to "Save any story")).toList()
+                "save_stories" to "Save any story", "chat_animation" to "Slide chats in and out")).toList()
         val uiKeys = Regex("""^\s*\{"([a-z_]+)",""", RegexOption.MULTILINE).findAll(uiSource)
             .map { it.groupValues[1] }.toList()
         val factory = DocumentBuilderFactory.newInstance().apply {
@@ -104,7 +104,7 @@ object CatalogTool {
         require(version == properties.getProperty("version")) { "Bundle version differs from source" }
         val patches = loadPatchesFromJar(setOf(bundle))
         val patchNames = patches.map { requireNotNull(it.name) }.toSet()
-        require(patches.size == 31 && patchNames.size == 31) { "Expected 31 distinct visible patches but found ${patches.size} (names: ${patchNames.joinToString()})" }
+        require(patches.size == 32 && patchNames.size == 32) { "Expected 32 distinct visible patches but found ${patches.size} (names: ${patchNames.joinToString()})" }
         validateDefinitions(
             root.resolve("patches/src/main/kotlin/app/hushmessenger/patches/controls/MessengerControlsPatch.kt").readText(),
             root.resolve("extensions/messenger/src/main/java/app/hushmessenger/extension/SettingsActivity.java").readText(),

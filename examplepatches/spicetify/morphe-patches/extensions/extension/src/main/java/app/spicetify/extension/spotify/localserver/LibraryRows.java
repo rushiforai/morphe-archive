@@ -353,7 +353,7 @@ public final class LibraryRows {
         }
     }
 
-    /** Reflective access to Spotify 9.1.80's Your Library model. */
+    /** Reflective access to Spotify 9.1.88's Your Library model. */
     private static final class Native {
         final Field skip, length, sort, container, filters;
         final Class<?> root, folder, albumFilter, artistFilter, chip;
@@ -363,24 +363,24 @@ public final class LibraryRows {
         final Field count, range, items, pinned, chips, flag, extra;
         final Constructor<?> loadedPage, page, row, albumExtra;
         final Method window;
-        final Field pageState, pageExtra;
+        final Field pageState, pageExtra, pageRows, pageFilters;
         final Object emptyRange, album, artist, artistExtra;
 
         Native() throws ReflectiveOperationException {
-            Class<?> request = Class.forName("p.z770");
+            Class<?> request = Class.forName("p.ki90");
             skip = request.getField("a");
             length = request.getField("b");
             sort = request.getField("f");
             container = request.getField("j");
             filters = request.getField("k");
-            root = Class.forName("p.kvi");
-            folder = Class.forName("p.jvi");
-            chip = Class.forName("p.q670");
+            root = Class.forName("p.rxj");
+            folder = Class.forName("p.qxj");
+            chip = Class.forName("p.yg90");
             chipConstructor = chip.getConstructor(List.class);
-            noExtra = Class.forName("p.iwi").getField("a").get(null);
-            albumFilter = Class.forName("p.e670");
-            artistFilter = Class.forName("p.k670");
-            loaded = Class.forName("p.j290");
+            noExtra = Class.forName("p.yyj").getField("a").get(null);
+            albumFilter = Class.forName("p.mg90");
+            artistFilter = Class.forName("p.sg90");
+            loaded = Class.forName("p.lfb0");
             count = loaded.getField("a");
             range = loaded.getField("b");
             items = loaded.getField("c");
@@ -388,23 +388,25 @@ public final class LibraryRows {
             chips = loaded.getField("e");
             flag = loaded.getField("f");
             extra = loaded.getField("g");
-            Class<?> rangeType = Class.forName("p.m740");
-            Class<?> state = Class.forName("p.c290");
+            Class<?> rangeType = Class.forName("p.r960");
+            Class<?> state = Class.forName("p.efb0");
             loadedPage = loaded.getConstructor(int.class, rangeType, ArrayList.class, List.class, List.class, boolean.class, int.class);
-            Class<?> pageType = Class.forName("p.ou70");
-            Class<?> pageExtraType = Class.forName("p.kwi");
-            page = pageType.getConstructor(state, pageExtraType);
+            Class<?> pageType = Class.forName("p.w6a0");
+            Class<?> pageExtraType = Class.forName("p.azj");
+            page = pageType.getConstructor(state, pageExtraType, List.class, List.class);
             pageState = pageType.getField("a");
             pageExtra = pageType.getField("b");
-            window = Class.forName("p.afl0").getMethod("p0", int.class, int.class);
+            pageRows = pageType.getField("c");
+            pageFilters = pageType.getField("d");
+            window = Class.forName("p.pbh1").getMethod("o0", int.class, int.class);
             emptyRange = rangeType.getField("d").get(null);
-            Class<?> type = Class.forName("p.ypu");
+            Class<?> type = Class.forName("p.haw");
             album = enumConstant(type, "ALBUM");
             artist = enumConstant(type, "ARTIST");
-            Class<?> extraType = Class.forName("p.ugx");
-            row = Class.forName("p.iic1").getConstructor(String.class, String.class, boolean.class, String.class, type, String.class, extraType, int.class);
-            albumExtra = Class.forName("p.uw2").getConstructor(String.class, int.class, boolean.class, boolean.class);
-            artistExtra = Class.forName("p.ao5").getField("a").get(null);
+            Class<?> extraType = Class.forName("p.v2z");
+            row = Class.forName("p.e0h1").getConstructor(String.class, String.class, boolean.class, String.class, type, String.class, extraType, int.class);
+            albumExtra = Class.forName("p.o33").getConstructor(String.class, int.class, boolean.class, boolean.class);
+            artistExtra = Class.forName("p.tx7").getField("a").get(null);
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -445,7 +447,7 @@ public final class LibraryRows {
             Object windowRange = rows.isEmpty() ? emptyRange : window.invoke(null, request.skip, end);
             Object state = loadedPage.newInstance(entries.size(), windowRange, rows, Collections.emptyList(),
                     Collections.singletonList(newChip()), false, 0);
-            return page.newInstance(state, noExtra);
+            return page.newInstance(state, noExtra, Collections.emptyList(), Collections.emptyList());
         }
 
         Filter filter(List<?> selected) {
@@ -485,7 +487,7 @@ public final class LibraryRows {
             if ((request.filters == null || request.filters.isEmpty()) && chipLabel() != null) filters = withChip(filters);
             Object next = loadedPage.newInstance(serverTotal + entries.size(), nextRange, merged,
                     pinned.get(state), filters, flag.getBoolean(state), extra.getInt(state));
-            return page.newInstance(next, pageExtra.get(value));
+            return page.newInstance(next, pageExtra.get(value), pageRows.get(value), pageFilters.get(value));
         }
 
         Object row(Entry entry) throws ReflectiveOperationException {

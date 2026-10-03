@@ -184,6 +184,7 @@ class Elf32Test {
             "DEAD_SERVERS" to NativeEdits.DEAD_SERVERS,
             "JNI_GUARDS" to NativeEdits.JNI_GUARDS,
             "JNI_ARGUMENTS" to NativeEdits.JNI_ARGUMENTS,
+            "SOUND_CACHE_MODE" to NativeEdits.SOUND_CACHE_MODE,
             "CURRENCY" to NativeEdits.CURRENCY.mapValues { (_, plan) -> plan.edits },
         )
         for ((name, table) in tables) {
@@ -245,6 +246,36 @@ class Elf32Test {
                 assertEquals(0xE58D0000L, edit.old and 0xFFFF0FFFL, "$at: a str to [sp]")
                 assertEquals(edit.old or 4L, edit.new, "$at: the same register, 4 bytes up")
             }
+        }
+    }
+
+    @Test
+    fun `the sound cache edits set the mode, keep the call and keep both ways out`() {
+        // Where an ARM b or bl at [at] goes.
+        fun target(at: Long, word: Long): Long {
+            val imm = word and 0xFFFFFFL
+            return at + 8 + 4 * (if (imm and 0x800000L != 0L) imm - 0x1000000L else imm)
+        }
+        for (abi in ABIS) {
+            val edits = NativeEdits.SOUND_CACHE_MODE.getValue(abi).sortedBy { it.vaddr }
+            assertEquals(4, edits.size, "$abi: four words")
+            val (mode, call, result, branch) = edits
+            assertEquals(listOf(4L, 8L, 12L), edits.drop(1).map { it.vaddr - mode.vaddr }, "$abi: four words in a row")
+
+            // mov r2, #imm with imm8 0x1B rotated right by 28: 0x1B0, which is 0660.
+            assertEquals(0xE3A02E1BL, mode.new, "$abi: mov r2, #0x1b0")
+            assertEquals("660", ((mode.new and 0xFFL) shl 4).toString(8), "$abi: rw-rw----")
+
+            assertEquals(0xEBL, mode.old ushr 24, "$abi: the first word was the call")
+            assertEquals(0xEBL, call.new ushr 24, "$abi: the call moves one word down")
+            assertEquals(target(mode.vaddr, mode.old), target(call.vaddr, call.new), "$abi: and still reaches open()")
+
+            assertEquals(0xE3700001L, call.old, "$abi: cmn r0, #1 goes")
+            assertEquals(0xE1A0A000L, result.old, "$abi: mov sl, r0")
+            assertEquals(0xE1B0A000L, result.new, "$abi: becomes movs sl, r0")
+            assertEquals(0x0AL, branch.old ushr 24, "$abi: beq")
+            assertEquals(0x4AL, branch.new ushr 24, "$abi: becomes bmi")
+            assertEquals(branch.old and 0xFFFFFFL, branch.new and 0xFFFFFFL, "$abi: to the same place")
         }
     }
 }

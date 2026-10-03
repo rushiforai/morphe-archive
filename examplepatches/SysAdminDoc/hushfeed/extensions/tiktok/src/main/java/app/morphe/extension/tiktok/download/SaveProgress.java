@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * <p>Saving a dozen original photos, a story's photos or a video with its sound and subtitles
  * ran fire-and-toast: a slow save looked like a failed one, and nothing short of killing TikTok
- * could stop it. From {@link #MIN_FILES} files up, a row in the banner's place says which file
- * is being saved and offers Cancel, which lets the file under way finish and leaves the rest.
+ * could stop it. The default row starts at {@link #MIN_FILES}; original-photo saves count
+ * every file. The row offers Cancel, which lets the file under way finish and leaves the rest.
  * The row is read out once when it appears, once when Cancel is pressed and the result once at
  * the end, not on every file; the count changes silently in between.
  *
@@ -99,6 +99,8 @@ final class SaveProgress {
 
     private final int total;
     private final boolean showTransfer;
+    /** Count every file, including one, and offer Cancel below the default row threshold. */
+    private final boolean fileCount;
     /** The queued job this row follows, for Cancel while it waits; null for a row with none. */
     private volatile MediaJobScheduler.Job job;
     /** False from {@link #queued} until {@link #run}: the row says the save is waiting. */
@@ -114,10 +116,11 @@ final class SaveProgress {
     private volatile View row;
     private volatile TextView count;
 
-    private SaveProgress(int total, boolean showTransfer, boolean started) {
+    private SaveProgress(int total, boolean showTransfer, boolean started, boolean fileCount) {
         this.total = total;
         this.showTransfer = showTransfer;
         this.started = started;
+        this.fileCount = fileCount;
     }
 
     /** A progress row for {@code total} files, or a silent one below {@link #MIN_FILES}. */
@@ -126,19 +129,24 @@ final class SaveProgress {
     }
 
     static SaveProgress begin(int total, boolean showTransfer) {
-        SaveProgress progress = new SaveProgress(total, showTransfer, true);
+        SaveProgress progress = new SaveProgress(total, showTransfer, true, false);
         if (progress.showsRow()) progress.show();
         return progress;
     }
 
     /** A row for a save about to join the media queue. Nothing shows until {@link #submit}. */
     static SaveProgress queued(int total, boolean showTransfer) {
-        return new SaveProgress(total, showTransfer, false);
+        return new SaveProgress(total, showTransfer, false, false);
     }
 
-    /** Whether this save puts a row up at all: three files or more, or stream progress asked for. */
+    /** A file-count row with Cancel for every save, without a video stream progress bar. */
+    static SaveProgress queuedFiles(int total) {
+        return new SaveProgress(total, false, false, true);
+    }
+
+    /** Default threshold, optional stream progress, or an explicitly requested file count. */
     boolean showsRow() {
-        return total >= MIN_FILES || showTransfer;
+        return fileCount || total >= MIN_FILES || showTransfer;
     }
 
     /**
@@ -186,9 +194,11 @@ final class SaveProgress {
     }
 
     private String progressText() {
+        if (!started && fileCount) return L10n.quantity(Utils.getContext(), total,
+                "Waiting to save one file", "Waiting to save %1$s files");
         if (!started) return total == 1 ? L10n.t("Waiting to save video")
                 : L10n.f("Waiting to save %1$s files", String.valueOf(total));
-        if (percent < 0) return total == 1 ? L10n.t("Saving video")
+        if (percent < 0) return total == 1 && !fileCount ? L10n.t("Saving video")
                 : L10n.f("Saving %1$s of %2$s", String.valueOf(current), String.valueOf(total));
         String value = java.text.NumberFormat.getPercentInstance().format(percent / 100.0);
         return total == 1 ? L10n.f("Saving video: %1$s", value)
@@ -208,8 +218,8 @@ final class SaveProgress {
             }
             if (!started) return;
             TextView button = stopButton;
-            // Once a single file is under way there is nothing after it for Cancel to leave out.
-            if (button != null && total == 1) button.setVisibility(View.GONE);
+            // Single-video stream progress keeps its existing no-Cancel behavior while running.
+            if (button != null && total == 1 && !fileCount) button.setVisibility(View.GONE);
             View shown = row;
             if (shownWaiting && shown != null && shown.getVisibility() == View.VISIBLE) {
                 shownWaiting = false;
@@ -348,8 +358,8 @@ final class SaveProgress {
                 TextView stop = cancelButton(activity);
                 stop.setOnClickListener(view -> cancelFromRow());
                 // While the save waits, Cancel takes it out of line. Once it runs, Cancel stops
-                // after the current file, and a single file has no later work to cancel.
-                if (started && total == 1) stop.setVisibility(View.GONE);
+                // after the current file. File-count jobs keep the control for every count.
+                if (started && total == 1 && !fileCount) stop.setVisibility(View.GONE);
                 banner.addView(stop, new LinearLayout.LayoutParams(-2, -2));
                 stopButton = stop;
 
@@ -551,8 +561,8 @@ final class SaveProgress {
 
     /**
      * Cancel on the row. A save still in line is taken out of it and never starts; one that has
-     * started stops after the file under way. A single file that has started has nothing after
-     * it, and stopping it before its first file would read as a failed save.
+     * started stops after the file under way. File-count jobs retain that control at every
+     * count; the single-video stream row keeps its existing no-Cancel behavior while running.
      */
     private void cancelFromRow() {
         MediaJobScheduler.Job waitingOn = job;
@@ -561,7 +571,7 @@ final class SaveProgress {
             Utils.showToastShort(L10n.t("Save cancelled. Nothing was saved."));
             return;
         }
-        if (total > 1) cancel();
+        if (total > 1 || fileCount) cancel();
     }
 
     private void showCount(int current) {

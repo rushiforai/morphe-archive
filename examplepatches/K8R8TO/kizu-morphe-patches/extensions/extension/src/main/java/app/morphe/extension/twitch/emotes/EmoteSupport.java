@@ -78,6 +78,32 @@ public final class EmoteSupport {
         }
     }
 
+    /**
+     * Picker entry point. Twitch can build the native picker before the asynchronous
+     * 7TV/BTTV catalog request has completed, so give an already-started request a
+     * short opportunity to publish its result before the native state is augmented.
+     */
+    public static java.util.List<Emote> getAllForChannelForPicker(String channelId) {
+        try {
+            if (Utils.getContext() == null) return java.util.Collections.emptyList();
+            CATALOG.ensureLoaded(Utils.getContext(), channelId);
+            long deadline = System.currentTimeMillis() + 3500L;
+            java.util.List<Emote> result;
+            do {
+                result = CATALOG.getAllForChannel(channelId);
+                if (!result.isEmpty() || System.currentTimeMillis() >= deadline) {
+                    return result;
+                }
+                Thread.sleep(50L);
+            } while (true);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            return CATALOG.getAllForChannel(channelId);
+        } catch (Throwable ignored) {
+            return java.util.Collections.emptyList();
+        }
+    }
+
     // Patched into Twitch's ChannelChatConnectionKey constructor. That constructor has no handler of
     // its own, so a throw here would abort chat-connection setup; never let anything escape. (#196)
     public static void onChannelChanged(String channelId, String channelName) {

@@ -383,7 +383,7 @@ public final class GestureActions {
      * The video cell a comment button sits in: the pager's child above it. The button itself on
      * a surface without that pager, which then has to be shown to count.
      */
-    static View cellOf(View view) {
+    public static View cellOf(View view) {
         View child = view;
         for (ViewParent parent = view.getParent(); parent instanceof View; parent = parent.getParent()) {
             if (FEED_PAGER.equals(parent.getClass().getName())) return child;
@@ -398,7 +398,7 @@ public final class GestureActions {
      * with it already hidden. Everything above the cell has to be shown, which leaves out a feed
      * behind another tab, or behind a detail page, whose cells keep their last layout.
      */
-    static float onScreenShare(View cell, Rect visible) {
+    public static float onScreenShare(View cell, Rect visible) {
         float area = (float) cell.getWidth() * cell.getHeight();
         ViewParent parent = cell.getParent();
         if (area <= 0 || cell.getVisibility() != View.VISIBLE || !(parent instanceof View)

@@ -2,8 +2,13 @@ package com.zeldrisho.patches.threads.ads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
  * Feed-merge entry point (BarcelonaFeedCache.A0F on 434, A0G on 445).
@@ -58,4 +63,131 @@ internal object FeedMergeMethod : Fingerprint(
             returnType = "V",
         ),
     ),
+)
+
+/** Ad-predicate implementation selected by its stable GraphQL field literals. */
+internal object MediaAdPredicateHelper : Fingerprint(
+    returnType = "Z",
+    parameters = listOf("L"),
+    custom = { candidate, _ ->
+        val method = candidate as com.android.tools.smali.dexlib2.iface.Method
+        val literals = method.getImplementation()?.getInstructions()?.toList().orEmpty()
+            .filterIsInstance<WideLiteralInstruction>()
+            .map { it.wideLiteral }
+            .toSet()
+        -0x79965650L in literals && 0x10e895f0L in literals
+    },
+)
+
+/** Media predicate that constructs the helper argument and directly returns its boolean result. */
+internal fun mediaAdPredicate(helper: MethodReference) = Fingerprint(
+    definingClass = "Lcom/instagram/feed/media/Media;",
+    returnType = "Z",
+    parameters = emptyList(),
+    custom = { candidate, _ ->
+        val method = candidate as com.android.tools.smali.dexlib2.iface.Method
+        val instructions = method.getImplementation()?.getInstructions()?.toList().orEmpty()
+        val constructsArgument = instructions.any { it.opcode == Opcode.NEW_INSTANCE }
+        val returnsHelperResult = instructions.indices.any { index ->
+            val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            reference?.let {
+                it.definingClass == helper.definingClass && it.name == helper.name &&
+                    it.parameterTypes == helper.parameterTypes && it.returnType == helper.returnType
+            } == true && index + 2 < instructions.size &&
+                instructions[index + 1].opcode == Opcode.MOVE_RESULT &&
+                instructions[index + 2].opcode == Opcode.RETURN
+        }
+        constructsArgument && returnsHelperResult
+    },
+)
+
+/** Feed-wrapper's feedContent accessor uniquely anchors the wrapper class. */
+internal object FeedContentAccessor : Fingerprint(
+    returnType = "L",
+    parameters = emptyList(),
+    filters = listOf(string("feedContent")),
+)
+
+/** Matches the feed wrapper's thread getter by its return type's stable simple role. */
+internal fun feedThreadAccessor(anchor: MethodReference) = Fingerprint(
+    definingClass = anchor.definingClass,
+    returnType = "L",
+    parameters = emptyList(),
+    custom = { candidate, _ ->
+        val method = candidate as com.android.tools.smali.dexlib2.iface.Method
+        val instructions = method.getImplementation()?.getInstructions()?.toList().orEmpty()
+        val callsAnchor = instructions.filterIsInstance<ReferenceInstruction>().any { instruction ->
+            (instruction.reference as? MethodReference)?.let { reference ->
+                reference.definingClass == anchor.definingClass && reference.name == anchor.name &&
+                    reference.parameterTypes == anchor.parameterTypes && reference.returnType == anchor.returnType
+            } == true
+        }
+        val castsThreadIntf = instructions.any { it.opcode == Opcode.CHECK_CAST } &&
+            instructions.filterIsInstance<ReferenceInstruction>().any { instruction ->
+                (instruction.reference as? FieldReference)?.type?.endsWith("/ThreadIntf;") == true
+            }
+        callsAnchor && castsThreadIntf
+    },
+)
+
+/** Resolves the unique abstract List getter on the resolved ThreadIntf interface. */
+internal fun threadItemsAccessor(threadAccessor: MethodReference) = Fingerprint(
+    definingClass = threadAccessor.returnType,
+    returnType = "Ljava/util/List;",
+    parameters = emptyList(),
+    custom = { candidate, _ ->
+        val method = candidate as com.android.tools.smali.dexlib2.iface.Method
+        AccessFlags.PUBLIC.isSet(method.accessFlags) &&
+            AccessFlags.ABSTRACT.isSet(method.accessFlags) &&
+            !AccessFlags.STATIC.isSet(method.accessFlags)
+    },
+)
+
+/** Finds a wrapper accessor in the class owning the matched feedContent accessor. */
+internal fun threadItemMediaAccessor() = Fingerprint(
+    definingClass = "Lcom/instagram/api/schemas/ThreadItemIntf;",
+    returnType = "Lcom/instagram/feed/media/Media;",
+    parameters = emptyList(),
+    custom = { candidate, _ ->
+        val method = candidate as com.android.tools.smali.dexlib2.iface.Method
+        AccessFlags.PUBLIC.isSet(method.accessFlags) &&
+            AccessFlags.ABSTRACT.isSet(method.accessFlags) &&
+            !AccessFlags.STATIC.isSet(method.accessFlags)
+    },
+)
+
+/**
+ * Matches a no-argument wrapper accessor in [anchor]'s class with the requested [returnType].
+ *
+ * The method must call the anchor and contain a thread cast/field read or a media
+ * instance check/interface call, depending on the requested role.
+ */
+internal fun feedWrapperAccessor(anchor: MethodReference, returnType: String) = Fingerprint(
+    definingClass = anchor.definingClass,
+    returnType = returnType,
+    parameters = emptyList(),
+    custom = { candidate, _ ->
+        val method = candidate as com.android.tools.smali.dexlib2.iface.Method
+        val instructions = method.getImplementation()?.getInstructions()?.toList().orEmpty()
+        val callsAnchor = instructions.filterIsInstance<ReferenceInstruction>().any { instruction ->
+            (instruction.reference as? MethodReference)?.let { reference ->
+                reference.definingClass == anchor.definingClass && reference.name == anchor.name &&
+                    reference.parameterTypes == anchor.parameterTypes && reference.returnType == anchor.returnType
+            } == true
+        }
+        val semanticShape = if (returnType == "Lcom/instagram/api/schemas/ThreadIntf;") {
+            instructions.any { it.opcode == Opcode.CHECK_CAST } &&
+                instructions.filterIsInstance<ReferenceInstruction>().any { instruction ->
+                    (instruction.reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference)
+                        ?.type == returnType
+                }
+        } else {
+            instructions.any { it.opcode == Opcode.INSTANCE_OF } &&
+                instructions.filterIsInstance<ReferenceInstruction>().any { instruction ->
+                    instruction.opcode == Opcode.INVOKE_INTERFACE &&
+                        (instruction.reference as? MethodReference)?.returnType == returnType
+                }
+        }
+        callsAnchor && semanticShape
+    },
 )

@@ -2,15 +2,44 @@
 
 ## Unreleased
 
-Development version 0.9.0. The public download remains v0.8.0.
+- **Hide AI sticker tools** also hides the Generate buttons in Messenger's newer sticker keyboard. The guard matches the verified AI label and leaves other cells alone. **Allow screenshots** also covers the secure-window calls in view-once media and Quicksnap. It preserves unrelated flags, lifecycle code and the original calls while off or paused. All 21 supported builds have records for these routes. Live keyboard and protected-media checks remain open.
+
+- Patch builds now use Morphe Patcher 1.15.0 and the maintained MorpheApp ARSCLib fork. Migration checks applied all 32 patches to all 21 supported APKs at a 1024 MB heap, verified signatures for the five naming groups and retained their native libraries. Two fresh checkouts produced the same bundle bytes. Kotlin and Bouncy Castle security pins remain in place.
+
+- Settings expose each control's full row as one accessible switch. The title, description and activity label share a touch target, and the switch keeps its keyboard focus. Unavailable controls can be read but can't be toggled. Live TalkBack checks on an isolated Android 16 preview read the title and description as one control and changed the saved choice once per double-tap. The enabled-count summary stays readable without announcing after every toggle. Regression checks cover Android 9 and 16.
+
+## 0.14.0 (2026-10-02)
+
+This release has 32 patches, 29 of them switches, for all 21 arm64 builds of Messenger 580.0.0.49.91. It adds Native Bubbles and an optional slide animation for chats. Settings now open from Messenger's side menu too, and Use system emoji draws your phone's own emoji instead of Google's. Root Mount installs also get their long-press shortcuts back.
 
 ### New
 
 - **Allow chat bubbles** offers **Stock**, **Chat Heads** and **Native Bubbles** when Messenger's native routes are verified. Native mode uses its conversation notifications, long-lived shortcuts and embedded chat screen on Android 11 or newer. Account eligibility and Android's permissions still apply. Notification and conversation settings links include recovery guidance when a phone omits either page. Pause or Stock restores the original routing. Refs #19.
+- **Slide chats in and out** slides a chat in from the side when you open it and back out when you go back, while the screen underneath holds still. It works for chats opened from the chat list and from search, and right-to-left languages slide from the left. Chat heads and bubbles keep their own animations, as do chats Messenger restores. The switch starts off, and Pause or Android's **Remove animations** setting keeps Messenger's own. A phone on Android 16 showed it from the chat list and from search in both themes, and turning the switch off brought back the stock transitions. Opening a chat from a notification hasn't been checked on a phone yet. Refs #28.
 
 ### Changed and fixed
 
-- Both settings tabs have fresh screenshots from the embedded v0.9.0 build. Install guidance separates message-content prompts from store updates, explains drawer access and unsent/read-receipt limits, and preserves account data when an installation conflicts. Manager 1.33.0 and Desktop 1.18.0 are the documented baseline, with manual signed-checksum verification.
+- The settings-entry patch adds Messenger 580's side menu alongside its Menu tab. It builds a separate native folder row without changing existing folders, badges or snippets. Changed constructors, unallocatable models and a folder click path that can reach the row without passing the settings hook stop patching before any menu changes. An Android launch failure keeps the added row from falling into Messenger's own click handler and shows recovery guidance. On a test phone, the side-menu row and the Menu tab row both opened settings, and the side menu kept exactly one row through a cold start. Root Mount installs haven't been checked yet. Refs #26.
+
+- **Use system emoji** now draws the phone's own emoji set on Android 12 and newer. It used to load Android's standard Noto font every time, so Samsung phones, other phones with their own emoji and emoji modules got Google's emoji instead of their own. HushMessenger now asks Android which font it draws emoji with and uses that. Android 9 to 11 keep the standard font. On a Samsung test phone, the composer and Messenger's emoji picker went from Google's emoji to the phone's own set. Refs #25.
+
+- Directions to the settings now say **Long-press Messenger's home screen icon > Patch controls** in Manager's patch descriptions, the settings help text and the recovery message. "Long-press Messenger" was read as the Messenger title inside the app, where a long-press does nothing. Refs #27.
+
+- On a Root Mount install, Android never reads the patched long-press shortcuts, so **Patch controls** and **Restart Messenger** were missing from Messenger's icon. HushMessenger now adds both itself when Messenger starts there, and puts them back if Messenger's recent-chat shortcuts push them out. The missing shortcuts were reproduced on a rooted test emulator with a mounted build. A real Root Mount phone hasn't been checked yet. Refs #27.
+
+- Local Android builds use AGP 9.4.1 and Android Test Engine in place of the older UTP/Netty device-test transport. The build and all 21 supported patch inputs pass. A separate settings-preview test passed on Android 16 and verifies that host test libraries aren't bundled into the extension. SDK/lint tooling still contains advisory-matched HttpClient and Commons Lang versions. This update doesn't claim to fix those matches.
+
+- Choice files accept content-provider documents outside Messenger's own UID, so a picker cannot read or overwrite its private files through a file path or an app-owned provider. Provider failures leave choices alone and omit private exception details from logs.
+- Choice-file checks normalize Android user prefixes before checking provider ownership, so alternate addresses can't reach Messenger's private providers. Android 16 hardware checks rejected all six private-provider read/write addresses before access. External file export and restore preserved every choice, and the compiled theme, startup and recovery checks passed.
+- File backups show progress and prevent overlapping file work. A delayed restore leaves newer switch changes or clipboard restores alone and explains how to retry.
+- Bubble hooks initialize saved choices when they are the first control called on a Root Mount startup. Unsupported Android versions and secondary processes keep stock behavior.
+- Pause, switching Material You off and clearing safe mode refresh the cached dark surfaces. Palette listeners start after crash recovery is known, without holding the startup lock.
+- A hook that keeps failing refreshes its saved diagnostic timestamp once a minute. Repeated failures keep the latest time in memory without writing preferences on every draw.
+- Original-quality photos remove RGB thumbnails embedded in JFIF headers. Both send paths keep the main image data, density fields and color profiles, and leave the source file untouched.
+- Settings and the install guide explain that uninstalling the settings icon also removes Messenger. Hide app drawer icon removes only the launcher entry. Refs #26.
+- Native Bubbles has a direct Android bubble settings link. Samsung's app notification page can omit that option, so the general notification link alone couldn't finish setup. Missing settings screens leave choices unchanged and show recovery guidance.
+
+- Both settings tabs have fresh screenshots from the embedded v0.10.0 build. Install guidance separates message-content prompts from store updates, explains drawer access and unsent/read-receipt limits, and preserves account data when an installation conflicts. Manager 1.33.0 and Desktop 1.18.0 are the documented baseline, with manual signed-checksum verification.
 - Native capability checks follow the values connecting Messenger's shortcut, notification metadata and embedded activity. Null, disconnected and ambiguous routes keep stock behavior.
 
 ## 0.8.0 (2026-10-01)

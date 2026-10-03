@@ -15,6 +15,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.fillStoryModelStub
 import app.morphe.patches.facebook.feed.methodsHolding
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.feed.reels.callsMethod
 import app.morphe.patches.facebook.feed.reels.categoryNames
 import app.morphe.patches.facebook.misc.extension.enableStatus
@@ -191,9 +192,10 @@ private fun BytecodePatchContext.suggestionRouteStore(): Pair<Method, RouteStore
     val builderField: FieldReference = builderRouteField(impl, field) ?: throw PatchException(
         "$PATCH: GraphSearchQuerySpecImpl's constructors don't copy ${field.name} from one builder field",
     )
+    val tables = { call: MethodReference -> classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) } }
     val parsers = classDefByStrings(KEYWORD_TYPE_FAILURE, StringComparisonType.EQUALS)
         .flatMap { methodsHolding(it, KEYWORD_TYPE_FAILURE) }
-        .filter(::isSuggestionParser)
+        .filter { isSuggestionParser(it, tables) }
     val parser = parsers.singleOrNull() ?: throw PatchException(
         "$PATCH: expected one suggestion parser logging \"$KEYWORD_TYPE_FAILURE\", found ${parsers.size}",
     )

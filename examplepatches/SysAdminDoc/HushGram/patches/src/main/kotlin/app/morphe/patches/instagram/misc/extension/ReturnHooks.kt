@@ -42,6 +42,33 @@ internal fun MutableMethod.filterEveryReturn(patch: String, filter: String) {
 }
 
 /**
+ * Passes every boolean this method returns through [filter], a static `(I)Z` call, so the caller
+ * gets the filter's answer. The value goes over as an int (no hook takes a boolean, see
+ * BooleanHookParametersTest) and comes back as a boolean. As in [filterEveryReturn], the call goes
+ * in at the return's own label, so a branch that jumps straight to a return passes through it too.
+ * Throws naming [patch] when the method doesn't answer a boolean or has no return.
+ */
+internal fun MutableMethod.filterEveryBooleanReturn(patch: String, filter: String) {
+    val implementation = implementation ?: throw PatchException("$patch: $definingClass->$name has no body")
+    if (returnType != "Z") throw PatchException("$patch: $definingClass->$name answers $returnType, not a boolean")
+    if (!filter.endsWith("(I)Z")) throw PatchException("$patch: $filter doesn't take an int and answer a boolean")
+    val returns = implementation.instructions.withIndex()
+        .filter { it.value.opcode == Opcode.RETURN }
+        .map { it.index to (it.value as OneRegisterInstruction).registerA }
+    if (returns.isEmpty()) throw PatchException("$patch: $definingClass->$name has no return")
+
+    returns.asReversed().forEach { (index, register) ->
+        addInstructionsAtControlFlowLabel(
+            index,
+            """
+                invoke-static/range { v$register .. v$register }, $filter
+                move-result v$register
+            """,
+        )
+    }
+}
+
+/**
  * Passes every `const-string` of [value] in the app's own code through [filter], a static
  * `(String)String` call, right after the string is loaded. Only the path through the load reaches
  * the call: a branch to the next instruction still lands on it. Answers how many loads it found.

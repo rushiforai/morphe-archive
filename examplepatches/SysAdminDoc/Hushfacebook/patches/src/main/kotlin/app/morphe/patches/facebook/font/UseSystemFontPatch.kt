@@ -30,6 +30,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val PATCH = "Use the system font"
 internal const val OWN_FONT = "$EXTENSION_PACKAGE/font/OwnFont;"
@@ -103,21 +104,39 @@ internal fun BytecodePatchContext.hookDefaultTypefaces(): Int {
             owners += classDef.type
         }
     }
-    val sent = owners.sumOf { type -> mutableClassDefByOrNull(type)?.methods?.sumOf { it.sendDefaultReads() } ?: 0 }
+    val isEquality = equalityChecks()
+    val sent = owners.sumOf { type -> mutableClassDefByOrNull(type)?.methods?.sumOf { it.sendDefaultReads(isEquality) } ?: 0 }
     if (sent == 0) throw PatchException("$PATCH: found no read of Android's default typefaces outside the extension")
     return sent
 }
 
 /**
+ * Whether a static call on two objects answering a boolean only compares them
+ * ([isEqualityCheck]), from the called method's own code, looked up once a call. Java's
+ * Objects.equals is one, and a method this build doesn't hold isn't.
+ */
+internal fun BytecodePatchContext.equalityChecks(): (MethodReference) -> Boolean {
+    val known = HashMap<String, Boolean>()
+    return { call ->
+        known.getOrPut(call.toString()) {
+            call.toString() == OBJECTS_EQUALS || classDefByOrNull(call.definingClass)?.methods?.singleOrNull { method ->
+                method.name == call.name && method.returnType == call.returnType &&
+                    method.parameterTypes.map(CharSequence::toString) == call.parameterTypes.map(CharSequence::toString)
+            }?.let(::isEqualityCheck) == true
+        }
+    }
+}
+
+/**
  * Sends each read of Android's default typefaces in this method to the extension, last first.
  * Answers how many. A field read whose value is only ever compared with another typeface stays
- * Android's ([onlyCompared]), so the comparison still asks whether that typeface is the phone's
- * default, which is what Facebook means by it.
+ * Android's ([onlyCompared], with [isEquality] for the static calls), so the comparison still asks
+ * whether that typeface is the phone's default, which is what Facebook means by it.
  */
-internal fun MutableMethod.sendDefaultReads(): Int {
+internal fun MutableMethod.sendDefaultReads(isEquality: (MethodReference) -> Boolean): Int {
     val sites = (implementation ?: return 0).instructions.withIndex()
         .mapNotNull { (index, instruction) -> defaultRead(instruction)?.let { Triple(index, instruction, it) } }
-        .filterNot { (index, _, read) -> read in DEFAULT_TYPEFACES && onlyCompared(index) }
+        .filterNot { (index, _, read) -> read in DEFAULT_TYPEFACES && onlyCompared(index, isEquality) }
     sites.asReversed().forEach { (index, instruction, read) ->
         if (read in DEFAULT_CALLS) {
             val arguments = when (instruction) {

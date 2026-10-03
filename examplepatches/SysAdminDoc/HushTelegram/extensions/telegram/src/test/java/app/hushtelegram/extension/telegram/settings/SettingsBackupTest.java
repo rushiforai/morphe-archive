@@ -144,6 +144,8 @@ public class SettingsBackupTest {
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
+        // The release check stays out of every file, so the list above doesn't reach it.
+        Settings.CHECK_FOR_RELEASES.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
@@ -180,8 +182,13 @@ public class SettingsBackupTest {
         assertEquals("a setting in Settings isn't a switch, and a settings file has no format for it",
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_STORIES,
-                        Settings.HIDE_RECOMMENDATIONS,
-                        Settings.DISABLE_ANALYTICS, Settings.DISABLE_CALL_DEBUG, Settings.DISABLE_UPDATE_CHECKS),
+                        Settings.HIDE_RECOMMENDATIONS, Settings.HIDE_COMMERCE,
+                        Settings.HIDE_PROMOTIONAL_BANNERS,
+                        Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.DISABLE_CHAT_SWIPE,
+                        Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK,
+                        Settings.DISABLE_ANALYTICS, Settings.DISABLE_CALL_DEBUG, Settings.DISABLE_DRAFT_PREVIEWS,
+                        Settings.GALLERY_CAMERA_ON_TAP,
+                        Settings.OPEN_EXTERNAL_LINKS, Settings.STRIP_LINK_TRACKING, Settings.DISABLE_UPDATE_CHECKS),
                 SettingsBackup.ALLOWLIST);
     }
 

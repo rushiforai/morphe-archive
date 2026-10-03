@@ -303,6 +303,14 @@ public final class LogBufferManager {
 
         /** One line per fact, or an empty list to say nothing. */
         List<String> lines();
+
+        /** App/platform facts precede crash traces and are independent of event filters. */
+        default boolean isAppState() { return false; }
+
+        /** Public manifest domains in this snapshot. Ordinary sections keep host redaction. */
+        default Set<String> declaredDomainHosts(List<String> lines) {
+            return Collections.emptySet();
+        }
     }
 
     private static final List<ReportSection> REPORT_SECTIONS = new CopyOnWriteArrayList<>();
@@ -449,6 +457,36 @@ public final class LogBufferManager {
         // Most hooks log nothing without Debug logging, so a report with no events says why.
         report.append("debug_logging: ").append(BaseSettings.DEBUG.get() ? "on" : "off").append('\n');
 
+        StringBuilder appState = new StringBuilder();
+        StringBuilder patchState = new StringBuilder();
+        for (ReportSection section : REPORT_SECTIONS) {
+            boolean always = section.isAppState();
+            if (!always && !includeAll && !selected.contains(
+                    app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) continue;
+            List<String> lines;
+            Set<String> declared;
+            try {
+                lines = section.lines();
+                if (lines == null || lines.isEmpty()) continue;
+                declared = section.declaredDomainHosts(lines);
+            } catch (Throwable failure) {
+                lines = Collections.singletonList("could not be read: " + failure);
+                declared = Collections.emptySet();
+            }
+            StringBuilder sectionText = always ? appState : patchState;
+            sectionText.append("\n[").append(section.title()).append("]\n");
+            for (String line : lines) {
+                int arrow = line == null ? -1 : line.lastIndexOf(" -> ");
+                String host = arrow < 0 ? "" : line.substring(0, arrow);
+                String state = arrow < 0 ? "" : line.substring(arrow + 4);
+                boolean domainState = declared != null && declared.contains(host)
+                        && host.matches("[\\p{L}\\p{M}\\p{N}_.*-]+")
+                        && (state.equals("verified") || state.equals("selected") || state.equals("none") || state.equals("unknown"));
+                sectionText.append(domainState ? line : DiagnosticRedactor.redact(line)).append('\n');
+            }
+        }
+        report.append(appState);
+
         if (!crash.isEmpty()) {
             report.append("\n[LATEST JAVA CRASH]\n").append(crash);
         }
@@ -461,22 +499,7 @@ public final class LogBufferManager {
         // The same choice as Hook status: what the bundle has been told to do is a fact about
         // the patches, and it is what a report from a phone with an override that changed
         // nothing has been missing.
-        if (includeAll || selected.contains(
-                app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) {
-            for (ReportSection section : REPORT_SECTIONS) {
-                List<String> lines;
-                try {
-                    lines = section.lines();
-                } catch (Throwable failure) {
-                    lines = Collections.singletonList("could not be read: " + failure);
-                }
-                if (lines == null || lines.isEmpty()) continue;
-                report.append("\n[").append(section.title()).append("]\n");
-                for (String line : lines) {
-                    report.append(DiagnosticRedactor.redact(line)).append('\n');
-                }
-            }
-        }
+        report.append(patchState);
         String feedFilter = feedFilterLines(includeAll, selected);
         if (!feedFilter.isEmpty()) {
             report.append("\n[FEED FILTER]\n").append(feedFilter).append('\n');

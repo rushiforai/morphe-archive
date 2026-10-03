@@ -16,6 +16,7 @@ import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.media.PlaybackQuality;
+import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
@@ -492,6 +493,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_bottom_tab_bar", FALSE, true);
 
     /**
+     * Facebook's dark mode controller answers dark whatever its own setting says
+     * ({@link app.morphe.extension.facebook.theme.ForceDarkMode}), for tablets whose Facebook
+     * settings have no Dark mode row. Facebook asks as each screen applies its theme, so a change
+     * shows fully after a restart.
+     */
+    public static final BooleanSetting FORCE_DARK_MODE =
+            new BooleanSetting("hushfacebook_force_dark_mode", FALSE, true);
+
+    /**
      * The strip some posts carry ("Are you interested in this post?", "Show less", who recently
      * commented, follow and chat suggestions) goes, and so does the room kept for it
      * ({@link app.morphe.extension.facebook.feed.PostPrompts}). A change shows on the posts drawn
@@ -603,6 +613,16 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<StartTab> START_TAB =
             new EnumSetting<>("hushfacebook_start_tab", StartTab.MARKETPLACE);
+
+    /**
+     * The filter the Feeds tab opens on after a start from the launcher icon that
+     * {@link #START_TAB} sends to Feeds (#56): All, which is whatever Facebook opens it on, unless
+     * it's changed. Asked once per start, the first time the Feeds tab shows, so every filter tapped
+     * after that stays as tapped. A filter this account's Feeds tab hasn't got leaves it as it
+     * opened.
+     */
+    public static final EnumSetting<FeedsSubtab> FEEDS_SUBTAB =
+            new EnumSetting<>("hushfacebook_feeds_subtab", FeedsSubtab.ALL);
 
     /**
      * The order comment sheets ask for while {@link #DEFAULT_COMMENT_ORDER} is on: Facebook's own

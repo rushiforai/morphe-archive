@@ -16,7 +16,7 @@ import org.junit.Test
 /**
  * Every Kotlin file in the patch tree opens with a notice saying where it came from.
  *
- * <p>The extension module holds the same rule for its Java. CONTRIBUTING requires a
+ * <p>The extension module holds the same rule for its Java. README requires a
  * `Forked from:` URL on source derived from another project and requires an existing notice to
  * survive a file being modified or moved, and on 2026-09-15 two files in this tree were found to
  * have been imported with a ReVanced notice and to have lost it since. Morphe's DMCA notice took

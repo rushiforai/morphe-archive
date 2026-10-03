@@ -89,11 +89,11 @@ class PatchesListShapeTest {
     }
 
     /**
-     * Verify that exactly 20 patches are present with no leftover template scaffolding.
+     * Verify that exactly 22 patches are present with no leftover template scaffolding.
      */
     @Test fun patchCountMatchesSources() {
         // Exact-name comparison catches both added patches and removed patches.
-        // Exactly 20 patches (4 Threads + 16 Zalo) — template scaffolding was removed,
+        // Exactly 22 patches (5 Threads + 17 Zalo) — template scaffolding was removed,
         // so any extra entry (e.g. a resurrected "Example Patch") fails loudly.
         // Note: "name" also appears on compatiblePackages entries ("Threads", "Zalo"),
         // so only top-level patch names are counted (6-space indent in output).
@@ -106,6 +106,7 @@ class PatchesListShapeTest {
                 "Change Zalo package name",
                 "Change app name",
                 "Change package name",
+                "Configurable native backup interval",
                 "Disable ads",
                 "Disable sponsored placements",
                 "Disable telemetry and crash reporting",
@@ -114,6 +115,7 @@ class PatchesListShapeTest {
                 "Hide Business Box",
                 "Hide ads",
                 "Keep expired media accessible",
+                "Open links externally",
                 "Prefer original photo quality",
                 "Remove AD_ID permission",
                 "Remove AD_ID permission",
@@ -123,7 +125,7 @@ class PatchesListShapeTest {
                 "microG Drive support",
             ),
             names.sorted(),
-            "expected exactly 20 patches, found: $names",
+            "expected exactly 22 patches, found: $names",
         )
     }
 

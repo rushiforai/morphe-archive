@@ -232,6 +232,13 @@ public final class LogBufferManager {
         }
     }
 
+    /** The folder a file manager shows, shared by the writer and the settings descriptions. */
+    public static String reportFolder(Context context) {
+        String folder = Environment.DIRECTORY_DOWNLOADS + "/Morphe";
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+                ? "Android/data/" + context.getPackageName() + "/files/" + folder : folder;
+    }
+
     static String writeToFile(Context context, String exportText) throws Exception {
         if (context == null) throw new IOException("Application context unavailable");
         String fileName = "morphe-diagnostics-" + fileTimestamp() + "-"
@@ -242,7 +249,7 @@ public final class LogBufferManager {
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
         values.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
         values.put(MediaStore.MediaColumns.RELATIVE_PATH,
-                Environment.DIRECTORY_DOWNLOADS + "/Morphe");
+                reportFolder(context));
         values.put(MediaStore.MediaColumns.IS_PENDING, 1);
         Uri pendingUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
         if (pendingUri == null) throw new IOException("Could not create report file");
@@ -256,7 +263,7 @@ public final class LogBufferManager {
             if (resolver.update(pendingUri, values, null, null) != 1) {
                 throw new IOException("Could not publish report file");
             }
-            return Environment.DIRECTORY_DOWNLOADS + "/Morphe/" + savedName;
+            return reportFolder(context) + "/" + savedName;
         } catch (Exception error) {
             deleteIncomplete(resolver, pendingUri, error);
             throw error;
@@ -281,8 +288,7 @@ public final class LogBufferManager {
             if (!file.delete() && file.exists()) error.addSuppressed(new IOException("Could not delete " + fileName));
             throw error;
         }
-        return "Android/data/" + context.getPackageName() + "/files/" + Environment.DIRECTORY_DOWNLOADS
-                + "/Morphe/" + fileName;
+        return reportFolder(context) + "/" + fileName;
     }
 
     private static String providerDisplayName(ContentResolver resolver, Uri uri) throws IOException {

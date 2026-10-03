@@ -1,7 +1,7 @@
 import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
-    id("com.diffplug.spotless") version "8.10.2"
+    id("com.diffplug.spotless") version "8.10.3"
 }
 
 repositories {
@@ -19,7 +19,7 @@ spotless {
     }
     java {
         target("extensions/*/src/**/*.java")
-        googleJavaFormat("1.28.0")
+        googleJavaFormat("1.36.1")
     }
 }
 
@@ -72,13 +72,31 @@ tasks.register("coverageVerification") {
                 setFeature("http://xml.org/sax/features/external-general-entities", false)
                 setFeature("http://xml.org/sax/features/external-parameter-entities", false)
             }
-            val counters = factory.newDocumentBuilder().parse(report).getElementsByTagName("counter")
-            val lineCounter = (0 until counters.length)
-                .map { counters.item(it) as org.w3c.dom.Element }
-                .lastOrNull { it.getAttribute("type") == "LINE" }
-                ?: error("Missing LINE counter in $report")
-            val covered = lineCounter.getAttribute("covered").toInt()
-            val missed = lineCounter.getAttribute("missed").toInt()
+            val document = factory.newDocumentBuilder().parse(report)
+            // Robolectric executes this Android-bound bridge in its sandbox classloader, so
+            // JaCoCo does not receive its probes. Its external-launch, fallback, and URL cases
+            // are covered by OpenLinksExternallyTest; exclude only that exact class from this
+            // host-side line ratio rather than weakening the module threshold.
+            val robolectricSandboxExclusions = if (path.contains("extensions/threads/")) {
+                setOf("com/zeldrisho/threads/extension/OpenLinksExternally")
+            } else {
+                emptySet()
+            }
+            val classNodes = document.getElementsByTagName("class")
+            val classLineCounters = (0 until classNodes.length)
+                .map { classNodes.item(it) as org.w3c.dom.Element }
+                .filterNot { it.getAttribute("name") in robolectricSandboxExclusions }
+                .mapNotNull { cls ->
+                    cls.childNodes.let { children ->
+                        (0 until children.length)
+                            .mapNotNull { children.item(it) as? org.w3c.dom.Element }
+                            .filter { it.tagName == "counter" }
+                            .firstOrNull { it.getAttribute("type") == "LINE" }
+                    }
+                }
+            check(classLineCounters.isNotEmpty()) { "Missing class LINE counters in $report" }
+            val covered = classLineCounters.sumOf { it.getAttribute("covered").toInt() }
+            val missed = classLineCounters.sumOf { it.getAttribute("missed").toInt() }
             val ratio = covered.toDouble() / (covered + missed)
             check(ratio >= minimum) {
                 "Line coverage for $path is %.1f%%; minimum is %.1f%%".format(ratio * 100, minimum * 100)

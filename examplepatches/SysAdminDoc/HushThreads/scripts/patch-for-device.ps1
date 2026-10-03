@@ -9,10 +9,13 @@
     expected model (physical devices) or AVD name (emulators). A signer conflict is refused;
     apps, accounts and installed signing keys are preserved. -Replace is no longer supported.
 
-    The signing password comes from HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
-    local test keystore's documented password, sideload, is used. The Morphe arguments travel
-    through a temporary Java argument file so the password value is not in the child process
-    command line. The file is deleted when patching exits.
+    The store password comes from HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
+    local test keystore's documented password, sideload, is used. An explicitly empty value
+    selects an unprotected store (PowerShell 7). HUSHTHREADS_SIDELOAD_KEY_PASSWORD supplies a
+    different private-entry password when needed. Patching produces an unsigned
+    APK, its native entries are aligned, then the existing BKS, JKS or PKCS12 key signs it.
+    The password travels only through the signing process environment. No key is converted,
+    created or replaced. The temporary patch argument file is deleted when patching exits.
 
     The vendor APK defaults to the newest declared build in the folder HUSHTHREADS_FIXTURE_DIR
     names. -Apk takes any build the catalog declares, and the result is held to that APK's own
@@ -105,9 +108,13 @@ if (-not (Test-DeclaredBuild -Target $target -VersionName ([string]$stock.versio
 $passwordVariable = 'HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD'
 $keystorePassword = [Environment]::GetEnvironmentVariable(
     $passwordVariable, [EnvironmentVariableTarget]::Process)
-if ([string]::IsNullOrEmpty($keystorePassword)) {
+if ($null -eq $keystorePassword) {
     $keystorePassword = 'sideload'
     Write-Host "[device] $passwordVariable is unset; using the documented local test-key fallback"
+}
+foreach ($value in @($Keystore, $KeyAlias, $keystorePassword, $env:HUSHTHREADS_SIDELOAD_KEY_PASSWORD)) {
+    if ($null -eq $value) { continue }
+    if ($value.IndexOfAny([char[]]"`r`n") -ge 0) { throw 'A signing argument contains a newline.' }
 }
 $version = Get-BundleVersion -Root $root
 $bundle = Get-ReleaseBundlePath -Root $root -Version $version
@@ -131,6 +138,8 @@ $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedName
 
 New-Item -ItemType Directory -Force $OutDir | Out-Null
 $out = Join-Path $OutDir "hushthreads-$version-signed.apk"
+$unsigned = Join-Path $OutDir "hushthreads-$version-unsigned.apk"
+$signedReady = $false
 $temp = Join-Path $OutDir 'tmp'
 $result = Join-Path $OutDir 'result.json'
 if (Test-Path $out) { Remove-Item $out -Force }
@@ -143,9 +152,7 @@ $mergedInput = Join-Path $OutDir 'stock-merged.apk'
 $mergeRequired = [IO.Path]::GetExtension($Apk).TrimStart('.').ToLowerInvariant() -in @('apkm', 'apks', 'xapk')
 try {
     $patchInput = Get-MergedApk -Apk $Apk -Destination $mergedInput -Java $Java -DesktopJar $DesktopJar
-    $arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result,
-        '--keystore', $Keystore, '--keystore-password', $keystorePassword,
-        '--keystore-entry-alias', $KeyAlias, '--keystore-entry-password', $keystorePassword) + $enable + @($patchInput)
+    $arguments = @('patch', '--exclusive', '--unsigned', '-p', $bundle, '-o', $unsigned, '-t', $temp, '-r', $result) + $enable + @($patchInput)
     $argumentFileLines = @($arguments | ForEach-Object {
         $value = [string]$_
         if ($value.IndexOfAny([char[]]"`r`n") -ge 0) {
@@ -172,8 +179,41 @@ try {
         $ErrorActionPreference = $preference
     }
     if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode" }
+    $report = if (Test-Path -LiteralPath $result -PathType Leaf) { Get-Content -LiteralPath $result -Raw | ConvertFrom-Json } else { $null }
+    $validation = Test-PatchingReport -Report $report -ExpectedNames $names -AllowedDependencyNames $dependencyNames `
+        -OutputPath $unsigned -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName
+    if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
+    $nativeId = [guid]::NewGuid().ToString('N')
+    $baseline = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
+    $patchedManifest = Get-ApkManifestFacts -Apk $unsigned -Aapt2 $Aapt2
+    $nativeStock = Get-NativePageFacts -Apk $patchInput -Java $Java -Aapt2 $Aapt2 `
+        -ReportPath (Join-Path $OutDir "native-$nativeId-stock.json") -ExtractNativeLibs $baseline.extractNativeLibs
+    $nativeRaw = Get-NativePageFacts -Apk $unsigned -Java $Java -Aapt2 $Aapt2 `
+        -ReportPath (Join-Path $OutDir "native-$nativeId-unaligned.json") -ExtractNativeLibs $patchedManifest.extractNativeLibs
+    Align-UnsignedNativeApk -Apk $unsigned -Aapt2 $Aapt2 -Java $Java -Facts $nativeRaw
+    $savedPassword = [Environment]::GetEnvironmentVariable($passwordVariable, [EnvironmentVariableTarget]::Process)
+    try {
+        [Environment]::SetEnvironmentVariable($passwordVariable, $keystorePassword, [EnvironmentVariableTarget]::Process)
+        $ErrorActionPreference = 'Continue'
+        $signOutput = @(& $Java -cp $DesktopJar (Join-Path $PSScriptRoot 'SignAlignedApk.java') $unsigned $out $Keystore $KeyAlias 2>&1)
+        $signCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $preference
+        [Environment]::SetEnvironmentVariable($passwordVariable, $savedPassword, [EnvironmentVariableTarget]::Process)
+    }
+    if ($signCode -ne 0) { throw "APK signing failed (exit $signCode): $($signOutput -join ' ')" }
+    $signOutput | ForEach-Object { Write-Host "[device] $_" }
+    $nativeFinal = Get-NativePageFacts -Apk $out -Java $Java -Aapt2 $Aapt2 `
+        -ReportPath (Join-Path $OutDir "native-$nativeId-signed.json") -ExtractNativeLibs $patchedManifest.extractNativeLibs
+    $nativeAlignment = Get-NativePageDelta -Stock $nativeStock -Patched $nativeFinal
+    $nativeAlignment | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $OutDir 'native-alignment.json') -Encoding UTF8
+    if ($nativeAlignment.packagingDefects.Count -gt 0) { throw "Native packaging defects: $($nativeAlignment.packagingDefects -join ', ')" }
+    if (-not $nativeAlignment.alignmentCompatible) { Write-Warning '[device] vendor ELF libraries remain incompatible with 16 KB pages.' }
+    $signedReady = $true
 } finally {
     Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $unsigned -Force -ErrorAction SilentlyContinue
+    if (-not $signedReady) { Remove-Item -LiteralPath $out -Force -ErrorAction SilentlyContinue }
     if ($mergeRequired) { Remove-Item -LiteralPath $mergedInput -Force -ErrorAction SilentlyContinue }
     # The CLI unpacks the whole APK here and a run against Threads leaves gigabytes behind.
     if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }

@@ -14,5 +14,10 @@
         android:targetPackage="com.zhiliaoapp.musically"
         android:label="Hushfeed verification probe" />
 
+    <instrumentation
+        android:name="app.hushfeed.verification.StorageProbe"
+        android:targetPackage="com.zhiliaoapp.musically"
+        android:label="Hushfeed aggregate storage probe" />
+
     <application android:hasCode="true" android:label="Hushfeed verification probe" />
 </manifest>

@@ -10,8 +10,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.graphics.Color;
 import android.preference.DialogPreference;
 import android.preference.Preference;
@@ -67,8 +70,8 @@ public class RowChevronTest {
     private static final Set<String> OPENS_SOMETHING = new LinkedHashSet<>(Arrays.asList(
             "Jump to a section", "Reels in the feed", "Reels that play by themselves", "The Reels tab",
             "Everything except Marketplace",
-            "Tab to open on", "Words to hide", "Words that keep a post", "Comment order", "Playback quality", "Font file", "Download quality", "Save to", "Save folder",
-            "Video file name", "When you tap Download", "App to send to", "Supported links",
+            "Tab to open on", "Feeds opens on", "Words to hide", "Words that keep a post", "Comment order", "Playback quality", "Font file", "Download quality", "Save to", "Save folder",
+            "Video file name", "When you tap Download", "App to send to", "Supported links", "Meta App Manager",
             "Export settings", "Import settings",
             "Export diagnostic report", "Source code and issues", "Licenses"));
 
@@ -78,6 +81,13 @@ public class RowChevronTest {
     @Before
     public void everyPatchIn() {
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        // Meta App Manager on the phone puts its row under Supported links, which opens its page.
+        PackageInfo appManager = new PackageInfo();
+        appManager.packageName = SupportedLinks.APP_MANAGER;
+        appManager.applicationInfo = new ApplicationInfo();
+        appManager.applicationInfo.packageName = SupportedLinks.APP_MANAGER;
+        appManager.applicationInfo.enabled = true;
+        shadowOf(RuntimeEnvironment.getApplication().getPackageManager()).installPackage(appManager);
     }
 
     @After

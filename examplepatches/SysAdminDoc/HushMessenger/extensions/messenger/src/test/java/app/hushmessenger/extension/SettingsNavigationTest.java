@@ -31,16 +31,16 @@ public class SettingsNavigationTest {
             View root = screen.get().getWindow().getDecorView();
             TextView count = root.findViewWithTag("search_status");
             root.findViewWithTag("category_chats").performClick();
-            assertEquals("9 of 28 installed controls", count.getText().toString());
+            assertEquals("9 of 29 installed controls", count.getText().toString());
             assertEquals(View.GONE, ((View) root.findViewWithTag("people").getParent()).getVisibility());
             ((EditText) root.findViewWithTag("find_control")).setText("People You");
             assertEquals(View.VISIBLE, root.findViewWithTag("empty_state").getVisibility());
             root.findViewWithTag("clear_filters").performClick();
-            assertEquals("28 of 28 installed controls", count.getText().toString());
+            assertEquals("29 of 29 installed controls", count.getText().toString());
             assertEquals(View.GONE, root.findViewWithTag("empty_state").getVisibility());
             assertTrue(root.findViewWithTag("category_all").isSelected());
             root.findViewWithTag("category_more").performClick();
-            assertEquals("12 of 28 installed controls", count.getText().toString());
+            assertEquals("13 of 29 installed controls", count.getText().toString());
             assertEquals(View.VISIBLE, ((View) root.findViewWithTag("facebook").getParent()).getVisibility());
         }
     }
@@ -95,7 +95,7 @@ public class SettingsNavigationTest {
             root.findViewWithTag("tab_controls").performClick();
             assertEquals("People You", ((EditText) root.findViewWithTag("find_control")).getText().toString());
             assertTrue(root.findViewWithTag("category_inbox").isSelected());
-            assertEquals("1 of 28 installed controls", ((TextView) root.findViewWithTag("search_status")).getText().toString());
+            assertEquals("1 of 29 installed controls", ((TextView) root.findViewWithTag("search_status")).getText().toString());
             assertTrue(((Switch) root.findViewWithTag("people")).isChecked());
             assertTrue(Settings.enabled("people"));
         }

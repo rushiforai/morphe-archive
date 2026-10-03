@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googlePhoneSilenceAnnouncementPatch = bytecodePatch(
     name = "Silence Call Recording Warning - Phone by Google (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Mutes the audible 'This call is now being recorded' audio announcement tone when starting and stopping call recording.",
+    description = "⚠️ [En cours de développement / Non testé] Mutes call recording announcement in Google Phone. NOTE: Requires ROOT + Core Patch to install over pre-installed system dialer.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_PHONE)
 

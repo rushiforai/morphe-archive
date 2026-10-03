@@ -486,7 +486,8 @@ class OwnFontHookTest {
                 return-object v0
             """,
         )
-        assertEquals(listOf(true, true, false, false), listOf(0, 4, 6, 8).map(method::onlyCompared))
+        // No static call here, so what the calls are doesn't matter.
+        assertEquals(listOf(true, true, false, false), listOf(0, 4, 6, 8).map { method.onlyCompared(it) { false } })
         val context = PatchContexts.of(listOf(robotoClass(type, method)))
         assertEquals("the drawn SANS_SERIF and DEFAULT", 2, context.hookDefaultTypefaces())
         val body = context.mutableClassDefBy(type).methods.single().implementation!!.instructions.toList()
@@ -496,11 +497,38 @@ class OwnFontHookTest {
             body.mapNotNull(::reference).filter { it.startsWith(OWN_FONT) })
     }
 
+    private val OBJECT_TYPE = "Ljava/lang/Object;"
+
+    /** Kotlin's areEqual as R8 leaves it: either side null, or equals. */
+    private val areEqualBody = """
+        if-nez p0, :first
+        if-nez p1, :differ
+        const/4 v0, 0x1
+        return v0
+        :differ
+        const/4 v0, 0x0
+        return v0
+        :first
+        invoke-virtual { p0, p1 }, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
+        move-result v0
+        return v0
+    """
+
+    private fun twoObjects(type: String, body: String, registers: Int = 3, static: Boolean = true, name: String = "A00") = MutableMethod(
+        ImmutableMethod(
+            type, name, listOf(OBJECT_TYPE, OBJECT_TYPE).map { ImmutableMethodParameter(it, null, null) }, "Z",
+            AccessFlags.PUBLIC.value or (if (static) AccessFlags.STATIC.value else 0), null, null,
+            ImmutableMethodImplementation(registers, emptyList(), null, null),
+        ),
+    ).apply { addInstructionsWithLabels(0, body.trimIndent()) }
+
     /**
      * Kotlin's areEqual, a static call on two objects answering a boolean under whatever name R8
-     * gave it, is a check too: the post text asks it whether its typeface is Typeface.DEFAULT. A
-     * static call taking a typeface along with something else isn't one, so a read handed to it is
-     * sent.
+     * gave it, is a check too: the post text asks it whether its typeface is Typeface.DEFAULT, and
+     * so is Java's Objects.equals. What the called method does decides it, not its shape: one that
+     * keeps or hands on what it's given isn't a check, and nor is one this build doesn't hold, so a
+     * read handed to either is sent. So is one a static call taking a typeface along with something
+     * else is handed.
      */
     @Test
     fun `a default read only handed to Kotlin's areEqual stays Android's`() {
@@ -515,16 +543,96 @@ class OwnFontHookTest {
                 sget-object v0, $TYPEFACE->DEFAULT:$TYPEFACE
                 invoke-static { v0, p0 }, LX/GMb;->A0V(${TYPEFACE}Ljava/lang/Object;)Z
                 move-result v1
+                sget-object v0, $TYPEFACE->DEFAULT:$TYPEFACE
+                invoke-static { v0, p0 }, LX/0bM;->A00(Ljava/lang/Object;Ljava/lang/Object;)Z
+                move-result v1
+                sget-object v0, $TYPEFACE->DEFAULT:$TYPEFACE
+                invoke-static { v0, p0 }, Ljava/util/Objects;->equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+                move-result v1
+                sget-object v0, $TYPEFACE->DEFAULT:$TYPEFACE
+                invoke-static { v0, p0 }, LX/0bN;->A00(Ljava/lang/Object;Ljava/lang/Object;)Z
+                move-result v1
                 :other
                 return-object p0
             """,
         )
-        assertEquals(listOf(true, false), listOf(0, 4).map(method::onlyCompared))
-        val context = PatchContexts.of(listOf(robotoClass(type, method)))
-        assertEquals("the read handed to the builder", 1, context.hookDefaultTypefaces())
+        val equality = robotoClass("LX/0bL;", twoObjects("LX/0bL;", areEqualBody, name = "areEqual"))
+        // Keeps the typeface it's handed, and answers whether it had one.
+        val keeper = robotoClass("LX/0bM;", twoObjects("LX/0bM;", """
+            sput-object p0, LX/0bM;->kept:Ljava/lang/Object;
+            const/4 v0, 0x1
+            return v0
+        """))
+        val context = PatchContexts.of(listOf(robotoClass(type, method), equality, keeper))
+        val isEquality = context.equalityChecks()
+        assertEquals(listOf(true, false, false, true, false), listOf(0, 4, 7, 10, 13).map { method.onlyCompared(it, isEquality) })
+        assertEquals("the reads handed to the builder, the keeper and a method this build hasn't got", 3, context.hookDefaultTypefaces())
         val body = context.mutableClassDefBy(type).methods.single().implementation!!.instructions.toList()
-        assertEquals(listOf("$TYPEFACE->DEFAULT:$TYPEFACE"), body.mapNotNull(::defaultRead))
+        assertEquals(listOf("$TYPEFACE->DEFAULT:$TYPEFACE", "$TYPEFACE->DEFAULT:$TYPEFACE"), body.mapNotNull(::defaultRead))
         assertEquals("the check's read is still first", "$TYPEFACE->DEFAULT:$TYPEFACE", defaultRead(body[0]))
+        val objectsEquals = body.indexOfFirst { reference(it) == OBJECTS_EQUALS }
+        assertEquals("Objects.equals still compares Android's", "$TYPEFACE->DEFAULT:$TYPEFACE", defaultRead(body[objectsEquals - 1]))
+    }
+
+    /** An equality check by its code: what Kotlin's areEqual does, and nothing a method could also do with what it's handed. */
+    @Test
+    fun `only a method that does nothing but compare its two objects is an equality check`() {
+        val type = "LX/0bL;"
+        assertTrue("Kotlin's areEqual", isEqualityCheck(twoObjects(type, areEqualBody)))
+        assertTrue("an identity check", isEqualityCheck(twoObjects(type, """
+            if-eq p0, p1, :same
+            const/4 v0, 0x0
+            return v0
+            :same
+            const/4 v0, 0x1
+            return v0
+        """)))
+        assertTrue("equals in the range form", isEqualityCheck(twoObjects(type, """
+            invoke-virtual/range { p0 .. p1 }, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
+            move-result v0
+            return v0
+        """)))
+        val not = mapOf(
+            "an instance method" to twoObjects(type, areEqualBody, static = false),
+            "a field it reads" to twoObjects(type, """
+                sget-object v0, LX/0bL;->last:Ljava/lang/Object;
+                if-eq p0, v0, :same
+                const/4 v0, 0x0
+                return v0
+                :same
+                const/4 v0, 0x1
+                return v0
+            """),
+            "another call" to twoObjects(type, """
+                invoke-static { p0, p1 }, LX/0bM;->A00(Ljava/lang/Object;Ljava/lang/Object;)Z
+                move-result v0
+                return v0
+            """),
+            "equals on something else" to twoObjects(type, """
+                const/4 v0, 0x0
+                invoke-virtual { p0, v0 }, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
+                move-result v0
+                return v0
+            """),
+            "a compare of one with itself" to twoObjects(type, """
+                invoke-virtual { p0, p0 }, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
+                move-result v0
+                return v0
+            """),
+            "no compare at all" to twoObjects(type, """
+                const/4 v0, 0x1
+                return v0
+            """),
+            "a value that isn't a boolean" to twoObjects(type, """
+                if-eq p0, p1, :same
+                const/4 v0, 0x2
+                return v0
+                :same
+                const/4 v0, 0x1
+                return v0
+            """),
+        )
+        for ((what, method) in not) assertTrue(what, !isEqualityCheck(method))
     }
 
     /**

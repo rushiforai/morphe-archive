@@ -34,12 +34,38 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_ADS =
             new BooleanSetting("hushthreads_hide_ads", TRUE);
 
+    /** Verified server cards suggesting accounts to follow, leaving ordinary posts visible. */
+    public static final BooleanSetting HIDE_SUGGESTED_USERS =
+            new BooleanSetting("hushthreads_hide_suggested_users", TRUE);
+
+    /** Keep the current feed when returning to Threads within ten minutes. */
+    public static final BooleanSetting BLOCK_RETURN_REFRESH =
+            new BooleanSetting("hushthreads_block_return_refresh", TRUE);
+
+    /** With the switch above, keep the feed however long Threads stayed in the background. */
+    public static final BooleanSetting RETURN_REFRESH_NO_LIMIT =
+            new BooleanSetting("hushthreads_return_refresh_no_limit", FALSE);
+
+    /**
+     * Feed videos wait for a tap: the video a feed post would start as you scroll stays on its
+     * cover frame, and a tap opens it full screen, where it plays.
+     */
+    public static final BooleanSetting DISABLE_VIDEO_AUTOPLAY =
+            new BooleanSetting("hushthreads_disable_video_autoplay", TRUE);
+
     /**
      * The tracking keys come off the post links Threads hands out when you copy or share one
      * (xmt, slof, igsh and the rest), with the rest of the link left as the server wrote it.
      */
     public static final BooleanSetting SANITIZE_SHARING_LINKS =
             new BooleanSetting("hushthreads_sanitize_sharing_links", TRUE);
+
+    /**
+     * A web link you tap opens in the phone's browser, or the app Android picks for it, instead of
+     * Threads' own browser, and without Threads' click tracker. Meta's own sites stay in Threads.
+     */
+    public static final BooleanSetting OPEN_LINKS_EXTERNALLY =
+            new BooleanSetting("hushthreads_open_links_externally", TRUE);
 
     /**
      * Threads' analytics uploads go to an address that answers nothing: the Pigeon event logger,

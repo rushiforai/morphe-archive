@@ -42,6 +42,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -55,6 +56,9 @@ private const val VIDEO_DOWNLOAD = "$EXTENSION_PACKAGE/download/VideoDownload;"
 internal const val OFFER_VIDEO = "$VIDEO_DOWNLOAD->offer(Ljava/lang/Object;Ljava/util/ArrayList;)V"
 internal const val SAVE_VIDEO = "$VIDEO_DOWNLOAD->save(Ljava/lang/Object;Ljava/lang/Object;Landroid/app/Activity;)Z"
 internal const val ALLOW_VIDEO = "$VIDEO_DOWNLOAD->allow(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;"
+internal const val OFFER_ALL = "$VIDEO_DOWNLOAD->offerAll(Ljava/lang/Object;Ljava/util/ArrayList;)V"
+internal const val SAVE_ALL = "$VIDEO_DOWNLOAD->saveAll(Ljava/lang/Object;Landroid/app/Activity;)V"
+internal const val ALL_OPTION = "$VIDEO_DOWNLOAD->allOption()Ljava/lang/Object;"
 
 /** The options the short feed menu's list of kept options reads first and last: "Why you're seeing this" and Report. */
 internal const val WHY_OPTION = "$OPTION->WHY_AM_I_SEEING_THIS:$OPTION"
@@ -179,6 +183,31 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
             if (builders.isEmpty()) "none" else builders.joinToString { "${it.definingClass}->${it.name}" },
     )
     val others = builder.othersRow(eligible)
+    val batchAt = builder.batchRow(others)
+    val option = classDefBy(OPTION)
+    val constructor = option.methods.singleOrNull {
+        it.name == "<init>" && AccessFlags.PUBLIC.isSet(it.accessFlags) && it.returnType == "V" &&
+            it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/String;", "I", "I")
+    } ?: throw PatchException("$PATCH: $OPTION has no public (String, int, int) constructor")
+    val icon = option.methods.singleOrNull {
+        it.name == "getIconDrawable" && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "I" && it.parameterTypes.isEmpty()
+    } ?: throw PatchException("$PATCH: $OPTION has no public icon getter")
+    val initialization = constructor.code()
+    val readIcon = icon.code()
+    val self = (constructor.implementation?.registerCount ?: 0) - 4
+    val getterSelf = (icon.implementation?.registerCount ?: 0) - 1
+    if (!AccessFlags.ENUM.isSet(option.accessFlags) || option.superclass != "Ljava/lang/Enum;" ||
+        AccessFlags.STATIC.isSet(constructor.accessFlags) || self < 0 || getterSelf < 0 ||
+        initialization.map { it.opcode } != listOf(Opcode.INVOKE_DIRECT, Opcode.IPUT, Opcode.RETURN_VOID) ||
+        initialization.first().referenceText() != "Ljava/lang/Enum;-><init>(Ljava/lang/String;I)V" ||
+        initialization.first().argumentRegisters() != listOf(self, self + 1, self + 2) ||
+        readIcon.map { it.opcode } != listOf(Opcode.IGET, Opcode.RETURN) ||
+        initialization[1].referenceText() != readIcon[0].referenceText() ||
+        (initialization[1] as TwoRegisterInstruction).let { it.registerA != self + 3 || it.registerB != self } ||
+        (readIcon[0] as TwoRegisterInstruction).let { it.registerB != getterSelf ||
+            it.registerA != (readIcon[1] as OneRegisterInstruction).registerA }
+    ) throw PatchException("$PATCH: $OPTION constructor and icon getter differ from the native menu option")
     val handlers = helper.methods.filter {
         !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.parameterTypes.map(Any::toString) == listOf(OPTION)
     }
@@ -212,6 +241,14 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         it.name == ADD_DOWNLOAD_ROW && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
             it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;", ARRAY_LIST)
     } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no static $ADD_DOWNLOAD_ROW(Object, ArrayList)")
+    val allRowStub = bridges.methods.singleOrNull {
+        it.name == "addSaveAllRow" && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
+            it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/Object;", ARRAY_LIST, "Ljava/lang/Object;", CHAR_SEQUENCE)
+    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no Save all row stub")
+    val optionStub = bridges.methods.singleOrNull {
+        it.name == "saveAllOption" && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.returnType == "Ljava/lang/Object;" && it.parameterTypes.isEmpty()
+    } ?: throw PatchException("$PATCH: $INSTAGRAM_MEDIA has no Save all option stub")
     val shortList = shortLists.singleOrNull() ?: throw PatchException(
         "$PATCH: expected one list of the options the short feed menu keeps, a static method taking a flag that reads " +
             "$WHY_OPTION and $REPORT_OPTION, found " +
@@ -246,10 +283,23 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         others.at,
         "invoke-static { v${others.state}, v${others.rows} }, $OFFER_VIDEO",
     )
+    mutable(builder).addInstructions(batchAt, "invoke-static { v${others.state}, v${others.rows} }, $OFFER_ALL")
 
     menu.addInstructionsWithLabels(
         0,
         """
+            move-object/from16 v0, p1
+            invoke-static {}, $ALL_OPTION
+            move-result-object v1
+            if-eqz v1, :current
+            if-ne v0, v1, :current
+            move-object/from16 v0, p0
+            invoke-static { v0 }, $type->${media.name}($type)$MEDIA
+            move-result-object v1
+            iget-object v2, v0, $type->${activity.name}:$FRAGMENT_ACTIVITY
+            invoke-static { v1, v2 }, $SAVE_ALL
+            return-void
+            :current
             move-object/from16 v0, p1
             sget-object v1, $DOWNLOAD
             if-ne v0, v1, :handle
@@ -301,6 +351,26 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
     )
     bridges.methods.remove(rowStub)
     bridges.methods.add(downloadRow(rowStub, others))
+    bridges.methods.remove(allRowStub)
+    bridges.methods.add(downloadRow(allRowStub, others, all = true))
+    bridges.methods.remove(optionStub)
+    bridges.methods.add(ImmutableMethod(
+        optionStub.definingClass, optionStub.name, optionStub.parameters, optionStub.returnType,
+        optionStub.accessFlags, optionStub.annotations, optionStub.hiddenApiRestrictions,
+        ImmutableMethodImplementation(4, emptyList(), null, null),
+    ).toMutable().apply {
+        addInstructions(0, """
+            sget-object v0, $DOWNLOAD
+            invoke-virtual { v0 }, Ljava/lang/Enum;->ordinal()I
+            move-result v2
+            invoke-virtual { v0 }, $OPTION->${icon.name}()I
+            move-result v3
+            const-string v1, "HUSHGRAM_SAVE_ALL"
+            new-instance v0, $OPTION
+            invoke-direct { v0, v1, v2, v3 }, $OPTION-><init>(Ljava/lang/String;II)V
+            return-object v0
+        """.trimIndent())
+    })
     writeBridges()
     writeImageBridges()
 }
@@ -310,16 +380,17 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
  * each of the adder's arguments is loaded into the register of its position, so one range call
  * passes them all, with the label read in a spare register after them. The flag the adder takes
  * last is false, as the builder passes it for your own posts.
+ * The batch bridge instead takes its separate option and localized title from the extension.
  */
-private fun downloadRow(stub: Method, found: OthersRow): MutableMethod {
+private fun downloadRow(stub: Method, found: OthersRow, all: Boolean = false): MutableMethod {
     val parameters = found.adder.parameterTypes.map(Any::toString)
     val spare = parameters.size
     val loads = parameters.mapIndexed { index, type ->
         when (type) {
             found.kind.type -> "sget-object v$index, ${found.kind}"
-            OPTION -> "sget-object v$index, $DOWNLOAD"
+            OPTION -> if (all) "move-object v$index, p2" else "sget-object v$index, $DOWNLOAD"
             found.stateType -> "move-object v$index, p0"
-            CHAR_SEQUENCE ->
+            CHAR_SEQUENCE -> if (all) "move-object v$index, p3" else
                 """
                     iget-object v$index, p0, ${found.context}
                     invoke-virtual { v$index }, $GET_RESOURCES
@@ -334,14 +405,31 @@ private fun downloadRow(stub: Method, found: OthersRow): MutableMethod {
     }
     return ImmutableMethod(
         stub.definingClass, stub.name, stub.parameters, stub.returnType, stub.accessFlags, stub.annotations,
-        stub.hiddenApiRestrictions, ImmutableMethodImplementation(spare + 3, emptyList(), null, null),
+        stub.hiddenApiRestrictions, ImmutableMethodImplementation(spare + if (all) 5 else 3, emptyList(), null, null),
     ).toMutable().apply {
         addInstructions(
             0,
-            "check-cast p0, ${found.stateType}\n" + loads.joinToString("\n") +
+            "check-cast p0, ${found.stateType}\n" + (if (all) "check-cast p2, $OPTION\n" else "") + loads.joinToString("\n") +
                 "\ninvoke-static/range { v0 .. v${spare - 1} }, ${found.adder}\nreturn-void",
         )
     }
+}
+
+/** Both the fresh row list and captured feed state are valid before the split by ownership. */
+internal fun Method.batchRow(found: OthersRow): Int {
+    val code = code()
+    val cast = code.indices.singleOrNull {
+        code[it].opcode == Opcode.CHECK_CAST && code[it].referenceText() == found.stateType &&
+            (code[it] as OneRegisterInstruction).registerA == found.state
+    } ?: throw PatchException("$PATCH: the feed builder has no unique initial state cast")
+    val list = (cast - 1 downTo 0).firstOrNull { code[it].writes(found.rows) }
+        ?: throw PatchException("$PATCH: the feed builder has no initial row list")
+    if (code[list].opcode != Opcode.NEW_INSTANCE || code[list].referenceText() != ARRAY_LIST ||
+        (list + 1 until cast).none { code[it].referenceText() == "$ARRAY_LIST-><init>()V" &&
+            code[it].argumentRegisters() == listOf(found.rows) } || cast >= found.at ||
+        (list + 1..cast).any { code[it] is OffsetInstruction }
+    ) throw PatchException("$PATCH: the row list isn't initialized before the feed builder's state cast")
+    return cast + 1
 }
 
 /**

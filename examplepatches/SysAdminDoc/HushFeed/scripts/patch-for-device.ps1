@@ -14,6 +14,8 @@
     an unsigned APK, then SDK apksigner signs it without copying or converting the key. Passwords
     travel through temporary process environment references and never through argument files.
     The key, output and installed APK certificates are checked before an in-place installation.
+    Keep the key outside -OutDir. Keys and their copies or aliases are protected before output
+    cleanup, and relative paths resolve from PowerShell's working folder.
 
     The vendor APK defaults to the build of the target version in the folder
     HUSHFEED_FIXTURE_DIR names. The desktop CLI is found through -DesktopJar,
@@ -93,18 +95,22 @@ foreach ($excluded in $Exclude) {
 if ($Exclude.Count -gt 0) { Write-Host "[device] leaving out: $($Exclude -join ', ')" }
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $names)
 
-New-Item -ItemType Directory -Force $OutDir | Out-Null
+$OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
 $out = Join-Path $OutDir "hushfeed-$version-signed.apk"
 $unsigned = Join-Path $OutDir "hushfeed-$version-unsigned.apk"
 $temp = Join-Path $OutDir 'tmp'
 $result = Join-Path $OutDir 'result.json'
-if (Test-Path $out) { Remove-Item $out -Force }
-if (Test-Path -LiteralPath $unsigned) { Remove-Item -LiteralPath $unsigned -Force }
 $argumentFile = Join-Path $OutDir 'morphe-patch.args'
 $signingSession = $null
+$outputInitialized = $false
 try {
 $signingSession = New-ApkSigningSession -BoundParameters $PSBoundParameters -Root $root -Sdk $Sdk `
-    -Java $Java -Keystore $Keystore -KeyAlias $KeyAlias -KeystoreType $KeystoreType
+    -Java $Java -Keystore $Keystore -KeyAlias $KeyAlias -KeystoreType $KeystoreType -OutputDirectory $OutDir
+
+New-Item -ItemType Directory -Force $OutDir | Out-Null
+$outputInitialized = $true
+if (Test-Path -LiteralPath $out) { Remove-Item -LiteralPath $out -Force }
+if (Test-Path -LiteralPath $unsigned) { Remove-Item -LiteralPath $unsigned -Force }
 
 Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
 $enable = @()
@@ -173,7 +179,10 @@ try {
 if ($installStatus -ne 0) { throw "adb install failed on $Serial. The output above says why." }
 & $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
 } finally {
-    Close-ApkSigningSession -Session $signingSession
-    Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
-    if (Test-Path -LiteralPath $unsigned) { Remove-Item -LiteralPath $unsigned -Force }
+    try {
+        if ($outputInitialized) {
+            Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
+            if (Test-Path -LiteralPath $unsigned) { Remove-Item -LiteralPath $unsigned -Force }
+        }
+    } finally { Close-ApkSigningSession -Session $signingSession }
 }

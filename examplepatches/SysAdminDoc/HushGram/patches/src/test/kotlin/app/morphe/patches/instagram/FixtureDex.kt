@@ -57,6 +57,22 @@ internal object FixtureDex {
     }
 
     /**
+     * The classes of [types] as the bundle's dex files hand them out, not copied. Like the patcher
+     * reading an APK, each read of a method's code makes new instruction objects, so a patch that
+     * looks an instruction up again by the object rather than by its position fails here as it would
+     * on a phone's APK, where the copies [classes] makes keep one object per instruction.
+     */
+    fun classesAsRead(bundle: File, types: Set<String>): Map<String, ClassDef> {
+        val found = mutableMapOf<String, ClassDef>()
+        forEachDex(bundle) { dex ->
+            for (classDef in dex.classes) {
+                if (classDef.type in types && classDef.type !in found) found[classDef.type] = classDef
+            }
+        }
+        return found
+    }
+
+    /**
      * Every method that [wanted] picks, in the dex files [dexFilter] lets through. The filter is how
      * a whole-APK search stays quick: a call needs its target in the dex's method section, and a
      * name needs to be in its string section, so a dex without them can be skipped unread.

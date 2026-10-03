@@ -17,11 +17,14 @@ class VerifyThemeDex {
         return instruction instanceof ReferenceInstruction ref ? ref.getReference().toString() : "";
     }
 
-    /** Every stock theme constant in a palette initializer must be remapped in place, right after it is loaded. */
+    /**
+     * Every stock theme constant in a palette initializer must be remapped in place, right after it is
+     * loaded. R8 may materialize one constant at several sites, so each site is counted on its own.
+     */
     static void verify(ClassDef palette, boolean enabled) {
         require(palette != null, "Missing Encore palette");
-        Set<Long> constants = new HashSet<>();
-        Set<Long> hooked = new HashSet<>();
+        int sites = 0;
+        int hooks = 0;
         for (var method : palette.getMethods()) {
             if (method.getImplementation() == null) continue;
             var code = new ArrayList<Instruction>();
@@ -29,9 +32,14 @@ class VerifyThemeDex {
             for (int i = 0; i < code.size(); i++) {
                 if (code.get(i).getOpcode() == Opcode.CONST_WIDE && method.getName().equals("<clinit>")
                         && COLORS.contains(((WideLiteralInstruction) code.get(i)).getWideLiteral())) {
-                    require(constants.add(((WideLiteralInstruction) code.get(i)).getWideLiteral()), "Repeated palette constant");
+                    sites++;
+                    require(!enabled || (i + 1 < code.size() && reference(code.get(i + 1)).equals(MAP)),
+                            "Palette constant 0x"
+                                + Long.toHexString(((WideLiteralInstruction) code.get(i)).getWideLiteral())
+                                + " is not remapped where it is loaded");
                 }
                 if (!reference(code.get(i)).equals(MAP)) continue;
+                hooks++;
                 require(enabled && method.getName().equals("<clinit>") && i >= 1 && i + 1 < code.size()
                         && code.get(i - 1).getOpcode() == Opcode.CONST_WIDE
                         && code.get(i).getOpcode() == Opcode.INVOKE_STATIC_RANGE
@@ -42,10 +50,10 @@ class VerifyThemeDex {
                         && ((OneRegisterInstruction) code.get(i + 1)).getRegisterA() == register,
                         "Palette hook must remap its own constant");
                 long color = ((WideLiteralInstruction) code.get(i - 1)).getWideLiteral();
-                require(COLORS.contains(color) && hooked.add(color), "Unexpected palette constant 0x" + Long.toHexString(color));
+                require(COLORS.contains(color), "Unexpected palette constant 0x" + Long.toHexString(color));
             }
         }
-        require(enabled ? !constants.isEmpty() && hooked.equals(constants) : hooked.isEmpty(),
+        require(enabled ? sites > 0 && hooks == sites : hooks == 0,
                 "Missing or unexpected palette hooks in " + palette.getType());
     }
 

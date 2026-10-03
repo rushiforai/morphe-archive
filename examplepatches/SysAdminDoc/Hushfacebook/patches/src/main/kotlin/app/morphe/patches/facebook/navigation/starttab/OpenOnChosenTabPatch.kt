@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.facebook.feed.feedsheader.FEED_FILTERS_FRAGMENT
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.settings.MAIN_TAB_ACTIVITY
 import app.morphe.patches.facebook.misc.settings.declaredInHierarchy
@@ -34,6 +35,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
  * sit in Facebook's start-up: where it hands the main screen a sanitized copy of its intent, where
  * the tab bar decides whether to use the start tab it was given, and where the main screen checks
  * it keeps that tab. Each reads and writes only registers Facebook's own code already uses there.
+ * Three more go in the Feeds tab, so a start sent there can open on a chosen filter: see
+ * FeedsSubtabAnchors.kt.
  *
  * Off in the default selection: it changes where Facebook opens, which is a choice to make. Picked,
  * its switch still starts off and the tab starts as Marketplace.
@@ -84,7 +87,17 @@ val openOnChosenTabPatch = bytecodePatch(
                     "intent's \"$TARGET_TAB_ID\" asked for, found ${keeps.size}.",
             )
         }
+        // The Feeds tab's filter (#56), through the handler the Feeds tab already has for one.
+        val feeds = classDefByOrNull(FEED_FILTERS_FRAGMENT)
+            ?: throw PatchException("$PATCH: this build has no $FEED_FILTERS_FRAGMENT.")
+        feedsFragmentRefusal(feeds)?.let { throw PatchException("$PATCH: $it.") }
 
+        // First, since it can still refuse the build before anything else changes.
+        val fragment = mutableClassDefBy(FEED_FILTERS_FRAGMENT)
+        val handler = fragment.methods.single { it.name == FEEDS_HANDLER }
+        handler.askExtensionForFilter(feedsHandlerAnchors(handler)!!)
+        fragment.methods.single { it.name == "onResume" && it.parameterTypes.isEmpty() && it.returnType == "V" }
+            .tellExtensionAtResumeReturns()
         mutable(handOver.first).handSanitizedIntentToExtension(handOver.second)
         mutable(gate.first).askExtensionAfterGate(gate.second)
         mutable(keeps.single()).askExtensionAtReturns()

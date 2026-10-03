@@ -10,6 +10,10 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.colorOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.tiktok.misc.diagnostics.BUILD_DETAILS_ASSET
+import app.morphe.patches.tiktok.misc.diagnostics.BuildChoice
+import app.morphe.patches.tiktok.misc.diagnostics.BuildDetails
+import app.morphe.patches.tiktok.misc.diagnostics.buildChoicePatch
 import java.io.File
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -22,6 +26,7 @@ val amoledThemePatch = resourcePatch(
 ) {
     category("Performance")
     compatibleWith(*AppCompatibilities.tiktok())
+    dependsOn(buildChoicePatch(BuildChoice.AMOLED))
     val background by colorOption(
         key = "backgroundColor",
         default = "#000000",
@@ -77,6 +82,7 @@ val amoledThemePatch = resourcePatch(
         }
         if (found != backgrounds) throw PatchException("Dark background palette is incomplete: $found")
         checkSheetStyleItems(styleItemsFound, packageMetadata.versionName, declaredVersions())
+        BuildDetails.amoled(get(BUILD_DETAILS_ASSET), color)
     }
 }
 

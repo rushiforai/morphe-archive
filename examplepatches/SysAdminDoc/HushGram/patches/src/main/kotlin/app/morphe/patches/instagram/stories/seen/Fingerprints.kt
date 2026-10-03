@@ -22,3 +22,22 @@ internal object StorySeenRequestFingerprint : Fingerprint(
 internal object PendingStorySeenStoreFingerprint : Fingerprint(
     strings = listOf("pending_reel_seen_states_", "PendingReelSeenStateStore.deserializeFromDisk"),
 )
+
+/**
+ * The story viewer's header binder, the one method holding the trace section Instagram names after
+ * it. It's handed the account signed in, the story on screen and the story's view holder.
+ */
+internal object StoryHeaderBinderFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("ReelViewerItemBinder.bindHeaderViews"),
+)
+
+/**
+ * RecyclerView's ViewHolder constructor, the one method holding the message it throws for a null
+ * item view. Its class keeps the item view every holder hands it, the story viewer's included.
+ */
+internal object ViewHolderFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;"),
+    strings = listOf("itemView may not be null"),
+)

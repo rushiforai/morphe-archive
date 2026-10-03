@@ -25,9 +25,17 @@ no-call Landroid/content/pm/ShortcutManager;->updateShortcuts(Ljava/util/List;)Z
 no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outside Lapp/morphe/extension/
 
 # These compare the final host operations and branch graph against the stock fixture. A selected
-# feature's status must agree with the CLI selection when supplied; omitted families are skipped.
-# Analytics is checked per recorded address bit, including every default-address answer.
+# feature's status must agree with the CLI selection when supplied. Omitted families must retain
+# their false accessors and original targets, with no family-specific host calls or raw recorder.
+# Original declaration metadata is preserved. Suggested-card parsed slots and raw type constructor
+# inputs must preserve their exact parsed value or explicit null on every path. Raw constructor
+# input must reach its sole field writer on every path. JSON comparison keys and the wrapper map
+# key must preserve their exact source. A wrapper map key may use an explicit null only on its
+# original Raw-absent branch. Each typed reader is controlled by its expected JSON key's true
+# edge and preserves the original unsafe-parser JSON input. Analytics checks each address bit.
 threads-feature hideAds
+threads-feature hideSuggestedUsers
 threads-feature sanitizeSharingLinks
+threads-feature openLinksExternally
 threads-feature disableAnalytics
 threads-feature restoreTrust

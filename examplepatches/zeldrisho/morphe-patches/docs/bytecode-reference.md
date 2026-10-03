@@ -113,7 +113,7 @@ builds that retain `@DebugMetadata(c="com.foo.Bar$…")` / `@Metadata(d2={…Lco
 strings can be mapped with `scripts/recover_kotlin_names.py` (see
 [recover Kotlin names](reverse-engineering.md#recover-kotlin-names-for-obfuscated-kotlin-apps)).
 Coverage is best-effort and lower when metadata is stripped or encrypted.
-`jadx --deobf` only invents synthetic names; metadata recovery restores the
+Synthetic deobfuscation only invents names; metadata recovery restores the
 developer-written ones when the metadata survived.
 
 ## Fingerprint debugging

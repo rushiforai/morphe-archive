@@ -62,12 +62,15 @@ function Invoke-AndroidVerifierTally {
                 -Result $setup)
         }
 
-        $clear = Invoke-HushfeedAdbCommand -Adb $Adb -Invoker $AdbInvoker `
-            -Arguments @('-s', $Serial, 'logcat', '-c')
-        if ($clear.ExitCode -ne 0) {
+        # The phones are shared, so the log buffer is never cleared. A unique marker line starts
+        # this run's part of it, and only the lines after it are read.
+        $marker = "hushfeed-verify-$Label-$([guid]::NewGuid().ToString('N'))"
+        $mark = Invoke-HushfeedAdbCommand -Adb $Adb -Invoker $AdbInvoker `
+            -Arguments @('-s', $Serial, 'shell', "log -t HushfeedVerify $marker")
+        if ($mark.ExitCode -ne 0) {
             throw (Format-HushfeedAdbFailure `
-                -Message "Could not clear logcat on $Serial before verifying $Label" `
-                -Result $clear)
+                -Message "Could not mark logcat on $Serial before verifying $Label" `
+                -Result $mark)
         }
 
         $dexCommand = "dex2oat64 --dex-file=$remote --oat-file=$directory/out.oat " +
@@ -95,10 +98,19 @@ function Invoke-AndroidVerifierTally {
                 -Message "Could not read logcat on $Serial after verifying $Label" `
                 -Result $logResult)
         }
+        $logLines = @($logResult.Output)
+        $markedAt = -1
+        for ($i = $logLines.Count - 1; $i -ge 0; $i--) {
+            if ("$($logLines[$i])".Contains($marker)) { $markedAt = $i; break }
+        }
+        if ($markedAt -lt 0) {
+            throw "The log on $Serial no longer holds the start of the $Label run, so its verifier messages can't be counted. Retry when the phone is quieter."
+        }
+        $runLines = @($logLines | Select-Object -Skip ($markedAt + 1))
 
         # The method in the verifier line is its identity. Timestamps and process IDs differ
         # between runs and are stripped. Counts remain significant.
-        $messages = @($logResult.Output |
+        $messages = @($runLines |
             Where-Object { $_ -match 'dex2oat' } |
             Where-Object { $_ -match '(failed lock verification|Verification error|Rejecting class|VerifyError)' } |
             ForEach-Object { ($_ -replace '^.*dex2oat[0-9]*:\s*', '').Trim() })

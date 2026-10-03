@@ -202,6 +202,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean forceDarkMode() {
+        return false;
+    }
+
     public static boolean postPrompts() {
         return false;
     }

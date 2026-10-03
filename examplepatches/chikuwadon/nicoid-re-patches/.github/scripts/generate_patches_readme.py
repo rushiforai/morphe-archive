@@ -89,7 +89,8 @@ def patches_table(patches):
             opts_cell = "<br>".join(f"• {t}" for t in parts)
         else:
             opts_cell = "なし"
-        desc = (p.get("description") or "").replace("\n", "<br>")
+        desc = ("nicoid向けのMorpheパッチ。現在のニコニコ動画の仕様に対応。ダークモードとAndroid 16に対応。その他、各種機能の改善・追加。"
+                if p["name"] == "nicoid Re" else p.get("description") or "").replace("\n", "<br>")
         rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
     return "\n".join(rows)
 
@@ -224,3 +225,5 @@ new_readme = re.sub(
 )
 readme_path.write_text(new_readme, encoding="utf-8")
 print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+
+

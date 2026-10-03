@@ -37,29 +37,31 @@ internal val settingsPatch = bytecodePatch {
 
     execute {
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/settings/9.1.80.2221.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/settings/9.1.88.2204.properties")!!.use(::load)
         }
         for (type in NativeSettingsAbi.TYPES) {
             val definition = classDefByOrNull(type)
                 ?: throw PatchException("Spotify settings ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify settings ABI changed: $type. Use the verified Spotify 9.1.80.2221 APK.")
+                throw PatchException("Spotify settings ABI changed: $type. Use the verified Spotify 9.1.88.2204 APK.")
             }
         }
 
-        val root = mutableClassDefBy("Lp/xlt;").methods.single { it.name == "create" }
+        val root = mutableClassDefBy("Lp/y3v;").methods.single { it.name == "create" }
         val rootInstructions = root.implementation!!.instructions
         val insertion = rootInstructions.indices.single { index ->
             val reference = (rootInstructions[index] as? ReferenceInstruction)?.reference
-            reference.toString() == "Lp/ion;->c:Ljava/lang/Object;" &&
-                (rootInstructions.getOrNull(index + 1) as? ReferenceInstruction)?.reference.toString() == "Lp/dpb;"
+            reference.toString() == "Lp/jto;->e:Ljava/lang/Object;" &&
+                (rootInstructions.getOrNull(index + 1) as? ReferenceInstruction)?.reference.toString() == "Lp/zhq;"
         }
-        // Snapshot proves v6 is the unfrozen list and v2 is still the root factory here.
-        root.addInstructions(insertion,
-            "invoke-static {v6, v2}, ${EXTENSION}nativebridge/SettingsBridge;->append(Ljava/util/List;Lp/ion;)V")
+        // Snapshot proves v5 is the unfrozen list and v0 is still the root factory here.
+        root.addInstructions(
+            insertion,
+            "invoke-static {v5, v0}, ${EXTENSION}nativebridge/SettingsBridge;->append(Ljava/util/List;Lp/jto;)V",
+        )
 
-        val analytics = mutableClassDefBy("Lp/c3g0;").methods.single {
-            it.name == "<init>" && it.parameterTypes == listOf("I", "Lp/ct71;", "I")
+        val analytics = mutableClassDefBy("Lp/jri0;").methods.single {
+            it.name == "<init>" && it.parameterTypes == listOf("I", "Lp/lwb1;", "B")
         }
         val instructions = analytics.implementation!!.instructions
         val marker = instructions.indexOfFirst {
@@ -67,21 +69,27 @@ internal val settingsPatch = bytecodePatch {
         }
         val switch = (marker + 1 until instructions.size).first { instructions[it].opcode == Opcode.PACKED_SWITCH }
         val sink = (switch + 1 until instructions.size).first {
-            (instructions[it] as? ReferenceInstruction)?.reference.toString() == "Lp/it71;->b:Ljava/lang/String;"
+            (instructions[it] as? ReferenceInstruction)?.reference.toString() == "Lp/rwb1;->b:Ljava/lang/String;"
         }
-        // v7's discriminator and metadata strings have been consumed. All native cases
+        // v13's discriminator and metadata strings have been consumed. All native cases
         // use v0 for their label, including ad_partners, so leave v0 intact on mismatch.
-        analytics.addInstructionsWithLabels(switch, """
-            const/4 v7, -0x1
-            if-ne v5, v7, :native_labels
+        analytics.addInstructionsWithLabels(
+            switch,
+            """
+            const/4 v13, -0x1
+            if-ne v11, v13, :native_labels
             const-string v0, "spicetify_settings"
             goto/16 :label_sink
-        """.trimIndent(), ExternalLabel("native_labels", analytics.getInstruction(switch)),
-            ExternalLabel("label_sink", analytics.getInstruction(sink)))
+            """.trimIndent(),
+            ExternalLabel("native_labels", analytics.getInstruction(switch)),
+            ExternalLabel("label_sink", analytics.getInstruction(sink)),
+        )
 
-        mutableClassDefBy("Lcom/spotify/music/SpotifyApplication;").methods.single { it.name == "onCreate" }
-            .addInstructions(0,
-                "invoke-static/range {p0 .. p0}, ${EXTENSION}PatchSettings;->initialize(Landroid/content/Context;)V")
+        mutableClassDefBy("Lp/qb61;").methods.single { it.name == "onCreate" }
+            .addInstructions(
+                0,
+                "invoke-static/range {p0 .. p0}, ${EXTENSION}PatchSettings;->initialize(Landroid/content/Context;)V",
+            )
     }
 }
 

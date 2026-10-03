@@ -406,6 +406,14 @@ function Get-GateWorktree {
     if (Test-Path -LiteralPath $properties -PathType Leaf) {
         Copy-Item -LiteralPath $properties -Destination (Join-Path $tree 'local.properties') -Force
     }
+    # docs/sources.md is local and ignored, so a clean copy of the commit lacks it. The ledger's
+    # suite holds the page to the ledger, so the gate checks the same page an in-place run would.
+    $sourcesPage = Join-Path $Root 'docs/sources.md'
+    if (Test-Path -LiteralPath $sourcesPage -PathType Leaf) {
+        $gateDocs = Join-Path $tree 'docs'
+        New-Item -ItemType Directory -Force -Path $gateDocs | Out-Null
+        Copy-Item -LiteralPath $sourcesPage -Destination (Join-Path $gateDocs 'sources.md') -Force
+    }
     $at = ([string](Invoke-HookGit @('-C', $tree, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim()
     if ($at -ne $Commit) { throw "The gate worktree $tree is at $at, not $Commit." }
     $left = @(Invoke-HookGit @('-C', $tree, 'status', '--porcelain'))

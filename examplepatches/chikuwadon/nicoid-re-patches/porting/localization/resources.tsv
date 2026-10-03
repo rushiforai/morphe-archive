@@ -1,0 +1,117 @@
+setting	Settings	設定
+settingAbout	About nicoid Re	關於 nicoid Re
+settingAppLanguage	App language	應用程式語言
+settingAppLanguageSub	Choose the language used throughout the app	選擇整個應用程式使用的語言
+settingArrayCacheDirExternal	External storage (SD card)	外部儲存空間（SD 卡）
+settingArrayCacheDirInternal	Internal storage	內部儲存空間
+settingArrayCacheSizeLimitless	Unlimited	無限制
+settingArrayDisplayModeTablet	Tablet	平板電腦
+settingArrayIntentTypeEverytime	Ask every time	每次詢問
+settingArrayIntentTypeBG	Background playback	背景播放
+settingArrayIntentTypeInfo	Video details	影片資訊
+settingArrayIntentTypePlay	Play video	播放影片
+settingArrayIntentTypePopup	Pop-up playback	懸浮視窗播放
+settingArrayNGLevelHigh	High	高
+settingArrayNGLevelLow	Low	低
+settingArrayNGLevelNo	None (show all)	無（顯示全部）
+settingArrayQualityModeEconomy	Standard quality	標準畫質
+settingArrayQualityModeOriginal	Original quality	原始畫質
+settingArrayQualityModeHigh	High quality	高畫質
+settingArrayQualityModeLowest	Low quality	低畫質
+settingArrayRotationDefault	Follow device settings	依照裝置設定
+settingArrayRotationLandscape	Lock to landscape	固定橫向
+settingArrayRotationPortrait	Lock to portrait	固定直向
+settingArrayRotationSensor	Auto-rotate using sensors	依感應器自動旋轉
+settingArrayCacheOfflineAll	Always	一律使用
+settingArrayCacheOfflineMobile	On mobile data only	僅使用行動網路時
+settingArrayCacheOfflineNone	Never	不使用
+settingArrayCommentShadowBOKASHI	Soft shadow	柔和陰影
+settingArrayCommentShadowHUCHIDORI	Outline	描邊
+settingCacheAllDelete	Clear all cache	清除所有快取
+settingCacheAllDeleteMessage	Clear all cached files?	要清除所有快取檔案嗎？
+settingCacheDir	Cache location	快取儲存位置
+settingCacheDirHide	Hide cached videos from galleries	在相簿中隱藏快取影片
+settingCacheDirHideSub	Prevent gallery apps from displaying cached video files	避免相簿應用程式顯示快取的影片檔案
+settingCacheInfo	Caching is available during normal playback only. The white seek-bar segment shows caching progress.	快取僅適用於一般播放。進度列的白色部分表示快取進度。
+settingCacheSize	Cache size limit	快取容量上限
+settingCacheSizeSub	Set the maximum storage space used by cached files	設定快取檔案可使用的最大儲存空間
+settingCacheOffline	Use cached files for offline playback	使用快取檔案離線播放
+settingCacheOfflineSub	For fully cached videos, also use cached video details and comments to play without network access	播放已完整快取的影片時，也使用快取的影片資訊與留言，不連線至網路
+settingCacheSpeedUp	Fast cache download (not recommended)	快速下載快取（不建議）
+settingCacheSpeedUpAll	Use fast download for all playback (not recommended)	所有播放方式皆使用快速下載（不建議）
+settingCacheSpeedUpSub	Download faster at reduced quality. Applies only to caching and overrides the quality setting. Future service changes may make this option unavailable.	降低畫質以加快下載。僅適用於快取，並忽略畫質設定。未來服務變更可能導致此選項失效。
+settingCacheSpeedUpAllSub	Use the fast download method for all playback modes. This does not reduce startup or seek-loading time.	在所有播放模式使用快速下載方式。這不會縮短開始播放或拖曳進度後的載入時間。
+settingComment	Comments	留言
+settingCommentAlpha	Comment opacity	留言不透明度
+settingCommentAlphaSub	Adjust how transparent comments appear	調整留言顯示的透明程度
+settingCommentCast	Reduce comments while casting	投放時減少留言
+settingCommentCastSub	Reduce comments and frame rate for smoother casting. Turn this off if the receiving device can handle normal comment rendering.	減少留言與幀率以改善投放穩定性。接收裝置效能足夠時可關閉，以正常數量與幀率顯示留言。
+settingCommentFrameRate	Comment frame rate	留言繪製幀率
+settingCommentFrameRateSub	Set the maximum frame rate for comment rendering	設定留言繪製的最高幀率
+settingCommentHide	Hide comments by default	預設隱藏留言
+settingCommentHideSub	Start playback with comments hidden	開始播放時隱藏留言
+settingCommentShadow	Comment shadow	留言陰影
+settingCommentShadowSub	Choose the shadow style for comments	選擇留言的陰影樣式
+settingDisplayModeSub	Choose a layout suited to a phone or tablet	選擇適合手機或平板電腦的版面配置
+settingDisplayModeSubSp	Available on tablets only	僅適用於平板電腦
+settingIntentType	Action when opening a video link	開啟影片連結時的行為
+settingIntentTypeSub	Choose what happens when another app opens a video link	選擇從其他應用程式開啟影片連結時的行為
+settingLabs	Experimental features	實驗性功能
+settingLabsSub	About experimental features	關於實驗性功能
+settingLabsSubSub	Leave these options off for normal use. They may not work correctly and may be removed without notice.	一般使用時請保持關閉。這些選項可能無法正常運作，且可能不另行通知就移除。
+settingLanguage	Language	語言
+settingLoginNow	Signing in…	正在登入…
+settingLoginSub	Sign in with your NicoNico account	使用 Niconico 帳號登入
+settingLoginSuccess	Signed in successfully	登入成功
+settingLoginFail	Sign-in failed. Check your email address and password.	登入失敗。請確認電子郵件地址與密碼。
+setting2danLoginFail	Sign-in failed. Check your verification code.	登入失敗。請確認驗證碼。
+settingMainRotation	App screen orientation	一般畫面方向
+settingMainRotationSub	Choose how the app screen rotates	選擇一般畫面的旋轉方式
+settingMobileLowQualityMode	Low quality on mobile data	使用行動網路時降低畫質
+settingMobileLowQualityModeSub	Use low quality on mobile data, regardless of the quality setting	使用行動網路時一律使用低畫質，不受畫質設定影響
+settingNoLogin	Use without signing in	不登入使用
+settingNoLoginSub	Use nicoid without a NicoNico account	不登入 Niconico 帳號即可使用 nicoid
+settingPlayMode	Playback mode	播放模式
+settingPlayModeSub	Choose streaming or cached playback	選擇串流或快取播放
+settingPlayerLanguage	Comment and video details language	留言與影片資訊的語言
+settingPlayerLanguageSub	Choose the language for comments and video details. By default, this follows the app language.	選擇留言與影片資訊的語言。預設使用應用程式的語言。
+settingPlayerRotation	Player screen orientation	播放畫面方向
+settingPlayerRotationSub	Choose how the player screen rotates	選擇播放畫面的旋轉方式
+settingPlayerWait	Start before comments finish loading	留言載入完成前開始播放
+settingPlayerWaitSub	Start playback as soon as the video is ready, even if comments are still loading	影片準備好後立即播放，即使留言仍在載入
+settingPlayerStability	Stable cached playback (temporary workaround)	穩定快取播放（暫時解決方案）
+settingPlayerStabilitySub	Reduce stuttering when playing cached videos from external storage. Leave this off if playback works normally. This temporary workaround may be removed.	減少播放外部儲存空間快取影片時的卡頓。播放正常時請保持關閉，此暫時解決方案未來可能移除。
+settingQualityMode	Video quality	影片畫質
+settingQualityModeSub	Choose the video quality to download or stream	選擇下載或串流的影片畫質
+settingSave	Settings saved	已儲存設定
+settingShareNGLevel	Shared comment filter strength	共用留言過濾強度
+settingShareNGLevelSub	Adjust the strength of the shared comment filter	調整共用留言過濾器的強度
+settingSleepPlay	Keep playing with the screen off	螢幕關閉時繼續播放
+settingSleepPlaySub	Continue normal playback when the screen turns off	螢幕關閉後仍繼續一般播放
+settingStatusbarHide	Hide status bar	隱藏狀態列
+settingStatusbarHideSub	Hide the status bar in full screen	全螢幕時隱藏狀態列
+settingVideoListTap	Action when tapping a video	輕觸影片時的行為
+settingVideoListTapSub	Choose what happens when tapping a video. Use the triangle at the bottom right for other actions.	選擇輕觸影片時的行為。其他操作可由右下角的三角形開啟。
+settingWhole	General	一般
+topmenuAccountFavUser	Followed users	追蹤的使用者
+topmenuAccountFavUserSub	Users you follow	你追蹤的使用者
+topmenuAccountMyListSub	Your account's playlists	帳號的播放清單
+topmenuAccountToriMyList	Watch later	稍後觀看
+topmenuAccountToriMyListSub	Your Watch later playlist	稍後觀看清單
+topmenuBookmarkSub	Bookmarks saved on this device	儲存在此裝置的書籤
+topmenuCacheList	Cached videos	快取影片
+topmenuCacheListSub	Cached videos available offline	可離線觀看的快取影片
+topmenuDevice	On this device	此裝置
+topmenuDeviceHistorySub	Watch history on this device	此裝置的觀看紀錄
+topmenuInputVideoID	Enter video ID	輸入影片 ID
+topmenuInputVideoIDSub	Open a video by its ID	以影片 ID 開啟影片
+topmenuInputVideoNoID	Enter a video ID	請輸入影片 ID
+topmenuSettingSub	nicoid settings	nicoid 設定
+topmenuVideoSearchSub	Search by keyword or tag	以關鍵字或標籤搜尋
+popupmenuVideoInfo	Video details	影片資訊
+popupmenuVideoPlay	Play video	播放影片
+popupmenuPopup	Pop-up playback	懸浮視窗播放
+popupmenuBackgroundPlay	Background playback	背景播放
+popupmenuGetCache	Download cache	下載快取
+popupmenuGetCacheMess	Download the video cache in the background?	要在背景下載影片快取嗎？
+popupmenuVideoSeriesPlay	Play continuously	連續播放

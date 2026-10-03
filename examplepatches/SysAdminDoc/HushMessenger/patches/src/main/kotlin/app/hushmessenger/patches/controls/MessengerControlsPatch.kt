@@ -117,6 +117,8 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
     for ((hook, selectedMethods) in methods) for (method in selectedMethods) {
         if (hook in pluginGates) method.validatePluginGate()
         when (hook) {
+            "ai_sticker_cell" -> method.validateAiStickerCell()
+            "screenshot_viewers" -> method.validateScreenshotViewer()
             "subtabs" -> method.validateSubtabs()
             "browser" -> method.validateBrowserPreference()
             "ads" -> method.validateAdFilter()
@@ -140,6 +142,8 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
     }
     for ((hook, selectedMethods) in methods) for (method in selectedMethods) {
         when (hook) {
+            "ai_sticker_cell" -> method.injectAiStickerCell()
+            "screenshot_viewers" -> method.injectScreenshotViewer()
             "subtabs" -> method.injectSubtabs()
             "browser" -> method.injectBrowserPreference()
             "ads" -> method.injectAdFilter()
@@ -189,7 +193,7 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
     }
     return bytecodePatch(
         name = title,
-        description = "$summary Long-press Messenger > Patch controls. Starts off.",
+        description = "$summary Long-press Messenger's home screen icon > Patch controls. Starts off.",
         default = true,
     ) {
         category(group)
@@ -241,7 +245,7 @@ val hideMomentsPatch = controlPatch("moments", "Hide Chat Moments", "Hides the C
 @Suppress("unused")
 val hideReelsBadgePatch = controlPatch("reels_badge", "Hide Reels badge", "Hides the Reels notification badge.", "Navigation")
 @Suppress("unused")
-val hideAiStickersPatch = controlPatch("ai_stickers", "Hide AI sticker tools", "Hides the generated-sticker tab and AI sticker suggestions.", "Stickers")
+val hideAiStickersPatch = controlPatch("ai_stickers", "Hide AI sticker tools", "Hides the Generate AI sticker buttons, generated-sticker tab and AI sticker suggestions.", "Stickers", "ai_stickers", "ai_sticker_cell")
 @Suppress("unused")
 val hideAvatarStickersPatch = controlPatch("avatar_stickers", "Hide avatar stickers", "Hides the avatar tab in the sticker keyboard.", "Stickers", "avatar_stickers", "avatar_tabs")
 @Suppress("unused")
@@ -263,7 +267,7 @@ val useSystemEmojiPatch = controlPatch("use_system_emoji", "Use system emoji", "
 @Suppress("unused")
 val originalPhotoPatch = controlPatch("original_photo", "Send photos at original quality", "With HD on, sends a JPEG photo's own image data instead of a re-encoded copy, without its metadata except the rotation tag. Videos and photos over 20 MB are still compressed.", "Conversations")
 @Suppress("unused")
-val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots", "Lets you screenshot photos, media and video Messenger protects in a chat, and stops screenshot notices. View-once media stays protected.", "Privacy")
+val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, including view-once media and Quicksnap, and stops screenshot notices.", "Privacy", "allow_screenshot", "screenshot_viewers")
 @Suppress("unused")
 val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Suppresses your outgoing read receipt. In end-to-end encrypted chats, chats you open stay unread until you reply.", "Privacy", "hide_read_receipts", "read_mailbox")
 @Suppress("unused")
@@ -284,7 +288,7 @@ private val anonymousStoriesResources = resourcePatch(description = "Record Hush
 @Suppress("unused")
 val anonymousStoriesPatch = bytecodePatch(
     name = "View stories anonymously",
-    description = "Opens other people's stories without adding you to their viewer list. Stories you open this way are marked as seen on your side. Long-press Messenger > Patch controls. Starts off.",
+    description = "Opens other people's stories without adding you to their viewer list. Stories you open this way are marked as seen on your side. Long-press Messenger's home screen icon > Patch controls. Starts off.",
     default = true,
 ) {
     category("Privacy")
@@ -322,7 +326,7 @@ private val saveStoriesResources = resourcePatch(description = "Record HushMesse
 @Suppress("unused")
 val saveStoriesPatch = bytecodePatch(
     name = "Save any story",
-    description = "Adds Save to the More options menu on other people's stories. The photo or video goes to your phone the same way Messenger saves your own. Long-press Messenger > Patch controls. Starts off.",
+    description = "Adds Save to the More options menu on other people's stories. The photo or video goes to your phone the same way Messenger saves your own. Long-press Messenger's home screen icon > Patch controls. Starts off.",
     default = true,
 ) {
     category("Privacy")
@@ -346,6 +350,60 @@ val saveStoriesPatch = bytecodePatch(
     }
 }
 
+private val CHAT_ANIMATION_HOOKS = setOf("chat_animation", "chat_fragment", "chat_inbox", "chat_legacy")
+private var chatAnimationApplied = false
+
+private val chatAnimationResources = resourcePatch(description = "Record HushMessenger capability: chat_animation") {
+    dependsOn(settingsResources)
+    execute {
+        chatAnimationApplied = false
+        document("AndroidManifest.xml").use { it.requireFeatureAbsent("chat_animation") }
+    }
+    finalize {
+        if (!chatAnimationApplied) return@finalize
+        // Search and notifications open a chat as an activity of its own, and Android animates those from resources.
+        for ((path, xml) in CHAT_ANIMATION_FILES) {
+            val file = get(path)
+            if (file.exists()) throw PatchException("HushMessenger: $path is already in the APK. Start with the stock APK.")
+            file.parentFile.mkdirs()
+            file.writeText(xml)
+        }
+        document("AndroidManifest.xml").use { it.addFeature("chat_animation") }
+    }
+}
+
+@Suppress("unused")
+val chatAnimationPatch = bytecodePatch(
+    name = "Slide chats in and out",
+    description = "Slides a chat in from the side when you open it and back out when you go back, while the screen underneath holds still. Chat heads and bubbles keep their own animations. Long-press Messenger's home screen icon > Patch controls. Starts off.",
+    default = true,
+) {
+    category("Navigation")
+    compatibleWith(MessengerTarget.COMPATIBILITY)
+    dependsOn(settingsExtension, chatAnimationResources)
+    execute {
+        validateControls(discoveredControls, CHAT_ANIMATION_HOOKS)
+        fun original(key: String) = discoveredControls.getValue(key).single()
+        fun mutable(key: String) = original(key).let { found ->
+            mutableClassDefBy(found.definingClass).methods.single { it.hookId() == found.hookId() }
+        }
+        val chat = original("chat_fragment").definingClass
+        val inbox = original("chat_inbox").definingClass
+        // Everything is checked before the first edit, so a changed build fails with the APK untouched.
+        for (type in listOf(chat, inbox)) validateInheritsFragmentAnimation(type) { classDefByOrNull(it) }
+        // The extension slides chats opened from search and notifications by this activity's name.
+        if (classDefByOrNull(CHAT_ACTIVITY) == null) throw PatchException(
+            "Slide chats in and out: Messenger's chat activity differs from the tested builds. Start with an unmodified supported APK.",
+        )
+        val base = mutable("chat_animation").apply { validateFragmentAnimation() }
+        val legacy = mutable("chat_legacy").apply { validateLegacyChatAnimation() }
+        base.injectFragmentAnimation(chat, inbox)
+        legacy.injectLegacyChatAnimation()
+        recordControl("chat_animation")
+        chatAnimationApplied = true
+    }
+}
+
 private var menuRowApplied = false
 
 // Lets the settings screen mention the Menu tab row only on builds that have it.
@@ -363,7 +421,7 @@ private val menuRowResources = resourcePatch(description = "Record HushMessenger
 @Suppress("unused")
 val menuSettingsPatch = bytecodePatch(
     name = "Open settings from menu",
-    description = "Adds a HushMessenger entry to the Menu tab. Always on.",
+    description = "Adds a HushMessenger entry to the Menu tab and side menu. Always on.",
     default = true,
 ) {
     category("Navigation")
@@ -376,20 +434,35 @@ val menuSettingsPatch = bytecodePatch(
         val bindMethod = methods.single { it.returnType == "V" && it.parameterTypes.size == 2 }
         val drawerMethod = methods.single { it.returnType == "V" && it.parameterTypes == listOf("Ljava/util/List;") }
         val clickMethod = methods.single { it.name == "onClick" }
+        val refreshMethod = methods.single { it.returnType == "V" && it.parameterTypes.isEmpty() }
+        // Inspect immutable sources and assemble the replacement before requesting any mutable target.
+        addMethod.validateMenuSettingsAdd()
+        bindMethod.validateMenuSettingsBind()
+        drawerMethod.validateMenuDrawerAdd()
+        val folderItemType = addMethod.menuFolderItemType()
+        clickMethod.menuFolderCastIndex(folderItemType)
+        val legacy = prepareLegacyDrawer(refreshMethod, addMethod, classDefBy(SETTINGS)) { classDefByOrNull(it) }
+        val controls = classDefBy(HOST_SCREENS).methods.single { it.hookId() == BUNDLED_CONTROLS }
+        MutableMethod(controls).writeBundledControls(bundledControls + "menu_row")
         val addTarget = mutableClassDefBy(addMethod.definingClass).methods.single { it.hookId() == addMethod.hookId() }
         val bindTarget = mutableClassDefBy(bindMethod.definingClass).methods.single { it.hookId() == bindMethod.hookId() }
         val drawerTarget = mutableClassDefBy(drawerMethod.definingClass).methods.single { it.hookId() == drawerMethod.hookId() }
         val clickTarget = mutableClassDefBy(clickMethod.definingClass).methods.single { it.hookId() == clickMethod.hookId() }
-        // Every target, including encoding limits, must pass before the first instruction changes.
-        addTarget.validateMenuSettingsAdd()
-        bindTarget.validateMenuSettingsBind()
-        drawerTarget.validateMenuDrawerAdd()
-        val folderItemType = addTarget.menuFolderItemType()
-        clickTarget.menuFolderCastIndex(folderItemType)
+        val refreshTarget = mutableClassDefBy(refreshMethod.definingClass).methods.single { it.hookId() == refreshMethod.hookId() }
+        val extension = mutableClassDefBy(SETTINGS)
+        val stub = extension.methods.single { it.hookId() == LEGACY_SECTION }
+        // MutableMethod.implementation has no setter. Keep both method indexes in sync when replacing it.
+        val direct = extension.directMethods
+        val factory = MutableMethod(legacy.factory)
+        extension.methods.remove(stub)
+        direct.remove(stub)
+        extension.methods.add(factory)
+        direct.add(factory)
         addTarget.injectMenuSettingsAdd()
         bindTarget.injectMenuSettingsBind()
         drawerTarget.injectMenuDrawerAdd()
         clickTarget.injectMenuFolderClick(folderItemType)
+        refreshTarget.injectLegacyDrawer(legacy.refresh)
         recordControl("menu_row")
         menuRowApplied = true
     }

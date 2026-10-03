@@ -35,6 +35,40 @@ public class MaterialYouThemeTest {
         CrashGuard.resetForTests();
     }
 
+    @Test public void pauseAndResumeRepublishSurfacesWithoutChangingDarkMode() {
+        // Robolectric recreates the Application/preferences between tests but retains this class's static cache.
+        org.robolectric.util.ReflectionHelpers.setStaticField(MaterialYouTheme.class, "bound", false);
+        MaterialYouTheme.bind();
+        int tinted = MaterialYouTheme.DARK_333334;
+        assertNotEquals(0xFF333334, tinted);
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(0xFF080809, MaterialYouTheme.DARK_080809);
+        assertEquals(0xFF1C1C1D, MaterialYouTheme.DARK_1C1C1D);
+        assertEquals(0xFF252728, MaterialYouTheme.DARK_252728);
+        assertEquals(0xFF333334, MaterialYouTheme.DARK_333334);
+        assertEquals(0xFF323339, MaterialYouTheme.DARK_323339);
+        Settings.preferences.edit().putBoolean("paused", false).commit();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(tinted, MaterialYouTheme.DARK_333334);
+        Settings.preferences.edit().putBoolean(MaterialYouTheme.KEY, false).commit();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(0xFF333334, MaterialYouTheme.DARK_333334);
+    }
+
+    @Test public void clearingSafeModeRestoresTheSavedThemeImmediately() {
+        org.robolectric.util.ReflectionHelpers.setStaticField(MaterialYouTheme.class, "bound", false);
+        Settings.preferences.edit().putBoolean("safe_mode", true).commit();
+        HostScreens.start(RuntimeEnvironment.getApplication());
+        MaterialYouTheme.bind();
+        assertTrue(CrashGuard.isSafeMode());
+        assertEquals(0xFF333334, MaterialYouTheme.DARK_333334);
+        CrashGuard.clearSafeMode();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertFalse(CrashGuard.isSafeMode());
+        assertNotEquals(0xFF333334, MaterialYouTheme.DARK_333334);
+    }
+
     // --- Colour classification ---
 
     @Test public void pureGreyIsNeutral() {

@@ -22,7 +22,7 @@ gson = "2.14.0"
 # Compile-only for the extension: see extensions/threads/build.gradle.kts. The settings
 # classpath forces every org.jetbrains.kotlin request to 2.4.20, so this matches it.
 kotlin-stdlib = "2.4.20"
-guava = "33.7.1-jre"
+guava = "33.7.2-jre"
 # Every org.bouncycastle request in this build is rewritten to this, in :extensions:threads's
 # test graph and in :patches' build graph. It has to be a version that publishes all three
 # modules: 1.85.2 is a bcprov-only patch release, so forcing bcpkix and bcutil to it resolved

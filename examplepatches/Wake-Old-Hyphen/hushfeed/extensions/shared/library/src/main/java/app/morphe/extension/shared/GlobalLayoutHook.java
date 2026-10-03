@@ -24,12 +24,12 @@ public final class GlobalLayoutHook {
             return false;
         }
         if (root.get() == nextRoot && listener != null) {
-            if (observer != null && observer.isAlive()) return false;
-            // The observer it went on has died: merged into the window's own when the root was
-            // attached, which moved the listener there where it still runs, or gone with its
-            // window. Taking it off the root's current observer before adding it leaves exactly
-            // one either way; adding blindly ran every pass twice once the root came back.
             ViewTreeObserver current = nextRoot.getViewTreeObserver();
+            if (observer == current && current.isAlive()) return false;
+            // A reused Dialog root can have a new observer while the old one is still alive.
+            // A listener added before attachment can instead have merged into the current
+            // observer. Remove it from both before rebinding so either path keeps exactly one.
+            remove(observer, listener);
             remove(current, listener);
             current.addOnGlobalLayoutListener(listener);
             observer = current;

@@ -13,7 +13,7 @@ Before you sign in	Sebelum Anda masuk
 Cancel	Batal
 Changing these	Mengubah pilihan ini
 Clear diagnostic data	Hapus data diagnostik
-Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di %1$s. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
 Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
 Copy quick report	Salin laporan singkat
 Copying to the gallery	Menyalin ke galeri
@@ -64,7 +64,7 @@ Retry	Coba lagi
 Sanitize sharing links	Bersihkan tautan berbagi
 Save cancelled	Penyimpanan dibatalkan
 Save full report	Simpan laporan lengkap
-Save the full report in Download/Morphe.	Simpan laporan lengkap di Download/Morphe.
+Save the full report in %1$s.	Simpan laporan lengkap di %1$s.
 Saved to %1$s	Disimpan ke %1$s
 Saved to %1$s in lower quality than on Instagram	Disimpan ke %1$s dengan kualitas lebih rendah daripada di Instagram
 Saved to the gallery	Disimpan ke galeri
@@ -82,6 +82,7 @@ Sponsored posts, reels and stories. Instagram is told no ad went in, so no gap i
 Stays in while paused	Tetap aktif saat dijeda
 Takes stkn, igsh, utm_source and other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel or profile a link opens stays the same.	Menghapus stkn, igsh, utm_source, dan kunci pelacakan lain dari tautan yang Anda salin atau bagikan, dan membuka tautan bio tanpa melewati pelacak klik Instagram. Postingan, reel, atau profil yang dibuka tautan tetap sama.
 Tap to hide this.	Ketuk untuk menyembunyikan ini.
+Couldn't hide this notice. Try again.	Pemberitahuan ini tidak dapat disembunyikan. Coba lagi.
 Tap to turn it back on.	Ketuk untuk mengaktifkan HushGram lagi.
 The diagnostic report couldn't be saved yet. Try again in a moment.	Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.
 The diagnostic report couldn't be saved. Try again.	Laporan diagnostik tidak dapat disimpan. Coba lagi.
@@ -101,6 +102,10 @@ Instagram isn't told which reels you watched or how far into them you got. It ra
 Reels	Reels
 Stop Story auto-advance	Hentikan cerita maju otomatis
 A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.	Cerita yang sudah selesai tetap di layar sampai Anda mengetuk atau menggeser. Matikan ini untuk memakai waktu Instagram.
+Loop a story	Putar ulang cerita
+A story plays again from the start when it ends, until you tap or swipe to move on. Ads still move on. With Stop Story auto-advance on too, stories loop.	Cerita diputar lagi dari awal saat selesai, sampai Anda mengetuk atau menggeser untuk lanjut. Iklan tetap lanjut. Jika Hentikan cerita maju otomatis juga aktif, cerita tetap diputar ulang.
+Show a story's exact time	Tampilkan waktu pasti cerita
+A story's header shows the date and time it was posted, like Oct 2, 3:45 PM, instead of how long ago. It follows your phone's language and 12 or 24-hour setting.	Bagian atas cerita menampilkan tanggal dan jam cerita itu diposting, misalnya 2 Okt, 15.45, bukan berapa lama yang lalu. Mengikuti bahasa ponsel Anda dan setelan 12 atau 24 jamnya.
 Stories	Cerita
 Hide Reels in the feed	Sembunyikan Reels di feed
 The rows of suggested reels between posts in your home feed. A reel someone you follow posts stays.	Deretan reel yang disarankan di antara postingan di feed beranda Anda. Reel yang diposting orang yang Anda ikuti tetap ada.
@@ -170,6 +175,12 @@ A double tap on a reel doesn't like it. Turn this off to keep double tap to like
 Hide the Reels tab	Sembunyikan tab Reels
 Takes Reels off the tab bar. Reels in your feed and reels people send you still open. Restart Instagram after changing it.	Menghapus Reels dari bilah tab. Reels di feed kamu dan reels yang dikirim orang lain tetap bisa dibuka. Mulai ulang Instagram setelah mengubahnya.
 Keep the reel speed	Pertahankan kecepatan reel
+Keep a seek bar	Tetap tampilkan bilah putar
+Instagram's seek bar stays under every reel, short ones too, with the time played and the reel's length above it. Ads keep Instagram's own rules.	Bilah putar Instagram tetap ada di bawah setiap reel, termasuk yang pendek, dengan waktu yang sudah diputar dan durasi reel di atasnya. Iklan tetap mengikuti aturan Instagram.
+Keep auto scroll on	Tetap aktifkan gulir otomatis
+Once you turn on Instagram's auto scroll in Reels, it stays on after a restart or after you leave Reels, until you turn it off.	Setelah kamu mengaktifkan gulir otomatis Instagram di Reels, fitur itu tetap aktif setelah dimulai ulang atau setelah kamu keluar dari Reels, sampai kamu menonaktifkannya.
+Stop Reels scrolling	Hentikan gulir Reels
+A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram after changing it.	Menggeser di Reels tidak lagi pindah ke reel berikutnya, dan menarik ke bawah tidak memuat reel baru. Reel yang kamu buka tetap diputar. Mulai ulang Instagram setelah mengubahnya.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Kunci reel di 2x (tahan tepinya, lalu geser ke bawah) dan reels berikutnya juga diputar di 2x. Geser kuncinya untuk melepasnya, atau tahan tepinya lalu lepaskan, untuk kembali ke kecepatan normal.
 Open links in external browser	Buka tautan di browser eksternal
 Web links open in your default browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.	Tautan web terbuka di browser default kamu, tanpa pelacak klik Instagram. Halaman Instagram dan layanan Meta lainnya, serta iklan, tetap terbuka di aplikasi.
@@ -180,6 +191,8 @@ Hide suggested posts	Sembunyikan postingan yang disarankan
 Posts and reels from accounts you don't follow, marked Suggested for you. Posts from accounts you follow stay.	Postingan dan reel dari akun yang tidak kamu ikuti, bertanda Disarankan untuk kamu. Postingan dari akun yang kamu ikuti tetap ada.
 Hide Threads posts	Sembunyikan postingan Threads
 The posts, accounts and communities from Threads that Instagram mixes into your feed.	Postingan, akun, dan komunitas dari Threads yang dicampur Instagram ke feed kamu.
+Stop swipe to create	Hentikan geser untuk membuat
+A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Menggeser ke samping di Beranda tidak lagi membuka kamera. Tombol + dan cara lain untuk membuka kamera tetap berfungsi.
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	Sembunyikan Meta AI di pencarian dan bilah Beranda
 The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.	Tab Cari dan bagian atas pesan kamu mendapat bilah pencarian biasa, tanpa Meta AI, hasil pencarian kehilangan bilah pertanyaan lanjutannya, dan bilah atas Beranda kehilangan tombol Meta AI. Mulai ulang Instagram setelah mengubahnya.
@@ -226,8 +239,15 @@ Takes For you out of the picker at the top of Home, so Home stays on Following o
 Profiles	Profil
 Show if a profile follows you	Tampilkan apakah profil mengikuti kamu
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Menambahkan Mengikuti kamu atau Tidak mengikuti kamu di samping nama di profil seseorang, setelah kata ganti mereka jika ada. Tidak ada yang muncul sampai Instagram memeriksanya.
+Mark who doesn't follow you back	Tandai yang tidak mengikuti balik kamu
+On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Di daftar Mengikuti milikmu sendiri, menambahkan Tidak mengikuti kamu setelah nama setiap akun yang tidak mengikuti balik kamu. Tidak ada yang muncul sampai Instagram memeriksanya.
 Follows you	Mengikuti kamu
 Doesn't follow you	Tidak mengikuti kamu
+Hide suggested people	Sembunyikan orang yang disarankan
+Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	Menghapus Disarankan untuk kamu dan tombol Temukan orang dari profil, termasuk profilmu. Bio, jumlah, postingan, dan daftar pengikut tetap ada.
+Hide highlights	Sembunyikan sorotan
+Takes the row of story highlights off profiles, yours included. Bios, counts and posts stay, and so does Add to highlight on your stories.	Menghapus baris sorotan cerita dari profil, termasuk profilmu. Bio, jumlah, dan postingan tetap ada, begitu juga Tambahkan ke sorotan di ceritamu.
+The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Kartu orang dan kreator untuk diikuti yang diselipkan Instagram di antara reel. Semua reel tetap diputar.
 Turn on Start Home on Following to use this choice.	Aktifkan Mulai Beranda di Mengikuti untuk menggunakan pilihan ini.
 Turn on Story ring size to use this choice.	Aktifkan Ukuran lingkaran cerita untuk menggunakan pilihan ini.
 Turn on Default playback quality to use this choice.	Aktifkan Kualitas pemutaran default untuk menggunakan pilihan ini.
@@ -264,3 +284,70 @@ A save stopped. Reopen the media and save again.	Penyimpanan terhenti. Buka kemb
 A save was interrupted	Penyimpanan terputus
 %1$d saves were interrupted	%1$d penyimpanan terputus
 Reopen the media and save again.	Buka kembali media dan simpan lagi.
+Search settings	Cari pengaturan
+Clear search	Hapus pencarian
+No matching settings	Tidak ada pengaturan yang cocok
+Try another word or clear the search.	Coba kata lain atau hapus pencarian.
+Contacts, location setup, analytics	Kontak, pengaturan lokasi, analitik
+Save all	Simpan semua
+Saving a carousel	Menyimpan carousel
+Cancel saving this carousel	Batalkan penyimpanan carousel ini
+Page %1$d of %2$d	Halaman %1$d dari %2$d
+Not saved: a carousel can have at most %1$d pages	Tidak disimpan: carousel hanya boleh memiliki paling banyak %1$d halaman
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Carousel dibatalkan. Disimpan %1$d. Gagal %2$d. Dilewati %3$d.
+Saved %1$d. Failed %2$d. Skipped %3$d.	Disimpan %1$d. Gagal %2$d. Dilewati %3$d.
+%1$d saved in lower quality than on Instagram.	%1$d disimpan dengan kualitas lebih rendah daripada di Instagram.
+Last carousel save	Penyimpanan carousel terakhir
+Open MetaConfig overrides	Buka penggantian MetaConfig
+Opens Instagram's native flag editor. A wrong override can break parts of Instagram.	Membuka editor flag bawaan Instagram. Penggantian yang salah dapat merusak beberapa bagian Instagram.
+MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.	MetaConfig tidak tersedia di layar ini. Buka pengaturan HushGram dari Beranda saat sudah masuk.
+Comments	Komentar
+Copy comment	Salin komentar
+Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Menambahkan Salin ke menu komentar yang dipilih. Menyalin teks asli, termasuk pergantian baris.
+Comment copied	Komentar disalin
+Couldn't copy comment	Tidak dapat menyalin komentar
+Save comment photo	Simpan foto komentar
+Adds Save to a selected comment's menu when the comment has its own photo. Saves the largest size Instagram sent.	Menambahkan Simpan ke menu komentar yang dipilih jika komentar memiliki fotonya sendiri. Menyimpan ukuran terbesar yang dikirim Instagram.
+Export overrides	Ekspor nilai pengganti
+Save this signed-in session's overrides for the exact Instagram build and schema.	Simpan nilai pengganti sesi yang sudah masuk ini untuk versi dan skema Instagram yang sama persis.
+Validate an overrides file	Validasi berkas nilai pengganti
+Check a saved file against this session's typed schema. Validation applies nothing.	Periksa berkas tersimpan dengan skema bertipe sesi ini. Validasi tidak menerapkan apa pun.
+No document picker is available. Overrides haven't changed.	Pemilih dokumen tidak tersedia. Nilai pengganti tidak berubah.
+Couldn't use that overrides document. Native overrides haven't changed.	Dokumen nilai pengganti itu tidak dapat digunakan. Nilai pengganti Instagram tidak berubah.
+Validated %1$d overrides only. Nothing was applied.	Hanya memvalidasi %1$d nilai pengganti. Tidak ada yang diterapkan.
+Overrides exported for this Instagram build and schema.	Nilai pengganti diekspor untuk versi dan skema Instagram ini.
+Couldn't validate overrides. Check the file and open settings from Home while signed in. Nothing changed.	Nilai pengganti tidak dapat divalidasi. Periksa berkas dan buka pengaturan dari Beranda saat sudah masuk. Tidak ada yang berubah.
+Couldn't export overrides. The selected file may be incomplete. Native overrides haven't changed.	Nilai pengganti tidak dapat diekspor. Berkas yang dipilih mungkin tidak lengkap. Nilai pengganti Instagram tidak berubah.
+Allow importing overrides	Izinkan impor nilai pengganti
+Shows Import and Restore for overrides. An import changes Instagram's native flags for this signed-in session.	Menampilkan Impor dan Pulihkan untuk nilai pengganti. Impor mengubah flag bawaan Instagram untuk sesi yang sudah masuk ini.
+Import overrides	Impor nilai pengganti
+Apply a file exported from this session and build through Instagram's own override editor. The current overrides are saved for Restore first.	Terapkan berkas yang diekspor dari sesi dan versi ini melalui editor nilai pengganti milik Instagram. Nilai pengganti saat ini disimpan dulu untuk Pulihkan.
+Restore previous overrides	Pulihkan nilai pengganti sebelumnya
+Put back the overrides saved before the last import for this session and build.	Kembalikan nilai pengganti yang disimpan sebelum impor terakhir untuk sesi dan versi ini.
+An earlier import still needs Restore previous overrides, or Discard saved overrides if Restore can't run. Nothing changed.	Impor sebelumnya masih perlu Pulihkan nilai pengganti sebelumnya, atau Buang nilai pengganti tersimpan jika Pulihkan tidak bisa dijalankan. Tidak ada yang berubah.
+Couldn't restore overrides. There's no saved copy for this session and build. Nothing changed.	Nilai pengganti tidak dapat dipulihkan. Tidak ada salinan tersimpan untuk sesi dan versi ini. Tidak ada yang berubah.
+Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.	Nilai pengganti tidak dapat diimpor. Periksa berkas dan buka pengaturan dari Beranda saat sudah masuk. Tidak ada yang berubah.
+The current overrides already match the saved copy. Nothing changed.	Nilai pengganti saat ini sudah sama dengan salinan tersimpan. Tidak ada yang berubah.
+This file matches the current overrides. Nothing changed.	Berkas ini sama dengan nilai pengganti saat ini. Tidak ada yang berubah.
+Previous overrides restored. Restart Instagram to apply them.	Nilai pengganti sebelumnya sudah dipulihkan. Mulai ulang Instagram untuk menerapkannya.
+Imported %1$d override changes. Restart Instagram to apply them.	%1$d perubahan nilai pengganti diimpor. Mulai ulang Instagram untuk menerapkannya.
+Instagram didn't keep the change, so the overrides were put back as they were.	Instagram tidak menyimpan perubahan itu, jadi nilai pengganti dikembalikan seperti semula.
+Instagram didn't keep the change and the overrides couldn't be confirmed. Use Restore previous overrides, then restart Instagram.	Instagram tidak menyimpan perubahan itu dan nilai pengganti tidak dapat dipastikan. Gunakan Pulihkan nilai pengganti sebelumnya, lalu mulai ulang Instagram.
+Discard saved overrides	Buang nilai pengganti tersimpan
+Forget the copy saved for Restore so imports can run again. Instagram's overrides don't change.	Lupakan salinan yang disimpan untuk Pulihkan agar impor bisa dijalankan lagi. Nilai pengganti Instagram tidak berubah.
+Discarded the saved copy. Imports can run again, and Instagram's overrides haven't changed.	Salinan tersimpan sudah dibuang. Impor bisa dijalankan lagi, dan nilai pengganti Instagram tidak berubah.
+There's no saved copy to discard. Nothing changed.	Tidak ada salinan tersimpan untuk dibuang. Tidak ada yang berubah.
+Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.	Salinan tersimpan tidak dapat dibuang. Buka pengaturan dari Beranda saat sudah masuk. Tidak ada yang berubah.
+Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Imports stay blocked until you use Discard saved overrides. Restart Instagram to apply the rest.	Pulihkan sudah mengembalikan yang bisa, kecuali %1$d nilai pengganti berisi nilai null Instagram, yang tidak bisa dikembalikan dengan cara ini. Impor tetap diblokir sampai Buang nilai pengganti tersimpan digunakan. Mulai ulang Instagram untuk menerapkan sisanya.
+Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Restart Instagram to apply the rest.	Pulihkan sudah mengembalikan yang bisa, kecuali %1$d nilai pengganti berisi nilai null Instagram, yang tidak bisa dikembalikan dengan cara ini. Mulai ulang Instagram untuk menerapkan sisanya.
+Couldn't restore overrides. The saved copy doesn't fit this session and Instagram build. Use Discard saved overrides if you don't need it. Nothing changed.	Nilai pengganti tidak dapat dipulihkan. Salinan tersimpan tidak cocok dengan sesi dan versi Instagram ini. Gunakan Buang nilai pengganti tersimpan jika tidak diperlukan. Tidak ada yang berubah.
+Instagram is still saving an override change. Wait a moment and try again. Nothing changed.	Instagram masih menyimpan perubahan nilai pengganti. Tunggu sebentar lalu coba lagi. Tidak ada yang berubah.
+Allow importing overrides is off or HushGram is paused. Nothing changed.	Izinkan impor nilai pengganti nonaktif atau HushGram sedang dijeda. Tidak ada yang berubah.
+Couldn't restore overrides. Open settings from Home while signed in. Nothing changed.	Nilai pengganti tidak dapat dipulihkan. Buka pengaturan dari Beranda saat sudah masuk. Tidak ada yang berubah.
+Couldn't start the override operation. Try again. Nothing changed.	Operasi nilai pengganti tidak dapat dimulai. Coba lagi. Tidak ada yang berubah.
+# context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
+Mark as seen button	Tombol Tandai sudah dilihat
+Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.	Menambahkan tombol mata di bagian atas setiap cerita saat kamu melihat secara anonim. Ketuk tombol itu agar kamu muncul di daftar penonton cerita tersebut. Cerita lainnya tetap tersembunyi.
+Mark as seen	Tandai sudah dilihat
+Marked as seen. Tap again to undo.	Ditandai sudah dilihat. Ketuk lagi untuk membatalkan.
+Marked as seen and sent	Ditandai sudah dilihat dan dikirim

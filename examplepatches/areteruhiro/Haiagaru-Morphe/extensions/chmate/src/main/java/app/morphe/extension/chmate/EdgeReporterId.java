@@ -12,6 +12,12 @@ public final class EdgeReporterId {
         Matcher matcher = SUFFIX.matcher(title);
         return matcher.find() ? matcher.group().trim() : null;
     }
+    /** Reporter IDs are display metadata, not part of a next-thread title match. */
+    public static String titleForNextThreadMatch(String title) {
+        if (title == null) return null;
+        Matcher matcher = SUFFIX.matcher(title);
+        return matcher.find() ? title.substring(0, matcher.start()) : title;
+    }
     public static boolean isBoard(Object board) {
         if (board == null) return false;
         String value = board.toString();

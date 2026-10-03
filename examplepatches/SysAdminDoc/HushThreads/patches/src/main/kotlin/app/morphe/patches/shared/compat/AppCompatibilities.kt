@@ -34,7 +34,7 @@ internal object AppCompatibilities {
 
     /**
      * SHA-256 of Threads' newer signing certificate, the APK v3.1 signer Android reads from API 33,
-     * whose lineage the original authorizes. 449.0.0.54.82 carries both.
+     * whose lineage the original authorizes. Both declared builds carry these signers.
      */
     const val THREADS_ROTATED_SIGNER_SHA256 = "8f38da6b4dc34b1900353bde4630043198cbe3ef7214151f86679cd000c90500"
 
@@ -61,6 +61,11 @@ internal object AppCompatibilities {
                 AppTarget(
                     version = THREADS_TARGET_VERSION,
                     versionCodes = mapOf(SupportedAbi.ARM64_V8A to THREADS_TARGET_VERSION_CODE),
+                    minSdk = THREADS_TARGET_MIN_SDK,
+                ),
+                AppTarget(
+                    version = "448.0.0.54.85",
+                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to 511808302),
                     minSdk = THREADS_TARGET_MIN_SDK,
                 ),
             ),

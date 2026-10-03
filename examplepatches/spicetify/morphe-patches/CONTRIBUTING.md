@@ -126,9 +126,9 @@ This command creates temporary APK copies with changed settings code, a
 missing sharing fingerprint, a changed server response field, or a renamed
 theme resource. Each case must report the expected patch failure, exit
 with status 1, and produce no output APK. Temporary copies are deleted
-afterward. The strict settings snapshot also detects the sharing-marker
-mutation because an inspected obfuscated class contains that literal. These
-controlled changes test refusal paths, not compatibility with another Spotify release.
+afterward. The sharing-marker mutation is caught by the share URL fingerprint,
+which then matches nothing. These controlled changes test refusal paths, not
+compatibility with another Spotify release.
 The command never installs an app. Use Java 21 on `PATH` or pass `--java`.
 
 For a combined settings build, also exercise the settings verifier's mutation

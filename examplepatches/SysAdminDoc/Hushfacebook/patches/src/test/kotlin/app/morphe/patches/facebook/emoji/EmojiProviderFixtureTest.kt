@@ -28,6 +28,7 @@ import java.io.File
  */
 class EmojiProviderFixtureTest {
     private val typefaceSpan = "Landroid/text/style/TypefaceSpan;"
+    private val familySpan = "$typefaceSpan-><init>(Ljava/lang/String;)V"
     private val setTypeface = "Landroid/graphics/Paint;->setTypeface(Landroid/graphics/Typeface;)Landroid/graphics/Typeface;"
 
     /** The family name Facebook's emoji span passes to TypefaceSpan, the literal its constructor loads. */
@@ -99,8 +100,11 @@ class EmojiProviderFixtureTest {
                     classDef.methods.filter { typefaceReads(it).any { read -> read in holders } }
                         .forEach { holderReaders += signature(it) }
                 }
-                if (namesFamily && classDef.superclass == typefaceSpan &&
-                    classDef.methods.any { it.name == "<init>" && holdsString(it, spanFamily) }
+                // A TypefaceSpan by its constructor, which hands TypefaceSpan the family: its direct
+                // superclass on 577 and 580, the superclass of an abstract span between them on 581.
+                if (namesFamily && classDef.methods.any {
+                        it.name == "<init>" && holdsString(it, spanFamily) && calls(it, familySpan)
+                    }
                 ) {
                     spans += classDef.type to classDef.methods.filter { calls(it, setTypeface) }.map { it.name }.toSet()
                 }

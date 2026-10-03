@@ -46,13 +46,56 @@ function Resolve-ApkSigningTools {
     }
 }
 
+function Test-ApkSigningKeyCollision {
+    param($Session, [string]$Path)
+    $absolute = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+    if ($absolute -eq $Session.Keystore) { return $true }
+    if (-not (Test-Path -LiteralPath $absolute -PathType Leaf)) { return $false }
+    $stream = [IO.File]::OpenRead($absolute)
+    $hash = $null
+    try {
+        if ($stream.Length -ne $Session.KeyLock.Length) { return $false }
+        $hash = [Security.Cryptography.SHA256]::Create()
+        $digest = [BitConverter]::ToString($hash.ComputeHash($stream))
+        # Includes hard links, symbolic aliases and copies of the key, without treating a
+        # filename extension as proof that a generated file cannot contain private key bytes.
+        return $digest -eq $Session.KeyDigest
+    } finally {
+        $stream.Dispose()
+        if ($hash) { $hash.Dispose() }
+    }
+}
+
 function New-ApkSigningSession {
     param(
         [Collections.IDictionary]$BoundParameters,
         [string]$Root, [string]$Sdk, [string]$Java, [string]$Keystore, [string]$KeyAlias,
-        [string]$KeystoreType
+        [string]$KeystoreType, [string]$OutputDirectory
     )
 
+    $Keystore = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Keystore)
+    if ($OutputDirectory) {
+        $outputRoot = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputDirectory).TrimEnd('\')
+        if ($outputRoot -eq [IO.Path]::GetPathRoot($outputRoot).TrimEnd('\')) {
+            throw 'Refusing signing output at a filesystem root.'
+        }
+        if ($Keystore -eq $outputRoot -or $Keystore.StartsWith($outputRoot + '\', [StringComparison]::OrdinalIgnoreCase)) {
+            throw 'Refusing a signing key inside the build output directory. Keep the key outside -OutDir.'
+        }
+        # Lexical separation cannot establish safety through a junction or symbolic link.
+        foreach ($path in @($Keystore, $outputRoot)) {
+            $cursor = $path
+            while ($cursor) {
+                if (Test-Path -LiteralPath $cursor) {
+                    $item = Get-Item -LiteralPath $cursor -Force
+                    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+                        throw 'Refusing signing through a linked path.'
+                    }
+                }
+                $cursor = Split-Path -Parent $cursor
+            }
+        }
+    }
     $variables = [Environment]::GetEnvironmentVariables([EnvironmentVariableTarget]::Process)
     if ($BoundParameters.ContainsKey('KeystorePassword')) { $storePassword = [string]$BoundParameters['KeystorePassword'] }
     elseif ($variables.Contains('HUSHFEED_SIDELOAD_KEYSTORE_PASSWORD')) { $storePassword = [string]$variables['HUSHFEED_SIDELOAD_KEYSTORE_PASSWORD'] }
@@ -63,10 +106,28 @@ function New-ApkSigningSession {
     $tools = Resolve-ApkSigningTools -Root $Root -Sdk $Sdk -KeystoreType $KeystoreType
     $session = [pscustomobject]@{
         Java = $Java; Tools = $tools; Keystore = $Keystore; KeyAlias = $KeyAlias; KeystoreType = $KeystoreType
-        StorePasswordSpec = 'pass:'; EntryPasswordSpec = 'pass:'; Environment = @{}; Certificate = $null
+        StorePasswordSpec = 'pass:'; EntryPasswordSpec = 'pass:'; Environment = @{}; Certificate = $null; KeyLock = $null; KeyDigest = $null
     }
     $preference = $ErrorActionPreference
     try {
+        # Prevent writes/deletion through an alias too, for the whole build and its cleanup.
+        $session.KeyLock = [IO.File]::Open($Keystore, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+        $keyHash = [Security.Cryptography.SHA256]::Create()
+        try { $session.KeyDigest = [BitConverter]::ToString($keyHash.ComputeHash($session.KeyLock)) }
+        finally { $keyHash.Dispose(); $session.KeyLock.Position = 0 }
+        if ($OutputDirectory -and (Test-Path -LiteralPath $outputRoot -PathType Container)) {
+            $pending = New-Object 'Collections.Generic.Stack[string]'
+            $pending.Push($outputRoot)
+            while ($pending.Count -gt 0) {
+                foreach ($child in @(Get-ChildItem -LiteralPath $pending.Pop() -Force)) {
+                    if ($child.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Refusing signing through a linked path.' }
+                    if ($child.PSIsContainer) { $pending.Push($child.FullName) }
+                    elseif (Test-ApkSigningKeyCollision -Session $session -Path $child.FullName) {
+                        throw 'Refusing a signing key inside the build output directory. Keep the key outside -OutDir.'
+                    }
+                }
+            }
+        }
         foreach ($entry in @(
             @{ Value = $storePassword; Property = 'StorePasswordSpec' }
             @{ Value = $entryPassword; Property = 'EntryPasswordSpec' }
@@ -97,6 +158,7 @@ function New-ApkSigningSession {
 function Close-ApkSigningSession {
     param($Session)
     if (-not $Session) { return }
+    if ($Session.KeyLock) { $Session.KeyLock.Dispose(); $Session.KeyLock = $null }
     foreach ($name in $Session.Environment.Keys) {
         $previous = $Session.Environment[$name]
         # PowerShell coerces $null to an empty string for this overload. On recent .NET,
@@ -122,6 +184,14 @@ function Get-ApkSigningCertificate {
 
 function Invoke-ApkSigning {
     param($Session, [string]$InputApk, [string]$OutputApk)
+    if (-not $Session.KeyLock) { throw 'The signing session is closed.' }
+    $InputApk = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($InputApk)
+    $OutputApk = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputApk)
+    foreach ($path in @($InputApk, $OutputApk, ($OutputApk + '.idsig'))) {
+        if (Test-ApkSigningKeyCollision -Session $Session -Path $path) {
+            throw 'Refusing an APK or signing sidecar path that overlaps the signing key.'
+        }
+    }
     $arguments = @('--class-path', $Session.Tools.ClassPath, 'com.android.apksigner.ApkSignerTool',
         'sign', '--ks', $Session.Keystore, '--ks-pass', $Session.StorePasswordSpec,
         '--ks-key-alias', $Session.KeyAlias, '--key-pass', $Session.EntryPasswordSpec,

@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.facebook.shared
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.parametersMatch
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -25,10 +26,17 @@ import org.junit.Test
 /** What the patcher holds a method to for the funnel's fingerprint: its name, return type and parameters. */
 internal fun admittedAsFeedFunnel(method: Method): Boolean {
     val fingerprint = AddNewEdgeToCollectionFingerprint
-    val parameters = fingerprint.parameters ?: throw AssertionError("the funnel's parameters are not pinned")
-    return method.name == fingerprint.name && method.returnType == fingerprint.returnType &&
+    val parameters = fingerprint.declared<List<String>>("parameters")
+        ?: throw AssertionError("the funnel's parameters are not pinned")
+    return method.name == fingerprint.declared<String>("name") &&
+        method.returnType == fingerprint.declared<String>("returnType") &&
         parametersMatch(method.parameterTypes, parameters)
 }
+
+/** A field the fingerprint was declared with: patcher 1.15.0 made them internal (its #230). */
+@Suppress("UNCHECKED_CAST")
+private fun <T> Fingerprint.declared(field: String): T? =
+    Fingerprint::class.java.getDeclaredField(field).also { it.isAccessible = true }.get(this) as T?
 
 /**
  * How the one feed guard finds its method and the edge's two getters, without a Facebook build: the

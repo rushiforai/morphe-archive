@@ -16,6 +16,7 @@ import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.liveAcrossInjection
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.instagram.misc.extension.patchLog
 import app.morphe.patches.instagram.misc.extension.requireParameterIntact
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
@@ -33,7 +34,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-private const val PATCH = "Show if a profile follows you"
+internal const val PATCH = "Show if a profile follows you"
 internal const val FRIENDSHIP_STATUS = "$EXTENSION_PACKAGE/profile/FriendshipStatus;"
 internal const val BESIDE_PRONOUNS = "$FRIENDSHIP_STATUS->besidePronouns(Ljava/lang/Object;Ljava/lang/Object;)V"
 internal const val IN_PLACE_OF_PRONOUNS = "$FRIENDSHIP_STATUS->inPlaceOfPronouns(Ljava/lang/Object;Ljava/lang/Object;)V"
@@ -47,7 +48,7 @@ internal const val USER = "Lcom/instagram/user/model/User;"
 
 /** The signed-in account, whose `getUserId()` keeps its name, so your own profile gets no label. */
 internal const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
-private const val GET_USER_ID = "getUserId"
+internal const val GET_USER_ID = "getUserId"
 
 /**
  * The friendship status Instagram keeps on a user, from friendships/show, and the key its getter on
@@ -62,21 +63,23 @@ internal const val FRIENDSHIP_STATUS_KEY = "friendship_status"
  */
 internal const val FOLLOWED_BY = "followed_by"
 
-private const val OBJECT = "Ljava/lang/Object;"
-private const val STRING = "Ljava/lang/String;"
-private const val VIEW = "Landroid/view/View;"
-private const val TEXT_VIEW = "Landroid/widget/TextView;"
+internal const val OBJECT = "Ljava/lang/Object;"
+internal const val STRING = "Ljava/lang/String;"
+internal const val VIEW = "Landroid/view/View;"
+internal const val TEXT_VIEW = "Landroid/widget/TextView;"
 private const val BOOLEAN = "Ljava/lang/Boolean;"
 
 /**
  * Adds Follows you or Doesn't follow you beside the name on someone's profile, in the slot Instagram
- * keeps there for pronouns. Asked for in #1.
+ * keeps there for pronouns, and with a second switch marks the accounts on your own Following list
+ * that don't follow you back ([findFollowRow]). Asked for in #1.
  */
 @Suppress("unused")
 val friendshipStatusPatch = bytecodePatch(
     name = "Show if a profile follows you",
     description = "Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns " +
-        "if they've set any. A switch in HushGram's settings turns it off.",
+        "if they've set any. A second switch, off to start, marks the accounts on your own Following list that " +
+        "don't follow you back.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)
@@ -84,15 +87,39 @@ val friendshipStatusPatch = bytecodePatch(
 
     execute {
         requireStatusMethod("friendshipStatus")
+        requireStatusMethod(FOLLOWING_LIST_STATUS)
+        // Everything is found before anything changes, so a build missing any part is left untouched.
         val found = findProfileName()
+        val row = followRowOrWarn()
         val stubs = friendshipStubs()
+        val rowStubs = followingStubs()
         labelProfileName(found)
         stubs.fill(found)
+        if (row != null) {
+            markFollowRow(row)
+            rowStubs.fill(row)
+            enableStatus(FOLLOWING_LIST_STATUS)
+        }
         enableStatus("friendshipStatus")
     }
 }
 
-private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
+/** The status of the second switch, which a build can lack while the profile label goes in. */
+internal const val FOLLOWING_LIST_STATUS = "followingListMark"
+
+/**
+ * The follow list's row binder, or null with a warning in the patch log when this build's list
+ * doesn't match. Marking the list is a second switch, off to start, so a list that moved leaves it
+ * out rather than taking the profile label down too; settings then don't offer the switch.
+ */
+internal fun BytecodePatchContext.followRowOrWarn(): FollowRow? = try {
+    findFollowRow()
+} catch (moved: PatchException) {
+    patchLog.warning("${moved.message}. The profile label goes in without Mark who doesn't follow you back.")
+    null
+}
+
+internal fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
 
 /**
  * The profile header's binder and what the patch needs from it: the two calls that show and hide the
@@ -295,19 +322,19 @@ private fun Instruction.isSetVisibility(slot: String, register: Int): Boolean {
         namedRegisters().firstOrNull() == register
 }
 
-private fun ClassDef.instanceFields(type: String) = fields.filter {
+internal fun ClassDef.instanceFields(type: String) = fields.filter {
     it.type == type && !AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags)
 }
 
-private fun Method.holdsString(value: String) = implementation?.instructions?.any { it.loadsString(value) } == true
+internal fun Method.holdsString(value: String) = implementation?.instructions?.any { it.loadsString(value) } == true
 
-private fun Instruction.loadsString(value: String) =
+internal fun Instruction.loadsString(value: String) =
     (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
         ((this as ReferenceInstruction).reference as StringReference).string == value
 
-private fun Instruction.methodReference(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
+internal fun Instruction.methodReference(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
 
-private fun Instruction.fieldReference(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
+internal fun Instruction.fieldReference(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
 
 /**
  * Right after the binder shows the pronouns slot, hands the slot and the header to [BESIDE_PRONOUNS],

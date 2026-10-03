@@ -103,7 +103,7 @@ public class MediaCachePendingSweepTest {
     }
 
     private File journal() {
-        return new File(new File(context.getCacheDir(), MediaCache.DIRECTORY_NAME), "pending-uris.tsv");
+        return new File(new File(context.getNoBackupFilesDir(), MediaCache.DIRECTORY_NAME), "pending-uris.tsv");
     }
 
     private void writeStale(String key) throws Exception {

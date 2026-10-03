@@ -234,6 +234,12 @@ public final class OriginalPhoto {
                 byte[] payload = new byte[length - 2];
                 in.readFully(payload);
                 if (keep(marker, payload)) {
+                    if (marker == 0xE0) {
+                        // JFIF's base segment can contain an RGB thumbnail, including pixels edited out of the image.
+                        if (payload.length < 14) throw new NotPassable("short JFIF header");
+                        payload = java.util.Arrays.copyOf(payload, 14);
+                        payload[12] = payload[13] = 0;
+                    }
                     if (exifDue && marker != 0xE0) {
                         writeSegment(out, 0xE1, orientationExif(orientation));
                         exifDue = false;

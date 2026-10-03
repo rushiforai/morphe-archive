@@ -277,7 +277,7 @@ public class MediaCacheRecoveryTest {
 
     private File journal() {
         return new File(
-                new File(context.getCacheDir(), MediaCache.DIRECTORY_NAME), "pending-uris.tsv");
+                new File(context.getNoBackupFilesDir(), MediaCache.DIRECTORY_NAME), "pending-uris.tsv");
     }
 
     private void writeJournal(String token, long timestamp) throws Exception {

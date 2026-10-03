@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-import json, yaml, os, glob
+"""Generates build/release_notes.md with per-version expandable sections."""
+import json
+import os
+import glob
+import yaml
 
 HF = os.environ.get("HUSHFEED_VERSION", "unknown")
 N64 = os.environ.get("NAI64_VERSION", "unknown")
@@ -11,13 +15,16 @@ with open("Nai64ExtraPatches_Options.yaml") as f:
 
 notes = {p["name"].lower(): p.get("note", "") for p in cfg.get("patches", [])}
 
+
 def fmt_opts(data):
     out = []
     for k, v in (data.get("options") or {}).items():
         val = v.get("value") if isinstance(v, dict) else v
-        if val in (None, ""): continue
+        if val in (None, ""):
+            continue
         out.append(f"{k}={val}")
     return ", ".join(out)
+
 
 hf = options[0]["patches"] if len(options) > 0 else {}
 n64 = options[1]["patches"] if len(options) > 1 else {}
@@ -27,7 +34,10 @@ hf_off = sorted(n for n, d in hf.items() if not d.get("enabled"))
 n64_on = sorted(n for n, d in n64.items() if d.get("enabled"))
 n64_off = sorted(n for n, d in n64.items() if not d.get("enabled"))
 
-versions = sorted([f.replace("build/permissions-", "").replace(".json", "") for f in glob.glob("build/permissions-*.json")])
+versions = sorted(
+    f.replace("build/permissions-", "").replace(".json", "")
+    for f in glob.glob("build/permissions-*.json")
+)
 version_str = ", ".join(versions)
 
 changelog = ""
@@ -81,11 +91,10 @@ L.append("## Permissions")
 L.append("")
 
 for v in versions:
-    L.append(f"### TikTok {v}")
-    L.append("")
     with open(f"build/permissions-{v}.json") as f:
         perm = json.load(f)
-    
+    L.append(f"### TikTok {v}")
+    L.append("")
     L.append("<details>")
     L.append(f"<summary>Removed permissions ({len(perm['removed'])})</summary>")
     L.append("")
@@ -129,4 +138,4 @@ L.append("")
 
 with open("build/release_notes.md", "w") as f:
     f.write("\n".join(L))
-print("✅ release_notes.md generated")
+print("release_notes.md generated")

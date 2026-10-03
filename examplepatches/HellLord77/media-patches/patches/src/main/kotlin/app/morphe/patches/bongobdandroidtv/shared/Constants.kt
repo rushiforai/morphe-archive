@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.Compatibility
 
 object Constants {
     val COMPATIBILITY_BONGOANDROIDTV = Compatibility(
-        name = "Bongobdandroidtv",
+        name = "Bongo",
         packageName = "com.bongo.bongobdandroidtv",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0XD21E28,

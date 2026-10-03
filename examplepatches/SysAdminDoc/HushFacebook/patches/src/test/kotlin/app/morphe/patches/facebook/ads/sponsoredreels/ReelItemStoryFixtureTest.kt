@@ -43,8 +43,9 @@ class ReelItemStoryFixtureTest {
 
     /** The item interface and its story getter in each declared build. */
     private val expected = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to ("LX/9Va;" to "BSc"),
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to ("LX/V4T;" to "BUL"),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to ("LX/UZQ;" to "BTX"),
+        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to ("LX/9Va;" to "BSc"),
+        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to ("LX/V4T;" to "BUL"),
     )
 
     private val Instruction.methodReference get() = (this as? ReferenceInstruction)?.reference as? MethodReference

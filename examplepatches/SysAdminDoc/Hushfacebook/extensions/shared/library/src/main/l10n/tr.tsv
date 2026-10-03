@@ -78,6 +78,10 @@ Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook a
 Tab bar at the bottom	Sekme çubuğu altta
 # context: description of that switch; Facebook shows the tab bar at the top of the screen on some accounts and at the bottom on others
 Put Facebook's tab bar at the bottom of the screen on accounts that have it at the top. Restart Facebook after changing it.	Facebook'un sekme çubuğunu, onu üstte gösteren hesaplarda ekranın altına taşır. Değiştirdikten sonra Facebook'u yeniden başlatın.
+# context: switch title under Appearance; it keeps Facebook's dark mode on whatever Facebook's own Dark mode setting says
+Force dark mode	Karanlık modu zorla
+# context: description of that switch; on some tablets Facebook's own Settings page has no Dark mode row
+Keep Facebook in dark mode whatever its own setting says, for tablets where Facebook's settings have no Dark mode. Restart Facebook after changing it.	Kendi ayarı ne olursa olsun Facebook'u karanlık modda tutar. Facebook ayarlarında Karanlık mod bulunmayan tabletler içindir. Değiştirdikten sonra Facebook'u yeniden başlatın.
 Use your phone's font or a file chosen below. Restart Facebook after changing it.	Telefonunuzun yazı tipini veya aşağıdan seçilen dosyayı kullanır. Değiştirdikten sonra Facebook'u yeniden başlatın.
 Font file	Yazı tipi dosyası
 Use your phone's font	Telefonun yazı tipini kullan
@@ -206,6 +210,8 @@ That file isn't readable text, so it may have been damaged on the way. Nothing w
 That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	Bu dosyada bir ayar iki kez geçiyor, bu yüzden hangi değerin kullanılacağı belli değil. Hiçbir şey değiştirilmedi.
 That isn't a Hushfacebook settings file. Nothing was changed.	Bu bir Hushfacebook ayar dosyası değil. Hiçbir şey değiştirilmedi.
 That settings file holds a value Hushfacebook can't read. Nothing was changed.	Bu ayar dosyasında Hushfacebook'un okuyamadığı bir değer var. Hiçbir şey değiştirilmedi.
+# context: a settings file refused on import: its word lists, beside one it leaves as it is, take more than the room the two lists share
+The word lists in that file are longer than the two lists have room for. Nothing was changed.	Bu dosyadaki kelime listeleri iki listenin alanına sığmıyor. Hiçbir şey değiştirilmedi.
 That settings file is damaged or only partly downloaded. Nothing was changed.	Bu ayar dosyası hasarlı ya da yalnızca bir kısmı indirilmiş. Hiçbir şey değiştirilmedi.
 That settings file was written by a newer Hushfacebook than this one. Nothing was changed.	Bu ayar dosyası, Hushfacebook'un bu sürümünden daha yeni bir sürümüyle oluşturulmuş. Hiçbir şey değiştirilmedi.
 the Audience Network block	Audience Network engeli
@@ -438,10 +444,10 @@ One word or phrase per line, up to %1$d, each %2$d to %3$d characters long, or j
 A post with any of these stays, even when it also has a word to hide. One per line, up to %1$d, each %2$d to %3$d characters long, or just one for an emoji, a Chinese character, a kana or a Hangul syllable.	Bunlardan birini içeren gönderi, gizlenecek bir kelime de içerse kalır. Her satıra bir tane, en fazla %1$d tane, her biri %2$d ile %3$d karakter arası. Emoji, Çince karakter, kana veya Hangul hecesi için tek karakter yeter.
 # context: hint in the empty text box of both word list dialogs
 One word or phrase per line	Her satıra bir kelime veya ifade
-# context: toast after saving a word list, one line left out; %2$d and %3$d are the shortest and longest phrase in characters, %4$d how many a list holds
-%1$d line was left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once, and a list holds %4$d.	%1$d satır dışarıda bırakıldı. Bir ifade %2$d ile %3$d karakter arası olmalı. Emoji, Çince karakter, kana veya Hangul hecesi için tek karakter yeter. İki kez yazılan bir kez sayılır ve bir liste en fazla %4$d tane alır.
-# context: toast after saving a word list, several lines left out; %2$d and %3$d are the shortest and longest phrase in characters, %4$d how many a list holds
-%1$d lines were left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once, and a list holds %4$d.	%1$d satır dışarıda bırakıldı. Bir ifade %2$d ile %3$d karakter arası olmalı. Emoji, Çince karakter, kana veya Hangul hecesi için tek karakter yeter. İki kez yazılan bir kez sayılır ve bir liste en fazla %4$d tane alır.
+# context: toast after saving a word list, one line left out; %2$d and %3$d are the shortest and longest phrase in characters
+%1$d line was left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once.	%1$d satır dışarıda bırakıldı. Bir ifade %2$d ile %3$d karakter arası olmalı. Emoji, Çince karakter, kana veya Hangul hecesi için tek karakter yeter. İki kez yazılan bir kez sayılır.
+# context: toast after saving a word list, several lines left out; %2$d and %3$d are the shortest and longest phrase in characters
+%1$d lines were left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once.	%1$d satır dışarıda bırakıldı. Bir ifade %2$d ile %3$d karakter arası olmalı. Emoji, Çince karakter, kana veya Hangul hecesi için tek karakter yeter. İki kez yazılan bir kez sayılır.
 # context: summary of the Words to hide row while it's empty
 No words yet, so no post is hidden.	Henüz kelime yok, bu yüzden hiçbir gönderi gizlenmiyor.
 # context: summary of the Words that keep a post row while it's empty
@@ -450,6 +456,12 @@ No words yet.	Henüz kelime yok.
 %1$d word or phrase.	%1$d kelime veya ifade.
 # context: summary of a word list row holding several phrases
 %1$d words or phrases.	%1$d kelime veya ifade.
+# context: line under a word list being edited: how full the room both lists share would be; %1$d is a whole percent
+Both lists together fill %1$d%% of the room they share.	İki liste birlikte paylaştıkları alanın %%%1$d kadarını dolduruyor.
+# context: under a word list being edited, and when its Save is refused: more phrases than a list holds; %1$d is the most a list holds
+A list holds up to %1$d phrases, and this one has more. Remove some, then save again.	Bir liste en fazla %1$d ifade alır ve bu listede daha fazlası var. Birkaçını silip yeniden kaydet.
+# context: under a word list being edited, and when its Save is refused: both lists would take more than the room they share; %1$d is a whole percent past 100
+Both lists together would fill %1$d%% of the room they share. Remove or shorten some phrases, then save again.	İki liste birlikte paylaştıkları alanın %%%1$d kadarını dolduracak. Bazı ifadeleri silip ya da kısaltıp yeniden kaydet.
 # context: added to the Words to hide summary: posts the filter hid since Facebook last started, one
 Hid %1$d post since Facebook started.	Facebook açıldığından beri %1$d gönderi gizlendi.
 # context: added to the Words to hide summary: posts the filter hid since Facebook last started, several
@@ -537,6 +549,14 @@ Android 11 doesn't say which links open here. Tap to open this app's settings, t
 Selecting links by hand	Bağlantıları elle seçme
 Android checks Facebook's links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.	Android, Facebook'un bağlantılarını Meta'nın imzalama anahtarıyla denetler ve yeniden imzalanmış bir sürümde bu anahtar yoktur. Adresleri seçmek bağlantılarını yeniden buraya gönderir. Bu, Meta'nın doğrulamasını geri getirmez ve diğer bağlantı ayarlarınız olduğu gibi kalır.
 Android's settings for this app didn't open. Open App info from Facebook's icon, then Open by default.	Bu uygulamanın Android ayarları açılamadı. Facebook simgesinden Uygulama bilgileri'ni, ardından Varsayılan olarak aç'ı açın.
+# context: title of a row under Links; Meta App Manager is the name of Meta's preinstalled app, keep it as is
+Meta App Manager	Meta App Manager
+# context: that row once Facebook's web addresses go to this app
+Facebook's web addresses open here now.	Facebook'un web adresleri artık burada açılıyor.
+# context: that row's description; "Open supported links" is Android's own switch, "Supported links" is the row above
+Meta App Manager can keep Facebook's web addresses for itself, so their links skip this app. Tap and turn off Open supported links there, then check Supported links above.	Meta App Manager, Facebook'un web adreslerini kendine alabilir ve bu durumda bağlantılar bu uygulamayı atlar. Dokunup oradaki “Desteklenen bağlantıları aç” seçeneğini kapatın, ardından yukarıdaki Desteklenen bağlantılar'ı kontrol edin.
+# context: message when Android's page for Meta App Manager doesn't open; "Open by default" is Android's page name
+Meta App Manager's settings didn't open. Find it in Android's app list with system apps shown, then Open by default.	Meta App Manager ayarları açılamadı. Sistem uygulamaları gösterilirken Android'in uygulama listesinde bulun, ardından Varsayılan olarak aç'ı açın.
 # context: message when a save starts and its notification can't show (Facebook's notifications or the saves channel are off); Downloads is the settings section that lists running saves, each with its own Cancel
 Saving... Cancel: Downloads in Hushfacebook.	Kaydediliyor... İptal: Hushfacebook'ta İndirmeler.
 # context: switch title under Reels and Watch; on, a double tap on a reel or a video doesn't like it
@@ -683,3 +703,12 @@ Hide "Find friends from contacts"	“Kişilerinden arkadaş bul” kartını giz
 The Stories tray card asking to upload your contacts. Applies when Facebook next loads the tray.	Hikaye tepsisinde kişilerini yüklemeni isteyen kart. Facebook tepsiyi yeniden yüklediğinde uygulanır.
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 The row of friend suggestions between posts, the one on your own profile, and the cards with an Add button in the Stories tray.	Gönderilerin arasındaki arkadaş önerileri satırı, kendi profilindeki satır ve hikaye tepsisindeki Ekle düğmeli kartlar.
+Feeds opens on	Akışlar şurada açılır
+All	Tümü
+Favorites	Favoriler
+Groups	Gruplar
+Pages	Sayfalar
+When Facebook opens on Feeds, the Feeds tab opens on the filter Facebook picks.	Facebook Akışlar sekmesinde açıldığında Akışlar, Facebook'un seçtiği filtrede açılır.
+When Facebook opens on Feeds, the Feeds tab opens on %1$s. If your Feeds tab doesn't have it, it opens as usual.	Facebook Akışlar sekmesinde açıldığında Akışlar %1$s filtresinde açılır. Akışlar sekmende bu filtre yoksa her zamanki gibi açılır.
+The Feeds tab will open on the filter Facebook picks.	Akışlar sekmesi Facebook'un seçtiği filtrede açılacak.
+The Feeds tab will open on %1$s.	Akışlar sekmesi %1$s filtresinde açılacak.

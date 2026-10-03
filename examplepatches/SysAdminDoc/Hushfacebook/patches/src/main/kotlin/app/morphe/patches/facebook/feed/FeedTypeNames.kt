@@ -16,6 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -86,6 +87,45 @@ private fun tableString(table: Method, index: Int): String? {
     val target = switchTarget(byAddress, index) ?: return null
     return byAddress[target]?.string()
 }
+
+private val INT_CONSTANTS = setOf(Opcode.CONST, Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST_HIGH16)
+
+/** Whether [instruction] calls something shaped like a string table: a static `(I)Ljava/lang/String;`. */
+internal fun isStringTableCall(instruction: Instruction): Boolean {
+    val call = instruction.methodCall() ?: return false
+    return (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) &&
+        call.returnType == "Ljava/lang/String;" && call.parameterTypes.map { it.toString() } == listOf("I")
+}
+
+/**
+ * The literals [method] asks string tables for: each an int constant loaded straight before a call
+ * to a static `(I)Ljava/lang/String;` that [resolve] finds, read from that table's switch case for
+ * the index. Redex outlines a literal that many methods share into such a table and moves literals
+ * in and out of the tables between releases (581 moved the save-story event, the typeahead source
+ * name and Messenger's /l.php in), so a method's literals are its own and these together.
+ */
+internal fun tableStringsAsked(method: Method, resolve: (MethodReference) -> Method?): List<String> {
+    val code = method.implementation?.instructions?.toList() ?: return emptyList()
+    return code.indices.mapNotNull { index ->
+        val instruction = code[index]
+        if (!isStringTableCall(instruction)) return@mapNotNull null
+        val register = when (instruction) {
+            is RegisterRangeInstruction -> instruction.startRegister
+            is FiveRegisterInstruction -> instruction.registerC
+            else -> return@mapNotNull null
+        }
+        val load = code.getOrNull(index - 1)
+        if (load == null || load.opcode !in INT_CONSTANTS || (load as OneRegisterInstruction).registerA != register) {
+            return@mapNotNull null
+        }
+        resolve(instruction.methodCall()!!)?.let { tableString(it, (load as NarrowLiteralInstruction).narrowLiteral) }
+    }
+}
+
+/** Whether [method] holds [literal] or asks a string table for it ([tableStringsAsked]). */
+internal fun namesString(method: Method, literal: String, resolve: (MethodReference) -> Method?): Boolean =
+    method.implementation?.instructions?.any { it.string() == literal } == true ||
+        literal in tableStringsAsked(method, resolve)
 
 /**
  * The name [method], a tree model's `getTypeName()`, answers for a model tagged [tag], or null.

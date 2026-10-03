@@ -79,8 +79,19 @@ public final class SettingsBackup {
             Settings.HIDE_ADS,
             Settings.HIDE_STORIES,
             Settings.HIDE_RECOMMENDATIONS,
+            Settings.HIDE_COMMERCE,
+            Settings.HIDE_PROMOTIONAL_BANNERS,
+            Settings.HIDE_SPONSORED_PROXY,
+            Settings.HIDE_POPULAR_APPS,
+            Settings.DISABLE_CHAT_SWIPE,
+            Settings.QUIET_CONTACTS_NAG,
+            Settings.HOLIDAY_LOOK,
             Settings.DISABLE_ANALYTICS,
             Settings.DISABLE_CALL_DEBUG,
+            Settings.DISABLE_DRAFT_PREVIEWS,
+            Settings.GALLERY_CAMERA_ON_TAP,
+            Settings.OPEN_EXTERNAL_LINKS,
+            Settings.STRIP_LINK_TRACKING,
             Settings.DISABLE_UPDATE_CHECKS));
 
     /**

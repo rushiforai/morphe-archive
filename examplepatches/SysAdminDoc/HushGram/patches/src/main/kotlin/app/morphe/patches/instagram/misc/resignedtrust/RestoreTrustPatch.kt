@@ -28,7 +28,9 @@ private const val ORIGINAL_SIGNERS = "Lapp/hushgram/extension/instagram/misc/Ins
 val restoreTrustPatch = bytecodePatch(
     name = "Restore trust on re-signed builds",
     description = "Lets Instagram's own signature checks pass on a re-signed build, so the parts of the app " +
-        "that check who signed it keep working. A Root Mount install doesn't need this patch.",
+        "that check who signed it keep working. Threads, Facebook and Messenger patched with the same key " +
+        "open from Instagram too, and Instagram trusts them when they share to it or ask it for your sign-in. " +
+        "A Root Mount install doesn't need this patch.",
     default = true,
 ) {
     category("Fixes")
@@ -63,9 +65,10 @@ val restoreTrustPatch = bytecodePatch(
 }
 
 /**
- * For the running app, answer with Instagram's original signing history and skip the body. For any
- * other package, the extension answers null and the body runs as before. The two flags only feed the
- * result's equals, hashCode and toString, so false is as good as any.
+ * For the running app, answer with Instagram's original signing history and skip the body. For a
+ * Threads, Facebook or Messenger signed with this build's own key, the extension answers that app's
+ * Meta certificate the same way. For any other package it answers null and the body runs as before.
+ * The two flags only feed the result's equals, hashCode and toString, so false is as good as any.
  *
  * The injection is at index 0, where no local is live yet, so v0 to v2 are free once the method is
  * known to have three locals. `iget-object` takes 4-bit registers, so `this` is copied down into v0

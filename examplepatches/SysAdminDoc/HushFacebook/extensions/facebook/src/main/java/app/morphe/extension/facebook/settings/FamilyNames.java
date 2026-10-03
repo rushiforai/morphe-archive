@@ -68,6 +68,7 @@ public final class FamilyNames {
     public static final String REELS_TAB = "Hide the Reels tab";
     public static final String REELS_TAB_DOT = "Hide the Reels tab dot";
     public static final String BOTTOM_TAB_BAR = "Tab bar at the bottom";
+    public static final String FORCE_DARK_MODE = "Force dark mode";
     public static final String MESSENGER_CARD = "Hide the Get Messenger card";
     public static final String MESSENGER_ICON = "Open Messenger from the top bar";
     public static final String MENU_PROMOTIONS = "Hide Menu promotions";

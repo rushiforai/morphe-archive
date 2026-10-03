@@ -18,7 +18,7 @@ body:
     attributes:
       label: HushGram and Instagram versions
       description: Long-press Instagram's icon and tap HushGram settings. Copy what the Version row under About says.
-      placeholder: HushGram 0.0.3 on Instagram 449.0.0.52.84
+      placeholder: HushGram 0.0.4 on Instagram 449.0.0.52.84
     validations:
       required: true
   - type: input

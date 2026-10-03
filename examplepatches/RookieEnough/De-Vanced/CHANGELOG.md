@@ -1,3 +1,46 @@
+## [1.5.0](https://github.com/RookieEnough/De-Vanced/compare/v1.4.4...v1.5.0) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* add missing junit to version catalog ([82a7d5c](https://github.com/RookieEnough/De-Vanced/commit/82a7d5ce10c7304a2f66c4c5c57bff279cd38457))
+* **facebook:** match static flag instead of exact access flags in KeepAskedStartTab fingerprint ([c22c02d](https://github.com/RookieEnough/De-Vanced/commit/c22c02d1a0a538736e434b4a32f3435864842f22))
+* **facebook:** normalize downloads to H.264/AAC-LC in single pass ([432f243](https://github.com/RookieEnough/De-Vanced/commit/432f243f07468e54cf1ca0d3d05c9e87828fbce7)), closes [#154](https://github.com/RookieEnough/De-Vanced/issues/154)
+* **facebook:** prefer H.264 video and AAC audio in download variant selection ([4e8759e](https://github.com/RookieEnough/De-Vanced/commit/4e8759ef71d0bf3657c79ea22a93b2c89bf14977)), closes [#154](https://github.com/RookieEnough/De-Vanced/issues/154)
+* **facebook:** prevent AMOLED theme recursion crash in Messenger DMs ([c667a13](https://github.com/RookieEnough/De-Vanced/commit/c667a134f22c95e3b52c047f35cff0e64012035b))
+
+### ✨ New Features
+
+* **Facebook:** add full 580 patch set ([7c90029](https://github.com/RookieEnough/De-Vanced/commit/7c9002965f3c30a1d11bd564169e944af9e6edd1))
+
+## [1.5.0-dev.4](https://github.com/RookieEnough/De-Vanced/compare/v1.5.0-dev.3...v1.5.0-dev.4) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **facebook:** normalize downloads to H.264/AAC-LC in single pass ([432f243](https://github.com/RookieEnough/De-Vanced/commit/432f243f07468e54cf1ca0d3d05c9e87828fbce7)), closes [#154](https://github.com/RookieEnough/De-Vanced/issues/154)
+
+## [1.5.0-dev.3](https://github.com/RookieEnough/De-Vanced/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **facebook:** prefer H.264 video and AAC audio in download variant selection ([4e8759e](https://github.com/RookieEnough/De-Vanced/commit/4e8759ef71d0bf3657c79ea22a93b2c89bf14977)), closes [#154](https://github.com/RookieEnough/De-Vanced/issues/154)
+
+## [1.5.0-dev.2](https://github.com/RookieEnough/De-Vanced/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **facebook:** prevent AMOLED theme recursion crash in Messenger DMs ([c667a13](https://github.com/RookieEnough/De-Vanced/commit/c667a134f22c95e3b52c047f35cff0e64012035b))
+
+## [1.5.0-dev.1](https://github.com/RookieEnough/De-Vanced/compare/v1.4.4...v1.5.0-dev.1) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* add missing junit to version catalog ([82a7d5c](https://github.com/RookieEnough/De-Vanced/commit/82a7d5ce10c7304a2f66c4c5c57bff279cd38457))
+* **facebook:** match static flag instead of exact access flags in KeepAskedStartTab fingerprint ([c22c02d](https://github.com/RookieEnough/De-Vanced/commit/c22c02d1a0a538736e434b4a32f3435864842f22))
+
+### ✨ New Features
+
+* **Facebook:** add full 580 patch set ([7c90029](https://github.com/RookieEnough/De-Vanced/commit/7c9002965f3c30a1d11bd564169e944af9e6edd1))
+
 ## [1.4.4](https://github.com/RookieEnough/De-Vanced/compare/v1.4.3...v1.4.4) (2026-09-20)
 
 ### 🐛 Bug Fixes

@@ -24,10 +24,10 @@ import org.junit.Test
  *
  * Every declared build has to carry exactly one `getTypeName()` with a case for the tag of
  * "GroupsYouShouldJoinFeedUnit", on the model that answers People you may know, and that case has
- * to answer the name through its string table. The same model's friend requests case is the
- * control: same table, another answer. No `getTypeName()` holds the name as a literal of its own,
- * which is why the patch reads the tag's case. Reads the fixture bundles from
- * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
+ * to answer the name: through its string table on 577 and 580, with a literal of its own on 581.
+ * The patch reads the tag's case, which covers both. The same model's friend requests case is the
+ * control: the same switch, another answer. No other `getTypeName()` holds the name. Reads the
+ * fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class SuggestedGroupsFixtureTest {
     private val friends = "FriendRequestsFeedUnit"
@@ -54,10 +54,11 @@ class SuggestedGroupsFixtureTest {
                     if (holdsString(method, GROUPS_YOU_SHOULD_JOIN_TYPE)) literal += method
                     switchesOn(method, groupsTag)
                 }.let(tagged::addAll)
-                assertEquals("${bundle.name}: getTypeName() methods holding the name as a literal", emptyList<Method>(), literal)
                 assertEquals("${bundle.name}: getTypeName() methods with a case for $GROUPS_YOU_SHOULD_JOIN_TYPE",
                     1, tagged.size)
                 val model = tagged.single()
+                assertTrue("${bundle.name}: another getTypeName() holds the name: ${literal.map { it.definingClass }}",
+                    literal.all { it.definingClass == model.definingClass })
                 assertTrue("${bundle.name}: ${model.definingClass} isn't the People you may know model",
                     holdsString(model, PEOPLE_YOU_MAY_KNOW_TYPE))
 
@@ -65,7 +66,7 @@ class SuggestedGroupsFixtureTest {
                     if (instruction.opcode != Opcode.INVOKE_STATIC) return@mapNotNull null
                     (instruction as? ReferenceInstruction)?.reference as? MethodReference
                 }.toSet()
-                assertEquals("${bundle.name}: the string tables ${model.definingClass} asks", 1, tables.size)
+                assertTrue("${bundle.name}: the string tables ${model.definingClass} asks: $tables", tables.size <= 1)
                 val owners = FixtureDex.classes(bundle, tables.map { it.definingClass }.toSet())
                 val resolve = { call: MethodReference -> owners[call.definingClass]?.let { resolveStatic(it, call) } }
 
@@ -75,7 +76,7 @@ class SuggestedGroupsFixtureTest {
                 val control = taggedTypeName(model, treeTypeTag(friends), resolve)
                 assertEquals("${bundle.name}: the friend requests case", friends, control)
                 assertNotEquals(GROUPS_YOU_SHOULD_JOIN_TYPE, control)
-                checked[version] = "${model.definingClass}->getTypeName via ${tables.single()}"
+                checked[version] = "${model.definingClass}->getTypeName via ${tables.singleOrNull() ?: "literals"}"
             }
         }
         assertEquals("a declared build went unchecked: $checked", versions.toSet(), checked.keys)

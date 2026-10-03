@@ -152,7 +152,10 @@ $resourceTableCheckPaths = @(
 )
 $touchesResourceTableCheck = @($changed | Where-Object { $_ -in $resourceTableCheckPaths }).Count -gt 0
 $injectedRegisterDevicePaths = @(
+    'scripts/device-install.ps1',
     'scripts/injected-register-device.ps1',
+    'scripts/patch-for-device.ps1',
+    'scripts/pre-push.ps1',
     'scripts/script-wiring.ps1',
     'scripts/test-injected-register-device.ps1',
     'scripts/verify-injected-registers.ps1'

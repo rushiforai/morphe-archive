@@ -43,6 +43,7 @@ import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
+import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
@@ -306,6 +307,8 @@ public class SettingsBackupPreference extends Preference {
                 return L10n.t("That settings file was written by a newer Hushfacebook than this one. Nothing was changed.");
             case VALUE:
                 return L10n.t("That settings file holds a value Hushfacebook can't read. Nothing was changed.");
+            case WORDS:
+                return L10n.t("The word lists in that file are longer than the two lists have room for. Nothing was changed.");
             default:
                 return L10n.t("Couldn't open that file. Nothing was changed.");
         }
@@ -364,7 +367,8 @@ public class SettingsBackupPreference extends Preference {
             }
             parts.addAll(valueSentences(snapshot.folderChange(), snapshot.qualityChange(), snapshot.fileNameChange(),
                     snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(), snapshot.keptChange(),
-                    snapshot.playbackChange(), snapshot.actionChange(), snapshot.appChange(), snapshot.toChange()));
+                    snapshot.playbackChange(), snapshot.actionChange(), snapshot.appChange(), snapshot.toChange(),
+                    snapshot.subtabChange()));
             message = String.join("\n\n", parts);
         }
         if (snapshot.unknown > 0) {
@@ -430,6 +434,12 @@ public class SettingsBackupPreference extends Preference {
     /** The sentence that says which tab Facebook opens on after an import. */
     static String startTabSentence(StartTab tab) {
         return L10n.f("Facebook will open on %1$s.", HushfacebookPreferenceFragment.tabLabel(tab));
+    }
+
+    /** The sentence that says which filter the Feeds tab opens on after an import. */
+    static String feedsSubtabSentence(FeedsSubtab subtab) {
+        if (subtab == FeedsSubtab.ALL) return L10n.t("The Feeds tab will open on the filter Facebook picks.");
+        return L10n.f("The Feeds tab will open on %1$s.", HushfacebookPreferenceFragment.feedsSubtabLabel(subtab));
     }
 
     /** The sentence that says in what order comments open after an import. */
@@ -506,19 +516,30 @@ public class SettingsBackupPreference extends Preference {
         return valueSentences(folder, quality, fileName, start, order, hidden, kept, playback, action, app, null);
     }
 
-    /**
-     * A sentence for each setting that isn't a switch an import changes, in the order the screen
-     * shows them: the tab Facebook opens on, the word filter's lists, the order comments open in,
-     * the quality videos play at, then the download settings.
-     */
+    /** A sentence for each setting that isn't a switch an import changes, the Feeds filter aside. */
     static List<String> valueSentences(@Nullable String folder, @Nullable DownloadQuality quality,
                                        @Nullable String fileName, @Nullable StartTab start,
                                        @Nullable CommentOrder order, @Nullable String hidden,
                                        @Nullable String kept, @Nullable PlaybackQuality playback,
                                        @Nullable SendLink.Action action, @Nullable String app,
                                        @Nullable SaveTo to) {
+        return valueSentences(folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, null);
+    }
+
+    /**
+     * A sentence for each setting that isn't a switch an import changes, in the order the screen
+     * shows them: the tab Facebook opens on and the Feeds filter, the word filter's lists, the
+     * order comments open in, the quality videos play at, then the download settings.
+     */
+    static List<String> valueSentences(@Nullable String folder, @Nullable DownloadQuality quality,
+                                       @Nullable String fileName, @Nullable StartTab start,
+                                       @Nullable CommentOrder order, @Nullable String hidden,
+                                       @Nullable String kept, @Nullable PlaybackQuality playback,
+                                       @Nullable SendLink.Action action, @Nullable String app,
+                                       @Nullable SaveTo to, @Nullable FeedsSubtab subtab) {
         List<String> sentences = new ArrayList<>();
         if (start != null) sentences.add(startTabSentence(start));
+        if (subtab != null) sentences.add(feedsSubtabSentence(subtab));
         if (hidden != null) sentences.add(wordsSentence(hidden, true));
         if (kept != null) sentences.add(wordsSentence(kept, false));
         if (order != null) sentences.add(commentOrderSentence(order));
@@ -550,7 +571,7 @@ public class SettingsBackupPreference extends Preference {
             String done = importedMessage(snapshot.switchChanges(), snapshot.folderChange(), snapshot.qualityChange(),
                     snapshot.fileNameChange(), snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(),
                     snapshot.keptChange(), snapshot.playbackChange(), snapshot.actionChange(), snapshot.appChange(),
-                    snapshot.toChange());
+                    snapshot.toChange(), snapshot.subtabChange());
             accepted = Utils.runOnBackgroundThread(() -> {
                 try {
                     SettingsBackup.apply(snapshot);
@@ -623,6 +644,15 @@ public class SettingsBackupPreference extends Preference {
                 null);
     }
 
+    /** The toast after an import that changed no Feeds filter. */
+    static String importedMessage(int switches, @Nullable String folder, @Nullable DownloadQuality quality,
+                                  @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                                  @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
+                                  @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to) {
+        return importedMessage(switches, folder, quality, fileName, start, order, hidden, kept, playback, action, app,
+                to, null);
+    }
+
     /**
      * What the toast after an import says: how many switches changed, then a sentence for each
      * other setting that did. A folder alone keeps the one sentence it always had.
@@ -630,15 +660,18 @@ public class SettingsBackupPreference extends Preference {
     static String importedMessage(int switches, @Nullable String folder, @Nullable DownloadQuality quality,
                                   @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
                                   @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
-                                  @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to) {
+                                  @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
+                                  @Nullable FeedsSubtab subtab) {
         if (switches == 0 && folder != null && quality == null && fileName == null && start == null && order == null
-                && hidden == null && kept == null && playback == null && action == null && app == null && to == null) {
+                && hidden == null && kept == null && playback == null && action == null && app == null && to == null
+                && subtab == null) {
             return L10n.f("Settings imported. Saves will go to a folder named %1$s.", L10n.isolate(folder));
         }
         List<String> parts = new ArrayList<>();
         parts.add(switches == 0 ? L10n.t("Settings imported.") : L10n.quantity(switches,
                 "Settings imported. %1$d switch changed.", "Settings imported. %1$d switches changed.", switches));
-        parts.addAll(valueSentences(folder, quality, fileName, start, order, hidden, kept, playback, action, app, to));
+        parts.addAll(valueSentences(folder, quality, fileName, start, order, hidden, kept, playback, action, app, to,
+                subtab));
         return String.join(" ", parts);
     }
 

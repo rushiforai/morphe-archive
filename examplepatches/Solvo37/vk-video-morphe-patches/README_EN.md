@@ -9,7 +9,7 @@ Public **Morphe** patches and signed ARM64 builds for **VK Video**. The patched 
 
 ## Download
 
-Current release: **1.164.4**.  
+Current release: **1.164.5**.  
 Android package version inside the APK: **1.164 / versionCode 52379**.
 
 [Download the latest APK](https://github.com/Solvo37/vk-video-morphe-patches/releases/latest)
@@ -22,8 +22,8 @@ The auto-build checks RuStore, Google Play and APKPure every 6 hours, verifies p
 
 Release revisions are immutable:
 
-- current: `1.164.4`;
-- next rebuild of Android 1.164: `1.164.5`;
+- current: `1.164.5`;
+- next rebuild of Android 1.164: `1.164.6`;
 - each new Android version starts its own release line at revision `.0`.
 
 [![Add to Obtainium](https://img.shields.io/badge/Obtainium-Add-7c4dff?logo=android&logoColor=white)](https://apps.obtainium.imranr.dev/redirect?r=obtainium%3A%2F%2Fapp%2F%257B%2522id%2522%253A%2522com.vk.vkvideo%2522%252C%2522url%2522%253A%2522https%253A%252F%252Fgithub.com%252FSolvo37%252Fvk-video-morphe-patches%2522%252C%2522author%2522%253A%2522Solvo37%2522%252C%2522name%2522%253A%2522VK%2520Video%2520Patched%2522%252C%2522installedVersion%2522%253Anull%252C%2522latestVersion%2522%253A%25221.163.6%2522%252C%2522apkUrls%2522%253A%2522%255B%255B%255C%2522VK-Video-1.163.6-patched.apk%255C%2522%252C%255C%2522https%253A%252F%252Fgithub.com%252FSolvo37%252Fvk-video-morphe-patches%252Freleases%252Fdownload%252F1.163.6%252FVK-Video-1.163.6-patched.apk%255C%2522%255D%255D%2522%252C%2522preferredApkIndex%2522%253A0%252C%2522additionalSettings%2522%253A%2522%257B%255C%2522includePrereleases%255C%2522%253Afalse%252C%255C%2522fallbackToOlderReleases%255C%2522%253Atrue%252C%255C%2522filterReleaseTitlesByRegEx%255C%2522%253A%255C%2522%255C%2522%252C%255C%2522filterReleaseNotesByRegEx%255C%2522%253A%255C%2522%255C%2522%252C%255C%2522verifyLatestTag%255C%2522%253Atrue%252C%255C%2522sortMethodChoice%255C%2522%253A%255C%2522date%255C%2522%252C%255C%2522useLatestAssetDateAsReleaseDate%255C%2522%253Afalse%252C%255C%2522releaseTitleAsVersion%255C%2522%253Afalse%252C%255C%2522trackOnly%255C%2522%253Afalse%252C%255C%2522versionExtractionRegEx%255C%2522%253A%255C%2522%255C%2522%252C%255C%2522matchGroupToUse%255C%2522%253A%255C%2522%255C%2522%252C%255C%2522versionDetection%255C%2522%253Atrue%252C%255C%2522releaseDateAsVersion%255C%2522%253Afalse%252C%255C%2522useVersionCodeAsOSVersion%255C%2522%253Afalse%252C%255C%2522apkFilterRegEx%255C%2522%253A%255C%2522%255C%2522%252C%255C%2522invertAPKFilter%255C%2522%253Afalse%252C%255C%2522autoApkFilterByArch%255C%2522%253Afalse%252C%255C%2522appName%255C%2522%253A%255C%2522VK%2520Video%2520Patched%255C%2522%252C%255C%2522appAuthor%255C%2522%253A%255C%2522Solvo37%255C%2522%252C%255C%2522shizukuPretendToBeGooglePlay%255C%2522%253Afalse%252C%255C%2522allowInsecure%255C%2522%253Afalse%252C%255C%2522exemptFromBackgroundUpdates%255C%2522%253Afalse%252C%255C%2522skipUpdateNotifications%255C%2522%253Afalse%252C%255C%2522about%255C%2522%253A%255C%2522VK%2520Video%2520patched%2520builds%2520by%2520Solvo37%255C%2522%252C%255C%2522refreshBeforeDownload%255C%2522%253Afalse%257D%2522%252C%2522overrideSource%2522%253Anull%252C%2522allowIdChange%2522%253Afalse%252C%2522releaseUrl%2522%253A%2522https%253A%252F%252Fgithub.com%252FSolvo37%252Fvk-video-morphe-patches%252Freleases%252Ftag%252F1.163.6%2522%257D)

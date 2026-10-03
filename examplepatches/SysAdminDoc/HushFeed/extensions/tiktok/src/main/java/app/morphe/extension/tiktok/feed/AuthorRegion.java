@@ -7,6 +7,7 @@
 package app.morphe.extension.tiktok.feed;
 
 import android.app.Activity;
+import android.graphics.Rect;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +19,12 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.interaction.GestureActions;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -140,17 +144,51 @@ public final class AuthorRegion {
      * The feed's author row is the one holding both the name and the post time. A comment
      * row carries the same {@code title} id but no post time, which is what keeps this off
      * the comment panel.
+     *
+     * <p>The pager keeps the cells either side of the video attached, so there is a row per
+     * cell, and the first one in the tree is the cell above once you have swiped down. Taking
+     * it put the country on the video off screen, and it only showed after swiping back up
+     * (#75). With more than one row, the one whose cell shows most is the video's.
      */
     static TextView findName(View root) {
         if (root == null) {
             return null;
         }
-        View postTime = root.findViewById(postTimeViewId);
-        if (postTime == null || !(postTime.getParent() instanceof ViewGroup)) {
-            return null;
+        List<TextView> names = new ArrayList<>(3);
+        collectNames(root, names);
+        if (names.size() <= 1) {
+            return names.isEmpty() ? null : names.get(0);
         }
-        View name = ((ViewGroup) postTime.getParent()).findViewById(nameViewId);
-        return name instanceof TextView ? (TextView) name : null;
+        Rect visible = new Rect();
+        TextView best = null;
+        float bestShare = 0;
+        for (TextView name : names) {
+            float share = GestureActions.onScreenShare(GestureActions.cellOf(name), visible);
+            if (share > bestShare) {
+                best = name;
+                bestShare = share;
+            }
+        }
+        return best;
+    }
+
+    /** Every author row's name under {@code view}, skipping whatever is hidden. */
+    private static void collectNames(View view, List<TextView> names) {
+        if (view.getVisibility() != View.VISIBLE) {
+            return;
+        }
+        if (view.getId() == postTimeViewId && view.getParent() instanceof ViewGroup) {
+            View name = ((ViewGroup) view.getParent()).findViewById(nameViewId);
+            if (name instanceof TextView) {
+                names.add((TextView) name);
+            }
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                collectNames(group.getChildAt(i), names);
+            }
+        }
     }
 
     /**

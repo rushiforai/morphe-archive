@@ -36,6 +36,7 @@ val shareSheetToolsPatch = bytecodePatch(
         hookFinishedChannelRow()
         hookShareModes()
         hookShareContactBinds()
+        hookSharePanel()
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, " +

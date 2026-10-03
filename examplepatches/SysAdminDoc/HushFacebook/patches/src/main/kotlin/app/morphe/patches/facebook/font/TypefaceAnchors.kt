@@ -12,8 +12,11 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -94,14 +97,16 @@ internal fun ownCall(call: String): String = call.replaceFirst("$TYPEFACE->", "$
 /**
  * Whether every use of the typeface the field read at [index] loads is a comparison with another
  * typeface: an if-eq or if-ne, an equals call it's handed to, or Kotlin's areEqual, a static call
- * on two objects answering a boolean under whatever name R8 gave it. Each such check asks whether
- * a typeface is Android's own default, and keeps asking that. Litho's text sets a typeface on its
- * paint only when it isn't Typeface.DEFAULT (580 `LX/3qU;->A00`), so with both sides of that
- * check the picked font, plain text would never get it. The post text takes its own default
- * branch only for Typeface.DEFAULT itself (580 `LX/302;->A0k`), and on the other one it sets the
- * typeface it holds, which can be Android's from a caller. A read nothing uses isn't one.
+ * on two objects answering a boolean under whatever name R8 gave it that [isEquality] says only
+ * compares them ([isEqualityCheck]). Each such check asks whether a typeface is Android's own
+ * default, and keeps asking that. Litho's text sets a typeface on its paint only when it isn't
+ * Typeface.DEFAULT (580 `LX/3qU;->A00`), so with both sides of that check the picked font, plain
+ * text would never get it. The post text takes its own default branch only for Typeface.DEFAULT
+ * itself (580 `LX/302;->A0k`), and on the other one it sets the typeface it holds, which can be
+ * Android's from a caller. A read nothing uses isn't one, and nor is one a static call of any
+ * other kind takes: that call may keep or hand on the typeface, so it gets the picked file.
  */
-internal fun Method.onlyCompared(index: Int): Boolean {
+internal fun Method.onlyCompared(index: Int, isEquality: (MethodReference) -> Boolean): Boolean {
     val code = implementation!!.instructions.toList()
     val uses = literalReads(index)
     return uses.isNotEmpty() && uses.all { at ->
@@ -109,12 +114,58 @@ internal fun Method.onlyCompared(index: Int): Boolean {
             Opcode.IF_EQ, Opcode.IF_NE -> true
             else -> ((code[at] as? ReferenceInstruction)?.reference as? MethodReference)?.let { call ->
                 call.returnType == "Z" && call.parameterTypes.all { it.toString() == OBJECT } && when (code[at].opcode) {
-                    Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE -> call.parameterTypes.size == 2
+                    Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE -> call.parameterTypes.size == 2 && isEquality(call)
                     else -> call.name == "equals"
                 }
             } == true
         }
     }
+}
+
+/** Java's own check of whether two objects are equal, which isn't in Facebook's code to look at. */
+internal const val OBJECTS_EQUALS = "Ljava/util/Objects;->equals($OBJECT$OBJECT)Z"
+
+private const val OBJECT_EQUALS = "$OBJECT->equals($OBJECT)Z"
+
+/**
+ * Whether [method], a static method on two objects answering a boolean, does nothing but ask
+ * whether they're equal, as Kotlin's areEqual does under whatever name R8 gave it: it tests either
+ * one for null, compares the two, hands them to equals, and answers a constant or what equals
+ * answered. A field it reads, any other call or a value it builds, and it isn't one.
+ */
+internal fun isEqualityCheck(method: Method): Boolean {
+    if (!method.isStatic() || method.returnType != "Z" || method.parameterTypeNames() != listOf(OBJECT, OBJECT)) return false
+    val implementation = method.implementation ?: return false
+    // A static method's parameters sit in its last registers.
+    val first = implementation.registerCount - 2
+    val parameters = setOf(first, first + 1)
+    var compares = false
+    for (instruction in implementation.instructions) {
+        when (instruction.opcode) {
+            Opcode.IF_EQZ, Opcode.IF_NEZ ->
+                if ((instruction as OneRegisterInstruction).registerA !in parameters) return false
+            Opcode.IF_EQ, Opcode.IF_NE -> {
+                val pair = instruction as TwoRegisterInstruction
+                if (setOf(pair.registerA, pair.registerB) != parameters) return false
+                compares = true
+            }
+            Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE -> {
+                if ((instruction as ReferenceInstruction).reference.toString() != OBJECT_EQUALS) return false
+                val registers = when (instruction) {
+                    is RegisterRangeInstruction -> List(instruction.registerCount) { instruction.startRegister + it }
+                    is FiveRegisterInstruction -> listOf(instruction.registerC, instruction.registerD).take(instruction.registerCount)
+                    else -> return false
+                }
+                if (registers.size != 2 || registers.toSet() != parameters) return false
+                compares = true
+            }
+            Opcode.CONST_4, Opcode.CONST_16 ->
+                if ((instruction as NarrowLiteralInstruction).narrowLiteral !in 0..1) return false
+            Opcode.MOVE_RESULT, Opcode.RETURN, Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32 -> Unit
+            else -> return false
+        }
+    }
+    return compares
 }
 
 /** The field or call [instruction] reads one of Android's default typefaces through, or null when it reads none. */

@@ -32,14 +32,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowLooper;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.HushThreadsPause;
 import app.morphe.extension.shared.settings.PauseForTests;
@@ -231,8 +234,78 @@ public class SettingsAccessibilityTest {
         assertEquals(View.LAYOUT_DIRECTION_RTL, arrow.getLayoutDirection());
     }
 
+    /** Android 9's heading API and Android 16's font scaling both keep the same usable controls. */
+    @Test
+    @Config(sdk = {28, 36}, qualifiers = "ar-rXB-ldrtl-w320dp")
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void platformEndpointsKeepLargeRtlTextAndAccessibleActionsIntact() {
+        float originalScale = RuntimeEnvironment.getFontScale();
+        try {
+            RuntimeEnvironment.setFontScale(2f);
+            SettingsDialog dialog = SettingsL10nTest.show(controller.get());
+            assertEquals(2f, dialog.getResources().getConfiguration().fontScale, 0f);
+            assertEquals(View.LAYOUT_DIRECTION_RTL, dialog.getResources().getConfiguration().getLayoutDirection());
+
+            android.widget.ImageButton back = SettingsL10nTest.backOf(dialog);
+            assertEquals(Button.class.getName(), String.valueOf(node(back).getClassName()));
+            assertEquals(L10n.t(back.getContext(), "Back"), String.valueOf(node(back).getContentDescription()));
+            assertTrue(back.getDrawable().isAutoMirrored());
+            assertEquals(View.LAYOUT_DIRECTION_RTL, back.getDrawable().getLayoutDirection());
+            View title = ((android.view.ViewGroup) back.getParent()).getChildAt(1);
+            assertTrue(node(title).isHeading());
+
+            int headings = 0;
+            int wrapped = 0;
+            View toggle = null;
+            for (View row : rows(dialog, dp(320))) {
+                Preference preference = item(row);
+                AccessibilityNodeInfo info = node(row);
+                assertEquals(preference.getKey(), preference instanceof PreferenceCategory, info.isHeading());
+                if (info.isHeading()) headings++;
+                if (info.isClickable()) assertTrue(preference.getKey(), row.getMinimumHeight() >= dp(48));
+                for (int id : new int[]{android.R.id.title, android.R.id.summary}) {
+                    TextView text = row.findViewById(id);
+                    if (text == null || text.getVisibility() != View.VISIBLE) continue;
+                    assertEquals(preference.getKey(), Integer.MAX_VALUE, text.getMaxLines());
+                    assertNotNull(preference.getKey() + " has no text layout", text.getLayout());
+                    int last = text.getLayout().getLineCount() - 1;
+                    assertEquals(preference.getKey() + " clipped its text", text.getText().length(),
+                            text.getLayout().getLineEnd(last));
+                    assertEquals(preference.getKey() + " ellipsized its text", 0,
+                            text.getLayout().getEllipsisCount(last));
+                    if (last > 0) wrapped++;
+                }
+                if (Settings.HIDE_ADS.key.equals(preference.getKey())) toggle = row;
+            }
+            assertTrue("the section headings disappeared", headings >= 5);
+            assertTrue("large text never exercised a wrapped row", wrapped > 0);
+            assertNotNull("no Hide ads row", toggle);
+            assertEquals(Switch.class.getName(), String.valueOf(node(toggle).getClassName()));
+            assertTrue(node(toggle).isCheckable());
+            assertTrue(node(toggle).isChecked());
+            assertNotNull(node(toggle).getCollectionItemInfo());
+            assertTrue(toggle.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+            ShadowLooper.idleMainLooper();
+            assertFalse(Settings.HIDE_ADS.get());
+            assertFalse(node(rowFor(dialog, Settings.HIDE_ADS.key)).isChecked());
+
+            android.app.Dialog window = dialog.getDialog();
+            assertTrue(back.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
+            ShadowLooper.idleMainLooper();
+            controller.get().getFragmentManager().executePendingTransactions();
+            assertFalse(window.isShowing());
+            assertFalse("accessible Back finished Threads", controller.get().isFinishing());
+        } finally {
+            RuntimeEnvironment.setFontScale(originalScale);
+        }
+    }
+
     /** Every row the list draws, laid out tall enough that none is left off. */
     private static List<View> rows(SettingsDialog dialog) {
+        return rows(dialog, 1080);
+    }
+
+    private static List<View> rows(SettingsDialog dialog, int width) {
         ListView list = dialog.getView().findViewById(android.R.id.list);
         assertNotNull("no list in the dialog", list);
         HushThreadsPreferenceFragment page = (HushThreadsPreferenceFragment) dialog.getChildFragmentManager()
@@ -240,9 +313,9 @@ public class SettingsAccessibilityTest {
         // Verify every preference row independently of the category shell.
         list.setAdapter(page.getPreferenceScreen().getRootAdapter());
         list.setOnItemClickListener(page.getPreferenceScreen());
-        list.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+        list.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(40000, View.MeasureSpec.EXACTLY));
-        list.layout(0, 0, 1080, 40000);
+        list.layout(0, 0, width, 40000);
         List<View> rows = new ArrayList<>();
         for (int index = 0; index < list.getChildCount(); index++) {
             View row = list.getChildAt(index);

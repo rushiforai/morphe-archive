@@ -13,6 +13,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.instagram.settings.HushgramPreferenceFragment;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -22,6 +25,9 @@ import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import org.junit.Rule;
 import org.junit.Before;
@@ -31,8 +37,10 @@ import org.robolectric.Robolectric;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
+import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowContentResolver;
+import org.robolectric.shadows.ShadowAlertDialog;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -129,6 +137,46 @@ public class LogBufferManagerExportTest {
                 Environment.DIRECTORY_DOWNLOADS + "/Morphe/" + saved.substring(folder.length()));
         assertTrue(file.getPath(), file.isFile());
         assertEquals(report, new String(java.nio.file.Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
+    }
+
+    @Config(manifest = Config.NONE, sdk = {28, 29, 37})
+    @Test public void reportRowAndChooserNameTheFolderThatTheWriterUses() throws Exception {
+        Context context = RuntimeEnvironment.getApplication();
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            Downloads downloads = Robolectric.setupContentProvider(Downloads.class, MediaStore.AUTHORITY);
+            Shadows.shadowOf(context.getContentResolver()).registerOutputStream(
+                    downloads.uriFor(1), new ByteArrayOutputStream());
+        }
+        String saved = LogBufferManager.writeToFile(context, "diagnostic report");
+        String folder = saved.substring(0, saved.lastIndexOf('/'));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            HushgramPreferenceFragment page = new HushgramPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction()
+                    .add(android.R.id.content, page).commitNow();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            android.preference.Preference export = page.findPreference("action_export_diagnostic_report");
+            String summary = String.valueOf(export.getSummary());
+            assertTrue(summary, summary.contains(folder));
+            assertTrue(export.getOnPreferenceClickListener().onPreferenceClick(export));
+            AlertDialog chooser = ShadowAlertDialog.getLatestAlertDialog();
+            android.widget.ListView choices = chooser.getListView();
+            View save = choices.getAdapter().getView(1, null, choices);
+            String description = textIn(save);
+            assertTrue(description, description.contains(folder));
+            chooser.dismiss();
+        } finally {
+            app.hushgram.extension.shared.Utils.awaitBackgroundTasksForTests();
+        }
+    }
+
+    private static String textIn(View view) {
+        StringBuilder text = new StringBuilder();
+        if (view instanceof TextView) text.append(((TextView) view).getText());
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) text.append(' ').append(textIn(group.getChildAt(index)));
+        }
+        return text.toString();
     }
 
     /**

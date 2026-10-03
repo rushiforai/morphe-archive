@@ -54,7 +54,7 @@ internal fun BytecodePatchContext.enableCapability(name: String) {
 }
 
 /**
- * Throws naming [name] unless `SettingsStatus` has a boolean method of that name, the same check
+ * Throws naming [name] unless `SettingsStatus` has a callable static boolean method of that name, the same check
  * [enableStatus] makes. A patch whose own find phase changes bytecode before it calls [enableStatus]
  * should call this first, so a missing method refuses before anything is mutated rather than after,
  * through [enableStatus], once the patch's own hooks are already in.
@@ -63,10 +63,19 @@ internal fun BytecodePatchContext.requireStatusMethod(name: String) {
     statusMethod(name)
 }
 
-private fun BytecodePatchContext.statusMethod(name: String): MutableMethod =
-    mutableClassDefBy(SETTINGS_STATUS).methods.singleOrNull {
+private fun BytecodePatchContext.statusMethod(name: String): MutableMethod {
+    val owner = mutableClassDefBy(SETTINGS_STATUS)
+    val method = owner.methods.singleOrNull {
         it.name == name && it.returnType == "Z" && it.parameterTypes.isEmpty()
     } ?: throw PatchException("SettingsStatus has no boolean method $name()")
+    if (!AccessFlags.PUBLIC.isSet(owner.accessFlags) || !AccessFlags.PUBLIC.isSet(method.accessFlags) ||
+        !AccessFlags.STATIC.isSet(method.accessFlags) || AccessFlags.ABSTRACT.isSet(method.accessFlags) ||
+        AccessFlags.NATIVE.isSet(method.accessFlags) || (method.implementation?.registerCount ?: 0) < 1 ||
+        method.implementation?.instructions?.any() != true) {
+        throw PatchException("SettingsStatus.$name() is not a callable public static boolean build flag")
+    }
+    return method
+}
 
 /**
  * Gives the extension's static stub [name] in [type] the body [smali], which has [registers]

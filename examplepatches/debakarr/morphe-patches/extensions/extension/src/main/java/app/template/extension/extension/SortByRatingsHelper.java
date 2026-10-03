@@ -167,9 +167,9 @@ public final class SortByRatingsHelper {
             || json.indexOf("\"gridData_0\"") >= 0)
             && json.indexOf("\"ratingData_0\"") >= 0;
         if (atlas) SortState.noteListing();
-        // Both toggles are off until the user taps the floating buttons.
-        if (!SortState.sortOn() && !SortState.hideAds()) return json;
         if (atlas) {
+            // Always read the feed (it feeds the ranked list); it is only rewritten
+            // when a toggle asks for it.
             sAdsRemoved = 0;
             String rewritten = rewriteAtlasSlots(json);
             if (rewritten != null && rewritten != json) {
@@ -178,6 +178,8 @@ public final class SortByRatingsHelper {
                 json = rewritten;
             }
         }
+        // The legacy product-map path only does anything when a toggle is on.
+        if (!SortState.sortOn() && !SortState.hideAds() && !SortState.minFour()) return json;
 
         if (json.indexOf("\"product\"") < 0) {
             return json;
@@ -343,11 +345,15 @@ public final class SortByRatingsHelper {
     private static final class AtlasCard {
         final Object item;
         final int count;
+        final double rating;
+        final Product product;
         final boolean ad;
 
-        AtlasCard(Object item, int count, boolean ad) {
+        AtlasCard(Object item, int count, double rating, Product product, boolean ad) {
             this.item = item;
             this.count = count;
+            this.rating = rating;
+            this.product = product;
             this.ad = ad;
         }
     }
@@ -529,6 +535,7 @@ public final class SortByRatingsHelper {
     private static boolean rewriteRowGroup(List<AtlasRow> group) {
         List<AtlasCard> all = new ArrayList<>();
         List<Object> before = new ArrayList<>();
+        final long now = System.currentTimeMillis();
         for (AtlasRow row : group) {
             for (int i = 0; i < row.cards.length(); i++) {
                 Object item = row.cards.opt(i);
@@ -536,39 +543,54 @@ public final class SortByRatingsHelper {
                 JSONObject card = item instanceof JSONObject
                     ? ((JSONObject) item).optJSONObject("value") : null;
                 if (card == null) {
-                    all.add(new AtlasCard(item, -1, false));
+                    all.add(new AtlasCard(item, -1, -1, null, false));
                     continue;
                 }
-                all.add(new AtlasCard(item, cardRatingCount(card), isAdCard(card)));
+                all.add(new AtlasCard(item, cardRatingCount(card), cardRating(card),
+                    describeCard(card), isAdCard(card)));
             }
         }
         if (all.size() < 2) return false;
 
         final boolean dropAds = SortState.hideAds();
+        final SortState.Mode mode = SortState.mode();
+        final boolean minFour = SortState.minFour();
         List<AtlasCard> organic = new ArrayList<>();
+        int filtered = 0;
         for (AtlasCard card : all) {
-            if (!card.ad) organic.add(card);
+            if (card.ad) continue;
+            // Remember it for the ranked list, whatever the toggles say.
+            RankedStore.add(card.product, now);
+            if (minFour && Ranker.belowMin(card.rating)) {
+                filtered++;
+                continue;
+            }
+            organic.add(card);
         }
-        boolean adsRemoved = dropAds && organic.size() != all.size();
-        if (adsRemoved) sAdsRemoved += all.size() - organic.size();
+        int adCount = 0;
+        for (AtlasCard card : all) if (card.ad) adCount++;
+        boolean adsRemoved = dropAds && adCount > 0;
+        if (adsRemoved) sAdsRemoved += adCount;
 
-        if (SortState.sortOn()) {
+        if (mode != SortState.Mode.OFF) {
             Collections.sort(organic, new Comparator<AtlasCard>() {
                 @Override
                 public int compare(AtlasCard a, AtlasCard b) {
-                    return Integer.compare(b.count, a.count);
+                    return Ranker.compare(mode, a.rating, a.count, b.rating, b.count);
                 }
             });
         }
 
-        // Dropped ads disappear; kept ads stay fixed in their original slot.
+        // Dropped ads and filtered cards disappear; kept ads stay fixed in their
+        // original slot; the sorted organic cards fill the organic slots in order
+        // (slots left over after filtering collapse).
         List<AtlasCard> kept = new ArrayList<>();
-        if (dropAds) {
-            kept.addAll(organic);
-        } else {
-            int next = 0;
-            for (AtlasCard card : all) {
-                kept.add(card.ad ? card : organic.get(next++));
+        int next = 0;
+        for (AtlasCard card : all) {
+            if (card.ad) {
+                if (!dropAds) kept.add(card);
+            } else if (next < organic.size()) {
+                kept.add(organic.get(next++));
             }
         }
 
@@ -592,7 +614,7 @@ public final class SortByRatingsHelper {
         }
 
         boolean orderChanged = !sameSequence(before, after);
-        return adsRemoved || orderChanged;
+        return adsRemoved || filtered > 0 || orderChanged;
     }
 
     private static boolean sameSequence(List<Object> a, List<Object> b) {
@@ -610,6 +632,71 @@ public final class SortByRatingsHelper {
         String view = tracking.optString("viewType", "");
         if (view.isEmpty()) view = tracking.optString("dataKey", "");
         return view;
+    }
+
+    /** Average rating shown in {@code ratingData_0.value.rating} (e.g. 4.3), or -1. */
+    private static double cardRating(JSONObject card) {
+        JSONObject rating = findChild(card, "ratingData_0", 0);
+        JSONObject value = rating != null ? rating.optJSONObject("value") : null;
+        if (value == null) return -1;
+        for (String key : new String[]{"rating", "averageRating", "average"}) {
+            double d = ListingSorter.toDouble(value.opt(key));
+            if (d > 0) return d;
+        }
+        return -1;
+    }
+
+    /**
+     * The card as the ranked list shows it. Flipkart's card templates keep their
+     * texts under {@code label_N} entries, so the title is the first two plain
+     * labels and the price is the first one that starts with the rupee sign.
+     */
+    private static Product describeCard(JSONObject card) {
+        JSONObject tracker = card.optJSONObject("trackerData_0");
+        JSONObject tracking = tracker != null ? tracker.optJSONObject("tracking") : null;
+        String pid = tracking != null ? tracking.optString("productId", "") : "";
+        if (pid.isEmpty()) return null;
+        List<String> texts = new ArrayList<>();
+        collectLabelTexts(card, texts, 0);
+        String title = "";
+        double price = -1;
+        int words = 0;
+        for (String text : texts) {
+            if (text.startsWith("\u20B9")) {
+                // A card prints both the struck-through MRP and the selling price:
+                // the selling price is the lower of the rupee amounts.
+                double amount = ListingSorter.toDouble(text.substring(1));
+                if (amount > 0 && (price < 0 || amount < price)) price = amount;
+                continue;
+            }
+            if (isAdText(text) || text.contains("%") || text.startsWith("|")) continue;
+            if (words < 2) {
+                title = (title + " " + text).trim();
+                words++;
+            }
+        }
+        return new Product(pid, title, price, cardRating(card), cardRatingCount(card),
+            "https://www.flipkart.com/product/p/item?pid=" + pid);
+    }
+
+    private static void collectLabelTexts(JSONObject obj, List<String> out, int depth) {
+        if (obj == null || depth > 6) return;
+        Iterator<String> keys = obj.keys();
+        List<String> names = new ArrayList<>();
+        while (keys.hasNext()) names.add(keys.next());
+        Collections.sort(names);
+        for (String key : names) {
+            if (key.equals("action") || key.equals("properties") || key.startsWith("wishlist")) continue;
+            JSONObject child = obj.optJSONObject(key);
+            if (child == null) continue;
+            if (key.startsWith("label")) {
+                JSONObject value = child.optJSONObject("value");
+                String text = value != null ? value.optString("text", "").trim() : "";
+                if (!text.isEmpty()) out.add(text);
+            } else {
+                collectLabelTexts(child, out, depth + 1);
+            }
+        }
     }
 
     /**

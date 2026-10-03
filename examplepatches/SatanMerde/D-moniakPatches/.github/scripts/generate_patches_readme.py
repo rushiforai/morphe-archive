@@ -3,10 +3,6 @@
 Generates the patches section of README.md from patches-list.json
 and injects it between <!-- PATCHES_START --> / <!-- PATCHES_END --> markers.
 
-Spoilers are expanded (open by default) if:
-  1. Total patch count <= AUTO_EXPAND_THRESHOLD.
-  2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
-
 python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
 """
 
@@ -42,8 +38,6 @@ def pkg_emoji(pkg):
     return "📦"
 
 # Group patches by package; patches with no compatiblePackages are universal.
-# JSON structure: compatiblePackages is a list of objects with
-# { packageName, name, targets: [{ version, isExperimental, description }] }
 by_pkg = {}   # packageName -> { name, emoji, patches, targets }
 universal = {}
 
@@ -75,36 +69,26 @@ def anchor(name):
 
 
 def patches_table(patches):
-    """Render a sorted markdown table of patches with name, description, and options."""
+    """Render a sorted markdown table of patches with name and description."""
     rows = [
-        "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
-        "|----------|----------------|-----------|",
+        "| 💊&nbsp;Patch | 📜&nbsp;Description |",
+        "|----------|----------------|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
         a = anchor(p["name"])
-        options = p.get("options") or []
-        if options:
-            # Show only option titles as a bullet list
-            parts = [opt.get("title") or opt.get("key") or "" for opt in options]
-            opts_cell = "<br>".join(f"• {t}" for t in parts)
-        else:
-            opts_cell = ""
         desc = (p.get("description") or "").replace("\n", "<br>")
-        rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
+        rows.append(f"| [{p['name']}](#{a}) | {desc} |")
     return "\n".join(rows)
 
 
 def versions_table(targets):
-    """Render a markdown table of supported versions.
-    Experimental versions get a 🧪 prefix.
-    Versions with a description get it shown in a second row below.
-    """
+    """Render a markdown table of supported versions."""
     if not targets:
         return ""
 
     cells = []
     for t in targets:
-        ver   = t["version"]
+        ver = t["version"]
         if ver is None:
             continue
         label = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
@@ -117,7 +101,6 @@ def versions_table(targets):
     sep = "| " + " | ".join(":---:" for _ in cells) + " |"
     rows = [header, sep]
 
-    # Optional description row — only rendered if at least one target has one
     descs = [(t.get("description") or "").replace("\n", "<br>") for t in targets]
     if any(descs):
         rows.append("| " + " | ".join(descs) + " |")
@@ -125,10 +108,8 @@ def versions_table(targets):
     return "\n".join(rows)
 
 
-def spoiler(label, count, targets, tbl, expanded=False):
-    """Wrap a patches table in a <details> spoiler with a versions sub-table.
-    If expanded=True, the spoiler is open by default (for repos with few patches).
-    """
+def spoiler(label, count, targets, tbl, expanded=True):
+    """Wrap a patches table in a <details> spoiler."""
     noun = "patch" if count == 1 else "patches"
     vtbl = versions_table(targets)
     versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
@@ -142,28 +123,87 @@ def spoiler(label, count, targets, tbl, expanded=False):
 </details>"""
 
 
-def build_content(expanded=False):
-    """Build the full generated patches section."""
+def build_content(expanded=True):
+    """Build the full generated patches section separated by functional and experimental."""
+    total_unique = len(data.get("patches", []))
+    total_exp = sum(1 for p in data.get("patches", []) if "(Experimental)" in p.get("name", ""))
+    total_func = total_unique - total_exp
+
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
         f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"{total} patches total"
+        f"**{total_unique} patchs au total** ({total_func} validés & fonctionnels • {total_exp} expérimentaux)",
+        "",
+        "---",
+        "",
+        "### ✅ Patchs validés & fonctionnels / Tested & Functional Patches",
+        "",
+        "> [!TIP]",
+        "> **🇫🇷 Français :** Ces patchs ont été rigoureusement testés et confirmés pleinement opérationnels sur appareil réel.  ",
+        "> **🇬🇧 English :** These patches have been thoroughly tested and confirmed fully functional on real hardware.",
+        ""
     ]
 
-    # One spoiler per app, sorted alphabetically by app display name
+    # Sort apps alphabetically
     sorted_apps = sorted(by_pkg.items(), key=lambda item: item[1]["name"].lower())
+
+    func_apps = []
     for pkg, entry in sorted_apps:
+        f_patches = {name: p for name, p in entry["patches"].items() if "(Experimental)" not in p["name"]}
+        if f_patches:
+            func_apps.append((pkg, {
+                "name": entry["name"],
+                "emoji": entry["emoji"],
+                "patches": f_patches,
+                "targets": entry["targets"],
+            }))
+
+    exp_apps = []
+    for pkg, entry in sorted_apps:
+        e_patches = {name: p for name, p in entry["patches"].items() if "(Experimental)" in p["name"]}
+        if e_patches:
+            exp_apps.append((pkg, {
+                "name": entry["name"],
+                "emoji": entry["emoji"],
+                "patches": e_patches,
+                "targets": entry["targets"],
+            }))
+
+    # Functional apps
+    for pkg, entry in func_apps:
         patches = list(entry["patches"].values())
-        label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
+        label = f"{entry['emoji']} {entry['name']}"
+        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded=True))
+        lines.append("")
+
+    # Experimental apps
+    lines.extend([
+        "---",
+        "",
+        "### 🧪 Patchs expérimentaux (en développement) / Experimental Patches (AI-Generated)",
+        "",
+        "> [!WARNING]",
+        "> **🇫🇷 Risque très élevé de non-fonctionnement :** Ces patchs sont générés par IA et n'ont pas encore été testés sur appareils réels. Les chances qu'ils ne marchent pas sont très élevées.  ",
+        "> 💡 **Vous voulez qu'un patch fonctionne ?** [Faites une demande dédiée sur GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) pour qu'il soit rétro-ingénié et rendu 100% opérationnel à la prochaine mise à jour !",
+        ">",
+        "> <br>",
+        ">",
+        "> **🇬🇧 High Failure Rate Notice:** These patches are AI-generated and haven't been tested on real hardware yet. The chances of failure are high.  ",
+        "> 💡 **Want a patch to work?** [Submit a request here](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize reverse-engineering and make it fully functional in the next update!",
+        ""
+    ])
+
+    for pkg, entry in exp_apps:
+        patches = list(entry["patches"].values())
+        label = f"{entry['emoji']} {entry['name']}"
+        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded=True))
         lines.append("")
 
     # Universal patches (no specific app)
     if universal:
         uni_patches = list(universal.values())
         noun = "patch" if len(uni_patches) == 1 else "patches"
-        tag  = "<details open>" if expanded else "<details>"
-        lines.append(f"""{tag}
+        lines.append(f"""<details open>
 <summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
 <br>
 
@@ -177,50 +217,47 @@ def build_content(expanded=False):
 
 # Build and inject
 raw_ver = data["version"]
-# Strip leading "v" if present
-ver   = raw_ver.lstrip("v")
+ver = raw_ver.lstrip("v")
 total = sum(len(e["patches"]) for e in by_pkg.values()) + len(universal)
 
 readme = readme_path.read_text(encoding="utf-8")
 
-# Marker pattern — matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->
 START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"
-END_MARKER    = "<!-- PATCHES_END -->"
+END_MARKER = "<!-- PATCHES_END -->"
 
 marker_match = re.search(START_PATTERN, readme)
 
 if not marker_match or END_MARKER not in readme:
-    # Fallback: print to stdout so CI can catch the issue
-    print(build_content(expanded=False))
+    print(build_content(expanded=True))
     sys.stderr.write(
-        f"⚠️  Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
+        f"⚠️ Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
         "Printed to stdout instead.\n"
     )
     sys.exit(1)
 
 actual_start = marker_match.group(0)
 
-# Auto-expand threshold
-AUTO_EXPAND_THRESHOLD = 20
-
-# Spoilers are expanded if:
-# 1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD)
-#    with only a few patches where collapsing adds no benefit.
-# 2. The README marker explicitly requests it: <!-- PATCHES_START EXPANDED -->
-expanded = (
-    total <= AUTO_EXPAND_THRESHOLD or
-    "EXPANDED" in actual_start
-)
-
-generated  = build_content(expanded=expanded)
+generated = build_content(expanded=True)
 
 total_apps = len(by_pkg)
 total_unique = len(data.get("patches", []))
+total_exp = sum(1 for p in data.get("patches", []) if "(Experimental)" in p.get("name", ""))
+total_func = total_unique - total_exp
 
 # Update badge counters in README if present
 readme = re.sub(
     r'(https://img\.shields\.io/badge/Patches-)\d+(-[0-9a-fA-F]+)',
     rf'\g<1>{total_unique}\g<2>',
+    readme
+)
+readme = re.sub(
+    r'(https://img\.shields\.io/badge/Fonctionnels-)\d+(-[0-9a-fA-F]+)',
+    rf'\g<1>{total_func}\g<2>',
+    readme
+)
+readme = re.sub(
+    r'(https://img\.shields\.io/badge/Expérimentaux-)\d+(-[0-9a-fA-F]+)',
+    rf'\g<1>{total_exp}\g<2>',
     readme
 )
 readme = re.sub(
@@ -256,6 +293,6 @@ new_readme = re.sub(
 )
 readme_path.write_text(new_readme, encoding="utf-8")
 try:
-    print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, {total_apps} apps, expanded={expanded})")
+    print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total_unique} patches, {total_apps} apps)")
 except UnicodeEncodeError:
-    print(f"[OK] Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, {total_apps} apps, expanded={expanded})")
+    print(f"[OK] Injected patches section into {readme_path} (v{ver}, branch={branch}, {total_unique} patches, {total_apps} apps)")

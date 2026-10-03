@@ -33,8 +33,9 @@ class ReelPagesFixtureTest {
 
     /** Registers and the page's register of the page insert, the announcement and the controller's page method. */
     private val expected = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to listOf(6 to 5, 7 to 6, 11 to 10),
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to listOf(6 to 5, 7 to 6, 15 to 14),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to listOf(6 to 5, 7 to 6, 13 to 12),
+        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to listOf(6 to 5, 7 to 6, 11 to 10),
+        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to listOf(6 to 5, 7 to 6, 15 to 14),
     )
 
     private fun MutableMethod.assertFilteredAtTop(where: String, page: Int, at: Int) {

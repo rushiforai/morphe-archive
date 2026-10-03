@@ -54,13 +54,13 @@ jobs:
 
       - name: Set up Android SDK
         if: matrix.language == 'java-kotlin'
-        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           # The legacy `tools` package was removed from the Android repository.
-          packages: platform-tools platforms;android-36 build-tools;36.1.0
+          packages: platform-tools
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@4bd7200e1f146b1c937cae12d258b50f41a53cf8 # v4.38.0
+        uses: github/codeql-action/init@88585263c0627ee42c0e1c5143a112c8d6f4aa18 # v4.38.2
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -76,6 +76,6 @@ jobs:
         run: ./gradlew clean buildAndroid --no-daemon --no-build-cache
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@4bd7200e1f146b1c937cae12d258b50f41a53cf8 # v4.38.0
+        uses: github/codeql-action/analyze@88585263c0627ee42c0e1c5143a112c8d6f4aa18 # v4.38.2
         with:
           category: '/language:${{ matrix.language }}'

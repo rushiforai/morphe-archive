@@ -35,7 +35,7 @@ private const val STRING = "Ljava/lang/String;"
  * QualityAnchors.kt for how Instagram's player keeps to a quality, and the extension's
  * QualityChoice for when it keeps Instagram's own.
  *
- * Off in the default selection. Picked, its switch starts on and the quality starts as Instagram's
+ * Included in the default selection. Its switch starts on and the quality starts as Instagram's
  * own, so nothing changes until a quality is chosen. Everything is found before anything changes,
  * so a build that differs stops the patch naming what it couldn't find, and nothing is half done.
  */
@@ -44,7 +44,7 @@ val defaultPlaybackQualityPatch = bytecodePatch(
     name = "Default playback quality",
     description = "Plays videos, reels and video stories at the quality you choose in HushGram's settings, " +
         "such as Data saver or up to 720p, instead of the one Instagram picks as it plays.",
-    default = false,
+    default = true,
 ) {
     category("Interface")
     dependsOn(settingsPatch)

@@ -35,6 +35,7 @@ class SearchResultsFixtureTest {
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to (12 to 3),
         AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to (12 to 3),
+        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to (12 to 3),
     )
 
     private fun locals(method: Method): Int {

@@ -28,7 +28,7 @@ class PatchCategoriesTest {
      * Feed, Downloads and Interface come back when a Threads patch needs one.
      */
     private val taxonomy = setOf(
-        "Ads", "Privacy", "Fixes", "Settings",
+        "Ads", "Feed", "Privacy", "Fixes", "Settings",
     )
 
     private fun shippedPatches() = run {

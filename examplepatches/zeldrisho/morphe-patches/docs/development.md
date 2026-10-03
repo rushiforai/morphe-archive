@@ -22,15 +22,23 @@ both call sites and `patches/build.gradle.kts` wiring. Each app must call only i
 matching extension. `extendWith(...)` loads artifacts through the bundle classloader.
 
 ```text
-original split APK → jadx/apktool → fingerprint + patch → .mpp → Morphe → patched APK → device validation
+original split APK → baksmali smali → fingerprint + patch → .mpp → Morphe → patched APK → device validation
 ```
 
 ## Verify
 
+Check prerequisites without installing tools or changing the host:
+
+```bash
+python3 scripts/doctor.py build      # Java 21+, Python, Gradle wrapper, pre-commit
+python3 scripts/doctor.py analysis   # plus APK recon/decompile tools
+python3 scripts/doctor.py device     # Android CLI deployment capability
+```
+
 Run from the repository root with the [configured toolchain](toolchain.md):
 
 ```bash
-uvx pre-commit run --all-files --show-diff-on-failure
+pre-commit run --all-files --show-diff-on-failure
 python3 -m unittest discover -s scripts/tests -v
 ./gradlew verify --no-daemon
 ```
@@ -68,33 +76,38 @@ build output, and local APK analysis are not formatting targets.
 | Spotless: ktlint + google-java-format | Root `build.gradle.kts`; Kotlin, Gradle scripts, extension Java |
 | detekt | `patches/build.gradle.kts`, `config/detekt/detekt.yml`; Kotlin, without type resolution |
 | Android Lint | Extension production and test sources |
-| Ruff check + format | `.pre-commit-config.yaml`; `scripts/*.py` |
-| actionlint | `.pre-commit-config.yaml`; workflows; ShellCheck when on PATH (explicitly installed in CI) |
+| Ruff check + format | Pinned isolated hooks in `.pre-commit-config.yaml`; `scripts/*.py` |
+| actionlint | Pinned isolated hook in `.pre-commit-config.yaml`; workflows; ShellCheck when available |
 | Conflict markers + mixed line endings | `.pre-commit-config.yaml`; tracked text files |
 
 `qualityCheck` aggregates Spotless, detekt, and Android Lint. Reports live in
 `patches/build/reports/detekt/` and `extensions/*/build/reports/`.
-Tool versions are pinned in Gradle, hook revisions, and CI. Detekt **2.0.0-alpha.6**
-is intentional: its compiler matches Morphe's Kotlin **2.4.10**, unlike 1.23.8.
-Check [compatibility](https://detekt.dev/docs/introduction/compatibility/) when
-upgrading. Use documented rule exceptions, not a baseline of ignored findings.
+Gradle dependencies and CI action revisions are pinned for reproducible builds.
+CI runs the pinned `pre-commit/action` GitHub Action; Ruff and actionlint are
+provided by pinned, isolated hook environments, keeping their versions consistent
+locally and in CI. Other hook repositories and revisions remain pinned in
+`.pre-commit-config.yaml`.
+Detekt **2.0.0-alpha.6**
+remains intentional: its compiler matches Morphe's Kotlin **2.4.10**; stable Detekt
+1.23.8 targets Kotlin 2.0.21 and is not a compatible drop-in. Recheck the
+[compatibility table](https://detekt.dev/docs/introduction/compatibility/) before
+changing either. Use documented rule exceptions, not a baseline of ignored findings.
 
 ### Optional commit hooks
 
 ```bash
-uvx pre-commit install
-uvx pre-commit uninstall # removes only the pre-commit-managed hook
+pre-commit install
+pre-commit uninstall # removes only the pre-commit-managed hook
 ```
 
-The first run needs network access for isolated environments (including Go for
-actionlint). Commits do not run Gradle or SDK builds.
+The first run needs network access to fetch the configured isolated hook
+environments. Commits do not run Gradle or SDK builds.
 
 ### Apply formatting explicitly
 
 ```bash
 ./gradlew spotlessApply --no-daemon
-# Python checks only; these do not rewrite files:
-uvx ruff check scripts && uvx ruff format --check scripts
+# Python checks are included in the pre-commit run above.
 ```
 
 Review the diff and rerun verification. Fix non-autoformattable naming/KDoc errors manually.

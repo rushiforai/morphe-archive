@@ -16,6 +16,10 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -105,6 +109,18 @@ final class StreakMessenger {
             end++;
         }
         return text.substring(0, end);
+    }
+
+    /** Each comma or line-separated entry names one chat; case variants are the same handle. */
+    static List<String> handlesOf(String typed) {
+        LinkedHashSet<String> handles = new LinkedHashSet<>();
+        if (typed != null) {
+            for (String entry : typed.split("[,\\r\\n]+")) {
+                String handle = handleOf(entry).toLowerCase(Locale.ROOT);
+                if (!handle.isEmpty()) handles.add(handle);
+            }
+        }
+        return new ArrayList<>(handles);
     }
 
     /**
@@ -302,6 +318,23 @@ final class StreakMessenger {
      * then the retry would send a second one.
      */
     static void deliver(Context context, String conversationId, String text) throws Exception {
+        deliver(context, conversationId, text, () -> {}, handOffMillis);
+    }
+
+    interface BeforeDispatch {
+        void check() throws Exception;
+    }
+
+    /** A native receiver can throw after it queued the message; retrying would risk a duplicate. */
+    static final class UnconfirmedDispatch extends Exception {
+        UnconfirmedDispatch(Throwable cause) {
+            super("TikTok's receiver ran, but its dispatch outcome is unknown", cause);
+        }
+    }
+
+    static void deliver(Context context, String conversationId, String text,
+                        BeforeDispatch before, long waitMillis) throws Exception {
+        if (waitMillis <= 0) throw new IllegalStateException("No time left for the hand-off");
         Class<?> type = Class.forName(QUICK_REPLY_RECEIVER);
         BroadcastReceiver receiver = (BroadcastReceiver) type.getDeclaredConstructor().newInstance();
         Intent intent = new Intent().setClassName(context.getPackageName(), QUICK_REPLY_RECEIVER)
@@ -309,9 +342,13 @@ final class StreakMessenger {
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<Throwable> failure = new AtomicReference<>();
         AtomicBoolean claimed = new AtomicBoolean();
+        AtomicBoolean invoked = new AtomicBoolean();
         Utils.runOnMainThread(() -> {
             if (!claimed.compareAndSet(false, true)) return;
             try {
+                // The worker may have waited behind account switching on this very thread.
+                before.check();
+                invoked.set(true);
                 receiver.onReceive(context, intent);
             } catch (Throwable thrown) {
                 failure.set(thrown);
@@ -319,7 +356,7 @@ final class StreakMessenger {
                 done.countDown();
             }
         });
-        if (!done.await(handOffMillis, TimeUnit.MILLISECONDS)) {
+        if (!done.await(waitMillis, TimeUnit.MILLISECONDS)) {
             if (claimed.compareAndSet(false, true)) {
                 throw new IllegalStateException("The main thread didn't take the message");
             }
@@ -327,6 +364,7 @@ final class StreakMessenger {
             done.await();
         }
         Throwable thrown = failure.get();
+        if (thrown != null && invoked.get()) throw new UnconfirmedDispatch(thrown);
         if (thrown instanceof Exception) throw (Exception) thrown;
         if (thrown != null) throw new IllegalStateException(thrown);
     }

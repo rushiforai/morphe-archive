@@ -24,6 +24,8 @@
     bundle's, so neither can be swapped for another build's without the pair coming apart.
 #>
 
+. (Join-Path $PSScriptRoot 'native-page-alignment.ps1')
+
 function Get-ReleaseReceiptSchemaVersion {
     <#
     .SYNOPSIS
@@ -36,8 +38,9 @@ function Get-ReleaseReceiptSchemaVersion {
         older commit, so it stays a bare return.
 
         2 added sbom: the file name, SHA-256 and component count of the release SBOM.
+        3 added each target's native ELF and ZIP alignment evidence.
     #>
-    return 2
+    return 3
 }
 
 function Resolve-ReceiptSchema {
@@ -74,8 +77,9 @@ function Resolve-ReceiptSchema {
     if ($version -eq $current) { return [pscustomobject]@{ Version = $version; Note = $null } }
     return [pscustomobject]@{
         Version = $version
-        Note = ("the receipt is held to schema $version, which its own commit $short wrote, so it names no " +
-            'SBOM and none is checked for its release')
+        Note = ("the receipt is held to schema $version, which its own commit $short wrote, so " +
+            $(if ($version -lt 2) { 'it names no SBOM and none is checked for its release' }
+                else { 'native alignment evidence is not required for that release' }))
     }
 }
 
@@ -423,6 +427,7 @@ function ConvertFrom-ManifestXmlTree {
     $packageName = $null
     $versionName = $null
     $versionCode = $null
+    $extractNativeLibs = $true
     $permissions = New-Object System.Collections.Generic.List[string]
     $exported = New-Object System.Collections.Generic.List[string]
 
@@ -464,6 +469,12 @@ function ConvertFrom-ManifestXmlTree {
             'uses-permission-sdk-23' {
                 if ($name -eq 'name' -and $value) { $permissions.Add($value) }
             }
+            'application' {
+                if ($name -eq 'extractNativeLibs') {
+                    if ($value -notin @('true', 'false')) { throw "Unknown native extraction policy in $Source." }
+                    $extractNativeLibs = $value -eq 'true'
+                }
+            }
             default {
                 if ($componentElements -contains $element) {
                     if ($name -eq 'name') { $componentName = $value }
@@ -492,6 +503,7 @@ function ConvertFrom-ManifestXmlTree {
         versionCode = $versionCode
         permissions = @($permissions | Sort-Object -Unique -CaseSensitive)
         exported    = @($qualified | Sort-Object -Unique -CaseSensitive)
+        extractNativeLibs = $extractNativeLibs
     }
 }
 
@@ -1226,6 +1238,20 @@ function Test-ReleaseReceipt {
     }
     foreach ($target in $targets) {
         $label = "$($target.source.package) $($target.source.versionName)"
+        if ($ExpectedSchemaVersion -ge 3) {
+            $native = $target.nativeAlignment
+            if ($null -eq $native -or $native.pageSizeBytes -ne 16384) { return Fail "The receipt has no 16 KB native alignment evidence for $label." }
+            try {
+                $computed = Get-NativePageDelta -Stock $native.stock -Patched $native.patched
+            } catch { return Fail "Invalid native alignment evidence for ${label}: $($_.Exception.Message)" }
+            if ($computed.packagingDefects.Count -gt 0) { return Fail "Native packaging defects for ${label}: $($computed.packagingDefects -join ', ')" }
+            foreach ($field in @('vendorElfIncompatibilities', 'packagingDefects', 'alignmentCompatible')) {
+                if ($null -eq $native.PSObject.Properties[$field] -or
+                    (ConvertTo-Json -InputObject $native.$field -Compress) -cne (ConvertTo-Json -InputObject $computed.$field -Compress)) {
+                    return Fail "Recorded native $field disagrees with the evidence for $label."
+                }
+            }
+        }
         if ([string]$target.source.sha256 -notmatch '^[0-9A-F]{64}$') {
             return Fail "The receipt records no source APK hash for $label."
         }

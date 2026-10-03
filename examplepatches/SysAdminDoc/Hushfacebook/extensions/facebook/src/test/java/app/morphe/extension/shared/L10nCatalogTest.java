@@ -68,6 +68,10 @@ public class L10nCatalogTest {
     private static final Pattern ROW_HELPER_IMPORT = Pattern.compile(
             "import static [\\w.]+\\.HushfacebookPreferenceFragment\\.(?:toggle|info|category);");
 
+    /** A row helper called by the fragment's name, which puts its text on the screen from any file. */
+    private static final Pattern QUALIFIED_ROW_HELPERS = Pattern.compile(
+            "\\bHushfacebookPreferenceFragment\\s*\\.\\s*(?:toggle|info|category)\\s*\\(");
+
     private static final Pattern L10N_CALL = Pattern.compile("\\bL10n\\s*\\.\\s*(?:t|f|quantity)\\s*\\(");
 
     private static final Pattern PLACEHOLDER = Pattern.compile("%(?:\\d+\\$)?[a-zA-Z]");
@@ -231,6 +235,13 @@ public class L10nCatalogTest {
         List<String> notImported = new ArrayList<>();
         unwrappedProse("FeedPages.java", page, notImported);
         assertEquals("read a toggle() that isn't the fragment's", 0, notImported.size());
+        // Called by the fragment's name, a helper's text is read with no import.
+        for (String helper : new String[]{"toggle(c, null, ", "info(c, ", "category(screen, "}) {
+            List<String> qualified = new ArrayList<>();
+            unwrappedProse("FeedPages.java", "class A { void a(Context c) { HushfacebookPreferenceFragment . "
+                    + helper + "\"" + sentence + "\", L10n.t(\"x\")); } }", qualified);
+            assertEquals("missed " + helper + "called by the fragment's name: " + qualified, 1, qualified.size());
+        }
     }
 
     /** The literal reader, which both scans lean on. */
@@ -281,7 +292,8 @@ public class L10nCatalogTest {
         }
         int calls = 0;
         boolean rows = name.equals("HushfacebookPreferenceFragment.java") || ROW_HELPER_IMPORT.matcher(text).find();
-        Matcher shows = (rows ? Pattern.compile(SHOWS.pattern() + "|" + ROW_HELPERS.pattern()) : SHOWS).matcher(text);
+        Matcher shows = Pattern.compile(SHOWS.pattern() + "|" + (rows ? ROW_HELPERS : QUALIFIED_ROW_HELPERS).pattern())
+                .matcher(text);
         while (shows.find()) {
             if (kind[shows.start()] != CODE) continue;
             int open = shows.end() - 1;

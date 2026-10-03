@@ -201,7 +201,8 @@ def native_patches(abi, a, b, plan):
     """
     ea, wa = loaded_words(a)
     eb, wb = loaded_words(b)
-    groups = {COMPAT: table("TEXT_RELOCATION")[abi] + table("JNI_GUARDS")[abi] + table("JNI_ARGUMENTS")[abi],
+    groups = {COMPAT: table("TEXT_RELOCATION")[abi] + table("JNI_GUARDS")[abi] + table("JNI_ARGUMENTS")[abi]
+              + table("SOUND_CACHE_MODE")[abi],
               CURRENCY: plan["edits"], DEAD: table("GSERVE_STALL")[abi] + table("DEAD_SERVERS")[abi]}
     state = {}
     for name, edits in groups.items():
@@ -482,6 +483,12 @@ def main():
             check(smali_file(f"app/ckzombies/extension/{name}") is not None, f"extension class {name} merged into the dex")
         check("Landroid/content/Context;->getObbDir()" in method("app/ckzombies/extension/ExternalStorage", "prepare"),
               "ExternalStorage.prepare asks Android for the OBB folder, which creates it or hands it back to the game")
+        prepare = method("app/ckzombies/extension/ExternalStorage", "prepare")
+        check("Lapp/ckzombies/extension/ExternalStorage;->soundCache(" in prepare
+              and "Ljava/io/File;->mkdirs()Z" in method("app/ckzombies/extension/ExternalStorage", "soundCache"),
+              "ExternalStorage.prepare makes the sound cache folder, which the engine cannot always make itself")
+        check("Lapp/ckzombies/extension/ExternalStorage;->removeUnreadable(" in prepare,
+              "ExternalStorage.prepare removes the cached sounds that cannot be read")
         body = method("com/glu/platform/android/GluPlatformActivity", "InitialiseSoundEvent")
         lines = [l.strip() for l in body.splitlines() if l.strip()]
         plain_player = any(l.startswith("new-instance") and "Landroid/media/MediaPlayer;" in l for l in lines)

@@ -244,6 +244,126 @@ public class MediaSaveTest {
     }
 
     @Test
+    @Config(sdk = 28)
+    public void onAndroid9OverlappingSavesOwnSeparateWorkFilesAndLedgerRows() throws Exception {
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).grantPermissions(
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        Settings.FILENAME_TEMPLATE.save("IG_" + FileNameTemplate.VIDEO_ID);
+        MediaStoreWriter first = new MediaStoreWriter(context, true, "12345");
+        MediaStoreWriter second = new MediaStoreWriter(context, true, "12345");
+        File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "Instagram");
+        SharedPreferences ledger = context.getSharedPreferences("hushgram_saves", Context.MODE_PRIVATE);
+        byte[] firstBody = mp4(4096), secondBody = mp4(8192);
+        try {
+            OutputStream one = first.open("video/mp4");
+            one.write(firstBody);
+            OutputStream two = second.open("video/mp4");
+            two.write(secondBody);
+            assertEquals("overlapping saves shared one cleanup identity", 2,
+                    ledger.getStringSet("pending_rows", java.util.Collections.emptySet()).size());
+            assertEquals("overlapping saves shared one hidden work file", 2, folder.listFiles().length);
+            two.close();
+
+            first.abandon();
+            assertEquals("Cancel removed another save's cleanup identity", 1,
+                    ledger.getStringSet("pending_rows", java.util.Collections.emptySet()).size());
+            second.commit();
+            File[] saved = folder.listFiles();
+            assertNotNull(saved);
+            assertEquals("Cancel removed another save's file", 1, saved.length);
+            assertFalse(saved[0].getName().startsWith(MediaStoreWriter.LEGACY_PENDING_PREFIX));
+            assertArrayEquals(secondBody, java.nio.file.Files.readAllBytes(saved[0].toPath()));
+            assertTrue(ledger.getStringSet("pending_rows", java.util.Collections.emptySet()).isEmpty());
+        } finally {
+            first.abandon();
+            second.abandon();
+            Settings.FILENAME_TEMPLATE.resetToDefault();
+        }
+    }
+
+    @Test
+    @Config(sdk = 28)
+    public void onAndroid9ARefusedLedgerRemovesOnlyItsReservedWorkFile() throws Exception {
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).grantPermissions(
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "Instagram");
+        assertTrue(folder.mkdirs() || folder.isDirectory());
+        byte[] previous = mp4(2048);
+        File completed = new File(folder, "IG_existing.mp4");
+        java.nio.file.Files.write(completed.toPath(), previous);
+        byte[] body = mp4(8192);
+        serve("/v.mp4", "video/mp4", body, body.length);
+        for (boolean throwing : new boolean[] {false, true}) {
+            Downloader.Result result = save("/v.mp4", new MediaStoreWriter(new BrokenLedger(context, throwing), true));
+            assertEquals(result.toString(), Downloader.Status.WRITE_ERROR, result.status);
+            assertEquals("a refused ledger left an untracked hidden file", 1, folder.listFiles().length);
+            assertArrayEquals(previous, java.nio.file.Files.readAllBytes(completed.toPath()));
+            assertTrue(context.getSharedPreferences("hushgram_saves", Context.MODE_PRIVATE)
+                    .getStringSet("pending_rows", java.util.Collections.emptySet()).isEmpty());
+        }
+    }
+
+    @Test
+    @Config(sdk = 28)
+    public void onAndroid9ConcurrentCommitsKeepEveryCompletedFile() throws Exception {
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).grantPermissions(
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        Settings.FILENAME_TEMPLATE.save("IG_" + FileNameTemplate.VIDEO_ID);
+        File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "Instagram");
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(3);
+        try {
+            for (int round = 0; round < 20; round++) {
+                List<MediaStoreWriter> writers = new ArrayList<>();
+                List<byte[]> bodies = new ArrayList<>();
+                java.util.concurrent.CountDownLatch go = new java.util.concurrent.CountDownLatch(1);
+                List<java.util.concurrent.Future<?>> completed = new ArrayList<>();
+                try {
+                    for (int index = 0; index < 3; index++) {
+                        MediaStoreWriter writer = new MediaStoreWriter(context, true, String.valueOf(1000 + round));
+                        writers.add(writer);
+                        byte[] body = mp4(4096 + index * 1024);
+                        bodies.add(body);
+                        OutputStream out = writer.open("video/mp4");
+                        out.write(body);
+                        out.close();
+                    }
+                    for (MediaStoreWriter writer : writers) completed.add(pool.submit(() -> {
+                        go.await();
+                        writer.commit();
+                        return null;
+                    }));
+                    go.countDown();
+                    for (java.util.concurrent.Future<?> result : completed) result.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                    File[] saved = folder.listFiles();
+                    assertNotNull(saved);
+                    assertEquals("a concurrent commit replaced a completed file", (round + 1) * 3, saved.length);
+                    List<File> current = new ArrayList<>();
+                    for (File file : saved) {
+                        assertFalse("a completed work file stayed hidden", file.getName().startsWith(MediaStoreWriter.LEGACY_PENDING_PREFIX));
+                        if (file.getName().startsWith("IG_" + (1000 + round))) current.add(file);
+                    }
+                    assertEquals("a round lost one of its completed files", 3, current.size());
+                    for (byte[] body : bodies) {
+                        boolean found = false;
+                        for (File file : current) {
+                            if (Arrays.equals(body, java.nio.file.Files.readAllBytes(file.toPath()))) found = true;
+                        }
+                        assertTrue("a concurrent commit changed the saved bytes", found);
+                    }
+                } finally {
+                    go.countDown();
+                    for (MediaStoreWriter writer : writers) writer.abandon();
+                }
+            }
+            assertTrue(context.getSharedPreferences("hushgram_saves", Context.MODE_PRIVATE)
+                    .getStringSet("pending_rows", java.util.Collections.emptySet()).isEmpty());
+        } finally {
+            pool.shutdownNow();
+            Settings.FILENAME_TEMPLATE.resetToDefault();
+        }
+    }
+
+    @Test
     public void aGoodVideoIsPublishedAsOneFinishedRow() {
         byte[] body = mp4(64_000);
         serve("/v.mp4", "video/mp4", body, body.length);

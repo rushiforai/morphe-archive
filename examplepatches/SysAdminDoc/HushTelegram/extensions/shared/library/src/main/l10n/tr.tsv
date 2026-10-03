@@ -20,7 +20,7 @@ About	Hakkında
 Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 ve öncesi burada hangi bağlantıların açıldığını bildirmez. Bu uygulamanın ayarlarını açmak için dokunun, ardından Varsayılan olarak aç'a gidin.
 Back	Geri
 Cancel	İptal
-Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Bir ayar dosyası seç. İçe aktarmadan önce kaç anahtarın değişeceğini görürsün.
+Choose a settings file. Before anything is imported, you'll see how many switches it changes. What you import applies to all the accounts in this Telegram app.	Bir ayar dosyası seç. İçe aktarmadan önce kaç anahtarın değişeceğini görürsün. İçe aktardıkların bu Telegram uygulamasındaki tüm hesaplar için geçerli olur.
 Clear diagnostic data	Tanılama verilerini temizle
 Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kısa raporu kopyala veya tam raporu Download/Morphe konumuna kaydet. Bağlantılar, kimlikler, çerezler ve oturum belirteçleri çıkarılır. Paylaşmadan önce başka özel bilgi olup olmadığına bak.
 Copy quick report	Hızlı raporu kopyala
@@ -45,7 +45,7 @@ From the next start, every switch but Debug logging acts as if it were off. Chan
 Hide ads	Reklamları gizle
 Links, updates, backup and more	Bağlantılar, güncellemeler, yedekleme ve daha fazlası
 Privacy	Gizlilik
-Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Anahtarlarını bir dosyaya kaydet. Duraklatma ve Hata ayıklama günlüğü dahil edilmez, sürüm denetimi de edilmez.
+Save your switches to a file. They cover all the accounts in this Telegram app. Pause and Debug logging aren't included, and neither is the release check.	Anahtarlarını bir dosyaya kaydet. Anahtarlar bu Telegram uygulamasındaki tüm hesaplar için geçerlidir. Duraklatma ve Hata ayıklama günlüğü dahil edilmez, sürüm denetimi de edilmez.
 Settings exported. The app holding the file wouldn't let HushTelegram read it back, so it wasn't checked.	Ayarlar dışa aktarıldı. Dosyayı tutan uygulama HushTelegram'un onu geri okumasına izin vermedi, bu yüzden kontrol edilmedi.
 The app holding that file is taking too long, so HushTelegram stopped waiting. Nothing was changed.	O dosyayı tutan uygulama çok uzun sürüyor, bu yüzden HushTelegram beklemeyi bıraktı. Hiçbir şey değiştirilmedi.
 The app holding the last settings file still hasn't answered. Try again later.	Son ayar dosyasını tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
@@ -150,7 +150,10 @@ It targets Telegram %1$s.	Telegram %1$s için hazırlandı.
 None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Telegram'ın web adreslerinden hiçbiri bu uygulama için seçili değil, bu yüzden bağlantıları başka yerde açılır. Android ayarlarında seçmek için dokunun.
 Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Telegram'ın web adreslerinden yalnızca bazıları bu uygulama için seçili ve diğerlerinin bağlantıları başka yerde açılır. Android ayarlarında seçmek için dokunun.
 Saved. Restart Telegram to apply this change.	Kaydedildi. Bu değişikliği uygulamak için Telegram'ı yeniden başlat.
-Sponsored messages and video ads	Sponsorlu mesajlar ve video reklamları
+Ads in channels and search	Kanallarda ve aramada reklamlar
+Ads in channels	Kanallarda reklamlar
+Ads in search	Aramada reklamlar
+%1$s, and more	%1$s ve fazlası
 Stop usage reports	Kullanım raporlarını durdur
 # context: Immutable hook coverage shown when a patch has missing targets.
 channel ads	kanal reklamları
@@ -161,9 +164,10 @@ channel read metrics	kanal okuma ölçümleri
 This build has no coverage for %1$s.	Bu derleme %1$s için kapsam sağlamaz.
 This build covers %1$s. Missing coverage: %2$s.	Bu derlemenin kapsamı: %1$s. Eksik kapsam: %2$s.
 Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	Telegram açıldıktan sonraki bir dakika içinde üst üste üç kez çöktü veya dondu, bu yüzden HushTelegram kendini duraklattı.
-Telegram doesn't send your storage folders as a device report when its server asks, or how long you spent on each channel post. Messages and calls work as before.	Telegram, sunucusu istediğinde depolama klasörlerinizi cihaz raporu olarak göndermez, her kanal gönderisinde ne kadar kaldığınızı da göndermez. Mesajlar ve aramalar eskisi gibi çalışır.
 Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Telegram'ın web adresleri Android ayarlarında bu uygulama için seçili, bu yüzden bağlantıları burada açılır.
-Device statistics and read time	Cihaz istatistikleri ve okuma süresi
+Usage reports and call diagnostics	Kullanım raporları ve arama tanılamaları
+Usage reports	Kullanım raporları
+Call diagnostics	Arama tanılamaları
 Try again, or go back to Telegram.	Tekrar dene veya Telegram'a geri dön.
 Turn off Telegram's update checks	Telegram'ın güncelleme kontrollerini kapat
 Your choices are saved. Tap Resume, then restart Telegram.	Tercihleriniz kayıtlı. Devam et'e dokunun, sonra Telegram'ı yeniden başlatın.
@@ -178,3 +182,50 @@ Stops automatic call debug reports and log-file uploads requested by Telegram's 
 call debug reports	arama hata ayıklama raporları
 call log file uploads	arama günlük dosyası yüklemeleri
 call log reports	arama günlük raporları
+Hide Premium, gifts and Stars	Premium, hediyeler ve Stars'ı gizle
+Hides Premium, Stars, My Grams, Business and Send a Gift in Settings, profile Gifts tabs and the channel Gift button. Purchases and account controls keep their usual behavior.	Ayarlar'daki Premium, Stars, My Grams, Business ve Hediye Gönder seçeneklerini, profillerdeki Hediyeler sekmelerini ve kanallardaki Hediye düğmesini gizler. Satın almalar ve hesap kontrolleri eskisi gibi çalışır.
+Settings sales rows	Ayarlar'daki satış seçenekleri
+profile Gifts tabs	profil Hediyeler sekmeleri
+channel Gift button	kanal Hediye düğmesi
+Hide promotional banners	Tanıtım afişlerini gizle
+Hides Premium, birthday and low Stars balance banners in the chat list. Account security notices and other suggestions remain. Nothing is dismissed for you.	Sohbet listesinde Premium, doğum günü ve düşük Stars bakiyesi afişlerini gizler. Hesap güvenliği bildirimleri ve diğer öneriler gösterilmeye devam eder. Hiçbir şey sizin adınıza kapatılmaz.
+promotional suggestions	tanıtım önerileri
+birthday gift banner	doğum günü hediyesi afişi
+Hide sponsored proxy channel	Proxy'nin sponsorlu kanalını gizle
+Hides a proxy's sponsored channel from the chat list and folders. Leaves proxy settings and shared promo-data updates alone.	Bir proxy'nin sponsorlu kanalını sohbet listesinden ve klasörlerden gizler. Proxy ayarlarını ve paylaşılan tanıtım verisi güncellemelerini olduğu gibi bırakır.
+cached proxy channel	kayıtlı proxy kanalı
+cached proxy folder entries	klasörlerdeki kayıtlı proxy girdileri
+Open links externally	Bağlantıları harici tarayıcıda aç
+Opens ordinary HTTP(S) links in your browser. Telegram links, login, payment and authenticated routes keep their existing behavior.	Normal HTTP(S) bağlantılarını tarayıcınızda açar. Telegram bağlantıları ile oturum açma, ödeme ve kimlik doğrulama yollarının mevcut davranışı korunur.
+Strip link tracking	Bağlantı takibini kaldır
+Optional local cleaning at link-open and Share Link chooser sites. Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. Any unknown query key preserves the entire URL. Off by default in settings.	Bağlantı açarken ve Bağlantıyı Paylaş seçicisinde isteğe bağlı yerel temizleme. Yalnızca utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid ve fbclid kaldırılır. Bilinmeyen herhangi bir sorgu anahtarı varsa URL'nin tamamı korunur. Ayarlarda varsayılan olarak kapalıdır.
+external browser routing	harici tarayıcıya yönlendirme
+opened link tracking	açılan bağlantıların takibi
+shared link tracking	paylaşılan bağlantıların takibi
+Telegram doesn't send its storage-type statistic when its server asks, or how long you spent on each channel post. It also stops reports about Premium screen views, feature taps, accepts and purchase failures. Messages and calls work as before.	Telegram, sunucusu istediğinde depolama türü istatistiğini veya her kanal gönderisinde ne kadar kaldığınızı göndermez. Premium ekran görüntülemeleri, özelliklere dokunmalar, kabul işlemleri ve satın alma hatalarıyla ilgili raporları da durdurur. Mesajlar ve aramalar eskisi gibi çalışır.
+Premium promo views	Premium tanıtım görüntülemeleri
+Premium promo taps	Premium tanıtım dokunuşları
+Premium promo accepts	Premium tanıtım onayları
+Premium promo failures	Premium tanıtım hataları
+Accounts	Hesaplar
+Every switch here applies to all the accounts in this Telegram app, not only the one you have open.	Buradaki her anahtar yalnızca açık olan hesap için değil, bu Telegram uygulamasındaki tüm hesaplar için geçerlidir.
+No previews before sending	Göndermeden önce önizleme yok
+Telegram doesn't ask its server for a link preview while a message is still unsent. That covers chats, the share sheet, polls, story links and bot shares. Sent messages still get their preview. Off by default in settings.	Telegram, bir mesaj henüz gönderilmemişken sunucusundan bağlantı önizlemesi istemez. Bu kural sohbetler, paylaşım sayfası, anketler, hikâye bağlantıları ve botların paylaştığı mesajlar için geçerlidir. Gönderilen mesajlar önizlemelerini almaya devam eder. Ayarlarda varsayılan olarak kapalıdır.
+Draft link previews	Taslaklarda bağlantı önizlemeleri
+chat drafts	sohbet taslakları
+share sheet comments	paylaşım sayfası yorumları
+poll links	anket bağlantıları
+story links	hikâye bağlantıları
+bot shares	botların paylaştığı mesajlar
+Camera only on tap	Kamera yalnızca dokununca
+Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it. Off by default in settings.	Ek galerisini açmak kamerayı başlatmaz ve kamera erişimi istemez. Başlatmak için kamera kutucuğuna dokunun. Ayarlarda varsayılan olarak kapalıdır.
+Gallery camera	Galeri kamerası
+No swipe actions on chats	Sohbetlerde kaydırma eylemi yok
+A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.	Sohbet listesinde bir sohbeti yana kaydırmak artık onu arşivlemez, sessize almaz, sabitlemez, silmez veya okundu olarak işaretlemez, böylece yanlışlıkla yapılan bir kaydırma sohbeti değiştirmez. Uzun basma tüm eylemleri sunmaya devam eder. Ayarlarda varsayılan olarak kapalıdır.
+Hide popular apps	Popüler uygulamaları gizle
+Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.	Aramadaki Uygulamalar sekmesi, Telegram'ın Popüler uygulamalar listesini başlığı ve yükleme satırlarıyla birlikte atlar ve Telegram bu listeyi istemez. Açtığınız uygulamalar ve diğer sonuçlar kalır.
+Quiet contacts prompts	Kişi isteklerini sustur
+Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Kişilere erişimi reddettikten sonra Kişiler sekmesi yeniden sormaz ve uyarı rozeti kaybolur. İlk istek, sekmenin kendi düğmeleri ve kişi eşitleme aynı kalır.
+
+New Year look all year	Yıl boyu yılbaşı görünümü
+Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Telegram'ın yılbaşı karı her gün sohbet listesinin üst çubuğuna, animasyonlu sohbet arka planları açıkken de sohbet arka planlarına yağar. Ayarlarda varsayılan olarak kapalıdır.

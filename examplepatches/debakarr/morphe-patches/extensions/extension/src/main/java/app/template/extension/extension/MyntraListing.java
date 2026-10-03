@@ -37,6 +37,18 @@ final class MyntraListing {
         return null;
     }
 
+    /** The rating block of a tile: top-level, {@code rating}, or under {@code productImage} (V2). */
+    private static JSONObject ratingInfo(JSONObject d) {
+        if (d == null) return null;
+        JSONObject info = d.optJSONObject("ratingInfo");
+        if (info == null) info = d.optJSONObject("rating");
+        if (info == null) {
+            JSONObject image = d.optJSONObject("productImage");
+            if (image != null) info = image.optJSONObject("ratingInfo");
+        }
+        return info;
+    }
+
     private static final ListingSorter.Rules RULES = new ListingSorter.Rules() {
         @Override
         public boolean isProduct(JSONObject item) {
@@ -68,6 +80,53 @@ final class MyntraListing {
         }
 
         @Override
+        public double rating(JSONObject item) {
+            JSONObject info = ratingInfo(data(item));
+            return info == null ? -1 : ListingSorter.toDouble(info.opt("rating"));
+        }
+
+        @Override
+        public Product describe(JSONObject item) {
+            JSONObject d = data(item);
+            if (d == null) return null;
+            String id = ListingSorter.firstString(d, "productId", "styleId", "id");
+            if (id.isEmpty()) return null;
+            JSONObject info = d.optJSONObject("productInfo");
+            JSONObject modal = null;
+            JSONObject longPress = d.optJSONObject("onLongPress");
+            if (longPress != null) modal = longPress.optJSONObject("modalData");
+
+            // PRODUCT_TILE_V2 carries the full name in the long-press data; the plain
+            // brand + short description is the fallback (and what the older tile uses).
+            String title = ListingSorter.firstString(modal, "productName");
+            if (title.isEmpty()) {
+                String brand = ListingSorter.firstString(info, "brand");
+                if (brand.isEmpty()) brand = ListingSorter.firstString(d, "brand", "brandName");
+                String name = ListingSorter.firstString(info, "additionalInfo", "name");
+                if (name.isEmpty()) name = ListingSorter.firstString(d, "name", "productName", "product", "title", "additionalInfo");
+                title = name.startsWith(brand) ? name : (brand + " " + name).trim();
+            }
+
+            // Prices are strings like "₹558" in V2 tiles; the long-press data also has a plain number.
+            double price = ListingSorter.firstNumber(modal, "price");
+            if (price <= 0 && info != null) {
+                JSONObject priceInfo = info.optJSONObject("priceInfo");
+                price = ListingSorter.firstNumber(priceInfo, "price", "discounted");
+            }
+            if (price <= 0) price = ListingSorter.firstNumber(d, "discountedPrice", "price", "sellingPrice");
+
+            // V2 tiles navigate to "/<styleId>?…"; older ones carry a landing page path.
+            String path = "";
+            JSONObject press = d.optJSONObject("onPress");
+            if (press != null) path = ListingSorter.firstString(press, "route");
+            if (path.isEmpty()) path = ListingSorter.firstString(d, "landingPageUrl", "url", "link");
+            int query = path.indexOf('?');
+            if (query >= 0) path = path.substring(0, query);
+            String url = "https://www.myntra.com/" + (path.isEmpty() ? id : path.replaceFirst("^/", ""));
+            return new Product(id, title, price, rating(item), ratingCount(item), url);
+        }
+
+        @Override
         public boolean isAd(JSONObject item) {
             JSONObject d = data(item);
             if (d == null) return false;
@@ -85,7 +144,6 @@ final class MyntraListing {
         Diag.dump("myntra", json);
         if (json.indexOf("\"PRODUCT_TILE") < 0 && json.indexOf("\"productId\"") < 0) return json;
         SortState.noteListing();
-        if (!SortState.sortOn() && !SortState.hideAds()) return json;
         try {
             JSONObject root = new JSONObject(json);
             ListingSorter.Stats stats = new ListingSorter.Stats();

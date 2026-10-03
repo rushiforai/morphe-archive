@@ -882,6 +882,9 @@ public class SaveProgressTest {
         final List<Uri> inserts = new ArrayList<>();
         boolean refuseDeletion;
         boolean throwOnDelete;
+        boolean securityOnDelete;
+        int queryFailure;
+        Uri lastQuery;
         /** While set, a deletion waits for it: a gallery that's slow while Instagram starts. */
         volatile CountDownLatch holdDeletes;
         final CountDownLatch deleteAsked = new CountDownLatch(1);
@@ -905,14 +908,18 @@ public class SaveProgressTest {
 
         @Override public Cursor query(Uri uri, String[] projection, String selection,
                 String[] selectionArgs, String sortOrder) {
+            lastQuery = uri;
+            if (queryFailure == 1) throw new SecurityException("query unavailable");
+            if (queryFailure == 2) return null;
             String[] columns = projection == null ? new String[0] : projection;
+            if (queryFailure == 3) columns = new String[]{"_id"};
             MatrixCursor cursor = new MatrixCursor(columns);
             String last = uri.getLastPathSegment();
             if (last != null && last.matches("[0-9]+")) {
                 ContentValues row = rows.get(ContentUris.parseId(uri));
                 if (row != null) {
                     Object[] values = new Object[columns.length];
-                    for (int i = 0; i < columns.length; i++) values[i] = row.get(columns[i]);
+                    for (int i = 0; i < columns.length; i++) values[i] = queryFailure == 4 ? null : row.get(columns[i]);
                     cursor.addRow(values);
                 }
             }
@@ -938,6 +945,7 @@ public class SaveProgressTest {
                 }
             }
             if (throwOnDelete) throw new IllegalStateException("gallery unavailable");
+            if (securityOnDelete) throw new SecurityException("has no access to this URI");
             if (refuseDeletion) return 0;
             long id = ContentUris.parseId(uri);
             ContentValues row = rows.get(id);

@@ -264,6 +264,15 @@ fun Method.readsAfter(index: Int, register: Int): List<Int> {
     return flow.readsFrom(flow.normal[index] + flow.exceptional[index], register)
 }
 
+/**
+ * Every instruction that can read what [register] holds when the method starts, before something
+ * writes it: where a parameter's value goes, following branches, switches and handlers.
+ */
+fun Method.entryReads(register: Int): List<Int> {
+    val flow = ControlFlow.of(this)
+    return if (flow.instructions.isEmpty()) emptyList() else flow.readsFrom(listOf(0), register)
+}
+
 private fun ControlFlow.readsFrom(starts: List<Int>, register: Int): List<Int> {
     val reads = sortedSetOf<Int>()
     val seen = BitSet()

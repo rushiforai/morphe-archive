@@ -59,9 +59,12 @@ Settings exported. The app holding the file wouldn't let HushThreads read it bac
 Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.	Postingan bersponsor dihapus dari Untuk Anda dan Mengikuti sebelum Threads menampilkannya, jadi tidak ada celah kosong.
 # context: summary of the Feed section link on the overview; the same two feed names as the Hide ads switch
 Sponsored posts in For you and Following	Postingan bersponsor di Untuk Anda dan Mengikuti
+# context: Feed overview summaries when suggestions alone, or both feed rules, are selected
+Suggested accounts in your feed	Akun yang disarankan di feed Anda
+Ads and suggested accounts in your feed	Iklan dan akun yang disarankan di feed Anda
 Stop analytics uploads	Hentikan unggahan analitik
 # context: xmt and slof are the tags' own names in the link and stay as they are
-Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.	Menghapus tag pelacakan seperti xmt dan slof dari tautan postingan yang Anda salin atau bagikan. Bagian lain tautan tetap seperti semula.
+Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.	Menghapus tag pelacakan seperti xmt dan slof dari tautan postingan yang Anda salin atau bagikan. Tautan berbagi pendek diganti dengan tautan postingan itu sendiri.
 The app holding that file is taking too long, so HushThreads stopped waiting. Nothing was changed.	Aplikasi yang menyimpan file itu terlalu lama, jadi HushThreads berhenti menunggu. Tidak ada yang diubah.
 The app holding the last settings file still hasn't answered. Try again later.	Aplikasi yang menyimpan file pengaturan terakhir masih belum merespons. Coba lagi nanti.
 The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushThreads berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.
@@ -75,7 +78,7 @@ none	tidak ada
 Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads tidak dapat membaca ID iklan ponsel Anda. Izin untuk itu sudah dihapus dari build ini.
 Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushThreads menjeda dirinya sendiri.
 Threads' web addresses are selected for this app in Android's settings, so their links open here.	Alamat web Threads dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.
-Tracking in shared links and analytics uploads	Pelacakan di tautan yang dibagikan dan unggahan analitik
+Tracking in links and analytics uploads	Pelacakan di tautan dan unggahan analitik
 Try again, or go back to Threads.	Coba lagi, atau kembali ke Threads.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.
 Full report saved to %1$s	Laporan lengkap disimpan ke %1$s
@@ -168,3 +171,17 @@ Android didn't say which links open here. Tap to check in Android's settings.	An
 Selecting links by hand	Memilih tautan secara manual
 # context: an item in the sentence about what Pause can't turn off; the patch name Remove the advertising ID follows it in brackets, so it mustn't repeat that name
 the removed advertising ID permission	izin ID iklan yang dihapus
+
+# context: optional feed rule and its scope
+Hide suggested users	Sembunyikan pengguna yang disarankan
+Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.	Menghapus kartu terverifikasi yang menyarankan akun untuk diikuti. Postingan biasa dan repost tetap ada.
+Keep feed position on return	Pertahankan posisi feed saat kembali
+Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	Jika kembali ke Threads dalam sepuluh menit, posisi feed tetap sama. Tarik ke bawah untuk memuat ulang masih berfungsi.
+No time limit	Tanpa batas waktu
+With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Jika sakelar di atas aktif, posisi Anda tetap tersimpan berapa lama pun Anda pergi. Tarik untuk memuat ulang dan membuka ulang aplikasi tetap memuat postingan baru.
+Where you left off in your feed	Posisi terakhir Anda di feed
+Open links in your browser	Buka tautan di browser Anda
+Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.	Tautan web yang Anda ketuk terbuka di browser default Anda, atau aplikasi untuk situs itu, tanpa pelacak klik Threads. Halaman Threads, Instagram, dan halaman Meta lainnya tetap terbuka di Threads.
+Tap to play videos	Ketuk untuk memutar video
+Videos in your feed wait for a tap instead of playing as you scroll.	Video di feed Anda menunggu diketuk, bukan diputar saat Anda menggulir.
+Videos in your feed	Video di feed Anda

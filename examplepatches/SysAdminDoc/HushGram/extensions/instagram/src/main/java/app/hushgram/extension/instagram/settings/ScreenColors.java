@@ -387,6 +387,8 @@ final class ScreenColors {
             title.setTextColor(primary ? onAccent : secondaryActionText());
             title.setTypeface(Typeface.DEFAULT_BOLD);
             title.setGravity(android.view.Gravity.CENTER);
+            // Centred by gravity, which a start alignment from showAllText would override.
+            title.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
             ViewGroup.LayoutParams size = title.getLayoutParams();
             size.width = ViewGroup.LayoutParams.MATCH_PARENT;
             title.setLayoutParams(size);
@@ -411,6 +413,8 @@ final class ScreenColors {
         if (title != null) {
             fillWidth(title);
             title.setGravity(android.view.Gravity.CENTER);
+            // Centred by gravity, which a start alignment from showAllText would override.
+            title.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
             title.setTextSize(22);
             title.setTextColor(palette.title);
             title.setTypeface(Typeface.create("sans-serif-medium", 0));
@@ -422,6 +426,7 @@ final class ScreenColors {
         if (summary != null) {
             fillWidth(summary);
             summary.setGravity(android.view.Gravity.CENTER);
+            summary.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
             summary.setTextColor(palette.summary);
             summary.setTextSize(16);
             summary.setPadding(0, dp(row, 12), 0, 0);

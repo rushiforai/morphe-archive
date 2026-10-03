@@ -26,8 +26,7 @@ val freeContentPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch)
 
     execute {
-        GetContentDetailsInvokerFingerprint.matchAllMethodIndicesForEach {
-            if (definingClass == EXTENSION_CLASS) return@matchAllMethodIndicesForEach
+        GetContentDetailsMethodCallFingerprint.matchAllMethodIndicesForEach {
             val instruction = getInstruction<FiveRegisterInstruction>(it)
             val reference = instruction.getReference<MethodReference>()!!
 

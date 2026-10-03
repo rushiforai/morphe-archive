@@ -10,8 +10,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val googleDriveAmoledDeclutterPatch = bytecodePatch(
-    name = "AMOLED Dark Theme & Declutter - Google Drive",
-    description = "Forces pure OLED pitch black (#000000) across Google Drive file lists, folder navigation, status bars, and navigation bars, eliminating dark gray tint for maximum OLED power savings.",
+    name = "AMOLED Dark Theme & Declutter - Google Drive (Experimental)",
+    description = "⚠️ [En cours de développement / Non testé] Forces pure OLED pitch black (#000000) across Google Drive file lists, folder navigation, status bars, and navigation bars, eliminating dark gray tint for maximum OLED power savings.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_DRIVE)
 
@@ -32,7 +32,7 @@ fun BytecodePatchContext.executeGoogleDriveAmoledDeclutterLogic(logger: Logger) 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
         // 1. Inject pure black ColorDrawable and setStatusBarColor/setNavigationBarColor in Activity onResume
-        val superType = classDef.superType ?: ""
+        val superType = classDef.superclass ?: ""
         val isActivity = superType.contains("Activity") || type.contains("Activity")
 
         if (isActivity && tl.contains("com/google/android/apps/docs")) {

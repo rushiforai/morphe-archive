@@ -223,6 +223,194 @@ exit /b %errorlevel%
     $signedProbe = $trustedProbe
     $defaults = @{ Keystore = Join-Path $fixture 'defaults.p12' }
 
+    # Prior ownership fixtures kept keys outside output and missed keys occupying a generated
+    # APK, signer sidecar, argument file or temporary child. Use valid stores and preserve the
+    # complete preexisting output snapshot, not just the external fixture's source key.
+    foreach ($store in @(
+        @{ Leaf = 'blank.bks'; Type = 'BKS'; Store = ''; Entry = $entrySentinel }
+        @{ Leaf = 'independent.jks'; Type = 'JKS'; Store = $storeSentinel; Entry = $entrySentinel }
+        @{ Leaf = 'independent.p12'; Type = 'PKCS12'; Store = $storeSentinel; Entry = $entrySentinel }
+    )) {
+        foreach ($builder in @(
+            @{ Script = $probeBuilder; Arguments = $probeArguments; Probe = $true; Paths = @(
+                'probe-unsigned.apk', 'probe-aligned.apk', 'hushfeed-verification-probe.apk',
+                'hushfeed-verification-probe.apk.idsig', 'dex/classes.dex', 'classes/Key.class') }
+            @{ Script = $patchBuilder; Arguments = $patchArguments; Probe = $false; Paths = @(
+                'hushfeed-0.0.1-unsigned.apk', 'hushfeed-0.0.1-signed.apk',
+                'hushfeed-0.0.1-signed.apk.idsig', 'morphe-patch.args', 'result.json', 'tmp/Key.class') }
+        )) {
+            foreach ($relative in $builder.Paths) {
+                $collisionOutput = Join-Path $fixture ('key-collision-' + [Guid]::NewGuid().ToString('N'))
+                $collisionKey = Join-Path $collisionOutput $relative
+                New-Item -ItemType Directory -Path (Split-Path -Parent $collisionKey), (Join-Path $collisionOutput 'classes') -Force | Out-Null
+                Copy-Item -LiteralPath (Join-Path $fixture $store.Leaf) -Destination $collisionKey
+                [IO.File]::WriteAllText((Join-Path $collisionOutput 'classes/sentinel.class'), 'existing generated class')
+                if ($builder.Probe) {
+                    [IO.File]::WriteAllText((Join-Path $collisionOutput '.hushfeed-probe-output'),
+                        "hushfeed-verification-probe-output-v1`n$([IO.Path]::GetFullPath($collisionOutput))")
+                }
+                $before = @{}
+                foreach ($file in @(Get-ChildItem -LiteralPath $collisionOutput -Recurse -File -Force)) {
+                    $before[$file.FullName] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+                }
+                $collisionArguments = $builder.Arguments.Clone()
+                $collisionArguments.OutDir = Join-Path $collisionOutput ('../' + (Split-Path -Leaf $collisionOutput))
+                $collisionArguments.Keystore = $collisionKey
+                $collisionArguments.KeystoreType = $store.Type
+                $collisionArguments.KeystorePassword = $store.Store
+                $collisionArguments.KeyPassword = $store.Entry
+                Assert-SigningRejected { & $builder.Script @collisionArguments } '*signing key inside*'
+                Assert-Signing (@(Get-ChildItem -LiteralPath $collisionOutput -Recurse -File -Force).Count -eq $before.Count) 'A rejected key/output collision changed the output inventory.'
+                foreach ($path in $before.Keys) {
+                    Assert-Signing ((Test-Path -LiteralPath $path -PathType Leaf) -and
+                        (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -eq $before[$path]) 'A rejected key/output collision deleted or changed a key or existing output.'
+                }
+                Assert-NoSigningReferences
+            }
+        }
+    }
+
+    $sidecarKey = Join-Path $fixture 'direct-sign.apk.idsig'
+    Copy-Item -LiteralPath $defaults.Keystore -Destination $sidecarKey
+    foreach ($collision in @(
+        @{ Input = $unsigned; Output = $sidecarKey -replace '\.idsig$', '' }
+        @{ Input = $unsigned; Output = $sidecarKey }
+        @{ Input = $sidecarKey; Output = Join-Path $fixture 'other-output.apk' }
+    )) {
+        Assert-SigningRejected {
+            $session = New-ApkSigningSession -BoundParameters @{} -Root $Root -Sdk $fixtureSdk -Java $Java `
+                -Keystore $sidecarKey -KeyAlias sideload -KeystoreType PKCS12
+            try { Invoke-ApkSigning -Session $session -InputApk $collision.Input -OutputApk $collision.Output }
+            finally { Close-ApkSigningSession $session }
+        } '*overlaps the signing key*'
+    }
+    $session = New-ApkSigningSession -BoundParameters @{} -Root $Root -Sdk $fixtureSdk -Java $Java `
+        -Keystore $sidecarKey -KeyAlias sideload -KeystoreType PKCS12
+    $sidecarHash = (Get-FileHash -LiteralPath $sidecarKey -Algorithm SHA256).Hash
+    try {
+        $writeBlocked = $false
+        try { [IO.File]::WriteAllText($sidecarKey, 'overwrite must fail') } catch [IO.IOException] { $writeBlocked = $true }
+        Assert-Signing $writeBlocked 'An active signing session allowed its key bytes to be overwritten.'
+        Assert-Signing ((Get-FileHash -LiteralPath $sidecarKey -Algorithm SHA256).Hash -eq $sidecarHash) 'Direct signing changed the key through an APK or sidecar path.'
+    } finally { Close-ApkSigningSession $session }
+    $unlocked = [IO.File]::Open($sidecarKey, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    $unlocked.Dispose()
+    Assert-NoSigningReferences
+
+    # PowerShell's location and the native process directory can differ. Every filesystem
+    # comparison and actual tool argument must refer to the same shell-resolved absolute path.
+    $shellBase = Join-Path $fixture 'shell-location'
+    $processBase = Join-Path $fixture 'process-location'
+    New-Item -ItemType Directory -Path $shellBase, $processBase | Out-Null
+    $savedLocation = Get-Location
+    $savedProcessDirectory = [Environment]::CurrentDirectory
+    try {
+        Set-Location -LiteralPath $shellBase
+        [Environment]::CurrentDirectory = $processBase
+        foreach ($builder in @(
+            @{ Script = $probeBuilder; Arguments = $probeArguments; Leaf = 'probe-aligned.apk'; Directory = 'probe-out'; Probe = $true }
+            @{ Script = $patchBuilder; Arguments = $patchArguments; Leaf = 'hushfeed-0.0.1-unsigned.apk'; Directory = 'device-out'; Probe = $false }
+        )) {
+            $absoluteOutput = Join-Path $shellBase $builder.Directory
+            New-Item -ItemType Directory -Path $absoluteOutput | Out-Null
+            $relativeKey = Join-Path $builder.Directory $builder.Leaf
+            $absoluteKey = Join-Path $shellBase $relativeKey
+            Copy-Item -LiteralPath $defaults.Keystore -Destination $absoluteKey
+            $outputLeaf = if ($builder.Probe) { 'hushfeed-verification-probe.apk' } else { 'hushfeed-0.0.1-signed.apk' }
+            $preservedOutput = Join-Path $absoluteOutput $outputLeaf
+            [IO.File]::WriteAllText($preservedOutput, 'preexisting output')
+            if ($builder.Probe) {
+                [IO.File]::WriteAllText((Join-Path $absoluteOutput '.hushfeed-probe-output'),
+                    "hushfeed-verification-probe-output-v1`n$absoluteOutput")
+            }
+            $keyHash = (Get-FileHash -LiteralPath $absoluteKey -Algorithm SHA256).Hash
+            $relativeArguments = $builder.Arguments.Clone()
+            $relativeArguments.OutDir = $builder.Directory
+            $relativeArguments.Keystore = $relativeKey
+            $relativeArguments.KeystoreType = 'PKCS12'
+            Assert-SigningRejected { & $builder.Script @relativeArguments } '*signing key inside*'
+            Assert-Signing ((Get-FileHash -LiteralPath $absoluteKey -Algorithm SHA256).Hash -eq $keyHash -and
+                [IO.File]::ReadAllText($preservedOutput) -eq 'preexisting output') 'A relative builder path changed the key or existing output.'
+        }
+        $relativeKey = 'relative-key.jks'
+        $absoluteKey = Join-Path $shellBase $relativeKey
+        Copy-Item -LiteralPath $defaults.Keystore -Destination $absoluteKey
+        $preservedOutput = Join-Path $shellBase 'preexisting.apk'
+        [IO.File]::WriteAllText($preservedOutput, 'preexisting direct output')
+        foreach ($collision in @(
+            @{ Input = $relativeKey; Output = 'preexisting.apk' }
+            @{ Input = $unsigned; Output = $relativeKey }
+        )) {
+            Assert-SigningRejected {
+                $session = New-ApkSigningSession -BoundParameters @{} -Root $Root -Sdk $fixtureSdk -Java $Java `
+                    -Keystore $relativeKey -KeyAlias sideload -KeystoreType PKCS12
+                try {
+                    Assert-Signing ($session.Keystore -eq $absoluteKey) 'A relative signing key resolved against the process directory.'
+                    Invoke-ApkSigning -Session $session -InputApk $collision.Input -OutputApk $collision.Output
+                } finally { Close-ApkSigningSession $session }
+            } '*overlaps the signing key*'
+            Assert-Signing ([IO.File]::ReadAllText($preservedOutput) -eq 'preexisting direct output') 'A relative direct signing rejection erased existing output.'
+        }
+    } finally {
+        Set-Location -LiteralPath $savedLocation.Path
+        [Environment]::CurrentDirectory = $savedProcessDirectory
+    }
+
+    # A different filename can still contain the same key, including an NTFS hard link.
+    # Reject both aliases and copies before a builder or signer changes any existing output.
+    foreach ($kind in @('HardLink', 'Copy')) {
+        foreach ($builder in @(
+            @{ Script = $probeBuilder; Arguments = $probeArguments; Leaf = 'probe-aligned.apk'; Probe = $true }
+            @{ Script = $patchBuilder; Arguments = $patchArguments; Leaf = 'hushfeed-0.0.1-unsigned.apk'; Probe = $false }
+        )) {
+            $aliasOutput = Join-Path $fixture ('alias-output-' + [Guid]::NewGuid().ToString('N'))
+            New-Item -ItemType Directory -Path $aliasOutput | Out-Null
+            $alias = Join-Path $aliasOutput $builder.Leaf
+            if ($kind -eq 'HardLink') { New-Item -ItemType HardLink -Path $alias -Target $defaults.Keystore | Out-Null }
+            else { Copy-Item -LiteralPath $defaults.Keystore -Destination $alias }
+            $outputLeaf = if ($builder.Probe) { 'hushfeed-verification-probe.apk' } else { 'hushfeed-0.0.1-signed.apk' }
+            $sentinel = Join-Path $aliasOutput $outputLeaf
+            [IO.File]::WriteAllText($sentinel, 'preexisting alias output')
+            if ($builder.Probe) {
+                [IO.File]::WriteAllText((Join-Path $aliasOutput '.hushfeed-probe-output'),
+                    "hushfeed-verification-probe-output-v1`n$aliasOutput")
+            }
+            $aliasArguments = $builder.Arguments.Clone()
+            $aliasArguments.OutDir = $aliasOutput
+            Assert-SigningRejected { & $builder.Script @aliasArguments @defaults } '*signing key inside*'
+            Assert-Signing ((Get-FileHash -LiteralPath $alias -Algorithm SHA256).Hash -eq
+                (Get-FileHash -LiteralPath $defaults.Keystore -Algorithm SHA256).Hash -and
+                [IO.File]::ReadAllText($sentinel) -eq 'preexisting alias output') 'A builder changed key-alias bytes or existing output.'
+        }
+        $aliasRoot = Join-Path $fixture ('direct-alias-' + [Guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $aliasRoot | Out-Null
+        $alias = Join-Path $aliasRoot 'key-alias.apk'
+        if ($kind -eq 'HardLink') { New-Item -ItemType HardLink -Path $alias -Target $defaults.Keystore | Out-Null }
+        else { Copy-Item -LiteralPath $defaults.Keystore -Destination $alias }
+        $sidecarAlias = Join-Path $aliasRoot 'key-sidecar.apk.idsig'
+        if ($kind -eq 'HardLink') { New-Item -ItemType HardLink -Path $sidecarAlias -Target $defaults.Keystore | Out-Null }
+        else { Copy-Item -LiteralPath $defaults.Keystore -Destination $sidecarAlias }
+        $sentinel = Join-Path $aliasRoot 'preexisting.apk'
+        foreach ($collision in @(
+            @{ Input = $alias; Output = $sentinel }
+            @{ Input = $unsigned; Output = $alias }
+            @{ Input = $unsigned; Output = $sidecarAlias -replace '\.idsig$', '' }
+        )) {
+            [IO.File]::WriteAllText($sentinel, 'preexisting direct alias output')
+            Assert-SigningRejected {
+                $session = New-ApkSigningSession -BoundParameters @{} -Root $Root -Sdk $fixtureSdk -Java $Java `
+                    -Keystore $defaults.Keystore -KeyAlias sideload -KeystoreType PKCS12
+                try { Invoke-ApkSigning -Session $session -InputApk $collision.Input -OutputApk $collision.Output }
+                finally { Close-ApkSigningSession $session }
+            } '*overlaps the signing key*'
+            Assert-Signing ([IO.File]::ReadAllText($sentinel) -eq 'preexisting direct alias output' -and
+                (Get-FileHash -LiteralPath $alias -Algorithm SHA256).Hash -eq
+                (Get-FileHash -LiteralPath $defaults.Keystore -Algorithm SHA256).Hash -and
+                (Get-FileHash -LiteralPath $sidecarAlias -Algorithm SHA256).Hash -eq
+                (Get-FileHash -LiteralPath $defaults.Keystore -Algorithm SHA256).Hash) 'Direct signing changed a key alias or existing output.'
+        }
+    }
+
     # Previous signing fixtures only rebuilt their dedicated output folder. They never proved
     # that an arbitrary -OutDir could not erase someone else's files or follow a junction.
     $tokens = $null

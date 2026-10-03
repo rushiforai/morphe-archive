@@ -6,20 +6,26 @@ import org.junit.Test
 
 /**
  * The bundle runs on Manager's Guava, which can be an older version than the one the build
- * compiles against (33.5.0 vs 33.7.1 at the time of writing). A patch that calls a method
+ * compiles against. A patch that calls a method
  * added in a newer Guava would compile and pass every test here, then crash at runtime on
  * Manager's copy. This test makes that gap visible before it ships.
  */
 class GuavaPatchSourceGuardTest {
     @Test
     fun patchSourcesDoNotImportGuavaDirectly() {
-        val root = File("patches/src/main")
-        if (!root.exists()) return
-        val violations = root.walk()
-            .filter { it.extension == "kt" || it.extension == "java" }
+        val root = File(RepoFiles.root, "patches/src/main")
+        assertTrue("Patch source directory is missing: $root", root.isDirectory)
+        val sources = root.walk()
+            .filter { it.isFile && (it.extension == "kt" || it.extension == "java") }
+            .toList()
+        assertTrue("Patch source directory contains no Java or Kotlin sources: $root", sources.isNotEmpty())
+        val violations = sources.asSequence()
             .flatMap { file ->
                 file.readLines()
-                    .filter { it.trimStart().startsWith("import com.google.common") }
+                    .filter {
+                        val line = it.trimStart()
+                        line.startsWith("import com.google.common") || line.startsWith("import static com.google.common")
+                    }
                     .map { "${file.relativeTo(root)}: ${it.trim()}" }
             }
             .toList()

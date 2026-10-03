@@ -4,14 +4,14 @@
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 import urllib.request
-from urllib.error import HTTPError, URLError
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlparse
-import re
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_REDIRECTS = 5
@@ -27,6 +27,14 @@ class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
 
 def die(msg):
     raise SystemExit("❌ " + msg)
+
+
+def jar_version(path):
+    """Parse the numeric version from a Morphe Desktop all-in-one JAR name."""
+    match = re.fullmatch(r"morphe-desktop-(\d+(?:\.\d+)*)-all\.jar", path.name)
+    if not match:
+        return None
+    return tuple(int(part) for part in match.group(1).split("."))
 
 
 def validate_download_url(url):
@@ -81,11 +89,16 @@ def main():
     inp = Path(a.input)
     out = Path(a.output or inp.with_name(inp.stem + "_patched.apk"))
     home = Path.home()
-    jars = sorted(
-        (home / ".local/share/morphe").glob("morphe-desktop-*-all.jar"),
-        key=lambda x: x.stat().st_mtime,
+    jars = [
+        (version, path)
+        for path in (home / ".local/share/morphe").glob("morphe-desktop-*-all.jar")
+        if (version := jar_version(path)) is not None
+    ]
+    jar = (
+        Path(a.jar)
+        if a.jar
+        else max(jars, key=lambda item: item[0], default=(None, None))[1]
     )
-    jar = Path(a.jar) if a.jar else (jars[-1] if jars else None)
     key = os.environ.get("KEYSTORE")
     if not key and (ROOT / "Morphe.keystore").is_file():
         key = str(ROOT / "Morphe.keystore")

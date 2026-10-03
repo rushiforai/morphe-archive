@@ -68,6 +68,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storyTime() {
+        return false;
+    }
+
+    public static boolean storyLoop() {
+        return false;
+    }
+
     public static boolean storySeen() {
         return false;
     }
@@ -108,6 +116,35 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Mark who doesn't follow you back, the friendship patch's second switch, which a build can lack. */
+    public static boolean followingListMark() {
+        return false;
+    }
+
+    public static boolean profileSuggestions() {
+        return false;
+    }
+
+    public static boolean profileHighlights() {
+        return false;
+    }
+
+    public static boolean swipeToCreate() {
+        return false;
+    }
+
+    public static boolean reelsSuggestions() {
+        return false;
+    }
+
+    public static boolean commentCopy() {
+        return false;
+    }
+
+    public static boolean commentPhoto() {
+        return false;
+    }
+
     public static boolean followingFeed() {
         return false;
     }
@@ -133,6 +170,18 @@ public final class SettingsStatus {
     }
 
     public static boolean keepReelSpeed() {
+        return false;
+    }
+
+    public static boolean reelSeekBar() {
+        return false;
+    }
+
+    public static boolean reelAutoScroll() {
+        return false;
+    }
+
+    public static boolean reelScrolling() {
         return false;
     }
 

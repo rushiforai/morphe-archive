@@ -208,6 +208,10 @@ Camera in use,Kamera sedang dipakai
 Cancel,Batal
 Caption background,Latar keterangan
 Caption text size,Ukuran teks keterangan
+Description text size,Ukuran teks deskripsi
+Author text size,Ukuran nama kreator
+"Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling.","Gunakan 0 untuk ukuran TikTok, atau %1$d hingga %2$d. Mengatur ukuran deskripsi di bawah nama kreator dan tetap mengikuti skala font Android."
+"Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and keeps Android's font scaling.","Gunakan 0 untuk ukuran TikTok, atau %1$d hingga %2$d. Mengatur ukuran nama kreator dan tetap mengikuti skala font Android."
 Captions,Teks
 "Captions, gestures and on-screen controls","Keterangan, gestur, dan kontrol di layar"
 Capture crash reports locally,Rekam laporan mogok di perangkat
@@ -452,7 +456,7 @@ Hide activity,Sembunyikan aktivitas
 Hide activity status,Sembunyikan status aktivitas
 Hide archive,Sembunyikan arsip
 Hide bottom tabs TikTok adds later unless you allow them.,"Sembunyikan tab bawah yang TikTok tambahkan kemudian, kecuali kamu mengizinkannya."
-"Hide the CAPTCHA dialogs raised while you browse or watch LIVE. Login, account verification and any CAPTCHA raised over a follow, like, comment or repost stay visible.","Sembunyikan dialog CAPTCHA yang muncul saat menjelajah atau menonton LIVE. CAPTCHA untuk masuk, verifikasi akun, dan yang muncul saat mengikuti, menyukai, berkomentar, atau membagikan ulang tetap terlihat."
+Unavailable on these TikTok builds. All verification challenges stay visible.,Tidak tersedia pada versi TikTok ini. Semua verifikasi tetap terlihat.
 Hide buttons in the right column,Sembunyikan tombol di kolom kanan
 Hide comment polls,Sembunyikan jajak pendapat komentar
 Show poll results before voting,Tampilkan hasil polling sebelum memilih
@@ -527,7 +531,7 @@ Hide the magnifying glass at the top right of the feed. Search in Inbox and sugg
 Hide the magnifying glass at the top of Inbox. Search on the feed and in comments is unchanged.,Sembunyikan ikon kaca pembesar di bagian atas Kotak Masuk. Pencarian di feed dan di komentar tidak berubah.
 Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.,Sembunyikan pencarian yang direkomendasikan sebelum mengetik di halaman pencarian TikTok. Riwayat pencarian tetap ada. Ini tidak menyembunyikan saran di atas komentar.
 Hide the share prompt after a like,Sembunyikan ajakan berbagi setelah suka
-Hide the spinning music cover and the track name beside the caption.,Sembunyikan sampul musik yang berputar dan nama lagu di samping keterangan.
+Hide the track name beside the caption.,Sembunyikan nama lagu di samping keterangan.
 Hide the status bar,Sembunyikan bilah status
 Hide stories from the feed.,Sembunyikan Story dari feed.
 "Hide the whole column on the right, from the avatar down to the music disc.","Sembunyikan seluruh kolom kanan, dari avatar sampai piringan musik."
@@ -1046,6 +1050,7 @@ Show only videos with this many likes.,Hanya tampilkan video dengan jumlah suka 
 Show only videos with this many shares.,Hanya tampilkan video dengan jumlah bagikan sebanyak ini.
 Show only videos with this many views.,Hanya tampilkan video dengan jumlah tayangan sebanyak ini.
 "The original photos aren't available, so TikTok's own save runs instead","Foto aslinya tidak tersedia, jadi TikTok yang menyimpannya"
+The original photos aren't available. No video was saved.,Foto aslinya tidak tersedia. Tidak ada video yang disimpan.
 "The override changes no fields. Edit the field values, or reset the override.","Penimpaan tidak mengubah field apa pun. Ubah nilai field, atau setel ulang penimpaan."
 "The override couldn't be applied: %1$s. Edit the field values, or reset the override.","Penimpaan tidak bisa diterapkan: %1$s. Ubah nilai field, atau setel ulang penimpaan."
 "The override doesn't say what list to return. Edit the field values, or reset the override.","Penimpaan tidak menyebutkan daftar mana yang harus dikembalikan. Ubah nilai field, atau setel ulang penimpaan."
@@ -1297,6 +1302,7 @@ TikTok default (open the creator's profile),Bawaan TikTok (buka profil kreator)
 Saving %1$s of %2$s,Menyimpan %1$s dari %2$s
 Stopping after this file,Berhenti setelah berkas ini
 Waiting to save %1$s files,Menunggu untuk menyimpan %1$s berkas
+Waiting to save one file,Menunggu untuk menyimpan satu berkas
 Save cancelled. Nothing was saved.,Penyimpanan dibatalkan. Tidak ada yang disimpan.
 One more save waiting,Satu penyimpanan lagi menunggu
 %1$s more saves waiting,%1$s penyimpanan lagi menunggu
@@ -1407,9 +1413,7 @@ Let the last video finish,Biarkan video terakhir selesai
 The feed stops when this video ends.,Feed berhenti saat video ini selesai.
 Streak,Rentetan
 Keep a streak going,Pertahankan rentetan
-"Sends one message a day to the person below at the time below, so a streak with them keeps going on a day you don't open TikTok.","Mengirim satu pesan sehari ke orang di bawah pada jam di bawah, supaya rentetan dengannya tetap berlanjut di hari kamu tidak membuka TikTok."
 Who to message,Kirim ke siapa
-"Their username, like @name. It has to be someone you already have a chat with.","Nama penggunanya, seperti @nama. Harus orang yang sudah punya obrolan denganmu."
 When to send,Kapan dikirim
 The time of day the message goes out.,Jam berapa pesan dikirim setiap hari.
 Message,Pesan
@@ -1419,9 +1423,7 @@ Sends today's message right away. The daily one then waits for tomorrow.,Mengiri
 Turn on Keep a streak going first,Nyalakan Pertahankan rentetan dulu
 Sending the message,Mengirim pesan
 A message is already on its way,Sudah ada pesan yang sedang dikirim
-Sent to @%1$s,Terkirim ke @%1$s
 Enter who to message below to start.,Isi siapa yang dikirimi pesan di bawah untuk mulai.
-Sent today at %1$s. The next one goes tomorrow at %2$s.,Terkirim hari ini pukul %1$s. Berikutnya besok pukul %2$s.
 Next message: today at %1$s.,Pesan berikutnya: hari ini pukul %1$s.
 Next message: tomorrow at %1$s.,Pesan berikutnya: besok pukul %1$s.
 "No chat with @%1$s turned up on this account. Open your chat with them once, then try again.","Tidak ada obrolan dengan @%1$s di akun ini. Buka obrolanmu dengannya sekali, lalu coba lagi."
@@ -1459,3 +1461,18 @@ LIVE followers range,Rentang pengikut LIVE
 Show only LIVEs from creators with this many followers.,Hanya tampilkan LIVE dari kreator dengan jumlah pengikut sebanyak ini.
 Hide the comment bar on opened videos,Sembunyikan bilah komentar di video yang dibuka
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Sembunyikan bilah untuk menulis komentar di video yang kamu buka dari profil, hashtag, suara, atau pencarian, agar video memenuhi layar sampai ke bawah. Tombol komentar di kanan tetap membuka komentar."
+Build details,Detail build
+Copy or save patch-time choices and build identity.,Salin atau simpan pilihan saat patch diterapkan dan identitas build.
+Copy build details,Salin detail build
+Save build details,Simpan detail build
+Build details copied to the clipboard,Detail build disalin ke papan klip
+"Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open TikTok.",Mengirim satu pesan per hari ke setiap orang di bawah pada waktu yang ditentukan agar streak tetap berjalan saat kamu tidak membuka TikTok.
+"Their usernames, separated by commas or new lines. Each person must already have a chat with you.","Nama pengguna mereka, dipisahkan dengan koma atau baris baru. Kamu harus sudah memiliki chat dengan setiap orang."
+Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.,Pengiriman belum terkonfirmasi: %1$d/%2$d chat. Chat tersebut tidak akan dicoba lagi hari ini.
+Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.,Pengiriman belum terkonfirmasi: %1$d/%2$d chat. Chat lainnya masih memerlukan pesan.
+"TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.","TikTok mungkin telah menerima pesan ini. Pengirimannya belum terkonfirmasi, jadi tidak akan dicoba lagi hari ini."
+Nothing was sent. Check the streak settings and try again.,Tidak ada yang dikirim. Periksa pengaturan streak dan coba lagi.
+Don't save new searches,Jangan simpan pencarian baru
+"Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.","Jangan masukkan apa yang kamu cari ke riwayat pencarian yang disimpan TikTok di ponsel ini. Pencarian yang sudah ada tetap tersimpan sampai kamu menghapusnya, dan server TikTok mungkin tetap menyimpan catatannya sendiri."
+Block suggested video notifications,Blokir notifikasi video yang disarankan
+"Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.","Hentikan notifikasi yang dikirim TikTok tentang video populer yang dipilihkan untukmu. Pesan, komentar, suka, pengikut baru, dan video dari akun yang kamu ikuti tetap masuk."

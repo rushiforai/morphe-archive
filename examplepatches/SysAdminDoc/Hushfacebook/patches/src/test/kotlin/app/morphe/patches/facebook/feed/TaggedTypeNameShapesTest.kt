@@ -165,6 +165,45 @@ class TaggedTypeNameShapesTest {
         assertFalse(answersTaggedTypeName(otherShape, GROUPS_YOU_SHOULD_JOIN_TYPE, resolving(table())))
     }
 
+    /** A method naming a literal the way 581 does: an index loaded straight into a string table call. */
+    private fun asking(call: String, load: String = "const/16 v0, 0x108", between: String = "") = method(
+        name = "report",
+        returnType = "V",
+        body = """
+            $load
+            $between
+            $call
+            move-result-object v0
+            return-void
+        """,
+    )
+
+    private val tableCall = "invoke-static {v0}, $tableOwner->name(I)Ljava/lang/String;"
+
+    @Test
+    fun `a method names a literal it holds or asks a string table for`() {
+        val holds = method(name = "report", returnType = "V", body = """
+            const-string v0, "$GROUPS_YOU_SHOULD_JOIN_TYPE"
+            return-void
+        """)
+        assertTrue(namesString(holds, GROUPS_YOU_SHOULD_JOIN_TYPE, resolving(null)))
+        assertTrue(namesString(asking(tableCall), GROUPS_YOU_SHOULD_JOIN_TYPE, resolving(table())))
+        assertTrue(namesString(asking("invoke-static/range {v0 .. v0}, $tableOwner->name(I)Ljava/lang/String;"),
+            GROUPS_YOU_SHOULD_JOIN_TYPE, resolving(table())))
+        // The control: the same call with the other index names the other entry.
+        assertFalse(namesString(asking(tableCall, load = "const/16 v0, 0x107"), GROUPS_YOU_SHOULD_JOIN_TYPE, resolving(table())))
+        assertTrue(namesString(asking(tableCall, load = "const/16 v0, 0x107"), friends, resolving(table())))
+    }
+
+    @Test
+    fun `a string table call names nothing without its index loaded right before it, or a table to read`() {
+        assertFalse(namesString(asking(tableCall), GROUPS_YOU_SHOULD_JOIN_TYPE, resolving(null)))
+        assertFalse(namesString(asking(tableCall, between = "const/4 v1, 0x0"), GROUPS_YOU_SHOULD_JOIN_TYPE, resolving(table())))
+        assertFalse(namesString(asking(tableCall, load = "const/16 v1, 0x108"), GROUPS_YOU_SHOULD_JOIN_TYPE, resolving(table())))
+        assertFalse(namesString(asking("invoke-virtual {v0}, $tableOwner->name(I)Ljava/lang/String;"),
+            GROUPS_YOU_SHOULD_JOIN_TYPE, resolving(table())))
+    }
+
     @Test
     fun `only a public instance getTypeName counts`() {
         val resolve = resolving(table())

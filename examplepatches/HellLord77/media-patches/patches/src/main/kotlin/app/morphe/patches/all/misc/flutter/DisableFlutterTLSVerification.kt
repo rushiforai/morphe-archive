@@ -14,20 +14,15 @@ val disableFlutterTLSVerification = rawResourcePatch(
         CpuArchitecture.ARMEABI_V7A,
         CpuArchitecture.ARM64_V8A,
         CpuArchitecture.X86,
-        CpuArchitecture.X86_64
+        CpuArchitecture.X86_64,
     )
 
     val options = architectures.map {
-        booleanOption(
-            key = it.arch,
-            default = true,
-            title = it.arch,
-        )
+        booleanOption(key = it.arch, default = true, title = it.arch)
     }
 
     dependsOn(
         disableFlutterTLSVerificationPatch {
             architectures.filterIndexed { index, _ -> options[index].value!! }
-        }
-    )
+        })
 }

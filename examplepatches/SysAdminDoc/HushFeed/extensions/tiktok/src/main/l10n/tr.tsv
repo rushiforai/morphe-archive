@@ -213,6 +213,10 @@ Camera in use	Kamera kullanımda
 Cancel	İptal
 Caption background	Altyazı arka planı
 Caption text size	Altyazı metin boyutu
+Description text size	Açıklama metin boyutu
+Author text size	İçerik üreticisinin ad boyutu
+Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling.	TikTok'un boyutu için 0, ya da %1$d ile %2$d arasında bir değer kullan. İçerik üreticisinin adının altındaki açıklamayı boyutlandırır ve Android'in yazı tipi ölçeklendirmesini korur.
+Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and keeps Android's font scaling.	TikTok'un boyutu için 0, ya da %1$d ile %2$d arasında bir değer kullan. İçerik üreticisinin adını boyutlandırır ve Android'in yazı tipi ölçeklendirmesini korur.
 Captions	Altyazılar
 Captions, gestures and on-screen controls	Altyazılar, hareketler ve ekran kontrolleri
 Capture crash reports locally	Çökme raporlarını yerel olarak kaydet
@@ -557,7 +561,7 @@ Hide the search button on the feed	Akıştaki arama düğmesini gizle
 Hide the tab names above the feed	Akışın üstündeki sekme adlarını gizle
 The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.	Akışın üstündeki Takip ettiklerim ve Sana özel adları kaybolur. Akışlar arasında kaydırma ve arama düğmesi olduğu gibi kalır.
 Hide the share prompt after a like	Beğeniden sonra çıkan paylaşım istemini gizle
-Hide the spinning music cover and the track name beside the caption.	Dönen müzik kapağını ve açıklamanın yanındaki parça adını gizle.
+Hide the track name beside the caption.	Açıklamanın yanındaki parça adını gizle.
 Hide the status bar	Durum çubuğunu gizle
 Hide the whole column on the right, from the avatar down to the music disc.	Avatardan müzik diskine kadar sağdaki tüm sütunu gizle.
 Hide this creator on this phone	Bu içerik üreticisini bu telefonda gizle
@@ -1084,6 +1088,7 @@ Show only videos with this many likes.	Yalnızca bu kadar beğenisi olan videola
 Show only videos with this many shares.	Yalnızca bu kadar paylaşımı olan videoları göster.
 Show only videos with this many views.	Yalnızca bu kadar görüntülenmesi olan videoları göster.
 The original photos aren't available, so TikTok's own save runs instead	Orijinal fotoğraflar kullanılamıyor, bu yüzden TikTok'un kendi kaydetme işlemi çalışıyor
+The original photos aren't available. No video was saved.	Orijinal fotoğraflar kullanılamıyor. Video kaydedilmedi.
 The override changes no fields. Edit the field values, or reset the override.	Geçersiz kılma hiçbir alanı değiştirmiyor. Alan değerlerini düzenle ya da geçersiz kılmayı sıfırla.
 The override couldn't be applied: %1$s. Edit the field values, or reset the override.	Geçersiz kılma uygulanamadı: %1$s. Alan değerlerini düzenle ya da geçersiz kılmayı sıfırla.
 The override doesn't say what list to return. Edit the field values, or reset the override.	Geçersiz kılma hangi listenin döndürüleceğini belirtmiyor. Alan değerlerini düzenle ya da geçersiz kılmayı sıfırla.
@@ -1299,6 +1304,7 @@ TikTok default (open the creator's profile)	TikTok varsayılanı (içerik üreti
 Saving %1$s of %2$s	%2$s dosyadan %1$s. kaydediliyor
 Stopping after this file	Bu dosyadan sonra durduruluyor
 Waiting to save %1$s files	%1$s dosya kaydedilmeyi bekliyor
+Waiting to save one file	Bir dosya kaydedilmeyi bekliyor
 Save cancelled. Nothing was saved.	Kaydetme iptal edildi. Hiçbir şey kaydedilmedi.
 One more save waiting	Bir kayıt daha bekliyor
 %1$s more saves waiting	%1$s kayıt daha bekliyor
@@ -1410,9 +1416,7 @@ When the budget runs out, the video on screen plays to its end before the hold c
 The feed stops when this video ends.	Bu video bitince akış durur.
 Streak	Seri
 Keep a streak going	Bir seriyi sürdür
-Sends one message a day to the person below at the time below, so a streak with them keeps going on a day you don't open TikTok.	Aşağıdaki kişiye her gün aşağıdaki saatte bir mesaj gönderir, böylece TikTok'u açmadığın bir günde de onunla serin devam eder.
 Who to message	Kime yazılsın
-Their username, like @name. It has to be someone you already have a chat with.	Kullanıcı adı, örneğin @isim. Zaten sohbetin olan biri olmalı.
 When to send	Ne zaman gönderilsin
 The time of day the message goes out.	Mesajın gönderileceği saat.
 Message	Mesaj
@@ -1422,9 +1426,7 @@ Sends today's message right away. The daily one then waits for tomorrow.	Bugün�
 Turn on Keep a streak going first	Önce Bir seriyi sürdür seçeneğini aç
 Sending the message	Mesaj gönderiliyor
 A message is already on its way	Zaten bir mesaj yolda
-Sent to @%1$s	@%1$s kişisine gönderildi
 Enter who to message below to start.	Başlamak için aşağıya kime yazılacağını gir.
-Sent today at %1$s. The next one goes tomorrow at %2$s.	Bugün gönderildi, saat %1$s. Sonraki yarın, saat %2$s.
 Next message: today at %1$s.	Sonraki mesaj: bugün, saat %1$s.
 Next message: tomorrow at %1$s.	Sonraki mesaj: yarın, saat %1$s.
 No chat with @%1$s turned up on this account. Open your chat with them once, then try again.	Bu hesapta @%1$s ile bir sohbet bulunamadı. Onunla olan sohbetini bir kez aç, sonra tekrar dene.
@@ -1462,3 +1464,18 @@ LIVE followers range	CANLI takipçi aralığı
 Show only LIVEs from creators with this many followers.	Yalnızca bu kadar takipçisi olan içerik üreticilerinin CANLI yayınlarını göster.
 Hide the comment bar on opened videos	Açılan videolarda yorum çubuğunu gizle
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Bir profilden, hashtag'den, sesten veya aramadan açtığın videolardaki yorum yazma çubuğunu kaldır, böylece video ekranı en alta kadar doldurur. Sağdaki yorum düğmesi yorumları açmaya devam eder.
+Build details	Derleme ayrıntıları
+Copy or save patch-time choices and build identity.	Yama uygulanırken seçilen seçenekleri ve derleme kimliğini kopyalayın veya kaydedin.
+Copy build details	Derleme ayrıntılarını kopyala
+Save build details	Derleme ayrıntılarını kaydet
+Build details copied to the clipboard	Derleme ayrıntıları panoya kopyalandı
+Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open TikTok.	Aşağıdaki herkese belirtilen saatte günde bir mesaj gönderir, böylece TikTok'u açmadığın günlerde de serilerin devam eder.
+Their usernames, separated by commas or new lines. Each person must already have a chat with you.	Kullanıcı adlarını virgülle veya yeni satırlarla ayır. Her kişiyle zaten bir sohbetin olmalı.
+Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.	Teslimat doğrulanmadı: %1$d/%2$d sohbet. Bugün bu sohbetlerde tekrar denenmeyecek.
+Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.	Teslimat doğrulanmadı: %1$d/%2$d sohbet. Kalan sohbetlere hâlâ mesaj gönderilmesi gerekiyor.
+TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.	TikTok bu mesajı kabul etmiş olabilir. Teslimat doğrulanmadığı için bugün tekrar denenmeyecek.
+Nothing was sent. Check the streak settings and try again.	Hiçbir şey gönderilmedi. Seri ayarlarını kontrol edip tekrar dene.
+Don't save new searches	Yeni aramaları kaydetme
+Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.	Aradıklarını TikTok'un bu telefonda kaydettiği arama geçmişinin dışında tut. Zaten kayıtlı aramalar sen silene kadar kalır ve TikTok'un sunucuları kendi kayıtlarını tutmaya devam edebilir.
+Block suggested video notifications	Önerilen video bildirimlerini engelle
+Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.	TikTok'un senin için seçtiği popüler videolar hakkında gönderdiği bildirimleri durdur. Mesajlar, yorumlar, beğeniler, yeni takipçiler ve takip ettiğin hesapların videoları gelmeye devam eder.

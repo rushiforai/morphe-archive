@@ -209,6 +209,10 @@ Camera in use	Cámara en uso
 Cancel	Cancelar
 Caption background	Fondo de los subtítulos
 Caption text size	Tamaño del texto de los subtítulos
+Description text size	Tamaño del texto de la descripción
+Author text size	Tamaño del nombre del creador
+Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling.	Usa 0 para el tamaño de TikTok, o de %1$d a %2$d. Cambia el tamaño de la descripción bajo el nombre del creador y mantiene el ajuste de fuente de Android.
+Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and keeps Android's font scaling.	Usa 0 para el tamaño de TikTok, o de %1$d a %2$d. Cambia el tamaño del nombre del creador y mantiene el ajuste de fuente de Android.
 Captions	Subtítulos
 Captions, gestures and on-screen controls	Subtítulos, gestos y controles en pantalla
 Capture crash reports locally	Guardar los informes de fallo en el dispositivo
@@ -528,7 +532,7 @@ Hide the magnifying glass at the top right of the feed. Search in Inbox and sugg
 Hide the magnifying glass at the top of Inbox. Search on the feed and in comments is unchanged.	Ocultar la lupa de la parte superior de la bandeja de entrada. La búsqueda en el feed y en los comentarios no cambia.
 Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.	Oculta las búsquedas recomendadas antes de escribir en la página de búsqueda de TikTok. Tu historial de búsqueda se conserva. No oculta las sugerencias sobre los comentarios.
 Hide the share prompt after a like	Ocultar la sugerencia de compartir tras un me gusta
-Hide the spinning music cover and the track name beside the caption.	Ocultar la portada giratoria de la música y el nombre de la pista junto a la descripción.
+Hide the track name beside the caption.	Ocultar el nombre de la pista junto a la descripción.
 Hide the status bar	Ocultar la barra de estado
 Hide stories from the feed.	Ocultar historias del feed.
 Hide the whole column on the right, from the avatar down to the music disc.	Ocultar toda la columna derecha, desde la foto hasta el disco de música.
@@ -1046,6 +1050,7 @@ Show only videos with this many likes.	Mostrar solo vídeos con este número de 
 Show only videos with this many shares.	Mostrar solo vídeos compartidos este número de veces.
 Show only videos with this many views.	Mostrar solo vídeos con este número de visualizaciones.
 The original photos aren't available, so TikTok's own save runs instead	Las fotos originales no están disponibles, así que se usa el guardado propio de TikTok
+The original photos aren't available. No video was saved.	Las fotos originales no están disponibles. No se guardó ningún video.
 The override changes no fields. Edit the field values, or reset the override.	La anulación no cambia ningún campo. Edita los valores de los campos o restablece la anulación.
 The override couldn't be applied: %1$s. Edit the field values, or reset the override.	No se pudo aplicar la anulación: %1$s. Edita los valores de los campos o restablece la anulación.
 The override doesn't say what list to return. Edit the field values, or reset the override.	La anulación no dice qué lista devolver. Edita los valores de los campos o restablece la anulación.
@@ -1299,6 +1304,7 @@ TikTok default (open the creator's profile)	Predeterminado de TikTok (abrir el p
 Saving %1$s of %2$s	Guardando %1$s de %2$s
 Stopping after this file	Se detendrá después de este archivo
 Waiting to save %1$s files	Esperando para guardar %1$s archivos
+Waiting to save one file	Esperando para guardar un archivo
 Save cancelled. Nothing was saved.	Guardado cancelado. No se guardó nada.
 One more save waiting	Un guardado más en espera
 %1$s more saves waiting	%1$s guardados más en espera
@@ -1410,9 +1416,7 @@ When the budget runs out, the video on screen plays to its end before the hold c
 The feed stops when this video ends.	El feed se detiene cuando termine este vídeo.
 Streak	Racha
 Keep a streak going	Mantener una racha
-Sends one message a day to the person below at the time below, so a streak with them keeps going on a day you don't open TikTok.	Envía un mensaje al día a la persona de abajo a la hora de abajo, para que la racha con ella siga aunque un día no abras TikTok.
 Who to message	A quién escribir
-Their username, like @name. It has to be someone you already have a chat with.	Su nombre de usuario, como @nombre. Tiene que ser alguien con quien ya tengas un chat.
 When to send	Cuándo enviar
 The time of day the message goes out.	La hora del día a la que sale el mensaje.
 Message	Mensaje
@@ -1422,9 +1426,7 @@ Sends today's message right away. The daily one then waits for tomorrow.	Envía 
 Turn on Keep a streak going first	Activa primero Mantener una racha
 Sending the message	Enviando el mensaje
 A message is already on its way	Ya hay un mensaje en camino
-Sent to @%1$s	Enviado a @%1$s
 Enter who to message below to start.	Escribe abajo a quién enviar para empezar.
-Sent today at %1$s. The next one goes tomorrow at %2$s.	Enviado hoy a las %1$s. El siguiente sale mañana a las %2$s.
 Next message: today at %1$s.	Próximo mensaje: hoy a las %1$s.
 Next message: tomorrow at %1$s.	Próximo mensaje: mañana a las %1$s.
 No chat with @%1$s turned up on this account. Open your chat with them once, then try again.	No apareció ningún chat con @%1$s en esta cuenta. Abre tu chat con esa persona una vez y vuelve a intentarlo.
@@ -1462,3 +1464,18 @@ LIVE followers range	Rango de seguidores de LIVE
 Show only LIVEs from creators with this many followers.	Mostrar solo los LIVE de creadores con este número de seguidores.
 Hide the comment bar on opened videos	Ocultar la barra de comentarios en los videos abiertos
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Quita la barra para escribir un comentario de los videos que abres desde un perfil, un hashtag, un sonido o la búsqueda, para que el video ocupe la pantalla hasta abajo. El botón de comentarios de la derecha sigue abriendo los comentarios.
+Build details	Detalles de la compilación
+Copy or save patch-time choices and build identity.	Copia o guarda las opciones elegidas al aplicar parches y la identidad de la compilación.
+Copy build details	Copiar detalles de la compilación
+Save build details	Guardar detalles de la compilación
+Build details copied to the clipboard	Detalles de la compilación copiados al portapapeles
+Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open TikTok.	Envía un mensaje al día a cada persona de abajo a la hora indicada, para mantener tus rachas los días que no abres TikTok.
+Their usernames, separated by commas or new lines. Each person must already have a chat with you.	Sus nombres de usuario, separados por comas o saltos de línea. Ya debes tener un chat con cada persona.
+Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.	Entrega sin confirmar: %1$d/%2$d chats. No se volverá a intentar en esos chats hoy.
+Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.	Entrega sin confirmar: %1$d/%2$d chats. Los demás chats todavía necesitan un mensaje.
+TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.	Es posible que TikTok haya aceptado este mensaje. La entrega no está confirmada, así que no se volverá a intentar hoy.
+Nothing was sent. Check the streak settings and try again.	No se envió nada. Revisa los ajustes de rachas e inténtalo de nuevo.
+Don't save new searches	No guardar búsquedas nuevas
+Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.	Evita que lo que buscas se añada al historial de búsqueda que TikTok guarda en este teléfono. Las búsquedas que ya están se conservan hasta que las borres, y los servidores de TikTok pueden seguir guardando su propio registro.
+Block suggested video notifications	Bloquear las notificaciones de videos sugeridos
+Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.	Detiene las notificaciones que TikTok envía sobre videos populares que eligió para ti. Los mensajes, comentarios, Me gusta, nuevos seguidores y videos de las cuentas que sigues siguen llegando.

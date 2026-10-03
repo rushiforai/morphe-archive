@@ -5,6 +5,15 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
+/** Native periodic message-backup scheduler; reads an account-specific interval. */
+internal object BackupScheduler : Fingerprint(
+    definingClass = "Lml/c;",
+    name = "b",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = emptyList(),
+)
+
 /** Parses the server backup configuration for Zalo 26.08.01. */
 internal object BackupConfiguration : Fingerprint(
     definingClass = "Lnl/c;",

@@ -6,10 +6,14 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -147,6 +151,63 @@ public class HostScreensTest {
         }
     }
 
+    /** Settings start from a hook's first use, the way they do when SettingsProvider never ran. */
+    private static void startWithoutProvider(Application app) {
+        CrashGuard.resetForTests();
+        Settings.preferences = null;
+        Settings.installed = Set.of();
+        HostScreens.applicationCreated(app);
+        assertFalse(Settings.enabled("people"));
+        assertTrue(HostScreens.started);
+    }
+
+    private static Set<String> dynamicIds(ShortcutManager manager) {
+        Set<String> ids = new TreeSet<>();
+        for (ShortcutInfo shortcut : manager.getDynamicShortcuts()) ids.add(shortcut.getId());
+        return ids;
+    }
+
+    /** #27: Android reads static shortcuts only when a package is installed or updated, so a Root Mount install had none. */
+    @Test public void aRootMountInstallGetsPatchControlsAndRestartAsDynamicShortcuts() {
+        mount();
+        Application app = RuntimeEnvironment.getApplication();
+        ShortcutManager manager = app.getSystemService(ShortcutManager.class);
+        startWithoutProvider(app);
+        assertEquals(Set.of(HostScreens.CONTROLS_SHORTCUT, HostScreens.RESTART_SHORTCUT), dynamicIds(manager));
+        for (ShortcutInfo shortcut : manager.getDynamicShortcuts()) {
+            boolean controls = HostScreens.CONTROLS_SHORTCUT.equals(shortcut.getId());
+            assertEquals(controls ? "Patch controls" : "Restart Messenger", shortcut.getShortLabel().toString());
+            assertEquals(controls ? 0 : 1, shortcut.getRank());
+            Intent intent = shortcut.getIntent();
+            assertEquals(new ComponentName(app.getPackageName(), HostScreens.SHORTCUT_HOST), intent.getComponent());
+            assertEquals(controls ? "settings" : "restart", intent.getStringExtra(HostScreens.EXTRA));
+            assertTrue(HostScreens.activityFor(HostScreens.SHORTCUT_HOST, intent) instanceof HostScreens.ShortcutTrampoline);
+        }
+        // Messenger's conversation shortcuts can push one out. The next start puts it back without a copy.
+        manager.removeDynamicShortcuts(List.of(HostScreens.RESTART_SHORTCUT));
+        startWithoutProvider(app);
+        assertEquals(Set.of(HostScreens.CONTROLS_SHORTCUT, HostScreens.RESTART_SHORTCUT), dynamicIds(manager));
+        assertEquals(2, manager.getDynamicShortcuts().size());
+    }
+
+    @Test public void theStaticPairReplacesTheDynamicCopies() {
+        mount();
+        Application app = RuntimeEnvironment.getApplication();
+        ShortcutManager manager = app.getSystemService(ShortcutManager.class);
+        startWithoutProvider(app);
+        assertEquals(2, manager.getDynamicShortcuts().size());
+        Shadows.shadowOf(manager).setManifestShortcuts(List.of(new ShortcutInfo.Builder(app, HostScreens.STATIC_CONTROLS_SHORTCUT)
+            .setShortLabel("Patch controls").setIntent(new Intent(Intent.ACTION_VIEW)).build()));
+        startWithoutProvider(app);
+        assertEquals(Set.of(), dynamicIds(manager));
+    }
+
+    @Test public void aNormalInstallLeavesLauncherShortcutsToTheManifest() {
+        Application app = RuntimeEnvironment.getApplication();
+        startWithoutProvider(app);
+        assertEquals(Set.of(), dynamicIds(app.getSystemService(ShortcutManager.class)));
+    }
+
     /** The two fields Messenger's Menu row view holder keeps, under their obfuscated names. */
     static class MenuRowHolderBase {
         View A0I;
@@ -166,6 +227,22 @@ public class HostScreensTest {
         assertTrue(Settings.enabled("people"));
         assertNotNull(Settings.preferences);
         assertTrue(Settings.installed.contains("people"));
+    }
+
+    @Test @Config(sdk = 36) public void bubbleHooksCanBeTheFirstUseWithoutAProvider() {
+        Application app = RuntimeEnvironment.getApplication();
+        for (boolean chatHeads : new boolean[] {false, true}) {
+            CrashGuard.resetForTests();
+            Settings.preferences = null;
+            Settings.installed = Set.of();
+            Settings.bubbleRoutes = false;
+            HostScreens.applicationCreated(app);
+            app.getSharedPreferences("hushmessenger", 0).edit().putBoolean("bubbles", true)
+                .putBoolean(Settings.BUBBLE_CHAT_HEADS, chatHeads).commit();
+            assertTrue(chatHeads ? Settings.forceChatHeads() : Settings.enableBubbles());
+            assertTrue(HostScreens.started);
+            assertNotNull(Settings.preferences);
+        }
     }
 
     @Test public void anApplicationAndroidHasntAttachedYetIsLeftAlone() {

@@ -12,10 +12,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -149,6 +151,88 @@ public class SettingsDialogTest {
         assertEquals(SettingsDialog.CONTAINER_ID, ((View) view.getParent()).getId());
         assertNull(page.findPreference(ERROR));
         assertTrue(page.getPreferenceScreen().getPreferenceCount() > 0);
+    }
+
+    /** The two entry intents and both recovery/platform Back paths work at the supported endpoints. */
+    @Test
+    @Config(sdk = {28, 36})
+    public void platformEndpointsConsumeEntryRequestsAndBackKeepsTheHostRunning() {
+        Activity activity = controller.get();
+        SettingsEntry.OpenWhenResumed watcher = new SettingsEntry.OpenWhenResumed();
+        for (Intent request : new Intent[]{new Intent(Intent.ACTION_APPLICATION_PREFERENCES),
+                new Intent(Intent.ACTION_VIEW).putExtra(SettingsEntry.EXTRA_OPEN_SETTINGS, true)}) {
+            boolean recovery = Intent.ACTION_APPLICATION_PREFERENCES.equals(request.getAction());
+            if (recovery) HushThreadsPreferenceFragment.failNextInitialization = new IllegalStateException("injected");
+            SettingsEntry.onNewIntent(activity, request);
+            assertFalse("the shortcut extra wasn't consumed", request.hasExtra(SettingsEntry.EXTRA_OPEN_SETTINGS));
+            if (recovery) assertEquals(Intent.ACTION_MAIN, request.getAction());
+            watcher.onActivityResumed(activity);
+            ShadowLooper.idleMainLooper();
+            activity.getFragmentManager().executePendingTransactions();
+
+            SettingsDialog dialog = (SettingsDialog) activity.getFragmentManager().findFragmentByTag(TAG);
+            assertNotNull("the entry request didn't open settings", dialog);
+            assertEquals(1, pages(dialog).size());
+            HushThreadsPreferenceFragment page = pageOf(dialog);
+            if (recovery) assertNotNull("App info didn't reach recovery", page.findPreference(ERROR));
+            else assertNull(page.findPreference(ERROR));
+
+            SettingsEntry.onNewIntent(activity, request);
+            watcher.onActivityResumed(activity);
+            ShadowLooper.idleMainLooper();
+            assertSame("reading the spent intent created another dialog", dialog,
+                    activity.getFragmentManager().findFragmentByTag(TAG));
+            if (recovery) click(page.findPreference(BACK));
+            else dialog.getDialog().onBackPressed();
+            ShadowLooper.idleMainLooper();
+            activity.getFragmentManager().executePendingTransactions();
+            assertNull("Back left settings open", activity.getFragmentManager().findFragmentByTag(TAG));
+            assertFalse("Back finished Threads", activity.isFinishing());
+
+            SettingsEntry.onNewIntent(activity, request);
+            watcher.onActivityResumed(activity);
+            ShadowLooper.idleMainLooper();
+            assertNull("a spent entry reopened settings after Back", activity.getFragmentManager().findFragmentByTag(TAG));
+        }
+    }
+
+    /** A retried child page must still restore into the dialog's container after the host is rebuilt. */
+    @Test
+    @Config(sdk = {28, 36})
+    public void platformEndpointsRestoreTheRetriedPageInItsDialogContainer() {
+        HushThreadsPreferenceFragment.failNextInitialization = new IllegalStateException("injected");
+        assertTrue(SettingsEntry.open(controller.get()));
+        ShadowLooper.idleMainLooper();
+        controller.get().getFragmentManager().executePendingTransactions();
+        SettingsDialog dialog = (SettingsDialog) controller.get().getFragmentManager().findFragmentByTag(TAG);
+        HushThreadsPreferenceFragment failed = pageOf(dialog);
+        assertNotNull(failed.findPreference(ERROR));
+        click(failed.findPreference(RETRY));
+        dialog.getChildFragmentManager().executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+        HushThreadsPreferenceFragment rebuilt = pageOf(dialog);
+        assertNotSame(failed, rebuilt);
+        assertNull(rebuilt.findPreference(ERROR));
+        android.os.Bundle marker = new android.os.Bundle();
+        marker.putString("platform-retry", "saved child page");
+        rebuilt.setArguments(marker);
+
+        controller.recreate();
+        ShadowLooper.idleMainLooper();
+        SettingsDialog restored = (SettingsDialog) controller.get().getFragmentManager().findFragmentByTag(TAG);
+        assertNotNull("the retried dialog didn't return", restored);
+        assertEquals(1, pages(restored).size());
+        HushThreadsPreferenceFragment page = pageOf(restored);
+        assertNotNull(page.getArguments());
+        assertEquals("saved child page", page.getArguments().getString("platform-retry"));
+        assertEquals(SettingsDialog.CONTAINER_ID, ((View) page.getView().getParent()).getId());
+        assertNull(page.findPreference(ERROR));
+        assertTrue(page.getPreferenceScreen().getPreferenceCount() > 0);
+        restored.getDialog().onBackPressed();
+        ShadowLooper.idleMainLooper();
+        controller.get().getFragmentManager().executePendingTransactions();
+        assertNull(controller.get().getFragmentManager().findFragmentByTag(TAG));
+        assertFalse("Back after recreation finished Threads", controller.get().isFinishing());
     }
 
     private static SettingsDialog show(Activity activity) {

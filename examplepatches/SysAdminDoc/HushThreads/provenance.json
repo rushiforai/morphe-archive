@@ -176,6 +176,31 @@
     },
     {
       "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/ExternalBrowser.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "0afb0e33ff7f7108d92cf57199c85747e14de50a",
+      "via": [
+        "https://github.com/andrewliang25/morphe-patches"
+      ],
+      "license": "GPL-3.0",
+      "changes": "Renamed for Threads, with one entry point the browser launcher calls with its context and link in place of the browser activity's intent, Threads' own click trackers (l.threads.com, l.threads.net, l.instagram.com and /linkshim) unwrapped as Threads reads them, and Threads, Instagram and the other Meta sites kept in the app."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/externalbrowser/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Open links in browser: the extension asked first thing in Threads' browser launcher, found by the message it logs and the link it parses."
+    },
+    {
+      "paths": [
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/Analytics.java",
         "patches/src/main/kotlin/app/morphe/patches/threads/misc/analytics/**"
       ],
@@ -184,6 +209,39 @@
       "via": [],
       "license": "GPL-3.0-only",
       "changes": "Disable analytics: the event log addresses pointed at a dead local port."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/feed/ReturnRefresh.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "d12e61b41319bab835f540793682dc106e889412",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Threads, with Facebook's four return checks (the resume callback, warm start, foreground auto-scroll and teardown while away) replaced by Threads' four (the hot-start decision, the reset to main feed, the feed screen's warm-start check and For you's swap to posts fetched in the background)."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/feed/VideoAutoplay.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Disable video autoplay: whether a feed post's video is the one Threads picked to play, turned to false while the switch is on, and left as Threads gave it when the switch is off, HushThreads is paused or the settings aren't ready."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/feed/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Block background-return feed refresh finds Threads' hot-start decision, reset to main feed, warm-start check and For you's swap to background posts in 449 and 448, and has each ask the extension. Hushfacebook's patch of the same name was the behavior reference. Disable video autoplay finds PostVideo and its playback effect by their Compose source notes in 449 and 448, checks that PostVideo plays by its fifth boolean, and has each single-media and carousel post call ask the extension for that flag first. It was found by reading both builds and a method trace of 449, and uses no outside code."
     },
     {
       "paths": [

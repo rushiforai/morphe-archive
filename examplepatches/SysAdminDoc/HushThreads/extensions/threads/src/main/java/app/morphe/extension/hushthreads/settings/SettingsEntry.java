@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import app.morphe.extension.hushthreads.feed.ReturnRefresh;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -92,6 +93,8 @@ public final class SettingsEntry {
                 ((Application) context).registerActivityLifecycleCallbacks(new OpenWhenResumed());
                 callbacksRegistered = true;
             }
+            // SettingsStatus rather than PatchFamily: a plain answer, with no settings read this early.
+            if (SettingsStatus.returnRefresh()) ReturnRefresh.register(context);
         } catch (Exception ex) {
             Logger.printException(() -> "Settings entry: could not watch activities", ex);
         }

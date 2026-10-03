@@ -3,14 +3,14 @@
 # This file is expected to be part of source control.
 # To regenerate this file, run: ./gradlew :patches:dependencies --write-locks
 antlr:antlr:2.7.7=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath
-app.morphe:morphe-patcher:1.14.1=compileClasspath,patcherProvidedClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+app.morphe:morphe-patcher:1.15.0=compileClasspath,patcherProvidedClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.android.tools.build:apksig:9.1.1=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath
 com.android.tools.build:apkzlib:9.1.1=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath
 com.beust:jcommander:1.48=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath
 com.github.MorpheApp.smali:smali-dexlib2:d856bad65f=compileClasspath,patcherProvidedClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.github.MorpheApp.smali:smali-util:d856bad65f=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath
 com.github.MorpheApp.smali:smali:d856bad65f=compileClasspath,patcherProvidedClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-com.github.REAndroid:ARSCLib:a28c6fb2a7=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath
+com.github.MorpheApp:ARSCLib:88d5e0811f=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath
 com.google.code.findbugs:jsr305:3.0.2=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath
 com.google.errorprone:error_prone_annotations:2.41.0=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath
 com.google.guava:failureaccess:1.0.3=patcherProvidedClasspath,runtimeClasspath,testRuntimeClasspath

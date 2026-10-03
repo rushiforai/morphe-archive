@@ -88,6 +88,7 @@ public class SettingsStatus {
     public static boolean launcherShortcutsEnabled = false;
     public static boolean duetStitchEnabled = false;
     public static boolean notificationControlsEnabled = false;
+    public static boolean suggestedVideoPushBlockEnabled = false;
     public static boolean autoStreakEnabled = false;
     public static boolean hideSuggestedAccountsEnabled = false;
     public static boolean hideInboxStoriesEnabled = false;
@@ -96,6 +97,7 @@ public class SettingsStatus {
     public static boolean hideCommentEggsEnabled = false;
     public static boolean commentSortControlsEnabled = false;
     public static boolean videoOverlaysEnabled = false;
+    public static boolean feedTextSizeEnabled = false;
     public static boolean shareSheetEnabled = false;
     public static boolean seenVideoFilterEnabled = false;
     public static boolean ghostModeEnabled = false;
@@ -108,6 +110,7 @@ public class SettingsStatus {
     public static boolean showSeekbarEnabled = false;
     public static boolean sanitizeShareUrlsEnabled = false;
     public static boolean contactListBlockerEnabled = false;
+    public static boolean searchHistoryEnabled = false;
     public static boolean installedAppsBlockerEnabled = false;
     public static boolean locationGovernorEnabled = false;
     public static boolean devicePrivacyGuardEnabled = false;
@@ -118,6 +121,10 @@ public class SettingsStatus {
 
     public static void enableContactListBlocker() {
         contactListBlockerEnabled = true;
+    }
+
+    public static void enableSearchHistory() {
+        searchHistoryEnabled = true;
     }
 
     public static void enableInstalledAppsBlocker() {
@@ -306,6 +313,10 @@ public class SettingsStatus {
         notificationControlsEnabled = true;
     }
 
+    public static void enableSuggestedVideoPushBlock() {
+        suggestedVideoPushBlockEnabled = true;
+    }
+
     public static void enableAutoStreak() {
         autoStreakEnabled = true;
     }
@@ -365,6 +376,10 @@ public class SettingsStatus {
 
     public static void enableVideoOverlays() {
         videoOverlaysEnabled = true;
+    }
+
+    public static void enableFeedTextSize() {
+        feedTextSizeEnabled = true;
     }
 
     static {

@@ -33,6 +33,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                 || SettingsStatus.hideInboxStoriesEnabled
                 || SettingsStatus.expandActivityListEnabled
                 || SettingsStatus.notificationControlsEnabled
+                || SettingsStatus.suggestedVideoPushBlockEnabled
                 || SettingsStatus.autoStreakEnabled;
     }
 
@@ -130,8 +131,19 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                 Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS
         ));
         }
-        if (SettingsStatus.notificationControlsEnabled || SettingsStatus.expandActivityListEnabled) {
+        if (SettingsStatus.notificationControlsEnabled || SettingsStatus.expandActivityListEnabled
+                || SettingsStatus.suggestedVideoPushBlockEnabled) {
             addPreference(new SectionHeadingPreference(context, "Controls"));
+        }
+        if (SettingsStatus.suggestedVideoPushBlockEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Block suggested video notifications",
+                    "Stop the notifications TikTok sends about popular videos it picked for you. "
+                            + "Messages, comments, likes, follows and videos from accounts you "
+                            + "follow still come through.",
+                    Settings.BLOCK_SUGGESTED_VIDEO_NOTIFICATIONS
+            ));
         }
         if (SettingsStatus.notificationControlsEnabled) {
             addPreference(new TogglePreference(
@@ -169,7 +181,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
         TogglePreference keep = new TogglePreference(
                 context,
                 "Keep a streak going",
-                "Sends one message a day to the person below at the time below, so a streak with them keeps going on a day you don't open TikTok.",
+                "Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open TikTok.",
                 Settings.AUTO_STREAK
         );
         Runnable refresh = () -> keep.showExtraLine(AutoStreak.statusLine(context));
@@ -189,7 +201,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
         InputTextPreference who = new InputTextPreference(
                 context,
                 "Who to message",
-                "Their username, like @name. It has to be someone you already have a chat with.",
+                "Their usernames, separated by commas or new lines. Each person must already have a chat with you.",
                 Settings.AUTO_STREAK_RECIPIENT
         ).withNameKeyboard().withNote(value -> AutoStreak.recipientNote(context, value));
         who.setOnPreferenceChangeListener((preference, value) -> {

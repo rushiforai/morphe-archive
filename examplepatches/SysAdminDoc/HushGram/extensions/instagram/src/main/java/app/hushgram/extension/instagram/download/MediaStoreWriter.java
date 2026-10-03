@@ -61,6 +61,9 @@ final class MediaStoreWriter implements Downloader.Sink {
     /** What a file written on Android 9 is called until it's finished, as MediaStore names one from 10. */
     static final String LEGACY_PENDING_PREFIX = ".pending-";
 
+    /** Final names belong to the first completed save, including saves finishing together. */
+    private static final Object LEGACY_COMMIT_LOCK = new Object();
+
     private final Context context;
     private final boolean video;
 
@@ -171,17 +174,19 @@ final class MediaStoreWriter implements Downloader.Sink {
         legacyMime = mime;
 
         File finished = unused(folder, name(mime, null));
-        File work = new File(folder, LEGACY_PENDING_PREFIX + finished.getName());
-        if (!SaveLeftovers.pending(context, Uri.fromFile(work))) {
-            throw new IOException("the list of pending gallery rows could not hold the new file");
-        }
+        // The final name may be the same for concurrent saves. Reserve a different hidden file
+        // atomically for each writer, so a second open or Cancel cannot touch the first one's bytes.
+        File work = File.createTempFile(LEGACY_PENDING_PREFIX, ".tmp", folder);
         legacyWork = work;
         legacyFile = finished;
+        if (!SaveLeftovers.pending(context, Uri.fromFile(work))) {
+            abandon();
+            throw new IOException("the list of pending gallery rows could not hold the new file");
+        }
         try {
             stream = new FileOutputStream(work);
         } catch (IOException e) {
-            SaveLeftovers.settled(context, Uri.fromFile(work));
-            legacyWork = null;
+            abandon();
             throw e;
         }
         return stream;
@@ -206,11 +211,15 @@ final class MediaStoreWriter implements Downloader.Sink {
 
     /** Android 9: the finished file takes its name, never over another's, and the scanner is told. */
     private void commitLegacy() throws IOException {
-        // A save in the same second can have taken the name since open(). A rename would replace it.
-        if (legacyFile.exists()) legacyFile = unused(legacyFolder, legacyFile.getName());
-        if (!legacyWork.renameTo(legacyFile)) throw new IOException("the finished file could not take its name");
-        SaveLeftovers.settled(context, Uri.fromFile(legacyWork));
-        legacyWork = null;
+        File work = legacyWork;
+        synchronized (LEGACY_COMMIT_LOCK) {
+            // Keep the choice and rename together: two completed copies may want the same name,
+            // and renameTo can replace the first copy after both callers saw an absent target.
+            if (legacyFile.exists()) legacyFile = unused(legacyFolder, legacyFile.getName());
+            if (!work.renameTo(legacyFile)) throw new IOException("the finished file could not take its name");
+            legacyWork = null;
+        }
+        SaveLeftovers.settled(context, Uri.fromFile(work));
         try {
             MediaScannerConnection.scanFile(context, new String[] { legacyFile.getPath() },
                 new String[] { legacyMime }, null);

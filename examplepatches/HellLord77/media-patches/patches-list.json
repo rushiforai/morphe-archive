@@ -1,7 +1,367 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.3.0",
+  "version": "1.3.2",
   "patches": [
+    {
+      "name": "Ad campaign",
+      "description": "Resolve ad_campaign to null.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "RawResourcePatch",
+        "RawResourcePatch",
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.gotipath.deeptotv",
+          "name": "DeeptoPlay",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#070C1C",
+          "signatures": [
+            "538383c8eef7771c7f76cf89e14aa9dab54c548ef62554fc0bbbcec526bd63fc"
+          ],
+          "targets": [
+            {
+              "version": "2.2.10",
+              "versionCodes": {
+                "ARM64_V8A": 2230,
+                "ARMEABI_V7A": 2230,
+                "X86_64": 2230,
+                "X86": 2230
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad campaign",
+      "description": "Resolve ad_campaign to null.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "RawResourcePatch",
+        "RawResourcePatch",
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.gotipath.deeptotvapp",
+          "name": "DeeptoTV",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#070C1C",
+          "signatures": [
+            "760266fd701ea7e4b5b7997c857bef48a395c34deb7211d3d2149465e90fd534"
+          ],
+          "targets": [
+            {
+              "version": "2.0.4",
+              "versionCodes": {
+                "ARM64_V8A": 204,
+                "ARMEABI_V7A": 204,
+                "X86_64": 204,
+                "X86": 204
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Add to Home screen",
+      "description": "Adds the app to the home screen, allowing to launch main activity.",
+      "default": false,
+      "category": null,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "launcher",
+          "title": "Phone",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "leanbackLauncher",
+          "title": "TV",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Anonymous user",
+      "description": "Log in as anonymous subscribed user.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.angel.klikk",
+          "name": "Klikk",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FD000D",
+          "signatures": [
+            "38a6da45b9097c0286b962a804d3c3d65511685fef6ead76cdcfa1690c3bb592"
+          ],
+          "targets": [
+            {
+              "version": "3.6.3",
+              "versionCodes": {
+                "ARM64_V8A": 150,
+                "ARMEABI_V7A": 150,
+                "X86_64": 150,
+                "X86": 150
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.6",
+              "versionCodes": {
+                "ARM64_V8A": 146,
+                "ARMEABI_V7A": 146,
+                "X86_64": 146,
+                "X86": 146
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.4",
+              "versionCodes": {
+                "ARM64_V8A": 144,
+                "ARMEABI_V7A": 144,
+                "X86_64": 144,
+                "X86": 144
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.2",
+              "versionCodes": {
+                "ARM64_V8A": 142,
+                "ARMEABI_V7A": 142,
+                "X86_64": 142,
+                "X86": 142
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.0",
+              "versionCodes": {
+                "ARM64_V8A": 137,
+                "ARMEABI_V7A": 137,
+                "X86_64": 137,
+                "X86": 137
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.4.7",
+              "versionCodes": {
+                "ARM64_V8A": 136,
+                "ARMEABI_V7A": 136,
+                "X86_64": 136,
+                "X86": 136
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.3.3",
+              "versionCodes": {
+                "ARM64_V8A": 133,
+                "ARMEABI_V7A": 133,
+                "X86_64": 133,
+                "X86": 133
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bypass device check",
+      "description": "Force device check to succeed.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.angel.klikk",
+          "name": "Klikk",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FD000D",
+          "signatures": [
+            "38a6da45b9097c0286b962a804d3c3d65511685fef6ead76cdcfa1690c3bb592"
+          ],
+          "targets": [
+            {
+              "version": "3.6.3",
+              "versionCodes": {
+                "ARM64_V8A": 150,
+                "ARMEABI_V7A": 150,
+                "X86_64": 150,
+                "X86": 150
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.6",
+              "versionCodes": {
+                "ARM64_V8A": 146,
+                "ARMEABI_V7A": 146,
+                "X86_64": 146,
+                "X86": 146
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.4",
+              "versionCodes": {
+                "ARM64_V8A": 144,
+                "ARMEABI_V7A": 144,
+                "X86_64": 144,
+                "X86": 144
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.2",
+              "versionCodes": {
+                "ARM64_V8A": 142,
+                "ARMEABI_V7A": 142,
+                "X86_64": 142,
+                "X86": 142
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.0",
+              "versionCodes": {
+                "ARM64_V8A": 137,
+                "ARMEABI_V7A": 137,
+                "X86_64": 137,
+                "X86": 137
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.4.7",
+              "versionCodes": {
+                "ARM64_V8A": 136,
+                "ARMEABI_V7A": 136,
+                "X86_64": 136,
+                "X86": 136
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.3.3",
+              "versionCodes": {
+                "ARM64_V8A": 133,
+                "ARMEABI_V7A": 133,
+                "X86_64": 133,
+                "X86": 133
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bypass device check",
+      "description": "Force device check to succeed.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.angel.klikk.tv",
+          "name": "Klikk",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FD000D",
+          "signatures": [
+            "4e7922a556c7cfda27cf4309e05c5ecb61bef59c1b9427a870ecad3f65bbf589"
+          ],
+          "targets": [
+            {
+              "version": "3.4.9",
+              "versionCodes": {
+                "ARM64_V8A": 95,
+                "ARMEABI_V7A": 95,
+                "X86_64": 95,
+                "X86": 95
+              },
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Content access",
       "description": "Resolve content_access to ContentAccess.free.",
@@ -10,6 +370,7 @@
       "dependencies": [
         "RawResourcePatch",
         "BytecodePatch",
+        "RawResourcePatch",
         "RawResourcePatch"
       ],
       "compatiblePackages": [
@@ -48,12 +409,13 @@
       "dependencies": [
         "RawResourcePatch",
         "BytecodePatch",
+        "RawResourcePatch",
         "RawResourcePatch"
       ],
       "compatiblePackages": [
         {
           "packageName": "com.prothomalo.chorki",
-          "name": "Chorki-TV",
+          "name": "Chorki TV",
           "description": null,
           "apkFileType": "XAPK",
           "appIconColor": "#E11D48",
@@ -79,6 +441,472 @@
       "options": []
     },
     {
+      "name": "Content access",
+      "description": "Resolve content_access to ContentAccess.free.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "RawResourcePatch",
+        "RawResourcePatch",
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.gotipath.deeptotv",
+          "name": "DeeptoPlay",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#070C1C",
+          "signatures": [
+            "538383c8eef7771c7f76cf89e14aa9dab54c548ef62554fc0bbbcec526bd63fc"
+          ],
+          "targets": [
+            {
+              "version": "2.2.10",
+              "versionCodes": {
+                "ARM64_V8A": 2230,
+                "ARMEABI_V7A": 2230,
+                "X86_64": 2230,
+                "X86": 2230
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Content access",
+      "description": "Resolve content_access to ContentAccess.free.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "RawResourcePatch",
+        "RawResourcePatch",
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.gotipath.deeptotvapp",
+          "name": "DeeptoTV",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#070C1C",
+          "signatures": [
+            "760266fd701ea7e4b5b7997c857bef48a395c34deb7211d3d2149465e90fd534"
+          ],
+          "targets": [
+            {
+              "version": "2.0.4",
+              "versionCodes": {
+                "ARM64_V8A": 204,
+                "ARMEABI_V7A": 204,
+                "X86_64": 204,
+                "X86": 204
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable Flutter TLS verification",
+      "description": "Disables Flutter TLS verification, allowing to inspect traffic via a proxy.",
+      "default": false,
+      "category": null,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": null,
+      "options": [
+        {
+          "key": "armeabi-v7a",
+          "title": "armeabi-v7a",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "arm64-v8a",
+          "title": "arm64-v8a",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "x86",
+          "title": "x86",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "x86_64",
+          "title": "x86_64",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Disable update",
+      "description": "Disables force update",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rockstreamer.iscreentv",
+          "name": "IScreen Tv",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#E50019",
+          "signatures": [
+            "b4fd5f9c2fb15414d0f909a66e511c1b40f4ef541c23e9c0077554b8c29505ad"
+          ],
+          "targets": [
+            {
+              "version": "4.4.4",
+              "versionCodes": {
+                "ARM64_V8A": 472,
+                "ARMEABI_V7A": 472,
+                "X86_64": 472,
+                "X86": 472
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.4.1",
+              "versionCodes": {
+                "ARM64_V8A": 469,
+                "ARMEABI_V7A": 469,
+                "X86_64": 469,
+                "X86": 469
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.3.8",
+              "versionCodes": {
+                "ARM64_V8A": 467,
+                "ARMEABI_V7A": 467,
+                "X86_64": 467,
+                "X86": 467
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.2.9",
+              "versionCodes": {
+                "ARM64_V8A": 455,
+                "ARMEABI_V7A": 455,
+                "X86_64": 455,
+                "X86": 455
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.2.0",
+              "versionCodes": {
+                "ARM64_V8A": 446,
+                "ARMEABI_V7A": 446,
+                "X86_64": 446,
+                "X86": 446
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.1.32",
+              "versionCodes": {
+                "ARM64_V8A": 445,
+                "ARMEABI_V7A": 445,
+                "X86_64": 445,
+                "X86": 445
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable update",
+      "description": "Force update to be not available.",
+      "default": false,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.angel.klikk.tv",
+          "name": "Klikk",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FD000D",
+          "signatures": [
+            "4e7922a556c7cfda27cf4309e05c5ecb61bef59c1b9427a870ecad3f65bbf589"
+          ],
+          "targets": [
+            {
+              "version": "3.4.9",
+              "versionCodes": {
+                "ARM64_V8A": 95,
+                "ARMEABI_V7A": 95,
+                "X86_64": 95,
+                "X86": 95
+              },
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Fake user",
+      "description": "Fakes logged in user",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.angel.klikk.tv",
+          "name": "Klikk",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FD000D",
+          "signatures": [
+            "4e7922a556c7cfda27cf4309e05c5ecb61bef59c1b9427a870ecad3f65bbf589"
+          ],
+          "targets": [
+            {
+              "version": "3.4.9",
+              "versionCodes": {
+                "ARM64_V8A": 95,
+                "ARMEABI_V7A": 95,
+                "X86_64": 95,
+                "X86": 95
+              },
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Free TVOD content",
+      "description": "Spoofs TVOD content to be free",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rockstreamer.iscreen",
+          "name": "IScreen",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#E50019",
+          "signatures": [
+            "55c2444d7e72a523828866ecf6188b95022f61c40117c52f7fbec00ad509dad6"
+          ],
+          "targets": [
+            {
+              "version": "2.2.51",
+              "versionCodes": {
+                "ARM64_V8A": 318,
+                "ARMEABI_V7A": 318,
+                "X86_64": 318,
+                "X86": 318
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.41",
+              "versionCodes": {
+                "ARM64_V8A": 310,
+                "ARMEABI_V7A": 310,
+                "X86_64": 310,
+                "X86": 310
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.31",
+              "versionCodes": {
+                "ARM64_V8A": 300,
+                "ARMEABI_V7A": 300,
+                "X86_64": 300,
+                "X86": 300
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.15",
+              "versionCodes": {
+                "ARM64_V8A": 285,
+                "ARMEABI_V7A": 285,
+                "X86_64": 285,
+                "X86": 285
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.7",
+              "versionCodes": {
+                "ARM64_V8A": 278,
+                "ARMEABI_V7A": 278,
+                "X86_64": 278,
+                "X86": 278
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Free TVOD content",
+      "description": "Spoofs TVOD content to be free",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rockstreamer.iscreentv",
+          "name": "IScreen Tv",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#E50019",
+          "signatures": [
+            "b4fd5f9c2fb15414d0f909a66e511c1b40f4ef541c23e9c0077554b8c29505ad"
+          ],
+          "targets": [
+            {
+              "version": "4.4.4",
+              "versionCodes": {
+                "ARM64_V8A": 472,
+                "ARMEABI_V7A": 472,
+                "X86_64": 472,
+                "X86": 472
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.4.1",
+              "versionCodes": {
+                "ARM64_V8A": 469,
+                "ARMEABI_V7A": 469,
+                "X86_64": 469,
+                "X86": 469
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.3.8",
+              "versionCodes": {
+                "ARM64_V8A": 467,
+                "ARMEABI_V7A": 467,
+                "X86_64": 467,
+                "X86": 467
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.2.9",
+              "versionCodes": {
+                "ARM64_V8A": 455,
+                "ARMEABI_V7A": 455,
+                "X86_64": 455,
+                "X86": 455
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.2.0",
+              "versionCodes": {
+                "ARM64_V8A": 446,
+                "ARMEABI_V7A": 446,
+                "X86_64": 446,
+                "X86": 446
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.1.32",
+              "versionCodes": {
+                "ARM64_V8A": 445,
+                "ARMEABI_V7A": 445,
+                "X86_64": 445,
+                "X86": 445
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Free content",
       "description": "Use alternative api to get content details.",
       "default": true,
@@ -89,7 +917,7 @@
       "compatiblePackages": [
         {
           "packageName": "com.bongo.bongobd",
-          "name": "Bongobd",
+          "name": "Bongo",
           "description": null,
           "apkFileType": "XAPK",
           "appIconColor": "#D21E28",
@@ -221,7 +1049,7 @@
       "compatiblePackages": [
         {
           "packageName": "com.bongo.bongobdandroidtv",
-          "name": "Bongobdandroidtv",
+          "name": "Bongo",
           "description": null,
           "apkFileType": "XAPK",
           "appIconColor": "#D21E28",
@@ -283,13 +1111,336 @@
       "options": []
     },
     {
+      "name": "Free content",
+      "description": "Mark all content as free.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.angel.klikk",
+          "name": "Klikk",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FD000D",
+          "signatures": [
+            "38a6da45b9097c0286b962a804d3c3d65511685fef6ead76cdcfa1690c3bb592"
+          ],
+          "targets": [
+            {
+              "version": "3.6.3",
+              "versionCodes": {
+                "ARM64_V8A": 150,
+                "ARMEABI_V7A": 150,
+                "X86_64": 150,
+                "X86": 150
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.6",
+              "versionCodes": {
+                "ARM64_V8A": 146,
+                "ARMEABI_V7A": 146,
+                "X86_64": 146,
+                "X86": 146
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.4",
+              "versionCodes": {
+                "ARM64_V8A": 144,
+                "ARMEABI_V7A": 144,
+                "X86_64": 144,
+                "X86": 144
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.2",
+              "versionCodes": {
+                "ARM64_V8A": 142,
+                "ARMEABI_V7A": 142,
+                "X86_64": 142,
+                "X86": 142
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.0",
+              "versionCodes": {
+                "ARM64_V8A": 137,
+                "ARMEABI_V7A": 137,
+                "X86_64": 137,
+                "X86": 137
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.4.7",
+              "versionCodes": {
+                "ARM64_V8A": 136,
+                "ARMEABI_V7A": 136,
+                "X86_64": 136,
+                "X86": 136
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.3.3",
+              "versionCodes": {
+                "ARM64_V8A": 133,
+                "ARMEABI_V7A": 133,
+                "X86_64": 133,
+                "X86": 133
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Free content",
+      "description": "Mark all content as free.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.angel.klikk.tv",
+          "name": "Klikk",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FD000D",
+          "signatures": [
+            "4e7922a556c7cfda27cf4309e05c5ecb61bef59c1b9427a870ecad3f65bbf589"
+          ],
+          "targets": [
+            {
+              "version": "3.4.9",
+              "versionCodes": {
+                "ARM64_V8A": 95,
+                "ARMEABI_V7A": 95,
+                "X86_64": 95,
+                "X86": 95
+              },
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Free premium content",
+      "description": "Spoofs premium content to be free",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rockstreamer.iscreen",
+          "name": "IScreen",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#E50019",
+          "signatures": [
+            "55c2444d7e72a523828866ecf6188b95022f61c40117c52f7fbec00ad509dad6"
+          ],
+          "targets": [
+            {
+              "version": "2.2.51",
+              "versionCodes": {
+                "ARM64_V8A": 318,
+                "ARMEABI_V7A": 318,
+                "X86_64": 318,
+                "X86": 318
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.41",
+              "versionCodes": {
+                "ARM64_V8A": 310,
+                "ARMEABI_V7A": 310,
+                "X86_64": 310,
+                "X86": 310
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.31",
+              "versionCodes": {
+                "ARM64_V8A": 300,
+                "ARMEABI_V7A": 300,
+                "X86_64": 300,
+                "X86": 300
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.15",
+              "versionCodes": {
+                "ARM64_V8A": 285,
+                "ARMEABI_V7A": 285,
+                "X86_64": 285,
+                "X86": 285
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.7",
+              "versionCodes": {
+                "ARM64_V8A": 278,
+                "ARMEABI_V7A": 278,
+                "X86_64": 278,
+                "X86": 278
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Free premium content",
+      "description": "Spoofs premium content to be free",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rockstreamer.iscreentv",
+          "name": "IScreen Tv",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#E50019",
+          "signatures": [
+            "b4fd5f9c2fb15414d0f909a66e511c1b40f4ef541c23e9c0077554b8c29505ad"
+          ],
+          "targets": [
+            {
+              "version": "4.4.4",
+              "versionCodes": {
+                "ARM64_V8A": 472,
+                "ARMEABI_V7A": 472,
+                "X86_64": 472,
+                "X86": 472
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.4.1",
+              "versionCodes": {
+                "ARM64_V8A": 469,
+                "ARMEABI_V7A": 469,
+                "X86_64": 469,
+                "X86": 469
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.3.8",
+              "versionCodes": {
+                "ARM64_V8A": 467,
+                "ARMEABI_V7A": 467,
+                "X86_64": 467,
+                "X86": 467
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.2.9",
+              "versionCodes": {
+                "ARM64_V8A": 455,
+                "ARMEABI_V7A": 455,
+                "X86_64": 455,
+                "X86": 455
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.2.0",
+              "versionCodes": {
+                "ARM64_V8A": 446,
+                "ARMEABI_V7A": 446,
+                "X86_64": 446,
+                "X86": 446
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.1.32",
+              "versionCodes": {
+                "ARM64_V8A": 445,
+                "ARMEABI_V7A": 445,
+                "X86_64": 445,
+                "X86": 445
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Login required",
-      "description": "Resolve login_required using restrict_vpn.",
+      "description": "Resolve login_required to false.",
       "default": true,
       "category": null,
       "dependencies": [
         "RawResourcePatch",
         "BytecodePatch",
+        "RawResourcePatch",
         "RawResourcePatch"
       ],
       "compatiblePackages": [
@@ -322,18 +1473,19 @@
     },
     {
       "name": "Login required",
-      "description": "Resolve login_required using restrict_vpn.",
+      "description": "Resolve login_required to false.",
       "default": true,
       "category": null,
       "dependencies": [
         "RawResourcePatch",
         "BytecodePatch",
+        "RawResourcePatch",
         "RawResourcePatch"
       ],
       "compatiblePackages": [
         {
           "packageName": "com.prothomalo.chorki",
-          "name": "Chorki-TV",
+          "name": "Chorki TV",
           "description": null,
           "apkFileType": "XAPK",
           "appIconColor": "#E11D48",
@@ -351,6 +1503,49 @@
               },
               "isExperimental": false,
               "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Mask VPN transport check",
+      "description": "Masks VPN transport check, allowing to inspect traffic via a proxy.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Splash ad",
+      "description": "Conceal splash ad.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.banglalink.toffee",
+          "name": "Toffee",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": null,
+          "signatures": [
+            "9bcc96b08bb468c0b1be2910198fd5ee3f05f5a2089a65d2be596a96b552f8a6"
+          ],
+          "targets": [
+            {
+              "version": "9.2.6",
+              "versionCodes": {
+                "ARM64_V8A": 235,
+                "ARMEABI_V7A": 235,
+                "X86_64": 235,
+                "X86": 235
+              },
+              "isExperimental": true,
+              "minSdk": 25,
               "description": null
             }
           ]
@@ -468,6 +1663,192 @@
     },
     {
       "name": "Temp user",
+      "description": "Log in as subscribed temp user",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rockstreamer.iscreen",
+          "name": "IScreen",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#E50019",
+          "signatures": [
+            "55c2444d7e72a523828866ecf6188b95022f61c40117c52f7fbec00ad509dad6"
+          ],
+          "targets": [
+            {
+              "version": "2.2.51",
+              "versionCodes": {
+                "ARM64_V8A": 318,
+                "ARMEABI_V7A": 318,
+                "X86_64": 318,
+                "X86": 318
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.41",
+              "versionCodes": {
+                "ARM64_V8A": 310,
+                "ARMEABI_V7A": 310,
+                "X86_64": 310,
+                "X86": 310
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.31",
+              "versionCodes": {
+                "ARM64_V8A": 300,
+                "ARMEABI_V7A": 300,
+                "X86_64": 300,
+                "X86": 300
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.15",
+              "versionCodes": {
+                "ARM64_V8A": 285,
+                "ARMEABI_V7A": 285,
+                "X86_64": 285,
+                "X86": 285
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2.2.7",
+              "versionCodes": {
+                "ARM64_V8A": 278,
+                "ARMEABI_V7A": 278,
+                "X86_64": 278,
+                "X86": 278
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Temp user",
+      "description": "Log in as subscribed temp user",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rockstreamer.iscreentv",
+          "name": "IScreen Tv",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#E50019",
+          "signatures": [
+            "b4fd5f9c2fb15414d0f909a66e511c1b40f4ef541c23e9c0077554b8c29505ad"
+          ],
+          "targets": [
+            {
+              "version": "4.4.4",
+              "versionCodes": {
+                "ARM64_V8A": 472,
+                "ARMEABI_V7A": 472,
+                "X86_64": 472,
+                "X86": 472
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.4.1",
+              "versionCodes": {
+                "ARM64_V8A": 469,
+                "ARMEABI_V7A": 469,
+                "X86_64": 469,
+                "X86": 469
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.3.8",
+              "versionCodes": {
+                "ARM64_V8A": 467,
+                "ARMEABI_V7A": 467,
+                "X86_64": 467,
+                "X86": 467
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.2.9",
+              "versionCodes": {
+                "ARM64_V8A": 455,
+                "ARMEABI_V7A": 455,
+                "X86_64": 455,
+                "X86": 455
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.2.0",
+              "versionCodes": {
+                "ARM64_V8A": 446,
+                "ARMEABI_V7A": 446,
+                "X86_64": 446,
+                "X86": 446
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.1.32",
+              "versionCodes": {
+                "ARM64_V8A": 445,
+                "ARMEABI_V7A": 445,
+                "X86_64": 445,
+                "X86": 445
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Temp user",
       "description": "Log in as subscribed temp user.",
       "default": true,
       "category": null,
@@ -496,6 +1877,150 @@
               },
               "isExperimental": true,
               "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "VPN active",
+      "description": "Hide VPN state.",
+      "default": false,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.angel.klikk",
+          "name": "Klikk",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FD000D",
+          "signatures": [
+            "38a6da45b9097c0286b962a804d3c3d65511685fef6ead76cdcfa1690c3bb592"
+          ],
+          "targets": [
+            {
+              "version": "3.6.3",
+              "versionCodes": {
+                "ARM64_V8A": 150,
+                "ARMEABI_V7A": 150,
+                "X86_64": 150,
+                "X86": 150
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.6",
+              "versionCodes": {
+                "ARM64_V8A": 146,
+                "ARMEABI_V7A": 146,
+                "X86_64": 146,
+                "X86": 146
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.4",
+              "versionCodes": {
+                "ARM64_V8A": 144,
+                "ARMEABI_V7A": 144,
+                "X86_64": 144,
+                "X86": 144
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.2",
+              "versionCodes": {
+                "ARM64_V8A": 142,
+                "ARMEABI_V7A": 142,
+                "X86_64": 142,
+                "X86": 142
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.5.0",
+              "versionCodes": {
+                "ARM64_V8A": 137,
+                "ARMEABI_V7A": 137,
+                "X86_64": 137,
+                "X86": 137
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.4.7",
+              "versionCodes": {
+                "ARM64_V8A": 136,
+                "ARMEABI_V7A": 136,
+                "X86_64": 136,
+                "X86": 136
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "3.3.3",
+              "versionCodes": {
+                "ARM64_V8A": 133,
+                "ARMEABI_V7A": 133,
+                "X86_64": 133,
+                "X86": 133
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "VPN active",
+      "description": "Hide VPN state.",
+      "default": false,
+      "category": null,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.banglalink.toffee",
+          "name": "Toffee",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": null,
+          "signatures": [
+            "9bcc96b08bb468c0b1be2910198fd5ee3f05f5a2089a65d2be596a96b552f8a6"
+          ],
+          "targets": [
+            {
+              "version": "9.2.6",
+              "versionCodes": {
+                "ARM64_V8A": 235,
+                "ARMEABI_V7A": 235,
+                "X86_64": 235,
+                "X86": 235
+              },
+              "isExperimental": true,
+              "minSdk": 25,
               "description": null
             }
           ]

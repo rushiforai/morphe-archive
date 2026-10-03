@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.2.0...v1.2.1) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* Bring back sounds that stayed silent on some phones ([db5b3d8](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/db5b3d88c197a8910745eff339db48b1f3886aa6))
+
 ## [1.2.0](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.1.2...v1.2.0) (2026-10-01)
 
 ### ✨ New Features

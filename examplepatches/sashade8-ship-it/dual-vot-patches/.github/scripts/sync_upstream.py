@@ -148,6 +148,11 @@ DEV20_ARRAYS_CONFLICT_BLOBS = (
     "2b7a395c084bc706419ec62d923157f1b27d75d6",
     "c723637ecf766a547fd2aff56bcbd9c60f0671f3",
 )
+STABLE145_ARRAYS_CONFLICT_BLOBS = (
+    "311894915ee96634ec074a8dc2e3689cc62da532",
+    "e7421a0b11afa4af4679221eed6cc83da862804e",
+    "5da4445db139cc9b711a72b27b2c0efde8183c50",
+)
 STRING_RESOURCE_LINE = re.compile(
     r'^\s*<string\s+name="([^"]+)"(?:\s[^>]*)?>.*</string>\s*$'
 )
@@ -398,18 +403,18 @@ def merge_dual_yandex_arrays(base: str, ours: str, theirs: str) -> str:
     return theirs_prefix + dual_block + closing + theirs_suffix
 
 
-def merge_dev20_yandex_arrays(base: str, ours: str, theirs: str) -> str:
-    """Keep the exact Dual append alongside Dev20's inserted icon arrays."""
+def merge_yandex_arrays_with_upstream_changes(base: str, ours: str, theirs: str) -> str:
+    """Keep the exact Dual append alongside verified upstream array changes."""
     import xml.etree.ElementTree as ET
 
     closing = "</resources>"
     if any(value.count(closing) != 1 for value in (base, ours, theirs)):
-        raise SyncError("Unexpected Dev20 arrays resource structure")
+        raise SyncError("Unexpected upstream arrays resource structure")
     base_prefix, base_suffix = base.split(closing)
     ours_prefix, ours_suffix = ours.split(closing)
     theirs_prefix, theirs_suffix = theirs.split(closing)
     if base_suffix != ours_suffix or base_suffix != theirs_suffix:
-        raise SyncError("Dev20 arrays resource changed after closing element")
+        raise SyncError("Upstream arrays resource changed after closing element")
     if not ours_prefix.startswith(base_prefix):
         raise SyncError("Dual arrays changed outside their appended block")
     dual_block = ours_prefix[len(base_prefix):]
@@ -424,11 +429,11 @@ def merge_dev20_yandex_arrays(base: str, ours: str, theirs: str) -> str:
     dual_root = ET.fromstring("<resources>" + dual_block + closing)
     dual_names = [element.attrib.get("name") for element in dual_root]
     if len(dual_names) != len(expected_dual) or set(dual_names) != expected_dual:
-        raise SyncError("Unexpected Dual arrays in Dev20 conflict")
+        raise SyncError("Unexpected Dual arrays in upstream conflict")
     merged = theirs_prefix + dual_block + closing + theirs_suffix
     names = [element.attrib.get("name") for element in ET.fromstring(merged)]
     if len(names) != len(set(names)):
-        raise SyncError("Duplicate arrays in Dev20 resource merge")
+        raise SyncError("Duplicate arrays in upstream resource merge")
     return merged
 
 
@@ -439,7 +444,11 @@ def resolve_dual_yandex_arrays_conflict() -> None:
     blobs = tuple(
         output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3)
     )
-    if blobs not in (DEV16_ARRAYS_CONFLICT_BLOBS, DEV20_ARRAYS_CONFLICT_BLOBS):
+    if blobs not in (
+        DEV16_ARRAYS_CONFLICT_BLOBS,
+        DEV20_ARRAYS_CONFLICT_BLOBS,
+        STABLE145_ARRAYS_CONFLICT_BLOBS,
+    ):
         return
     base, ours, theirs = (
         run("git", "show", f":{stage}:{path}", capture=True).stdout
@@ -448,7 +457,7 @@ def resolve_dual_yandex_arrays_conflict() -> None:
     merged = (
         merge_dual_yandex_arrays(base, ours, theirs)
         if blobs == DEV16_ARRAYS_CONFLICT_BLOBS
-        else merge_dev20_yandex_arrays(base, ours, theirs)
+        else merge_yandex_arrays_with_upstream_changes(base, ours, theirs)
     )
     (ROOT / path).write_text(merged, encoding="utf-8", newline="")
     run("git", "add", "--", path)

@@ -22,18 +22,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 /**
  * The join that writes the MP4 itself, for the pictures Android's MediaMuxer won't put in one:
@@ -583,15 +585,154 @@ public class Mp4JoinTest {
 
     /** What [command] prints, once it ends with 0. Java starts it with no console window. */
     private static String run(String... command) throws Exception {
-        Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
-        ByteArrayOutputStream printed = new ByteArrayOutputStream();
-        try (InputStream in = process.getInputStream()) {
-            byte[] buffer = new byte[8_192];
-            for (int read; (read = in.read(buffer)) >= 0; ) printed.write(buffer, 0, read);
+        return run(120_000, command);
+    }
+
+    private static String run(long timeoutMillis, String... command) throws Exception {
+        assertTrue("positive subprocess deadline required", timeoutMillis > 0);
+        Path output = Files.createTempFile("hushfacebook-codec-", ".log");
+        Process process = null;
+        Map<Long, Object> children = new LinkedHashMap<>();
+        Throwable failure = null;
+        try {
+            long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+            // A file cannot block the worker waiting for pipe EOF, even if a child keeps stdout open.
+            process = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(output.toFile()).start();
+            process.getOutputStream().close();
+            while (true) {
+                descendants(process, children);
+                if (!process.isAlive() && !childrenAlive(children)) break;
+                long remaining = deadline - System.nanoTime();
+                if (remaining <= 0) {
+                    stop(process, children);
+                    throw new AssertionError("timed out: " + command[0] + "\n" + text(output));
+                }
+                long wait = Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(25));
+                if (process.isAlive()) process.waitFor(wait, TimeUnit.NANOSECONDS);
+                else TimeUnit.NANOSECONDS.sleep(wait);
+            }
+            String text = text(output);
+            assertEquals(text, 0, process.exitValue());
+            return text;
+        } catch (Throwable caught) {
+            failure = caught;
+            throw caught;
+        } finally {
+            try {
+                if (process != null) stop(process, children);
+                Files.deleteIfExists(output);
+            } catch (Throwable cleanup) {
+                if (failure != null) failure.addSuppressed(cleanup);
+                else throw cleanup;
+            }
         }
-        assertTrue("timed out: " + command[0], process.waitFor(120, TimeUnit.SECONDS));
-        String text = new String(printed.toByteArray(), StandardCharsets.UTF_8);
-        assertEquals(text, 0, process.exitValue());
-        return text;
+    }
+
+    private static String text(Path output) throws IOException {
+        return new String(Files.readAllBytes(output), StandardCharsets.UTF_8);
+    }
+
+    // Unit tests run on JDK 25. Reflection keeps JDK-only ProcessHandle out of Android's boot API.
+    private static final Class<?> HANDLE = processHandle();
+
+    private static Class<?> processHandle() {
+        try { return Class.forName("java.lang.ProcessHandle"); }
+        catch (ClassNotFoundException missing) { throw new AssertionError("JDK ProcessHandle required", missing); }
+    }
+
+    private static void descendants(Process process, Map<Long, Object> children) throws Exception {
+        List<Object> roots = new ArrayList<>(children.values());
+        if (process.isAlive()) roots.add(Process.class.getMethod("toHandle").invoke(process));
+        for (Object root : roots) {
+            if ((Boolean) HANDLE.getMethod("isAlive").invoke(root)) descendants(root, children);
+        }
+    }
+
+    private static void descendants(Object root, Map<Long, Object> children) throws Exception {
+        try (Stream<?> stream = (Stream<?>) HANDLE.getMethod("descendants").invoke(root)) {
+            java.util.Iterator<?> iterator = stream.iterator();
+            while (iterator.hasNext()) {
+                Object child = iterator.next();
+                children.put((Long) HANDLE.getMethod("pid").invoke(child), child);
+            }
+        }
+    }
+
+    private static boolean childrenAlive(Map<Long, Object> children) throws Exception {
+        for (Object child : children.values()) if ((Boolean) HANDLE.getMethod("isAlive").invoke(child)) return true;
+        return false;
+    }
+
+    private static void stop(Process process, Map<Long, Object> children) throws Exception {
+        descendants(process, children);
+        for (Object child : children.values()) HANDLE.getMethod("destroyForcibly").invoke(child);
+        process.destroyForcibly();
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
+        while (childrenAlive(children) && System.nanoTime() < deadline) Thread.sleep(10);
+        assertFalse("codec descendants survived termination", childrenAlive(children));
+        assertTrue("codec process survived termination", process.waitFor(1, TimeUnit.SECONDS));
+    }
+
+    private static String[] tool(String mode, File marker) throws Exception {
+        File java = new File(System.getProperty("java.home"), "bin/" + (File.separatorChar == '\\' ? "java.exe" : "java"));
+        File classes = new File(CodecPipeTool.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        return new String[]{java.getPath(), "-cp", classes.getPath(), CodecPipeTool.class.getName(), mode, marker.getPath()};
+    }
+
+    private static void dead(File marker) throws Exception {
+        for (String line : Files.readAllLines(marker.toPath(), StandardCharsets.UTF_8)) {
+            long pid = Long.parseLong(line);
+            java.util.Optional<?> handle = (java.util.Optional<?>) HANDLE.getMethod("of", long.class).invoke(null, pid);
+            assertFalse("owned tool still alive: " + pid, handle.isPresent() && (Boolean) HANDLE.getMethod("isAlive").invoke(handle.get()));
+        }
+    }
+
+    @Test(timeout = 12_000)
+    public void aToolHoldingStdoutOpenStopsAtItsDeadlineAndKeepsDiagnostics() throws Exception {
+        File marker = temp.newFile("hang-pids.txt");
+        long start = System.nanoTime();
+        AssertionError failure = assertThrows(AssertionError.class, () -> run(3_000, tool("hang", marker)));
+        assertTrue(failure.getMessage(), failure.getMessage().startsWith("timed out:"));
+        assertTrue(failure.getMessage(), failure.getMessage().contains("parent-ready"));
+        assertTrue("deadline was ineffective", System.nanoTime() - start < TimeUnit.SECONDS.toNanos(5));
+        dead(marker);
+    }
+
+    @Test(timeout = 12_000)
+    public void aToolAndItsInheritedOutputChildStopAtTheDeadline() throws Exception {
+        File marker = temp.newFile("tree-pids.txt");
+        AssertionError failure = assertThrows(AssertionError.class, () -> run(3_000, tool("tree", marker)));
+        assertTrue(failure.getMessage(), failure.getMessage().startsWith("timed out:"));
+        assertTrue(failure.getMessage(), failure.getMessage().contains("parent-ready"));
+        assertTrue(failure.getMessage(), failure.getMessage().contains("child-ready"));
+        assertEquals(3, Files.readAllLines(marker.toPath(), StandardCharsets.UTF_8).size());
+        dead(marker);
+    }
+
+    @Test(timeout = 12_000)
+    public void anExitedToolCannotLeaveItsOutputChildRunning() throws Exception {
+        File marker = temp.newFile("orphan-pids.txt");
+        AssertionError failure = assertThrows(AssertionError.class, () -> run(3_000, tool("orphan", marker)));
+        assertTrue(failure.getMessage(), failure.getMessage().startsWith("timed out:"));
+        assertTrue(failure.getMessage(), failure.getMessage().contains("child-ready"));
+        assertEquals(3, Files.readAllLines(marker.toPath(), StandardCharsets.UTF_8).size());
+        dead(marker);
+    }
+
+    @Test(timeout = 12_000)
+    public void nonzeroToolsFailWithTheirPrintedDiagnostic() throws Exception {
+        File marker = temp.newFile("fail-pids.txt");
+        AssertionError failure = assertThrows(AssertionError.class, () -> run(3_000, tool("fail", marker)));
+        assertTrue(failure.getMessage(), failure.getMessage().contains("encoder-error"));
+        dead(marker);
+    }
+
+    @Test(timeout = 12_000)
+    public void completedToolOutputLargerThanAPipeBufferIsKeptExactly() throws Exception {
+        File marker = temp.newFile("success-pids.txt");
+        String printed = run(3_000, tool("success", marker));
+        assertEquals(1024 * 1024, printed.length());
+        for (int i = 0; i < printed.length(); i++) assertEquals((char) ('a' + i % 26), printed.charAt(i));
+        dead(marker);
     }
 }

@@ -126,6 +126,8 @@ public enum PatchFamily {
             Settings.HIDE_REELS_TAB_DOT),
     BOTTOM_TAB_BAR(FamilyNames.BOTTOM_TAB_BAR, "bottomTabBar", null,
             Settings.BOTTOM_TAB_BAR),
+    FORCE_DARK_MODE(FamilyNames.FORCE_DARK_MODE, "forceDarkMode", null,
+            Settings.FORCE_DARK_MODE),
     MESSENGER_CARD(FamilyNames.MESSENGER_CARD, "messengerCard", null,
             Settings.HIDE_GET_MESSENGER_CARD),
     MESSENGER_ICON(FamilyNames.MESSENGER_ICON, "messengerIcon", null,
@@ -206,7 +208,7 @@ public enum PatchFamily {
             SPONSORED_REELS, SPONSORED_SEARCH, SPONSORED_PROFILE_POSTS, SPONSORED_MARKETPLACE, AFFILIATE_LINKS,
             KEEP_REEL_SPEED,
             RESUME_LONG_VIDEOS, EXTERNAL_BROWSER, SANITIZE_SHARING_LINKS, UPDATE_PROMPTS, STORY_DOWNLOAD,
-            REEL_DOWNLOAD, MARKETPLACE_ONLY, REELS_TAB_DOT, BOTTOM_TAB_BAR, MESSENGER_CARD, MESSENGER_ICON, MENU_PROMOTIONS,
+            REEL_DOWNLOAD, MARKETPLACE_ONLY, REELS_TAB_DOT, BOTTOM_TAB_BAR, FORCE_DARK_MODE, MESSENGER_CARD, MESSENGER_ICON, MENU_PROMOTIONS,
             META_AI_SEARCH, PROMO_NOTIFICATIONS, AD_PREFETCH, AD_TELEMETRY, AUDIENCE_NETWORK, RESTORE_TRUST,
             TRANSLATED_START, INSTALL_BESIDE_META_APPS, MENU_SETTINGS_ROW));
 
@@ -344,6 +346,8 @@ public enum PatchFamily {
      */
     public static void registerDiagnostics() {
         LogBufferManager.registerReportSection(REPORT);
+        LogBufferManager.registerReportSection(SupportedLinks.REPORT);
+        LogBufferManager.registerReportSection(LastScreen.REPORT);
         for (PatchFamily family : values()) {
             if (family.switches.isEmpty()) HookStatus.runsWhilePaused(family.patchName);
         }

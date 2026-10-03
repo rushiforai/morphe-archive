@@ -25,7 +25,23 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean hideSuggestedUsers() {
+        return false;
+    }
+
+    public static boolean returnRefresh() {
+        return false;
+    }
+
+    public static boolean disableVideoAutoplay() {
+        return false;
+    }
+
     public static boolean sanitizeSharingLinks() {
+        return false;
+    }
+
+    public static boolean openLinksExternally() {
         return false;
     }
 

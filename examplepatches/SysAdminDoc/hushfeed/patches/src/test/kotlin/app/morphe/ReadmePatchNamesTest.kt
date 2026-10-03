@@ -2,6 +2,8 @@ package app.morphe
 
 import com.google.gson.JsonParser
 import java.io.File
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -150,6 +152,57 @@ class ReadmePatchNamesTest {
             shipped.toSortedMap(),
             rows.associate { it.name to it.description }.toSortedMap(),
         )
+    }
+
+    @Test
+    fun `installation guidance and badge list every declared target`() {
+        val root = File("..").takeIf { File(it, "README.md").isFile } ?: File(".")
+        val lines = File(root, "README.md").readLines()
+        val targets = Fixtures.declaredVersions().toSet()
+        val version = Regex("""\b\d+\.\d+\.\d+\b""")
+        val badge = lines.single { it.contains("<img alt=\"TikTok ") }
+        val claims = listOf(
+            Regex("""alt="([^"]+)"""").find(badge)!!.groupValues[1],
+            Regex("""src="([^"]+)"""").find(badge)!!.groupValues[1],
+            lines.single { it.startsWith("> Hushfeed targets the global TikTok package") },
+            lines.single { it.startsWith("1. Get the TikTok ") },
+            lines.single { it.startsWith("- Versions: ") },
+            lines.single { it.startsWith("Google Play only ever serves") },
+            lines.single { it.startsWith("APKMirror also offers some TikTok releases") },
+        )
+        for (claim in claims) {
+            assertEquals("Target guidance is missing or adds a host: $claim",
+                targets, version.findAll(URLDecoder.decode(claim, StandardCharsets.UTF_8))
+                    .map { it.value }.toSet())
+        }
+        val readme = lines.joinToString("\n")
+        assertTrue("Install guidance must explain native-language recovery",
+            readme.contains("[native-language recovery steps](#tiktok-stays-in-english-after-removing-language-packs)"))
+        assertTrue("The removed friend-send confirmation is still advertised",
+            !readme.contains("Confirm before sending to a friend") &&
+                !lines.single { it.startsWith("- **Touch controls:**") }
+                    .contains("sending from the share sheet"))
+    }
+
+    @Test
+    fun `release and source patch counts remain distinct in the introduction`() {
+        val root = File("..").takeIf { File(it, "README.md").isFile } ?: File(".")
+        val readme = File(root, "README.md").readText()
+        val index = JsonParser.parseString(File(root, "patches-bundle.json").readText()).asJsonObject
+        val description = index.get("description").asString
+        val published = Regex("""Hushfeed v([\d.]+) has (\d+) patches""").find(description)
+        assertTrue("The published source index has no patch count", published != null)
+        val releasedVersion = published!!.groupValues[1]
+        val releasedCount = published.groupValues[2]
+        assertEquals("The published description names another bundle version",
+            index.get("version").asString, releasedVersion)
+        assertTrue("README confuses the published bundle with the source catalog",
+            readme.contains("Hushfeed v$releasedVersion contains $releasedCount patches"))
+        val count = shippedPatchDescriptions().size
+        assertTrue("The main-branch patch count does not match the source catalog",
+            readme.contains("The main branch contains $count patches"))
+        assertTrue("The source patch link does not match the source catalog",
+            readme.contains("[Browse the $count source patches](#patches)"))
     }
 
     /**

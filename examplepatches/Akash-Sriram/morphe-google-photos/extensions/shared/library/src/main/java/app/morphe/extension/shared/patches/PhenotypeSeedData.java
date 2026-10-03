@@ -39,7 +39,7 @@ public final class PhenotypeSeedData {
                 "com.google.android.apps.photos.phenotype", Context.MODE_PRIVATE);
             app.morphe.extension.shared.patches.flags.PhotoFlagsRegistry.applyCuratedDefaults(phenoPrefs);
             seedPrefs.edit().putLong("seeded_preset_version", LATEST_SEED_VERSION).apply();
-            Logger.printDebug(() -> "Seeded 362 Morphe preset flags (version " + LATEST_SEED_VERSION + ")");
+            Logger.printDebug(() -> "Seeded " + app.morphe.extension.shared.patches.flags.PhotoFlagsRegistry.CURATED_FLAGS.size() + " Morphe preset flags (version " + LATEST_SEED_VERSION + ")");
         }
         syncActiveAccount(context);
     }

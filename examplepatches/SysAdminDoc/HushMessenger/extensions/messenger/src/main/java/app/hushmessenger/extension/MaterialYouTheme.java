@@ -13,6 +13,7 @@ package app.hushmessenger.extension;
 
 import android.content.ComponentCallbacks;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -81,6 +82,10 @@ public final class MaterialYouTheme {
 
     private static volatile TonePalette palette;
     private static volatile boolean bound;
+    // SharedPreferences keeps weak listener references, so retain this for the lifetime of the process.
+    private static final SharedPreferences.OnSharedPreferenceChangeListener CHOICES = (preferences, key) -> {
+        if (key == null || KEY.equals(key) || "paused".equals(key) || "safe_mode".equals(key)) publish();
+    };
 
     static {
         palette = TonePalette.fallback();
@@ -189,9 +194,9 @@ public final class MaterialYouTheme {
      * palette and listens for configuration changes (new wallpaper).
      */
     public static void bind() {
-        if (bound) return;
+        if (bound) { publish(); return; }
         synchronized (MaterialYouTheme.class) {
-            if (bound) return;
+            if (bound) { publish(); return; }
             try {
                 Context app = Settings.appContext;
                 if (app == null) return;
@@ -205,6 +210,7 @@ public final class MaterialYouTheme {
                     @Override
                     public void onLowMemory() {}
                 });
+                Settings.preferences.registerOnSharedPreferenceChangeListener(CHOICES);
                 bound = true;
             } catch (RuntimeException failure) {
                 // Fall back to the fixed palette

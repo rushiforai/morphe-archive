@@ -20,7 +20,11 @@ package app.morphe.extension.hushthreads.settings;
  */
 public final class FamilyNames {
     public static final String HIDE_ADS = "Hide ads";
+    public static final String HIDE_SUGGESTED_USERS = "Hide suggested users";
+    public static final String RETURN_REFRESH = "Block background-return feed refresh";
+    public static final String VIDEO_AUTOPLAY = "Disable video autoplay";
     public static final String SANITIZE_SHARING_LINKS = "Sanitize sharing links";
+    public static final String EXTERNAL_BROWSER = "Open links in browser";
     public static final String DISABLE_ANALYTICS = "Disable analytics";
     public static final String REMOVE_AD_ID = "Remove the advertising ID";
     public static final String RESTORE_TRUST = "Restore screens on re-signed builds";

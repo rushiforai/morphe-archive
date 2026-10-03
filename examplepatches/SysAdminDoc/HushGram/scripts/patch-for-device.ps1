@@ -5,9 +5,8 @@
 .DESCRIPTION
     verify-all-patches.ps1 answers whether the patches apply and throws its APK away. This
     keeps one, signed with the sideload keystore so it installs on a phone, and installs it
-    over adb when a serial is given. The stock Instagram on the phone has a different signer, so
-    it has to be uninstalled first; that is what -Replace does, and it wipes Instagram's data on
-    that phone.
+    over adb when a serial and expected device identity are given. Installs preserve app data,
+    permissions and signing keys. An incompatible existing signer is refused without uninstalling.
 
     The signing password comes from HUSHGRAM_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
     local test keystore's documented password, sideload, is used. The Morphe arguments travel
@@ -22,7 +21,7 @@
     -Aapt2, HUSHGRAM_AAPT2 or the SDK. None of them has a machine-specific default.
 
 .EXAMPLE
-    scripts/patch-for-device.ps1 -Serial $env:HUSHGRAM_DEVICE_SERIAL -Replace
+    scripts/patch-for-device.ps1 -Serial $env:HUSHGRAM_DEVICE_SERIAL -ExpectedModel $env:HUSHGRAM_EXPECTED_DEVICE_MODEL
 
 .NOTES
     Taken from Hushfacebook's scripts/patch-for-device.ps1
@@ -32,6 +31,8 @@
 [CmdletBinding()]
 param(
     [string]$Serial,
+    [string]$ExpectedModel = $env:HUSHGRAM_EXPECTED_DEVICE_MODEL,
+    [string]$ExpectedAvd = $env:HUSHGRAM_EXPECTED_AVD,
     [switch]$Replace,
     # Print every line the desktop CLI writes, not only errors.
     [switch]$ShowPatchLog,
@@ -54,6 +55,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if ($Replace) { throw '-Replace is disabled. Keep the installed app and use its existing signing key for an update.' }
 # Not a parameter default: Windows PowerShell leaves $PSScriptRoot empty while it evaluates the
 # defaults of an advanced script started with -File. $root below is this same variable.
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
@@ -198,13 +200,17 @@ if (-not $Serial) { return }
 $adb = (Get-Command adb -ErrorAction SilentlyContinue).Source
 if (-not $adb) { $adb = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter adb.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName }
 if (-not $adb) { throw 'No adb found. Put it on the PATH or install the platform tools.' }
-if ($Replace) {
-    . (Join-Path $PSScriptRoot 'device-install.ps1')
-    [void](Remove-AndroidPackageIfInstalled -Adb $adb -Serial $Serial -PackageName $target.PackageName)
-}
+. (Join-Path $PSScriptRoot 'injected-register-device.ps1')
+$deviceLease = Enter-HushgramDeviceLease -Serial $Serial -ExpectedModel $ExpectedModel -ExpectedAvd $ExpectedAvd
+try {
+Confirm-HushgramDevice -Adb $adb -DeviceLease $deviceLease
 Write-Host "[device] installing on $Serial"
 # adb prints Failure [...] and exits non-zero on a refused install; without this the script
 # went on to print the version of whatever was already on the phone, as if it were this build.
-& $adb -s $Serial install -r -g $out | Out-Host
-if ($LASTEXITCODE -ne 0) { throw "adb install failed on $Serial. The output above says why." }
-& $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
+$installed = Invoke-HushgramAdbCommand -Adb $adb -Arguments @('-s', $Serial, 'install', '-r', $out) -DeviceLease $deviceLease
+$installed.Output | Out-Host
+if ($installed.ExitCode -ne 0) { throw "adb install failed on $Serial. The installed app and data were kept." }
+$facts = Invoke-HushgramAdbCommand -Adb $adb -Arguments @('-s', $Serial, 'shell', 'dumpsys', 'package', $target.PackageName) -DeviceLease $deviceLease
+if ($facts.ExitCode -ne 0) { throw 'The install finished, but installed build verification failed.' }
+$facts.Output | Select-String 'versionName' | Out-Host
+} finally { Exit-HushgramDeviceLease $deviceLease }

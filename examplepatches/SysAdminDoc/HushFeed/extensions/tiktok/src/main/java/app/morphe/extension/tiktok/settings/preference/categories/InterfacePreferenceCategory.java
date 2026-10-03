@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.morphe.extension.tiktok.captions.CaptionStyle;
+import app.morphe.extension.tiktok.feed.FeedTextSize;
 import app.morphe.extension.tiktok.interaction.TapConfirmation;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -38,6 +39,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
         return SettingsStatus.videoOverlaysEnabled
+                || SettingsStatus.feedTextSizeEnabled
                 || SettingsStatus.hideFeedFollowButtonEnabled
                 || SettingsStatus.hideFeedSaveButtonEnabled
                 || SettingsStatus.alwaysShowPublishDateEnabled
@@ -133,9 +135,28 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
     private void addVideoInfo(Context context) {
         boolean any = SettingsStatus.alwaysShowPublishDateEnabled
                 || SettingsStatus.authorRegionEnabled
+                || SettingsStatus.feedTextSizeEnabled
                 || SettingsStatus.videoOverlaysEnabled;
         if (!any) return;
         addPreference(new SectionHeadingPreference(context, "Video info"));
+        if (SettingsStatus.feedTextSizeEnabled) {
+            NumberInputPreference descriptionSize = new NumberInputPreference(context, "Description text size",
+                    L10n.f(context, "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling.",
+                            FeedTextSize.MIN_TEXT_SIZE, FeedTextSize.MAX_TEXT_SIZE),
+                    Settings.FEED_DESCRIPTION_TEXT_SIZE, "%1$s point", "%1$s points") {
+                @Override protected int clamp(int value) { return FeedTextSize.clampSize(value); }
+            };
+            descriptionSize.zeroMeans("TikTok's size");
+            addPreference(descriptionSize);
+            NumberInputPreference authorSize = new NumberInputPreference(context, "Author text size",
+                    L10n.f(context, "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and keeps Android's font scaling.",
+                            FeedTextSize.MIN_TEXT_SIZE, FeedTextSize.MAX_TEXT_SIZE),
+                    Settings.FEED_AUTHOR_TEXT_SIZE, "%1$s point", "%1$s points") {
+                @Override protected int clamp(int value) { return FeedTextSize.clampSize(value); }
+            };
+            authorSize.zeroMeans("TikTok's size");
+            addPreference(authorSize);
+        }
         if (SettingsStatus.alwaysShowPublishDateEnabled) {
             addPreference(new TogglePreference(
                     context,
@@ -168,7 +189,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Hide the music line",
-                    "Hide the spinning music cover and the track name beside the caption.",
+                    "Hide the track name beside the caption.",
                     Settings.HIDE_FEED_MUSIC
             ));
         }

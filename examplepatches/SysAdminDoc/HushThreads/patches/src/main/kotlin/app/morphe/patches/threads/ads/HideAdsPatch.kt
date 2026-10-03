@@ -7,12 +7,9 @@
  */
 package app.morphe.patches.threads.ads
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.enableStatus
-import app.morphe.patches.threads.misc.extension.parameterRegister
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.extension.writeStub
@@ -21,15 +18,12 @@ import app.morphe.util.getReference
 import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide ads"
 
-private const val FEED_ADS = "$EXTENSION_PACKAGE/ads/FeedAds;"
 
 /**
  * Takes ad posts out of the feed.
@@ -51,71 +45,34 @@ val hideAdsPatch = bytecodePatch(
 ) {
     category("Ads")
     dependsOn(settingsPatch)
+    dependsOn(feedPageFilterPatch)
     compatibleWith(*AppCompatibilities.threads())
     dependsOn(threadsExtensionPatch)
 
     execute {
         requireStatusMethod("hideAds")
-        val merge = FeedPageMergeFingerprint.method
-
-        // The feed item's own getter for its post. It answers null for an item that carries none.
-        val instructions = merge.implementation!!.instructions.toList()
-        val getters = instructions.mapIndexedNotNull { index, instruction ->
-            if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) {
-                return@mapIndexedNotNull null
-            }
-            val reference = instruction.getReference<MethodReference>() ?: return@mapIndexedNotNull null
-            if (reference.returnType != MEDIA || reference.parameterTypes.isNotEmpty() || reference.definingClass == MEDIA) {
-                return@mapIndexedNotNull null
-            }
-            val receiver = when (instruction) {
-                is FiveRegisterInstruction -> instruction.registerC
-                is RegisterRangeInstruction -> instruction.startRegister
-                else -> return@mapIndexedNotNull null
-            }
-            val lastWrite = instructions.take(index).lastOrNull {
-                val register = (it as? OneRegisterInstruction)?.registerA
-                it.opcode.setsRegister() && (register == receiver || it.opcode.setsWideRegister() && register == receiver - 1)
-            }
-            reference.takeIf {
-                lastWrite?.opcode == Opcode.CHECK_CAST &&
-                    lastWrite.getReference<TypeReference>()?.type == reference.definingClass
-            }
-        }.distinctBy { it.toString() }
-        val itemMedia = getters.singleOrPatchException(
-            "$PATCH: item-owned no-argument Media getter in ${merge.definingClass}->${merge.name}; candidates: " + getters.joinToString(),
-        )
-        mutableClassDefBy(itemMedia.definingClass).methods.filter {
-            it.name == itemMedia.name && it.returnType == MEDIA && it.parameterTypes.isEmpty() &&
-                !AccessFlags.STATIC.isSet(it.accessFlags)
-        }.singleOrPatchException("$PATCH: declaration of $itemMedia")
-
-        // Media's own ad check: an instance boolean method, no parameters, that asks the injected check.
+        // Media's own ad check directly returns the injected check, without an alternate exit.
         val injected = InjectedAdCheckFingerprint.method
         val isAd = mutableClassDefBy(MEDIA).methods.filter { method ->
-            method.returnType == "Z" && method.parameterTypes.isEmpty() &&
-                !AccessFlags.STATIC.isSet(method.accessFlags) &&
-                method.implementation?.instructions?.any { instruction ->
-                    instruction.getReference<MethodReference>()?.let {
-                        it.definingClass == injected.definingClass && it.name == injected.name
-                    } == true
-                } == true
-        }.singleOrPatchException("$PATCH: Media's own boolean method that asks the injected check")
+            if (method.returnType != "Z" || method.parameterTypes.isNotEmpty() || AccessFlags.STATIC.isSet(method.accessFlags)) {
+                return@filter false
+            }
+            val body = method.implementation?.instructions?.toList() ?: return@filter false
+            val calls = body.mapIndexedNotNull { index, instruction ->
+                instruction.getReference<MethodReference>()?.takeIf {
+                    it.definingClass == injected.definingClass && it.name == injected.name &&
+                        it.returnType == injected.returnType &&
+                        it.parameterTypes.map(CharSequence::toString) == injected.parameterTypes.map(CharSequence::toString)
+                }?.let { index }
+            }
+            body.size >= 3 && calls.singleOrNull() == body.size - 3 &&
+                body[body.size - 3].opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) &&
+                body[body.size - 2].opcode == Opcode.MOVE_RESULT && body.last().opcode == Opcode.RETURN &&
+                (body[body.size - 2] as OneRegisterInstruction).registerA == (body.last() as OneRegisterInstruction).registerA &&
+                method.implementation!!.tryBlocks.isEmpty() &&
+                body.dropLast(1).all { it.opcode.canContinue() && it !is OffsetInstruction }
+        }.singleOrPatchException("$PATCH: Media's own boolean method that directly returns the injected check")
 
-        writeStub(
-            FEED_ADS, "itemMedia", 2,
-            """
-                instance-of v0, p0, ${itemMedia.definingClass}
-                if-eqz v0, :none
-                check-cast p0, ${itemMedia.definingClass}
-                invoke-virtual { p0 }, ${itemMedia.definingClass}->${itemMedia.name}()$MEDIA
-                move-result-object v0
-                return-object v0
-                :none
-                const/4 v0, 0x0
-                return-object v0
-            """,
-        )
         writeStub(
             FEED_ADS, "isAd", 2,
             """
@@ -123,17 +80,6 @@ val hideAdsPatch = bytecodePatch(
                 invoke-virtual { p0 }, $MEDIA->${isAd.name}()Z
                 move-result v0
                 return v0
-            """,
-        )
-
-        // The page, first thing. A resumed merge is called again with no page and reads its own saved
-        // copy, which is the one filtered here on the first call.
-        val page = merge.parameterRegister(4)
-        merge.addInstructions(
-            0,
-            """
-                invoke-static/range { $page .. $page }, $FEED_ADS->filter(Ljava/util/List;)Ljava/util/List;
-                move-result-object $page
             """,
         )
 

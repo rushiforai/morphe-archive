@@ -12,8 +12,8 @@ private const val PROCESS = "processMyntraResponse"
 @Suppress("unused")
 val myntraSortByRatingsCountPatch = bytecodePatch(
     name = "Sort by number of ratings",
-    description = "Sorts Myntra search and listing results by number of ratings (descending) " +
-        "and removes sponsored items.",
+    description = "Adds Sort (off / most rated / top rated), 4★+, Hide ads and a 'Ranked' list " +
+        "to Myntra search and listing pages. The ranked list orders every page the app has loaded.",
     default = false,
 ) {
     compatibleWith(MYNTRA_COMPATIBILITY)

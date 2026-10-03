@@ -99,9 +99,11 @@ class OwnFontFixtureTest {
         // with another typeface stays, Litho's text paint's compare with Typeface.DEFAULT among
         // them. Every other read goes to the extension in its own place, a field read's answer
         // comes back into the register the read wrote, and each call to the extension's own.
-        val owners = FixtureDex.classes(bundle, readers.map { it.definingClass }.toSet())
+        // With the classes of the static checks they call, whose code says whether each is one.
+        val owners = FixtureDex.classes(bundle, readers.map { it.definingClass }.toSet() + staticCheckTypes(readers))
+        val isEquality = PatchContexts.of(owners.values).equalityChecks()
         fun keptIn(method: Method) = method.implementation!!.instructions.toList().withIndex()
-            .filter { (at, instruction) -> defaultRead(instruction) in DEFAULT_TYPEFACES && method.onlyCompared(at) }.map { it.index }
+            .filter { (at, instruction) -> defaultRead(instruction) in DEFAULT_TYPEFACES && method.onlyCompared(at, isEquality) }.map { it.index }
         val kept = readers.flatMap { method -> keptIn(method).map { method } }
         assertTrue("${bundle.name}: no read is only compared", kept.isNotEmpty())
         assertTrue("${bundle.name}: no text paint builder keeps its compare with Typeface.DEFAULT", kept.any { method ->
@@ -141,25 +143,44 @@ class OwnFontFixtureTest {
         assertEquals("${bundle.name}: defaultFromStyle calls sent", styleCalls.size, sent[DEFAULT_FROM_STYLE])
     }
 
+    /** The classes of the static calls on two objects answering a boolean that [methods] make. */
+    private fun staticCheckTypes(methods: List<Method>): Set<String> = methods.flatMap { method ->
+        method.implementation!!.instructions.mapNotNull { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { call ->
+                (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) &&
+                    call.returnType == "Z" && call.parameterTypes.map(CharSequence::toString) == listOf(OBJECT_TYPE, OBJECT_TYPE)
+            }?.definingClass
+        }
+    }.toSet()
+
     /**
-     * Every check each declared build makes of whether a typeface is one of Android's defaults,
-     * found by its shape alone: an if-eq or if-ne, an equals call, or Kotlin's areEqual, a static
-     * call on two objects answering a boolean. A read of the default nothing but checks use is
+     * Every check each declared build makes of whether a typeface is one of Android's defaults:
+     * an if-eq or if-ne, an equals call, or Kotlin's areEqual, a static call on two objects
+     * answering a boolean whose own code only compares them. A read of the default nothing but checks use is
      * still a read of Android's own field after the rewrite, so each of those checks still asks
      * about Android's typeface. Litho's text paint and the post text's check (580 `LX/3qU;->A00`,
      * `LX/302;->A0k`) are among them. A read that's also set on a paint goes to the extension, and
      * its check compares the very typeface it then sets, as AppCompat's switch does to see whether
-     * its paint has that one already.
+     * its paint has that one already. Each build has that switch, and its check has to see the
+     * picked file too, since it asks about the value it's about to set, not about Android's.
+     *
+     * The only static call either build's reads reach is Kotlin's areEqual, so that's pinned too: a
+     * new one turning up is a call the rule hasn't been checked against on real code.
      */
     @Test
     fun `every check of whether a typeface is Android's default still asks about Android's`() = bundles { bundle ->
+        val readers = FixtureDex.methodsWhere(bundle, { true }) { method ->
+            method.implementation?.instructions?.any { defaultRead(it) in DEFAULT_TYPEFACES } == true
+        }
+        val isEquality = PatchContexts.of(FixtureDex.classes(bundle, staticCheckTypes(readers)).values).equalityChecks()
         fun isCheck(instruction: Instruction): Boolean = when (instruction.opcode) {
             Opcode.IF_EQ, Opcode.IF_NE -> true
             Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE ->
                 (instruction as ReferenceInstruction).reference.toString() == "Ljava/lang/Object;->equals(Ljava/lang/Object;)Z"
             Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE ->
                 ((instruction as ReferenceInstruction).reference as MethodReference).let { call ->
-                    call.returnType == "Z" && call.parameterTypes.map(CharSequence::toString) == listOf(OBJECT_TYPE, OBJECT_TYPE)
+                    call.returnType == "Z" && call.parameterTypes.map(CharSequence::toString) == listOf(OBJECT_TYPE, OBJECT_TYPE) &&
+                        isEquality(call)
                 }
             else -> false
         }
@@ -171,23 +192,41 @@ class OwnFontFixtureTest {
                 }
             }
         }
-        val checkers = FixtureDex.methodsWhere(bundle, { true }) { method ->
-            method.implementation?.instructions?.any { defaultRead(it) in DEFAULT_TYPEFACES } == true
-        }.filter { checked(it, only = false).isNotEmpty() }
+        val checkers = readers.filter { checked(it, only = false).isNotEmpty() }
         var throughKotlin = 0
         var onlyChecked = 0
+        var alsoSet = 0
         for (method in checkers) {
             val code = method.implementation!!.instructions.toList()
             for (at in checked(method, only = true)) {
                 onlyChecked++
                 if (method.literalReads(at).any { code[it].opcode == Opcode.INVOKE_STATIC || code[it].opcode == Opcode.INVOKE_STATIC_RANGE }) throughKotlin++
             }
+            alsoSet += (checked(method, only = false) - checked(method, only = true).toSet()).count { at ->
+                method.literalReads(at).any {
+                    (code[it] as? ReferenceInstruction)?.reference?.toString() == "Landroid/graphics/Paint;->setTypeface($TYPEFACE)$TYPEFACE"
+                }
+            }
         }
         assertTrue("${bundle.name}: $onlyChecked reads only checked", onlyChecked >= 5)
         assertTrue("${bundle.name}: no check goes through Kotlin's areEqual", throughKotlin >= 1)
+        assertTrue("${bundle.name}: no read is both checked and set on a paint", alsoSet >= 1)
         assertTrue("${bundle.name}: Litho's text paint isn't among them", checkers.any { it.returnType == TEXT_PAINT })
+        val staticCalls = readers.flatMap { method ->
+            val code = method.implementation!!.instructions.toList()
+            code.indices.filter { defaultRead(code[it]) in DEFAULT_TYPEFACES }.flatMap { at ->
+                method.literalReads(at).mapNotNull { use ->
+                    ((code[use] as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { call ->
+                        (code[use].opcode == Opcode.INVOKE_STATIC || code[use].opcode == Opcode.INVOKE_STATIC_RANGE) &&
+                            call.returnType == "Z" && call.parameterTypes.map(CharSequence::toString) == listOf(OBJECT_TYPE, OBJECT_TYPE)
+                    }
+                }
+            }
+        }.distinctBy { it.toString() }
+        assertEquals("${bundle.name}: static two-object calls a default read reaches: $staticCalls", 1, staticCalls.size)
+        assertTrue("${bundle.name}: ${staticCalls.single()} isn't taken for a compare", isEquality(staticCalls.single()))
 
-        val owners = FixtureDex.classes(bundle, checkers.map { it.definingClass }.toSet())
+        val owners = FixtureDex.classes(bundle, checkers.map { it.definingClass }.toSet() + staticCheckTypes(checkers))
         val context = PatchContexts.of(owners.values)
         context.hookDefaultTypefaces()
         for (method in checkers) {
@@ -255,7 +294,7 @@ class OwnFontFixtureTest {
                 holds(it, "Landroid/graphics/Paint;->setTypeface($TYPEFACE)$TYPEFACE")
             })
             for (method in context.mutableClassDefBy(type).methods) {
-                assertEquals("${bundle.name}: $type->${method.name}: default reads sent", 0, method.sendDefaultReads())
+                assertEquals("${bundle.name}: $type->${method.name}: default reads sent", 0, method.sendDefaultReads(context.equalityChecks()))
                 assertEquals("${bundle.name}: $type->${method.name}: text views sent", 0, method.sendTextViews())
             }
         }

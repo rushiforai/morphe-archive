@@ -175,7 +175,8 @@ class PatchHeapChecks(unittest.TestCase):
                 run.assert_not_called()
 
     def test_complete_gate_rejects_reduced_builds_or_catalog(self):
-        for count, patches in ((20, 31), (21, 30), (21, 32)):
+        total = checker.PATCH_COUNT
+        for count, patches in ((20, total), (21, total - 1), (21, total + 1)):
             with (
                 self.subTest(builds=count, patches=patches),
                 tempfile.TemporaryDirectory() as directory,

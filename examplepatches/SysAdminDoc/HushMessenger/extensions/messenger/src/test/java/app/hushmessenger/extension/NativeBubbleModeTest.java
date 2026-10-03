@@ -218,6 +218,41 @@ public class NativeBubbleModeTest {
         }
     }
 
+    @Test public void bubblePermissionLinkTargetsThisAppAndContainsMissingRoutes() {
+        for (boolean light : new boolean[] {false, true}) {
+            Settings.preferences.edit().putBoolean("light", light).commit();
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View link = screen.get().getWindow().getDecorView().findViewWithTag("bubble_permissions");
+                if (Build.VERSION.SDK_INT < 30) {
+                    assertNull(link);
+                    continue;
+                }
+                assertNotNull(link);
+                Map<String, ?> before = Settings.preferences.getAll();
+                String action = android.provider.Settings.ACTION_APP_NOTIFICATION_BUBBLE_SETTINGS;
+                Intent query = new Intent(action);
+                var manager = Shadows.shadowOf(screen.get().getPackageManager());
+                manager.removeResolveInfosForIntent(query, "com.android.settings");
+                link.performClick();
+                assertNull(Shadows.shadowOf(screen.get()).getNextStartedActivity());
+                assertTrue(ShadowToast.getTextOfLatestToast().contains("app info"));
+                ResolveInfo route = new ResolveInfo();
+                route.activityInfo = new ActivityInfo();
+                route.activityInfo.name = "BubbleSettings";
+                route.activityInfo.packageName = "com.android.settings";
+                manager.addResolveInfoForIntent(query, java.util.List.of(route));
+                link.performClick();
+                Intent started = Shadows.shadowOf(screen.get()).getNextStartedActivity();
+                assertNotNull(started);
+                assertEquals(action, started.getAction());
+                assertEquals(screen.get().getPackageName(),
+                    started.getStringExtra(android.provider.Settings.EXTRA_APP_PACKAGE));
+                assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK, started.getFlags());
+                assertEquals(before, Settings.preferences.getAll());
+            }
+        }
+    }
+
     private static void importChoices(View root, String raw) {
         RuntimeEnvironment.getApplication().getSystemService(ClipboardManager.class).setPrimaryClip(ClipData.newPlainText("choices", raw));
         root.findViewWithTag("import_choices").performClick();

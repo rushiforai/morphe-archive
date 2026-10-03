@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Recover obfuscated-to-real names from Kotlin metadata in jadx output."""
+"""Recover obfuscated-to-real names from Kotlin metadata in decompiled Java source."""
 
 import argparse
 import json

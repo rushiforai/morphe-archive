@@ -66,6 +66,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_open_developer_options", TRUE);
 
     /**
+     * Shows Import, Restore and Discard for native overrides, and OverrideImport checks it again
+     * before it reads the store. Off by default, and deliberately not a patch switch: Pause and a
+     * settings import never turn it on, and it answers off while HushGram is paused.
+     */
+    public static final BooleanSetting ALLOW_OVERRIDE_IMPORT =
+            new BooleanSetting("hushgram_allow_override_import", FALSE);
+
+    /**
      * The reels you watch, and how far into each you got, which Instagram posts to
      * clips/write_seen_state/ to rank your Reels. Nobody else sees it. Held back, reels you've
      * watched may come back.
@@ -81,11 +89,39 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_block_story_auto_advance", TRUE);
 
     /**
+     * A story's header shows the date and time it was posted, in the phone's language and 12 or
+     * 24-hour setting, instead of how long ago
+     * ({@link app.hushgram.extension.instagram.stories.StoryTime}). Read as each header is drawn,
+     * so a change shows from the next story. The patch is off in the default selection, so a build
+     * that has it asked for it, and the switch starts on.
+     */
+    public static final BooleanSetting SHOW_STORY_TIME =
+            new BooleanSetting("hushgram_show_story_time", TRUE);
+
+    /**
+     * A story plays again from the start when it ends, instead of the viewer moving on
+     * ({@link app.hushgram.extension.instagram.stories.StoryLoop}). While it's on it wins over
+     * {@link #BLOCK_STORY_AUTO_ADVANCE}. The patch is off in the default selection, so a build that
+     * has it asked for it, and the switch starts on.
+     */
+    public static final BooleanSetting LOOP_STORIES =
+            new BooleanSetting("hushgram_loop_stories", TRUE);
+
+    /**
      * The stories you watch, which Instagram posts to media/seen/ to put you on their viewer lists.
      * Held back, you stay off them. Replies and reactions still show you.
      */
     public static final BooleanSetting VIEW_STORIES_ANONYMOUSLY =
             new BooleanSetting("hushgram_view_stories_anonymously", TRUE);
+
+    /**
+     * The Mark as seen button in the story viewer's header
+     * ({@link app.hushgram.extension.instagram.stories.StorySeenButton}). Off to start. A story you
+     * tap it on is sent as seen while the rest stay held back. Read each time a story is shown and
+     * each time a batch of views goes to be sent.
+     */
+    public static final BooleanSetting MARK_STORIES_SEEN =
+            new BooleanSetting("hushgram_mark_stories_seen", FALSE);
 
     /**
      * The rows of suggested reels between posts in the home feed, and the other feed units that
@@ -203,6 +239,54 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHOW_FRIENDSHIP_STATUS =
             new BooleanSetting("hushgram_show_friendship_status", TRUE);
 
+    /**
+     * Doesn't follow you on the rows of your own Following list
+     * ({@link app.hushgram.extension.instagram.profile.FollowingList}). Off to start. Read each time
+     * Instagram binds a row of a follow list.
+     */
+    public static final BooleanSetting MARK_FOLLOWING_LIST =
+            new BooleanSetting("hushgram_mark_following_list", FALSE);
+
+    /**
+     * Suggested for you and the Discover people button on profiles
+     * ({@link app.hushgram.extension.instagram.profile.ProfileSuggestions}). Read each time Instagram
+     * builds or binds a profile's header, so off or paused, the suggestions are back on the next one.
+     */
+    public static final BooleanSetting HIDE_PROFILE_SUGGESTIONS =
+            new BooleanSetting("hushgram_hide_profile_suggestions", TRUE);
+
+    /**
+     * The row of story highlights on profiles
+     * ({@link app.hushgram.extension.instagram.profile.ProfileHighlights}). Read each time Instagram
+     * lays out a profile's header, so a change shows on the next profile opened. Off to start.
+     */
+    public static final BooleanSetting HIDE_HIGHLIGHTS =
+            new BooleanSetting("hushgram_hide_highlights", FALSE);
+
+    /**
+     * A sideways swipe on Home that would open the camera
+     * ({@link app.hushgram.extension.instagram.feed.SwipeToCreate}). Read at each step of a swipe,
+     * so a change shows on the next one. Off to start.
+     */
+    public static final BooleanSetting STOP_SWIPE_TO_CREATE =
+            new BooleanSetting("hushgram_stop_swipe_to_create", FALSE);
+
+    /**
+     * The cards of accounts and creators to follow that Instagram puts between reels
+     * ({@link app.hushgram.extension.instagram.reels.ReelsSuggestions}). Read as each page of
+     * reels arrives, so a change shows from the next page.
+     */
+    public static final BooleanSetting HIDE_REELS_SUGGESTIONS =
+            new BooleanSetting("hushgram_hide_reels_suggestions", TRUE);
+
+    /** An explicit Copy action for original comment text. Off until enabled. */
+    public static final BooleanSetting COPY_COMMENTS =
+            new BooleanSetting("hushgram_copy_comments", FALSE);
+
+    /** An explicit Save action for a photo the comment itself carries. Off until enabled. */
+    public static final BooleanSetting SAVE_COMMENT_PHOTOS =
+            new BooleanSetting("hushgram_save_comment_photos", FALSE);
+
     /** The Follow button beside a reel's author in the Reels viewer. */
     public static final BooleanSetting HIDE_REEL_FOLLOW_BUTTON =
             new BooleanSetting("hushgram_hide_reel_follow_button", TRUE);
@@ -260,6 +344,43 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting KEEP_REEL_SPEED =
             new BooleanSetting("hushgram_keep_reel_speed", TRUE);
+
+    /**
+     * Instagram's seek bar stays under every ordinary reel, short ones too, with the time played
+     * and the reel's length above it
+     * ({@link app.hushgram.extension.instagram.reels.ReelSeekBar}). The bar is decided as each reel
+     * is shown, so a change shows from the next reels; the time follows the switch at once. The
+     * patch is off in the default selection, so a build that has it asked for it, and the switch
+     * starts on.
+     */
+    public static final BooleanSetting REEL_SEEK_BAR =
+            new BooleanSetting("hushgram_reel_seek_bar", TRUE);
+
+    /**
+     * Instagram's auto scroll in Reels stays the way you last set it after a restart and after
+     * you leave Reels ({@link app.hushgram.extension.instagram.reels.ReelAutoScroll}). Read each
+     * time Instagram asks whether auto scroll is on, so a change shows from the next reel. The
+     * patch is off in the default selection, so a build that has it asked for it, and the switch
+     * starts on.
+     */
+    public static final BooleanSetting KEEP_REEL_AUTO_SCROLL =
+            new BooleanSetting("hushgram_keep_reel_auto_scroll", TRUE);
+
+    /**
+     * A finger can't move the Reels viewer on to the next reel, and a pull down doesn't load new
+     * ones ({@link app.hushgram.extension.instagram.reels.ReelScrolling}). A viewer turns its pager
+     * off as it opens, so a change takes a restart. Off to start.
+     */
+    public static final BooleanSetting STOP_REELS_SCROLLING =
+            new BooleanSetting("hushgram_stop_reels_scrolling", FALSE, true);
+
+    /**
+     * Whether auto scroll in Reels was last left on, as
+     * {@link app.hushgram.extension.instagram.reels.ReelAutoScroll} last saw it. It isn't a switch:
+     * a pause doesn't change it, and a settings backup leaves it out.
+     */
+    public static final BooleanSetting REEL_AUTO_SCROLL_ON =
+            new BooleanSetting("hushgram_reel_auto_scroll_on", FALSE, false, false);
 
     /**
      * Download in the menu of anyone's story, photo or video, saving it through the save pipeline

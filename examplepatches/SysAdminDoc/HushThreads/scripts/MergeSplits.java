@@ -42,6 +42,8 @@ public final class MergeSplits {
         Path inputDirectory = Files.createTempDirectory(outputParent, ".hushthreads-merge-input-");
         try {
             Path input = Files.copy(bundle.toPath(), inputDirectory.resolve(bundle.getName()));
+            // A successful merge does not establish native ELF or 16 KB ZIP alignment. The
+            // verification and receipt scripts inspect the merge and final patched APK.
             new ApkMerger().merge(input.toFile(), merged, true, null, true, null, false);
             // The merger answers nothing, so the file is the only evidence it worked.
             if (!merged.isFile() || merged.length() == 0) {

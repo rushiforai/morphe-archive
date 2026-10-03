@@ -8,7 +8,7 @@ import app.morphe.patches.toffee.shared.Constants.COMPATIBILITY_TOFFEE
 val vpnActivePatch = bytecodePatch(
     name = "VPN active",
     description = "Hide VPN state.",
-    default = true,
+    default = false,
 ) {
     compatibleWith(COMPATIBILITY_TOFFEE)
 

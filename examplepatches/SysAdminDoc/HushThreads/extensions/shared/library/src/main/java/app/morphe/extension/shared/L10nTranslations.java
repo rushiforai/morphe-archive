@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(322);
+        Map<String, String> table = new HashMap<>(350);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -79,6 +79,8 @@ public final class L10nTranslations {
                 "Eine Datei namens %1$s in %2$s hat HushThreads pausiert.");
         table.put("About",
                 "Info");
+        table.put("Ads and suggested accounts in your feed",
+                "Werbung und vorgeschlagene Konten in deinem Feed");
         table.put("Advertising ID removed",
                 "Werbe-ID entfernt");
         table.put("Analytics address coverage",
@@ -173,13 +175,15 @@ public final class L10nTranslations {
                 "GitHub weist Anfragen aus diesem Netz gerade ab. Versuche es sp\u00e4ter noch einmal.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "Mit der Antwort von GitHub lie\u00df sich nichts anfangen. Versuche es sp\u00e4ter noch einmal.");
-        table.put("Go straight to one group of settings. Back returns to where you were.",
-                "Direkt zu einer Gruppe von Einstellungen. Zur\u00fcck bringt dich dorthin, wo du warst.");
     }
 
     private static void fillDe1(Map<String, String> table) {
+        table.put("Go straight to one group of settings. Back returns to where you were.",
+                "Direkt zu einer Gruppe von Einstellungen. Zur\u00fcck bringt dich dorthin, wo du warst.");
         table.put("Hide ads",
                 "Werbung ausblenden");
+        table.put("Hide suggested users",
+                "Vorgeschlagene Nutzer ausblenden");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "HushThreads %1$s ist erschienen. Aktualisiere es im Morphe Manager.");
         table.put("HushThreads %1$s on Threads %2$s",
@@ -208,6 +212,8 @@ public final class L10nTranslations {
                 "Es ist f\u00fcr Threads %1$s gedacht.");
         table.put("Jump to a section",
                 "Zu einem Abschnitt springen");
+        table.put("Keep feed position on return",
+                "Feedposition beim Zur\u00fcckkehren beibehalten");
         table.put("Licenses",
                 "Lizenzen");
         table.put("Links",
@@ -222,12 +228,16 @@ public final class L10nTranslations {
                 "Keine App auf diesem Handy kann den Link \u00f6ffnen. Die Adresse ist %1$s.");
         table.put("No matching settings",
                 "Keine passenden Einstellungen");
+        table.put("No time limit",
+                "Kein Zeitlimit");
         table.put("None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Keine Webadresse von Threads ist f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links woanders. Tippe, um sie in den Android-Einstellungen auszuw\u00e4hlen.");
         table.put("OK",
                 "OK");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Nur einige Webadressen von Threads sind f\u00fcr diese App ausgew\u00e4hlt, und Links zu den \u00fcbrigen \u00f6ffnen sich woanders. Tippe, um sie in den Android-Einstellungen auszuw\u00e4hlen.");
+        table.put("Open links in your browser",
+                "Links in deinem Browser \u00f6ffnen");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201eUnterst\u00fctzte Links \u00f6ffnen\u201c ist f\u00fcr diese App in den Android-Einstellungen aus. Tippe, um es einzuschalten.");
         table.put("Patched: %1$s. Missing: %2$s.",
@@ -248,10 +258,14 @@ public final class L10nTranslations {
                 "Zeichnet Patch-Aktivit\u00e4t auf und zeigt Fehler f\u00fcr einen Fehlerbericht. Im Alltag ausgeschaltet lassen.");
         table.put("Remove tracking from shared links",
                 "Tracking aus geteilten Links entfernen");
+        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
+                "Entfernt best\u00e4tigte Karten mit Konten zum Folgen. Normale Beitr\u00e4ge und Reposts bleiben.");
         table.put("Resume",
                 "Fortsetzen");
         table.put("Retry",
                 "Erneut versuchen");
+        table.put("Returning to Threads within ten minutes keeps your place. Pull to refresh still works.",
+                "Wenn du innerhalb von zehn Minuten zu Threads zur\u00fcckkehrst, bleibst du an derselben Stelle. Zum Aktualisieren kannst du weiter nach unten ziehen.");
         table.put("Save full report",
                 "Vollst\u00e4ndigen Bericht speichern");
         table.put("Save the full report in Download/Morphe.",
@@ -284,6 +298,9 @@ public final class L10nTranslations {
                 "Einstellungen importiert. %1$d Schalter wurde ge\u00e4ndert.");
         table.put("Settings imported. %1$d switches changed.",
                 "Einstellungen importiert. %1$d Schalter wurden ge\u00e4ndert.");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Source code and issues",
                 "Quellcode und Issues");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -294,13 +311,14 @@ public final class L10nTranslations {
                 "Bleibt w\u00e4hrend der Pause aktiv");
         table.put("Stop analytics uploads",
                 "Analyse-Uploads stoppen");
+        table.put("Suggested accounts in your feed",
+                "Vorgeschlagene Konten in deinem Feed");
         table.put("Supported links",
                 "Unterst\u00fctzte Links");
-        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
-                "Entfernt Tracking-Tags wie xmt und slof aus den Beitragslinks, die du kopierst oder teilst. Der Rest des Links bleibt, wie er war.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
+        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
+                "Entfernt Tracking-Tags wie xmt und slof aus den Beitragslinks, die du kopierst oder teilst. Ein kurzer Teilen-Link wird zum eigenen Link des Beitrags.");
+        table.put("Tap to play videos",
+                "Videos per Tippen abspielen");
         table.put("Tap to turn it back on.",
                 "Zum Wiedereinschalten tippen.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -351,8 +369,8 @@ public final class L10nTranslations {
                 "Threads ist dreimal hintereinander innerhalb einer Minute nach dem Start abgest\u00fcrzt oder h\u00e4ngen geblieben, deshalb hat sich HushThreads selbst pausiert.");
         table.put("Threads' web addresses are selected for this app in Android's settings, so their links open here.",
                 "Die Webadressen von Threads sind in den Android-Einstellungen f\u00fcr diese App ausgew\u00e4hlt, deshalb \u00f6ffnen sich ihre Links hier.");
-        table.put("Tracking in shared links and analytics uploads",
-                "Tracking in geteilten Links und Analyse-Uploads");
+        table.put("Tracking in links and analytics uploads",
+                "Tracking in Links und Analyse-Uploads");
         table.put("Try a different word or clear the search.",
                 "Versuch ein anderes Wort oder l\u00f6sche die Suche.");
         table.put("Try again, or go back to Threads.",
@@ -367,6 +385,16 @@ public final class L10nTranslations {
                 "Version");
         table.put("Version %1$s for Threads %2$s",
                 "Version %1$s f\u00fcr Threads %2$s");
+        table.put("Videos in your feed",
+                "Videos in deinem Feed");
+        table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
+                "Videos in deinem Feed warten auf ein Tippen, statt beim Scrollen abzuspielen.");
+        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
+                "Weblinks, die du antippst, \u00f6ffnen sich in deinem Standardbrowser oder in der App f\u00fcr diese Seite, ohne den Klick-Tracker von Threads. Seiten von Threads, Instagram und andere Meta-Seiten \u00f6ffnen sich weiter in Threads.");
+        table.put("Where you left off in your feed",
+                "Wo du in deinem Feed aufgeh\u00f6rt hast");
+        table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
+                "Wenn der Schalter oben an ist, bleibt deine Stelle erhalten, egal wie lange du weg bist. Zum Aktualisieren ziehen und ein Neustart laden weiterhin neue Beitr\u00e4ge.");
         table.put("You have the newest HushThreads release.",
                 "Du hast die neueste Version von HushThreads.");
         table.put("You paused HushThreads.",
@@ -386,7 +414,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(322);
+        Map<String, String> table = new HashMap<>(350);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -418,6 +446,8 @@ public final class L10nTranslations {
                 "Un archivo llamado %1$s en %2$s paus\u00f3 HushThreads.");
         table.put("About",
                 "Acerca de");
+        table.put("Ads and suggested accounts in your feed",
+                "Anuncios y cuentas sugeridas en tu feed");
         table.put("Advertising ID removed",
                 "ID de publicidad eliminado");
         table.put("Analytics address coverage",
@@ -512,13 +542,15 @@ public final class L10nTranslations {
                 "GitHub est\u00e1 rechazando por ahora las consultas desde esta red. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "No se pudo usar la respuesta de GitHub. Int\u00e9ntalo de nuevo m\u00e1s tarde.");
-        table.put("Go straight to one group of settings. Back returns to where you were.",
-                "Ve directo a un grupo de ajustes. Atr\u00e1s te devuelve a donde estabas.");
     }
 
     private static void fillEs1(Map<String, String> table) {
+        table.put("Go straight to one group of settings. Back returns to where you were.",
+                "Ve directo a un grupo de ajustes. Atr\u00e1s te devuelve a donde estabas.");
         table.put("Hide ads",
                 "Ocultar anuncios");
+        table.put("Hide suggested users",
+                "Ocultar usuarios sugeridos");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "Ya sali\u00f3 HushThreads %1$s. Actual\u00edzalo en Morphe Manager.");
         table.put("HushThreads %1$s on Threads %2$s",
@@ -547,6 +579,8 @@ public final class L10nTranslations {
                 "Est\u00e1 pensado para Threads %1$s.");
         table.put("Jump to a section",
                 "Ir a una secci\u00f3n");
+        table.put("Keep feed position on return",
+                "Mantener la posici\u00f3n del feed al volver");
         table.put("Licenses",
                 "Licencias");
         table.put("Links",
@@ -561,12 +595,16 @@ public final class L10nTranslations {
                 "Ninguna app de este tel\u00e9fono puede abrir el enlace. La direcci\u00f3n es %1$s.");
         table.put("No matching settings",
                 "No hay ajustes coincidentes");
+        table.put("No time limit",
+                "Sin l\u00edmite de tiempo");
         table.put("None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Ninguna direcci\u00f3n web de Threads est\u00e1 seleccionada para esta app, as\u00ed que sus enlaces se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.");
         table.put("OK",
                 "Aceptar");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Solo algunas direcciones web de Threads est\u00e1n seleccionadas para esta app, y los enlaces a las dem\u00e1s se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.");
+        table.put("Open links in your browser",
+                "Abrir enlaces en tu navegador");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cAbrir enlaces compatibles\u201d est\u00e1 desactivado para esta app en los ajustes de Android. Toca para activarlo.");
         table.put("Patched: %1$s. Missing: %2$s.",
@@ -587,10 +625,14 @@ public final class L10nTranslations {
                 "Registra la actividad de los parches y muestra errores para un informe. D\u00e9jalo desactivado en el uso normal.");
         table.put("Remove tracking from shared links",
                 "Quitar el seguimiento de los enlaces compartidos");
+        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
+                "Elimina las tarjetas verificadas que sugieren cuentas para seguir. Las publicaciones normales y los reposts permanecen.");
         table.put("Resume",
                 "Reanudar");
         table.put("Retry",
                 "Reintentar");
+        table.put("Returning to Threads within ten minutes keeps your place. Pull to refresh still works.",
+                "Si vuelves a Threads en menos de diez minutos, seguir\u00e1s donde estabas. Puedes deslizar hacia abajo para actualizar.");
         table.put("Save full report",
                 "Guardar informe completo");
         table.put("Save the full report in Download/Morphe.",
@@ -623,6 +665,9 @@ public final class L10nTranslations {
                 "Configuraci\u00f3n importada. Cambi\u00f3 %1$d interruptor.");
         table.put("Settings imported. %1$d switches changed.",
                 "Configuraci\u00f3n importada. Cambiaron %1$d interruptores.");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Source code and issues",
                 "C\u00f3digo fuente e incidencias");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -633,13 +678,14 @@ public final class L10nTranslations {
                 "Se mantiene durante la pausa");
         table.put("Stop analytics uploads",
                 "Detener el env\u00edo de anal\u00edticas");
+        table.put("Suggested accounts in your feed",
+                "Cuentas sugeridas en tu feed");
         table.put("Supported links",
                 "Enlaces compatibles");
-        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
-                "Quita las etiquetas de seguimiento, como xmt y slof, de los enlaces de publicaciones que copias o compartes. El resto del enlace se queda como estaba.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
+        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
+                "Quita las etiquetas de seguimiento, como xmt y slof, de los enlaces de publicaciones que copias o compartes. Un enlace corto para compartir pasa a ser el enlace propio de la publicaci\u00f3n.");
+        table.put("Tap to play videos",
+                "Tocar para reproducir videos");
         table.put("Tap to turn it back on.",
                 "Toca para volver a activarlo.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -690,8 +736,8 @@ public final class L10nTranslations {
                 "Tres veces seguidas, Threads fall\u00f3 o se congel\u00f3 durante el primer minuto tras iniciarse, as\u00ed que HushThreads se paus\u00f3 solo.");
         table.put("Threads' web addresses are selected for this app in Android's settings, so their links open here.",
                 "Las direcciones web de Threads est\u00e1n seleccionadas para esta app en los ajustes de Android, as\u00ed que sus enlaces se abren aqu\u00ed.");
-        table.put("Tracking in shared links and analytics uploads",
-                "Seguimiento en enlaces compartidos y env\u00edo de anal\u00edticas");
+        table.put("Tracking in links and analytics uploads",
+                "Seguimiento en enlaces y env\u00edo de anal\u00edticas");
         table.put("Try a different word or clear the search.",
                 "Prueba otra palabra o borra la b\u00fasqueda.");
         table.put("Try again, or go back to Threads.",
@@ -706,6 +752,16 @@ public final class L10nTranslations {
                 "Versi\u00f3n");
         table.put("Version %1$s for Threads %2$s",
                 "Versi\u00f3n %1$s para Threads %2$s");
+        table.put("Videos in your feed",
+                "Videos de tu feed");
+        table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
+                "Los videos de tu feed esperan a que los toques en lugar de reproducirse mientras te desplazas.");
+        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
+                "Los enlaces web que tocas se abren en tu navegador predeterminado, o en la app de ese sitio, sin el rastreador de clics de Threads. Las p\u00e1ginas de Threads, Instagram y otras de Meta siguen abri\u00e9ndose en Threads.");
+        table.put("Where you left off in your feed",
+                "Donde te quedaste en tu feed");
+        table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
+                "Con el interruptor de arriba activado, tu lugar se mantiene sin importar cu\u00e1nto tiempo est\u00e9s fuera. Deslizar para actualizar y abrir la app de nuevo siguen cargando publicaciones nuevas.");
         table.put("You have the newest HushThreads release.",
                 "Tienes la versi\u00f3n m\u00e1s reciente de HushThreads.");
         table.put("You paused HushThreads.",
@@ -725,7 +781,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(322);
+        Map<String, String> table = new HashMap<>(350);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -757,6 +813,8 @@ public final class L10nTranslations {
                 "File bernama %1$s di %2$s menjeda HushThreads.");
         table.put("About",
                 "Tentang");
+        table.put("Ads and suggested accounts in your feed",
+                "Iklan dan akun yang disarankan di feed Anda");
         table.put("Advertising ID removed",
                 "ID iklan dihapus");
         table.put("Analytics address coverage",
@@ -851,13 +909,15 @@ public final class L10nTranslations {
                 "GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "Jawaban GitHub tidak dapat digunakan. Coba lagi nanti.");
-        table.put("Go straight to one group of settings. Back returns to where you were.",
-                "Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.");
     }
 
     private static void fillIn1(Map<String, String> table) {
+        table.put("Go straight to one group of settings. Back returns to where you were.",
+                "Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.");
         table.put("Hide ads",
                 "Sembunyikan iklan");
+        table.put("Hide suggested users",
+                "Sembunyikan pengguna yang disarankan");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "HushThreads %1$s sudah dirilis. Perbarui di Morphe Manager.");
         table.put("HushThreads %1$s on Threads %2$s",
@@ -886,6 +946,8 @@ public final class L10nTranslations {
                 "Rilis ini ditujukan untuk Threads %1$s.");
         table.put("Jump to a section",
                 "Lompat ke bagian");
+        table.put("Keep feed position on return",
+                "Pertahankan posisi feed saat kembali");
         table.put("Licenses",
                 "Lisensi");
         table.put("Links",
@@ -900,12 +962,16 @@ public final class L10nTranslations {
                 "Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.");
         table.put("No matching settings",
                 "Tidak ada pengaturan yang cocok");
+        table.put("No time limit",
+                "Tanpa batas waktu");
         table.put("None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Tidak ada alamat web Threads yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.");
         table.put("OK",
                 "Oke");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Hanya sebagian alamat web Threads yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.");
+        table.put("Open links in your browser",
+                "Buka tautan di browser Anda");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cBuka link yang didukung\u201d nonaktif untuk aplikasi ini di pengaturan Android. Ketuk untuk mengaktifkannya.");
         table.put("Patched: %1$s. Missing: %2$s.",
@@ -926,10 +992,14 @@ public final class L10nTranslations {
                 "Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.");
         table.put("Remove tracking from shared links",
                 "Hapus pelacakan dari tautan yang dibagikan");
+        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
+                "Menghapus kartu terverifikasi yang menyarankan akun untuk diikuti. Postingan biasa dan repost tetap ada.");
         table.put("Resume",
                 "Lanjutkan");
         table.put("Retry",
                 "Coba lagi");
+        table.put("Returning to Threads within ten minutes keeps your place. Pull to refresh still works.",
+                "Jika kembali ke Threads dalam sepuluh menit, posisi feed tetap sama. Tarik ke bawah untuk memuat ulang masih berfungsi.");
         table.put("Save full report",
                 "Simpan laporan lengkap");
         table.put("Save the full report in Download/Morphe.",
@@ -962,6 +1032,9 @@ public final class L10nTranslations {
                 "Pengaturan diimpor. %1$d sakelar berubah.");
         table.put("Settings imported. %1$d switches changed.",
                 "Pengaturan diimpor. %1$d sakelar berubah.");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Source code and issues",
                 "Kode sumber dan laporan masalah");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -972,13 +1045,14 @@ public final class L10nTranslations {
                 "Tetap aktif saat dijeda");
         table.put("Stop analytics uploads",
                 "Hentikan unggahan analitik");
+        table.put("Suggested accounts in your feed",
+                "Akun yang disarankan di feed Anda");
         table.put("Supported links",
                 "Tautan yang didukung");
-        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
-                "Menghapus tag pelacakan seperti xmt dan slof dari tautan postingan yang Anda salin atau bagikan. Bagian lain tautan tetap seperti semula.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
+        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
+                "Menghapus tag pelacakan seperti xmt dan slof dari tautan postingan yang Anda salin atau bagikan. Tautan berbagi pendek diganti dengan tautan postingan itu sendiri.");
+        table.put("Tap to play videos",
+                "Ketuk untuk memutar video");
         table.put("Tap to turn it back on.",
                 "Ketuk untuk mengaktifkan HushThreads lagi.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -1029,8 +1103,8 @@ public final class L10nTranslations {
                 "Threads berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushThreads menjeda dirinya sendiri.");
         table.put("Threads' web addresses are selected for this app in Android's settings, so their links open here.",
                 "Alamat web Threads dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.");
-        table.put("Tracking in shared links and analytics uploads",
-                "Pelacakan di tautan yang dibagikan dan unggahan analitik");
+        table.put("Tracking in links and analytics uploads",
+                "Pelacakan di tautan dan unggahan analitik");
         table.put("Try a different word or clear the search.",
                 "Coba kata lain atau hapus pencarian.");
         table.put("Try again, or go back to Threads.",
@@ -1045,6 +1119,16 @@ public final class L10nTranslations {
                 "Versi");
         table.put("Version %1$s for Threads %2$s",
                 "Versi %1$s untuk Threads %2$s");
+        table.put("Videos in your feed",
+                "Video di feed Anda");
+        table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
+                "Video di feed Anda menunggu diketuk, bukan diputar saat Anda menggulir.");
+        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
+                "Tautan web yang Anda ketuk terbuka di browser default Anda, atau aplikasi untuk situs itu, tanpa pelacak klik Threads. Halaman Threads, Instagram, dan halaman Meta lainnya tetap terbuka di Threads.");
+        table.put("Where you left off in your feed",
+                "Posisi terakhir Anda di feed");
+        table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
+                "Jika sakelar di atas aktif, posisi Anda tetap tersimpan berapa lama pun Anda pergi. Tarik untuk memuat ulang dan membuka ulang aplikasi tetap memuat postingan baru.");
         table.put("You have the newest HushThreads release.",
                 "Anda sudah memakai rilis HushThreads terbaru.");
         table.put("You paused HushThreads.",
@@ -1064,7 +1148,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(322);
+        Map<String, String> table = new HashMap<>(350);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1096,6 +1180,8 @@ public final class L10nTranslations {
                 "Um arquivo chamado %1$s em %2$s pausou o HushThreads.");
         table.put("About",
                 "Sobre");
+        table.put("Ads and suggested accounts in your feed",
+                "An\u00fancios e contas sugeridas no seu feed");
         table.put("Advertising ID removed",
                 "ID de publicidade removido");
         table.put("Analytics address coverage",
@@ -1190,13 +1276,15 @@ public final class L10nTranslations {
                 "O GitHub est\u00e1 recusando consultas desta rede por enquanto. Tente novamente mais tarde.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "N\u00e3o foi poss\u00edvel usar a resposta do GitHub. Tente novamente mais tarde.");
-        table.put("Go straight to one group of settings. Back returns to where you were.",
-                "V\u00e1 diretamente para um grupo de configura\u00e7\u00f5es. Voltar leva voc\u00ea de volta ao ponto em que estava.");
     }
 
     private static void fillPt_rBR1(Map<String, String> table) {
+        table.put("Go straight to one group of settings. Back returns to where you were.",
+                "V\u00e1 diretamente para um grupo de configura\u00e7\u00f5es. Voltar leva voc\u00ea de volta ao ponto em que estava.");
         table.put("Hide ads",
                 "Ocultar an\u00fancios");
+        table.put("Hide suggested users",
+                "Ocultar usu\u00e1rios sugeridos");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "O HushThreads %1$s est\u00e1 dispon\u00edvel. Atualize-o pelo Morphe Manager.");
         table.put("HushThreads %1$s on Threads %2$s",
@@ -1225,6 +1313,8 @@ public final class L10nTranslations {
                 "Compat\u00edvel com o Threads %1$s.");
         table.put("Jump to a section",
                 "Ir para uma se\u00e7\u00e3o");
+        table.put("Keep feed position on return",
+                "Manter a posi\u00e7\u00e3o no feed ao voltar");
         table.put("Licenses",
                 "Licen\u00e7as");
         table.put("Links",
@@ -1239,12 +1329,16 @@ public final class L10nTranslations {
                 "Nenhum aplicativo neste dispositivo consegue abrir o link. O endere\u00e7o \u00e9 %1$s.");
         table.put("No matching settings",
                 "Nenhuma configura\u00e7\u00e3o encontrada");
+        table.put("No time limit",
+                "Sem limite de tempo");
         table.put("None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Nenhum endere\u00e7o web do Threads est\u00e1 selecionado para este app, ent\u00e3o os links deles abrem em outro lugar. Toque para selecion\u00e1-los nas configura\u00e7\u00f5es do Android.");
         table.put("OK",
                 "OK");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "S\u00f3 alguns endere\u00e7os web do Threads est\u00e3o selecionados para este app, e os links para os outros abrem em outro lugar. Toque para selecion\u00e1-los nas configura\u00e7\u00f5es do Android.");
+        table.put("Open links in your browser",
+                "Abrir links no seu navegador");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cAbrir links compat\u00edveis\u201d est\u00e1 desativado para este app nas configura\u00e7\u00f5es do Android. Toque para ativar.");
         table.put("Patched: %1$s. Missing: %2$s.",
@@ -1265,10 +1359,14 @@ public final class L10nTranslations {
                 "Registra a atividade dos patches e mostra os erros para um relat\u00f3rio de problema. Mantenha desativado durante o uso normal.");
         table.put("Remove tracking from shared links",
                 "Remover o rastreamento dos links compartilhados");
+        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
+                "Remove cart\u00f5es verificados que sugerem contas para seguir. Publica\u00e7\u00f5es comuns e reposts permanecem.");
         table.put("Resume",
                 "Retomar");
         table.put("Retry",
                 "Tentar novamente");
+        table.put("Returning to Threads within ten minutes keeps your place. Pull to refresh still works.",
+                "Ao voltar ao Threads em at\u00e9 dez minutos, voc\u00ea continuar\u00e1 no ponto em que estava. O gesto de puxar para baixo para atualizar continuar\u00e1 funcionando.");
         table.put("Save full report",
                 "Salvar relat\u00f3rio completo");
         table.put("Save the full report in Download/Morphe.",
@@ -1301,6 +1399,9 @@ public final class L10nTranslations {
                 "Configura\u00e7\u00f5es importadas. %1$d op\u00e7\u00e3o foi alterada.");
         table.put("Settings imported. %1$d switches changed.",
                 "Configura\u00e7\u00f5es importadas. %1$d op\u00e7\u00f5es foram alteradas.");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Source code and issues",
                 "C\u00f3digo-fonte e relatos de problemas");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -1311,13 +1412,14 @@ public final class L10nTranslations {
                 "O que continua ativo na pausa");
         table.put("Stop analytics uploads",
                 "Parar o envio de dados de an\u00e1lise");
+        table.put("Suggested accounts in your feed",
+                "Contas sugeridas no seu feed");
         table.put("Supported links",
                 "Links compat\u00edveis");
-        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
-                "Remove dos links de publica\u00e7\u00f5es que voc\u00ea copia ou compartilha as tags de rastreamento, como xmt e slof. O resto do link continua como estava.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
+        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
+                "Remove dos links de publica\u00e7\u00f5es que voc\u00ea copia ou compartilha as tags de rastreamento, como xmt e slof. Um link curto de compartilhamento vira o link da pr\u00f3pria publica\u00e7\u00e3o.");
+        table.put("Tap to play videos",
+                "Tocar para reproduzir v\u00eddeos");
         table.put("Tap to turn it back on.",
                 "Toque para reativar.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -1368,8 +1470,8 @@ public final class L10nTranslations {
                 "O Threads fechou com erro ou travou no primeiro minuto ap\u00f3s iniciar, tr\u00eas vezes seguidas, ent\u00e3o o HushThreads foi pausado automaticamente.");
         table.put("Threads' web addresses are selected for this app in Android's settings, so their links open here.",
                 "Os endere\u00e7os web do Threads est\u00e3o selecionados para este app nas configura\u00e7\u00f5es do Android, ent\u00e3o os links deles abrem aqui.");
-        table.put("Tracking in shared links and analytics uploads",
-                "Rastreamento em links compartilhados e envio de dados de an\u00e1lise");
+        table.put("Tracking in links and analytics uploads",
+                "Rastreamento em links e envio de dados de an\u00e1lise");
         table.put("Try a different word or clear the search.",
                 "Tente outra palavra ou limpe a busca.");
         table.put("Try again, or go back to Threads.",
@@ -1384,6 +1486,16 @@ public final class L10nTranslations {
                 "Vers\u00e3o");
         table.put("Version %1$s for Threads %2$s",
                 "Vers\u00e3o %1$s para o Threads %2$s");
+        table.put("Videos in your feed",
+                "V\u00eddeos do seu feed");
+        table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
+                "Os v\u00eddeos do seu feed esperam um toque em vez de come\u00e7ar a tocar enquanto voc\u00ea rola a tela.");
+        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
+                "Links da web que voc\u00ea toca abrem no seu navegador padr\u00e3o, ou no app desse site, sem o rastreador de cliques do Threads. P\u00e1ginas do Threads, do Instagram e outras da Meta continuam abrindo no Threads.");
+        table.put("Where you left off in your feed",
+                "Onde voc\u00ea parou no seu feed");
+        table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
+                "Com a op\u00e7\u00e3o acima ativada, voc\u00ea continua no ponto em que estava, n\u00e3o importa quanto tempo fique fora. Puxar para atualizar e iniciar o Threads novamente continuam carregando novas publica\u00e7\u00f5es.");
         table.put("You have the newest HushThreads release.",
                 "Voc\u00ea j\u00e1 est\u00e1 usando a vers\u00e3o mais nova do HushThreads.");
         table.put("You paused HushThreads.",
@@ -1403,7 +1515,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(322);
+        Map<String, String> table = new HashMap<>(350);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1435,6 +1547,8 @@ public final class L10nTranslations {
                 "%2$s i\u00e7indeki %1$s adl\u0131 bir dosya HushThreads'u duraklatt\u0131.");
         table.put("About",
                 "Hakk\u0131nda");
+        table.put("Ads and suggested accounts in your feed",
+                "Ak\u0131\u015f\u0131n\u0131zdaki reklamlar ve \u00f6nerilen hesaplar");
         table.put("Advertising ID removed",
                 "Reklam kimli\u011fi kald\u0131r\u0131ld\u0131");
         table.put("Analytics address coverage",
@@ -1529,13 +1643,15 @@ public final class L10nTranslations {
                 "GitHub \u015fu an bu a\u011fdan gelen sorgular\u0131 geri \u00e7eviriyor. Daha sonra tekrar dene.");
         table.put("GitHub's answer couldn't be used. Try again later.",
                 "GitHub'\u0131n yan\u0131t\u0131 kullan\u0131lamad\u0131. Daha sonra tekrar dene.");
-        table.put("Go straight to one group of settings. Back returns to where you were.",
-                "Do\u011frudan bir ayar grubuna git. Geri, bulundu\u011fun yere d\u00f6nd\u00fcr\u00fcr.");
     }
 
     private static void fillTr1(Map<String, String> table) {
+        table.put("Go straight to one group of settings. Back returns to where you were.",
+                "Do\u011frudan bir ayar grubuna git. Geri, bulundu\u011fun yere d\u00f6nd\u00fcr\u00fcr.");
         table.put("Hide ads",
                 "Reklamlar\u0131 gizle");
+        table.put("Hide suggested users",
+                "\u00d6nerilen kullan\u0131c\u0131lar\u0131 gizle");
         table.put("HushThreads %1$s is out. Update it in Morphe Manager.",
                 "HushThreads %1$s \u00e7\u0131kt\u0131. Morphe Manager'da g\u00fcncelle.");
         table.put("HushThreads %1$s on Threads %2$s",
@@ -1564,6 +1680,8 @@ public final class L10nTranslations {
                 "Threads %1$s i\u00e7in haz\u0131rland\u0131.");
         table.put("Jump to a section",
                 "Bir b\u00f6l\u00fcme git");
+        table.put("Keep feed position on return",
+                "Geri d\u00f6n\u00fcnce ak\u0131\u015f konumunu koru");
         table.put("Licenses",
                 "Lisanslar");
         table.put("Links",
@@ -1578,12 +1696,16 @@ public final class L10nTranslations {
                 "Bu telefondaki hi\u00e7bir uygulama ba\u011flant\u0131y\u0131 a\u00e7am\u0131yor. Adres: %1$s.");
         table.put("No matching settings",
                 "E\u015fle\u015fen ayar yok");
+        table.put("No time limit",
+                "S\u00fcre s\u0131n\u0131r\u0131 yok");
         table.put("None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.",
                 "Threads'in web adreslerinden hi\u00e7biri bu uygulama i\u00e7in se\u00e7ili de\u011fil, bu y\u00fczden ba\u011flant\u0131lar\u0131 ba\u015fka yerde a\u00e7\u0131l\u0131r. Android ayarlar\u0131nda se\u00e7mek i\u00e7in dokunun.");
         table.put("OK",
                 "Tamam");
         table.put("Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.",
                 "Threads'in web adreslerinden yaln\u0131zca baz\u0131lar\u0131 bu uygulama i\u00e7in se\u00e7ili ve di\u011ferlerinin ba\u011flant\u0131lar\u0131 ba\u015fka yerde a\u00e7\u0131l\u0131r. Android ayarlar\u0131nda se\u00e7mek i\u00e7in dokunun.");
+        table.put("Open links in your browser",
+                "Ba\u011flant\u0131lar\u0131 taray\u0131c\u0131nda a\u00e7");
         table.put("Opening supported links is off for this app in Android's settings. Tap to turn it on.",
                 "\u201cDesteklenen ba\u011flant\u0131lar\u0131 a\u00e7\u201d Android ayarlar\u0131nda bu uygulama i\u00e7in kapal\u0131. A\u00e7mak i\u00e7in dokunun.");
         table.put("Patched: %1$s. Missing: %2$s.",
@@ -1604,10 +1726,14 @@ public final class L10nTranslations {
                 "Hata raporu i\u00e7in yama etkinli\u011fini kaydeder ve hatalar\u0131 g\u00f6sterir. Normal kullan\u0131mda kapal\u0131 b\u0131rak\u0131n.");
         table.put("Remove tracking from shared links",
                 "Payla\u015f\u0131lan ba\u011flant\u0131lardan izlemeyi kald\u0131r");
+        table.put("Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.",
+                "Takip edilecek hesaplar \u00f6neren do\u011frulanm\u0131\u015f kartlar\u0131 kald\u0131r\u0131r. Normal g\u00f6nderiler ve yeniden payla\u015f\u0131mlar kal\u0131r.");
         table.put("Resume",
                 "Devam et");
         table.put("Retry",
                 "Yeniden dene");
+        table.put("Returning to Threads within ten minutes keeps your place. Pull to refresh still works.",
+                "Threads'e on dakika i\u00e7inde d\u00f6nersen kald\u0131\u011f\u0131n yer korunur. Yenilemek i\u00e7in a\u015fa\u011f\u0131 \u00e7ekmeye devam edebilirsin.");
         table.put("Save full report",
                 "Tam raporu kaydet");
         table.put("Save the full report in Download/Morphe.",
@@ -1640,6 +1766,9 @@ public final class L10nTranslations {
                 "Ayarlar i\u00e7e aktar\u0131ld\u0131. %1$d anahtar de\u011fi\u015fti.");
         table.put("Settings imported. %1$d switches changed.",
                 "Ayarlar i\u00e7e aktar\u0131ld\u0131. %1$d anahtar de\u011fi\u015fti.");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Source code and issues",
                 "Kaynak kodu ve sorunlar");
         table.put("Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.",
@@ -1650,13 +1779,14 @@ public final class L10nTranslations {
                 "Duraklat\u0131lsa da devrede kal\u0131r");
         table.put("Stop analytics uploads",
                 "Analiz y\u00fcklemelerini durdur");
+        table.put("Suggested accounts in your feed",
+                "Ak\u0131\u015f\u0131n\u0131zdaki \u00f6nerilen hesaplar");
         table.put("Supported links",
                 "Desteklenen ba\u011flant\u0131lar");
-        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.",
-                "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n g\u00f6nderi ba\u011flant\u0131lar\u0131ndan xmt ve slof gibi izleme etiketlerini kald\u0131r\u0131r. Ba\u011flant\u0131n\u0131n geri kalan\u0131 oldu\u011fu gibi kal\u0131r.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
+        table.put("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.",
+                "Kopyalad\u0131\u011f\u0131n veya payla\u015ft\u0131\u011f\u0131n g\u00f6nderi ba\u011flant\u0131lar\u0131ndan xmt ve slof gibi izleme etiketlerini kald\u0131r\u0131r. K\u0131sa payla\u015f\u0131m ba\u011flant\u0131s\u0131, g\u00f6nderinin kendi ba\u011flant\u0131s\u0131na d\u00f6n\u00fc\u015f\u00fcr.");
+        table.put("Tap to play videos",
+                "Videolar\u0131 dokunarak oynat");
         table.put("Tap to turn it back on.",
                 "Yeniden a\u00e7mak i\u00e7in dokun.");
         table.put("That file is too large to be a settings file. Nothing was changed.",
@@ -1707,8 +1837,8 @@ public final class L10nTranslations {
                 "Threads a\u00e7\u0131ld\u0131ktan sonraki bir dakika i\u00e7inde \u00fcst \u00fcste \u00fc\u00e7 kez \u00e7\u00f6kt\u00fc veya dondu, bu y\u00fczden HushThreads kendini duraklatt\u0131.");
         table.put("Threads' web addresses are selected for this app in Android's settings, so their links open here.",
                 "Threads'in web adresleri Android ayarlar\u0131nda bu uygulama i\u00e7in se\u00e7ili, bu y\u00fczden ba\u011flant\u0131lar\u0131 burada a\u00e7\u0131l\u0131r.");
-        table.put("Tracking in shared links and analytics uploads",
-                "Payla\u015f\u0131lan ba\u011flant\u0131lardaki izleme ve analiz y\u00fcklemeleri");
+        table.put("Tracking in links and analytics uploads",
+                "Ba\u011flant\u0131lardaki izleme ve analiz y\u00fcklemeleri");
         table.put("Try a different word or clear the search.",
                 "Ba\u015fka bir kelime deneyin veya aramay\u0131 temizleyin.");
         table.put("Try again, or go back to Threads.",
@@ -1723,6 +1853,16 @@ public final class L10nTranslations {
                 "S\u00fcr\u00fcm");
         table.put("Version %1$s for Threads %2$s",
                 "Threads %2$s i\u00e7in %1$s s\u00fcr\u00fcm\u00fc");
+        table.put("Videos in your feed",
+                "Ak\u0131\u015ftaki videolar");
+        table.put("Videos in your feed wait for a tap instead of playing as you scroll.",
+                "Ak\u0131\u015ftaki videolar, kayd\u0131r\u0131rken kendili\u011finden oynamak yerine dokunman\u0131 bekler.");
+        table.put("Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.",
+                "Dokundu\u011fun web ba\u011flant\u0131lar\u0131, Threads'in t\u0131klama izleyicisi olmadan varsay\u0131lan taray\u0131c\u0131nda veya o sitenin uygulamas\u0131nda a\u00e7\u0131l\u0131r. Threads, Instagram ve di\u011fer Meta sayfalar\u0131 yine Threads'te a\u00e7\u0131l\u0131r.");
+        table.put("Where you left off in your feed",
+                "Ak\u0131\u015fta kald\u0131\u011f\u0131n yer");
+        table.put("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.",
+                "Yukar\u0131daki anahtar a\u00e7\u0131kken ne kadar uzun s\u00fcre uzakta kal\u0131rsan kal yerin korunur. Yenilemek i\u00e7in \u00e7ekmek ve uygulamay\u0131 yeniden ba\u015flatmak yine yeni g\u00f6nderileri y\u00fckler.");
         table.put("You have the newest HushThreads release.",
                 "En yeni HushThreads s\u00fcr\u00fcm\u00fcn\u00fc kullan\u0131yorsun.");
         table.put("You paused HushThreads.",

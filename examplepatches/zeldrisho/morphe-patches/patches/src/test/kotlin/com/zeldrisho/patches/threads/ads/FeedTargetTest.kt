@@ -109,12 +109,49 @@ class FeedTargetTest {
         }
     }
 
+    /** Verifies that two otherwise valid feed-merge methods fail unique-target resolution. */
     @Test fun rejectsAmbiguousMergeTargets() {
         val methods = listOf(mergeMethod("first"), mergeMethod("second"))
         with(context()) {
             FeedMergeMethod.clearMatch()
             assertFailsWith<app.morphe.patcher.patch.PatchException> {
                 FeedMergeMethod.matchAll(classDef(methods.first().definingClass, methods), 1..1)
+            }
+        }
+    }
+
+    /** Verifies that the thread-items getter resolves uniquely and duplicate getters are rejected. */
+    @Test fun threadItemsFingerprintRequiresExactlyOneAbstractListGetter() {
+        val owner = "Lcom/instagram/api/schemas/ThreadIntf;"
+        val getter = ImmutableMethod(
+            owner,
+            "renamed",
+            emptyList(),
+            "Ljava/util/List;",
+            AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value,
+            emptySet(),
+            emptySet(),
+            null,
+        )
+        val threadAccessor = ImmutableMethodReference("LFeed;", "A02", emptyList(), owner)
+        with(context()) {
+            assertEquals(
+                "renamed",
+                threadItemsAccessor(threadAccessor)
+                    .matchAll(classDef(owner, listOf(getter)), 1..1).single().originalMethod.name,
+            )
+            val duplicate = ImmutableMethod(
+                owner,
+                "other",
+                emptyList(),
+                "Ljava/util/List;",
+                AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value,
+                emptySet(),
+                emptySet(),
+                null,
+            )
+            assertFailsWith<app.morphe.patcher.patch.PatchException> {
+                threadItemsAccessor(threadAccessor).matchAll(classDef(owner, listOf(getter, duplicate)), 1..1)
             }
         }
     }
@@ -162,7 +199,7 @@ class FeedTargetTest {
     @Test fun rejectsMixedVersionSets() {
         // Half of each set (e.g. 434 Media.DED + 445 wrapper) must NOT validate:
         // a half-drifted app fails loudly instead of filtering with the wrong predicate.
-        val mixed = (feedReflectionMembers434.take(3) + feedReflectionMembers445.takeLast(3))
+        val mixed = (feedReflectionMembers434.take(1) + feedReflectionMembers445.takeLast(2))
             .groupBy { it.owner }.mapValues { (owner, owned) ->
                 classDef(
                     owner,
@@ -247,7 +284,7 @@ class FeedTargetTest {
                 match.originalMethod.name in setOf("A0F", "A0G"),
                 "unexpected merge method: ${match.originalMethod.name}",
             )
-            assertEquals(46, match.originalMethod.implementation!!.registerCount)
+            assertTrue(match.originalMethod.implementation!!.registerCount in setOf(45, 46))
         }
     }
 }

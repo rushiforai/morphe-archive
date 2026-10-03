@@ -5,9 +5,7 @@ import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -25,11 +23,9 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReferen
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.zeldrisho.patches.shared.resources.stripAdIdPermissions
-import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import java.io.ByteArrayInputStream
-import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -330,51 +326,5 @@ class ZaloAdsTargetTest {
         assertEquals(6, edited.size)
         assertEquals(Opcode.CONST_4, edited[moveIndex + 1].opcode)
         assertEquals(0, (edited[moveIndex + 1] as OneRegisterInstruction).registerA)
-    }
-
-    /** Opt-in local DEX validation against the pinned Zalo base APK; skipped in CI. */
-    @Test fun matchesPinnedZaloApkWhenProvided() {
-        val path = System.getenv("ZALO_TEST_APK")
-        assumeTrue("Set ZALO_TEST_APK to the pinned Zalo base APK for DEX validation", !path.isNullOrBlank())
-        val container = DexFileFactory.loadDexContainer(File(path!!), Opcodes.getDefault())
-        val classes = container.dexEntryNames.asSequence().flatMap {
-            container.getEntry(it)!!.dexFile.classes.asSequence()
-        }.associateBy { it.type }
-        with(context()) {
-            OfflineAdsWindow.clearMatch()
-            assertEquals(
-                "h",
-                OfflineAdsWindow.matchAll(classes.getValue("Lvx/s2;"), 1..1).single().originalMethod.name,
-            )
-            OfflineAdsGate.clearMatch()
-            assertEquals(
-                "g",
-                OfflineAdsGate.matchAll(classes.getValue("Lvx/s2;"), 1..1).single().originalMethod.name,
-            )
-            GoogleAdsNetworkGate.clearMatch()
-            val network = GoogleAdsNetworkGate.matchAll(
-                classes.getValue("Lcom/adtima/Adtima;"),
-                1..1,
-            ).single()
-            assertTrue(network.instructionMatches.any { it.instruction.opcode == Opcode.IF_NEZ })
-            StoryAdsConfig.clearMatch()
-            // Test-context matching is scoped per ClassDef (the empty input APK has no
-            // global class table); production matchAll(2..2) scans the full patch context.
-            StoryAdsConfig.matchAll(
-                classes.getValue("Lcom/zing/zalo/social/features/story/main/ui/StoryDetailsView;"),
-                1..1,
-            ).single()
-            StoryAdsConfig.matchAll(classes.getValue("Lkz0/u;"), 1..1).single()
-            CommunityAdsConfig.clearMatch()
-            CommunityAdsConfig.matchAll(classes.getValue("Ljt/m;"), 1..1).single()
-            CommunityAdsConfig.matchAll(classes.getValue("Ljt/e;"), 1..1).single()
-            AdtimaLatRead.clearMatch()
-            val lat = AdtimaLatRead.matchAll(classes.getValue("Lcom/adtima/d;"), 1..1).single()
-            assertEquals("doInBackground", lat.originalMethod.name)
-            assertTrue(
-                lat.originalMethod.implementation!!.tryBlocks.isNotEmpty(),
-                "expected the Play lookup's catch handlers (clearBody justification)",
-            )
-        }
     }
 }

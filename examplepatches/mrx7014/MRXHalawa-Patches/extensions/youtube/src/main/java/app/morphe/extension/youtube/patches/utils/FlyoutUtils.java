@@ -136,6 +136,7 @@ public final class FlyoutUtils {
             ResourceUtils.getDrawable("yt_outline_flag");
 
     private static WeakReference<TextView> customItemTextRef = new WeakReference<>(null);
+    private static WeakReference<View> blockChannelButtonRef = new WeakReference<>(null);
 
     private static String currentButtonName = "";
     private static int currentButtonIndex;
@@ -265,6 +266,7 @@ public final class FlyoutUtils {
     public static void dismissFlyout() {
         visibleFlyoutButtons.clear();
         currentButtonIndex = 0;
+        blockChannelButtonRef = new WeakReference<>(null);
 
         if (flyoutDialog != null) {
             flyoutDialog.dismiss();
@@ -282,7 +284,8 @@ public final class FlyoutUtils {
 
         String channelId = ChannelPageFlyoutFilter.getFlyoutChannelId();
         String channelHandle = ChannelPageFlyoutFilter.getFlyoutHandle();
-        if (Settings.BLOCK_CHANNELS.get() && !channelId.isEmpty()) {
+        if (Settings.BLOCK_CHANNELS.get() && !channelId.isEmpty()
+                && !containsNativeHideUserItem(flyoutPanel)) {
             nextButtonIndex = addFlyoutButton(
                     flyoutPanel,
                     blockChannelButtonDrawable,
@@ -387,10 +390,68 @@ public final class FlyoutUtils {
             }
 
             copyListItemTypeface(itemList);
+            renameNativeHideUserItem(itemList);
             hideItemSecondaryIcon(itemList);
         } catch (Exception ex) {
             Logger.printException(() -> "onFlyoutListBound failure", ex);
         }
+    }
+
+    private static boolean containsNativeHideUserItem(Object flyoutPanel) {
+        FlyoutMenuInfo menuInfo = getFlyoutMenuInfo(flyoutPanel, 0);
+        if (menuInfo == null || ITEM_TEXT_ID == 0) {
+            return false;
+        }
+
+        LinearLayout menuContainer = menuInfo.menuContainer();
+        int childCount = menuContainer.getChildCount();
+        if (childCount == 0 || !(menuContainer.getChildAt(childCount - 1) instanceof ViewGroup itemList)) {
+            return false;
+        }
+
+        for (int i = 0; i < itemList.getChildCount(); i++) {
+            View item = itemList.getChildAt(i);
+            if (item.findViewById(ITEM_TEXT_ID) instanceof TextView itemText
+                    && isNativeHideUserLabel(itemText.getText())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void renameNativeHideUserItem(ViewGroup itemList) {
+        if (!Settings.BLOCK_CHANNELS.get()
+                || ChannelPageFlyoutFilter.getFlyoutChannelId().isEmpty()
+                || ITEM_TEXT_ID == 0) {
+            return;
+        }
+
+        boolean renamedNativeItem = false;
+        for (int i = 0; i < itemList.getChildCount(); i++) {
+            View item = itemList.getChildAt(i);
+            if (item.findViewById(ITEM_TEXT_ID) instanceof TextView itemText
+                    && isNativeHideUserLabel(itemText.getText())) {
+                itemText.setText(blockChannelButtonName);
+                renamedNativeItem = true;
+                Logger.printDebug(() -> "Renamed native Hide user flyout item to Block this channel");
+            }
+        }
+
+        if (renamedNativeItem) {
+            View customButton = blockChannelButtonRef.get();
+            if (customButton != null && customButton.getParent() instanceof ViewGroup parent) {
+                parent.removeView(customButton);
+            }
+            blockChannelButtonRef = new WeakReference<>(null);
+        }
+    }
+
+    private static boolean isNativeHideUserLabel(CharSequence label) {
+        if (label == null) {
+            return false;
+        }
+        String normalized = label.toString().trim().toLowerCase(Locale.ROOT);
+        return normalized.equals("hide user") || normalized.equals("hide user from my channel");
     }
 
     /**
@@ -491,6 +552,9 @@ public final class FlyoutUtils {
             View view = isDivider
                     ? createFlyoutDivider(context)
                     : addFlyoutButton(context, menuInfo.menuContainer(), icon, text, clickListener);
+            if (!isDivider && blockChannelButtonName.equals(text)) {
+                blockChannelButtonRef = new WeakReference<>(view);
+            }
 
             int fixedIndex = menuInfo.adjustedIndex();
             menuInfo.menuContainer().addView(view, fixedIndex);

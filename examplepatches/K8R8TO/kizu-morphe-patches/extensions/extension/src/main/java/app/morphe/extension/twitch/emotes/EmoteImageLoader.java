@@ -72,13 +72,21 @@ final class EmoteImageLoader {
         if (data == null) {
             return null;
         }
-        if (data.drawableState != null) {
-            Drawable drawable = data.drawableState.newDrawable(resources);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
-                    drawable instanceof android.graphics.drawable.AnimatedImageDrawable) {
-                ((android.graphics.drawable.AnimatedImageDrawable) drawable).start();
+        if (data.animatedBytes != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                Drawable drawable = ImageDecoder.decodeDrawable(
+                        ImageDecoder.createSource(ByteBuffer.wrap(data.animatedBytes))
+                );
+                if (drawable instanceof android.graphics.drawable.AnimatedImageDrawable) {
+                    android.graphics.drawable.AnimatedImageDrawable animated =
+                            (android.graphics.drawable.AnimatedImageDrawable) drawable;
+                    animated.setRepeatCount(android.graphics.drawable.AnimatedImageDrawable.REPEAT_INFINITE);
+                    animated.start();
+                }
+                return drawable;
+            } catch (Throwable ignored) {
+                return null;
             }
-            return drawable;
         }
         return data.bitmap == null ? null : new BitmapDrawable(resources, data.bitmap);
     }
@@ -113,14 +121,14 @@ final class EmoteImageLoader {
             ImageData data = null;
             if (cached != null) {
                 try {
-                    data = decode(cached, emote.animated, targetDimension);
+                    data = decode(cached, shouldDecodeAsDrawable(emote), targetDimension);
                 } catch (Exception ignored) {
                     deleteCache(cache);
                 }
             }
             if (data == null) {
                 byte[] downloaded = download(emote.url);
-                data = decode(downloaded, emote.animated, targetDimension);
+                data = decode(downloaded, shouldDecodeAsDrawable(emote), targetDimension);
                 writeCache(directory, cache, downloaded);
             }
             memory.put(emote.url, data);
@@ -136,6 +144,14 @@ final class EmoteImageLoader {
         }
     }
 
+    private static boolean shouldDecodeAsDrawable(Emote emote) {
+        String url = emote.url == null ? "" : emote.url.toLowerCase(java.util.Locale.ROOT);
+        // 7TV serves both static and animated emotes as WebP. Do not trust only the API's
+        // animated flag: let ImageDecoder inspect the actual WebP container so an animated
+        // WebP cannot be flattened into a single bitmap.
+        return emote.animated || url.endsWith(".webp") || url.contains(".webp?");
+    }
+
     private static ImageData decode(byte[] bytes, boolean animated, int targetDimension)
             throws IOException {
         if (animated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -148,13 +164,10 @@ final class EmoteImageLoader {
             } catch (IllegalArgumentException failure) {
                 throw new IOException("Invalid animated emote dimensions", failure);
             }
-            Drawable.ConstantState state = decoded.getConstantState();
-            if (state != null) {
-                int width = Math.max(1, decoded.getIntrinsicWidth());
-                int height = Math.max(1, decoded.getIntrinsicHeight());
-                long estimate = (long) width * height * 4L * 4L;
-                return new ImageData(null, state, saturatedInt(estimate));
-            }
+            // Do not require ConstantState here. AnimatedImageDrawable can be a valid,
+            // fully animated Drawable even when its ConstantState is unavailable. Requiring
+            // ConstantState silently flattened those animated WebP assets into a Bitmap.
+            return new ImageData(null, bytes, Math.min(MAX_IMAGE_BYTES, saturatedInt(bytes.length)));
         }
 
         Bitmap bitmap = decodeBitmap(bytes, targetDimension);
@@ -367,12 +380,12 @@ final class EmoteImageLoader {
 
     private static final class ImageData {
         final Bitmap bitmap;
-        final Drawable.ConstantState drawableState;
+        final byte[] animatedBytes;
         final int costBytes;
 
-        ImageData(Bitmap bitmap, Drawable.ConstantState drawableState, int costBytes) {
+        ImageData(Bitmap bitmap, byte[] animatedBytes, int costBytes) {
             this.bitmap = bitmap;
-            this.drawableState = drawableState;
+            this.animatedBytes = animatedBytes;
             this.costBytes = costBytes;
         }
     }

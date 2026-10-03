@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.14 — 2026-10-03
+
+Authenticated Clips ad-path fix:
+
+- identified full-screen install/try-now ads embedded as ordinary `SdkVideoFile` entries carrying `SdkVideoAdInfo` or ORD metadata;
+- reject those video entries in the nullable per-item Clips SDK mapper before they become rendered `FeedItem` objects;
+- keep the verified safe mapper boundary and avoid mutating the shared raw API response;
+- passed authenticated Android 15 runtime validation: 24 automated Clips positions plus manual Clips and ordinary-video playback contained no observed ads or crashes.
+
 ## 0.2.13 — 2026-10-02
 
 Runtime correction after real-account validation of 1.164.4:

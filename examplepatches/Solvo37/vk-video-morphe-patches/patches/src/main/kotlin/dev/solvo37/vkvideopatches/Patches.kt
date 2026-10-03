@@ -414,6 +414,21 @@ val filterClipSdkAdsPatch = bytecodePatch(
     compatibleWith(VK_VIDEO)
 
     execute {
+        ClipSdkAdVideoMapperFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static {p1}, Lzz0/c;->f(Lcom/vk/clips/sdk/shared/api/deps/video/SdkVideoFile;)Z
+                    move-result v0
+                    if-eqz v0, :original
+
+                    const/4 v0, 0x0
+                    return-object v0
+                """,
+                ExternalLabel("original", getInstruction(0))
+            )
+        }
+
         ClipSdkIntermediateListFingerprint.method.apply {
             check(implementation!!.registerCount >= 7) {
                 "Clips SDK list mapper has insufficient local registers"

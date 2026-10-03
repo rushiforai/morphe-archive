@@ -164,7 +164,8 @@ public class PatchFamilyTest {
                 "Hide ads: on (hushthreads_hide_ads=on)",
                 "Sanitize sharing links: disabled by its switch (hushthreads_sanitize_sharing_links=off)",
                 "Remove the advertising ID: no switch, stays in while paused: the removed advertising ID permission",
-                "not in this build: Disable analytics, Restore screens on re-signed builds"),
+                "not in this build: Hide suggested users, Block background-return feed refresh, Disable video autoplay, Open links in browser, Disable analytics, "
+                        + "Restore screens on re-signed builds"),
                 running);
         assertEquals("Restore screens on re-signed builds: no switch, stays in while paused: the re-signed build fix",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.RESTORE_TRUST), false).get(0));

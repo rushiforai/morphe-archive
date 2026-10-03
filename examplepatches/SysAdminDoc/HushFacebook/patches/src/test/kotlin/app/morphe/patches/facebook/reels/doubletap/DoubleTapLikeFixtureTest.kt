@@ -162,7 +162,8 @@ class DoubleTapLikeFixtureTest {
                 for (listener in listeners) {
                     val code = listener.code()
                     val send = code.indexOfLast { it.call?.let(::key) == key(like) }
-                    val source = code[send].registers().last()
+                    // The helper first, then the like's arguments in order.
+                    val source = code[send].registers()[1 + likeSource(like)!!]
                     val loaded = code.subList(0, send).last {
                         it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == source
                     }
@@ -204,7 +205,7 @@ class DoubleTapLikeFixtureTest {
                 val copy = like[0] as TwoRegisterInstruction
                 assertEquals("$name: the like doesn't copy its source first", Opcode.MOVE_OBJECT_FROM16, like[0].opcode)
                 assertEquals("$name: the source the like asks about",
-                    build.like.localRegisterCount() + build.like.parameterTypes.size, copy.registerB)
+                    build.like.localRegisterCount() + 1 + likeSource(build.like)!!, copy.registerB)
                 assertEquals("$name: the like doesn't return while held back", Opcode.RETURN_VOID, like[4].opcode)
 
                 // The double-tap like: the key through the extension, then Facebook's own null check.

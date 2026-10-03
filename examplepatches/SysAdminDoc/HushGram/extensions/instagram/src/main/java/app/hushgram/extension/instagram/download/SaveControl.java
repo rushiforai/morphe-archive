@@ -29,6 +29,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import app.hushgram.extension.shared.L10n;
+import app.hushgram.extension.shared.Utils;
 
 /**
  * A running save as the person saving sees it: a notification that shows how far it has got and
@@ -46,7 +47,8 @@ import app.hushgram.extension.shared.L10n;
  * <p>With Instagram's notifications off, or this channel switched off, a save shows a toast at each
  * end and no notification, and the first toast says where to cancel it. HushGram's settings are
  * to list every running save under Downloads, with what it's doing and a Cancel of its own
- * ({@link #running}, {@link #watch}), so a save can be stopped either way. Nothing of a save outlives it there: no address, no name, no history.
+ * ({@link #running}, {@link #watch}), so a save can be stopped either way. The latest carousel's
+ * counts stay in memory for the settings to show in full. No media identity or address is kept.
  */
 public final class SaveControl {
 
@@ -68,6 +70,7 @@ public final class SaveControl {
     private static final AtomicInteger NEXT_ID = new AtomicInteger(1);
     private static final Map<Integer, Save> RUNNING = new ConcurrentHashMap<>();
     private static final Set<Watcher> WATCHERS = new CopyOnWriteArraySet<>();
+    private static volatile MediaSave.BatchResult lastBatch;
 
     /** What a running save is doing. */
     public enum Phase { DOWNLOADING, JOINING, SAVING }
@@ -88,6 +91,17 @@ public final class SaveControl {
         WATCHERS.remove(watcher);
     }
 
+    /** The latest carousel's counts in this process, cleared when another batch is admitted. */
+    public static String batchOutcome() {
+        MediaSave.BatchResult result = lastBatch;
+        return result == null ? null : result.message(Utils.getContext());
+    }
+
+    static void batchFinished(MediaSave.BatchResult result) {
+        lastBatch = result;
+        tell();
+    }
+
     static void tell() {
         for (Watcher watcher : WATCHERS) {
             try {
@@ -105,6 +119,9 @@ public final class SaveControl {
         public final Phase phase;
         public final long done;
         public final long total;
+        /** Zero for an individual save, otherwise the bounded carousel's page count. */
+        public final int batchPages;
+        public final int batchPage;
 
         Running(Save save) {
             id = save.id;
@@ -112,6 +129,8 @@ public final class SaveControl {
             phase = save.phase;
             done = save.done;
             total = save.total;
+            batchPages = save.batchPages;
+            batchPage = save.batchPage;
         }
     }
 
@@ -137,15 +156,33 @@ public final class SaveControl {
                 phase = L10n.t("Downloading");
         }
         String progress = save.phase == Phase.DOWNLOADING ? progressText(save.done, save.total) : null;
-        return progress == null ? phase : phase + "\n" + progress;
+        String text = progress == null ? phase : phase + "\n" + progress;
+        return save.batchPages == 0 ? text
+                : L10n.f("Page %1$d of %2$d", save.batchPage, save.batchPages) + "\n" + text;
+    }
+
+    /** The stable kind of the logical save, even when a carousel moves between photos and videos. */
+    public static String title(Running save) {
+        return save.batchPages > 0 ? L10n.t("Saving a carousel")
+                : save.video ? L10n.t("Saving a video") : L10n.t("Saving a photo");
+    }
+
+    public static String cancelDescription(Running save) {
+        return save.batchPages > 0 ? L10n.t("Cancel saving this carousel")
+                : save.video ? L10n.t("Cancel saving this video") : L10n.t("Cancel saving this photo");
     }
     /** The application the receiver is registered on: one per process, and one per test. */
     private static Context listeningOn;
 
     /** Starts watching a save, and shows its notification when one can be shown. Never throws. */
     static Save begin(Context application, boolean video) {
+        return begin(application, video, 0);
+    }
+
+    static Save begin(Context application, boolean video, int pages) {
         NotificationManager manager = notifications(application);
-        Save save = new Save(application, NEXT_ID.getAndIncrement(), video, manager);
+        Save save = new Save(application, NEXT_ID.getAndIncrement(), video, pages, manager);
+        if (pages > 0) lastBatch = null;
         RUNNING.put(save.id, save);
         if (save.manager != null) listen(application);
         save.show(-1, 0, -1);
@@ -271,7 +308,9 @@ public final class SaveControl {
         final int id;
         final NotificationManager manager;
         private final Context application;
-        private final boolean video;
+        private volatile boolean video;
+        private final int batchPages;
+        private volatile int batchPage;
         private final PendingIntent cancel;
 
         private volatile boolean cancelled;
@@ -288,9 +327,15 @@ public final class SaveControl {
         private boolean ended;
 
         Save(Context application, int id, boolean video, NotificationManager manager) {
+            this(application, id, video, 0, manager);
+        }
+
+        Save(Context application, int id, boolean video, int pages, NotificationManager manager) {
             this.application = application;
             this.id = id;
             this.video = video;
+            batchPages = pages;
+            batchPage = pages == 0 ? 0 : 1;
             PendingIntent button = null;
             if (manager != null) {
                 try {
@@ -303,6 +348,18 @@ public final class SaveControl {
             }
             this.cancel = button;
             this.manager = button == null ? null : manager;
+        }
+
+        /** The next page keeps the same Cancel identity, with fresh phase and byte progress. */
+        void page(int number, boolean video) {
+            batchPage = number;
+            this.video = video;
+            phase = Phase.DOWNLOADING;
+            done = 0;
+            total = -1;
+            closeReading = null;
+            tell();
+            show(-1, 0, -1);
         }
 
         @Override
@@ -339,12 +396,14 @@ public final class SaveControl {
         public void joining() {
             phase = Phase.JOINING;
             tell();
+            show(-1, 0, -1);
         }
 
         @Override
         public void saving() {
             phase = Phase.SAVING;
             tell();
+            show(-1, 0, -1);
         }
 
         /**
@@ -386,7 +445,7 @@ public final class SaveControl {
             try {
                 Notification.Builder builder = new Notification.Builder(application, CHANNEL)
                     .setSmallIcon(android.R.drawable.stat_sys_download)
-                    .setContentTitle(video
+                    .setContentTitle(batchPages > 0 ? L10n.t(application, "Saving a carousel") : video
                         ? L10n.t(application, "Saving a video")
                         : L10n.t(application, "Saving a photo"))
                     .setOngoing(true)
@@ -397,7 +456,7 @@ public final class SaveControl {
                     // The catalog's Cancel, in the language of the title above it.
                     .addAction(new Notification.Action.Builder((Icon) null,
                         L10n.t(application, "Cancel"), cancel).build());
-                String text = progressText(done, total);
+                String text = batchPages > 0 ? status(new Running(this)) : progressText(done, total);
                 if (text != null) builder.setContentText(text);
                 manager.notify(TAG, id, builder.build());
             } catch (Throwable t) {

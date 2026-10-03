@@ -78,10 +78,15 @@ private const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
  * reel resumes it only when Instagram knows you paused it, so the Reels tap's decision goes past the
  * extension too, which sends a tap on a reel that isn't playing down the resume path ([hookReelTap]).
  * The story player resumes on the release of a press and hold only a story that played before the
- * press, so the flag its resume checks goes past the extension as well ([hookStoryRelease]).
+ * press, so the flag its resume checks goes past the extension as well ([hookStoryRelease]). When
+ * Instagram's own auto scroll in Reels moves on to the next reel, the move tells the extension just
+ * before the pager moves, and the extension counts it as a tap on the reel it moves to, so auto scroll
+ * carries on reel after reel instead of stopping at the first reel the gate held ([hookAutoScroll]).
  *
  * Everything is found before anything changes, so a build that differs stops the patch naming
- * what it couldn't find, and nothing is half done.
+ * what it couldn't find, and nothing is half done. The one exception is a build with no auto
+ * scroller marker at all, which gets every other hook and a warning in the patch log
+ * ([findAutoScroll] says why).
  */
 @Suppress("unused")
 val tapToPlayPatch = bytecodePatch(
@@ -121,6 +126,7 @@ internal fun BytecodePatchContext.holdStartsWithoutATap() {
     val hooks = findPlayerHooks()
     val reelTap = findReelTap()
     val storyRelease = findStoryRelease(hooks.prepare.definingClass)
+    val autoScroll = findAutoScroll()
 
     mutable(hooks.playInternal).apply {
         requireLocals(PATCH, 1)
@@ -179,6 +185,7 @@ internal fun BytecodePatchContext.holdStartsWithoutATap() {
     )
     hookReelTap(reelTap)
     hookStoryRelease(storyRelease)
+    autoScroll?.let { hookAutoScroll(it) }
 }
 
 /**

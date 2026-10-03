@@ -72,6 +72,8 @@ param(
     [string]$PatchedApk,
     [switch]$FromDevice,
     [string]$Serial,
+    [string]$ExpectedModel = $env:HUSHGRAM_EXPECTED_DEVICE_MODEL,
+    [string]$ExpectedAvd = $env:HUSHGRAM_EXPECTED_AVD,
     [string]$Adb,
     [string]$ReportPath,
     [string]$Java,
@@ -142,15 +144,21 @@ $reportInWork = -not $ReportPath
 if ($reportInWork) { $ReportPath = Join-Path $work 'injected-registers.txt' }
 $failed = $false
 $completed = $false
+$deviceLease = $null
 try {
 
 $adbPath = $null
-if ($FromDevice -or $Serial) { $adbPath = Resolve-Adb -Explicit $Adb }
+if ($FromDevice -or $Serial) {
+    $adbPath = Resolve-Adb -Explicit $Adb
+    $deviceLease = Enter-HushgramDeviceLease -Serial $Serial -ExpectedModel $ExpectedModel -ExpectedAvd $ExpectedAvd
+    Confirm-HushgramDevice -Adb $adbPath -DeviceLease $deviceLease
+}
 
 if ($FromDevice) {
     if (-not $Serial) { throw '-FromDevice needs -Serial so it cannot pull from somebody else''s phone.' }
-    $paths = @(& $adbPath -s $Serial shell pm path com.instagram.android 2>&1 |
-        ForEach-Object { "$_" } | Where-Object { $_ -match '^package:' })
+    $listing = Invoke-HushgramAdbCommand -Adb $adbPath -Arguments @('-s', $Serial, 'shell', 'pm', 'path', 'com.instagram.android') -DeviceLease $deviceLease
+    if ($listing.ExitCode -ne 0) { throw 'Could not inspect the installed package.' }
+    $paths = @($listing.Output | Where-Object { $_ -match '^package:' })
     if ($paths.Count -eq 0) { throw "Instagram is not installed on $Serial." }
     if ($paths.Count -ne 1) {
         # A split install has no single APK to compare, and quietly taking the first would
@@ -160,8 +168,8 @@ if ($FromDevice) {
     $onDevice = ($paths[0] -replace '^package:', '').Trim()
     $PatchedApk = Join-Path $work 'patched-installed.apk'
     Write-Host "[registers] pulling $onDevice"
-    & $adbPath -s $Serial pull $onDevice $PatchedApk | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw "Could not pull the installed APK from $Serial." }
+    $pull = Invoke-HushgramAdbCommand -Adb $adbPath -Arguments @('-s', $Serial, 'pull', $onDevice, $PatchedApk) -DeviceLease $deviceLease
+    if ($pull.ExitCode -ne 0) { throw "Could not pull the installed APK from $Serial." }
 }
 
 if (-not $PatchedApk -or -not (Test-Path -LiteralPath $PatchedApk -PathType Leaf)) {
@@ -230,9 +238,9 @@ if ($diff.ExitCode -ne 0) {
 if ($Serial) {
     Write-Host "[registers] running the device verifier on $Serial"
     $cleanTally = Invoke-AndroidVerifierTally -Adb $adbPath -Serial $Serial `
-        -Local $cleanBase -Label 'clean'
+        -Local $cleanBase -Label 'clean' -DeviceLease $deviceLease
     $patchedTally = Invoke-AndroidVerifierTally -Adb $adbPath -Serial $Serial `
-        -Local $PatchedApk -Label 'patched'
+        -Local $PatchedApk -Label 'patched' -DeviceLease $deviceLease
     $comparison = Compare-VerifierTallies -Clean $cleanTally -Patched $patchedTally
     Write-Host "[registers] verifier messages: clean $($comparison.CleanTotal), patched $($comparison.PatchedTotal)"
 
@@ -261,6 +269,10 @@ if ($Serial) {
 
 $completed = $true
 } finally {
+    if ($deviceLease) {
+        try { Exit-HushgramDeviceLease $deviceLease }
+        catch { $failed = $true; Write-Warning "Device lease release failed: $($_.Exception.Message)" }
+    }
     $keepReport = $reportInWork -and ($failed -or -not $completed) -and
         (Test-Path -LiteralPath $ReportPath -PathType Leaf)
     if ($keepReport) {

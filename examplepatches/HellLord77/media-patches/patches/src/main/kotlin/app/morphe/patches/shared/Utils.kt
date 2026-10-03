@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.util.ResourceGroup
 import app.morphe.util.p0Register
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import org.w3c.dom.Node
 import java.io.ByteArrayInputStream
@@ -16,6 +17,12 @@ fun requireArch(vararg arches: ApkArchitecture) = AvailabilityResolver { _, arch
 }
 
 val requireArm = requireArch(ApkArchitecture.ARM64_V8A, ApkArchitecture.ARMEABI_V7A)
+
+fun isNotExtension(@Suppress("UNUSED_PARAMETER") method: Method, classDef: ClassDef): Boolean {
+    return classDef.isNotExtension()
+}
+
+fun Boolean.toInt() = if (this) 1 else 0
 
 fun Method.getRegisterName(register: Int): String {
     val firstParameterRegister = if (implementation != null) p0Register else 0
@@ -35,6 +42,10 @@ fun Node.getNode(tagName: String): Node {
         }
     }
     throw IllegalStateException()
+}
+
+fun ClassDef.isNotExtension(): Boolean {
+    return !startsWith("Lapp/morphe/extension/")
 }
 
 fun ResourcePatchContext.writeResources(

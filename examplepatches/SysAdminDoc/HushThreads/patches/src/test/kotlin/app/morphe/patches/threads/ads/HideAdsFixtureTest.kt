@@ -9,6 +9,7 @@ import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
@@ -36,6 +37,11 @@ import org.junit.Test
  */
 class HideAdsFixtureTest {
     private val feedAds = "$EXTENSION_PACKAGE/ads/FeedAds;"
+
+    private fun applyAds(context: BytecodePatchContext) {
+        feedPageFilterPatch.execute(context)
+        hideAdsPatch.execute(context)
+    }
 
     @Test
     fun `each declared build has one feed merge and one injected check, and the patch hooks both`() {
@@ -70,7 +76,7 @@ class HideAdsFixtureTest {
             assertEquals("$where: Media's own methods that ask the injected check", 1, askers.size)
 
             val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
-            hideAdsPatch.execute(context)
+            applyAds(context)
 
             val patched = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
             val head = patched.instructions()
@@ -123,7 +129,7 @@ class HideAdsFixtureTest {
                     invoke-virtual { v0 }, ${getter.definingClass}->decoyPost()$MEDIA
                 """,
             )
-            val error = assertThrows(PatchException::class.java) { hideAdsPatch.execute(context) }
+            val error = assertThrows(PatchException::class.java) { applyAds(context) }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("decoyPost"))
         }
     }
@@ -146,9 +152,36 @@ class HideAdsFixtureTest {
                 val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
                 val mutable = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
                 mutable.addInstructions(0, "check-cast v0, ${getter.definingClass}\n$code")
-                hideAdsPatch.execute(context)
+                applyAds(context)
                 val stub = context.mutableClassDefBy(feedAds).methods.single { it.name == "itemMedia" }.instructions()
                 assertEquals("the actual no-argument getter is used", getter.toString(), stub.single { it.opcode == Opcode.INVOKE_VIRTUAL }.referenceText())
+            }
+        }
+    }
+
+    @Test
+    fun `discarding the injected result or bypassing it rejects the Media predicate`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val injected = FixtureDex.methodsWhere(build, { true }) { it.isInjectedCheck() }.single()
+            val classes = FixtureDex.classes(build, setOf(FEED_CACHE, MEDIA, injected.definingClass))
+            val merge = classes.getValue(FEED_CACHE).methods.single { it.isFeedMerge() }
+            val getter = merge.instructions().mapNotNull { it.mediaGetter() }.distinct().single()
+            val item = FixtureDex.classes(build, setOf(getter.definingClass)).getValue(getter.definingClass)
+            val predicate = classes.getValue(MEDIA).methods.single { method ->
+                method.returnType == "Z" && method.parameterTypes.isEmpty() &&
+                    !AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.instructions().any { it.calls(injected.definingClass, injected.name) }
+            }
+            for (bypass in listOf(false, true)) {
+                FeedPageMergeFingerprint.clearMatch()
+                InjectedAdCheckFingerprint.clearMatch()
+                val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
+                val mutable = context.mutableClassDefBy(MEDIA).methods.single { it.sameSignatureAs(predicate) }
+                val result = (predicate.instructions().last() as OneRegisterInstruction).registerA
+                if (bypass) mutable.addInstructions(0, "const/4 v$result, 0x0\nreturn v$result")
+                else mutable.addInstructions(predicate.instructions().lastIndex, "const/4 v$result, 0x0")
+                val error = assertThrows(PatchException::class.java) { applyAds(context) }
+                assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("directly returns"))
             }
         }
     }

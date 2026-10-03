@@ -8,12 +8,18 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class VerifyThemeDexTest {
-    enum Change { NONE, MISSING, REGISTER, RESULT, COLOR, DUPLICATE }
+    enum Change { NONE, MISSING, REGISTER, RESULT, COLOR, UNHOOKED_DUPLICATE, HOOKED_DUPLICATE }
 
     @Test void acceptsEveryHook() { VerifyThemeDex.verify(palette(Change.NONE), true); }
 
+    /** R8 can load one stock constant at several sites; each site carries its own hook. */
+    @Test void acceptsARepeatedConstantHookedAtEverySite() {
+        VerifyThemeDex.verify(palette(Change.HOOKED_DUPLICATE), true);
+    }
+
     @Test void rejectsBrokenHooks() {
-        for (var change : Change.values()) if (change != Change.NONE) {
+        for (var change : Change.values()) {
+            if (change == Change.NONE || change == Change.HOOKED_DUPLICATE) continue;
             assertThrows(AssertionError.class, () -> VerifyThemeDex.verify(palette(change), true), change.name());
         }
     }
@@ -31,11 +37,12 @@ class VerifyThemeDexTest {
         var map = new ImmutableMethodReference("Lapp/spicetify/extension/spotify/theme/EncorePalette;", "map", List.of("J"), "J");
         var code = new ArrayList<Instruction>();
         var colors = new ArrayList<>(new TreeSet<>(VerifyThemeDex.COLORS));
-        if (change == Change.DUPLICATE) colors.add(colors.get(0));
+        if (change == Change.UNHOOKED_DUPLICATE || change == Change.HOOKED_DUPLICATE) colors.add(colors.get(0));
         for (int i = 0; i < colors.size(); i++) {
             long color = change == Change.COLOR && i == 0 ? 0xFF000000L : colors.get(i);
             code.add(new ImmutableInstruction51l(Opcode.CONST_WIDE, 2, color));
             if (change == Change.MISSING && i == 0) continue;
+            if (change == Change.UNHOOKED_DUPLICATE && i == colors.size() - 1) continue;
             code.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, change == Change.REGISTER && i == 0 ? 4 : 2, 2, map));
             code.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_WIDE, change == Change.RESULT && i == 0 ? 4 : 2));
         }

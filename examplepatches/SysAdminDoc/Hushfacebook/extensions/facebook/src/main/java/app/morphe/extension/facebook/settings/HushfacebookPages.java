@@ -73,11 +73,11 @@ final class HushfacebookPages {
         ReleaseCheck.watch(page);
     }
 
-    /** Appearance: the font, the emoji and where the tab bar goes. */
+    /** Appearance: the font, the emoji, where the tab bar goes and dark mode. */
     static void appearance(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
         if (build.contains(PatchFamily.SYSTEM_FONT) || build.contains(PatchFamily.SYSTEM_EMOJI)
-                || build.contains(PatchFamily.BOTTOM_TAB_BAR)) {
+                || build.contains(PatchFamily.BOTTOM_TAB_BAR) || build.contains(PatchFamily.FORCE_DARK_MODE)) {
             PreferenceCategory appearance = category(screen, L10n.t("Appearance"));
             if (build.contains(PatchFamily.SYSTEM_FONT)) {
                 appearance.addPreference(toggle(context, Settings.USE_SYSTEM_FONT, L10n.t("Use the system font"),
@@ -101,6 +101,12 @@ final class HushfacebookPages {
                 appearance.addPreference(toggle(context, Settings.BOTTOM_TAB_BAR, L10n.t("Tab bar at the bottom"),
                         L10n.t("Put Facebook's tab bar at the bottom of the screen on accounts that have it at the top. "
                                 + "Restart Facebook after changing it.")));
+            }
+            if (build.contains(PatchFamily.FORCE_DARK_MODE)) {
+                // Facebook asks for dark mode as each screen applies its theme, so a change shows fully after a restart.
+                appearance.addPreference(toggle(context, Settings.FORCE_DARK_MODE, L10n.t("Force dark mode"),
+                        L10n.t("Keep Facebook in dark mode whatever its own setting says, for tablets where Facebook's "
+                                + "settings have no Dark mode. Restart Facebook after changing it.")));
             }
         }
     }

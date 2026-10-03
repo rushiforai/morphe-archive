@@ -164,6 +164,7 @@ rsync -u "$CLI_JAR" "$FAST_CACHE_DIR/morphe-desktop.jar"
         -e "Model Readiness Gates"
         -e "Spoof features"
         -e "AMOLED dark theme"
+        -e "Google One Bento Badge"
     )
 
     if [ "$ENABLE_BRANDING" = true ]; then

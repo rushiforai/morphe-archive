@@ -19,7 +19,7 @@
     HUSHFEED_DESKTOP_JAR, HUSHFEED_WORKDIR, then build/morphe-tools. HUSHFEED_JAVA is optional.
 
 .EXAMPLE
-    scripts/time-patches.ps1 -Apk C:\fixtures\tiktok-47.1.3.apk -OutDir C:\scratch\times -DesktopJar C:\tools\morphe-desktop-1.17.0-all.jar
+    scripts/time-patches.ps1 -Apk C:\fixtures\tiktok-47.1.3.apk -OutDir C:\scratch\times -DesktopJar C:\tools\morphe-desktop-1.18.0-all.jar
 #>
 # The CLI logs to stderr, and Windows PowerShell 5.1 turns a redirected stderr line into an error.
 #Requires -Version 7.2

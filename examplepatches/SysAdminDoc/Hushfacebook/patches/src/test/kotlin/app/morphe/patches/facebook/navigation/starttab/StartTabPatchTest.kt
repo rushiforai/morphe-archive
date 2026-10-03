@@ -9,6 +9,7 @@ import app.morphe.PatchContexts
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.facebook.feed.feedsheader.FEED_FILTERS_FRAGMENT
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.settings.MAIN_TAB_ACTIVITY
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -217,6 +218,65 @@ class StartTabPatchTest {
         """,
     )
 
+    /**
+     * The Feeds tab's handler, trimmed: with an intent, the last feed type is read into v1, handed
+     * to the filter list's lookup, whose answer is kept in v2, and the filter at the answer picked.
+     * [overwritten] writes v1 between the read and the lookup, [keepsAnswer] false drops the
+     * lookup's answer, and [jumpPast] and [jumpPastAnswer] land a branch right after the read or
+     * the answer.
+     */
+    private fun feedsHandler(
+        name: String = FEEDS_HANDLER,
+        lastType: String = FEED_TYPE,
+        overwritten: Boolean = false,
+        keepsAnswer: Boolean = true,
+        jumpPast: Boolean = false,
+        jumpPastAnswer: Boolean = false,
+    ) = method(
+        FEED_FILTERS_FRAGMENT, name, listOf(INTENT), "V", 5, static = false,
+        smali = """
+            if-eqz p1, :done
+            ${if (jumpPast) "if-nez p1, :after" else ""}
+            ${if (jumpPastAnswer) "if-nez p1, :answered" else ""}
+            sget-object v1, Lfixture/Tracker;->last:$lastType
+            ${if (jumpPast) ":after" else ""}
+            iget-object v0, p0, $FEED_FILTERS_FRAGMENT->filters:Lfixture/Filters;
+            ${if (overwritten) "const/4 v1, 0x0" else ""}
+            invoke-virtual { v0, v1 }, Lfixture/Filters;->indexOf($FEED_TYPE)I
+            ${if (keepsAnswer) "move-result v2" else "const/4 v2, 0x0"}
+            ${if (jumpPastAnswer) ":answered" else ""}
+            const/4 v0, -0x1
+            if-eq v2, v0, :done
+            iget-object v1, p0, $FEED_FILTERS_FRAGMENT->controller:Lfixture/Controller;
+            invoke-virtual { v1, v2 }, Lfixture/Controller;->pick(I)V
+            :done
+            return-void
+        """,
+    )
+
+    /** The Feeds tab's onResume, trimmed: two returns, one a branch lands on. [reusesThis] writes p0. */
+    private fun feedsResume(reusesThis: Boolean = false) = method(
+        FEED_FILTERS_FRAGMENT, "onResume", emptyList(), "V", 3, static = false,
+        smali = """
+            iget-boolean v0, p0, $FEED_FILTERS_FRAGMENT->ready:Z
+            if-eqz v0, :late
+            invoke-super { p0 }, Landroidx/fragment/app/Fragment;->onResume()V
+            ${if (reusesThis) "const/4 p0, 0x0" else ""}
+            return-void
+            :late
+            return-void
+        """,
+    )
+
+    /** The Feeds tab, each of its two methods replaceable or left out. */
+    private fun feedsFragment(
+        handler: Method? = feedsHandler(),
+        resume: Method? = feedsResume(),
+    ): ClassDef = ImmutableClassDef(
+        FEED_FILTERS_FRAGMENT, AccessFlags.PUBLIC.value, "Landroidx/fragment/app/Fragment;", null, null, null, null,
+        listOfNotNull(handler, resume),
+    )
+
     private fun classOf(vararg methods: Method): ClassDef = ImmutableClassDef(
         methods.first().definingClass, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
         methods.toList(),
@@ -241,9 +301,10 @@ class StartTabPatchTest {
         sanitizers: List<Method> = listOf(sanitizer()),
         positions: List<Method> = listOf(startPosition()),
         checks: List<Method> = listOf(keepsCheck()),
+        feeds: ClassDef? = feedsFragment(),
     ): List<ClassDef> =
         activities() + classOf(picker()) + ExtensionDex.classDef(SETTINGS_STATUS) +
-            (sanitizers + positions + checks).map { classOf(it) }
+            (sanitizers + positions + checks).map { classOf(it) } + listOfNotNull(feeds)
 
     private fun Method.body(): List<Instruction> = implementation!!.instructions.toList()
 
@@ -351,6 +412,96 @@ class StartTabPatchTest {
         val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "startTab" }
         val answer = status.body().first { it is NarrowLiteralInstruction }
         assertEquals("the settings screen isn't told the patch is in", 1, (answer as NarrowLiteralInstruction).narrowLiteral)
+
+        // Right after the Feeds tab's read of the last feed type, cast back before the lookup reads
+        // it, and right after the lookup's answer, kept in the same register.
+        val fragment = context.mutableClassDefBy(FEED_FILTERS_FRAGMENT)
+        val handler = fragment.methods.single { it.name == FEEDS_HANDLER }.body()
+        val read = handler.indexOfFirst { it.opcode == Opcode.SGET_OBJECT }
+        assertEquals(1, handler[read].register)
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, handler[read + 1].opcode)
+        assertEquals(FEED_TYPE_ASKED, handler[read + 1].reference)
+        assertEquals(listOf(1), handler[read + 1].callRegisters())
+        assertEquals(Opcode.MOVE_RESULT_OBJECT, handler[read + 2].opcode)
+        assertEquals(1, handler[read + 2].register)
+        assertEquals(Opcode.CHECK_CAST, handler[read + 3].opcode)
+        assertEquals(1, handler[read + 3].register)
+        assertEquals(FEED_TYPE, handler[read + 3].reference)
+        assertEquals(Opcode.IGET_OBJECT, handler[read + 4].opcode)
+        val lookup = handler.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString()?.endsWith("indexOf($FEED_TYPE)I") == true }
+        assertEquals(Opcode.MOVE_RESULT, handler[lookup + 1].opcode)
+        assertEquals(2, handler[lookup + 1].register)
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, handler[lookup + 2].opcode)
+        assertEquals(FILTER_FOUND, handler[lookup + 2].reference)
+        assertEquals(listOf(2), handler[lookup + 2].callRegisters())
+        assertEquals(Opcode.MOVE_RESULT, handler[lookup + 3].opcode)
+        assertEquals(2, handler[lookup + 3].register)
+        assertEquals(Opcode.CONST_4, handler[lookup + 4].opcode)
+
+        // In place of each of onResume's returns, with the tab in p0 of a three-register method.
+        val resume = fragment.methods.single { it.name == "onResume" }
+        val resumeBody = resume.body()
+        val returns = resumeBody.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
+        assertEquals(2, returns.size)
+        returns.forEach { index ->
+            assertEquals(Opcode.INVOKE_STATIC_RANGE, resumeBody[index - 1].opcode)
+            assertEquals(FEEDS_RESUMED, resumeBody[index - 1].reference)
+            assertEquals(listOf(2), resumeBody[index - 1].callRegisters())
+        }
+        val late = resume.implementation!!.instructions.filterIsInstance<BuilderOffsetInstruction>().single()
+        assertEquals("a branch lands past the extension", returns.last() - 1, late.target.location.index)
+    }
+
+    @Test
+    fun `the Feeds tab's last feed type is the one static read handed unchanged to a FeedType lookup whose answer it keeps`() {
+        val handler = feedsHandler()
+        val anchors = feedsHandlerAnchors(handler)!!
+        assertEquals(Opcode.SGET_OBJECT, handler.body()[anchors.read].opcode)
+        assertEquals("Lfixture/Tracker;->last:$FEED_TYPE", handler.body()[anchors.read].reference)
+        assertEquals(Opcode.MOVE_RESULT, handler.body()[anchors.answer].opcode)
+        assertEquals(2, handler.body()[anchors.answer].register)
+        assertNull("another method", feedsHandlerAnchors(feedsHandler(name = "handleIntent")))
+        assertNull("reads no feed type", feedsHandlerAnchors(feedsHandler(lastType = "Lfixture/Other;")))
+        assertNull("the lookup gets another value", feedsHandlerAnchors(feedsHandler(overwritten = true)))
+        assertNull("the lookup's answer isn't kept", feedsHandlerAnchors(feedsHandler(keepsAnswer = false)))
+
+        assertNull(feedsFragmentRefusal(feedsFragment()))
+        assertTrue(feedsFragmentRefusal(feedsFragment(handler = null))!!.contains("found 0"))
+        assertTrue(feedsFragmentRefusal(feedsFragment(handler = feedsHandler(overwritten = true)))!!.contains("reads no last feed type"))
+        assertTrue(feedsFragmentRefusal(feedsFragment(resume = null))!!.contains("declares no onResume()V"))
+        assertTrue(feedsFragmentRefusal(feedsFragment(resume = feedsResume(reusesThis = true)))!!.contains("reuses the register"))
+    }
+
+    /** A build whose Feeds tab can't take the filter hooks is refused before anything changes. */
+    @Test
+    fun `a build whose Feeds tab can't take the filter hooks is refused, naming what's missing`() {
+        fun refusal(classes: List<ClassDef>): String {
+            val context = PatchContexts.of(classes)
+            val message = assertThrows(PatchException::class.java) { openOnChosenTabPatch.execute(context) }.message!!
+            val onCreate = context.mutableClassDefBy(fragmentActivity).methods.single { it.name == "onCreate" }
+            assertEquals("$message, yet the patch went in", 1, onCreate.body().size)
+            val feeds = context.mutableClassDefBy(FEED_FILTERS_FRAGMENT)
+            assertTrue(
+                "$message, yet the Feeds tab changed",
+                feeds.methods.flatMap { it.body() }.none {
+                    it is ReferenceInstruction && it.reference.toString() in setOf(FEEDS_RESUMED, FEED_TYPE_ASKED, FILTER_FOUND)
+                },
+            )
+            return message
+        }
+
+        val context = PatchContexts.of(build(feeds = null))
+        val noFeeds = assertThrows(PatchException::class.java) { openOnChosenTabPatch.execute(context) }.message!!
+        assertTrue(noFeeds, noFeeds.contains("this build has no $FEED_FILTERS_FRAGMENT"))
+
+        val noAnswer = refusal(build(feeds = feedsFragment(handler = feedsHandler(keepsAnswer = false))))
+        assertTrue(noAnswer, noAnswer.contains("reads no last feed type for a lookup whose answer it keeps"))
+
+        val jumped = refusal(build(feeds = feedsFragment(handler = feedsHandler(jumpPast = true))))
+        assertTrue(jumped, jumped.contains("has a jump past its read of the last feed type"))
+
+        val jumpedAnswer = refusal(build(feeds = feedsFragment(handler = feedsHandler(jumpPastAnswer = true))))
+        assertTrue(jumpedAnswer, jumpedAnswer.contains("has a jump past its lookup's answer"))
     }
 
     @Test

@@ -59,6 +59,20 @@ internal object NativeEdits {
             WordEdit(0x00163720, 0xE58D6000L, 0xE58D6004L),
         ),
     )
+    val SOUND_CACHE_MODE: Map<String, List<WordEdit>> = mapOf(
+        "armeabi" to listOf(
+            WordEdit(0x0016DFAC, 0xEBFB957FL, 0xE3A02E1BL),
+            WordEdit(0x0016DFB0, 0xE3700001L, 0xEBFB957EL),
+            WordEdit(0x0016DFB4, 0xE1A0A000L, 0xE1B0A000L),
+            WordEdit(0x0016DFB8, 0x0A000004L, 0x4A000004L),
+        ),
+        "armeabi-v7a" to listOf(
+            WordEdit(0x0016EB0C, 0xEBFB9191L, 0xE3A02E1BL),
+            WordEdit(0x0016EB10, 0xE3700001L, 0xEBFB9190L),
+            WordEdit(0x0016EB14, 0xE1A0A000L, 0xE1B0A000L),
+            WordEdit(0x0016EB18, 0x0A000004L, 0x4A000004L),
+        ),
+    )
     val JNI_GUARDS: Map<String, List<WordEdit>> = mapOf(
         "armeabi" to listOf(
             WordEdit(0x000F39A0, 0xE5906040L, 0xE3A06001L),

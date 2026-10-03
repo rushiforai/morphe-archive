@@ -186,8 +186,10 @@ try {
         # APK the CLI patched, and held to the same allowlist, so a change nobody approved stops this
         # run and not only the release. An approved change this run didn't make is reported and left
         # to the receipt, which needs every declared build to decide it.
+        $baselineManifest = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
+        $patchedManifest = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
         $manifestChanges = @(ConvertTo-ManifestDeltaEntries -Delta (Get-ManifestDelta `
-            -Stock (Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2) -Patched (Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2)))
+            -Stock $baselineManifest -Patched $patchedManifest))
         $approvedChanges = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') |
             Where-Object { $_ })
         $unapprovedChanges = @($manifestChanges | Where-Object { $approvedChanges -cnotcontains $_ })
@@ -203,6 +205,19 @@ try {
         Write-Warning ('[verify] the patched manifest changed in ways scripts/manifest-delta-allowlist.txt ' +
             "doesn't approve: $($unapprovedChanges -join ', ')")
     } elseif ($cliExitCode -eq 0 -and $validation.Valid) {
+        $nativeReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-native-$runId.json") -Root $workRoot
+        $nativeStock = Get-NativePageFacts -Apk $patchInput -Java $Java -Aapt2 $Aapt2 `
+            -ReportPath ($nativeReport + '.stock.json') -ExtractNativeLibs $baselineManifest.extractNativeLibs
+        $nativeRaw = Get-NativePageFacts -Apk $out -Java $Java -Aapt2 $Aapt2 `
+            -ReportPath ($nativeReport + '.unaligned.json') -ExtractNativeLibs $patchedManifest.extractNativeLibs
+        Align-UnsignedNativeApk -Apk $out -Aapt2 $Aapt2 -Java $Java -Facts $nativeRaw
+        $nativePatched = Get-NativePageFacts -Apk $out -Java $Java -Aapt2 $Aapt2 `
+            -ReportPath ($nativeReport + '.patched.json') -ExtractNativeLibs $patchedManifest.extractNativeLibs
+        $nativeAlignment = Get-NativePageDelta -Stock $nativeStock -Patched $nativePatched
+        $nativeAlignment | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $nativeReport -Encoding UTF8
+        Write-Host "[verify] native alignment report: $nativeReport"
+        if ($nativeAlignment.packagingDefects.Count -gt 0) { throw "Native packaging defects: $($nativeAlignment.packagingDefects -join ', ')" }
+        if (-not $nativeAlignment.alignmentCompatible) { Write-Warning '[verify] unchanged vendor ELF libraries are incompatible with 16 KB pages; ZIP alignment does not repair them.' }
         # The rebuilt resource table against the stock one. A resource patch has Morphe decode and
         # rebuild the app's whole table, and an id the rebuild loses only fails when the app
         # inflates it (Hushfeed upstream #84, a layout in one of TikTok's feature packages). The

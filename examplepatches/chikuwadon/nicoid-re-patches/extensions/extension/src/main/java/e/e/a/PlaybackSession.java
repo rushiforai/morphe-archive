@@ -67,6 +67,7 @@ public final class PlaybackSession {
         interaction(fragment,false);
         try {
             Activity a=(Activity)get(fragment,"A1");
+            UiStrings.selectLanguage(prefs(a).getString("app_lang", "0"));
             String[] labels=LABELS;
             if(mode==0) {
                 labels=new String[3];
@@ -198,3 +199,4 @@ public final class PlaybackSession {
         }catch(Exception e){log(e);return false;}
     }
 }
+

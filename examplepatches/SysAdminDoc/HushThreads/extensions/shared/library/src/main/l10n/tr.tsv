@@ -59,9 +59,12 @@ Settings exported. The app holding the file wouldn't let HushThreads read it bac
 Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.	Sponsorlu gönderiler, Threads onları göstermeden önce Senin İçin ve Takip Edilenler akışlarından çıkarılır, böylece boşluk kalmaz.
 # context: summary of the Feed section link on the overview; the same two feed names as the Hide ads switch
 Sponsored posts in For you and Following	Senin İçin ve Takip Edilenler'deki sponsorlu gönderiler
+# context: Feed overview summaries when suggestions alone, or both feed rules, are selected
+Suggested accounts in your feed	Akışınızdaki önerilen hesaplar
+Ads and suggested accounts in your feed	Akışınızdaki reklamlar ve önerilen hesaplar
 Stop analytics uploads	Analiz yüklemelerini durdur
 # context: xmt and slof are the tags' own names in the link and stay as they are
-Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.	Kopyaladığın veya paylaştığın gönderi bağlantılarından xmt ve slof gibi izleme etiketlerini kaldırır. Bağlantının geri kalanı olduğu gibi kalır.
+Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.	Kopyaladığın veya paylaştığın gönderi bağlantılarından xmt ve slof gibi izleme etiketlerini kaldırır. Kısa paylaşım bağlantısı, gönderinin kendi bağlantısına dönüşür.
 The app holding that file is taking too long, so HushThreads stopped waiting. Nothing was changed.	O dosyayı tutan uygulama çok uzun sürüyor, bu yüzden HushThreads beklemeyi bıraktı. Hiçbir şey değiştirilmedi.
 The app holding the last settings file still hasn't answered. Try again later.	Son ayar dosyasını tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
 The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Ayar dosyasını tutan uygulama çok uzun sürüyor, bu yüzden HushThreads beklemeyi bıraktı. O uygulama kaydetmeyi yine de bitirebilir, bu yüzden dosyaya güvenmeden önce onu kontrol et.
@@ -75,7 +78,7 @@ none	yok
 Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads telefonunuzun reklam kimliğini okuyamaz. Bunun için gereken izin bu sürümden kaldırıldı.
 Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads açıldıktan sonraki bir dakika içinde üst üste üç kez çöktü veya dondu, bu yüzden HushThreads kendini duraklattı.
 Threads' web addresses are selected for this app in Android's settings, so their links open here.	Threads'in web adresleri Android ayarlarında bu uygulama için seçili, bu yüzden bağlantıları burada açılır.
-Tracking in shared links and analytics uploads	Paylaşılan bağlantılardaki izleme ve analiz yüklemeleri
+Tracking in links and analytics uploads	Bağlantılardaki izleme ve analiz yüklemeleri
 Try again, or go back to Threads.	Tekrar dene veya Threads'e geri dön.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Devam ettirene kadar Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır.
 Full report saved to %1$s	Tam rapor şuraya kaydedildi: %1$s
@@ -168,3 +171,17 @@ Android didn't say which links open here. Tap to check in Android's settings.	An
 Selecting links by hand	Bağlantıları elle seçme
 # context: an item in the sentence about what Pause can't turn off; the patch name Remove the advertising ID follows it in brackets, so it mustn't repeat that name
 the removed advertising ID permission	kaldırılan reklam kimliği izni
+
+# context: optional feed rule and its scope
+Hide suggested users	Önerilen kullanıcıları gizle
+Removes verified cards suggesting accounts to follow. Ordinary posts and reposts stay.	Takip edilecek hesaplar öneren doğrulanmış kartları kaldırır. Normal gönderiler ve yeniden paylaşımlar kalır.
+Keep feed position on return	Geri dönünce akış konumunu koru
+Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	Threads'e on dakika içinde dönersen kaldığın yer korunur. Yenilemek için aşağı çekmeye devam edebilirsin.
+No time limit	Süre sınırı yok
+With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Yukarıdaki anahtar açıkken ne kadar uzun süre uzakta kalırsan kal yerin korunur. Yenilemek için çekmek ve uygulamayı yeniden başlatmak yine yeni gönderileri yükler.
+Where you left off in your feed	Akışta kaldığın yer
+Open links in your browser	Bağlantıları tarayıcında aç
+Web links you tap open in your default browser, or the app for that site, without Threads' click tracker. Threads, Instagram and other Meta pages still open in Threads.	Dokunduğun web bağlantıları, Threads'in tıklama izleyicisi olmadan varsayılan tarayıcında veya o sitenin uygulamasında açılır. Threads, Instagram ve diğer Meta sayfaları yine Threads'te açılır.
+Tap to play videos	Videoları dokunarak oynat
+Videos in your feed wait for a tap instead of playing as you scroll.	Akıştaki videolar, kaydırırken kendiliğinden oynamak yerine dokunmanı bekler.
+Videos in your feed	Akıştaki videolar

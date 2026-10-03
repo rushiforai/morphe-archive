@@ -189,4 +189,17 @@ object Constants {
         )
     )
 
+    val COMPATIBILITY_NotizenWidget = Compatibility(
+        name = "NotiZen Widget",
+        packageName = "com.gustavcaves.notizenwidget",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x1565C0,
+        targets = listOf(
+            AppTarget(
+                version = "0.1.1790444417",
+                versionCode = 1790444417
+            ),
+        )
+    )
+
 }

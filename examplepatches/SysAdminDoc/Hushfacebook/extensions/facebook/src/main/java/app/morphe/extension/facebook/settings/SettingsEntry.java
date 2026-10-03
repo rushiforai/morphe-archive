@@ -464,6 +464,7 @@ public final class SettingsEntry {
         @Override
         public void onActivityPaused(Activity activity) {
             if (resumed != null && resumed.get() == activity) resumed = null;
+            LastScreen.read(activity);
         }
 
         @Override

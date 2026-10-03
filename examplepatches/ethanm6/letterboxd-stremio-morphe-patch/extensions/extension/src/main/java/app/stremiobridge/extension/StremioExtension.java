@@ -45,7 +45,7 @@ import java.util.List;
  * <p>The button targets Nuvio (package com.nuvio.app) when it's installed
  * — preferred over Stremio (com.stremio.one), used only when Nuvio isn't
  * present — label and tap behavior both adjust automatically, see
- * resolveTarget(). Nuvio also registers Stremio's bare "stremio://" scheme
+ * preferNuvio(). Nuvio also registers Stremio's bare "stremio://" scheme
  * for its own reasons but doesn't route it anywhere specific, so it needs
  * its own "nuvio://meta?..." deep link rather than reusing Stremio's.</p>
  */
@@ -353,8 +353,8 @@ public final class StremioExtension {
         // ── Button color (purple for Stremio, blue for Nuvio) ────────────────
         // Tint the Material background (preserves the Material shape & inset
         // model so height stays identical to the trailer button).
-        Target target = resolveTarget(ctx);
-        int buttonColor = (target == Target.NUVIO) ? BLUE : PURPLE;
+        boolean preferNuvio = preferNuvio(ctx);
+        int buttonColor = preferNuvio ? BLUE : PURPLE;
         boolean isMaterial = applyButtonColor(clone, buttonColor);
         if (!isMaterial) {
             float r = android.util.TypedValue.applyDimension(
@@ -395,9 +395,9 @@ public final class StremioExtension {
             clone.setCompoundDrawablePadding(source.getCompoundDrawablePadding());
         }
 
-        clone.setText(target == Target.NUVIO ? "Nuvio" : "Stremio");
+        clone.setText(preferNuvio ? "Nuvio" : "Stremio");
         clone.setContentDescription(
-            target == Target.NUVIO ? "Open in Nuvio" : "Open in Stremio");
+            preferNuvio ? "Open in Nuvio" : "Open in Stremio");
         return clone;
     }
 
@@ -613,20 +613,19 @@ public final class StremioExtension {
 
     // ── Stremio launch ────────────────────────────────────────────────────
 
-    private enum Target { STREMIO, NUVIO, WEB }
-
     /**
-     * Decides which app the button should target: Nuvio if it's installed
-     * (preferred), else real Stremio if that's installed instead, else
-     * neither (web player). Cheap enough to call fresh at both
-     * button-creation time (for the label) and click time (for the actual
-     * launch) rather than caching — apps rarely get installed/uninstalled
-     * mid-session, but this keeps the two always consistent if it happens.
+     * True when Nuvio is installed, which the button treats as preferred
+     * over Stremio. If Nuvio isn't installed, the button always targets
+     * Stremio — whether Stremio itself is actually installed doesn't need
+     * checking here, since openInStremioOrWeb() already tries Stremio and
+     * falls back to the web player on its own if that fails. Cheap enough
+     * to call fresh at both button-creation time (for the label) and click
+     * time (for the actual launch) rather than caching — apps rarely get
+     * installed/uninstalled mid-session, but this keeps the two always
+     * consistent if it happens.
      */
-    private static Target resolveTarget(Context ctx) {
-        if (isPackageInstalled(ctx, PKG_NUVIO)) return Target.NUVIO;
-        if (isPackageInstalled(ctx, PKG_STREMIO)) return Target.STREMIO;
-        return Target.WEB;
+    private static boolean preferNuvio(Context ctx) {
+        return isPackageInstalled(ctx, PKG_NUVIO);
     }
 
     private static boolean isPackageInstalled(Context ctx, String packageName) {
@@ -643,14 +642,36 @@ public final class StremioExtension {
             ? (imdbId.startsWith("tt") ? imdbId : "tt" + imdbId)
             : null;
 
-        switch (resolveTarget(ctx)) {
-            case NUVIO:
-                openInNuvio(ctx, id);
-                return;
-            case STREMIO:
-            case WEB:
-            default:
-                openInStremioOrWeb(ctx, id);
+        if (preferNuvio(ctx)) {
+            openInNuvio(ctx, id);
+        } else {
+            openInStremioOrWeb(ctx, id);
+        }
+    }
+
+    /** The Stremio web player, used as a last resort when no app can handle it. */
+    private static Uri webFallbackUri(String id) {
+        return (id != null)
+            ? Uri.parse("https://web.stremio.com/#/detail/movie/" + id)
+            : Uri.parse("https://web.stremio.com");
+    }
+
+    /**
+     * Shared launch mechanics for both apps: explicitly targets packageName
+     * (so a different app registered for the same scheme — Nuvio also
+     * catches stremio://, see openInNuvio below — can't intercept it
+     * instead), puts it in its own task (FLAG_ACTIVITY_NEW_TASK) so it gets
+     * its own entry in Recents/the app switcher rather than being pushed
+     * onto Letterboxd's existing task, and falls back to the web player if
+     * nothing handles it.
+     */
+    private static void launchAppOrWeb(Context ctx, String packageName, Intent appIntent, String id) {
+        appIntent.setPackage(packageName);
+        appIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            ctx.startActivity(appIntent);
+        } catch (ActivityNotFoundException e) {
+            ctx.startActivity(new Intent(Intent.ACTION_VIEW, webFallbackUri(id)));
         }
     }
 
@@ -658,17 +679,7 @@ public final class StremioExtension {
         Uri appUri = (id != null)
             ? Uri.parse("stremio://detail/movie/" + id + "/" + id)
             : Uri.parse("stremio://board");
-        Uri webUri = (id != null)
-            ? Uri.parse("https://web.stremio.com/#/detail/movie/" + id)
-            : Uri.parse("https://web.stremio.com");
-
-        Intent appIntent = new Intent(Intent.ACTION_VIEW, appUri);
-        appIntent.setPackage(PKG_STREMIO);
-        try {
-            ctx.startActivity(appIntent);
-        } catch (ActivityNotFoundException e) {
-            ctx.startActivity(new Intent(Intent.ACTION_VIEW, webUri));
-        }
+        launchAppOrWeb(ctx, PKG_STREMIO, new Intent(Intent.ACTION_VIEW, appUri), id);
     }
 
     /**
@@ -678,30 +689,22 @@ public final class StremioExtension {
      * registers that scheme too, for compatibility) but can't route anywhere
      * specific, so it just opens to the home screen. With no id, there's no
      * single title to open, so this just launches the app normally instead
-     * of guessing a home-screen deep link.
+     * of guessing a home-screen deep link — getLaunchIntentForPackage
+     * doesn't go through launchAppOrWeb since there's no app-side Intent to
+     * build when it returns null; that one case falls straight to web.
      */
     private static void openInNuvio(Context ctx, String id) {
-        try {
-            if (id != null) {
-                Intent intent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("nuvio://meta?type=movie&id=" + id));
-                intent.setPackage(PKG_NUVIO);
-                ctx.startActivity(intent);
-            } else {
-                Intent launchIntent =
-                    ctx.getPackageManager().getLaunchIntentForPackage(PKG_NUVIO);
-                if (launchIntent != null) {
-                    ctx.startActivity(launchIntent);
-                } else {
-                    throw new ActivityNotFoundException("Nuvio launch intent unavailable");
-                }
-            }
-        } catch (ActivityNotFoundException e) {
-            // Fall back to the web player — some working link beats none.
-            Uri webUri = (id != null)
-                ? Uri.parse("https://web.stremio.com/#/detail/movie/" + id)
-                : Uri.parse("https://web.stremio.com");
-            ctx.startActivity(new Intent(Intent.ACTION_VIEW, webUri));
+        if (id != null) {
+            Intent appIntent = new Intent(Intent.ACTION_VIEW,
+                Uri.parse("nuvio://meta?type=movie&id=" + id));
+            launchAppOrWeb(ctx, PKG_NUVIO, appIntent, id);
+            return;
+        }
+        Intent launchIntent = ctx.getPackageManager().getLaunchIntentForPackage(PKG_NUVIO);
+        if (launchIntent != null) {
+            launchAppOrWeb(ctx, PKG_NUVIO, launchIntent, id);
+        } else {
+            ctx.startActivity(new Intent(Intent.ACTION_VIEW, webFallbackUri(id)));
         }
     }
 

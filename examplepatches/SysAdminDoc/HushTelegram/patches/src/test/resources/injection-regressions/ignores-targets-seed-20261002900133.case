@@ -1,0 +1,27 @@
+# Shrunk from seed 20261002900133, which IGNORES_TARGETS got wrong:
+# guard on: (-1, 2) instruction 13 reads v0, which the hook borrowed
+mode=skip
+anchor=3
+target=7
+trap=-1
+inputs=-1,2
+jump=verifies
+control=ignores-targets
+---
+.method public static run(II)I
+    .registers 5
+    const-wide v1, 486971962312L
+    long-to-int v0, v1
+    const/4 v1, 1
+    :loop_24
+    const/4 v2, 1
+    :loop_25
+    const/4 v0, 0
+    add-int/lit8 v2, v2, -1
+    if-gtz v2, :loop_25
+    mul-int v2, v4, v3
+    add-int/lit8 v1, v1, -1
+    if-gtz v1, :loop_24
+    invoke-static {v0}, Lseeded/Probe;->note(I)V
+    return v4
+.end method

@@ -67,8 +67,9 @@ final class VideoDownloads {
         long archiveGeneration = SavedVideoArchive.generation();
         boolean showProgress = Settings.DOWNLOAD_PROGRESS.get();
         boolean extras = withDetails || checkSaved || showProgress;
-        // Photo posts can carry a video model too. Their own save keeps stills and live photos.
-        if (extras && Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo") != null) return false;
+        // Photo posts can carry a video model too. Quality, mute and subtitle choices must
+        // not intercept their save before OriginalPhotos or TikTok's still/live-photo job.
+        if (Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo") != null) return false;
         boolean automatic = "auto".equals(quality);
         // Automatic with nothing else asked for is TikTok's own download, which already does
         // the right thing. Taking the sound off is a reason to take it over, but not a reason

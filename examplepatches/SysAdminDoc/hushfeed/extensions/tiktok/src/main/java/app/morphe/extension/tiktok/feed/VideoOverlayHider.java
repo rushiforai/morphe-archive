@@ -91,9 +91,10 @@ public final class VideoOverlayHider {
     private static final String[] VISUAL_SEARCH_PILL_IDS = {"d4"};
     private static final String[] LIVE_ENTRANCE_IDS = {"47.0.3:k_5", "47.1.3:kam", "47.1.4:kam"};
 
-    /** The caption under the creator's name, and the music cover block beside it. */
+    /** The caption under the creator's name. */
     private static final String[] CAPTION_IDS = {"desc"};
-    private static final String[] MUSIC_IDS = {"videomusiccoverblock"};
+    /** VideoMusicTitleAssem's label container, including ordinary and matched-song titles. */
+    private static final String[] MUSIC_IDS = {"47.0.3:o6f", "47.1.3:o97", "47.1.4:o97"};
     private static final String[] ACTION_BAR_IDS = {"47.0.3:liy", "47.1.3:llj", "47.1.4:llj"};
     private static final String[] SURVEY_IDS = {"47.0.3:f7u", "47.1.3:f98", "47.1.4:f98"};
     private static final String[] TAB_STRIP_IDS = {"47.0.3:uvy", "47.1.3:uzf", "47.1.4:uzf"};

@@ -1358,9 +1358,9 @@ Video playback with AV1 may stutter or drop frames."</string>
 Limitation: Reverts to old style \'More videos\' overlay"</string>
 
     <!-- Block Channels -->
-    <string name="morphe_block_channels_screen_title">Block channels</string>
+    <string name="morphe_block_channels_screen_title">Block Channel</string>
 <string name="morphe_block_channels_screen_summary">Permanently hide all content from specific channels</string>
-    <string name="morphe_block_channels_title">Block channels</string>
+    <string name="morphe_block_channels_title">Block Channel</string>
     <string name="morphe_block_channel_flyout_title">Block this channel</string>
     <string name="morphe_block_channels_confirm_title">Block this channel?</string>
     <string name="morphe_block_channels_confirm_summary">This channel will be hidden from Home, Search, Subscriptions, related videos, Shorts, and comments. Do you want to continue?</string>

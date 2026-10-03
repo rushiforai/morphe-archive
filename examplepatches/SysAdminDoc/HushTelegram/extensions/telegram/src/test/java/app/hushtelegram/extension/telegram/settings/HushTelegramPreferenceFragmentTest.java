@@ -85,8 +85,19 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_ADS, "Hide ads");
         ROW_TITLES.put(PatchFamily.HIDE_STORIES, "Hide Stories");
         ROW_TITLES.put(PatchFamily.HIDE_RECOMMENDATIONS, "Hide recommendations");
+        ROW_TITLES.put(PatchFamily.HIDE_COMMERCE, "Hide Premium, gifts and Stars");
+        ROW_TITLES.put(PatchFamily.HIDE_PROMOTIONAL_BANNERS, "Hide promotional banners");
+        ROW_TITLES.put(PatchFamily.HIDE_SPONSORED_PROXY, "Hide sponsored proxy channel");
+        ROW_TITLES.put(PatchFamily.HIDE_POPULAR_APPS, "Hide popular apps");
+        ROW_TITLES.put(PatchFamily.DISABLE_CHAT_SWIPE, "No swipe actions on chats");
+        ROW_TITLES.put(PatchFamily.QUIET_CONTACTS_NAG, "Quiet contacts prompts");
+        ROW_TITLES.put(PatchFamily.HOLIDAY_LOOK, "New Year look all year");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop usage reports");
         ROW_TITLES.put(PatchFamily.DISABLE_CALL_DEBUG, "Stop call diagnostics");
+        ROW_TITLES.put(PatchFamily.DISABLE_DRAFT_PREVIEWS, "No previews before sending");
+        ROW_TITLES.put(PatchFamily.GALLERY_CAMERA_ON_TAP, "Camera only on tap");
+        ROW_TITLES.put(PatchFamily.OPEN_EXTERNAL_LINKS, "Open links externally");
+        ROW_TITLES.put(PatchFamily.STRIP_LINK_TRACKING, "Strip link tracking");
         ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_CHECKS, "Turn off Telegram's update checks");
     }
 
@@ -194,8 +205,12 @@ public class HushTelegramPreferenceFragmentTest {
                 List<String> sections = sections(page);
                 List<String> expected = new ArrayList<>();
                 if (build.contains(PatchFamily.HIDE_ADS) || build.contains(PatchFamily.HIDE_STORIES)
-                        || build.contains(PatchFamily.HIDE_RECOMMENDATIONS)) expected.add("Chats");
-                if (build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.DISABLE_CALL_DEBUG)) expected.add("Privacy");
+                        || build.contains(PatchFamily.HIDE_RECOMMENDATIONS) || build.contains(PatchFamily.HIDE_COMMERCE)
+                        || build.contains(PatchFamily.HIDE_PROMOTIONAL_BANNERS) || build.contains(PatchFamily.HIDE_SPONSORED_PROXY)
+                        || build.contains(PatchFamily.HIDE_POPULAR_APPS) || build.contains(PatchFamily.DISABLE_CHAT_SWIPE)
+                        || build.contains(PatchFamily.QUIET_CONTACTS_NAG) || build.contains(PatchFamily.HOLIDAY_LOOK)) expected.add("Chats");
+                if (build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.DISABLE_CALL_DEBUG)
+                        || build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS) || build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP)) expected.add("Privacy");
                 expected.addAll(EVERY_BUILD);
                 if (!expected.equals(sections)) wrong.add(build + ": sections " + sections);
             }
@@ -217,19 +232,81 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Hides the chat-list story bar, avatar story rings and Post Story button, and stops "
                     + "fetching the story list. Profile stories and archives remain available.",
                     String.valueOf(page.findPreference(Settings.HIDE_STORIES.key).getSummary()));
+            assertEquals("Hide promotional banners", String.valueOf(page.findPreference(Settings.HIDE_PROMOTIONAL_BANNERS.key).getTitle()));
+            assertEquals("Hides Premium, birthday and low Stars balance banners in the chat list. "
+                            + "Account security notices and other suggestions remain. Nothing is dismissed for you.",
+                    String.valueOf(page.findPreference(Settings.HIDE_PROMOTIONAL_BANNERS.key).getSummary()));
+            assertEquals("Hide sponsored proxy channel", String.valueOf(page.findPreference(Settings.HIDE_SPONSORED_PROXY.key).getTitle()));
+            assertEquals("Hides a proxy's sponsored channel from the chat list and folders. "
+                            + "Leaves proxy settings and shared promo-data updates alone.",
+                    String.valueOf(page.findPreference(Settings.HIDE_SPONSORED_PROXY.key).getSummary()));
             assertEquals("Stop usage reports", String.valueOf(page.findPreference(Settings.DISABLE_ANALYTICS.key).getTitle()));
-            assertEquals("Telegram doesn't send your storage folders as a device report when its server asks, "
-                    + "or how long you spent on each channel post. Messages and calls work as before.",
+            assertEquals("Telegram doesn't send its storage-type statistic when its server asks, "
+                    + "or how long you spent on each channel post. "
+                    + "It also stops reports about Premium screen views, feature taps, accepts and purchase failures. "
+                    + "Messages and calls work as before.",
                     String.valueOf(page.findPreference(Settings.DISABLE_ANALYTICS.key).getSummary()));
             assertEquals("Turn off Telegram's update checks", String.valueOf(page.findPreference(Settings.DISABLE_UPDATE_CHECKS.key).getTitle()));
             assertEquals("Telegram stops offering updates from telegram.org. Those can't install over this patched "
                     + "build, so patch each new version in Morphe Manager instead.",
                     String.valueOf(page.findPreference(Settings.DISABLE_UPDATE_CHECKS.key).getSummary()));
-            // The switches are the screen's, all three on as they ship.
+            assertEquals("Open links externally", String.valueOf(page.findPreference(Settings.OPEN_EXTERNAL_LINKS.key).getTitle()));
+            assertEquals("Opens ordinary HTTP(S) links in your browser. "
+                            + "Telegram links, login, payment and authenticated routes keep their existing behavior.",
+                    String.valueOf(page.findPreference(Settings.OPEN_EXTERNAL_LINKS.key).getSummary()));
+            assertEquals("Strip link tracking", String.valueOf(page.findPreference(Settings.STRIP_LINK_TRACKING.key).getTitle()));
+            assertEquals("Optional local cleaning at link-open and Share Link chooser sites. "
+                            + "Removes only utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid and fbclid. "
+                            + "Any unknown query key preserves the entire URL. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.STRIP_LINK_TRACKING.key).getSummary()));
+            // Browser routing is on as shipped; optional tracking cleaning has its own off default.
             for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.DISABLE_ANALYTICS,
-                    Settings.DISABLE_UPDATE_CHECKS)) {
+                    Settings.DISABLE_UPDATE_CHECKS, Settings.HIDE_PROMOTIONAL_BANNERS, Settings.HIDE_SPONSORED_PROXY,
+                    Settings.HIDE_POPULAR_APPS, Settings.OPEN_EXTERNAL_LINKS)) {
                 assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
+            assertFalse(Settings.STRIP_LINK_TRACKING.key,
+                    ((SwitchPreference) page.findPreference(Settings.STRIP_LINK_TRACKING.key)).isChecked());
+            assertEquals("No previews before sending", String.valueOf(page.findPreference(Settings.DISABLE_DRAFT_PREVIEWS.key).getTitle()));
+            assertEquals("Telegram doesn't ask its server for a link preview while a message is still unsent. "
+                            + "That covers chats, the share sheet, polls, story links and bot shares. "
+                            + "Sent messages still get their preview. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.DISABLE_DRAFT_PREVIEWS.key).getSummary()));
+            // Draft previews keep Telegram's behavior until someone turns the switch on.
+            assertFalse(Settings.DISABLE_DRAFT_PREVIEWS.key,
+                    ((SwitchPreference) page.findPreference(Settings.DISABLE_DRAFT_PREVIEWS.key)).isChecked());
+            assertEquals("Camera only on tap", String.valueOf(page.findPreference(Settings.GALLERY_CAMERA_ON_TAP.key).getTitle()));
+            assertEquals("Opening the attachment gallery doesn't start the camera or ask for camera access. "
+                            + "Tap the camera tile to start it. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.GALLERY_CAMERA_ON_TAP.key).getSummary()));
+            // The gallery's camera starts as Telegram's does until someone turns the switch on.
+            assertFalse(Settings.GALLERY_CAMERA_ON_TAP.key,
+                    ((SwitchPreference) page.findPreference(Settings.GALLERY_CAMERA_ON_TAP.key)).isChecked());
+            assertEquals("Hide popular apps", String.valueOf(page.findPreference(Settings.HIDE_POPULAR_APPS.key).getTitle()));
+            assertEquals("Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, "
+                            + "and Telegram doesn't ask for it. Apps you've opened and other results stay.",
+                    String.valueOf(page.findPreference(Settings.HIDE_POPULAR_APPS.key).getSummary()));
+            assertEquals("No swipe actions on chats", String.valueOf(page.findPreference(Settings.DISABLE_CHAT_SWIPE.key).getTitle()));
+            assertEquals("A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, "
+                            + "so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.DISABLE_CHAT_SWIPE.key).getSummary()));
+            // Chat rows swipe as Telegram's do until someone turns the switch on.
+            assertFalse(Settings.DISABLE_CHAT_SWIPE.key,
+                    ((SwitchPreference) page.findPreference(Settings.DISABLE_CHAT_SWIPE.key)).isChecked());
+            assertEquals("Quiet contacts prompts", String.valueOf(page.findPreference(Settings.QUIET_CONTACTS_NAG.key).getTitle()));
+            assertEquals("Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. "
+                            + "The first request, the tab's own buttons and contact sync stay.",
+                    String.valueOf(page.findPreference(Settings.QUIET_CONTACTS_NAG.key).getSummary()));
+            // Telegram asks once as before, so the switch ships on.
+            assertTrue(Settings.QUIET_CONTACTS_NAG.key,
+                    ((SwitchPreference) page.findPreference(Settings.QUIET_CONTACTS_NAG.key)).isChecked());
+            assertEquals("New Year look all year", String.valueOf(page.findPreference(Settings.HOLIDAY_LOOK.key).getTitle()));
+            assertEquals("Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat "
+                            + "backgrounds on, over chat backgrounds. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.HOLIDAY_LOOK.key).getSummary()));
+            // Telegram keeps its own holiday dates until someone turns the switch on.
+            assertFalse(Settings.HOLIDAY_LOOK.key,
+                    ((SwitchPreference) page.findPreference(Settings.HOLIDAY_LOOK.key)).isChecked());
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
             for (Preference row : rows) {
@@ -251,12 +328,16 @@ public class HushTelegramPreferenceFragmentTest {
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
                 HushTelegramPreferenceFragment page = pageOf(controller);
                 String summary = String.valueOf(page.findPreference(missing.family.switches.get(0).key).getSummary());
-                assertTrue(summary, summary.startsWith("This build covers "));
-                assertTrue(summary, summary.endsWith("Missing coverage: " + missing.label + "."));
-                for (PatchFamily.Capability covered : missing.family.expectedCapabilities()) {
-                    if (covered != missing) assertTrue(summary, summary.contains(covered.label));
+                if (missing.family.expectedCapabilities().size() == 1) {
+                    assertEquals("This build has no coverage for " + missing.label + ".", summary);
+                } else {
+                    assertTrue(summary, summary.startsWith("This build covers "));
+                    assertTrue(summary, summary.endsWith("Missing coverage: " + missing.label + "."));
+                    for (PatchFamily.Capability covered : missing.family.expectedCapabilities()) {
+                        if (covered != missing) assertTrue(summary, summary.contains(covered.label));
+                    }
                 }
-                assertTrue("a surviving target lost its switch", page.findPreference(missing.family.switches.get(0).key).isEnabled());
+                assertTrue("a build family's configuration switch was disabled", page.findPreference(missing.family.switches.get(0).key).isEnabled());
             }
         }
 
@@ -266,7 +347,9 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("This build has no coverage for "
                             + L10n.join(Arrays.asList("channel ads", "video ads", "search ads")) + ".",
                     String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
-            assertEquals("This build has no coverage for device statistics reports and channel read metrics.",
+            assertEquals("This build has no coverage for " + L10n.join(Arrays.asList(
+                            "device statistics reports", "channel read metrics", "Premium promo views",
+                            "Premium promo taps", "Premium promo accepts", "Premium promo failures")) + ".",
                     String.valueOf(page.findPreference(Settings.DISABLE_ANALYTICS.key).getSummary()));
         }
     }

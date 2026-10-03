@@ -92,7 +92,9 @@ class MaterialYouTokenFixtureTest {
          * `g60.A0V`, `g65.A01` and `hk8.invoke` only ever set to 0x7f040458, its third call an image
          * resource through `giD.A01`. 577 has the same code under other names (8Qk, iv6, PHA, PJ4,
          * QPv, QS3), and `kWD.A1B` is Mapbox's and MapLibre's ColorUtils lookup by name, kept in one
-         * helper there.
+         * helper there. 581 has the same 18 calls under other names (looked at 2026-10-02): `Cuj.A02`,
+         * `FMh.A00`, `c0D.A0K`, `emC.EwX` (whose six calls ask `gZV.A00`, a dimension read like
+         * `gi9.A00`), `epS.DA9`, `fjh.A04`, `fmc`'s constructor and `fmc.A0f`, and Mapbox's three.
          */
         val UNRESOLVED = mapOf(
             "577.0.0.50.72" to setOf(
@@ -129,6 +131,26 @@ class MaterialYouTokenFixtureTest {
                 "LX/g7C;-><init>(Landroid/content/Context;)V@114",
                 "LX/g7C;->A0Z()V@36",
                 "LX/Cyv;->A02(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/Integer;@88",
+                "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getAccentColor(Landroid/content/Context;)I@13",
+                "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryColor(Landroid/content/Context;)I@13",
+                "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryDarkColor(Landroid/content/Context;)I@13",
+            ),
+            "581.0.0.45.58" to setOf(
+                "LX/Cuj;->A02(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/Integer;@88",
+                "LX/FMh;->A00(Landroid/content/Context;Lcom/facebook/react/bridge/ReadableMap;)Landroid/graphics/drawable/Drawable;@20",
+                "LX/c0D;->A0K(Ljava/lang/Integer;)V@16",
+                "LX/emC;->EwX(LX/gmM;)V@151",
+                "LX/emC;->EwX(LX/gmM;)V@165",
+                "LX/emC;->EwX(LX/gmM;)V@50",
+                "LX/emC;->EwX(LX/gmM;)V@63",
+                "LX/emC;->EwX(LX/gmM;)V@75",
+                "LX/emC;->EwX(LX/gmM;)V@78",
+                "LX/epS;->DA9(LX/l99;I)V@168",
+                "LX/epS;->DA9(LX/l99;I)V@224",
+                "LX/epS;->DA9(LX/l99;I)V@32",
+                "LX/fjh;->A04(LX/fjh;LX/fs6;)V@9",
+                "LX/fmc;-><init>(Landroid/content/Context;)V@111",
+                "LX/fmc;->A0f()V@35",
                 "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getAccentColor(Landroid/content/Context;)I@13",
                 "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryColor(Landroid/content/Context;)I@13",
                 "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryDarkColor(Landroid/content/Context;)I@13",

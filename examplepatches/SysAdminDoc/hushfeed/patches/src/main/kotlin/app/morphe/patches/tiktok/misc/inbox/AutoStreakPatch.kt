@@ -138,8 +138,8 @@ private val autoStreakManifestPatch = resourcePatch {
 @Suppress("unused")
 val autoStreakPatch = bytecodePatch(
     name = "Keep a streak going",
-    description = "Sends one message a day to a person you pick, at a time you pick, so a " +
-        "message streak with them keeps going on days you don't open TikTok. The message goes " +
+    description = "Sends one message a day to each person you pick, at a time you pick, so " +
+        "message streaks with them keep going on days you don't open TikTok. The message goes " +
         "through TikTok's own notification reply. Adds the exact alarm and start at boot " +
         "permissions the daily alarm needs. Off until you turn it on: Hushfeed settings > Inbox.",
     default = false,

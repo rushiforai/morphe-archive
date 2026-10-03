@@ -25,8 +25,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * down.
  *
  * - The reel like helper, FbShortsMutationUtil. Its like is the one method in either build holding
- *   "FbShortsMutationUtil.mutateViewerLikeReaction" (580 LX/AxU;->A02, 577 LX/AzV;->A02). It takes
- *   the session first and the like's source last. The Like button's handler passes a source of its
+ *   "FbShortsMutationUtil.mutateViewerLikeReaction" (581 LX/Awi;->A01, 580 LX/AxU;->A02, 577
+ *   LX/AzV;->A02). It takes the session first and the like's source as its last string, which is its
+ *   last parameter on 577 and 580 and on 581 comes before two callbacks (Function1) that build added.
+ *   The Like button's handler passes a source of its
  *   own, and the double-tap listeners of three players (photo reels with sound, native showreel
  *   ads and one more: 580 LX/RwN;, LX/RwK;, LX/BIF;, 577 LX/STt;, LX/STo;, LX/BDl;) pass the literal
  *   "DOUBLE_TAP", and so do the reel sidebars when a double tap reaches them.
@@ -79,6 +81,7 @@ internal const val HEART_RISE = "translationY"
 internal const val STRING = "Ljava/lang/String;"
 private const val CONTEXT = "Landroid/content/Context;"
 private const val OBJECT = "Ljava/lang/Object;"
+private const val CALLBACK = "Lkotlin/jvm/functions/Function1;"
 
 private fun Method.isStatic() = AccessFlags.STATIC.isSet(accessFlags)
 private fun Method.parameters() = parameterTypes.map(CharSequence::toString)
@@ -86,11 +89,20 @@ private fun Method.code(): List<Instruction> = implementation?.instructions?.toL
 private val Instruction.call: MethodReference? get() = (this as? ReferenceInstruction)?.reference as? MethodReference
 private val Instruction.field: FieldReference? get() = (this as? ReferenceInstruction)?.reference as? FieldReference
 
-/** The reel like helper's like: an instance method holding [MUTATE_LIKE], taking the session first and the source last. */
+/**
+ * The index among [method]'s parameters of the like's source: its last string, with nothing after
+ * it but callbacks (none on 577 and 580, two on 581). Null when there's no such string.
+ */
+internal fun likeSource(method: Method): Int? {
+    val parameters = method.parameters()
+    val source = parameters.lastIndexOf(STRING)
+    return source.takeIf { it > 0 && parameters.drop(it + 1).all { parameter -> parameter == CALLBACK } }
+}
+
+/** The reel like helper's like: an instance method holding [MUTATE_LIKE], taking the session first and then a [likeSource]. */
 internal fun isReelLike(method: Method): Boolean =
-    !method.isStatic() && method.returnType == "V" && method.parameters().let {
-        it.size >= 2 && it.first() == FB_USER_SESSION && it.last() == STRING
-    } && holdsString(method, MUTATE_LIKE)
+    !method.isStatic() && method.returnType == "V" && method.parameters().firstOrNull() == FB_USER_SESSION &&
+        likeSource(method) != null && holdsString(method, MUTATE_LIKE)
 
 /** [helper]'s double-tap likes: instance methods with a body taking two objects and a boolean, returning nothing. */
 internal fun doubleTapLikes(helper: ClassDef): List<Method> = helper.methods.filter { method ->
