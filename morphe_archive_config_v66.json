@@ -171,14 +171,6 @@
                 "updatedAt": 1784836023316
             },
             {
-                "name": "Nai64Patches",
-                "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 17,
-                "createdAt": 1784836023539,
-                "updatedAt": 1784836023539
-            },
-            {
                 "name": "gryphous-morphe-patches",
                 "source": "https://raw.githubusercontent.com/NekoGryphou/gryphous-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2003,14 +1995,6 @@
                 "updatedAt": 1790220040002
             },
             {
-                "name": "Nai64ExtraPatches",
-                "source": "https://raw.githubusercontent.com/Nai64/Nai64ExtraPatches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 268,
-                "createdAt": 1790220040080,
-                "updatedAt": 1790220040080
-            },
-            {
                 "name": "DnevnikNextPatch",
                 "source": "https://raw.githubusercontent.com/NextStepTeam/DnevnikNextPatch/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2315,14 +2299,6 @@
                 "updatedAt": 1790567704351
             },
             {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/bartlomiejfornalczyk/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 307,
-                "createdAt": 1790567704601,
-                "updatedAt": 1790567704601
-            },
-            {
                 "name": "ggyasin-morphe-patches",
                 "source": "https://raw.githubusercontent.com/ggYasin/ggyasin-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2443,14 +2419,6 @@
                 "updatedAt": 1790915354207
             },
             {
-                "name": "morphe-fb-lite",
-                "source": "https://raw.githubusercontent.com/ToThangGTVT/morphe-fb-lite/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 324,
-                "createdAt": 1790915354883,
-                "updatedAt": 1790915354883
-            },
-            {
                 "name": "nicoid-re-patches",
                 "source": "https://raw.githubusercontent.com/chikuwadon/nicoid-re-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2465,6 +2433,14 @@
                 "sortOrder": 326,
                 "createdAt": 1791000125564,
                 "updatedAt": 1791000125564
+            },
+            {
+                "name": "youtube-thread-ripper",
+                "source": "https://raw.githubusercontent.com/bennytsai1234/youtube-thread-ripper/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 327,
+                "createdAt": 1791088342515,
+                "updatedAt": 1791088342515
             }
         ]
     }
