@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.35.1](https://github.com/legendsciber/morphe-patches/releases/tag/v1.35.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v1.36.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.36.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
 <details open>
 <summary>📦 Aphelion&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -150,6 +150,21 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 | [Soccer Star Ad Removal](#soccer-star-ad-removal) | Disables ads completely: EnableAD always returns false, interstitials and banners are no-ops, Adjust purchase verification is skipped. |  |
 | [Soccer Star Instant Rewarded](#soccer-star-instant-rewarded) | Rewarded and interstitial ad flows always report loaded and grant the success callback immediately without playing an ad, including offline. |  |
 | [Soccer Star VIP Unlock](#soccer-star-vip-unlock) | Unlocks VIP subscription permanently: ownership keys always report active and unsubscribe can never clear the flag. |  |
+
+</details>
+
+<details open>
+<summary>📦 Solar Smash&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.7.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Solar Smash All Packages Purchased](#solar-smash-all-packages-purchased) | Every in-app purchase package reports as purchased: the all weapons pack, all planets pack, remove ads and unlock levels and achievements stay permanently owned and unlocked, without contacting Google Play. |  |
 
 </details>
 

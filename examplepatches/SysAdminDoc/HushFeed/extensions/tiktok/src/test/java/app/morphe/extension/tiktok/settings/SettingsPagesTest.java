@@ -661,9 +661,11 @@ public class SettingsPagesTest {
                     }
                 }
                 if ("PLAYBACK".equals(SECTIONS[i])) {
-                    int mute = positionOf(list, Settings.FEED_MUTED.key);
-                    assertTrue("the Sound controls are missing", mute > 0);
-                    list.setSelectionFromTop(mute - 1, 70);
+                    // The Player card, from its heading: the bar, the frame, the sound and
+                    // background play. The file keeps its old name so the README link holds.
+                    int player = positionOf(list, Settings.SHOW_SEEKBAR.key);
+                    assertTrue("the Player controls are missing", player > 0);
+                    list.setSelectionFromTop(player - 1, 70);
                     Shadows.shadowOf(Looper.getMainLooper()).idle();
                     UiCapture.save(page.getView(), name + "-sound.png");
                 }

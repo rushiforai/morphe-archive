@@ -1,3 +1,19 @@
+## [1.1.0](https://github.com/spicetify/morphe-patches/compare/v1.0.1...v1.1.0) (2026-10-03)
+
+Spicetify Android patches 1.1.0 targets **Spotify 9.1.80.2221, ARM64**. Other Spotify versions are not supported. Themes require Android 11 or later.
+
+Changes in this release:
+
+- Apply themes through Spicetify color roles, with presets, custom colors, and migration of previously saved themes.
+- Paste colors from a Spicetify `color.ini` or CSS theme.
+- Browse community themes in the Spicetify Marketplace, with search, previews, and a cached list.
+- Apply theme background images, including Galaxy V2, with optional blur.
+- Open Spicetify settings without adding a manifest Activity, and hide server files on mount installations that cannot support their separate process.
+
+The Spotify 9.1.88 port and analytics and attestation experiments are archived and are not included in this release.
+
+Download [patches-1.1.0.mpp](https://github.com/spicetify/morphe-patches/releases/download/v1.1.0/patches-1.1.0.mpp), or update the Spicetify source in Morphe Manager.
+
 ## [1.0.1](https://github.com/spicetify/morphe-patches/compare/v1.0.0...v1.0.1) (2026-10-01)
 
 ### 🐛 Bug Fixes

@@ -76,6 +76,8 @@ param(
     [string]$OutputPath,
     # The SBOM :patches:buildAndroid writes beside the bundle, named for it. Defaults to that.
     [string]$Sbom,
+    # A freshly resolved, input-bound report. Without one the full dependency audit resolves it.
+    [string]$DependencyGraph,
     # For working with no network only: OSV isn't asked about the SBOM's libraries, and the run
     # says so. The index push asks again, so a release can't go out on it.
     [switch]$SkipAdvisoryCheck
@@ -196,54 +198,25 @@ if (-not (Test-Path -LiteralPath $Sbom -PathType Leaf)) {
     throw "No SBOM for the bundle: $Sbom. :patches:buildAndroid writes it beside the bundle, so build again."
 }
 $Sbom = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Sbom)
-$sbomDocument = Read-ReleaseSbom -Path $Sbom
+$sbomDocument = Read-ReleaseSbom -Path $Sbom -RequireReviewedLicenses `
+    -LicenseLedger (Join-Path $Root 'sources/carried-library-licenses.json')
 $sbomBound = Test-ReleaseSbom -Sbom $sbomDocument -BundlePath $Bundle -BundleName (Split-Path -Leaf $Bundle)
 if (-not $sbomBound.Valid) { throw "The SBOM does not describe the bundle: $($sbomBound.Reason)" }
-Invoke-ReleaseAdvisoryGate -Sbom $sbomDocument -ExceptionsPath (Join-Path $PSScriptRoot 'advisory-exceptions.txt') `
-    -SkipAdvisoryCheck:$SkipAdvisoryCheck
-
-function Get-ExtensionPayloads {
-    <#
-    .SYNOPSIS
-        The extension DEX each bundle carries, by name, size and hash.
-    .DESCRIPTION
-        An .mpe is a bare Android DEX, checked here by its magic rather than by its extension,
-        so a bundle that shipped something else in that slot cannot pass as an extension.
-    #>
-    param([string]$BundlePath)
-
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $payloads = New-Object System.Collections.Generic.List[object]
-    $archive = [System.IO.Compression.ZipFile]::OpenRead($BundlePath)
-    try {
-        foreach ($entry in @($archive.Entries | Where-Object { $_.FullName -like 'extensions/*.mpe' } |
-                Sort-Object FullName)) {
-            $stream = $entry.Open()
-            try {
-                $memory = New-Object System.IO.MemoryStream
-                $stream.CopyTo($memory)
-                $bytes = $memory.ToArray()
-                $memory.Dispose()
-            } finally { $stream.Dispose() }
-
-            $magic = [System.Text.Encoding]::ASCII.GetString($bytes, 0, [Math]::Min(4, $bytes.Length))
-            if ($magic -ne "dex`n") {
-                throw "$($entry.FullName) in $BundlePath is not an Android DEX payload."
-            }
-            $sha = [System.Security.Cryptography.SHA256]::Create()
-            try { $hash = ($sha.ComputeHash($bytes) | ForEach-Object { '{0:X2}' -f $_ }) -join '' }
-            finally { $sha.Dispose() }
-
-            $payloads.Add([ordered]@{
-                name      = $entry.FullName
-                sizeBytes = [long]$bytes.Length
-                sha256    = $hash
-            })
-        }
-    } finally { $archive.Dispose() }
-
-    if ($payloads.Count -eq 0) { throw "The bundle carries no extension payload: $BundlePath" }
-    return ,$payloads.ToArray()
+$buildIdentity = Get-CanonicalBuildIdentity -Root $Root
+$sbomIdentity = Read-SbomCanonicalBuildIdentity -Path $Sbom
+if ($bundleManifest.buildIdentity -cne $buildIdentity.id -or $sbomIdentity.id -cne $buildIdentity.id) {
+    throw 'The bundle or SBOM production identity differs from the current canonical inputs. Nothing was patched.'
+}
+if ($SkipAdvisoryCheck) {
+    # Offline preparation still verifies the producer's input identity. It cannot certify
+    # tooling advisories, and published receipt readers keep their historical rules.
+    if (-not $DependencyGraph) { $DependencyGraph = Join-Path $Root 'build/reports/dependencies/all-graphs.json' }
+    Get-CurrentDependencyAuditSubject -Root $Root -Graphs (Read-DependencyGraphs -Path $DependencyGraph) `
+        -Sbom $sbomDocument -BundlePath $Bundle | Out-Null
+    Invoke-ReleaseAdvisoryGate -Sbom $sbomDocument -ExceptionsPath (Join-Path $PSScriptRoot 'advisory-exceptions.txt') `
+        -SkipAdvisoryCheck
+} else {
+    & (Join-Path $PSScriptRoot 'audit-dependencies.ps1') -Root $Root -GraphPath $DependencyGraph -SbomPath $Sbom -BundlePath $Bundle
 }
 
 function Get-PatchVerdicts {
@@ -427,8 +400,13 @@ foreach ($apk in $Fixture) {
     }
 }
 
+if ((Get-CanonicalBuildIdentity -Root $Root).id -cne $buildIdentity.id -or
+    (Get-Sha256Hex -Path $Bundle) -cne $bundleHash -or (Get-Sha256Hex -Path $Sbom) -cne $sbomDocument.Sha256) {
+    throw 'The canonical inputs or final artifacts changed while the fixtures were being patched. No receipt was written.'
+}
 $receipt = [ordered]@{
     schemaVersion = Get-ReleaseReceiptSchemaVersion
+    buildIdentity = $buildIdentity
     generatedAt   = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
     release       = [ordered]@{
         version         = $releaseVersion

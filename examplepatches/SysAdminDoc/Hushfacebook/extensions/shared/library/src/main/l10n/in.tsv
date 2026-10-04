@@ -1,5 +1,6 @@
 # Indonesian for Hushfacebook: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	Versi build %1$s
 "Pages you may like" cards and the cards Facebook uses to push its own features. In-feed surveys go too.	Kartu “Halaman yang mungkin Anda sukai” dan kartu yang dipakai Facebook untuk menawarkan fiturnya sendiri. Survei di Kabar Beranda ikut hilang.
 %1$d item in that file isn't a setting this version of Hushfacebook knows, so it'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi Hushfacebook ini, jadi tidak akan disertakan.
 %1$d items in that file aren't settings this version of Hushfacebook knows, so they'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi Hushfacebook ini, jadi tidak akan disertakan.
@@ -35,6 +36,7 @@ Copy quick report	Salin laporan singkat
 Copying to the gallery	Menyalin ke galeri
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Pengaturan tidak dapat diimpor, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa sakelar di layar ini.
 Couldn't import the settings. Nothing was changed.	Pengaturan tidak dapat diimpor. Tidak ada yang diubah.
+Couldn't open or share that saved file. Try again.	File yang disimpan itu tidak bisa dibuka atau dibagikan. Coba lagi.
 Couldn't open that file. Nothing was changed.	File itu tidak dapat dibuka. Tidak ada yang diubah.
 Couldn't open the file picker. Try again.	Pemilih file tidak dapat dibuka. Coba lagi.
 Couldn't put back the diagnostic data. Try again.	Data diagnostik tidak dapat dikembalikan. Coba lagi.
@@ -64,14 +66,21 @@ Facebook crashed or froze within a minute of starting three times in a row, so H
 Facebook doesn't download ads or its ad model in the background.	Facebook tidak mengunduh iklan atau model iklannya di latar belakang.
 Facebook doesn't serve ads to other apps on this phone.	Facebook tidak menayangkan iklan ke aplikasi lain di ponsel ini.
 Facebook dark mode and this screen use your wallpaper colours. Android 11 uses blue instead. Turn on Facebook dark mode to see it.	Mode gelap Facebook dan halaman ini memakai warna wallpaper Anda. Android 11 memakai biru. Aktifkan mode gelap Facebook untuk melihatnya.
+Hide Stories between posts	Sembunyikan Cerita di antara postingan
 Joining the picture and sound	Menggabungkan gambar dan suara
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
+Rows, large tiles and viewers of Stories between posts, starting with the next feed Facebook loads. The top Stories tray has its own switch.	Deretan, ubin besar, dan penampil Cerita di antara postingan, mulai dari beranda berikutnya yang dimuat Facebook. Baki Cerita di bagian atas memiliki sakelar sendiri.
+Open	Buka
+Photo saved	Foto tersimpan
 Settings exported. The app holding the file wouldn't let Hushfacebook read it back, so it wasn't checked.	Pengaturan diekspor. Aplikasi yang menyimpan file itu tidak mengizinkan Hushfacebook membacanya kembali, jadi file itu tidak diperiksa.
+Share	Bagikan
+That saved file is no longer available.	File yang disimpan itu tidak tersedia lagi.
 The app holding that file is taking too long, so Hushfacebook stopped waiting. Nothing was changed.	Aplikasi yang menyimpan file itu terlalu lama, jadi Hushfacebook berhenti menunggu. Tidak ada yang diubah.
 The app holding the last settings file still hasn't answered. Try again later.	Aplikasi yang menyimpan file pengaturan terakhir masih belum merespons. Coba lagi nanti.
 The app holding the settings file is taking too long, so Hushfacebook stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Aplikasi yang menyimpan file pengaturan terlalu lama, jadi Hushfacebook berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
+There's no app here that can open or share this saved file.	Tidak ada aplikasi yang bisa membuka atau membagikan file yang disimpan ini.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.
 Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.	Gunakan emoji ponsel. Reaksi dan stiker tetap sama. Mulai ulang Facebook setelah mengubahnya.
 # context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
@@ -138,6 +147,8 @@ Posts Facebook files as promotions rather than as ads.	Postingan yang dikategori
 Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.	Postingan dari orang dan Halaman yang tidak Anda ikuti serta dari grup tempat Anda belum bergabung, yang diselipkan Facebook ke Kabar Beranda Anda.
 Posts that Facebook's own detection marks as made with AI. A post that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real feed yet.	Postingan yang ditandai deteksi Facebook sendiri sebagai buatan AI. Postingan yang hanya diberi label AI oleh pembuatnya tetap ada. Sakelar ini nonaktif secara default karena belum diuji di Kabar Beranda sungguhan.
 Profiles and some Settings pages open again on this re-signed build.	Profil dan beberapa halaman Pengaturan dapat dibuka lagi di build yang ditandatangani ulang ini.
+Profiles and some Settings pages won't open	Profil dan beberapa halaman Pengaturan tidak akan terbuka
+Patch again with %1$s selected. Re-signed builds need it for profiles and some Facebook Settings pages.	Tambal ulang dengan %1$s dipilih. Build yang ditandatangani ulang membutuhkannya untuk profil dan beberapa halaman Pengaturan Facebook.
 Re-signed build fix	Perbaikan build yang ditandatangani ulang
 Reading the settings file	Membaca file pengaturan
 Reels and Watch	Reels dan Watch
@@ -183,6 +194,7 @@ Checking GitHub now.	Sedang memeriksa GitHub.
 Hushfacebook %1$s is out. Update it in Morphe Manager.	Hushfacebook %1$s sudah dirilis. Perbarui di Morphe Manager.
 It targets Facebook %1$s.	Rilis ini ditujukan untuk Facebook %1$s.
 Hushfacebook %1$s targets Facebook %2$s.	Hushfacebook %1$s ditujukan untuk Facebook %2$s.
+Video saved	Video tersimpan
 You have the newest Hushfacebook release.	Anda sudah memakai rilis Hushfacebook terbaru.
 The newest Hushfacebook release is %1$s.	Rilis Hushfacebook terbaru adalah %1$s.
 Couldn't reach GitHub. Try again later.	GitHub tidak dapat dihubungi. Coba lagi nanti.
@@ -226,7 +238,7 @@ the re-signed build fix	perbaikan build yang ditandatangani ulang
 the start-up fix for x86 devices	perbaikan saat mulai untuk perangkat x86
 the recoloured dark mode	mode gelap yang diwarnai ulang
 The row of friend suggestions between posts, and the one on your own profile.	Deretan saran pertemanan di antara postingan, dan deretan di profilmu sendiri.
-The row of stories at the top of the feed, Create story included, and the rows of stories between posts.	Deretan cerita di bagian atas Kabar Beranda, termasuk “Buat cerita”, dan deretan cerita di antara postingan.
+The row of stories at the top of the feed, Create story included.	Deretan cerita di bagian atas beranda, termasuk Buat cerita.
 The rows of reels between posts, and the reels Facebook adds where your feed ends.	Deretan Reels di antara postingan, dan Reels yang ditambahkan Facebook di akhir Kabar Beranda Anda.
 The setting couldn't finish updating. Its saved value is shown.	Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.
 There's no diagnostic data to clear.	Tidak ada data diagnostik yang dapat dihapus.
@@ -557,6 +569,22 @@ Facebook's web addresses open here now.	Alamat web Facebook kini terbuka di sini
 Meta App Manager can keep Facebook's web addresses for itself, so their links skip this app. Tap and turn off Open supported links there, then check Supported links above.	Meta App Manager bisa mengambil alamat web Facebook untuk dirinya sendiri, sehingga tautannya melewati aplikasi ini. Ketuk dan nonaktifkan “Buka link yang didukung” di sana, lalu periksa Tautan yang didukung di atas.
 # context: message when Android's page for Meta App Manager doesn't open; "Open by default" is Android's page name
 Meta App Manager's settings didn't open. Find it in Android's app list with system apps shown, then Open by default.	Pengaturan Meta App Manager tidak terbuka. Cari di daftar aplikasi Android dengan aplikasi sistem ditampilkan, lalu Buka secara default.
+# context: title of a row under Links; Messenger is the name of Meta's app, keep it as is
+Messenger	Messenger
+# context: title of a row under Links; Instagram is the name of Meta's app, keep it as is
+Instagram	Instagram
+# context: the Messenger row's description; "Open supported links" is Android's own switch, "Supported links" is the row above
+Messenger can keep facebook.com and m.me links for itself, so their switches for this app turn themselves back off. Tap and turn off Open supported links there, then check Supported links above.	Messenger bisa mengambil tautan facebook.com dan m.me untuk dirinya sendiri, sehingga tombolnya untuk aplikasi ini mati lagi dengan sendirinya. Ketuk dan nonaktifkan “Buka link yang didukung” di sana, lalu periksa Tautan yang didukung di atas.
+# context: the Instagram row's description; "Open supported links" is Android's own switch, "Supported links" is the row above
+Instagram can keep facebook.com links for itself, so their switches for this app turn themselves back off. Tap and turn off Open supported links there, then check Supported links above.	Instagram bisa mengambil tautan facebook.com untuk dirinya sendiri, sehingga tombolnya untuk aplikasi ini mati lagi dengan sendirinya. Ketuk dan nonaktifkan “Buka link yang didukung” di sana, lalu periksa Tautan yang didukung di atas.
+# context: message when Android's page for Messenger doesn't open; "App info" and "Open by default" are Android's page names
+Messenger's settings didn't open. Open App info from Messenger's icon, then Open by default.	Pengaturan Messenger tidak terbuka. Buka Info aplikasi dari ikon Messenger, lalu Buka secara default.
+# context: message when Android's page for Instagram doesn't open; "App info" and "Open by default" are Android's page names
+Instagram's settings didn't open. Open App info from Instagram's icon, then Open by default.	Pengaturan Instagram tidak terbuka. Buka Info aplikasi dari ikon Instagram, lalu Buka secara default.
+# context: the Messenger row's description once both addresses open in this app; keep facebook.com and m.me as is
+facebook.com and m.me links open here now.	Tautan facebook.com dan m.me kini terbuka di sini.
+# context: the Instagram row's description once its addresses open in this app; keep facebook.com as is
+facebook.com links open here now.	Tautan facebook.com kini terbuka di sini.
 # context: message when a save starts and its notification can't show (Facebook's notifications or the saves channel are off); Downloads is the settings section that lists running saves, each with its own Cancel
 Saving... Cancel: Downloads in Hushfacebook.	Menyimpan... Batal: Unduhan di Hushfacebook.
 # context: switch title under Reels and Watch; on, a double tap on a reel or a video doesn't like it
@@ -701,6 +729,10 @@ Links go to %1$s. When it isn't installed, Android asks which app.	Tautan dikiri
 Hide "Find friends from contacts"	Sembunyikan “Temukan teman dari kontak”
 # context: summary of that switch
 The Stories tray card asking to upload your contacts. Applies when Facebook next loads the tray.	Kartu di baki cerita yang meminta Anda mengunggah kontak. Berlaku saat Facebook memuat ulang baki.
+# context: switch title under Stories; the prompts are the cards beside Create story that suggest a kind of story to make. Keep it distinct from Hide suggested stories
+Hide story prompts	Sembunyikan ide cerita
+# context: summary of that switch; Share music you love is the name of one such card
+The cards beside Create story that suggest a story to make, like Share music you love. Applies when Facebook next loads the tray.	Kartu di samping Buat cerita yang menyarankan cerita untuk dibuat, seperti berbagi musik yang Anda suka. Berlaku saat Facebook memuat ulang baki.
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 The row of friend suggestions between posts, the one on your own profile, and the cards with an Add button in the Stories tray.	Deretan saran pertemanan di antara postingan, deretan di profilmu sendiri, dan kartu dengan tombol Tambah di baki cerita.
 Feeds opens on	Feed dibuka di
@@ -712,3 +744,14 @@ When Facebook opens on Feeds, the Feeds tab opens on the filter Facebook picks.	
 When Facebook opens on Feeds, the Feeds tab opens on %1$s. If your Feeds tab doesn't have it, it opens as usual.	Saat Facebook terbuka di Feed, tab Feed terbuka di %1$s. Jika tab Feed kamu tidak memilikinya, tab itu terbuka seperti biasa.
 The Feeds tab will open on the filter Facebook picks.	Tab Feed akan terbuka di filter yang dipilih Facebook.
 The Feeds tab will open on %1$s.	Tab Feed akan terbuka di %1$s.
+Saved	Tersimpan
+Saved shortcut	Pintasan Tersimpan
+Adds Saved to Facebook's icon menu when there's room. Existing shortcuts stay.	Menambahkan Tersimpan ke menu ikon Facebook jika ada ruang. Pintasan yang ada tetap tersedia.
+Your launcher has no room for another shortcut.	Peluncur tidak memiliki ruang untuk pintasan lain.
+Saved isn't available in this build.	Tersimpan tidak tersedia dalam versi ini.
+# context: The optional matching mode for both post word lists.
+Match whole words	Cocokkan kata utuh
+Apply whole-word matching to both lists. For example, hat matches hat! but not what or hats.	Gunakan pencocokan kata utuh untuk kedua daftar. Misalnya, hat cocok dengan hat!, tetapi tidak dengan what atau hats.
+Off	Nonaktif
+On	Aktif
+Saved now %1$s. After import %2$s.	Tersimpan sekarang %1$s. Setelah impor %2$s.

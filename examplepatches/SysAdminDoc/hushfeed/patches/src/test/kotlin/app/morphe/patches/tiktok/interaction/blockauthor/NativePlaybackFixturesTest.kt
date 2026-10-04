@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok.interaction.blockauthor
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -33,7 +32,7 @@ class NativePlaybackFixturesTest {
             val version = Regex("""4\d\.\d+\.\d+""").find(apk.name)?.value
                 ?: error("${apk.name}: no TikTok version in the file name")
             val want = expected[version] ?: error("${apk.name}: no expected members for $version")
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val classes = container.dexEntryNames.flatMap { container.getEntry(it)!!.dexFile.classes }
                 .associateBy { it.type }
             val pauseVideo = classes.getValue(PLAYER_CONTROLLER).methods

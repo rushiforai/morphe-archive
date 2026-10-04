@@ -132,7 +132,8 @@ public final class L10n {
             String variant = table.get(other + "|" + category);
             if (variant != null && !variant.isEmpty()) return variant;
         }
-        return rowOrKey(table, other);
+        String translated = table == null ? null : table.get(other);
+        return translated == null || translated.isEmpty() ? count == 1 ? one : other : translated;
     }
 
     private static boolean oneForm(String category, long count) {
@@ -160,8 +161,26 @@ public final class L10n {
             try {
                 return android.icu.text.PluralRules.forLocale(locale).select(count);
             } catch (Throwable ignored) {
-                // Fall through to the two-form rule below.
+                // Fall through to the shipped languages' integer rules below.
             }
+        }
+        // CLDR 48 cardinal rules for integer quantities. Negative counts aren't supported.
+        // Keep long arithmetic so large counts don't lose precision or overflow on abs().
+        if (count < 0) return "other";
+        String language = locale.getLanguage();
+        if ("id".equals(language) || "in".equals(language)) return "other";
+        if ("ru".equals(language)) {
+            long last = count % 10;
+            long lastTwo = count % 100;
+            if (last == 1 && lastTwo != 11) return "one";
+            if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return "few";
+            return "many";
+        }
+        if ("pt".equals(language)) {
+            if (count == 1 || count == 0 && !"PT".equals(locale.getCountry())) return "one";
+            if (count != 0 && count % 1_000_000 == 0) return "many";
+        } else if ("es".equals(language) || "it".equals(language)) {
+            if (count != 0 && count % 1_000_000 == 0) return "many";
         }
         return count == 1 ? "one" : "other";
     }

@@ -158,6 +158,25 @@ def screen_fit_parts(code):
     return parts
 
 
+def caught(body, call, alone=False):
+    """
+    True when every line of a smali method body that makes call sits in a try block with a
+    catch-all handler; with alone, a block that makes no other call. Older Android has no
+    Context.getObbDir() or View.addOnLayoutChangeListener(), and the extension is built for a
+    newer minimum, so R8 drops the SDK_INT checks around them. There such a call throws, and
+    everything else in its try block is skipped with it.
+    """
+    lines = [l.strip() for l in body.splitlines()]
+    ranges = [(lines.index(f":{a}"), lines.index(f":{b}"))
+              for a, b in re.findall(r"^\s*\.catch(?:all| Ljava/lang/Throwable;) \{:(\S+) \.\. :(\S+)\}", body, re.M)
+              if f":{a}" in lines and f":{b}" in lines]
+    calls = [i for i, l in enumerate(lines) if call in l]
+    return bool(calls) and all(
+        any(start < i < end and (not alone or sum(l.startswith("invoke-") for l in lines[start:end]) == 1)
+            for start, end in ranges)
+        for i in calls)
+
+
 def table(name):
     """{abi: [(vaddr, old, new)]} for one map in NativeEdits.kt."""
     src = io.open(EDITS_KT, encoding="utf-8").read()
@@ -481,9 +500,22 @@ def main():
         for name in ("ExternalStorage", "SndCache", "ShimPlayer", "PoolPlayer", "SoundBudget", "IntroOnce", "ObbCheck",
                      "CenteredText", "ScreenFit"):
             check(smali_file(f"app/ckzombies/extension/{name}") is not None, f"extension class {name} merged into the dex")
-        check("Landroid/content/Context;->getObbDir()" in method("app/ckzombies/extension/ExternalStorage", "prepare"),
-              "ExternalStorage.prepare asks Android for the OBB folder, which creates it or hands it back to the game")
         prepare = method("app/ckzombies/extension/ExternalStorage", "prepare")
+        check("Lapp/ckzombies/extension/ExternalStorage;->askForObbDir(" in prepare,
+              "ExternalStorage.prepare asks Android for the OBB folder, which creates it or hands it back to the game")
+        check(caught(method("app/ckzombies/extension/ExternalStorage", "askForObbDir"),
+                     "Landroid/content/Context;->getObbDir()", alone=True),
+              "ExternalStorage.askForObbDir catches the getObbDir() older Android lacks, around that call alone")
+        ext_dir = os.path.dirname(smali_file("app/ckzombies/extension/ExternalStorage") or "")
+        direct = [f"{f[:-len('.smali')]}.{m.group(1)}"
+                  for f in (sorted(os.listdir(ext_dir)) if ext_dir else [])
+                  for m in re.finditer(r"\.method[^\n]* (\w+)\((?:(?!\.end method).)*?Context;->getObbDir\(\)",
+                                       io.open(os.path.join(ext_dir, f), encoding="utf-8").read(), re.S)
+                  if m.group(1) != "askForObbDir"]
+        check(bool(ext_dir) and not direct,
+              "no other extension method calls getObbDir() itself" + (f": {', '.join(direct)}" if direct else ""))
+        check(caught(method("app/ckzombies/extension/ScreenFit", "attach"), "->addOnLayoutChangeListener("),
+              "ScreenFit.attach catches the layout listener older Android lacks, so Render at 720p cannot stop the game there")
         check("Lapp/ckzombies/extension/ExternalStorage;->soundCache(" in prepare
               and "Ljava/io/File;->mkdirs()Z" in method("app/ckzombies/extension/ExternalStorage", "soundCache"),
               "ExternalStorage.prepare makes the sound cache folder, which the engine cannot always make itself")

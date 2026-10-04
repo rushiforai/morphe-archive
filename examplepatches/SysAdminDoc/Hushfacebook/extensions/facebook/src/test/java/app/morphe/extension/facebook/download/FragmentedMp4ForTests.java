@@ -56,6 +56,14 @@ final class FragmentedMp4ForTests {
         int runs = 1;
         /** tfhd names an absolute base, and the runs name no data offset: each follows the last. */
         boolean explicitBase;
+        /** A signed data offset for the first run, also when tfhd gives an absolute base. */
+        Integer firstDataOffset;
+        /** Media-data boxes use the extended, sixteen-byte header. */
+        boolean extendedMdat;
+        /** Media data precedes its moof, so its run offsets from the moof are negative. */
+        boolean mdatBeforeMoof;
+        /** Each run has its own media-data box and an explicit offset past that box's header. */
+        boolean separateMdats;
 
         Fragment(Long decodeTime) {
             this.decodeTime = decodeTime;
@@ -201,19 +209,34 @@ final class FragmentedMp4ForTests {
         int index = 0;
         for (int f = 0; f < fragments.size(); f++) {
             Fragment fragment = fragments.get(f);
-            long moofStart = file.size();
+            check(!fragment.separateMdats || !fragment.explicitBase, "separate mdats with implicit run offsets");
+            int perRun = (fragment.samples.size() + fragment.runs - 1) / fragment.runs;
+            int perBox = fragment.separateMdats ? perRun : fragment.samples.size();
+            int boxes = (fragment.samples.size() + perBox - 1) / perBox;
+            int header = fragment.extendedMdat ? 16 : 8;
+            long mediaBytes = (long) boxes * header;
+            for (Sample sample : fragment.samples) mediaBytes += sample.size;
+            long moofStart = file.size() + (fragment.mdatBeforeMoof ? mediaBytes : 0);
             int moofSize = moof(fragment, moofStart, 0).length + 8;
-            long dataStart = moofStart + moofSize + 8;
-            file.box("moof", moof(fragment, moofStart, dataStart));
-            Box mdat = new Box();
-            for (int i = 0; i < fragment.samples.size(); i++) mdat.put(content(index++));
-            boolean last = f == fragments.size() - 1;
-            if (last && lastBoxToTheEnd) {
-                file.u32(0).ascii("mdat").put(mdat.bytes());
-            } else {
-                file.box("mdat", mdat.bytes());
+            int firstHeader = f == fragments.size() - 1 && lastBoxToTheEnd && boxes == 1 ? 8 : header;
+            long dataStart = (fragment.mdatBeforeMoof ? file.size() : moofStart + moofSize) + firstHeader;
+            if (!fragment.mdatBeforeMoof) file.box("moof", moof(fragment, moofStart, dataStart));
+            for (int from = 0; from < fragment.samples.size(); from += perBox) {
+                int to = Math.min(fragment.samples.size(), from + perBox);
+                Box mdat = new Box();
+                for (int i = from; i < to; i++) mdat.put(content(index++));
+                boolean last = f == fragments.size() - 1 && to == fragment.samples.size();
+                if (last && lastBoxToTheEnd) {
+                    check(!fragment.mdatBeforeMoof, "a size-zero mdat before its moof");
+                    file.u32(0).ascii("mdat").put(mdat.bytes());
+                } else if (fragment.extendedMdat) {
+                    file.u32(1).ascii("mdat").u64(mdat.size() + 16L).put(mdat.bytes());
+                } else {
+                    file.box("mdat", mdat.bytes());
+                }
             }
-            if (!last) file.box("styp", new Box().ascii("msdh").u32(0).bytes());
+            if (fragment.mdatBeforeMoof) file.box("moof", moof(fragment, moofStart, dataStart));
+            if (f != fragments.size() - 1) file.box("styp", new Box().ascii("msdh").u32(0).bytes());
         }
         return file.bytes();
     }
@@ -299,10 +322,13 @@ final class FragmentedMp4ForTests {
             int trunFlags = fragment.fields;
             boolean firstFlags = (trunFlags & FLAGS) == 0 && run.get(0).flags != flags;
             if (firstFlags) trunFlags |= 0x4;
-            if (!fragment.explicitBase) trunFlags |= 0x1;
+            Integer dataOffset = from == 0 ? fragment.firstDataOffset : null;
+            if (!fragment.explicitBase || dataOffset != null) trunFlags |= 0x1;
             Box trun = new Box();
             trun.u32(((long) fragment.trunVersion << 24) | trunFlags).u32(run.size());
-            if (!fragment.explicitBase) trun.u32(runStart - moofStart);
+            if ((trunFlags & 0x1) != 0) {
+                trun.u32(dataOffset != null ? dataOffset : runStart - moofStart);
+            }
             if (firstFlags) trun.u32(run.get(0).flags);
             for (int i = 0; i < run.size(); i++) {
                 Sample sample = run.get(i);
@@ -318,6 +344,11 @@ final class FragmentedMp4ForTests {
                 runStart += sample.size;
             }
             traf.box("trun", trun.bytes());
+            if (fragment.separateMdats) {
+                boolean nextIsLast = fragments.indexOf(fragment) == fragments.size() - 1
+                        && from + 2L * perRun >= samples.size();
+                runStart += nextIsLast && lastBoxToTheEnd ? 8 : fragment.extendedMdat ? 16 : 8;
+            }
         }
 
         Box moof = new Box();

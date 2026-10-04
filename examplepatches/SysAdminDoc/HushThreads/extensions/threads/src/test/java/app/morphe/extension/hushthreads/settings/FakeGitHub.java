@@ -54,7 +54,7 @@ final class FakeGitHub implements ReleaseCheck.Transport {
     }
 
     @Override
-    public ReleaseCheck.Exchange get(URL url, Map<String, String> headers) throws IOException {
+    public ReleaseCheck.Exchange get(URL url, Map<String, String> headers, long deadline) throws IOException {
         asked.add(url);
         sent.add(new LinkedHashMap<>(headers));
         Runnable hook = onRequest;

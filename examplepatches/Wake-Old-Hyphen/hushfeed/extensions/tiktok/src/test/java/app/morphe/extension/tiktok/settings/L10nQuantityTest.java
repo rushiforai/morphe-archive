@@ -30,6 +30,77 @@ import java.util.Map;
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 28)
 public class L10nQuantityTest {
+    @Test @Config(sdk = {23, 24, 28})
+    public void shippedIntegerRulesSelectEveryExpectedCategory() {
+        long[] counts = {0, 1, 2, 5, 11, 21, 22, 101};
+        for (String language : new String[]{"en", "az", "de", "es", "it", "tr", "pt-BR", "ru", "id", "in"}) {
+            String[] expected = language.equals("ru")
+                    ? new String[]{"many", "one", "few", "many", "many", "one", "few", "one"}
+                    : language.equals("pt-BR")
+                    ? new String[]{"one", "one", "other", "other", "other", "other", "other", "other"}
+                    : language.equals("id") || language.equals("in")
+                    ? new String[]{"other", "other", "other", "other", "other", "other", "other", "other"}
+                    : new String[]{"other", "one", "other", "other", "other", "other", "other", "other"};
+            for (int index = 0; index < counts.length; index++) {
+                assertEquals(language + " " + counts[index], expected[index],
+                        L10n.pluralCategory(Locale.forLanguageTag(language), counts[index]));
+            }
+        }
+    }
+
+    @Test @Config(sdk = 23)
+    public void integerFallbackHandlesMillionFormsAndLongBoundariesWithoutOverflow() {
+        for (String language : new String[]{"es", "it", "pt-BR", "pt-PT"}) {
+            Locale locale = Locale.forLanguageTag(language);
+            assertEquals("many", L10n.pluralCategory(locale, 1_000_000));
+            assertEquals("many", L10n.pluralCategory(locale, 2_000_000));
+            assertEquals("other", L10n.pluralCategory(locale, 999_999));
+            assertEquals("other", L10n.pluralCategory(locale, 1_000_001));
+        }
+        assertEquals("other", L10n.pluralCategory(Locale.forLanguageTag("pt-PT"), 0));
+        assertEquals("one", L10n.pluralCategory(new Locale("ru"), 9_007_199_254_741_001L));
+        assertEquals("many", L10n.pluralCategory(new Locale("ru"), Long.MAX_VALUE));
+        for (String language : L10nTranslations.LANGUAGES) {
+            assertEquals("other", L10n.pluralCategory(Locale.forLanguageTag(language), Long.MIN_VALUE));
+            assertEquals("other", L10n.pluralCategory(Locale.forLanguageTag(language), -1));
+        }
+    }
+
+    @Test @Config(sdk = {24, 28})
+    public void modernCountsKeepThePlatformsOwnIcuRules() {
+        for (String language : new String[]{"es", "it", "pt-BR", "ru", "id"}) {
+            Locale locale = Locale.forLanguageTag(language);
+            for (long count : new long[]{-1, Long.MIN_VALUE, 1_000_000, 2_000_000,
+                    9_007_199_254_741_001L, Long.MAX_VALUE}) {
+                assertEquals(android.icu.text.PluralRules.forLocale(locale).select(count),
+                        L10n.pluralCategory(locale, count));
+            }
+        }
+    }
+
+    @Test @Config(sdk = {23, 24, 28}, qualifiers = "ja")
+    public void anUnavailableDisplayedLanguageUsesEnglishQuantityRules() {
+        Context context = RuntimeEnvironment.getApplication();
+        assertEquals("one", L10n.pluralCategory(context, 1));
+        assertEquals("1 result", L10n.quantity(context, 1, "1 result", "%1$d results"));
+        assertEquals("2 results", L10n.quantity(context, 2, "1 result", "%1$d results"));
+        assertEquals("21 results", L10n.quantity(context, 21, "1 result", "%1$d results"));
+    }
+
+    @Test
+    public void missingQuantityRowsFallBackToEnglishWithoutBorrowingAnIncompatibleSingular() {
+        Map<String, String> table = new LinkedHashMap<>();
+        table.put("1 result", "a translated singular the displayed rule doesn't use");
+        assertEquals("1 result", L10n.pluralRow("other", 1, "1 result", "%1$d results", table));
+        table.put("%1$d results", "");
+        assertEquals("1 result", L10n.pluralRow("other", 1, "1 result", "%1$d results", table));
+        assertEquals("1 result", L10n.pluralRow("other", 1, "1 result", "%1$d results", null));
+        assertEquals("%1$d results", L10n.pluralRow("one", 21, "1 result", "%1$d results", null));
+        table.put("%1$d results", "%1$d translated results");
+        assertEquals("%1$d translated results", L10n.pluralRow("few", 2, "1 result", "%1$d results", table));
+        assertEquals("%1$d translated results", L10n.pluralRow("other", 1, "1 result", "%1$d results", table));
+    }
+
     @Test @Config(sdk = 28, qualifiers = "en")
     public void englishTakesTheOneFormForOneAndTheOtherFormForTheRest() {
         Context context = RuntimeEnvironment.getApplication();
@@ -45,7 +116,7 @@ public class L10nQuantityTest {
                 "Reset 1 gate of %2$d.", "Reset %1$d gates of %2$d.", 3, 4));
     }
 
-    @Test @Config(sdk = 28, qualifiers = "in")
+    @Test @Config(sdk = {23, 24, 28}, qualifiers = "in")
     public void indonesianHasNoOneFormSoOneTakesTheOtherRow() {
         Context context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
@@ -110,7 +181,7 @@ public class L10nQuantityTest {
         assertEquals("%1$d результатов", L10n.pluralRow("one", 21, "1 result", "%1$d results", table));
     }
 
-    @Test @Config(sdk = 28, qualifiers = "ru")
+    @Test @Config(sdk = {23, 24, 28}, qualifiers = "ru")
     public void theShippedRussianTableWordsEachCountItsOwnWay() {
         Context context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
@@ -146,7 +217,7 @@ public class L10nQuantityTest {
         assertEquals("2 results", L10n.quantity(context, 2, "1 result", "%1$d results"));
     }
 
-    @Test @Config(sdk = 28, qualifiers = "pt-rBR")
+    @Test @Config(sdk = {23, 24, 28}, qualifiers = "pt-rBR")
     public void brazilianPortugueseShowsNoneAsNoneNotOne() {
         Context context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);

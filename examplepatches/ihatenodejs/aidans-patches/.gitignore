@@ -68,3 +68,7 @@ node_modules/
 # Agents
 .agents
 .claude
+
+# Font assets
+*.ttf
+patches/src/main/resources/fonts/

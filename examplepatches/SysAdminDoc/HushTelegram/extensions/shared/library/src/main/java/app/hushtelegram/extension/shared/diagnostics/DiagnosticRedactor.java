@@ -13,6 +13,11 @@
  */
 package app.hushtelegram.extension.shared.diagnostics;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,6 +78,13 @@ public final class DiagnosticRedactor {
     /** Telegram's phone fields, matched whole so phoneCount and headphone remain readable. */
     private static final String PHONE_NAMES = "phone(?:[_-]?number)?";
     /**
+     * Telegram's API identity aliases, matched whole so counters and unrelated hashes stay.
+     * A literal JSON unicode quote has ASCII digits before the name. Its u0022 may be taken only
+     * after a backslash, preserving the same bounded name rule for that encoded quotation.
+     */
+    private static final String API_IDENTITY_NAMES =
+            "(?:(?<=\\\\)u0022)?(?:api_?(?:id|hash)|app_(?:id|hash))";
+    /**
      * Credential and device names kept from the shared redaction rules this class was built on:
      * sessionid, ds_user_id and csrftoken are cookie names a session can use, and rur, mid and
      * ig_did go with them. family_device_id, X-IG-Device-ID, X-IG-Android-ID and advertiser_id are
@@ -92,7 +104,7 @@ public final class DiagnosticRedactor {
                     + "|openudid|android[_-]?id|ds_user_id|ig_did|machine[_-]?id|advertiser[_-]?id"
                     + "|advertising[_-]?id|adid)[a-z0-9_-]*"
                     + "|(?!" + ORDINARY_WORDS + "(?![a-z0-9_]|-(?!>)))[a-z0-9_-]*(?:sid|uid|iid|auth)[a-z0-9_-]*"
-                    + "|rur|mid|pwd|access[_-]?hash|" + PHONE_NAMES;
+                    + "|rur|mid|pwd|access[_-]?hash|" + PHONE_NAMES + "|" + API_IDENTITY_NAMES;
     /** Names whose unquoted value can hold spaces and semicolons, so it runs to the end of its line. */
     private static final String PASSWORD_NAMES = "[a-z0-9_-]*(?:password|passwd|passphrase|passcode)[a-z0-9_-]*|pwd";
     /**
@@ -164,11 +176,19 @@ public final class DiagnosticRedactor {
                     + "|[^\\r\\n]*(?:\\r?\\n[ \\t]++" + NOT_TRACE + "[^\\r\\n]*)*))";
     /**
      * A name and value pair as HAR files and header dumps print them, {"name": ..., "value": ...},
-     * where the name is a header, cookie or id the rules know. Only the value goes.
+     * where the name is a header, cookie or id the rules know. Only the value goes. A named id
+     * can be an unquoted JSON integer, bounded by the next field, closing brace or end of text.
      */
     private static final String NAME_VALUE_PAIR =
             "(?i)(\\\\*\"name\\\\*\"[ \\t]*:[ \\t]*\\\\*\"(?:(?:proxy-)?authorization|set-cookie|" + CREDENTIAL_NAMES
-                    + "|" + USER_ID_NAMES + "|" + CONTENT_ID_NAMES + ")\\\\*\"[ \\t]*,[ \\t]*\\\\*\"value\\\\*\"[ \\t]*:[ \\t]*)" + QUOTED;
+                    + "|" + USER_ID_NAMES + "|" + CONTENT_ID_NAMES + ")\\\\*\"[ \\t]*,[ \\t]*\\\\*\"value\\\\*\"[ \\t]*:[ \\t]*)"
+                    + "(?:" + QUOTED + "|-?[0-9]++(?=[ \\t]*(?:[,}]|$)))";
+    private static final Pattern JSON_PRIMITIVE = Pattern.compile(
+            "-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?|true|false|null");
+    private static final Pattern JSON_PRIVATE_NAME = Pattern.compile(
+            "(?i)(?:(?:proxy-)?authorization|set-cookie|" + CREDENTIAL_NAMES
+                    + "|" + USER_ID_NAMES + "|" + CONTENT_ID_NAMES + ")");
+    private static final Pattern JSON_API_NAME = Pattern.compile("(?i)(?:" + API_IDENTITY_NAMES + ")");
     /**
      * A Bearer, OAuth or Basic credential written with no header name in front of it. A word
      * counts as one only with a digit, +, / or = in it, so "OAuth callback" and "Basic settings"
@@ -280,7 +300,7 @@ public final class DiagnosticRedactor {
 
     /** Every rule, in order. */
     private static String withoutPrivateValues(String text) {
-        String passed = text
+        String passed = withoutJsonPrivateValues(text)
                 .replaceAll(ISOLATED_NAME, "[name omitted]")
                 .replaceAll(HANDLE, "[handle omitted]")
                 .replaceAll("(?i)" + EDGE + "(?:[a-z][a-z0-9+.-]*://|tg:)[^" + SPACE + "\"'<>]+", "[url omitted]")
@@ -302,6 +322,222 @@ public final class DiagnosticRedactor {
                 .replaceAll(BARE_CONTENT_ID, "[id omitted]")
                 .replaceAll(NAMED_HANDLE, "[handle omitted]")
                 .replaceAll(GLUED_HANDLE, "[handle omitted]");
+    }
+
+    /** JSON members keep their own object boundaries, even when name follows value. */
+    private static String withoutJsonPrivateValues(String text) {
+        int open = text.indexOf('{');
+        if (open < 0) return text;
+        JsonValues json = new JsonValues(text);
+        List<int[]> ranges = new ArrayList<>();
+        for (; open >= 0; open = text.indexOf('{', open + 1)) {
+            jsonPrivateRanges(text, json, open, ranges);
+        }
+        if (ranges.isEmpty()) return text;
+        ranges.sort((left, right) -> Integer.compare(left[0], right[0]));
+        StringBuilder out = new StringBuilder(text.length());
+        int copied = 0;
+        for (int[] range : ranges) {
+            if (range[0] < copied) continue; // An outer private value already covered this member.
+            out.append(text, copied, range[0]).append("[omitted]");
+            copied = range[1];
+        }
+        return out.append(text, copied, text.length()).toString();
+    }
+
+    /** Only direct members can supply this object's identity or its value. */
+    private static void jsonPrivateRanges(String text, JsonValues json, int open, List<int[]> ranges) {
+        List<int[]> direct = new ArrayList<>();
+        List<int[]> values = new ArrayList<>();
+        boolean privateName = false;
+        int at = jsonSpaceEnd(text, open + 1, true);
+        while (at < text.length()) {
+            int keyStart = at;
+            int[] key = json.string(at);
+            if (key == null) return;
+            String name = jsonName(text, key);
+            boolean escaped = key[0] - keyStart > 1;
+            at = jsonSpaceEnd(text, key[2], escaped);
+            if (at >= text.length() || text.charAt(at++) != ':') return;
+            int start = jsonSpaceEnd(text, at, escaped);
+            int end = json.valueEnd(start, escaped);
+            if (end < 0) return;
+            if (JSON_API_NAME.matcher(name).matches()
+                    || (!name.equals(text.substring(key[0], key[1])) && JSON_PRIVATE_NAME.matcher(name).matches())) {
+                direct.add(new int[]{start, end});
+            }
+            if (name.equalsIgnoreCase("name")) {
+                int[] identity = json.string(start);
+                if (identity != null) {
+                    privateName |= JSON_PRIVATE_NAME.matcher(jsonName(text, identity)).matches();
+                }
+            } else if (name.equalsIgnoreCase("value")) {
+                values.add(new int[]{start, end});
+            }
+            at = jsonSpaceEnd(text, end, escaped);
+            if (at >= text.length()) return;
+            char separator = text.charAt(at++);
+            if (separator == '}') {
+                ranges.addAll(direct);
+                if (privateName) ranges.addAll(values);
+                return;
+            }
+            if (separator != ',') return;
+            at = jsonSpaceEnd(text, at, escaped);
+        }
+    }
+
+    /** Decode names for matching only. A literal escaped backslash never becomes a unicode escape. */
+    private static String jsonName(String text, int[] quoted) {
+        String name = text.substring(quoted[0], quoted[1]);
+        for (int pass = 0; pass < quoted[3] && name.indexOf('\\') >= 0; pass++) {
+            StringBuilder decoded = new StringBuilder(name.length());
+            for (int at = 0; at < name.length(); at++) {
+                char letter = name.charAt(at);
+                if (letter != '\\') { decoded.append(letter); continue; }
+                if (++at == name.length()) return text.substring(quoted[0], quoted[1]);
+                switch (name.charAt(at)) {
+                    case '"': case '\\': case '/': decoded.append(name.charAt(at)); break;
+                    case 'b': decoded.append('\b'); break;
+                    case 'f': decoded.append('\f'); break;
+                    case 'n': decoded.append('\n'); break;
+                    case 'r': decoded.append('\r'); break;
+                    case 't': decoded.append('\t'); break;
+                    case 'u': {
+                        if (at + 4 >= name.length()) return text.substring(quoted[0], quoted[1]);
+                        int value = 0;
+                        for (int digitAt = 0; digitAt < 4; digitAt++) {
+                            char hex = name.charAt(++at);
+                            int digit = hex >= '0' && hex <= '9' ? hex - '0'
+                                    : hex >= 'a' && hex <= 'f' ? hex - 'a' + 10
+                                    : hex >= 'A' && hex <= 'F' ? hex - 'A' + 10 : -1;
+                            if (digit < 0) return text.substring(quoted[0], quoted[1]);
+                            value = value * 16 + digit;
+                        }
+                        decoded.append((char) value);
+                        break;
+                    }
+                    default: return text.substring(quoted[0], quoted[1]);
+                }
+            }
+            name = decoded.toString();
+        }
+        return withPlainLetters(withStandIns(name));
+    }
+
+    /** Quoted spans and nested value ends are indexed once, without recursive matching. */
+    private static final class JsonValues {
+        private final String text;
+        private final int[] ends;
+        private final int[] marks;
+        private int[] stack = new int[16];
+
+        private JsonValues(String text) {
+            this.text = text;
+            ends = new int[text.length()];
+            marks = new int[text.length()];
+            Map<Long, Integer> next = new HashMap<>();
+            for (int at = text.length() - 1; at >= 0; at--) {
+                char letter = text.charAt(at);
+                if (letter == '\r' || letter == '\n') {
+                    next.clear();
+                    continue;
+                }
+                int start = at;
+                int kind;
+                int width;
+                if (letter == '"' || letter == '\'') {
+                    kind = letter == '"' ? 0 : 1;
+                    while (start > 0 && text.charAt(start - 1) == '\\') start--;
+                    width = at - start + 1;
+                } else if (letter == 'u' && text.startsWith("u0022", at)
+                        && start > 0 && text.charAt(start - 1) == '\\') {
+                    kind = 2;
+                    while (start > 0 && text.charAt(start - 1) == '\\') start--;
+                    width = at - start + 5;
+                } else if (letter == '&' && text.startsWith("&quot;", at)) {
+                    kind = 3;
+                    width = 6;
+                } else if (letter == '%' && text.startsWith("%22", at)) {
+                    kind = 4;
+                    width = 3;
+                } else continue;
+                int run = at - start;
+                long key = ((long) kind << 32) | run;
+                // Each layer doubles backslashes. A closing quote may also follow escaped
+                // literal backslashes, so compare the quotation level rather than an exact run.
+                int level = kind < 2 ? Integer.numberOfTrailingZeros(run + 1)
+                        : Integer.numberOfTrailingZeros(run);
+                long levelKey = ((long) (kind + 5) << 32) | level;
+                boolean layered = kind < 2 ? (run & (run + 1)) == 0
+                        : kind == 2 && (run & (run - 1)) == 0;
+                int end = next.getOrDefault(layered ? levelKey : key, 0);
+                if (end > 0) {
+                    marks[start] = width;
+                    ends[start] = end;
+                }
+                next.put(key, start + width);
+                if (kind <= 2) next.put(levelKey, start + width);
+                at = start;
+            }
+        }
+
+        /** Retain the quotation level of an embedded body when returning its contents. */
+        private int[] string(int start) {
+            if (start >= text.length() || marks[start] == 0) return null;
+            int width = marks[start];
+            int escapeWidth = text.charAt(start) != '\\' ? 1
+                    : text.charAt(start + width - 1) == '2' ? width - 5 : width;
+            return new int[]{start + width, ends[start] - width, ends[start],
+                    1 + Integer.numberOfTrailingZeros(escapeWidth)};
+        }
+
+        /** Nested objects are skipped as values, then read separately for their own members. */
+        private int valueEnd(int start, boolean escaped) {
+            if (start >= text.length()) return -1;
+            if (ends[start] != 0) return ends[start];
+            char first = text.charAt(start);
+            if (first == '{' || first == '[') {
+                int depth = 0;
+                for (int at = start; at < text.length(); at++) {
+                    if (marks[at] != 0) { at = ends[at] - 1; continue; }
+                    char letter = text.charAt(at);
+                    if (letter == '{' || letter == '[') {
+                        if (ends[at] > 0) { at = ends[at] - 1; continue; }
+                        if (ends[at] < 0) break;
+                        if (depth == stack.length) stack = Arrays.copyOf(stack, depth * 2);
+                        stack[depth++] = at;
+                    } else if (letter == '}' || letter == ']') {
+                        int open = stack[depth - 1];
+                        if (text.charAt(open) != (letter == '}' ? '{' : '[')) break;
+                        ends[open] = at + 1;
+                        if (--depth == 0) return at + 1;
+                    }
+                }
+                while (depth > 0) ends[stack[--depth]] = -1;
+                return -1;
+            }
+            Matcher primitive = JSON_PRIMITIVE.matcher(text).region(start, text.length());
+            if (!primitive.lookingAt()) return -1;
+            int end = primitive.end();
+            return end == text.length() || ",}]".indexOf(text.charAt(end)) >= 0
+                    || jsonSpaceEnd(text, end, escaped) > end ? end : -1;
+        }
+    }
+
+    /** Embedded JSON can print a line break as backslash n instead of a literal line break. */
+    private static int jsonSpaceEnd(String text, int at, boolean escaped) {
+        while (at < text.length()) {
+            char letter = text.charAt(at);
+            if (letter == ' ' || letter == '\t' || letter == '\r' || letter == '\n') { at++; continue; }
+            if (escaped && letter == '\\') {
+                int end = at + 1;
+                while (end < text.length() && text.charAt(end) == '\\') end++;
+                if (end < text.length() && "nrt".indexOf(text.charAt(end)) >= 0) { at = end + 1; continue; }
+            }
+            break;
+        }
+        return at;
     }
 
     /**

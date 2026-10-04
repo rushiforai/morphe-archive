@@ -1,3 +1,15 @@
+## [1.12.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.11.0...v1.12.0) (2026-10-03)
+
+### ✨ New Features
+
+* trebedit ([521b595](https://github.com/ShuhaibNC/morphe-patches/commit/521b595aa2fc9d9ee37903d49a2c95899d9f3dee))
+
+## [1.12.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.11.0...v1.12.0-dev.1) (2026-10-03)
+
+### ✨ New Features
+
+* trebedit ([521b595](https://github.com/ShuhaibNC/morphe-patches/commit/521b595aa2fc9d9ee37903d49a2c95899d9f3dee))
+
 ## [1.11.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.10.0...v1.11.0) (2026-09-26)
 
 ### ✨ New Features

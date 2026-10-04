@@ -58,7 +58,7 @@ public final class ClearSeenVideoHistoryPreference extends Preference
         });
     }
 
-    private static void refreshRows() {
+    static void refreshRows() {
         for (java.lang.ref.WeakReference<ClearSeenVideoHistoryPreference> held : ROWS) {
             ClearSeenVideoHistoryPreference row = held.get();
             if (row == null) ROWS.remove(held);

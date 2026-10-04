@@ -79,6 +79,10 @@ public class SettingsScreenStatesTest {
         return String.valueOf(row.getSummary());
     }
 
+    private static String withBuild(String message) {
+        return L10n.t(message) + "\n" + L10n.f("Build %1$s", L10n.isolate("unknown"));
+    }
+
     /** A phone whose only browser is off: Android throws where the page asks for one. */
     public static final class NoBrowserAround extends Activity {
         @Override
@@ -114,7 +118,7 @@ public class SettingsScreenStatesTest {
 
             pause.setChecked(true);
             ShadowLooper.idleMainLooper();
-            assertTrue(summary(card), summary(card).endsWith(L10n.t("Hushfacebook pauses when Facebook restarts.")));
+            assertTrue(summary(card), summary(card).endsWith(withBuild("Hushfacebook pauses when Facebook restarts.")));
 
             pause.setChecked(false);
             ShadowLooper.idleMainLooper();
@@ -131,15 +135,15 @@ public class SettingsScreenStatesTest {
             HushfacebookPreferenceFragment page = open(controller.get());
             Preference card = titled(page.getPreferenceScreen(), L10n.t("Hushfacebook is paused"));
             assertNotNull(card);
-            assertTrue(summary(card), summary(card).endsWith(L10n.t("Tap to turn it back on.")));
+            assertTrue(summary(card), summary(card).endsWith(withBuild("Tap to turn it back on.")));
 
             card.getOnPreferenceClickListener().onPreferenceClick(card);
             ShadowLooper.idleMainLooper();
-            assertEquals(L10n.t("Hushfacebook turns back on when Facebook restarts."), summary(card));
+            assertEquals(withBuild("Hushfacebook turns back on when Facebook restarts."), summary(card));
 
             ((SwitchPreference) page.findPreference(BaseSettings.PAUSED.key)).setChecked(true);
             ShadowLooper.idleMainLooper();
-            assertTrue(summary(card), summary(card).endsWith(L10n.t("Tap to turn it back on.")));
+            assertTrue(summary(card), summary(card).endsWith(withBuild("Tap to turn it back on.")));
         }
     }
 

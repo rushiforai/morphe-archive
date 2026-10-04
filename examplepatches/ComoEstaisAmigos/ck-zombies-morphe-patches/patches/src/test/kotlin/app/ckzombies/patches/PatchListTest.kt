@@ -36,10 +36,10 @@ class PatchListTest {
     }
 
     @Test
-    fun `the missing OBB message comes with either patch and is described by Modern Android compatibility`() {
+    fun `the missing OBB message comes with either patch and neither description mentions it`() {
         assertTrue(obbMessagePatch in modernAndroidPatch.dependencies)
         assertTrue(obbMessagePatch in deadServersPatch.dependencies)
-        assertTrue("If the OBB is missing" in modernAndroidPatch.description!!)
+        assertFalse("OBB" in modernAndroidPatch.description!!)
         assertFalse("OBB" in deadServersPatch.description!!)
     }
 

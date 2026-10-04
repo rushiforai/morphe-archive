@@ -92,6 +92,8 @@ public class FeedOverlaySettingsTest {
     }
 
     @Test public void feedbackRowEnablesTheCurrentCreatorWhileBlockIsOff() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
         showSettings(false, false);
         bind("video-one");
         assertNull(button("Not interested in this video"));
@@ -109,6 +111,8 @@ public class FeedOverlaySettingsTest {
     }
 
     @Test public void blockRowEnablesTheCurrentCreatorWhileFeedbackIsOff() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
         showSettings(false, false);
         bind("video-one");
         assertNull(button("Block this creator"));
@@ -119,6 +123,29 @@ public class FeedOverlaySettingsTest {
         assertFalse(Settings.NOT_INTERESTED_BUTTON.get());
         assertVisible("Block this creator");
         assertEquals(View.GONE, button("Not interested in this video").getVisibility());
+    }
+
+    @Test public void secondaryBlockRowsEnableTheirControlsWithoutTheBlockRow() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
+        showSettings(false, false);
+        bind("video-one");
+        assertNull(button("Hide this creator on this phone"));
+        assertNull(button("Block this sound"));
+
+        click(Settings.LOCAL_HIDE_BUTTON);
+
+        assertFalse(Settings.BLOCK_AUTHOR_BUTTON.get());
+        assertVisible("Hide this creator on this phone");
+        assertEquals(View.GONE, button("Block this creator").getVisibility());
+        assertEquals(View.GONE, button("Block this sound").getVisibility());
+
+        click(Settings.BLOCK_SOUND_BUTTON);
+
+        assertFalse(Settings.BLOCK_AUTHOR_BUTTON.get());
+        assertVisible("Hide this creator on this phone");
+        assertVisible("Block this sound");
+        assertEquals(View.GONE, button("Block this creator").getVisibility());
     }
 
     @Test public void localHideRefusesTheTenThousandAndFirstEntryWithoutThrowing() {
@@ -146,6 +173,8 @@ public class FeedOverlaySettingsTest {
     }
 
     @Test public void lastFeedbackRowOffDetachesTheInstalledControls() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
         showSettings(false, true);
         bind("video-one");
         assertVisible("Not interested in this video");
@@ -157,6 +186,8 @@ public class FeedOverlaySettingsTest {
     }
 
     @Test public void lastBlockRowOffDetachesTheInstalledControls() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
         showSettings(true, false);
         bind("video-one");
         assertVisible("Block this creator");
@@ -335,6 +366,8 @@ public class FeedOverlaySettingsTest {
             Settings.SESSION_BUDGET_VIDEOS.save(1);
             Settings.SESSION_BUDGET_MINUTES.save(0);
             Settings.SESSION_BUDGET_LOCK.save(true);
+            Settings.LOCAL_HIDE_BUTTON.save(false);
+            Settings.BLOCK_SOUND_BUTTON.save(false);
             ReflectionHelpers.callStaticMethod(SessionBudget.class, "resetForTests");
             showSettings(false, false);
             bind("held-video");

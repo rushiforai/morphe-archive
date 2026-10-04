@@ -1,7 +1,16 @@
 package app.morphe
 
 import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.DexFileFactory
+import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
+import com.android.tools.smali.dexlib2.iface.MultiDexContainer
 import java.io.File
+import java.io.OutputStream
+import java.lang.ref.SoftReference
+import java.security.DigestInputStream
+import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 import org.junit.Assert.fail
 import org.junit.Assume.assumeTrue
 
@@ -16,6 +25,38 @@ import org.junit.Assume.assumeTrue
  */
 internal object Fixtures {
     const val VARIABLE = "HUSHFEED_FIXTURE_DIR"
+
+    private data class CacheKey(val file: File, val api: Int?, val artVersion: Int?)
+    private data class CacheEntry(
+        val digest: ByteArray,
+        val container: SoftReference<MultiDexContainer<out DexBackedDexFile>>,
+    )
+    private val cache = ConcurrentHashMap<CacheKey, CacheEntry>()
+
+    /** The read-only DEX container used by fixture assertions, never a mutable Patcher context. */
+    fun dexContainer(apk: File, opcodes: Opcodes? = Opcodes.getDefault()): MultiDexContainer<out DexBackedDexFile> {
+        val file = apk.canonicalFile
+        val digest = MessageDigest.getInstance("SHA-256")
+        DigestInputStream(file.inputStream(), digest).use { it.transferTo(OutputStream.nullOutputStream()) }
+        val bytes = digest.digest()
+        var result: MultiDexContainer<out DexBackedDexFile>? = null
+        cache.compute(CacheKey(file, opcodes?.api, opcodes?.artVersion)) { _, previous ->
+            val retained = previous?.container?.get()
+            if (retained != null && previous.digest.contentEquals(bytes)) {
+                result = retained
+                previous
+            } else {
+                val decoded = DexFileFactory.loadDexContainer(file, opcodes)
+                // The pinned ZIP reader is lazy. Read every entry while this content is current.
+                decoded.dexEntryNames.forEach { checkNotNull(decoded.getEntry(it)) }
+                DigestInputStream(file.inputStream(), digest).use { it.transferTo(OutputStream.nullOutputStream()) }
+                check(bytes.contentEquals(digest.digest())) { "Fixture changed while decoding: $file" }
+                result = decoded
+                CacheEntry(bytes, SoftReference(decoded))
+            }
+        }
+        return checkNotNull(result)
+    }
 
     /** The files in the fixture folder that [accept] takes, sorted by name. */
     fun files(accept: (File) -> Boolean): List<File> {

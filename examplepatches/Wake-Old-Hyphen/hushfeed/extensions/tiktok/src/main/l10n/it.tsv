@@ -1,3 +1,27 @@
+Importing new history ended Undo for the earlier clear. You can clear the imported history.	L'importazione di una nuova cronologia impedisce di annullare la cancellazione precedente. Puoi cancellare la cronologia importata.
+%1$d setting in that file can't be restored here and was skipped	%1$d impostazione del file non può essere ripristinata qui ed è stata saltata
+%1$d settings in that file can't be restored here and were skipped	%1$d impostazioni del file non possono essere ripristinate qui e sono state saltate
+Import watch history	Importa cronologia di visualizzazione
+Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	Usa l'esportazione JSON di TikTok di questo account, fino a %1$s MB e %2$s voci. Le date senza fuso orario usano quello di questo telefono.
+Sign in to TikTok before importing watch history.	Accedi a TikTok prima di importare la cronologia di visualizzazione.
+Your TikTok account changed. Choose the file again for this account.	Il tuo account TikTok è cambiato. Scegli di nuovo il file per questo account.
+Reading watch history	Lettura della cronologia
+Importing watch history	Importazione della cronologia
+Reopen Hushfeed settings, then choose the file	Riapri le impostazioni di Hushfeed, poi scegli il file
+Couldn't start the import. Try again in a moment.	Impossibile avviare l'importazione. Riprova tra poco.
+Your seen history changed before the import finished. Choose the file again.	La cronologia è cambiata prima del termine dell'importazione. Scegli di nuovo il file.
+Couldn't import watch history. Your saved history is unchanged.	Impossibile importare la cronologia. Quella salvata non è stata modificata.
+%1$s watched video added.	Aggiunto %1$s video visto.
+%1$s watched videos added.	Aggiunti %1$s video visti.
+%1$s entry skipped.	Saltata %1$s voce.
+%1$s entries skipped.	Saltate %1$s voci.
+Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos.	Le voci saltate non sono valide, sono scadute, sono già salvate o precedono i %1$s video più recenti.
+Watch history was imported for the account that chose the file. Switch back to see it.	La cronologia è stata importata per l'account che ha scelto il file. Torna a quell'account per vederla.
+Couldn't read that file. Choose it again.	Impossibile leggere il file. Sceglilo di nuovo.
+That file is larger than %1$s MB. Choose a smaller watch-history export.	Il file supera i %1$s MB. Scegli un'esportazione della cronologia più piccola.
+That file has more than %1$s watch-history entries.	Il file contiene più di %1$s voci di cronologia.
+That JSON file doesn't contain the supported TikTok watch history.	Questo file JSON non contiene la cronologia di TikTok supportata.
+That watch-history file is damaged. Nothing was imported.	Il file della cronologia è danneggiato. Non è stato importato nulla.
 # Settings text, English on the left, Italian on the right, one entry per line, tab separated.
 # Keep %s and %d placeholders, {tokens} and product names as they are.
 # scripts/gen-l10n.py turns this into a table inside L10nTranslations.java.
@@ -1473,6 +1497,8 @@ Sends one message a day to each person below at the time below, so your streaks 
 Their usernames, separated by commas or new lines. Each person must already have a chat with you.	I loro nomi utente, separati da virgole o righe nuove. Devi già avere una chat con ciascuna persona.
 Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.	Consegna non confermata: %1$d/%2$d chat. Non verranno ritentate oggi.
 Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.	Consegna non confermata: %1$d/%2$d chat. Le altre chat hanno ancora bisogno di un messaggio.
+Sent to %1$d/%2$d chats. They won't get another message today.	Inviato a %1$d/%2$d chat. Oggi non riceveranno un altro messaggio.
+Sent to %1$d/%2$d chats. The rest still need a message.	Inviato a %1$d/%2$d chat. Le altre chat hanno ancora bisogno di un messaggio.
 TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.	TikTok potrebbe aver accettato questo messaggio. La consegna non è confermata, quindi non verrà ritentato oggi.
 Nothing was sent. Check the streak settings and try again.	Non è stato inviato nulla. Controlla le impostazioni degli streak e riprova.
 Don't save new searches	Non salvare le nuove ricerche

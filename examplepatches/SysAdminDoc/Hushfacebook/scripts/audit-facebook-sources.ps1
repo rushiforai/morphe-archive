@@ -26,18 +26,20 @@
     licence, a branch head that moved or a new branch with Facebook-family work, a fork the ledger
     hasn't seen, a recorded fork or out-of-scope repository an index lists as a bundle of its own, a
     repository that's gone, renamed or archived, and a listing that changed are the other findings.
-    Any finding, or a source that couldn't be read, writes the report and exits 1 with the ledger
-    untouched. A clean run stamps today's date on the census and on every record it checked, and
-    exits 0. Commit that change: a local release refuses a census more than 14 days old.
+    Any finding, or a source that couldn't be read or was skipped, writes the report and exits 1
+    with the ledger untouched. A complete clean run stamps today's date on the census and every
+    record it checked, and exits 0. Commit that change: a local release refuses a census more than
+    14 days old.
 
     The audit never imports code. It reads metadata through the forges' APIs; a licence is hashed
     in memory and a patch list is read for its names. Nothing is cloned, downloaded to disk or
     written anywhere but the report and the ledger's dates. The report can't go under patches/ or
     extensions/.
 
-    GitHub requests use GITHUB_TOKEN or the gh CLI's token (code search needs one). GitLab's code
-    search needs GITLAB_TOKEN; without one, pass -SkipGitLabCodeSearch and the census records the
-    skip. Tokens go in request headers only, never into the report or the ledger.
+    GitHub requests use GITHUB_TOKEN or the gh CLI's token (code search needs one). GitLab requests
+    use GITLAB_TOKEN, but GitLab.com does not enable global code search. A token alone does not
+    supply that coverage. A missing token or -SkipGitLabCodeSearch records an incomplete audit and
+    never refreshes the census. Tokens go in request headers only, never into the report or ledger.
 
 .EXAMPLE
     pwsh -File scripts/audit-facebook-sources.ps1 -SkipGitLabCodeSearch
@@ -168,12 +170,15 @@ if (-not $GitHubToken) {
     throw 'GitHub code search needs a token. Run gh auth login, or set GITHUB_TOKEN.'
 }
 if (-not $GitLabToken) { $GitLabToken = $env:GITLAB_TOKEN }
-if (-not $GitLabToken -and -not $SkipGitLabCodeSearch) {
-    throw ('GitLab code search needs a token. Set GITLAB_TOKEN, or pass -SkipGitLabCodeSearch and the ' +
-        'census records that GitLab code was not searched.')
-}
 # The switch wins over a token in the environment, which still authenticates the ledger's GitLab reads.
 $searchGitLab = [bool]$GitLabToken -and -not $SkipGitLabCodeSearch
+$gitlabCoverageEvidence = [ordered]@{
+    index = 'gitlab-code-search'
+    endpoint = 'https://gitlab.com/api/v4/search?scope=blobs'
+    documentation = @('https://docs.gitlab.com/user/search/advanced_search/',
+        'https://docs.gitlab.com/user/search/exact_code_search/')
+    limitation = 'GitLab.com does not enable global code search. A token or scoped search does not establish global coverage.'
+}
 
 # --- requests --------------------------------------------------------------------------------
 
@@ -347,14 +352,14 @@ $listed = @{}
 function Invoke-Source {
     # Runs one reader. A reader that throws is recorded as failed, which fails the audit, and the
     # others still run so the report shows everything that could be read.
-    param([string]$Name, [scriptblock]$Read)
+    param([string]$Name, [scriptblock]$Read, $FailureEvidence = $null)
     try {
         $said = & $Read
         $sourceStatus.Add([pscustomobject][ordered]@{ source = $Name; status = 'read'; detail = "$said" })
         Write-Step "$Name`: $said"
     } catch {
         $sourceStatus.Add([pscustomobject][ordered]@{ source = $Name; status = 'failed'; detail = $_.Exception.Message })
-        Add-Finding -Kind 'source-failed' -Repository $null -Detail "$Name could not be read: $($_.Exception.Message)" -Evidence $null
+        Add-Finding -Kind 'source-failed' -Repository $null -Detail "$Name could not be read: $($_.Exception.Message)" -Evidence $FailureEvidence
         Write-Step "$Name FAILED: $($_.Exception.Message)"
     }
 }
@@ -557,14 +562,20 @@ if ($searchGitLab) {
         $hits = 0
         foreach ($package in $packages) {
             $result = Get-PagedItems -Uri ("https://gitlab.com/api/v4/search?scope=blobs&search=" + [Uri]::EscapeDataString("`"$package`"")) -Auth gitlab
-            if ($result.Status -ne 200) { throw "the search for $package answered HTTP $($result.Status)" }
+            if ($result.Status -ne 200) {
+                throw "the search for $package answered HTTP $($result.Status). $($gitlabCoverageEvidence.limitation)"
+            }
             foreach ($item in $result.Items) {
                 $projectId = [string]$item.project_id
+                if ($projectId -notmatch '^\d+$' -or -not [string]$item.path) {
+                    throw "the search for $package returned a hit without a project ID or path"
+                }
                 if (-not $projects.ContainsKey($projectId)) {
                     $project = Invoke-SourceRequest -Uri "https://gitlab.com/api/v4/projects/$projectId" -Auth gitlab
-                    $projects[$projectId] = if ($project.Status -eq 200) {
-                        ConvertTo-SourceKey ('https://gitlab.com/' + (ConvertFrom-SourceJson -Text $project.Content -What "GitLab project $projectId").path_with_namespace)
-                    } else { $null }
+                    if ($project.Status -ne 200) { throw "GitLab project $projectId from the search for $package answered HTTP $($project.Status)" }
+                    $path = [string](ConvertFrom-SourceJson -Text $project.Content -What "GitLab project $projectId").path_with_namespace
+                    if (-not $path) { throw "GitLab project $projectId from the search for $package returned no repository path" }
+                    $projects[$projectId] = ConvertTo-SourceKey ('https://gitlab.com/' + $path)
                 }
                 if ($projects[$projectId]) {
                     Add-Candidate -Key $projects[$projectId] -Source 'GitLab code search' -Mentions @($package) -Path ([string]$item.path) -Blob $null
@@ -573,11 +584,14 @@ if ($searchGitLab) {
             }
         }
         "$hits hits in $(@($projects.Values | Where-Object { $_ } | Sort-Object -Unique).Count) projects"
-    }
+    } -FailureEvidence $gitlabCoverageEvidence
 } else {
-    $notes.Add('GitLab code search was skipped (-SkipGitLabCodeSearch); the census records it. GitLab sources in the ledger were still read.')
-    $sourceStatus.Add([pscustomobject][ordered]@{ source = 'GitLab code search'; status = 'skipped'; detail = '-SkipGitLabCodeSearch' })
-    Write-Step 'GitLab code search: skipped (-SkipGitLabCodeSearch)'
+    $reason = if ($SkipGitLabCodeSearch) { '-SkipGitLabCodeSearch' } else { 'no GITLAB_TOKEN was configured' }
+    $detail = "GitLab code search was skipped ($reason). $($gitlabCoverageEvidence.limitation) The census was not stamped."
+    $notes.Add('GitLab sources in the ledger were still read; those reads do not replace the global code index.')
+    $sourceStatus.Add([pscustomobject][ordered]@{ source = 'GitLab code search'; status = 'skipped'; detail = $detail })
+    Add-Finding -Kind 'source-skipped' -Repository $null -Detail $detail -Evidence $gitlabCoverageEvidence
+    Write-Step $detail
 }
 
 # --- what the discovery found that the ledger doesn't know --------------------------------------
@@ -1021,7 +1035,7 @@ $counts = [ordered]@{
     requests = $requestCount
     findings = $findings.Count
 }
-$clean = $findings.Count -eq 0
+$clean = $findings.Count -eq 0 -and @($sourceStatus | Where-Object { $_.status -ne 'read' }).Count -eq 0
 Save-Report -Clean $clean -Counts $counts -Lineages $lineages -KnownHits $knownHits
 Write-Step ("$($entries.Count) sources in $($lineageNames.Count) lineages, $($counts.mirrorsRecorded) recorded mirrors, " +
     "$($collapsed.Count) more collapsed by content, $forkCount forks; " +

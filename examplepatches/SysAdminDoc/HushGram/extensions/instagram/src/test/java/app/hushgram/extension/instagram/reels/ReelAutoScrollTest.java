@@ -8,6 +8,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -104,6 +116,68 @@ public class ReelAutoScrollTest {
         ReelAutoScroll.chosen(1);
         assertFalse(Settings.REEL_AUTO_SCROLL_ON.savedValue());
         assertFalse(ReelAutoScroll.answer(0));
+    }
+
+    /** A completed duration save is remembered before the timer can expire or another reel checks it. */
+    @Test
+    public void aFutureTimerIsRememberedBeforeAnyOnAnswer() {
+        ReelAutoScroll.timerSet(Long.MAX_VALUE);
+        assertTrue("a saved future timestamp remembers on at once", Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        assertTrue("the timer may expire before any check", ReelAutoScroll.answer(0));
+
+        ReelAutoScroll.chosen(0);
+        for (long expiry : new long[]{0, -1, System.currentTimeMillis() - 1}) {
+            ReelAutoScroll.timerSet(expiry);
+            assertFalse("an expired timestamp never remembers on", Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        }
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        ReelAutoScroll.timerSet(Long.MAX_VALUE);
+        assertFalse("a future timer is not learned while paused", Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> ReelAutoScroll.timerSet(Long.MAX_VALUE));
+        assertFalse("a future timer is not learned before settings are ready", Settings.REEL_AUTO_SCROLL_ON.savedValue());
+    }
+
+    /** Expired, equal, reset and failed timestamps never change the remembered choice. */
+    @Test
+    public void onlyAStrictlyFutureTimestampIsLearnedAndFailuresDoNotEscape() {
+        CountingMemory memory = new CountingMemory(false);
+        for (long expiry : new long[]{Long.MIN_VALUE, -1, 0, 999, 1000}) {
+            ReelAutoScroll.timerSet(expiry, () -> 1000, () -> true, memory);
+            assertFalse(memory.on);
+        }
+        assertEquals(0, memory.writes);
+        ReelAutoScroll.timerSet(1001, () -> 1000, () -> true, memory);
+        assertTrue(memory.on);
+        ReelAutoScroll.timerSet(Long.MAX_VALUE, () -> 1000, () -> true, memory);
+        ReelAutoScroll.timerSet(0, () -> 1000, () -> true, memory);
+        assertEquals("a reset does not erase the chosen on", 1, memory.writes);
+        memory.on = false;
+        ReelAutoScroll.timerSet(1001, () -> { throw new AssertionError("a paused hook read the clock"); }, () -> false, memory);
+        ReelAutoScroll.timerSet(1001, () -> { throw new OutOfMemoryError("clock failed"); }, () -> true, memory);
+        String missing = HookStatus.missing(FamilyNames.REEL_AUTO_SCROLL).toString();
+        assertTrue(missing, missing.contains("'auto scroll timer'"));
+        assertTrue(missing, missing.contains(OutOfMemoryError.class.getName()));
+        HookStatus.clear();
+        ReelAutoScroll.timerSet(1001, () -> 1000, () -> { throw new IllegalStateException("settings failed"); }, memory);
+        assertFalse(memory.on);
+        assertEquals(1, memory.writes);
+        missing = HookStatus.missing(FamilyNames.REEL_AUTO_SCROLL).toString();
+        assertTrue(missing, missing.contains("'auto scroll timer'"));
+        assertTrue(missing, missing.contains(IllegalStateException.class.getName()));
+    }
+
+    /** The disabled switch learns the completed choice without forcing stock scrolling on. */
+    @Test
+    public void aTimerChosenWhileTheSwitchIsOffDoesNotOverrideStock() {
+        Settings.KEEP_REEL_AUTO_SCROLL.save(false);
+        ReelAutoScroll.timerSet(Long.MAX_VALUE);
+        assertTrue(Settings.REEL_AUTO_SCROLL_ON.savedValue());
+        assertFalse("stock off stands while the switch is off", ReelAutoScroll.answer(0));
+        Settings.KEEP_REEL_AUTO_SCROLL.save(true);
+        assertTrue("the completed choice is available once the switch is enabled", ReelAutoScroll.answer(0));
     }
 
     /**
@@ -209,6 +283,59 @@ public class ReelAutoScrollTest {
         assertTrue(memory.on);
     }
 
+    /** Concurrent first answers each report the unavailable and ready summary at most once. */
+    @Test(timeout = 45000)
+    public void concurrentFirstAnswersDoNotDuplicateTheSummary() throws Exception {
+        Field field = ReelAutoScroll.class.getDeclaredField("reported");
+        field.setAccessible(true);
+        Object counter = field.get(null);
+        if (counter instanceof AtomicInteger) ((AtomicInteger) counter).set(0);
+        else field.setInt(null, 0);
+        ShadowLog.reset();
+
+        answerTogether(false);
+        assertEquals("one summary before learning is allowed", 1, summaryCount());
+        answerTogether(true);
+        assertEquals("one additional summary once learning is allowed", 2, summaryCount());
+        for (int i = 0; i < 5; i++) ReelAutoScroll.answer(0, () -> false, () -> false, new CountingMemory(false));
+        assertEquals("the completed summary never reopens", 2, summaryCount());
+    }
+
+    private static long summaryCount() {
+        return ShadowLog.getLogs().stream().filter(item -> item.msg.startsWith("Reel auto scroll: answer since start,")).count();
+    }
+
+    private static void answerTogether(boolean learning) throws Exception {
+        int threads = 8;
+        CountDownLatch reached = new CountDownLatch(threads);
+        CountDownLatch release = new CountDownLatch(1);
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        try {
+            List<Future<Boolean>> answers = new ArrayList<>();
+            for (int i = 0; i < threads; i++) {
+                AtomicBoolean first = new AtomicBoolean(true);
+                answers.add(pool.submit(() -> ReelAutoScroll.answer(0, () -> {
+                    if (first.compareAndSet(true, false)) {
+                        reached.countDown();
+                        try {
+                            if (!release.await(10, TimeUnit.SECONDS)) throw new AssertionError("summary gate timed out");
+                        } catch (InterruptedException failure) {
+                            Thread.currentThread().interrupt();
+                            throw new AssertionError(failure);
+                        }
+                    }
+                    return learning;
+                }, () -> true, new CountingMemory(false))));
+            }
+            assertTrue("every answer reaches the summary before any can report", reached.await(10, TimeUnit.SECONDS));
+            release.countDown();
+            for (Future<Boolean> answer : answers) assertFalse("stock off is unchanged", answer.get(15, TimeUnit.SECONDS));
+        } finally {
+            release.countDown();
+            pool.shutdownNow();
+        }
+    }
+
     /**
      * Off, paused or before the settings are read, Instagram's answer stands. While the switch is
      * off the memory still follows Instagram, so turning the switch on goes by the latest choice;
@@ -277,6 +404,7 @@ public class ReelAutoScrollTest {
         }, () -> true, new CountingMemory(false)));
         ReelAutoScroll.chosen(0, () -> true, broken);
         ReelAutoScroll.stored(1, () -> true, broken);
+        ReelAutoScroll.timerSet(2000, () -> 1000, () -> true, broken);
         ReelAutoScroll.stored(0, () -> {
             throw new IllegalStateException("settings went away");
         }, new CountingMemory(true));
@@ -291,6 +419,7 @@ public class ReelAutoScrollTest {
         assertTrue(missing, missing.contains("'auto scroll choice'"));
         assertTrue(missing, missing.contains("'auto scroll saved'"));
         assertTrue(missing, missing.contains("'auto scroll stored'"));
+        assertTrue(missing, missing.contains("'auto scroll timer'"));
         assertTrue(missing, missing.contains(IllegalStateException.class.getName()));
     }
 }

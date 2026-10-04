@@ -30,9 +30,8 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 
 /**
- * Decides whether the app now calling a guarded Threads component over Binder is an Instagram
- * re-signed with this build's own key, and so should be answered Instagram's Meta certificate the
- * way Threads itself is answered its own on a re-signed build.
+ * Decides whether an Instagram caller or locally read provider carries this build's own key,
+ * and so should be answered Instagram's Meta certificate the way Threads itself is answered its own.
  *
  * <p>Threads reads the signers of a package through one method for its caller checks. Restore
  * screens on re-signed builds rewrites that method to answer this build its original Meta certificate
@@ -89,7 +88,7 @@ public final class FamilySignatureTrust {
     )));
 
     /**
-     * This build's own current signers, read on the first family-caller check that finds any. Android
+     * This build's own current signers, read on the first family caller or provider check that finds any. Android
      * can't change a running app's certificate without starting a new process, so every later check
      * reads only the caller's.
      */
@@ -158,6 +157,45 @@ public final class FamilySignatureTrust {
             // Fail closed: a caller this can't vouch for keeps Threads' own refusal.
             HookStatus.threw(FamilyNames.RESTORE_TRUST, "shared sign-in", failure);
             Logger.printException(() -> "Could not tell whether the caller shares this build's key", failure);
+            return false;
+        }
+    }
+
+    /**
+     * A local lookup of the installed Instagram peer for Threads' outbound sign-in provider reader.
+     * Incoming IPCs still use the caller policy above. Both packages must own separate, exclusive
+     * uids and carry the same current non-Meta key. Read the peer's signers from PackageManager,
+     * rather than trusting a supplied or stale signer list. Missing facts keep the stock answer.
+     */
+    public static boolean isSameKeyFamilyProvider(@Nullable PackageInfo info) {
+        if (info == null || !FAMILY_PACKAGES.contains(info.packageName) || info.applicationInfo == null
+                || !info.packageName.equals(info.applicationInfo.packageName)) return false;
+        try {
+            int self = Process.myUid();
+            int peer = info.applicationInfo.uid;
+            if (Process.isIsolated() || Binder.getCallingUid() != self || peer == self) return false;
+            Context context = Utils.getContext();
+            if (context == null) return false;
+            PackageManager packages = context.getPackageManager();
+            if (packages == null || !owns(packages, self, context.getPackageName())
+                    || !owns(packages, peer, info.packageName)) return false;
+            PackageInfo installed = packages.getPackageInfo(info.packageName, PackageManager.GET_SIGNING_CERTIFICATES);
+            if (installed.applicationInfo == null || installed.applicationInfo.uid != peer
+                    || !info.packageName.equals(installed.packageName)
+                    || !info.packageName.equals(installed.applicationInfo.packageName)) return false;
+            Set<String> ours = ownSigners;
+            if (ours == null) {
+                ours = currentSigners(packages, context.getPackageName());
+                if (ours.isEmpty()) return false;
+                ownSigners = ours;
+            }
+            if (!Collections.disjoint(ours, META_SIGNER_DIGESTS) || !ours.equals(signersOf(installed))) return false;
+            HookStatus.invoked(FamilyNames.RESTORE_TRUST);
+            HookStatus.bound(FamilyNames.RESTORE_TRUST, "same-key Instagram provider");
+            HookStatus.counted(FamilyNames.RESTORE_TRUST, "shared sign-in provider");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.RESTORE_TRUST, "shared sign-in provider", failure);
             return false;
         }
     }

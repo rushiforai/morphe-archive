@@ -179,6 +179,7 @@ public class PausedHooksTest {
         ReleaseCheck.Stored.CHECKED_AT.savedValue();
         // A Facebook start a day after the last try asks GitHub for the newest release.
         probes.put(Settings.CHECK_FOR_RELEASES, ReleaseCheckForTests::aStartAsksGitHub);
+        probes.put(Settings.SAVED_SHORTCUT, SavedShortcutTest::aStartPublishes);
         return probes;
     }
 

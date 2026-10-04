@@ -118,7 +118,10 @@ public final class BlockAuthorOverlay {
 
     /** @param author the new current author, or null when the current item has none. */
     static void onAuthorChanged(VideoAuthor author) {
-        if (!Settings.BLOCK_AUTHOR_BUTTON.get() && !notInterestedEnabled() && !muteButtonEnabled()) {
+        boolean anyBlockControl = Settings.BLOCK_AUTHOR_BUTTON.get()
+                || (SettingsStatus.feedFilterEnabled
+                && (Settings.LOCAL_HIDE_BUTTON.get() || Settings.BLOCK_SOUND_BUTTON.get()));
+        if (!anyBlockControl && !notInterestedEnabled() && !muteButtonEnabled()) {
             Utils.runOnMainThread(BlockAuthorOverlay::detach);
             return;
         }
@@ -152,8 +155,8 @@ public final class BlockAuthorOverlay {
         View soundButton = soundButtonReference.get();
         if (soundButton != null) {
             // The sound button needs a sound to act on, and a feed filter to act through.
-            boolean soundWanted = visible && Settings.BLOCK_AUTHOR_BUTTON.get()
-                    && Settings.BLOCK_SOUND_BUTTON.get() && SettingsStatus.feedFilterEnabled
+            boolean soundWanted = visible && Settings.BLOCK_SOUND_BUTTON.get()
+                    && SettingsStatus.feedFilterEnabled
                     && CurrentVideoSound.get() != null && CurrentVideoSound.get().isUsable();
             int soundVisibility = soundWanted ? View.VISIBLE : View.GONE;
             if (soundButton.getVisibility() != soundVisibility) {
@@ -162,8 +165,7 @@ public final class BlockAuthorOverlay {
         }
         View localHide = localHideReference.get();
         if (localHide != null) {
-            boolean localWanted = visible && Settings.BLOCK_AUTHOR_BUTTON.get()
-                    && Settings.LOCAL_HIDE_BUTTON.get()
+            boolean localWanted = visible && Settings.LOCAL_HIDE_BUTTON.get()
                     && SettingsStatus.feedFilterEnabled;
             int localVisibility = localWanted ? View.VISIBLE : View.GONE;
             if (localHide.getVisibility() != localVisibility) {
@@ -220,7 +222,10 @@ public final class BlockAuthorOverlay {
                 // can be collected by the time the reader is back, and a weak handle that came
                 // back empty left the feed without controls until the next swipe.
                 if (!FeedVisibility.isFeedWindow(resumed)) return;
-                if (!Settings.BLOCK_AUTHOR_BUTTON.get() && !notInterestedEnabled() && !muteButtonEnabled()) return;
+                boolean anyBlockControl = Settings.BLOCK_AUTHOR_BUTTON.get()
+                        || (SettingsStatus.feedFilterEnabled
+                        && (Settings.LOCAL_HIDE_BUTTON.get() || Settings.BLOCK_SOUND_BUTTON.get()));
+                if (!anyBlockControl && !notInterestedEnabled() && !muteButtonEnabled()) return;
                 VideoAuthor author = CurrentVideoAuthor.get();
                 if (author != null) attach(author, resumed);
             }

@@ -176,4 +176,26 @@ internal object CurrentLocationMixinUpdateTintFingerprint : Fingerprint(
     },
 )
 
+/**
+ * Matches `ba()` in MapExploreFragment — the camera idle / bounds update method.
+ */
+internal object MapCameraIdleFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(),
+    strings = listOf("updateCurrentMediaForBounds: currentMedia location is missing"),
+)
+
+/**
+ * Matches `bd()` in MapExploreFragment — the map view projection / bounds sync method.
+ */
+internal object MapViewBoundsSyncFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(),
+    strings = listOf("com.google.android.gms.dynamic.IObjectWrapper"),
+    custom = { method, classDef ->
+        method.referencesVoidMethodWithSingleObjectParameter() &&
+            classDef.hasMethodReferencingString("updateCurrentMediaForBounds: currentMedia location is missing")
+    },
+)
+
 

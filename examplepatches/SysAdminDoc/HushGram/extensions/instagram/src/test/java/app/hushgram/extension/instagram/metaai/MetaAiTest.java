@@ -5,6 +5,7 @@
 package app.hushgram.extension.instagram.metaai;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -38,6 +39,8 @@ public class MetaAiTest {
 
     /** The item's other enum on 449: why the feed was fetched. */
     enum Fetch { COLD_START, PULL_TO_REFRESH }
+
+    enum ComposerButton { META_AI_DISCOVERY, META_AI_INVOCATION, META_AI_VOICE, CAMERA, STICKERS, VOICE_MESSAGE, SEND }
 
     static final class Item {
         Fetch fetch = Fetch.COLD_START;
@@ -99,6 +102,57 @@ public class MetaAiTest {
         Settings.HIDE_META_AI_SEARCH.save(false);
         try {
             assertSame("meta_ai", "meta_ai", MetaAi.homeButton("meta_ai"));
+        } finally {
+            Settings.HIDE_META_AI_SEARCH.save(true);
+        }
+    }
+
+    @Test
+    public void onlyMetaAiComposerButtonsAnswerHidden() {
+        for (ComposerButton button : ComposerButton.values()) {
+            assertEquals(button.name(), !MetaAi.COMPOSER_BUTTONS.contains(button.name()), MetaAi.composerButton(button, 1));
+            assertFalse(button.name(), MetaAi.composerButton(button, 0));
+        }
+        assertTrue(MetaAi.composerButton(null, 1));
+        assertTrue(MetaAi.composerButton("META_AI_DISCOVERY", 1));
+        assertTrue(MetaAi.composerButton(new Object(), 1));
+        assertTrue(MetaAi.composerButton(ComposerButton.SEND, -1));
+    }
+
+    @Test
+    public void theComposerUsesTheSearchSwitchAndKeepsTheNativeFlagWhenOff() {
+        Settings.HIDE_META_AI_POSTS.save(false);
+        try {
+            assertFalse(MetaAi.composerButton(ComposerButton.META_AI_INVOCATION, -1));
+        } finally {
+            Settings.HIDE_META_AI_POSTS.save(true);
+        }
+        Settings.HIDE_META_AI_SEARCH.save(false);
+        try {
+            for (ComposerButton button : ComposerButton.values()) {
+                assertTrue(button.name(), MetaAi.composerButton(button, 1));
+                assertFalse(button.name(), MetaAi.composerButton(button, 0));
+            }
+        } finally {
+            Settings.HIDE_META_AI_SEARCH.save(true);
+        }
+    }
+
+    @Test
+    public void theOptionalInboxRowUsesTheSearchSwitchAndKeepsItsIdentityWhenOff() {
+        Object row = new Object();
+        assertNull(MetaAi.inboxRow(row));
+        assertNull(MetaAi.inboxRow(null));
+        Settings.HIDE_META_AI_POSTS.save(false);
+        try {
+            assertNull(MetaAi.inboxRow(row));
+        } finally {
+            Settings.HIDE_META_AI_POSTS.save(true);
+        }
+        Settings.HIDE_META_AI_SEARCH.save(false);
+        try {
+            assertSame(row, MetaAi.inboxRow(row));
+            assertNull(MetaAi.inboxRow(null));
         } finally {
             Settings.HIDE_META_AI_SEARCH.save(true);
         }

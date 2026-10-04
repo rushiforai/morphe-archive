@@ -1,3 +1,108 @@
+## [1.46.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.0...v1.46.1) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **spotify:** overhaul AMOLED theme with Window DecorView injection and accent color string redirection ([67e2cff](https://github.com/SatanMerde/D-moniakPatches/commit/67e2cffbe6b7ac3aaa66a2f3e53be536adea8623))
+
+## [1.46.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.45.0...v1.46.0) (2026-10-03)
+
+### ✨ New Features
+
+* add useful patches for Google Maps, Drive, VLC, Proton Pass, Windy, AllTrails, and Photomath ([9106cc5](https://github.com/SatanMerde/D-moniakPatches/commit/9106cc51bf048b2f9e9dfe4dc9f4d9eec4e482ad))
+
+## [1.45.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.44.2...v1.45.0) (2026-10-03)
+
+### ✨ New Features
+
+* **freefire:** add 120 FPS display mode and device model spoof patch ([e876075](https://github.com/SatanMerde/D-moniakPatches/commit/e8760751bb9c1cde8109fc7ec856b7af6868990b))
+
+## [1.44.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.44.1...v1.44.2) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* resolve Undercover crashes, Silt LVL license redirect, and Spotify accent color hook ([8a057cb](https://github.com/SatanMerde/D-moniakPatches/commit/8a057cbf760b590953243c30381ea05c0156a519))
+
+## [1.44.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.44.0...v1.44.1) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **plagueinc:** update package name to com.miniclip.plagueinc with alt support ([3bcc36d](https://github.com/SatanMerde/D-moniakPatches/commit/3bcc36dcb1ff2c1e76c4dccc2cbdfe5d822d23bd))
+
+## [1.44.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.43.0...v1.44.0) (2026-10-03)
+
+### ✨ New Features
+
+* **undercover:** add pack enum hook to custom words creator patch ([f882426](https://github.com/SatanMerde/D-moniakPatches/commit/f882426336c4365fab04e62ece92882f3f35a977))
+
+## [1.43.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.42.0...v1.43.0) (2026-10-03)
+
+### ✨ New Features
+
+* **undercover:** optimize pack enums, preference managers, and consent blocker hooks ([67480b0](https://github.com/SatanMerde/D-moniakPatches/commit/67480b0ff39be07c7d7f0140e26a43e12931ccb3))
+
+## [1.42.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.41.0...v1.42.0) (2026-10-03)
+
+### ✨ New Features
+
+* **undercover:** add cookie/consent banner blocker and reverse-engineer obfuscated purchase checks ([48d041e](https://github.com/SatanMerde/D-moniakPatches/commit/48d041e4bd55d0a882ffa59cbc868867f76ec034))
+
+## [1.41.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.40.0...v1.41.0) (2026-10-03)
+
+### ✨ New Features
+
+* **undercover:** add comprehensive patch suite for Undercover Word Party Game ([c5268f2](https://github.com/SatanMerde/D-moniakPatches/commit/c5268f209c0fbc8451ee0f93fffcdfa400fba1da))
+
+## [1.40.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.39.0...v1.40.0) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **patches:** ensure safe single-line string escaping and clean unicode in extended suites ([03daa00](https://github.com/SatanMerde/D-moniakPatches/commit/03daa00f1d4176afd60c33e3524b287afefeff8a))
+
+### ✨ New Features
+
+* **youtube,instagram,reddit:** surpass official Morphe and Piko with 106 YouTube, 71 Instagram, and 26 Reddit patches ([e85452a](https://github.com/SatanMerde/D-moniakPatches/commit/e85452a4b68ab45d752c76d36ea5c149ffc34509))
+
+## [1.39.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.38.0...v1.39.0) (2026-10-03)
+
+### ✨ New Features
+
+* **youtube,instagram,reddit:** add advanced patches surpassing Piko and official Morphe suites ([03a46d9](https://github.com/SatanMerde/D-moniakPatches/commit/03a46d945a7cee13ab40025bf62b5a0fae8a634e))
+
+## [1.38.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.37.0...v1.38.0) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **youtube:** delegate YouTubeGmsCoreSupportPatch to executeUniversalGmsCoreSupportLogic ([34b1a04](https://github.com/SatanMerde/D-moniakPatches/commit/34b1a0411388e94403cb65943c29f8fe0868d84a))
+
+### ✨ New Features
+
+* **youtube,instagram,reddit:** add dedicated SponsorBlock, Return YouTube Dislike, GmsCore, and advanced media patches ([b3b6544](https://github.com/SatanMerde/D-moniakPatches/commit/b3b6544a47a31b2a2a84e5cfd45a811c734b7db8))
+
+## [1.37.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.36.3...v1.37.0) (2026-10-03)
+
+### ✨ New Features
+
+* **patches:** add comprehensive patch suites for YouTube, Reddit, Instagram, and Plague Inc. ([5535b80](https://github.com/SatanMerde/D-moniakPatches/commit/5535b801b315320b5bdbcc23409a1ea14e888a92))
+
+## [1.36.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.36.2...v1.36.3) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **gmscore:** use replaceInstruction with BuilderInstruction21c/31c and preserve gms.version key ([3fc31d0](https://github.com/SatanMerde/D-moniakPatches/commit/3fc31d0308a7c3ad78416adca713e0c6620a43b7))
+
+## [1.36.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.36.1...v1.36.2) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **gmscore:** add missing addInstructions import in UniversalGmsCoreSupportPatch ([4c893b5](https://github.com/SatanMerde/D-moniakPatches/commit/4c893b5abb8c7fc10c4d97d01fefe6f7c303a5c4))
+* **gmscore:** redirect account type com.google to app.revanced, authorities, and hook availability to fix login conflict ([ae8db26](https://github.com/SatanMerde/D-moniakPatches/commit/ae8db26d25bea10a2126a21e5540a57e50d5c6c6))
+
+## [1.36.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.36.0...v1.36.1) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **moises:** hook User.q(), GraphQL subscription models, and suppress MainActivity paywall for v2.7.2 Pro status ([803909a](https://github.com/SatanMerde/D-moniakPatches/commit/803909a6af649f673552d78ba30ebe6d24171bde))
+
 ## [1.36.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.35.2...v1.36.0) (2026-10-02)
 
 ### ✨ New Features

@@ -8,7 +8,6 @@
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/ResourceType.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/ResourceUtils.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/StringRef.java",
-        "extensions/shared/library/src/main/java/app/morphe/extension/shared/Utils.java",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/diagnostics/**",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/settings/**",
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/ui/**",
@@ -76,10 +75,13 @@
       ],
       "origin": "ported",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
-      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
-      "via": [],
+      "commit": "a788c516a7170ae992e37de564e7e0b99e087495",
+      "via": [
+        "814acd23d7b70d5d23abce6cb6c97767e16a051e",
+        "88a7f512c1e97126ae6fb3cf05e3c152a39fb1fc"
+      ],
       "license": "GPL-3.0-only",
-      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+      "changes": "Threads catalog regenerated after copying the missing-default disclosure translations from Hushfacebook 814acd23, its surviving Turkish GitHub apostrophe correction from 88a7f512 and the Build %1$s label from the a788c516 bundle identity chain. Facebook-only catalog rows remain excluded."
     },
     {
       "paths": [
@@ -114,8 +116,6 @@
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ChoiceCards.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/DialogChoices.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/FamilyNames.java",
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/HushThreadsPreferenceFragment.java",
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/PatchFamily.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ReleaseCheck.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ReleaseTransport.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ScreenColors.java",
@@ -123,9 +123,7 @@
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsDialog.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsEntry.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsIcons.java",
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsNavigation.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsStatus.java",
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SupportedLinks.java",
         "patches/src/main/kotlin/app/morphe/patches/threads/misc/extension/**",
         "patches/src/main/kotlin/app/morphe/patches/threads/misc/settings/**"
       ],
@@ -252,6 +250,75 @@
       "via": [],
       "license": "GPL-3.0-only",
       "changes": "Remove the advertising ID: the AD_ID permission taken out of the manifest."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/HushThreadsPreferenceFragment.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsNavigation.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "a788c516a7170ae992e37de564e7e0b99e087495",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SapitoSucio/FroggoMorphePatches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Ported Hushfacebook 814acd23's overview disclosure for omitted default patches into the existing Threads settings pages. No Facebook pages, editable rows or feature families were copied. Added packaged bundle identity from Hushfacebook a788c516 while retaining these earlier Threads adaptations."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/PatchFamily.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SupportedLinks.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c7059151af23bec9349f6071014763c41b3791d5",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SapitoSucio/FroggoMorphePatches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Kept the Threads families and copied missing-default reporting from 814acd23, supported-domain diagnostics from 4d1fec1e and combining-mark support from c7059151. The report reads only this app's current domain selections and changes no link ownership."
+    },
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/settings/preference/LogBufferManager.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "a788c516a7170ae992e37de564e7e0b99e087495",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Kept Threads' report and installation facts, porting app-state section ordering and structured public manifest-domain redaction from Hushfacebook 4d1fec1e and c7059151. Added packaged bundle identity from Hushfacebook a788c516 while retaining these earlier Threads adaptations."
+    },
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/Utils.java",
+        "patches/src/main/kotlin/app/morphe/patches/shared/misc/extension/SharedExtensionPatch.kt",
+        "patches/src/main/kotlin/app/morphe/util/BundleVerifier.kt",
+        "patches/src/main/kotlin/app/morphe/util/BundleIdentity.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "a788c516a7170ae992e37de564e7e0b99e087495",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Read and verify the defining bundle identity, inject it into the shared runtime and refuse tampered current bundles. Adapted for Threads without changing the release version or current-signing checks."
     }
   ]
 }

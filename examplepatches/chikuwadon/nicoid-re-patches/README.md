@@ -11,7 +11,7 @@ nicoid 6.49の元APKにMorphe Managerでパッチを適用すると、「nicoid 
 - 対象アプリ：`com.sauzask.nicoid`（バージョン`6.49`）
 - 適用後のアプリ名：**nicoid Re**
 - 適用後のパッケージ名：`com.sauzask.nicoid.hls`
-- 正式版：`v1.3.4`
+- 正式版：`v1.4.1`
 - 開発版：`dev`ブランチで管理
 
 パッチ適用には次の元APKを使用してください。
@@ -21,7 +21,7 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.4](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.3.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
+> **[v1.4.1](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
 <summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
@@ -88,6 +88,16 @@ https://github.com/chikuwadon/nicoid-re-patches
 - UI/UXを改善。
 - 安定性とパフォーマンスを改善。
 - 英語・繁體中文の翻訳を追加。
+- Cookieを手動入力してログインできるように。
+
+## Cookieを手動入力してログインする
+
+WebViewでログインできない端末では、設定のログインから「Cookie手動入力」を選択します。
+
+別の端末・PCでニコニコにログインし、ブラウザの開発者ツールでニコニコのCookieを確認してください。`user_session`の値をコピーし、nicoid Reの入力欄に貼り付けて保存します。`user_session=値`の形式や、`user_session`を含むCookieヘッダーも入力できます。
+
+保存後は動画再生やアカウントのマイリストなどで動作を確認してください。Cookieの保存だけではサイト側の認証成功は確認していません。期限切れやログアウトで利用できなくなった場合は、ログインし直してCookieを再取得してください。Cookieはログイン情報のため、他の人に渡したり、Issueやログに貼り付けたりしないでください。
+
 ## ビルド方法
 
 リポジトリのルートで次のコマンドを実行します。

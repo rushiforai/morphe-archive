@@ -140,8 +140,9 @@ function New-ApkSigningSession {
         }
         $type = if ($KeystoreType) { $KeystoreType } else { 'default' }
         $ErrorActionPreference = 'Continue'
+        # Only stdout belongs to the certificate protocol. JVM diagnostics may accompany success.
         $output = @(& $Java --class-path $tools.ClassPath $tools.Checker key $Keystore $KeyAlias $type `
-            $session.StorePasswordSpec $session.EntryPasswordSpec 2>&1)
+            $session.StorePasswordSpec $session.EntryPasswordSpec 2>$null)
         $status = $LASTEXITCODE
         $ErrorActionPreference = $preference
         if ($status -ne 0 -or $output.Count -ne 1 -or [string]$output[0] -notmatch '^[a-f0-9]{64}$') {
@@ -173,7 +174,7 @@ function Get-ApkSigningCertificate {
     $preference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        $output = @(& $Session.Java --class-path $Session.Tools.ClassPath $Session.Tools.Checker apk $Apk 2>&1)
+        $output = @(& $Session.Java --class-path $Session.Tools.ClassPath $Session.Tools.Checker apk $Apk 2>$null)
         $status = $LASTEXITCODE
     } finally { $ErrorActionPreference = $preference }
     if ($status -ne 0 -or $output.Count -ne 1 -or [string]$output[0] -notmatch '^[a-f0-9]{64}(,[a-f0-9]{64})*$') {

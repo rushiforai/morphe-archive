@@ -1,0 +1,89 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.direct;
+
+import java.lang.reflect.Array;
+import java.util.function.BooleanSupplier;
+
+import app.hushgram.extension.instagram.settings.FamilyNames;
+import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.shared.Logger;
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.diagnostics.FeedFilterCounters;
+import app.hushgram.extension.shared.diagnostics.HookStatus;
+
+/**
+ * Helper for the "Hide the notes row" patch.
+ *
+ * <p>Your messages are a list of sections (the search bar, the notes row, the inbox header, your
+ * chats), and each time Instagram works the list out again it first names the sections it may
+ * show. The patch hands that list of names to {@link #sections} before Instagram reads it, and
+ * while the switch is on the notes row, the one Instagram 449 names {@link #NOTES}, is left out.
+ * Its Map bubble sits inside that row, so it goes too. Every other section is built as before, so
+ * search, requests and your chats stay, and so do notes elsewhere, like the bubble over a profile
+ * picture.
+ *
+ * <p>The hook fails open: with the switch off, HushGram paused, the settings not read yet or
+ * anything thrown, Instagram's own list goes through untouched.
+ */
+public final class NotesRow {
+    /** The constant name Instagram 449 gives the notes row's section. */
+    static final String NOTES = "TRAY";
+
+    /** The diagnostic counter route: how often the inbox named the row, and how often it was left out. */
+    static final String ROUTE = "Notes row";
+
+    static final String ROW = "notes row";
+
+    private static volatile boolean logged;
+
+    private NotesRow() {
+    }
+
+    /**
+     * Injected where your messages name the sections they may show. Answers a copy of [sections]
+     * without the notes row while the switch is on, and [sections] itself otherwise, or when
+     * anything goes wrong. Never throws, and never changes the array it's given.
+     */
+    public static Object[] sections(Object[] sections) {
+        return sections(sections, NotesRow::switchedOn);
+    }
+
+    static Object[] sections(Object[] sections, BooleanSupplier on) {
+        if (sections == null) return null;
+        try {
+            HookStatus.invoked(FamilyNames.NOTES_ROW);
+            int at = indexOfNotes(sections);
+            if (at < 0) return sections;
+            FeedFilterCounters.sawKind(ROUTE, ROW);
+            if (!on.getAsBoolean()) return sections;
+            Object[] kept = (Object[]) Array.newInstance(sections.getClass().getComponentType(), sections.length - 1);
+            System.arraycopy(sections, 0, kept, 0, at);
+            System.arraycopy(sections, at + 1, kept, at, sections.length - at - 1);
+            FeedFilterCounters.removed(ROUTE, 1, ROW);
+            if (!logged) {
+                logged = true;
+                Logger.printDebug(() -> "Notes row: left the notes row out of your messages");
+            }
+            return kept;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.NOTES_ROW, ROW, failure);
+            return sections;
+        }
+    }
+
+    /** Where the notes row's section is in [sections], or -1 when Instagram didn't name it this time. */
+    private static int indexOfNotes(Object[] sections) {
+        for (int at = 0; at < sections.length; at++) {
+            Object section = sections[at];
+            if (section instanceof Enum && NOTES.equals(((Enum<?>) section).name())) return at;
+        }
+        return -1;
+    }
+
+    private static boolean switchedOn() {
+        return Utils.settingsReady() && Settings.HIDE_NOTES_ROW.get();
+    }
+}

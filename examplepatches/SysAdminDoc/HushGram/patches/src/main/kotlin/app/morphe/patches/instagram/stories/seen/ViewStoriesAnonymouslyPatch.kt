@@ -25,9 +25,8 @@ internal const val PATCH = "View stories anonymously"
 val viewStoriesAnonymouslyPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "View stories anonymously",
-    description = "Keeps you off the viewer list of the stories you watch, because Instagram isn't told which " +
-        "ones you've seen. Replying or reacting still shows you, and stories you've watched keep showing as new. " +
-        "A second switch, off to start, adds a Mark as seen button to each story, so you can still show up on the ones you pick.",
+    description = "Holds story-view reports while its switch is on. Replying or reacting still shows you, " +
+        "and stories you've watched keep showing as new. An optional Mark as seen button selects stories to send.",
     default = false,
 ) {
     category("Privacy")
@@ -50,8 +49,9 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
  * extension's holding only the stories you marked, or none, and then the send returns, so a batch
  * held back is dropped, not kept for later. The store also retries batches, read back from what a
  * session before this one saved to disk; a second hook goes right before the retry builds its
- * request and, while views are held back, answers an empty batch for a retried one with stories in
- * it. The only other call of the request on 449, the Reset NUX developer option, sends a batch it
+ * request and, while views are held back, skips its native claim and request. The pending item is
+ * checked again on every retry, without changing either owned map or making an empty batch. The only other call of
+ * the request on 449, the Reset NUX developer option, sends a batch it
  * makes right there with nothing but a NUX in it, and the patch refuses any build with another
  * route to the request ([findStorySeen]).
  *
@@ -64,7 +64,7 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
 internal fun BytecodePatchContext.holdBackStoryViews() {
     val found = findStorySeen()
     hookStorySend(found)
-    hookStoryRetry(found)
+    hookStoryRetryQueue(found)
     hookStoryHeader(found)
     found.fillStubs()
 }

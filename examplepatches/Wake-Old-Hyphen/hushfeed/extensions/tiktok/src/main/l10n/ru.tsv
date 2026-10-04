@@ -1,3 +1,36 @@
+Importing new history ended Undo for the earlier clear. You can clear the imported history.	После импорта новой истории нельзя отменить предыдущую очистку. Вы можете очистить импортированную историю.
+%1$d setting in that file can't be restored here and was skipped	%1$d настройку из файла нельзя восстановить здесь, и она пропущена
+%1$d settings in that file can't be restored here and were skipped	%1$d настроек из файла нельзя восстановить здесь, и они пропущены
+%1$d settings in that file can't be restored here and were skipped|one	%1$d настройку из файла нельзя восстановить здесь, и она пропущена
+%1$d settings in that file can't be restored here and were skipped|few	%1$d настройки из файла нельзя восстановить здесь, и они пропущены
+%1$d settings in that file can't be restored here and were skipped|many	%1$d настроек из файла нельзя восстановить здесь, и они пропущены
+Import watch history	Импортировать историю просмотров
+Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	Выберите экспорт JSON из TikTok для этого аккаунта, до %1$s МБ и %2$s записей. Для дат без часового пояса используется часовой пояс этого телефона.
+Sign in to TikTok before importing watch history.	Войдите в TikTok перед импортом истории просмотров.
+Your TikTok account changed. Choose the file again for this account.	Аккаунт TikTok изменился. Выберите файл заново для этого аккаунта.
+Reading watch history	Чтение истории просмотров
+Importing watch history	Импорт истории просмотров
+Reopen Hushfeed settings, then choose the file	Снова откройте настройки Hushfeed и выберите файл
+Couldn't start the import. Try again in a moment.	Не удалось начать импорт. Попробуйте ещё раз через некоторое время.
+Your seen history changed before the import finished. Choose the file again.	История просмотров изменилась до завершения импорта. Выберите файл заново.
+Couldn't import watch history. Your saved history is unchanged.	Не удалось импортировать историю просмотров. Сохранённая история не изменилась.
+%1$s watched video added.	Добавлено %1$s просмотренное видео.
+%1$s watched videos added.	Добавлено %1$s просмотренных видео.
+%1$s entry skipped.	Пропущена %1$s запись.
+%1$s entries skipped.	Пропущено %1$s записей.
+Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos.	Пропущенные записи недействительны, устарели, уже сохранены или старше последних %1$s видео.
+Watch history was imported for the account that chose the file. Switch back to see it.	История импортирована для аккаунта, который выбрал файл. Вернитесь в него, чтобы её увидеть.
+Couldn't read that file. Choose it again.	Не удалось прочитать файл. Выберите его заново.
+That file is larger than %1$s MB. Choose a smaller watch-history export.	Файл больше %1$s МБ. Выберите экспорт истории меньшего размера.
+That file has more than %1$s watch-history entries.	В файле больше %1$s записей истории просмотров.
+That JSON file doesn't contain the supported TikTok watch history.	В этом файле JSON нет поддерживаемой истории просмотров TikTok.
+That watch-history file is damaged. Nothing was imported.	Файл истории просмотров повреждён. Ничего не импортировано.
+%1$s watched videos added.|one	Добавлено %1$s просмотренное видео.
+%1$s watched videos added.|few	Добавлено %1$s просмотренных видео.
+%1$s watched videos added.|many	Добавлено %1$s просмотренных видео.
+%1$s entries skipped.|one	Пропущена %1$s запись.
+%1$s entries skipped.|few	Пропущено %1$s записи.
+%1$s entries skipped.|many	Пропущено %1$s записей.
 # Settings text, English on the left, Russian on the right, one entry per line, tab separated.
 # Keep %s and %d placeholders, {tokens} and product names as they are.
 # scripts/gen-l10n.py turns this into a table inside L10nTranslations.java.
@@ -1602,6 +1635,8 @@ Sends one message a day to each person below at the time below, so your streaks 
 Their usernames, separated by commas or new lines. Each person must already have a chat with you.	Имена пользователей через запятую или с новой строки. У вас уже должен быть чат с каждым из них.
 Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.	Доставка не подтверждена: %1$d/%2$d чатов. Сегодня повторных попыток в этих чатах не будет.
 Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.	Доставка не подтверждена: %1$d/%2$d чатов. В остальные чаты ещё нужно отправить сообщение.
+Sent to %1$d/%2$d chats. They won't get another message today.	Отправлено в %1$d/%2$d чатов. Сегодня они больше не получат сообщений.
+Sent to %1$d/%2$d chats. The rest still need a message.	Отправлено в %1$d/%2$d чатов. В остальные чаты ещё нужно отправить сообщение.
 TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.	TikTok мог принять это сообщение. Доставка не подтверждена, поэтому сегодня повторной попытки не будет.
 Nothing was sent. Check the streak settings and try again.	Ничего не отправлено. Проверьте настройки серии сообщений и попробуйте ещё раз.
 Don't save new searches	Не сохранять новые запросы

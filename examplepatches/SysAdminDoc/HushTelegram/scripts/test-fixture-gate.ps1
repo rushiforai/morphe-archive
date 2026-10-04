@@ -41,16 +41,22 @@ function Invoke-FixtureGit([string[]]$Arguments) {
     return $result
 }
 function Write-Catalog([string]$Package = 'org.telegram.messenger.web', [switch]$NewestOnly,
-        [switch]$MultipleCodes, [switch]$Unpinned) {
+        [switch]$MultipleCodes, [switch]$Unpinned, [switch]$Beta) {
     $targets = @([ordered]@{ version = '12.10.6'; versionCodes = [ordered]@{ ARM64_V8A = 71129 } })
     if ($MultipleCodes) { $targets[0].versionCodes['ARMEABI_V7A'] = 71128 }
     if ($Unpinned) { $targets[0].Remove('versionCodes') }
     if (-not $NewestOnly) { $targets += [ordered]@{ version = '12.10.5'; versionCodes = [ordered]@{ ARM64_V8A = 71077 } } }
     $packages = [ordered]@{}
     $packages[$Package] = @($targets | ForEach-Object { $_.version })
+    $compatibility = @([ordered]@{ packageName = $Package; targets = $targets })
+    if ($Beta) {
+        $packages['org.telegram.messenger.beta'] = @('12.10.7')
+        $compatibility += [ordered]@{ packageName = 'org.telegram.messenger.beta'; targets = @(
+            [ordered]@{ version = '12.10.7'; versionCodes = [ordered]@{ ARM64_V8A = 71159 } }) }
+    }
     [ordered]@{ patches = @([ordered]@{
             name = 'Fixture patch'; compatiblePackages = $packages
-            compatibility = @([ordered]@{ packageName = $Package; targets = $targets })
+            compatibility = $compatibility
         }) } | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $repo 'patches-list.json') -Encoding UTF8
 }
 function Write-Fixture([string]$Name) {
@@ -72,6 +78,10 @@ function Assert-HookFails([string]$Pattern, [string]$Refs) {
     Assert-True ($failure -like $Pattern) "Expected [$Pattern], got [$failure]."
     Assert-True (-not (Test-Path -LiteralPath $marker)) 'The build started before its fixture setup was refused.'
     Assert-True ($env:HUSHTELEGRAM_REQUIRE_FIXTURES -eq 'prior-value') 'A failed gate did not restore the strict fixture environment.'
+    if ($Refs) {
+        $trees = @(Invoke-FixtureGit @('worktree', 'list', '--porcelain') | Where-Object { $_ -like 'worktree *' })
+        Assert-True ($trees.Count -eq 1) 'A refused fixture check left its owned checkout registered.'
+    }
     $script:cases++
 }
 
@@ -111,7 +121,7 @@ try {
     $env:HUSHTELEGRAM_FIXTURE_DIR = $fixtures
     Assert-HookFails '*telegram-web-12.10.6-71129.apk, telegram-web-12.10.5-71077.apk*'
     Write-Fixture 'telegram-web-12.10.6-71129.apk'
-    Assert-HookFails '*missing retained org.telegram.messenger.web build(s): telegram-web-12.10.5-71077.apk*'
+    Assert-HookFails '*missing retained Telegram build(s): telegram-web-12.10.5-71077.apk*'
     Write-Fixture 'telegram-web-12.10.5-71076.apk'
     Assert-HookFails '*telegram-web-12.10.5-71077.apk*'
     $retained = Join-Path $fixtures 'telegram-web-12.10.5-71077.apk'
@@ -126,6 +136,16 @@ try {
     Assert-True ($ran.Required -eq '1' -and $ran.FixtureDir -eq $fixtures) 'The build did not receive strict fixture mode and an absolute fixture directory.'
     Assert-True (@($ran.Tasks) -contains ':patches:test' -and @($ran.Tasks) -contains ':extensions:telegram:lint') 'The fixture gate dropped existing Gradle checks.'
     Assert-True ($env:HUSHTELEGRAM_REQUIRE_FIXTURES -eq 'prior-value') 'A successful gate did not restore the strict fixture environment.'
+    $cases++
+
+    Write-Catalog -Beta
+    Assert-HookFails '*telegram-beta-12.10.7-71159.apk*'
+    Write-Fixture 'telegram-web-12.10.7-71159.apk'
+    Write-Fixture 'telegram-beta-12.10.7-71158.apk'
+    Assert-HookFails '*telegram-beta-12.10.7-71159.apk*'
+    Write-Fixture 'telegram-beta-12.10.7-71159.apk'
+    Invoke-FixtureHook
+    Assert-True (Test-Path -LiteralPath $marker) 'The complete web and beta fixture set did not start strict verification.'
     $cases++
 
     Write-Catalog -MultipleCodes
@@ -178,6 +198,8 @@ try {
     Invoke-FixtureHook -Refs $refs
     $ran = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
     Assert-True ($ran.ProjectDir -ne $repo -and @($ran.Versions) -contains '12.10.5') 'The gate checked HEAD instead of the pushed commit''s fixture catalog.'
+    Assert-True (-not (Test-Path -LiteralPath $ran.ProjectDir) -and
+        -not (Test-Path -LiteralPath (Split-Path -Parent $ran.ProjectDir))) 'A successful fixture gate left its owned scratch checkout or parent behind.'
     $cases++
     Write-Host "[fixtures] pre-push fixture contracts passed ($cases cases)"
 } finally {

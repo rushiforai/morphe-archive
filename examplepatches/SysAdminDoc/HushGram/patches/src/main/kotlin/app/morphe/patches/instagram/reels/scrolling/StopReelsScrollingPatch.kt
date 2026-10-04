@@ -64,7 +64,7 @@ private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
 
 /**
  * Keeps a finger from moving the Reels viewer on to the next reel, and a pull down from loading
- * fresh ones. Off in the default selection: endless Reels are how Instagram works, so stopping them
+ * fresh ones. Included in the default selection with its switch initially off, so stopping them
  * is the user's pick. The reel you opened plays as before, and everything on it still works.
  */
 @Suppress("unused")
@@ -72,7 +72,7 @@ val stopReelsScrollingPatch = bytecodePatch(
     name = "Stop Reels scrolling",
     description = "Keeps a swipe in Reels from moving on to the next reel, and a pull down from loading new ones. " +
         "The reel you opened still plays, and its buttons still work.",
-    default = false,
+    default = true,
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)

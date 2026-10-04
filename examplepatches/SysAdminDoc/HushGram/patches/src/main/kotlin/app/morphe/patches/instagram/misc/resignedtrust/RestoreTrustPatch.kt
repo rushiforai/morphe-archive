@@ -58,7 +58,19 @@ val restoreTrustPatch = bytecodePatch(
         }
         check(constructor != null) { "$signers has no (List, boolean, boolean) constructor" }
 
+        val providerRoles = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
+        classDefForEach { classDef ->
+            if (classDef.type in sameKeyProviderTypes || classDef.superclass == SAME_KEY_PROVIDER) {
+                providerRoles += classDef
+            }
+        }
+        val providerDecisions = sameKeyProviderDecisions(providerRoles)
         method.answerOriginalSigners(packageInfo, signers)
+        providerDecisions.forEach { target ->
+            mutableClassDefBy(target.method.definingClass).methods.single {
+                it.name == target.method.name && it.parameterTypes.isEmpty() && it.returnType == "V"
+            }.repairSameKeyProviderDecision(target)
+        }
 
         enableStatus("restoreTrust")
     }

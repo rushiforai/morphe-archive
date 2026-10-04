@@ -8,7 +8,6 @@ package app.morphe.patches.tiktok.interaction.ghostmode
 
 import app.morphe.Fixtures
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -31,7 +30,7 @@ class StoryPlayStatsAnchorsTest {
     @Test
     fun `each declared build has one play report sender with the shape Ghost mode guards`() {
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val senders = mutableListOf<String>()
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) {

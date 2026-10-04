@@ -28,6 +28,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -61,7 +64,7 @@ class StorySeenHookTest {
 
     /**
      * The send asks first and goes on with what it's told, in the batch's own register, or returns.
-     * The retry asks right before its build. The store's other methods taking a batch, and the
+     * The retry asks before the native claim. The store's other methods taking a batch, and the
      * Reset NUX route making a batch of its own, stay as they are.
      */
     @Test
@@ -73,7 +76,7 @@ class StorySeenHookTest {
         val patched = context.mutableClassDefBy(STORE)
         assertSendHooked("the send", patched.methods.single { it.name == "A0O" }, BATCH)
         val retry = patched.methods.single { it.name == "A0J" }
-        assertRetryHooked("the retry", retry, BATCH, build = 5)
+        assertRetryHooked("the retry", retry, BATCH, build = 6)
         for (name in listOf("A0P", "A0L", "A00")) {
             assertEquals("$name was touched", 0, patched.methods.single { it.name == name }.code().count { it.referenceText() in HOOKS })
         }
@@ -287,7 +290,7 @@ class StorySeenHookTest {
                 assertSendHooked("${bundle.name}: the send", send, found.batch)
                 val retryBefore = store.methods.single { it.name == retry.name && it.parameterTypes.map(Any::toString) == retry.parameters }
                 val retryAfter = context.mutableClassDefBy(found.store).methods.single { it.name == retry.name && it.parameterTypes.map(Any::toString) == retry.parameters }
-                assertEquals("${bundle.name}: the retry's size", retryBefore.code().size + 3, retryAfter.code().size)
+                assertEquals("${bundle.name}: the native retry bridge stays unchanged", retryBefore.code().map { it.opcode to it.referenceText() }, retryAfter.code().map { it.opcode to it.referenceText() })
                 assertRetryHooked("${bundle.name}: the retry", retryAfter, found.batch, retry.build)
                 val binder = context.mutableClassDefBy(found.binder).methods.single { it.name == found.binderName && it.parameterTypes.map(Any::toString) == found.binderParameters }
                 assertHeaderHooked("${bundle.name}: the header binder", binder, found.session, found.item, found.holder)
@@ -304,7 +307,8 @@ class StorySeenHookTest {
                 }
                 assertEquals(
                     "${bundle.name}: the hooks are in the send, the retry and the binder, and nowhere else",
-                    setOf("${found.store}->${found.send} $TO_SEND", "${found.store}->${retry.name} $TO_RETRY", "${found.binder}->${found.binderName} $BIND_BUTTON"),
+                    setOf("${found.store}->${found.send} $TO_SEND", "${found.queue!!.owner}->${found.queue.run} $TO_RETRY",
+                        "${found.binder}->${found.binderName} $BIND_BUTTON"),
                     hooked.toSet(),
                 )
                 assertEquals("${bundle.name}: one call of each hook", 3, hooked.size)
@@ -324,7 +328,7 @@ class StorySeenHookTest {
      * the account's, then their superclasses up to the view holder base and the store's, and the
      * extension's two classes.
      */
-    private fun fixtureClasses(bundle: java.io.File): List<ClassDef> {
+    internal fun fixtureClasses(bundle: java.io.File): List<ClassDef> {
         val strings = setOf("media/seen/?reel=%s&live_vod=0", "pending_reel_seen_states_", "ReelViewerItemBinder.bindHeaderViews", "itemView may not be null")
         val found = mutableMapOf<String, ClassDef>()
         FixtureDex.forEach(bundle) { dex ->
@@ -348,6 +352,46 @@ class StorySeenHookTest {
             found += loaded
             wanted = loaded.values.mapNotNull { it.superclass }.filter { it !in found && it != OBJECT }.toSet()
         }
+        // Scan the original bundle for every reference to either dispatch entry, not just direct
+        // callers of the concrete batch request. A later caller can't bypass queue protection.
+        val bridges = found.values.flatMap { it.methods }.filter { method ->
+            !AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.map(Any::toString) == listOf(OBJECT) &&
+                method.returnType == request.returnType && method.code().any { it.referenceText() == requestKey }
+        }
+        val builderKeys = bridges.flatMap { bridge ->
+            listOf(bridge.toString(), "${found[bridge.definingClass]!!.superclass}->${bridge.name}($OBJECT)${bridge.returnType}",
+                "$OBJECT->${bridge.name}($OBJECT)${bridge.returnType}")
+        }.toSet()
+        val dispatchEntries = bridges.map { bridge -> bridge to found[found[bridge.definingClass]!!.superclass]!!.methods.single {
+            it.name == bridge.name && it.parameterTypes == bridge.parameterTypes && it.returnType == bridge.returnType } }
+        val builderCallers = FixtureDex.methodsWhere(bundle, { dex -> dex.methodSection.any { it.toString() in builderKeys } }) { method ->
+            method.code().any { instruction -> instruction.referenceText() in builderKeys || dispatchEntries.any { (bridge, build) ->
+                instruction.indirectlyCalls(bridge, build) } }
+        }
+        found += FixtureDex.classes(bundle, builderCallers.map { it.definingClass }.filter { it !in found }.toSet())
+        val reader = found.values.flatMap { it.methods }.single { method -> method.code().any { it.string() == "PendingReelSeenStateStore.deserializeFromDisk" } }
+        val claim = found.values.flatMap { it.methods }.single { method -> method.code().any {
+            it.string() == "null cannot be cast to non-null type T of com.instagram.store.PendingActionStore" } }
+        val helpers = (reader.code().filter { it.opcode == Opcode.INVOKE_VIRTUAL || it.opcode == Opcode.INVOKE_STATIC }
+            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.filter {
+                it.parameterTypes.map(Any::toString) == listOf(STRING) && it.returnType == "V" ||
+                    it.parameterTypes.map(Any::toString) == listOf(STRING, STRING) && it.returnType == STRING
+            } + claim.code().filter { it.opcode == Opcode.INVOKE_STATIC }
+            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }).map { it.definingClass }.toSet()
+        found += FixtureDex.classes(bundle, helpers.filter { it !in found }.toSet())
+        val extra = mutableSetOf<String>()
+        for (owner in helpers.mapNotNull { found[it] }) {
+            owner.methods.filter { it.parameterTypes.map(Any::toString) == listOf(STRING) && it.returnType == "V" && it.code().size == 7 }
+                .flatMap { it.code() }.forEach { instruction ->
+                    when (val reference = (instruction as? ReferenceInstruction)?.reference) {
+                        is TypeReference -> if (instruction.opcode == Opcode.NEW_INSTANCE) extra += reference.type
+                        is FieldReference -> if (instruction.opcode == Opcode.IGET_OBJECT) extra += reference.type
+                    }
+                }
+            owner.methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map(Any::toString) == listOf(owner.type) }
+                .forEach { extra += it.returnType }
+        }
+        found += FixtureDex.classes(bundle, extra.filter { it !in found }.toSet())
         return (found.values + ExtensionDex.classDef(STORY_SEEN) + ExtensionDex.classDef(STORY_SEEN_BUTTON))
             .map { ImmutableClassDef.of(it) }.distinctBy { it.type }
     }
@@ -409,38 +453,19 @@ class StorySeenHookTest {
     }
 
     /**
-     * The retry's three instructions at [build], where its build of the request was: a range call
+     * The retry's six instructions at [build], where its build of the request was: a range call
      * handing the store and the batch to [TO_RETRY], its answer moved into the batch's register and
-     * cast back to the batch, right before the build, which reads it as its receiver. No branch lands
-     * past the call into the hook.
+     * canceled with a typed null request, or cast back to the batch right before the native build.
      */
     private fun assertRetryHooked(what: String, retry: Method, batch: String, build: Int) {
         val code = retry.code()
-        assertEquals(
-            "$what: the hook's opcodes",
-            listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST),
-            code.subList(build, build + 3).map { it.opcode },
-        )
-        assertEquals("$what: the hook called", TO_RETRY, code[build].referenceText())
-        val register = retry.parameterRegisterNumber(0)
-        val call = code[build] as RegisterRangeInstruction
-        assertEquals("$what: the hook takes the store and the batch", retry.localRegisterCount() to 2, call.startRegister to call.registerCount)
-        assertEquals("$what: the batch follows the store", register, call.startRegister + 1)
-        assertEquals("$what: the answer replaces the batch", register, (code[build + 1] as OneRegisterInstruction).registerA)
-        assertEquals("$what: cast back to the batch", batch, code[build + 2].referenceText())
-        assertEquals("$what: the cast is of the batch's register", register, (code[build + 2] as OneRegisterInstruction).registerA)
-        assertTrue("$what: the build follows", code[build + 3].referenceText()!!.startsWith("$batch->"))
-        assertEquals("$what: the build's receiver is the answer", register, code[build + 3].namedRegisters().first())
-        assertEquals("$what: calls of the hook", 1, code.count { it.referenceText() == TO_RETRY })
-        val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
-        for ((index, instruction) in code.withIndex()) {
-            if (instruction !is OffsetInstruction) continue
-            val target = addresses[index] + instruction.codeOffset
-            assertTrue("$what: the branch at $index lands in the hook", target !in addresses.subList(build + 1, build + 4))
-        }
+        assertEquals("$what: native builder still receives the original typed batch", batch,
+            code.first { it.opcode == Opcode.CHECK_CAST }.referenceText())
+        assertTrue("$what: native builder still occupies the original location",
+            code[build].referenceText()!!.startsWith("$batch->"))
+        assertEquals("$what: the bridge holds no extension hook", 0, code.count { it.referenceText() in HOOKS })
     }
 
-    /** The binder's first four instructions: its account, story and holder moved to v0 to v2 and handed to [BIND_BUTTON]. */
     private fun assertHeaderHooked(what: String, binder: Method, session: Int, item: Int, holder: Int) {
         val code = binder.code()
         assertEquals(
@@ -488,7 +513,7 @@ class StorySeenHookTest {
      * answers its account; the account; the Reset NUX route; the story header binder; the view holder
      * base and a holder two classes down; the story class; and the extension's two classes.
      */
-    private fun standIns(
+    internal fun standIns(
         request: Boolean = true,
         storeReader: Boolean = true,
         sends: Int = 1,
@@ -679,6 +704,7 @@ class StorySeenHookTest {
         val retryBody = """
             ${if (retryOverwrites) "const/4 p1, 0x0" else "nop"}
             check-cast p1, $BATCH
+            invoke-static { p1 }, LX/04Zi;->A0R(Ljava/lang/Object;)V
             invoke-virtual { p0 }, $STORE_BASE->A0H()$USER_SESSION
             move-result-object v0
             ${if (retryBranchesToBuild) "if-eqz v0, :build" else "nop"}
@@ -692,11 +718,7 @@ class StorySeenHookTest {
             STORE,
             emptyList(),
             listOfNotNull(
-                if (storeReader) method(STORE, "A0L", emptyList(), "V", 2, """
-                    const-string v0, "pending_reel_seen_states_"
-                    const-string v0, "PendingReelSeenStateStore.deserializeFromDisk"
-                    return-void
-                """, static = false) else null,
+                if (storeReader) storyQueueReader(STORE, STORE_BASE) else null,
                 if (getter) method(STORE, "A00", listOf(USER_SESSION), STORE, 2, """
                     new-instance v0, $STORE
                     return-object v0
@@ -719,17 +741,7 @@ class StorySeenHookTest {
             ) + (0 until sends).map { copy -> method(STORE, if (copy == 0) "A0O" else "A0R", listOf(BATCH), "V", sendRegisters, sendBody, static = false) },
             superclass = STORE_BASE,
         )
-        val storeBase = classOf(
-            STORE_BASE,
-            emptyList(),
-            listOfNotNull(
-                if (storeSession) method(STORE_BASE, "A0H", emptyList(), USER_SESSION, 2, """
-                    const/4 v0, 0x0
-                    return-object v0
-                """, static = false) else null,
-            ),
-            abstract = true,
-        )
+        val storeBase = storyQueueBase(STORE_BASE, REQUEST, storeSession)
         val resetNux = classOf(
             RESET_NUX,
             emptyList(),
@@ -752,10 +764,10 @@ class StorySeenHookTest {
         )
         val userSession = classOf(
             USER_SESSION,
-            emptyList(),
+            listOf(ImmutableField(USER_SESSION, "userId", STRING, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, null)),
             listOfNotNull(
                 if (userId) method(USER_SESSION, "getUserId", emptyList(), "Ljava/lang/String;", 2, """
-                    const/4 v0, 0x0
+                    iget-object v0, p0, $USER_SESSION->userId:$STRING
                     return-object v0
                 """, static = false) else null,
             ),
@@ -830,7 +842,7 @@ class StorySeenHookTest {
             classOf(VIEWER, emptyList(), emptyList()),
             ImmutableClassDef.of(ExtensionDex.classDef(STORY_SEEN)),
             ImmutableClassDef.of(ExtensionDex.classDef(STORY_SEEN_BUTTON)),
-        )
+        ) + storyQueueDiskHelpers()
     }
 
     private fun method(
@@ -905,6 +917,7 @@ class StorySeenHookTest {
         const val DELEGATE = "Lfixture/Delegate;"
         const val VIEWER = "Lfixture/Viewer;"
         const val OBJECT = "Ljava/lang/Object;"
+        private const val STRING = "Ljava/lang/String;"
         const val VIEW = "Landroid/view/View;"
         val HOOKS = setOf(TO_SEND, TO_RETRY, BIND_BUTTON)
     }

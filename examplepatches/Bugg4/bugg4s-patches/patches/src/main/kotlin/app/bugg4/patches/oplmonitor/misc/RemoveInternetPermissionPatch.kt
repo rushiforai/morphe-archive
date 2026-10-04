@@ -7,10 +7,8 @@ import org.w3c.dom.Element
 @Suppress("unused")
 val removeInternetPermissionPatch = resourcePatch(
     name = "Remove internet permission",
-    description = "Removes the INTERNET permission from the manifest. " +
-        "This stops the app from reaching the network at all, which also prevents app update checks. " +
-        "This will likely break features that download data, such as DTC descriptions, " +
-        "VIN decoder gauges and function files.",
+    description = "Removes the INTERNET permission, blocking all network access including " +
+        "update checks. Breaks DTC descriptions, VIN decoder gauges and function downloads.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_OPL_MONITOR)

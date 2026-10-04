@@ -162,7 +162,8 @@ if (-not (Test-Path -LiteralPath $Sbom -PathType Leaf)) {
 }
 $Sbom = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Sbom)
 $sbomDocument = Read-ReleaseSbom -Path $Sbom
-$sbomBound = Test-ReleaseSbom -Sbom $sbomDocument -BundlePath $Bundle -BundleName (Split-Path -Leaf $Bundle)
+$sbomBound = Test-ReleaseSbom -Sbom $sbomDocument -BundlePath $Bundle -BundleName (Split-Path -Leaf $Bundle) `
+    -ExpectedCommit $commit
 if (-not $sbomBound.Valid) { throw "The SBOM does not describe the bundle: $($sbomBound.Reason)" }
 Invoke-ReleaseAdvisoryGate -Sbom $sbomDocument -ExceptionsPath (Join-Path $PSScriptRoot 'advisory-exceptions.txt') `
     -SkipAdvisoryCheck:$SkipAdvisoryCheck

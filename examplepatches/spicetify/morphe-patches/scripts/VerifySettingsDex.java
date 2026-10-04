@@ -153,31 +153,22 @@ class VerifySettingsDex {
         verifyCapability("cleanSharing", sharing);
         verifyCapability("themeColors", theme);
         verifyAnalytics();
-        verifyActivity();
+        verifyScreen();
         verifyBridge();
     }
 
-    static void verifyActivity() {
-        String owner = PREFIX + "SpicetifySettingsActivity;";
-        var activity = classes.get(owner);
-        require(activity != null, "Missing settings Activity");
-        require(AccessFlags.PUBLIC.isSet(activity.getAccessFlags())
-                        && !AccessFlags.ABSTRACT.isSet(activity.getAccessFlags())
-                        && "Landroid/app/Activity;".equals(activity.getSuperclass()),
-                "Settings class must be a public concrete Activity");
-        var constructor = named(owner, "<init>", List.of(), "V");
+    static void verifyScreen() {
+        String owner = PREFIX + "SpicetifySettingsScreen;";
+        var screen = classes.get(owner);
+        require(screen != null, "Missing settings screen");
+        // An Activity needs a manifest entry, which a root mount install never registers.
+        require(AccessFlags.PUBLIC.isSet(screen.getAccessFlags())
+                        && "Landroid/view/ContextThemeWrapper;".equals(screen.getSuperclass()),
+                "Settings screen must be a public dialog host, not an Activity");
         var open = named(owner, "open", List.of("Landroid/app/Activity;"), "V");
-        var onCreate = named(owner, "onCreate", List.of("Landroid/os/Bundle;"), "V");
-        for (var target : List.of(constructor, open, onCreate)) {
-            require(target.getImplementation() != null,
-                    "Missing Activity method body " + target);
-            require(AccessFlags.STATIC.isSet(target.getAccessFlags()) == (target == open),
-                    "Invalid Activity method dispatch " + target);
-            require(AccessFlags.PUBLIC.isSet(target.getAccessFlags())
-                            || (target == onCreate
-                                    && AccessFlags.PROTECTED.isSet(target.getAccessFlags())),
-                    "Inaccessible Activity method " + target);
-        }
+        require(open.getImplementation() != null, "Missing settings screen method body " + open);
+        require(AccessFlags.PUBLIC.isSet(open.getAccessFlags()) && AccessFlags.STATIC.isSet(open.getAccessFlags()),
+                "Settings screen open must be public and static");
     }
 
     static List<Instruction> code(Method m) {
@@ -202,18 +193,6 @@ class VerifySettingsDex {
                 && m.getName().equals(name);
     }
 
-    static boolean followsServerProcessGate(List<Instruction> code, int hookIndex) {
-        if (hookIndex != 4) {
-            return false;
-        }
-        return code.get(0).getOpcode() == Opcode.INVOKE_STATIC_RANGE
-                && ref(code.get(0)).equals(
-                        "Lapp/spicetify/extension/spotify/localserver/ServerProcess;->skipApplication(Landroid/content/Context;)Z")
-                && code.get(1).getOpcode() == Opcode.MOVE_RESULT
-                && code.get(2).getOpcode() == Opcode.IF_EQZ
-                && code.get(3).getOpcode() == Opcode.RETURN_VOID;
-    }
-
     static void verifyHooks() {
         int startup = 0, append = 0;
         for (var c : classes.values()) {
@@ -229,16 +208,16 @@ class VerifySettingsDex {
                             continue;
                         }
                         startup++;
-                        // The local-server patch guards onCreate with a ServerProcess early
-                        // return before Spotify's start-up, so the initialize hook may follow
-                        // that gate instead of leading the method.
+                        // Server files return early in their track process first; VerifyLibraryDex checks that gate.
                         require(
-                                c.getType().equals("Lp/qb61;")
+                                c.getType().equals("Lcom/spotify/music/SpotifyApplication;")
                                         && m.getName().equals("onCreate")
                                         && m.getParameterTypes().isEmpty()
                                         && m.getReturnType().equals("V")
                                         && !AccessFlags.STATIC.isSet(m.getAccessFlags())
-                                        && (n == 0 || followsServerProcessGate(code, n)),
+                                        && (n == 0 || (n == 4 && call(code.get(0),
+                                                "Lapp/spicetify/extension/spotify/localserver/ServerProcess;",
+                                                "skipApplication"))),
                                 "Settings startup hook must begin Application.onCreate");
                         require(
                                 i.getOpcode() == Opcode.INVOKE_STATIC_RANGE
@@ -256,33 +235,33 @@ class VerifySettingsDex {
                     if (call(i, BRIDGE + "SettingsBridge;", "append")) {
                         append++;
                         require(
-                                c.getType().equals("Lp/y3v;")
+                                c.getType().equals("Lp/xlt;")
                                         && m.getName().equals("create")
                                         && m.getParameterTypes().isEmpty()
-                                        && m.getReturnType().equals("Lp/e721;")
+                                        && m.getReturnType().equals("Lp/biy0;")
                                         && i.getOpcode() == Opcode.INVOKE_STATIC
                                         && i instanceof FiveRegisterInstruction r
                                         && r.getRegisterCount() == 2
-                                        && r.getRegisterC() == 5
-                                        && r.getRegisterD() == 0,
-                                "Settings row hook must pass root list v5 and factory v0");
+                                        && r.getRegisterC() == 6
+                                        && r.getRegisterD() == 2,
+                                "Settings row hook must pass root list v6 and factory v2");
                         require(
                                 ref(i).equals(
                                                 BRIDGE
-                                                        + "SettingsBridge;->append(Ljava/util/List;Lp/jto;)V"),
+                                                        + "SettingsBridge;->append(Ljava/util/List;Lp/ion;)V"),
                                 "Append descriptor changed");
                         require(
                                 n + 2 < code.size()
                                         && code.get(n + 1).getOpcode() == Opcode.IGET_OBJECT
                                         && ref(code.get(n + 1))
-                                                .equals("Lp/jto;->e:Ljava/lang/Object;")
+                                                .equals("Lp/ion;->c:Ljava/lang/Object;")
                                         && code.get(n + 1) instanceof TwoRegisterInstruction read
-                                        && read.getRegisterB() == 0
+                                        && read.getRegisterB() == 2
                                         && code.get(n + 2).getOpcode() == Opcode.CHECK_CAST
-                                        && ref(code.get(n + 2)).equals("Lp/zhq;")
+                                        && ref(code.get(n + 2)).equals("Lp/dpb;")
                                         && ((OneRegisterInstruction) code.get(n + 2)).getRegisterA()
                                                 == read.getRegisterA(),
-                                "Append must precede the original jto.e / zhq access");
+                                "Append must precede the original ion.c / dpb access");
                     }
                 }
             }
@@ -300,7 +279,7 @@ class VerifySettingsDex {
                         named(
                                 BRIDGE + "SettingsBridge;",
                                 "append",
-                                List.of("Ljava/util/List;", "Lp/jto;"),
+                                List.of("Ljava/util/List;", "Lp/ion;"),
                                 "V"))) {
             require(
                     AccessFlags.PUBLIC.isSet(required.getAccessFlags())
@@ -343,7 +322,7 @@ class VerifySettingsDex {
     }
 
     static void verifyAnalytics() {
-        var m = named("Lp/jri0;", "<init>", List.of("I", "Lp/lwb1;", "B"), "V");
+        var m = named("Lp/c3g0;", "<init>", List.of("I", "Lp/ct71;", "I"), "V");
         var c = code(m);
         var matches = new ArrayList<Integer>();
         for (int n = 0; n < c.size(); n++) {
@@ -357,13 +336,13 @@ class VerifySettingsDex {
                 n >= 2
                         && n + 2 < c.size()
                         && c.get(n - 2).getOpcode() == Opcode.CONST_4
-                        && ((OneRegisterInstruction) c.get(n - 2)).getRegisterA() == 13
+                        && ((OneRegisterInstruction) c.get(n - 2)).getRegisterA() == 7
                         && ((NarrowLiteralInstruction) c.get(n - 2)).getNarrowLiteral() == -1,
-                "Analytics must compare reserved value -1 in v13");
+                "Analytics must compare reserved value -1 in v7");
         require(
                 c.get(n - 1).getOpcode() == Opcode.IF_NE
-                        && ((TwoRegisterInstruction) c.get(n - 1)).getRegisterA() == 11
-                        && ((TwoRegisterInstruction) c.get(n - 1)).getRegisterB() == 13
+                        && ((TwoRegisterInstruction) c.get(n - 1)).getRegisterA() == 5
+                        && ((TwoRegisterInstruction) c.get(n - 1)).getRegisterB() == 7
                         && targetIndex(c, n - 1) == n + 2,
                 "Native analytics values must branch to original switch");
         require(
@@ -371,7 +350,7 @@ class VerifySettingsDex {
                         && ((OneRegisterInstruction) c.get(n)).getRegisterA() == 0
                         && c.get(n + 1).getOpcode() == Opcode.GOTO_16
                         && c.get(n + 2).getOpcode() == Opcode.PACKED_SWITCH
-                        && ((OneRegisterInstruction) c.get(n + 2)).getRegisterA() == 11,
+                        && ((OneRegisterInstruction) c.get(n + 2)).getRegisterA() == 5,
                 "Settings analytics label flow changed");
         int payload = targetIndex(c, n + 2);
         require(
@@ -382,7 +361,7 @@ class VerifySettingsDex {
         int sink = targetIndex(c, n + 1);
         int firstSink = -1;
         for (int index = n + 3; index < c.size(); index++) {
-            if (ref(c.get(index)).equals("Lp/rwb1;->b:Ljava/lang/String;")) {
+            if (ref(c.get(index)).equals("Lp/it71;->b:Ljava/lang/String;")) {
                 firstSink = index;
                 break;
             }
@@ -391,9 +370,9 @@ class VerifySettingsDex {
         require(
                 sink > n + 2
                         && c.get(sink).getOpcode() == Opcode.IPUT_OBJECT
-                        && ref(c.get(sink)).equals("Lp/rwb1;->b:Ljava/lang/String;")
+                        && ref(c.get(sink)).equals("Lp/it71;->b:Ljava/lang/String;")
                         && ((TwoRegisterInstruction) c.get(sink)).getRegisterA() == 0
-                        && ((TwoRegisterInstruction) c.get(sink)).getRegisterB() == 12,
+                        && ((TwoRegisterInstruction) c.get(sink)).getRegisterB() == 6,
                 "Settings label must reach original analytics label store");
         require(
                 c.subList(0, n - 2).stream()
@@ -534,7 +513,7 @@ class VerifySettingsDex {
             actual.add(signature(m));
         }
         var expected = new TreeSet<String>();
-        for (var m : classes.get("Lp/oqk0;").getMethods()) {
+        for (var m : classes.get("Lp/tyh0;").getMethods()) {
             expected.add(signature(m));
         }
         require(actual.equals(expected), "Navigator methods differ from native interface");

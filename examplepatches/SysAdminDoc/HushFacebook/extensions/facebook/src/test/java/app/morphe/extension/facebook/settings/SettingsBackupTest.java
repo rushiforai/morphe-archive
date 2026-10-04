@@ -363,6 +363,26 @@ public class SettingsBackupTest {
         }
     }
 
+    @Test
+    public void sparseAndLegacyImportsDoNotChangeAnOmittedWholeWordMode() throws Exception {
+        for (boolean full : new boolean[]{false, true}) {
+            for (boolean saved : new boolean[]{false, true}) {
+                Settings.POST_WORDS_WHOLE_WORDS.save(saved);
+                JSONObject file = new JSONObject(SettingsBackup.create());
+                assertEquals(1, file.getInt("schema"));
+                if (!full) {
+                    file.put("settings", new JSONObject().put(Settings.HIDE_POSTS_WITH_WORDS.key,
+                            !Settings.HIDE_POSTS_WITH_WORDS.savedValue()));
+                }
+                file.getJSONObject("settings").remove(Settings.POST_WORDS_WHOLE_WORDS.key);
+                SettingsBackup.Snapshot incoming = SettingsBackup.parse(file.toString());
+                assertFalse(incoming.values.containsKey(Settings.POST_WORDS_WHOLE_WORDS));
+                SettingsBackup.apply(incoming);
+                assertEquals(saved, Settings.POST_WORDS_WHOLE_WORDS.savedValue());
+            }
+        }
+    }
+
     /** Saves other apps can open travel with the other download settings, both ways (issue #11). */
     @Test
     public void theCompatibleSavesSwitchGoesOutAndComesBack() throws Exception {

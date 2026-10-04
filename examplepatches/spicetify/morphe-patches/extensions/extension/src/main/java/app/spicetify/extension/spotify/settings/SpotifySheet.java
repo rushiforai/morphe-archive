@@ -3,6 +3,7 @@ package app.spicetify.extension.spotify.settings;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -34,7 +35,10 @@ final class SpotifySheet extends Dialog {
 
     SpotifySheet(Context context, String title, String message) {
         super(context, android.R.style.Theme_Material_Dialog_NoActionBar);
-        if (context instanceof Activity) setOwnerActivity((Activity) context);
+        // Settings pages pass a themed wrapper of Spotify's activity; the owner supplies the bottom inset.
+        Context owner = context;
+        while (!(owner instanceof Activity) && owner instanceof ContextWrapper) owner = ((ContextWrapper) owner).getBaseContext();
+        if (owner instanceof Activity) setOwnerActivity((Activity) owner);
         content = SpotifyStyle.column(context);
         int side = SpotifyStyle.dp(context, 24);
         content.setPadding(side, SpotifyStyle.dp(context, 12), side, SpotifyStyle.dp(context, 16));

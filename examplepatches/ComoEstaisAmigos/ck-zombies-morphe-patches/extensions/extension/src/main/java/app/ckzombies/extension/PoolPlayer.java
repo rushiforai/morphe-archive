@@ -107,8 +107,8 @@ public class PoolPlayer extends MediaPlayer {
                         // No duration means no synthesised completion, and without that the
                         // engine never learns the sound ended and stops replaying it. Leave
                         // this one to the prepared-MediaPlayer tier, which needs no metadata.
-                        // This is also what happens wholesale below API 10, where
-                        // MediaMetadataRetriever does not exist: the build degrades to the
+                        // This is also what happens wholesale on older Android, which has
+                        // no MediaMetadataRetriever: the build degrades to the
                         // pooled-MediaPlayer behaviour instead of breaking.
                         tier2Only.add(path);
                         android.util.Log.i(TAG, "no duration, tier 2 " + path);

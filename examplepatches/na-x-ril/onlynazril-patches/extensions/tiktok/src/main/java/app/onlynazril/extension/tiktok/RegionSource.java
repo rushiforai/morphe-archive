@@ -25,7 +25,8 @@ import app.onlynazril.extension.tiktok.internal.Reflect;
 public final class RegionSource {
     /** Bounded on purpose: the feed is unbounded, the header only ever needs recent handles. */
     private static final int MAX_HANDLES = 256;
-    private static final int MAX_REPORTS = 12;
+    /** Raised with the header's, for the same reason: the page being traced renders after the feed. */
+    private static final int MAX_REPORTS = 120;
 
     private static final Map<String, String> SEEN_AT_BIND = new ConcurrentHashMap<>();
 

@@ -164,11 +164,17 @@ public class HushfacebookPreferenceFragmentTest {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.STORIES_TRAY);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             List<Preference> rows = rowsOf(controller);
-            int tray = indexOfKey(rows, Settings.HIDE_STORIES_TRAY.key);
+            int tray = indexOfKey(rows, Settings.HIDE_TOP_STORIES_TRAY.key);
             assertTrue("the Stories tray row is missing", tray >= 0);
-            assertEquals("The row of stories at the top of the feed, Create story included, and the rows of "
-                    + "stories between posts. The switch takes effect when Facebook restarts.",
+            assertEquals("The row of stories at the top of the feed, Create story included. "
+                    + "The switch takes effect when Facebook restarts.",
                     String.valueOf(rows.get(tray).getSummary()));
+            int between = indexOfKey(rows, Settings.HIDE_STORIES_BETWEEN_POSTS.key);
+            assertEquals("the between-post Stories switch isn't immediately after the tray switch", tray + 1, between);
+            assertEquals("Hide Stories between posts", String.valueOf(rows.get(between).getTitle()));
+            assertEquals("Rows, large tiles and viewers of Stories between posts, starting with the next "
+                    + "feed Facebook loads. The top Stories tray has its own switch.",
+                    String.valueOf(rows.get(between).getSummary()));
         }
     }
 
@@ -238,7 +244,7 @@ public class HushfacebookPreferenceFragmentTest {
             Preference card = rowsOf(controller).get(0);
             assertEquals("Hushfacebook is paused", String.valueOf(card.getTitle()));
             assertEquals(HushfacebookPreferenceFragment.pausedSummary(HushfacebookPause.Reason.CRASH_LOOP, RuntimeEnvironment.getApplication().getPackageName())
-                    + " Tap to turn it back on.", String.valueOf(card.getSummary()));
+                    + " Tap to turn it back on.\n" + L10n.f("Build %1$s", L10n.isolate("unknown")), String.valueOf(card.getSummary()));
         }
     }
 
@@ -259,12 +265,14 @@ public class HushfacebookPreferenceFragmentTest {
             Preference card = rows.get(0);
             assertEquals("Hushfacebook is on", String.valueOf(card.getTitle()));
             assertTrue(String.valueOf(card.getSummary()), String.valueOf(card.getSummary()).contains(L10n.isolate(facebook)));
+            assertTrue(String.valueOf(card.getSummary()), String.valueOf(card.getSummary()).contains(L10n.isolate("unknown")));
             Preference version = null;
             for (Preference row : rows) {
                 if ("Version".contentEquals(row.getTitle())) version = row;
             }
             assertNotNull("no Version row", version);
             assertTrue(String.valueOf(version.getSummary()), String.valueOf(version.getSummary()).contains(L10n.isolate(facebook)));
+            assertTrue(String.valueOf(version.getSummary()), String.valueOf(version.getSummary()).contains(L10n.isolate("unknown")));
         }
     }
 

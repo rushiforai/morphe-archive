@@ -14,3 +14,11 @@ internal object MorpheUtilsPatchesVersionFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
 )
+
+internal object MorpheUtilsBuildIdentityFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getSourceBuildIdentity",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+)

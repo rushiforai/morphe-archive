@@ -7,6 +7,10 @@
  */
 package app.morphe.extension.hushthreads.settings;
 
+import java.util.Arrays;
+import java.util.TreeMap;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -38,6 +42,12 @@ import app.morphe.extension.shared.Logger;
 final class SupportedLinks {
     enum State { VERIFIED, SELECTED, SOME, NONE, DISABLED, UNKNOWN, NOT_REPORTED }
 
+    // Domain diagnostics ported from Hushfacebook 4d1fec1e and c7059151.
+    static final LogBufferManager.ReportSection REPORT = new LogBufferManager.ReportSection() {
+        @Override public String title() { return "SUPPORTED LINKS"; }
+        @Override public List<String> lines() { return reportLines(Utils.getContext()); }
+    };
+
     private SupportedLinks() {}
 
     /** What Android says about this app's links, or UNKNOWN when it couldn't be read. */
@@ -57,6 +67,54 @@ final class SupportedLinks {
             Logger.printInfo(() -> "Supported links unreadable: " + unreadable.getClass().getSimpleName());
             return State.UNKNOWN;
         }
+    }
+
+    /** Public manifest domains and their per-user states; no visited links or verifier IDs. */
+    static List<String> reportLines(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return Arrays.asList("availability: not_reported (API below 31)",
+                    "link_handling_allowed: not_reported", "domains: not_reported");
+        }
+        try {
+            DomainVerificationManager manager = context == null ? null : context.getSystemService(DomainVerificationManager.class);
+            DomainVerificationUserState user = manager == null ? null : manager.getDomainVerificationUserState(context.getPackageName());
+            if (user != null) {
+                List<String> lines = new ArrayList<>();
+                lines.add("availability: reported");
+                lines.add("link_handling_allowed: " + user.isLinkHandlingAllowed());
+                Map<String, Integer> hosts = user.getHostToStateMap();
+                if (hosts == null) lines.add("domains: unknown");
+                else if (hosts.isEmpty()) lines.add("domains: none_declared");
+                else {
+                    Map<String, String> sorted = new TreeMap<>();
+                    boolean invalid = false;
+                    for (Map.Entry<String, Integer> host : hosts.entrySet()) {
+                        String name = host.getKey();
+                        // Keep Unicode/wildcard manifest hosts, but refuse URLs, userinfo and line injection.
+                        if (name == null || name.isEmpty() || !name.matches("[\\p{L}\\p{M}\\p{N}_.*-]+")) {
+                            invalid = true;
+                            continue;
+                        }
+                        Integer value = host.getValue();
+                        String state = "unknown";
+                        if (value != null) {
+                            switch (value) {
+                                case DomainVerificationUserState.DOMAIN_STATE_VERIFIED: state = "verified"; break;
+                                case DomainVerificationUserState.DOMAIN_STATE_SELECTED: state = "selected"; break;
+                                case DomainVerificationUserState.DOMAIN_STATE_NONE: state = "none"; break;
+                            }
+                        }
+                        sorted.put(name, state);
+                    }
+                    if (invalid) lines.add("domains: unknown (invalid host data)");
+                    for (Map.Entry<String, String> host : sorted.entrySet()) lines.add(host.getKey() + " -> " + host.getValue());
+                }
+                return lines;
+            }
+        } catch (PackageManager.NameNotFoundException | RuntimeException unreadable) {
+            Logger.printInfo(() -> "Supported link report unreadable: " + unreadable.getClass().getSimpleName());
+        }
+        return Arrays.asList("availability: unknown", "link_handling_allowed: unknown", "domains: unknown");
     }
 
     /** The whole app's answer from each address's; a state this code doesn't know is UNKNOWN. */

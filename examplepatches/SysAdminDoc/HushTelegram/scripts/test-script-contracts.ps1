@@ -134,10 +134,12 @@ Assert-True ((Test-DeclaredBuild -Target $three -VersionName '99.1.0.0.1' -Versi
 # doesn't list.
 $telegramSigners = @('49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1')
 foreach ($patch in @($catalog.patches)) {
-    $declaredSigners = @($patch.compatibility | Where-Object { $_.packageName -eq 'org.telegram.messenger.web' } |
+    foreach ($package in @('org.telegram.messenger.web', 'org.telegram.messenger.beta')) {
+    $declaredSigners = @($patch.compatibility | Where-Object { $_.packageName -ceq $package } |
         ForEach-Object { @($_.signatures) } | Sort-Object -Unique)
     Assert-True (($declaredSigners -join ',') -eq ($telegramSigners -join ',')) `
-        "$($patch.name) declares Telegram signers $($declaredSigners -join ', '), not telegram.org's own."
+        "$($patch.name) declares $package signers $($declaredSigners -join ', '), not Telegram's own."
+    }
 }
 
 $allNames = @($catalog.patches | ForEach-Object { $_.name })
@@ -186,8 +188,21 @@ $twoPackages = [pscustomobject]@{
         [pscustomobject]@{ name = 'one app'; compatiblePackages = [pscustomobject]@{ 'com.example.app' = @('1.0.0') } },
         [pscustomobject]@{ name = 'another app'; compatiblePackages = [pscustomobject]@{ 'com.example.other' = @('1.0.0') } })
 }
-Assert-Throws { Get-PatchTarget -PatchList $twoPackages } '*Expected one compatible package*' `
-    'A catalog naming two apps was accepted.'
+Assert-Throws { Get-PatchTarget -PatchList $twoPackages } '*same packages*' `
+    'A catalog with disjoint patch package sets was accepted.'
+$dualTargets = @(Get-PatchTargets -PatchList $catalog)
+Assert-True ($dualTargets.Count -eq 2 -and $dualTargets[0].PackageName -ceq 'org.telegram.messenger.web') `
+    'The complete package inventory is not default web followed by beta.'
+$betaTarget = Get-PatchTarget -PatchList $catalog -PackageName 'org.telegram.messenger.beta'
+Assert-True ((Get-PatchTarget -PatchList $catalog).PackageName -ceq 'org.telegram.messenger.web' -and
+    $betaTarget.PackageVersion -ceq '12.10.7' -and $betaTarget.PackageVersionCodes['12.10.7'][0] -eq '71159') `
+    'An explicit beta selector changed the default web target or lost its exact code.'
+Assert-True ((Get-VendorFixtureName -Target $betaTarget -VersionName '12.10.7' -VersionCode '71159') -ceq
+    'telegram-beta-12.10.7-71159.apk') 'The beta fixture naming rule lost its package or build code.'
+Assert-Throws { Get-PatchTarget -PatchList $catalog -PackageName 'org.telegram.messenger' } '*does not declare package*' `
+    'Store was credited with beta or web support.'
+Assert-Throws { Get-VendorFixtureName -Target $betaTarget -VersionName '12.10.7' -VersionCode '71158' } '*not a declared build*' `
+    'Another beta code was treated as the retained fixture.'
 $missingTarget = [pscustomobject]@{ patches = @([pscustomobject]@{ name = 'missing target' }) }
 Assert-Throws { Get-PatchTarget -PatchList $missingTarget } '*has no compatible package*' `
     'A patch without compatibility metadata was accepted.'
@@ -228,62 +243,10 @@ try {
     Assert-True $reportValidation.Valid `
         "A complete result with a declared dependency was rejected: $($reportValidation.Reason)"
 
-    $fakeAdb = Join-Path $caseRoot 'adb.cmd'
-    $log = Join-Path $caseRoot 'adb.log'
-    $mode = Join-Path $caseRoot 'mode.txt'
-    $fakeBody = @'
-@echo off
-set /p FAKE_ADB_MODE=<"%~dp0mode.txt"
-echo mode=%FAKE_ADB_MODE% args=%*>>"%~dp0adb.log"
-if "%3|%4|%5"=="shell|pm|path" goto package_path
-if "%3"=="uninstall" goto uninstall
-exit /b 0
-:package_path
-if "%FAKE_ADB_MODE%"=="check-fail" goto check_fail
-if "%FAKE_ADB_MODE%"=="present" echo package:/data/app/example/base.apk
-if "%FAKE_ADB_MODE%"=="uninstall-fail" echo package:/data/app/example/base.apk
-exit /b 0
-:uninstall
-if "%FAKE_ADB_MODE%"=="uninstall-fail" goto uninstall_fail
-echo Success
-exit /b 0
-:check_fail
-exit /b 17
-:uninstall_fail
-exit /b 19
-'@
-    [System.IO.File]::WriteAllText($fakeAdb, $fakeBody, [System.Text.Encoding]::ASCII)
-
-    [System.IO.File]::WriteAllText($mode, 'absent', [System.Text.Encoding]::ASCII)
-    $removed = Remove-AndroidPackageIfInstalled -Adb $fakeAdb -Serial 'CLEAN' -PackageName 'com.example.app'
-    $calls = @(Get-Content -LiteralPath $log)
-    Assert-True (-not $removed) 'An absent package was reported as removed.'
-    Assert-True ($calls.Count -eq 1 -and $calls[0] -like '*shell pm path com.example.app') `
-        'The absent-package path attempted an uninstall.'
-
-    Remove-Item -LiteralPath $log -Force
-    [System.IO.File]::WriteAllText($mode, 'present', [System.Text.Encoding]::ASCII)
-    $removed = Remove-AndroidPackageIfInstalled -Adb $fakeAdb -Serial 'READY' -PackageName 'com.example.app'
-    $calls = @(Get-Content -LiteralPath $log)
-    Assert-True $removed 'An installed package was not removed.'
-    Assert-True ($calls.Count -eq 2 -and $calls[0] -like '*shell pm path com.example.app' -and
-        $calls[1] -like '*uninstall com.example.app') 'The installed-package path did not check then uninstall.'
-
-    Remove-Item -LiteralPath $log -Force
-    [System.IO.File]::WriteAllText($mode, 'check-fail', [System.Text.Encoding]::ASCII)
-    Assert-Throws {
-        Remove-AndroidPackageIfInstalled -Adb $fakeAdb -Serial 'BROKEN' -PackageName 'com.example.app'
-    } '*could not check*' 'An ADB transport failure was treated as an absent package.'
-    $calls = @(Get-Content -LiteralPath $log)
-    Assert-True ($calls.Count -eq 1) 'The check-failure path continued after ADB failed.'
-
-    Remove-Item -LiteralPath $log -Force
-    [System.IO.File]::WriteAllText($mode, 'uninstall-fail', [System.Text.Encoding]::ASCII)
-    Assert-Throws {
-        Remove-AndroidPackageIfInstalled -Adb $fakeAdb -Serial 'LOCKED' -PackageName 'com.example.app'
-    } '*uninstall failed*' 'An uninstall failure was accepted.'
-    $calls = @(Get-Content -LiteralPath $log)
-    Assert-True ($calls.Count -eq 2) 'The uninstall-failure path did not perform exactly a check and uninstall.'
+    # Replacement uninstall assertions contradicted the data-preserving installation contract.
+    # The isolated suite retains absent-package and ADB-failure coverage and proves owned leases,
+    # signer/version refusal and install ordering without touching any shared device.
+    & (Join-Path $Root 'scripts/test-device-install.ps1') -Root $Root
 
     $emptyJdk = Join-Path $caseRoot 'empty-jdk'
     New-Item -ItemType Directory -Path $emptyJdk | Out-Null
@@ -389,6 +352,7 @@ foreach ($name in $consumerScripts) {
 # --- release receipt -------------------------------------------------------------------------
 
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
+. (Join-Path $PSScriptRoot 'checks/native-packaging-fixture.ps1')
 
 $manifestLines = @(
     'N: android=http://schemas.android.com/apk/res/android (line=1)',
@@ -628,6 +592,11 @@ try {
                 exportedComponentsAdded = @(); exportedComponentsRemoved = @() }
         })
     }
+    foreach ($target in $template.targets) {
+        $packaging = New-NativePackagingFixture -SourceSha256 $target.source.sha256
+        $target.nativeLibraries = $packaging.NativeLibraries
+        $target.zipAlignment = $packaging.ZipAlignment
+    }
     $templateJson = $template | ConvertTo-Json -Depth 12
 
     function New-TestReceipt {
@@ -648,6 +617,49 @@ try {
     $valid = Test-TestReceipt -Receipt (New-TestReceipt)
     Assert-True $valid.Valid "A complete receipt was refused: $($valid.Reason)"
 
+    # Equal version names belong to separate packages. Each pinned code needs its own run too.
+    $dualReceiptTargets = @(
+        [pscustomobject]@{ PackageName = 'com.example.host'; PackageVersions = $declaredBuilds
+            PackageVersionCodes = $declaredCodes; PackageSignatures = $telegramSigners },
+        [pscustomobject]@{ PackageName = 'com.example.beta'; PackageVersions = @('46.7.3')
+            PackageVersionCodes = @{ '46.7.3' = @('2024607031') }; PackageSignatures = $telegramSigners })
+    function New-DualTestReceipt {
+        $document = New-TestReceipt
+        $beta = $document.targets[0] | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+        $beta.source.package = 'com.example.beta'
+        $beta.source.versionCode = '2024607031'
+        $document.targets = @($document.targets) + @($beta)
+        foreach ($entry in $document.targets) { $entry.source | Add-Member -NotePropertyName signerSha256 -NotePropertyValue $telegramSigners }
+        return $document
+    }
+    function Test-DualTestReceipt($Document, $Targets = $dualReceiptTargets) {
+        Test-ReleaseReceipt -Receipt $Document -ExpectedVersion '9.9.9' -ExpectedPatchNames @('Alpha', 'Beta') `
+            -ExpectedPatcherVersion '1.12.0' -ExpectedManagerFloor '1.29.0' -ExpectedPackageTargets $Targets -BundlePath $bundle
+    }
+    $dualProof = Test-DualTestReceipt (New-DualTestReceipt)
+    Assert-True $dualProof.Valid "Both packages' complete receipt was refused: $($dualProof.Reason)"
+    foreach ($mutation in @(
+            { param($r) $r.targets = @($r.targets | Select-Object -First 2) },
+            { param($r) $r.targets[2].source.package = 'com.example.host' },
+            { param($r) $r.targets[2].source.versionCode = '2024607030' },
+            { param($r) $r.targets[2].source.PSObject.Properties.Remove('signerSha256') },
+            { param($r) $r.targets[2].source.signerSha256 = @('a' * 64) })) {
+        $document = New-DualTestReceipt
+        & $mutation $document
+        Assert-True (-not (Test-DualTestReceipt $document).Valid) 'A different package, code or signer proved beta.'
+    }
+    $multiCodes = @(
+        [pscustomobject]@{ PackageName = 'com.example.host'; PackageVersions = $declaredBuilds
+            PackageVersionCodes = @{ '46.7.3' = @('2024607030', '2024607032'); '46.6.1' = @('2024606010') }
+            PackageSignatures = $telegramSigners }, $dualReceiptTargets[1])
+    Assert-True (-not (Test-DualTestReceipt (New-DualTestReceipt) $multiCodes).Valid) `
+        'One ABI code proved another untested code of the same package version.'
+    $allCodes = New-DualTestReceipt
+    $another = $allCodes.targets[0] | ConvertTo-Json -Depth 12 | ConvertFrom-Json
+    $another.source.versionCode = '2024607032'
+    $allCodes.targets = @($allCodes.targets) + @($another)
+    Assert-True (Test-DualTestReceipt $allCodes $multiCodes).Valid 'Complete per-code proof was refused.'
+
     # Every fact the receipt exists to pin, put in front of the check one at a time. A gate that
     # has never been shown to fail is a gate nobody has tested.
     $mutations = [ordered]@{
@@ -666,6 +678,12 @@ try {
         'no target at all'                      = { param($r) $r.targets = @() }
         'an unhashed source APK'                = { param($r) $r.targets[0].source.sha256 = '' }
         'a target with no binary SDK facts'      = { param($r) $r.targets[0].PSObject.Properties.Remove('sdk') }
+        'a target with no native evidence'       = { param($r) $r.targets[0].PSObject.Properties.Remove('nativeLibraries') }
+        'a target with failed native evidence'   = { param($r) $r.targets[0].nativeLibraries.passed = $false }
+        'a target with a removed native entry'   = { param($r) $r.targets[0].nativeLibraries.patched.entries = @() }
+        'a target with changed native bytes'     = { param($r) $r.targets[0].nativeLibraries.patched.entries[0].sha256 = ('f' * 64) }
+        'a target with damaged LOAD alignment'   = { param($r) $r.targets[0].nativeLibraries.patched.entries[0].elf.loadSegments[0].alignmentBytes = 4096 }
+        'a target with no APK alignment proof'   = { param($r) $r.targets[0].PSObject.Properties.Remove('zipAlignment') }
         'a target with no stock minimum'        = { param($r) $r.targets[0].sdk.PSObject.Properties.Remove('stockMinSdk') }
         'a target with no patched minimum'      = { param($r) $r.targets[0].sdk.PSObject.Properties.Remove('patchedMinSdk') }
         'a string SDK minimum'                  = { param($r) $r.targets[0].sdk.patchedMinSdk = '28' }
@@ -991,7 +1009,11 @@ try {
         param($r)
         $r.schemaVersion = 1
         $r.PSObject.Properties.Remove('sbom')
-        foreach ($target in $r.targets) { $target.PSObject.Properties.Remove('sdk') }
+        foreach ($target in $r.targets) {
+            $target.PSObject.Properties.Remove('sdk')
+            $target.PSObject.Properties.Remove('nativeLibraries')
+            $target.PSObject.Properties.Remove('zipAlignment')
+        }
     }
     $oneAtOne = Test-ReleaseReceipt -Receipt $schemaOne -ExpectedVersion '9.9.9' -ExpectedPatchNames @('Alpha', 'Beta') `
         -ExpectedPatcherVersion '1.12.0' -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
@@ -1003,7 +1025,11 @@ try {
     $schemaTwo = New-TestReceipt -Mutate {
         param($r)
         $r.schemaVersion = 2
-        foreach ($target in $r.targets) { $target.PSObject.Properties.Remove('sdk') }
+        foreach ($target in $r.targets) {
+            $target.PSObject.Properties.Remove('sdk')
+            $target.PSObject.Properties.Remove('nativeLibraries')
+            $target.PSObject.Properties.Remove('zipAlignment')
+        }
     }
     $twoAtOne = Test-ReceiptWithSbom $schemaTwo -Schema 1
     Assert-True ($twoAtOne.Reason -like '*schema version 2; its release is read at version 1*') `
@@ -1014,8 +1040,19 @@ try {
     $twoAtTwo = Test-ReceiptWithSbom $schemaTwo -Schema 2
     Assert-True $twoAtTwo.Valid "A shipped schema 2 receipt with its SBOM and no SDK facts was refused: $($twoAtTwo.Reason)"
     $twoAtCurrent = Test-TestReceipt -Receipt $schemaTwo
-    Assert-True ($twoAtCurrent.Reason -like '*schema version 2; its release is read at version 3*') `
+    Assert-True ($twoAtCurrent.Reason -like "*schema version 2; its release is read at version $(Get-ReleaseReceiptSchemaVersion)*") `
         "A schema 2 receipt was accepted where binary SDK facts are required: $($twoAtCurrent.Reason)"
+    $schemaThree = New-TestReceipt -Mutate {
+        param($r)
+        $r.schemaVersion = 3
+        foreach ($target in $r.targets) {
+            $target.PSObject.Properties.Remove('nativeLibraries')
+            $target.PSObject.Properties.Remove('zipAlignment')
+        }
+    }
+    $threeAtThree = Test-ReceiptWithSbom $schemaThree -Schema 3
+    Assert-True $threeAtThree.Valid 'A historical schema 3 receipt without native packaging facts was refused.'
+    Assert-True (-not (Test-TestReceipt $schemaThree).Valid) 'A schema 3 receipt supplied current native proof.'
 } finally {
     Remove-Item -LiteralPath $allowlistRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
@@ -1231,10 +1268,8 @@ try {
     # root section below runs the check on a receipt of its own as well.
     $factsSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'validate-release-facts.ps1') -Raw
     Assert-True ($factsSource -match '-ExpectedPatchNames @\(\$resolvedList\.PatchList\.patches' -and
-        $factsSource -match '\$receiptTarget = Get-PatchTarget -PatchList \$resolvedList\.PatchList' -and
-        $factsSource -match '-ExpectedPackageName \$receiptTarget\.PackageName' -and
-        $factsSource -match '-ExpectedPackageVersions \$receiptTarget\.PackageVersions(?![\w.\[])' -and
-        $factsSource -match '-ExpectedPackageVersionCodes \$receiptTarget\.PackageVersionCodes(?![\w.\[])') `
+        $factsSource -match '\$receiptTargets = @\(Get-PatchTargets -PatchList \$resolvedList\.PatchList\)' -and
+        $factsSource -match '-ExpectedPackageTargets \$receiptTargets(?![\w.\[])') `
         ('validate-release-facts.ps1 no longer holds the receipt to the patch list its own commit ' +
             'carried, or to every build that list declares, version codes and all.')
 
@@ -1614,7 +1649,13 @@ function Test-SeededReleaseFile([string]$Relative) {
     return $preRelease -and $Relative -in @('patches-bundle.json', 'README.md', 'CHANGELOG.md')
 }
 function Get-ReleaseFileText([string]$Relative) {
-    if (-not (Test-SeededReleaseFile $Relative)) { return [System.IO.File]::ReadAllText((Join-Path $Root $Relative)) }
+    if (-not (Test-SeededReleaseFile $Relative)) {
+        $text = [System.IO.File]::ReadAllText((Join-Path $Root $Relative))
+        if ($Relative -eq 'CHANGELOG.md') {
+            return Get-PreparedChangelog -Current $text -ExpectedVersion $seedVersion
+        }
+        return $text
+    }
     switch ($Relative) {
         'patches-bundle.json' { $seedIndexText }
         'README.md' {
@@ -1631,7 +1672,7 @@ function Get-ReleaseFileText([string]$Relative) {
     }
 }
 function Copy-ReleaseFile([string]$Relative, [string]$Destination) {
-    if (-not (Test-SeededReleaseFile $Relative)) {
+    if (-not (Test-SeededReleaseFile $Relative) -and $Relative -ne 'CHANGELOG.md') {
         Copy-Item -LiteralPath (Join-Path $Root $Relative) -Destination $Destination -Force
         return
     }
@@ -2056,7 +2097,16 @@ try {
     # And its patch list, which names the catalog's patches: one left out, one the catalog doesn't
     # have and one listed twice are each refused by name, and a form with no list at all is refused.
     $listedPatch = [string]@($catalog.patches)[0].name
-    $listedLine = '(?m)^( +)- ' + [regex]::Escape($listedPatch) + '$'
+    $listedLine = '(?m)^( +)- ' + [regex]::Escape($listedPatch) + '\r?$'
+    # Git's Windows checkout can use CRLF. Each negative fixture must actually change its row.
+    foreach ($lineEnding in @("`n", "`r`n")) {
+        $rows = "        - $listedPatch" + $lineEnding + '        - Unchanged control' + $lineEnding
+        Assert-True ([regex]::Matches($rows, $listedLine).Count -eq 1) 'The patch-row mutation missed a supported line ending.'
+        $removed = $rows -replace ($listedLine + '\n'), ''
+        Assert-True ($removed -ceq ('        - Unchanged control' + $lineEnding)) 'Removing a listed patch changed a neighboring row.'
+        $duplicated = $rows -replace $listedLine, "`${1}- $listedPatch`n`${1}- $listedPatch"
+        Assert-True ([regex]::Matches($duplicated, $listedLine).Count -eq 2) 'The duplicate-patch fixture did not contain two rows.'
+    }
     foreach ($listCase in @(
             @{ Name = 'leaves a patch out'; Pattern = "*bug report form's patch list*leaves out $listedPatch*"
                 Edit = { param($text) $text -replace ($listedLine + '\n'), '' } },
@@ -2252,12 +2302,14 @@ try {
         [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/')) `
         'The routing fixture directory resolved outside the temporary directory.'
     New-Item -ItemType Directory -Path $routingFixtures -Force | Out-Null
-    $routingTarget = Get-PatchTarget -PatchList $catalog
+    foreach ($routingTarget in @(Get-PatchTargets -PatchList $catalog)) {
     foreach ($version in $routingTarget.PackageVersions) {
         foreach ($code in @($routingTarget.PackageVersionCodes[$version])) {
-            Set-Content -LiteralPath (Join-Path $routingFixtures "telegram-web-$version-$code.apk") `
+            $fixtureName = Get-VendorFixtureName -Target $routingTarget -VersionName $version -VersionCode $code
+            Set-Content -LiteralPath (Join-Path $routingFixtures $fixtureName) `
                 -Value 'vendor APK stand-in' -Encoding ASCII
         }
+    }
     }
     $env:HUSHTELEGRAM_FIXTURE_DIR = $routingFixtures
     $factsMarker = Join-Path $hookRoot 'facts-ran.txt'
@@ -2492,7 +2544,8 @@ try {
     $routed = Get-Content -LiteralPath $factsMarker -Raw
     Assert-True ($routed -like '*verify=True*') `
         'An index push with a built release bundle did not compare it against the published asset.'
-    Assert-True ($routed -like "*artifact=$releaseCopy hosted=False*") `
+    Assert-True ($routed -like '*artifact=*patches*build*release*patches-9.9.9.mpp hosted=False*' -and
+        $routed -notlike "*artifact=$releaseCopy hosted=False*") `
         "The index push compared something other than the release copy: $routed"
     Remove-Item -LiteralPath (Join-Path $hookRoot 'patches') -Recurse -Force
 
@@ -2989,8 +3042,8 @@ try {
         Assert-True (Test-Path -LiteralPath $wrapperMarker) `
             'The hook did not run the build through the wrapper HUSHTELEGRAM_BUILD_WRAPPER names.'
         $wrapped = Get-Content -LiteralPath $wrapperMarker -Raw
-        Assert-True ($wrapped -like "dir=$hookRoot tasks=*:extensions:telegram:test*:patches:test*") `
-            "The build wrapper was not handed the repository and the test tasks: $wrapped"
+        Assert-True ($wrapped -like 'dir=* tasks=*:extensions:telegram:test*:patches:test*' -and $wrapped -notlike "dir=$hookRoot *") `
+            "The build wrapper was not handed an isolated snapshot and the test tasks: $wrapped"
 
         # The Gradle file that writes the release bundle. The contract tests hold it to the
         # directory common.ps1 reads the bundle from, and a push that moved only it ran the build
@@ -3054,15 +3107,15 @@ try {
             Assert-True ((& git -C $gateRepo status --porcelain) -like '*extensions/marker.txt*') `
                 'Building the pushed commit touched the working tree it was kept apart from.'
 
-            # A clean tree still builds in place.
+            # Clean HEAD gets its own checkout and outputs too.
             $fixed = Save-GateCommit 'good'
             & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $fixed refs/heads/main $broken" 6> $null
             Assert-True ($LASTEXITCODE -eq 0) 'A clean tree with a good commit did not pass.'
-            Assert-True ((Get-Content -LiteralPath $gateMarker -Raw) -like "*dir=$gateRepo marker=good*") `
-                'A clean tree was not built in place.'
+            Assert-True ((Get-Content -LiteralPath $gateMarker -Raw) -like '*marker=good*' -and
+                (Get-Content -LiteralPath $gateMarker -Raw) -notlike "*dir=$gateRepo marker=good*") `
+                'Clean HEAD shared the source checkout or its build outputs.'
 
-            # A tree that changes while it is built in place: an edit landing mid-build was tested
-            # along with the commit, so that build says nothing about the commit alone.
+            # A build that rewrites its own source cannot establish the pushed commit's result.
             $meddler = Join-Path $hookRoot 'gate-wrapper-meddles.ps1'
             $meddled = Join-Path $gateRepo 'README.md'
             Set-Content -LiteralPath $meddler -Encoding UTF8 -Value @(
@@ -3072,8 +3125,8 @@ try {
             $env:HUSHTELEGRAM_BUILD_WRAPPER = $meddler
             try {
                 Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $fixed refs/heads/main $broken" 6> $null } `
-                    '*changed while the runtime test build ran in place*' `
-                    'A working tree that changed during an in-place build passed on that build.'
+                    '*owned gate worktree changed during the runtime test build*' `
+                    'A gate whose build changed its owned source passed on that build.'
             } finally {
                 $env:HUSHTELEGRAM_BUILD_WRAPPER = $gateStub
                 Remove-Item -LiteralPath $meddled -Force -ErrorAction SilentlyContinue
@@ -3114,43 +3167,6 @@ try {
                 (& git -C $gateRepo symbolic-ref HEAD).Trim() -eq $headBefore) `
                 "With GIT_DIR set, building the pushed commit rewrote the working tree it was kept apart from."
 
-            # One push at a time through the gate worktree. With the lock held here, a hook in
-            # another process has to give up rather than check its commit out under a running build.
-            $gateHasher = [System.Security.Cryptography.SHA256]::Create()
-            try {
-                $gateDigest = $gateHasher.ComputeHash([Text.Encoding]::UTF8.GetBytes(
-                    [IO.Path]::GetFullPath($gateRepo).ToLowerInvariant()))
-            } finally {
-                $gateHasher.Dispose()
-            }
-            $gateKey = -join ($gateDigest[0..5] | ForEach-Object { $_.ToString('x2') })
-            $shell = (Get-Process -Id $PID).Path
-            $childRefs = "refs/heads/main $fixed refs/heads/main $broken"
-            function Invoke-ChildPush {
-                # Windows PowerShell stops on a native command's first line of standard error.
-                $preference = $ErrorActionPreference
-                $ErrorActionPreference = 'Continue'
-                try {
-                    return (& $shell -NoProfile -File $prePushScript -Root $gateRepo -PushedRefs $childRefs `
-                        -GateLockTimeoutSeconds 1 2>&1 | Out-String)
-                } finally {
-                    $ErrorActionPreference = $preference
-                }
-            }
-            $held = New-Object System.Threading.Mutex($false, "Local\hushtelegram-pre-push-$gateKey")
-            Assert-True ($held.WaitOne(0)) 'The contract could not take the gate lock itself.'
-            try {
-                $waited = Invoke-ChildPush
-                Assert-True ($LASTEXITCODE -ne 0 -and $waited -like '*held the gate worktree*') `
-                    "A second push used the gate worktree while another push held it: $waited"
-            } finally {
-                $held.ReleaseMutex()
-                $held.Dispose()
-            }
-            # The control: the same child push, with the lock free, goes through.
-            $free = Invoke-ChildPush
-            Assert-True ($LASTEXITCODE -eq 0) "The child push failed with the gate lock free: $free"
-
             # The release facts half checks the files a push carries as well. A stub check, committed
             # the way the real one is, fails on a README that says broken and records where it ran
             # and whether it read test results. Its own commit is never in a pushed range, so no
@@ -3187,7 +3203,7 @@ try {
             Set-Content -LiteralPath $gateReadme -Value 'broken' -Encoding ASCII
             & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $factsGood refs/heads/main $factsBase" 6> $null
             $checked = Get-Content -LiteralPath $gateFacts -Raw
-            Assert-True ($LASTEXITCODE -eq 0 -and $checked -like '*readme=good results=False*' -and
+            Assert-True ($LASTEXITCODE -eq 0 -and $checked -like '*readme=good results=True*' -and
                 $checked -notlike "*root=$gateRepo *") `
                 "The release facts were read from the working tree instead of the pushed commit: $checked"
 
@@ -3206,13 +3222,13 @@ try {
             Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $factsIndex refs/heads/main $factsBroken" 6> $null } `
                 '*clean checkout of the commit it pushes*' 'An index push from a dirty tree was checked against files it does not carry.'
 
-            # The control: a clean tree pushing HEAD is checked in place, results and all.
+            # A source-changing gate checks its own freshly built results from isolated HEAD.
             & git -C $gateRepo checkout --quiet -- README.md
             $factsFixed = Save-GateReadme 'good'
             & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $factsFixed refs/heads/main $factsIndex" 6> $null
             $checked = Get-Content -LiteralPath $gateFacts -Raw
-            Assert-True ($LASTEXITCODE -eq 0 -and $checked -like "*root=$gateRepo readme=good results=True*") `
-                "A clean tree pushing HEAD was not checked in place: $checked"
+            Assert-True ($LASTEXITCODE -eq 0 -and $checked -like '*readme=good results=True*' -and $checked -notlike "*root=$gateRepo *") `
+                "Clean HEAD did not check its own isolated results: $checked"
 
             # The script suites are the pushed commit's too, run against that commit: they copy the
             # root files into their fixtures, and ran from the working tree until 2026-09-21. A stub
@@ -3237,8 +3253,8 @@ try {
             & git -C $gateRepo checkout --quiet -- scripts/test-script-contracts.ps1
             & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $contractsGood refs/heads/main $factsFixed" 6> $null
             $ran = Get-Content -LiteralPath $gateContracts -Raw
-            Assert-True ($LASTEXITCODE -eq 0 -and $ran -like "*root=$gateRepo state=good*") `
-                "A clean tree pushing HEAD did not run its script contract tests in place: $ran"
+            Assert-True ($LASTEXITCODE -eq 0 -and $ran -like '*state=good*' -and $ran -notlike "*root=$gateRepo *") `
+                "Clean HEAD did not run its own isolated script contracts: $ran"
             $contractsBroken = Save-GateContracts 'broken'
             Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $contractsBroken refs/heads/main $contractsGood" 6> $null } `
                 '*script contract tests did not pass*' 'A push whose own script contract tests fail was let through.'
@@ -3331,6 +3347,8 @@ try {
 }
 
 Write-Host '[scripts] pre-push routing contracts passed'
+& (Join-Path $PSScriptRoot 'test-pre-push-concurrency.ps1') -Root $Root
+if ($LASTEXITCODE -ne 0) { throw 'The concurrent pre-push lifecycle contracts did not pass.' }
 & (Join-Path $PSScriptRoot 'test-fixture-gate.ps1') -Root $Root
 if ($LASTEXITCODE -ne 0) { throw 'The pre-push fixture contracts did not pass.' }
 & (Join-Path $PSScriptRoot 'test-build-advisories.ps1') -Root $Root
@@ -3393,6 +3411,7 @@ Assert-True (Test-ChangelogVersions -Current $goodChangelog -ExpectedVersion '0.
 # release adds (Get-ReleaseFileText, above the release facts).
 $realVersion = Get-BundleVersion -Root $Root
 $realChangelog = Get-ReleaseFileText 'CHANGELOG.md'
+$realChangelog = Get-PreparedChangelog -Current $realChangelog -ExpectedVersion $realVersion
 $realTag = "$(& git -C $Root describe --tags --abbrev=0 HEAD 2>$null | Select-Object -First 1)".Trim()
 $realPrevious = if ($realTag) { (& git -C $Root show "${realTag}:CHANGELOG.md" 2>$null) -join "`n" } else { '' }
 $realCheck = if ([string]::IsNullOrWhiteSpace($realPrevious)) {
@@ -3403,6 +3422,20 @@ $realCheck = if ([string]::IsNullOrWhiteSpace($realPrevious)) {
 Assert-True $realCheck.Valid "This repository's own CHANGELOG was refused: $($realCheck.Reason)"
 
 Write-Host '[scripts] changelog history contracts passed'
+
+$working = "## Unreleased`n`nWorking version 0.42.0.`n`n* **Telegram:** a pending change.`n`n## 0.41.0 (2026-09-20)`n`n* **Telegram:** shipped.`n"
+$prepared = Get-PreparedChangelog -Current $working -ExpectedVersion '0.42.0'
+Assert-True (Test-ChangelogVersions -Current $prepared -ExpectedVersion '0.42.0' -Previous $working).Valid `
+    'An explicit working entry did not preserve the published history.'
+Assert-True (Test-ChangelogManagerEntry -Current $prepared -ExpectedVersion '0.42.0').Valid `
+    'The prepared working entry did not validate scoped bullets.'
+Assert-True (-not (Test-ChangelogManagerEntry -Current $working -ExpectedVersion '0.42.0').Valid) `
+    'An Unreleased entry was accepted by the strict published parser.'
+Assert-True ((Get-PreparedChangelog -Current $working -ExpectedVersion '0.43.0') -ceq $working) `
+    'A mismatched working marker was treated as the prepared version.'
+Assert-True ((Get-PreparedChangelog -Current ($working.Replace('Working version 0.42.0.', 'Pending changes.')) `
+    -ExpectedVersion '0.42.0') -ceq $working.Replace('Working version 0.42.0.', 'Pending changes.')) `
+    'An unversioned Unreleased entry was treated as the prepared version.'
 
 # --- Test-ChangelogManagerEntry --------------------------------------------------------------
 #
@@ -3976,6 +4009,7 @@ try {
     $releaseVersionHere = Get-BundleVersion -Root $releaseRepo
     $releaseCatalog = Get-Content -LiteralPath (Join-Path $releaseRepo 'patches-list.json') -Raw | ConvertFrom-Json
     $releaseTarget = Get-PatchTarget -PatchList $releaseCatalog
+    $releaseTargets = @(Get-PatchTargets -PatchList $releaseCatalog)
     $releaseNames = @($releaseCatalog.patches | ForEach-Object { [string]$_.name })
     $releaseToolchain = Read-CatalogToolchain -Source 'the release fixture catalog' `
         -Text (Get-Content -LiteralPath (Join-Path $releaseRepo 'gradle/libs.versions.toml') -Raw)
@@ -4000,19 +4034,38 @@ try {
         }
     }
     function Save-ReleaseReceipt([string[]]$Builds, [string]$Commit = $releaseCommit, [long]$Seconds = $releaseSeconds,
-            [int]$Schema = (Get-ReleaseReceiptSchemaVersion)) {
-        $targets = @(for ($i = 0; $i -lt $Builds.Count; $i++) {
+            [int]$Schema = (Get-ReleaseReceiptSchemaVersion), [switch]$WithoutOtherPackages) {
+        $records = @($Builds | ForEach-Object { [pscustomobject]@{ Target = $releaseTarget; Version = $_ } })
+        if (-not $WithoutOtherPackages) {
+            $records += @(foreach ($packageTarget in $releaseTargets) {
+                if ($packageTarget.PackageName -ceq $releaseTarget.PackageName) { continue }
+                foreach ($version in $packageTarget.PackageVersions) {
+                    [pscustomobject]@{ Target = $packageTarget; Version = $version }
+                }
+            })
+        }
+        $targets = @(for ($i = 0; $i -lt $records.Count; $i++) {
+            $packageTarget = $records[$i].Target
+            $version = $records[$i].Version
             # Each build at the version code the catalog pins it to, as a run of the declared build.
-            $code = @(@($releaseTarget.PackageVersionCodes[$Builds[$i]]) + @("51200000$i") | Where-Object { $_ })[0]
+            $code = @(@($packageTarget.PackageVersionCodes[$version]) + @("51200000$i") | Where-Object { $_ })[0]
             [ordered]@{
-                source        = [ordered]@{ file = "telegram-$($Builds[$i])-arm64-v8a.apk"
-                    package = $releaseTarget.PackageName; versionName = $Builds[$i]; versionCode = $code
+                source        = [ordered]@{ file = "telegram-$version-arm64-v8a.apk"
+                    package = $packageTarget.PackageName; versionName = $version; versionCode = $code
+                    signerSha256 = $packageTarget.PackageSignatures
                     sha256 = ([string]'ABCDEF'[$i % 6] * 64); forced = $false }
                 patches       = @($releaseNames | ForEach-Object { [ordered]@{ name = $_; applied = $true; reason = $null } })
                 sdk           = [ordered]@{ stockMinSdk = 21; patchedMinSdk = 28 }
                 manifestDelta = $approvedDelta
             }
         })
+        if ($Schema -ge 4) {
+            foreach ($target in $targets) {
+                $packaging = New-NativePackagingFixture -SourceSha256 $target.source.sha256
+                $target.nativeLibraries = $packaging.NativeLibraries
+                $target.zipAlignment = $packaging.ZipAlignment
+            }
+        }
         $document = [ordered]@{
             schemaVersion = $Schema
             release   = [ordered]@{ version = $releaseVersionHere; tag = "v$releaseVersionHere"; commit = $Commit
@@ -4046,11 +4099,21 @@ try {
     } catch {
         throw "The release check refused a receipt with a run of every declared build: $($_.Exception.Message)"
     }
-    $proved = "the receipt proves $($releaseNames.Count) patches on $($releaseTarget.PackageVersions -join ', ') " +
+    $provedBuilds = @(foreach ($packageTarget in $releaseTargets) {
+        foreach ($version in $packageTarget.PackageVersions) {
+            "$($packageTarget.PackageName) $version ($($packageTarget.PackageVersionCodes[$version][0]))"
+        }
+    })
+    $proved = "the receipt proves $($releaseNames.Count) patches on $($provedBuilds -join ', ') " +
         "from commit $($releaseCommit.Substring(0, 8))"
     Assert-True ($said -like "*$proved*") "The release check did not compare the receipt it was given: $said"
     Assert-True ($said -like "*the index asks for Morphe Manager $releaseFloor or newer, as tag v$indexVersionHere pins*") `
         "The release check did not hold the index's Manager floor to the release tag: $said"
+
+    Save-ReleaseReceipt -Builds $releaseTarget.PackageVersions -WithoutOtherPackages
+    Assert-Throws { Invoke-ReleaseCheck } '*declared org.telegram.messenger.beta 12.10.7 (71159)*patched without -f*' `
+        'Web evidence proved beta without any beta run.'
+    Save-ReleaseReceipt -Builds $releaseTarget.PackageVersions
 
     # An index still naming the floor of the release before it, which is what reusing its text
     # does. Nothing read the description's floor until 2026-09-25.
@@ -4069,7 +4132,7 @@ try {
     $unproved = @($releaseTarget.PackageVersions | Select-Object -Skip 1)
     Assert-True ($unproved.Count -gt 0) 'The catalog declares one build, so the case below would prove nothing.'
     Assert-Throws { Invoke-ReleaseCheck } ("*No target in the receipt is the declared $($releaseTarget.PackageName) " +
-            "$($unproved -join ', ') patched without -f*") `
+            "$($unproved -join ', ')*patched without -f*") `
         'The release check accepted a receipt with no run of an older declared build.'
 
     # build-release-receipt.ps1 itself, on the same root. Stand-ins take the tools' places: a JDK
@@ -4094,6 +4157,10 @@ try {
     $javaLog = Join-Path $tools 'java.log'
     $mergeLog = Join-Path $tools 'merge.log'
     $resourceStock = Join-Path $tools 'resource-stock.txt'
+    $releaseSigner = @($releaseTarget.PackageSignatures)
+    Assert-True ($releaseSigner.Count -eq 1) 'The release catalog names no signer for the stand-in apksigner.'
+    Set-Content -LiteralPath (Join-Path $tools 'apksigner.bat') -Encoding ASCII -Value @(
+        '@echo off', "echo Signer #1 certificate SHA-256 digest: $($releaseSigner[0])", 'exit /b 0')
     [System.IO.File]::WriteAllText($stubJava, ((@(
         '@echo off',
         'setlocal EnableExtensions EnableDelayedExpansion',
@@ -4107,6 +4174,7 @@ try {
         'if /i "%~nx4"=="MergeSplits.java" goto merge',
         'if /i "%~nx4"=="ResourceTableCheck.java" goto resources',
         'if /i "%~nx4"=="DexDiff.java" goto dexdiff',
+        'if /i "%~nx1"=="NativeLibraryCheck.java" goto native',
         'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0"',
         'shift',
         'shift',
@@ -4171,7 +4239,33 @@ try {
         'exit /b 0',
         ':dexdiff',
         'echo [diff] structural findings: 0',
+        'exit /b 0',
+        ':native',
+        'copy /y "!HERE!native-libraries.json" "%~4" >nul || exit /b 11',
         'exit /b 0') -join "`r`n") + "`r`n"), [System.Text.Encoding]::ASCII)
+    $nativeStandIn = (New-NativePackagingFixture).NativeLibraries
+    foreach ($property in @('sourceApkSha256', 'stockApkSha256', 'patchedApkSha256', 'checkerSha256')) {
+        $nativeStandIn.PSObject.Properties.Remove($property)
+    }
+    Set-Content -LiteralPath (Join-Path $tools 'native-libraries.json') -Value ($nativeStandIn | ConvertTo-Json -Depth 12)
+    # Mandatory packaging evidence needs a real executable stand-in beside the aapt2 fixture.
+    # The independent checker suite still validates actual binary ZIP/ELF mutations.
+    $alignmentStub = Join-Path $tools 'AlignmentFixture.cs'
+    [IO.File]::WriteAllText($alignmentStub, @'
+using System;
+using System.IO;
+class AlignmentFixture {
+    static int Main(string[] args) {
+        if (args.Length != 6 || args[0] != "-c" || args[1] != "-P" || args[2] != "16" || args[3] != "-v" || args[4] != "4") return 2;
+        if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "zipalign-fails.txt"))) return 3;
+        Console.WriteLine("Verification successful");
+        return 0;
+    }
+}
+'@)
+    $fixtureCompiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+    & $fixtureCompiler /nologo /target:exe "/out:$(Join-Path $tools 'zipalign.exe')" $alignmentStub
+    Assert-True ($LASTEXITCODE -eq 0) 'The isolated alignment executable could not be built.'
     [System.IO.File]::WriteAllText($stubAapt2, ((@(
         '@echo off',
         'setlocal EnableExtensions DisableDelayedExpansion',
@@ -4229,27 +4323,34 @@ try {
     # the catalog pins it to; the fixtures used to count down from a code of their own, which only
     # the version name made declared.
     $newerBuild = "$([int]($releaseTarget.PackageVersion -split '\.')[0] + 1).0.0.1.1"
-    foreach ($build in @($newerBuild) + @($releaseTarget.PackageVersions)) {
+    $fixtureRecords = @([pscustomobject]@{ Target = $releaseTarget; Version = $newerBuild }) +
+        @(foreach ($packageTarget in $releaseTargets) {
+            foreach ($version in $packageTarget.PackageVersions) { [pscustomobject]@{ Target = $packageTarget; Version = $version } }
+        })
+    foreach ($fixtureRecord in $fixtureRecords) {
+        $build = $fixtureRecord.Version
+        $packageTarget = $fixtureRecord.Target
+        $package = $packageTarget.PackageName
         $stockMinSdk = if ($build -eq $newerBuild) { 36 } else { 21 }
-        $versionCode = if ($build -eq $newerBuild) { 512008382 } else { [long]@($releaseTarget.PackageVersionCodes[$build])[0] }
+        $versionCode = if ($build -eq $newerBuild) { 512008382 } else { [long]@($packageTarget.PackageVersionCodes[$build])[0] }
         $apkm = Join-Path $fixtures "telegram-$build-$versionCode.xapk"
         New-TestBundleArchive -Path $apkm -Entries ([ordered]@{
-            'org.telegram.messenger.web.apk' = Get-FixtureManifest -Build $build -Code "$versionCode" -MinSdk $stockMinSdk
+            "$package.apk" = Get-FixtureManifest -Build $build -Code "$versionCode" -MinSdk $stockMinSdk -Package $package
             'icon.png' = 'icon'
             'config.arm64_v8a.apk' = ('native code ' * 64)
-            'manifest.json' = ("{`"package_name`":`"org.telegram.messenger.web`",`"version_code`":`"$versionCode`",`"split_apks`":[" +
-                '{"file":"org.telegram.messenger.web.apk","id":"base"},{"file":"config.arm64_v8a.apk","id":"config.arm64_v8a"}]}') })
+            'manifest.json' = ("{`"package_name`":`"$package`",`"version_code`":`"$versionCode`",`"split_apks`":[" +
+                "{`"file`":`"$package.apk`",`"id`":`"base`"},{`"file`":`"config.arm64_v8a.apk`",`"id`":`"config.arm64_v8a`"}]}") })
         Set-Content -LiteralPath "$apkm.merged.txt" -Encoding ASCII -NoNewline `
-            -Value (Get-FixtureManifest -Build $build -Code "$versionCode" -WithSplit -MinSdk $stockMinSdk)
+            -Value (Get-FixtureManifest -Build $build -Code "$versionCode" -WithSplit -MinSdk $stockMinSdk -Package $package)
         Set-Content -LiteralPath "$apkm.patched.txt" -Encoding ASCII -NoNewline `
-            -Value (Get-FixtureManifest -Build $build -Code "$versionCode" -WithSplit -Patched -MinSdk $stockMinSdk)
+            -Value (Get-FixtureManifest -Build $build -Code "$versionCode" -WithSplit -Patched -MinSdk $stockMinSdk -Package $package)
         # The report the CLI writes: every patch and the internal dependencies applied, one step,
         # and the input's own version, which is what the CLI reports.
         Set-Content -LiteralPath "$apkm.result.json" -Encoding ASCII -Value ([ordered]@{
             patchingSteps = @([ordered]@{ success = $true })
             appliedPatches = @(@($releaseNames) + @($dependencyNamesHere) | ForEach-Object { [ordered]@{ name = $_ } })
             failedPatches = @()
-            packageName = $releaseTarget.PackageName
+            packageName = $package
             packageVersion = $build } | ConvertTo-Json -Depth 6)
         $fixturePaths[$build] = $apkm
     }
@@ -4303,7 +4404,8 @@ try {
     # A fixture for every declared build and the newer one: one target each, only the newer build
     # forced, every patch applied, and no manifest change but the approved two, because the patched
     # manifest is held to the merge and not to the base.
-    $builtBuilds = @($releaseTarget.PackageVersions) + @($newerBuild)
+    $declaredBuildVersions = @($releaseTargets | ForEach-Object { $_.PackageVersions })
+    $builtBuilds = $declaredBuildVersions + @($newerBuild)
     $allFixtures = @($builtBuilds | ForEach-Object { $fixturePaths[$_] })
     try {
         Invoke-ReceiptBuilder -Fixtures $allFixtures
@@ -4317,7 +4419,7 @@ try {
         "The receipt does not hold one run of each fixture: $($builtVersions -join ', ')"
     foreach ($builtTarget in $builtTargets) {
         $label = [string]$builtTarget.source.versionName
-        $declared = $releaseTarget.PackageVersions -contains $label
+        $declared = $declaredBuildVersions -contains $label
         Assert-True ($builtTarget.source.forced -eq (-not $declared)) `
             "The receipt says $label was $(if ($builtTarget.source.forced) { 'forced' } else { 'not forced' })."
         Assert-True ($builtTarget.source.sha256 -eq (Get-Sha256Hex -Path $fixturePaths[$label])) `
@@ -4341,7 +4443,7 @@ try {
         "Each fixture was not merged once, before it was patched: $($mergeRuns -join '; ')"
     $patchRuns = @(Get-Content -LiteralPath $javaLog)
     $expectedRuns = @($builtBuilds | ForEach-Object {
-        "patch $($fixturePaths[$_]) merged forced=$(if ($releaseTarget.PackageVersions -contains $_) { 0 } else { 1 })" })
+        "patch $($fixturePaths[$_]) merged forced=$(if ($declaredBuildVersions -contains $_) { 0 } else { 1 })" })
     Assert-True (($patchRuns -join "`n") -eq ($expectedRuns -join "`n")) `
         "The CLI was not run once per fixture, on its merge, with -f for the undeclared build only: $($patchRuns -join '; ')"
     # The SBOM beside the bundle, recorded by name, hash and count, once OSV had been asked about it.
@@ -4352,7 +4454,8 @@ try {
         "The receipt builder did not put the SBOM's libraries to OSV: $builderSaid"
     # And the receipt the builder writes is one the release check accepts.
     $said = Invoke-ReleaseCheck
-    $builtProved = "the receipt proves $($releaseNames.Count) patches on $($builtVersions -join ', ') " +
+    $builtProofLabels = @($builtTargets | ForEach-Object { "$($_.source.package) $($_.source.versionName) ($($_.source.versionCode))" })
+    $builtProved = "the receipt proves $($releaseNames.Count) patches on $($builtProofLabels -join ', ') " +
         "from commit $($releaseCommit.Substring(0, 8))"
     Assert-True ($said -like "*$builtProved*") "The release check did not accept the receipt the builder wrote: $said"
 
@@ -4624,14 +4727,15 @@ try {
     # version now, the default fixture is still the newest build, and an undeclared build is
     # refused before the CLI starts. No -Serial, so nothing goes near adb.
     $deviceOut = Join-Path $releaseRoot 'device'
-    function Invoke-DeviceBuild([string]$Apk, [string]$OutDir = $deviceOut, [string]$DesktopJar = $stubJar) {
+    function Invoke-DeviceBuild([string]$Apk, [string]$OutDir = $deviceOut, [string]$DesktopJar = $stubJar, [string]$PackageName) {
         Remove-Item -LiteralPath $javaLog -Force -ErrorAction SilentlyContinue
         $arguments = @{ Root = $releaseRepo; DesktopJar = $DesktopJar; Java = $stubJava; Aapt2 = $stubAapt2; OutDir = $OutDir }
         if ($Apk) { $arguments['Apk'] = $Apk }
+        if ($PackageName) { $arguments['PackageName'] = $PackageName }
         & (Join-Path $PSScriptRoot 'patch-for-device.ps1') @arguments 6> $null
     }
     $deviceApk = Join-Path $deviceOut "hushtelegram-$releaseVersionHere-signed.apk"
-    foreach ($build in $releaseTarget.PackageVersions) {
+    foreach ($build in $declaredBuildVersions) {
         try {
             Invoke-DeviceBuild -Apk $fixturePaths[$build]
         } catch {
@@ -4646,11 +4750,26 @@ try {
     }
     $savedFixtureDir = $env:HUSHTELEGRAM_FIXTURE_DIR
     try {
+        $defaultFixtures = @{}
+        foreach ($packageTarget in $releaseTargets) {
+            $version = $packageTarget.PackageVersion
+            $code = $packageTarget.PackageVersionCodes[$version][0]
+            $defaultFixture = Join-Path $fixtures (Get-VendorFixtureName -Target $packageTarget -VersionName $version -VersionCode $code)
+            Set-Content -LiteralPath $defaultFixture -Encoding ASCII -NoNewline `
+                -Value (Get-FixtureManifest -Build $version -Code $code -Package $packageTarget.PackageName)
+            Set-Content -LiteralPath "$defaultFixture.patched.txt" -Encoding ASCII -NoNewline `
+                -Value (Get-FixtureManifest -Build $version -Code $code -Package $packageTarget.PackageName -Patched)
+            Copy-Item -LiteralPath "$($fixturePaths[$version]).result.json" -Destination "$defaultFixture.result.json"
+            $defaultFixtures[$packageTarget.PackageName] = $defaultFixture
+        }
         $env:HUSHTELEGRAM_FIXTURE_DIR = $fixtures
         Invoke-DeviceBuild
         Assert-True ((@(Get-Content -LiteralPath $javaLog) -join '; ') -eq
-            "patch $($fixturePaths[$releaseTarget.PackageVersion]) forced=0") `
-            "With no -Apk, patch-for-device.ps1 did not take the newest declared build from the fixture folder."
+            "patch $($defaultFixtures[$releaseTarget.PackageName]) forced=0") `
+            'Adding a beta fixture changed the default web device build.'
+        Invoke-DeviceBuild -PackageName 'org.telegram.messenger.beta'
+        Assert-True ((@(Get-Content -LiteralPath $javaLog) -join '; ') -eq
+            "patch $($defaultFixtures['org.telegram.messenger.beta']) forced=0") 'An explicit beta default selected another package.'
     } finally {
         $env:HUSHTELEGRAM_FIXTURE_DIR = $savedFixtureDir
     }
@@ -4670,7 +4789,7 @@ try {
     New-TestBundleArchive -Path $otherApkm -Entries ([ordered]@{
         'info.json' = "{`"versioncode`":`"$versionCode`"}"
         'base.apk' = Get-FixtureManifest -Build $unproved[0] -Code "$versionCode" -Package $otherPackage })
-    $otherRefusal = "*$(Split-Path -Leaf $otherApkm) is $otherPackage, not the catalog's target $($releaseTarget.PackageName)*"
+    $otherRefusal = "*does not declare package $otherPackage*"
     Assert-Throws { Invoke-ReceiptBuilder -Fixtures @($fixturePaths[$releaseTarget.PackageVersion], $otherApkm) } $otherRefusal `
         'build-release-receipt.ps1 took a fixture of another package.'
     Assert-True (-not (Test-Path -LiteralPath $javaLog)) 'build-release-receipt.ps1 started the CLI on another package.'
@@ -4966,11 +5085,23 @@ try {
             $env:HUSHTELEGRAM_DESKTOP_JAR = $stubJar
             $env:HUSHTELEGRAM_JAVA = $listJava
             try {
-                . $publishedStandIns
-                . $osvStandIn
+                # The validator runs in its own process now. Put the same transports and each
+                # case's data in that fixture, rather than relying on the caller's functions.
+                $transportState = [ordered]@{ servedBundle = $servedBundle; servedSbom = $servedSbom;
+                    servedSums = $servedSums; servedReceipt = $servedReceipt; releaseReceipt = $releaseReceipt;
+                    indexVersionHere = $indexVersionHere; releaseVersionHere = $releaseVersionHere;
+                    releaseNames = $releaseNames; releaseTarget = @{ PackageVersion = $releaseTarget.PackageVersion };
+                    osvAnswers = $osvAnswers }
+                $transportState | ConvertTo-Json -Depth 15 | Set-Content -LiteralPath (Join-Path $releaseRepo 'scripts/index-test-state.json') -Encoding UTF8
                 $global:LASTEXITCODE = 0
-                $said = @(& $prePushScript -Root $releaseRepo -ChangedPaths @('patches-bundle.json') 3>&1 6>&1 |
-                    ForEach-Object { "$_" }) -join "`n"
+                $lines = New-Object System.Collections.Generic.List[string]
+                try {
+                    & $prePushScript -Root $releaseRepo -ChangedPaths @('patches-bundle.json') 3>&1 6>&1 |
+                        ForEach-Object { $lines.Add("$_") }
+                } catch {
+                    throw (($lines -join "`n") + "`n" + $_.Exception.Message)
+                }
+                $said = $lines -join "`n"
                 if ($LASTEXITCODE -ne 0) { throw "The index push exited $LASTEXITCODE`: $said" }
                 return $said
             } finally {
@@ -4989,6 +5120,23 @@ try {
             Assert-True ($now -eq (@($Builds | Sort-Object) -join ', ')) "The $Case changed patches/build/release: $now"
         }
         Copy-Item -LiteralPath $PSScriptRoot -Destination (Join-Path $releaseRepo 'scripts') -Recurse
+        $fixtureValidator = Join-Path $releaseRepo 'scripts/validate-release-facts.ps1'
+        $validatorText = [IO.File]::ReadAllText($fixtureValidator)
+        $validatorTokens = $null
+        $validatorErrors = $null
+        $validatorAst = [Management.Automation.Language.Parser]::ParseFile($fixtureValidator, [ref]$validatorTokens, [ref]$validatorErrors)
+        Assert-True ($validatorErrors.Count -eq 0) 'The fixture validator could not be parsed before adding its transport.'
+        $at = $validatorAst.ParamBlock.Extent.EndOffset
+        [IO.File]::WriteAllText($fixtureValidator, $validatorText.Substring(0, $at) +
+            "`r`n. (Join-Path `$PSScriptRoot 'index-test-transport.ps1')`r`n" + $validatorText.Substring($at),
+            (New-Object Text.UTF8Encoding($false)))
+        Set-Content -LiteralPath (Join-Path $releaseRepo 'scripts/index-test-transport.ps1') -Encoding UTF8 -Value (@(
+            '$state = Get-Content -LiteralPath (Join-Path $PSScriptRoot ''index-test-state.json'') -Raw | ConvertFrom-Json',
+            'foreach ($property in $state.PSObject.Properties) { Set-Variable -Scope Script -Name $property.Name -Value $property.Value }',
+            '$answers = @{}',
+            'foreach ($property in $osvAnswers.PSObject.Properties) { $answers[$property.Name] = $property.Value }',
+            '$osvAnswers = $answers', '$osvAsked = New-Object System.Collections.Generic.List[string]') +
+            @($publishedStandIns.ToString(), $osvStandIn.ToString()))
         foreach ($results in @(
                 @{ Folder = 'extensions/telegram/build/test-results/testDebugUnitTest'; Suite = 'RuntimeTest'; Quote = '\b(\d+) runtime tests passed\b' },
                 @{ Folder = 'patches/build/test-results/test'; Suite = 'PatchTest'; Quote = '\b(\d+) patch tests passed\b' })) {
@@ -5045,7 +5193,7 @@ try {
             $servedBundle = $releaseBundle
             New-TestBundleArchive -Path $otherBuilds[0] -Entries ([ordered]@{ 'META-INF/MANIFEST.MF' = "Manifest-Version: 1.0`nVersion: 9.9.8`n`n" })
             $said = Invoke-IndexPushHook
-            Assert-True ($said -like "*found 2 bundles, so the hosted asset is compared with patches-$indexVersionHere.mpp, built here*" -and
+            Assert-True ($said -like "*found 2 bundles, so the hosted asset is compared with the owned copy of patches-$indexVersionHere.mpp*" -and
                 $said -like "*the hosted patches-$indexVersionHere.mpp matches the bundle built here byte for byte*" -and
                 $said -like "*the receipt proves $($releaseNames.Count) patches on*") `
                 "An index push with several bundles did not compare the hosted one with the bundle for its version: $said"
@@ -5160,8 +5308,8 @@ try {
                 $said -like "*the receipt proves $($releaseNames.Count) patches on*from commit $($schemaTwoCommit.Substring(0, 8))*") `
             "A shipped receipt with no binary SDK facts was not read at its own schema: $said"
         Save-ReleaseReceipt -Builds $releaseTarget.PackageVersions -Commit $schemaTwoCommit -Seconds $schemaTwoSeconds
-        Assert-Throws { Invoke-ReleaseCheck } '*schema version 3; its release is read at version 2*' `
-            'A schema 3 receipt was accepted for a commit whose builder wrote schema 2.'
+        Assert-Throws { Invoke-ReleaseCheck } "*schema version $(Get-ReleaseReceiptSchemaVersion); its release is read at version 2*" `
+            'A current receipt was accepted for a commit whose builder wrote schema 2.'
     } finally {
         [System.IO.File]::WriteAllBytes($releaseReceipt, $receiptBytes)
     }
@@ -5301,6 +5449,12 @@ Assert-Throws { Find-MachineNames -Root (Join-Path ([System.IO.Path]::GetTempPat
     '*could not search*' 'A machine-name scan that could not run read as a clean tree.'
 
 Write-Host '[scripts] tracked-file machine name contracts passed'
+
+# Raw CLI results can carry configured credentials. Exercise the separate allowlisted export,
+# including hostile report fields and all failure streams, before accepting any script change.
+& (Join-Path $Root 'scripts/test-public-patch-summary.ps1') -Root $Root
+& (Join-Path $Root 'scripts/test-native-packaging.ps1') -Root $Root
+& (Join-Path $Root 'scripts/test-native-library-check.ps1') -Root $Root
 
 # --- README artwork --------------------------------------------------------------------------
 $artworkReadme = Get-Content -LiteralPath (Join-Path $Root 'README.md') -Raw

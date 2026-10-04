@@ -1,5 +1,6 @@
 package app.spicetify.extension.spotify.settings;
 
+import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Switch;
@@ -11,6 +12,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.shadows.ShadowDialog;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
@@ -27,17 +29,15 @@ public class PremiumTabSettingsTest {
         var application = RuntimeEnvironment.getApplication();
         application.deleteSharedPreferences("spicetify_patch_settings");
         PatchSettings.initialize(application);
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_HOME)).setup()) {
-            Switch toggle = toggle(controller.get().getWindow().getDecorView());
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Switch toggle = toggle(homePage(controller.get()));
             assertNotNull(toggle);
             assertTrue(toggle.isChecked());
             toggle.performClick();
             assertTrue(PatchSettings.showPremiumTab(true));
         }
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_HOME)).setup()) {
-            Switch toggle = toggle(controller.get().getWindow().getDecorView());
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Switch toggle = toggle(homePage(controller.get()));
             assertFalse(toggle.isChecked());
             toggle.performClick();
             assertFalse(PatchSettings.showPremiumTab(true));
@@ -46,10 +46,14 @@ public class PremiumTabSettingsTest {
 
     @Test
     public void uninstalledPatchHasNoControl() {
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_HOME)).setup()) {
-            assertNull(toggle(controller.get().getWindow().getDecorView()));
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertNull(toggle(homePage(controller.get())));
         }
+    }
+
+    private View homePage(Activity activity) {
+        SpicetifySettingsScreen.open(activity, SpicetifySettingsScreen.PAGE_HOME);
+        return ShadowDialog.getLatestDialog().getWindow().getDecorView();
     }
 
     private Switch toggle(View view) {

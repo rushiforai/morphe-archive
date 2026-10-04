@@ -29,9 +29,9 @@ private const val ORIGINAL_SIGNERS = "Lapp/morphe/extension/hushthreads/misc/Thr
 @Suppress("unused")
 val restoreTrustPatch = bytecodePatch(
     name = "Restore screens on re-signed builds",
-    description = "Lets Threads trust itself again on a re-signed build, the way it trusts its Meta-signed " +
-        "self, and lets an Instagram you patch with this build's own key call into it the same as the real " +
-        "Instagram would. A Root Mount install doesn't need this patch.",
+    description = "Lets Threads trust itself again on a re-signed build and share sign-in information " +
+        "with an Instagram installed with this build's own key. Both apps keep their current signing " +
+        "keys. A Root Mount install doesn't need this patch.",
     default = true,
 ) {
     category("Fixes")

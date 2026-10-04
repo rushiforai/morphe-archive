@@ -3,7 +3,6 @@ package app.morphe.patches.tiktok.interaction.sharesheet
 import app.morphe.Fixtures
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
@@ -25,7 +24,7 @@ class SharePanelFixturesTest {
         assertEquals(Fixtures.declaredVersions().toSet(), expected.keys)
         Fixtures.forEachDeclared { apk ->
             val version = Fixtures.versionOf(apk)
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val classes = container.dexEntryNames.flatMap { container.getEntry(it)!!.dexFile.classes }
             val native = resolveSharePanel(classes)
             val (owner, id) = expected.getValue(version)

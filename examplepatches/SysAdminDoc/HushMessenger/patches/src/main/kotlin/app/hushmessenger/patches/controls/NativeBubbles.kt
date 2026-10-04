@@ -27,6 +27,9 @@ import org.w3c.dom.Element
 
 internal const val BUBBLE_SESSION = "Lcom/facebook/auth/usersession/FbUserSession;"
 internal const val BUBBLE_ROLLOUT = 36312032932401152L
+/** 581 renumbered the specifier of the same rollout read. Exactly these two are accepted. */
+internal const val BUBBLE_ROLLOUT_581 = 36312028637433857L
+internal val BUBBLE_ROLLOUTS = setOf(BUBBLE_ROLLOUT, BUBBLE_ROLLOUT_581)
 internal const val BUBBLE_ACTIVITY = "com.facebook.messaging.msys.thread.bubbles.activity.StaxThreadViewBubblesActivity"
 internal const val NATIVE_BUBBLE_ROUTES = "$HOST_SCREENS->nativeBubbleRoutes()Z"
 internal const val NATIVE_BUBBLE_METADATA = "hush.native_bubble_routes"
@@ -84,7 +87,7 @@ internal fun Method.validateNativeBubbleMode() {
         c[11].bubbleRef() != activeProfile.bubbleCapabilityGetter || !c[11].calls(1, 4, 0) ||
         c[12].bubbleRegister() != 0 || c[13].bubbleRegister() != 0 || !c.jumpsTo(13, 24) ||
         c[18].bubbleRegister() != 2 || c[19].bubbleRegister() != 0 ||
-        (c[19] as? WideLiteralInstruction)?.wideLiteral != BUBBLE_ROLLOUT ||
+        (c[19] as? WideLiteralInstruction)?.wideLiteral?.let { it in BUBBLE_ROLLOUTS } != true ||
         c[20].bubbleRegister() != 2 || c[20].bubbleRef() != MOBILE_CONFIG ||
         c[21].bubbleRef() != activeProfile.bubbleRolloutGetter || !c[21].calls(2, 0, 1) ||
         c[22].bubbleRegister() != 0 || c[23].bubbleRegister() != 0 || c[24].bubbleRegister() != 2) bubbleChanged()
@@ -152,6 +155,23 @@ internal fun Document.addNativeBubbleRoutesMetadata() {
     })
 }
 
+/** 581 reads the gate through a static (session, lazy holder) helper. Only one returning the gate's own answer counts. */
+private fun Method.bubbleGateHelper(gate: String): Boolean {
+    val c = bubbleCode()
+    val p = bubbleParameters()
+    val opcodes = listOf(Opcode.IGET_OBJECT, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST,
+        Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN)
+    if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "Z" || p.size != 2 || p[0] != BUBBLE_SESSION ||
+        implementation?.registerCount != 3 || implementation?.tryBlocks?.isEmpty() != true || c.map { it.opcode } != opcodes) return false
+    val read = c[0] as? TwoRegisterInstruction ?: return false
+    val holder = (c[0] as? ReferenceInstruction)?.reference as? FieldReference ?: return false
+    val fetch = (c[1] as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    return read.registerA == 0 && read.registerB == 2 && holder.definingClass == p[1] && fetch.definingClass == holder.type &&
+        fetch.name == "get" && fetch.parameterTypes.isEmpty() && fetch.returnType == "Ljava/lang/Object;" && c[1].calls(0) &&
+        c[2].bubbleRegister() == 0 && c[3].bubbleRegister() == 0 && c[3].bubbleRef() == gate.substringBefore("->") &&
+        c[4].bubbleRef() == gate && c[4].calls(0, 1) && c[5].bubbleRegister() == 0 && c[6].bubbleRegister() == 0
+}
+
 /** Discover only existing, connected host routes; these methods are inspected, never rewritten. */
 internal fun findNativeBubbleRoutes(classes: List<ClassDef>, gate: String): String? {
     val byType = classes.associateBy { it.type }
@@ -177,7 +197,11 @@ internal fun findNativeBubbleRoutes(classes: List<ClassDef>, gate: String): Stri
                     (c[write] as? NarrowLiteralInstruction)?.narrowLiteral == 1) shortcuts.add(m)
             }
         }
-        if ("shouldAttachBubbleMetadataToNotification" in refs && "attach_bubble_metadata" in refs && gate in refs &&
+        if ("shouldAttachBubbleMetadataToNotification" in refs && "attach_bubble_metadata" in refs &&
+            (gate in refs || c.any { i -> i.opcode == Opcode.INVOKE_STATIC &&
+                ((i as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref ->
+                    byType[ref.definingClass]?.methods?.singleOrNull { it.hookId() == ref.toString() }?.bubbleGateHelper(gate)
+                } == true }) &&
             c.any { it.opcode == Opcode.IPUT_OBJECT && (it as? ReferenceInstruction)?.reference is FieldReference }) attachments.add(m)
         if (MESSAGING_STYLE in refs && "Landroid/content/pm/ShortcutInfo;->getId()Ljava/lang/String;" in refs &&
             "Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V" in refs) conversations.add(m)

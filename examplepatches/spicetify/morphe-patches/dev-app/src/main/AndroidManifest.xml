@@ -9,7 +9,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="app.spicetify.extension.spotify.settings.SpicetifySettingsActivity" android:exported="false" />
         <activity android:name="app.spicetify.extension.spotify.settings.ServerMusicActivity" android:exported="false" />
         <provider android:name="app.spicetify.extension.spotify.localserver.ServerFileProvider"
             android:authorities="${applicationId}.spicetify.localserver" android:exported="false" />

@@ -6,7 +6,6 @@ import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
@@ -32,7 +31,7 @@ class PhotoSaveJobFixturesTest {
     @Test
     fun `every fixture has exactly one photo save job`() {
         for (apk in Fixtures.apks()) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val jobs = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.flatMap { classDef ->
                     classDef.methods.filter { it.isPhotoSaveJob(classDef) }
@@ -57,7 +56,7 @@ class PhotoSaveJobFixturesTest {
         // The method-id entry call is obfuscated on 47.0.3, although its owner/proto hold.
         val frameEntries = mapOf("47.0.3" to "LJI", "47.1.3" to "push", "47.1.4" to "push")
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val matches = container.dexEntryNames.asSequence().flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.asSequence().flatMap { owner ->
                     owner.methods.asSequence().filter { PhotoVideoConversionFingerprint.takes(it, owner) }

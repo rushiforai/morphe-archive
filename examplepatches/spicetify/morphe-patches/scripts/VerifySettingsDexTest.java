@@ -11,13 +11,10 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod;
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n;
-import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction20t;
-import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc;
-import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,8 +28,8 @@ class VerifySettingsDexTest {
     static Map<String, ClassDef> original;
     static int cases;
 
-    static void activity(UnaryOperator<Method> mutation, String superclass) {
-        var cls = VerifySettingsDex.classes.get(P + "SpicetifySettingsActivity;");
+    static void screen(UnaryOperator<Method> mutation, String superclass) {
+        var cls = VerifySettingsDex.classes.get(P + "SpicetifySettingsScreen;");
         var methods = new ArrayList<Method>();
         for (var m : cls.getMethods()) {
             var changed = mutation.apply(m);
@@ -50,7 +47,7 @@ class VerifySettingsDexTest {
         for (var m : cls.getMethods()) {
             if (m.getName().equals(methodName)
                     && (!methodName.equals("<init>")
-                            || m.getParameterTypes().equals(List.of("I", "Lp/lwb1;", "B")))) {
+                            || m.getParameterTypes().equals(List.of("I", "Lp/ct71;", "I")))) {
                 var code = VerifySettingsDex.code(m);
                 mutation.accept(code);
                 var impl = m.getImplementation();
@@ -98,6 +95,15 @@ class VerifySettingsDexTest {
         throw new AssertionError();
     }
 
+    static int startup(List<Instruction> c) {
+        for (int n = 0; n < c.size(); n++) {
+            if (VerifySettingsDex.call(c.get(n), P + "PatchSettings;", "initialize")) {
+                return n;
+            }
+        }
+        throw new AssertionError();
+    }
+
     static int label(List<Instruction> c) {
         for (int n = 0; n < c.size(); n++) {
             if (VerifySettingsDex.ref(c.get(n)).equals("spicetify_settings")) {
@@ -137,98 +143,46 @@ class VerifySettingsDexTest {
             c.clear();
             c.add(new ImmutableInstruction10x(Opcode.RETURN_VOID));
         }));
-        reject("missing settings Activity",
-                () -> VerifySettingsDex.classes.remove(P + "SpicetifySettingsActivity;"));
-        reject("settings class is not an Activity",
-                () -> activity(m -> m, "Ljava/lang/Object;"));
-        for (var name : List.of("<init>", "open", "onCreate")) {
-            reject("missing Activity " + name,
-                    () -> activity(m -> m.getName().equals(name) ? null : m,
-                            "Landroid/app/Activity;"));
-        }
-        String app = "Lp/qb61;";
-        boolean[] alreadyGated = {false};
-        for (var m : original.get(app).getMethods()) {
-            if (m.getName().equals("onCreate") && m.getImplementation() != null) {
-                var first = m.getImplementation().getInstructions().iterator();
-                if (first.hasNext() && VerifySettingsDex.ref(first.next()).contains(
-                        "localserver/ServerProcess;->skipApplication")) {
-                    alreadyGated[0] = true;
-                }
-            }
-        }
-        reject("missing startup", () -> mutate(app, "onCreate", c -> c.removeFirst()));
-        reject("duplicate startup", () -> mutate(app, "onCreate", c -> c.addFirst(c.getFirst())));
-        // The local-server patch leads onCreate with its ServerProcess gate, so a startup
-        // hook at that position must stay acceptable. Artifacts patched with the local-server
-        // patch already carry the gate, so only synthesize it when it is absent.
-        VerifySettingsDex.classes = new HashMap<>(original);
-        mutate(app, "onCreate", c -> {
-            if (alreadyGated[0]) {
-                return;
-            }
-            c.addAll(0, List.of(
-                    new ImmutableInstruction3rc(
-                            Opcode.INVOKE_STATIC_RANGE,
-                            0,
-                            1,
-                            new ImmutableMethodReference(
-                                    "Lapp/spicetify/extension/spotify/localserver/ServerProcess;",
-                                    "skipApplication",
-                                    List.of("Landroid/content/Context;"),
-                                    "Z")),
-                    new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
-                    new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 1),
-                    new ImmutableInstruction10x(Opcode.RETURN_VOID)));
-        });
-        try {
-            VerifySettingsDex.verify(true, true);
-        } catch (AssertionError error) {
-            throw new AssertionError("Startup gate shape rejected: " + error.getMessage(), error);
-        }
-        if (!alreadyGated[0]) {
-            reject(
-                    "wrong gate receiver",
-                    () ->
-                            mutate(
-                                    app,
-                                    "onCreate",
-                                    c ->
-                                            c.set(
-                                                    0,
-                                                    new ImmutableInstruction3rc(
-                                                            Opcode.INVOKE_STATIC_RANGE,
-                                                            0,
-                                                            1,
-                                                            new ImmutableMethodReference(
-                                                                    "Ltest/Other;",
-                                                                    "skipApplication",
-                                                                    List.of("Landroid/content/Context;"),
-                                                                    "Z")))));
-            reject(
-                    "wrong startup receiver",
-                    () ->
-                            mutate(
-                                    app,
-                                    "onCreate",
-                                    c ->
-                                            c.set(
-                                                    0,
-                                                    new ImmutableInstruction3rc(
-                                                            Opcode.INVOKE_STATIC_RANGE,
-                                                            0,
-                                                            1,
-                                                            (MethodReference)
-                                                                    ((ReferenceInstruction)
-                                                                                    c.getFirst())
-                                                                            .getReference()))));
-        }
-        reject("missing append", () -> mutate("Lp/y3v;", "create", c -> c.remove(append(c))));
+        reject("missing settings screen",
+                () -> VerifySettingsDex.classes.remove(P + "SpicetifySettingsScreen;"));
+        reject("settings screen is an Activity",
+                () -> screen(m -> m, "Landroid/app/Activity;"));
+        reject("missing settings screen open",
+                () -> screen(m -> m.getName().equals("open") ? null : m,
+                        "Landroid/view/ContextThemeWrapper;"));
+        String app = "Lcom/spotify/music/SpotifyApplication;";
+        // Server files put their track-process gate before the startup hook, so find the hook.
+        reject("missing startup", () -> mutate(app, "onCreate", c -> c.remove(startup(c))));
+        reject("duplicate startup", () -> mutate(app, "onCreate", c -> c.add(startup(c), c.get(startup(c)))));
+        reject("misplaced startup", () -> mutate(app, "onCreate",
+                c -> c.add(startup(c), new ImmutableInstruction10x(Opcode.NOP))));
+        reject("startup after four other instructions", () -> mutate(app, "onCreate", c -> {
+            c.subList(0, startup(c)).clear();
+            for (int n = 0; n < 4; n++) c.addFirst(new ImmutableInstruction10x(Opcode.NOP));
+        }));
+        reject(
+                "wrong startup receiver",
+                () ->
+                        mutate(
+                                app,
+                                "onCreate",
+                                c ->
+                                        c.set(
+                                                startup(c),
+                                                new ImmutableInstruction3rc(
+                                                        Opcode.INVOKE_STATIC_RANGE,
+                                                        0,
+                                                        1,
+                                                        (MethodReference)
+                                                                ((ReferenceInstruction)
+                                                                                c.get(startup(c)))
+                                                                        .getReference()))));
+        reject("missing append", () -> mutate("Lp/xlt;", "create", c -> c.remove(append(c))));
         reject(
                 "duplicate append",
                 () ->
                         mutate(
-                                "Lp/y3v;",
+                                "Lp/xlt;",
                                 "create",
                                 c -> {
                                     int n = append(c);
@@ -238,7 +192,7 @@ class VerifySettingsDexTest {
                 "wrong append receiver",
                 () ->
                         mutate(
-                                "Lp/y3v;",
+                                "Lp/xlt;",
                                 "create",
                                 c -> {
                                     int n = append(c);
@@ -247,7 +201,7 @@ class VerifySettingsDexTest {
                                             new ImmutableInstruction35c(
                                                     Opcode.INVOKE_STATIC,
                                                     2,
-                                                    5,
+                                                    6,
                                                     3,
                                                     0,
                                                     0,
@@ -260,7 +214,7 @@ class VerifySettingsDexTest {
                 "misplaced append",
                 () ->
                         mutate(
-                                "Lp/y3v;",
+                                "Lp/xlt;",
                                 "create",
                                 c -> {
                                     int n = append(c);
@@ -277,18 +231,18 @@ class VerifySettingsDexTest {
                 "wrong reserved analytics value",
                 () ->
                         mutate(
-                                "Lp/jri0;",
+                                "Lp/c3g0;",
                                 "<init>",
                                 c ->
                                         c.set(
                                                 label(c) - 2,
                                                 new ImmutableInstruction11n(
-                                                        Opcode.CONST_4, 13, 0))));
+                                                        Opcode.CONST_4, 7, 0))));
         reject(
                 "inverted analytics branch",
                 () ->
                         mutate(
-                                "Lp/jri0;",
+                                "Lp/c3g0;",
                                 "<init>",
                                 c -> {
                                     int n = label(c) - 1;
@@ -296,8 +250,8 @@ class VerifySettingsDexTest {
                                             n,
                                             new ImmutableInstruction22t(
                                                     Opcode.IF_EQ,
-                                                    11,
-                                                    13,
+                                                    5,
+                                                    7,
                                                     ((OffsetInstruction) c.get(n))
                                                             .getCodeOffset()));
                                 }));
@@ -305,7 +259,7 @@ class VerifySettingsDexTest {
                 "wrong analytics sink",
                 () ->
                         mutate(
-                                "Lp/jri0;",
+                                "Lp/c3g0;",
                                 "<init>",
                                 c -> {
                                     int n = label(c) + 1;
@@ -314,7 +268,7 @@ class VerifySettingsDexTest {
         reject(
                 "missing bridge class",
                 () -> VerifySettingsDex.classes.remove(B + "RendererProvider;"));
-        reject("missing native target", () -> VerifySettingsDex.classes.remove("Lp/ti0;"));
+        reject("missing native target", () -> VerifySettingsDex.classes.remove("Lp/xh0;"));
         reject(
                 "missing navigator method",
                 () -> {

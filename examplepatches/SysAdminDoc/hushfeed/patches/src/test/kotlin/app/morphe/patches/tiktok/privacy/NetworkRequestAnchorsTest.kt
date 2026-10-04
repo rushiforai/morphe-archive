@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok.privacy
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -32,7 +31,7 @@ class NetworkRequestAnchorsTest {
         Fixtures.forEachDeclared { apk ->
             val classes = HashMap<String, ClassDef>()
             val callers = mutableListOf<Pair<String, List<Instruction>>>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             container.dexEntryNames.forEach { entry ->
                 container.getEntry(entry)!!.dexFile.classes.forEach { classDef ->
                     if (classDef.type == call || classDef.type == request || classDef.type == body) {

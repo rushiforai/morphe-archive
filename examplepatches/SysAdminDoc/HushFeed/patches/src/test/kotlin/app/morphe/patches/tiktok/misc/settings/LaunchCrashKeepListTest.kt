@@ -11,7 +11,6 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
@@ -72,7 +71,7 @@ class LaunchCrashKeepListTest {
             assertTrue("the declared $version fixture is missing", apks.any { Fixtures.versionOf(it) == version })
         }
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             // The patch's own fingerprint picks the initialiser, so a string it gains that a build
             // lacks fails here and not only in a full apply.
             val owners = container.dexEntryNames.flatMap { entry ->

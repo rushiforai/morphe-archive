@@ -1,5 +1,5 @@
 /*
- * Forked from https://github.com/SysAdminDoc/Hushfacebook at c15d4f79 (GPL-3.0),
+ * Forked from https://github.com/SysAdminDoc/Hushfacebook at a788c516 (GPL-3.0),
  * modified for HushThreads (Threads), 2026.
  *
  * Copyright 2026 Hushfacebook contributors
@@ -79,6 +79,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
     static final String CHECK_NOW = "action_check_for_release";
     /** The Supported links row's key. It stores nothing either. */
     static final String SUPPORTED_LINKS = "action_supported_links";
+    /** The overview row naming omitted default patches. It stores nothing. */
+    static final String MISSING_DEFAULTS = "action_missing_default_patches";
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -355,7 +357,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
 
         PreferenceCategory about = category(screen, L10n.t("About"));
         about.addPreference(mark(info(context, L10n.t("Version"), L10n.f("HushThreads %1$s on Threads %2$s",
-                L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()))), SettingsIcons.ABOUT));
+                L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()))
+                + "\n" + L10n.f("Build %1$s", L10n.isolate(Utils.getPatchesBuildIdentity()))), SettingsIcons.ABOUT));
 
         Preference source = new Row(context);
         source.setTitle(L10n.t("Source code and issues"));
@@ -385,6 +388,10 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             return true;
         });
         about.addPreference(mark(licenses, SettingsIcons.LICENSE));
+
+        // Appended to the model; the overview draws it immediately below its status card.
+        Preference lacking = missingDefaultsRow(context, build);
+        if (lacking != null) screen.addPreference(lacking);
     }
 
     /**
@@ -505,6 +512,35 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         return card;
     }
 
+    /** Missing-default disclosure ported from Hushfacebook 814acd23. */
+    @Nullable
+    private static Preference missingDefaultsRow(Context context, Set<PatchFamily> build) {
+        List<String> missing = PatchFamily.missingDefaults(build);
+        if (missing.isEmpty()) return null;
+        List<String> names = new ArrayList<>();
+        for (String name : missing) names.add(L10n.isolate(name));
+        String closed = L10n.t("Tap to see which.");
+        String open = L10n.quantity(missing.size(),
+                "Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to "
+                        + "get what it does.",
+                "Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to "
+                        + "get what they do.",
+                L10n.join(names));
+        Row row = new Row(context);
+        row.setKey(MISSING_DEFAULTS);
+        row.setPersistent(false);
+        // The tap only opens or closes the list, so the row goes without a chevron.
+        row.actsAtOnce = true;
+        row.setTitle(L10n.quantity(missing.size(), "%1$d default patch isn't in this build",
+                "%1$d default patches aren't in this build", missing.size()));
+        row.setSummary(closed);
+        row.setOnPreferenceClickListener(p -> {
+            p.setSummary(closed.contentEquals(p.getSummary()) ? open : closed);
+            return true;
+        });
+        return row;
+    }
+
     void resumeFromOverview() {
         Context context = getContext();
         if (context == null || statusCard == null) return;
@@ -521,7 +557,7 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                     ? L10n.f("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.", file, folder)
                     : L10n.f("The file %1$s couldn't be removed. Delete it from %2$s to turn HushThreads back on.",
                     file, folder);
-            statusCard.setSummary(left);
+            statusCard.setSummary(left + "\n" + L10n.f("Build %1$s", L10n.isolate(buildIdentitySummary())));
             // Resume can be tapped on a category page too, where the card isn't in view.
             Utils.showToastLong(left);
             return;
@@ -552,8 +588,20 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         } else {
             status = L10n.t("HushThreads turns back on when Threads restarts.");
         }
+        status += "\n" + L10n.f("Build %1$s", L10n.isolate(buildIdentitySummary()));
         String release = ReleaseCheck.statusLine();
         card.setSummary(release == null ? status : status + "\n" + release);
+    }
+
+    /** Keep the complete payload hash and source state here; About carries the full provenance. */
+    static String buildIdentitySummary() {
+        String identity = Utils.getPatchesBuildIdentity();
+        int source = identity.indexOf("; source=");
+        if (!identity.startsWith("sha256=") || source != "sha256=".length() + 64) return identity;
+        int end = identity.indexOf(';', source + 2);
+        int commit = identity.indexOf(':', source + 2);
+        if (commit >= 0 && (end < 0 || commit < end)) end = commit;
+        return end < 0 ? identity : identity.substring(0, end);
     }
 
     /**

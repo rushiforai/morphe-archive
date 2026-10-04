@@ -5,6 +5,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.util.Log;
@@ -44,16 +46,31 @@ public class RestartActivity extends Activity {
 
     static Intent launcherIntent(Context context) {
         String packageName = context.getPackageName();
+        PackageManager packages = context.getPackageManager();
         Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage(packageName);
-        for (ResolveInfo match : context.getPackageManager().queryIntentActivities(query, 0)) {
+        for (ResolveInfo match : packages.queryIntentActivities(query, 0)) {
             var activity = match.activityInfo;
-            if (activity == null || !packageName.equals(activity.packageName) ||
-                activity.name == null || !activity.enabled ||
+            if (activity == null || !packageName.equals(activity.packageName) || activity.name == null ||
                 activity.name.startsWith("app.hushmessenger.extension.") ||
-                (activity.targetActivity != null && activity.targetActivity.startsWith("app.hushmessenger.extension."))) continue;
+                (activity.targetActivity != null && activity.targetActivity.startsWith("app.hushmessenger.extension.")) ||
+                !enabledNow(packages, packageName, activity)) continue;
             return Intent.makeRestartActivityTask(new ComponentName(packageName, activity.name)).setPackage(packageName);
         }
         return null;
+    }
+
+    /**
+     * ActivityInfo.enabled is the manifest value. Alternate app icons are manifest-disabled aliases
+     * that Messenger enables at runtime, so the runtime state decides and the manifest only backs DEFAULT.
+     */
+    static boolean enabledNow(PackageManager packages, String packageName, ActivityInfo activity) {
+        int state;
+        try { state = packages.getComponentEnabledSetting(new ComponentName(packageName, activity.name)); }
+        // queryIntentActivities without MATCH_DISABLED_COMPONENTS has already left out disabled components.
+        catch (IllegalArgumentException | SecurityException unknown) { return true; }
+        if (state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) return true;
+        if (state != PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) return false;
+        return activity.applicationInfo != null ? activity.isEnabled() : activity.enabled;
     }
 
     static boolean saveBeforeRestart(SharedPreferences preferences) {

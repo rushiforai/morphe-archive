@@ -2,6 +2,8 @@ package app.onlynazril.extension.tiktok;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -45,12 +47,31 @@ public final class AuthorInfoBridge {
     private static final Map<Object, WeakReference<View>> TIME_VIEWS =
             Collections.synchronizedMap(new WeakHashMap<>());
 
+    /** Marks a time view that already carries the re-assert watcher, so it is added exactly once. */
+    private static final int WATCHED_TAG = 0x7f0f9997;
+
     private static int timeViewId;
     private static boolean idResolved;
     private static int reported;
     private static int reportedHides;
-    private static final int MAX_REPORTS = 12;
-    private static final int MAX_HIDES = 4;
+    private static int reportedNoViews;
+    private static int reportedViewMisses;
+    private static int reportedGates;
+    private static int reportedRestores;
+    /**
+     * Raised by hand while a surface outside the feed is being traced: the render worth seeing is
+     * always the one that comes after the feed has spent its lines, so a small cap does not make the
+     * failure rare, it makes it invisible. `no view` and `view miss` are the two silent returns that
+     * a surface with no region has to be told apart by, so they get their own counters.
+     */
+    private static final int MAX_REPORTS = 120;
+    private static final int MAX_HIDES = 40;
+    private static final int MAX_NO_VIEW = 40;
+    private static final int MAX_VIEW_MISS = 40;
+    private static final int MAX_GATES = 20;
+    /** One line per write the view took back, so the path that overwrites us can be named. */
+    private static final int MAX_RESTORES = 20;
+    private static final int MAX_RESTORE_FRAMES = 8;
 
     private AuthorInfoBridge() {}
 
@@ -62,9 +83,24 @@ public final class AuthorInfoBridge {
             // the earliest point in the app's own UI where an Activity is in hand.
             RestartPrompt.maybeShow(root);
             int id = timeViewId(root.getContext());
-            if (id == 0) return;
+            if (id == 0) {
+                reportViewMiss(assem, "no post-time id resolved");
+                return;
+            }
             View time = root.findViewById(id);
-            if (time == null) return;
+            if (time == null) {
+                reportViewMiss(assem, "the id is not in this component's view");
+                return;
+            }
+            // The post time is not written by this component: the header is also updated from the view
+            // model's state, and that path writes the time text itself, after the render this patch
+            // hooks. Watching the view is what makes the outcome independent of who writes last.
+            if (time.getTag(WATCHED_TAG) == null) {
+                time.setTag(WATCHED_TAG, Boolean.TRUE);
+                if (time instanceof TextView) {
+                    ((TextView) time).addTextChangedListener(new Reassert((TextView) time));
+                }
+            }
             TIME_VIEWS.put(assem, new WeakReference<>(time));
         } catch (Throwable t) {
             Log.w(TAG, "post-time view lookup failed", t);
@@ -80,7 +116,10 @@ public final class AuthorInfoBridge {
             if (assem == null || aweme == null) return;
             WeakReference<View> ref = TIME_VIEWS.get(assem);
             View time = ref == null ? null : ref.get();
-            if (time == null) return;
+            if (time == null) {
+                reportNoView(assem);
+                return;
+            }
             apply(time, aweme);
         } catch (Throwable t) {
             Log.w(TAG, "post-time write failed", t);
@@ -89,8 +128,14 @@ public final class AuthorInfoBridge {
 
     private static void apply(View view, Object aweme) {
         try {
-            if (!(view instanceof TextView)) return;
-            if (!HandleSettings.surfaceEnabled(Surfaces.FEED)) return;
+            if (!(view instanceof TextView)) {
+                reportGate("the time view is not a TextView");
+                return;
+            }
+            if (!HandleSettings.surfaceEnabled(Surfaces.FEED)) {
+                reportGate("the feed surface switch is off");
+                return;
+            }
 
             TextView timeView = (TextView) view;
             boolean showTime = HandleSettings.timeOn(Surfaces.FEED);
@@ -116,13 +161,15 @@ public final class AuthorInfoBridge {
             String target = StampText.headerTime(base, region);
             report(aweme, region, createTime, showTime, showRegion, current, target);
             if (target.equals(current) && timeView.getVisibility() == View.VISIBLE) return;
-            timeView.setText(target);
-            timeView.setVisibility(View.VISIBLE);
             // Exactly what was rendered, and the time text it was built from. The base is
             // remembered rather than recovered from the text later: a view carrying a region on its
             // own has no time to rebuild from, and a recycled view is recognised by its own render.
+            // Written before the text, because the watcher reads the tag: with the old target still
+            // on the view it would put the previous render back the moment this one is set.
             timeView.setTag(StampText.TARGET_TAG, target);
             timeView.setTag(StampText.BASE_TAG, base);
+            timeView.setText(target);
+            timeView.setVisibility(View.VISIBLE);
         } catch (Throwable t) {
             Log.w(TAG, "post-time / region write failed", t);
         }
@@ -135,10 +182,12 @@ public final class AuthorInfoBridge {
      * read as one, or turning the switch back on rebuilds from a base that was never on screen.
      */
     private static void hide(TextView timeView) {
-        if (!currentText(timeView).isEmpty()) timeView.setText("");
-        if (timeView.getVisibility() != View.GONE) timeView.setVisibility(View.GONE);
+        // The tags go first: the watcher restores whatever the tag holds, and this is the one write
+        // that has to stand. A view the extension has nothing to put on must stay empty.
         timeView.setTag(StampText.TARGET_TAG, null);
         timeView.setTag(StampText.BASE_TAG, null);
+        if (!currentText(timeView).isEmpty()) timeView.setText("");
+        if (timeView.getVisibility() != View.GONE) timeView.setVisibility(View.GONE);
     }
 
     /**
@@ -174,6 +223,110 @@ public final class AuthorInfoBridge {
         reportedHides++;
         Debug.print("header hide: time off, nothing to keep (time=" + onOff(showTime)
                 + " region=" + onOff(showRegion) + ")");
+    }
+
+    /**
+     * A renderer that ran on a component whose time view was never captured. On screen this is
+     * exactly "TikTok's own post time, no region" and so is "the component is not the one we
+     * hooked", which produces no line here at all. These two reports are what tells them apart.
+     */
+    private static void reportNoView(Object assem) {
+        if (reportedNoViews >= MAX_NO_VIEW) return;
+        reportedNoViews++;
+        Debug.print("header write skipped: no time view captured for " + nameOf(assem));
+    }
+
+    /** A component whose root view does not carry the time view, so none of its renders can write. */
+    private static void reportViewMiss(Object assem, String why) {
+        if (reportedViewMisses >= MAX_VIEW_MISS) return;
+        reportedViewMisses++;
+        Debug.print("header view not found: " + why + " on " + nameOf(assem));
+    }
+
+    /** A render that reached the write and was stopped by a switch before it could compose. */
+    private static void reportGate(String why) {
+        if (reportedGates >= MAX_GATES) return;
+        reportedGates++;
+        Debug.print("header write skipped: " + why);
+    }
+
+    private static String nameOf(Object assem) {
+        return assem == null ? "a null component" : assem.getClass().getName();
+    }
+
+    /**
+     * Puts the rendered line back when something else writes over the time view.
+     *
+     * The post time is not written by the component this patch hooks: the header is also updated
+     * from the view model's state, and that path sets the time text itself. Which of the two writes
+     * lands last is a question of timing, so the answer is not one more hook but a view that always
+     * carries the line the extension rendered means the string is already on the view's tag, so putting
+     * it back needs to know nothing about the item and nothing about who wrote.
+     */
+    private static final class Reassert implements TextWatcher {
+        private final TextView view;
+        private boolean writing;
+
+        Reassert(TextView view) {
+            this.view = view;
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            if (writing) return;
+            Object tag = view.getTag(StampText.TARGET_TAG);
+            if (!(tag instanceof String)) return;
+            String target = (String) tag;
+            String current = editable == null ? "" : editable.toString();
+            if (target.equals(current)) return;
+            writing = true;
+            try {
+                reportRestore(current, target);
+                view.setText(target);
+                if (view.getVisibility() != View.VISIBLE) view.setVisibility(View.VISIBLE);
+            } catch (Throwable t) {
+                Log.w(TAG, "post-time re-assert failed", t);
+            } finally {
+                writing = false;
+            }
+        }
+    }
+
+    /**
+     * One line per write that had to be taken back, capped, with the frames above it: the class that
+     * wrote over the time view is the one thing a screen cannot show, and it is what says whether a
+     * hook on that path would be better than putting the line back here.
+     */
+    private static void reportRestore(String was, String target) {
+        if (reportedRestores >= MAX_RESTORES) return;
+        reportedRestores++;
+        Debug.print("header text restored: '" + was + "' -> '" + target + "' via " + frames());
+    }
+
+    /** The frames above the view write, minus the extension's own and the framework's. */
+    private static String frames() {
+        StringBuilder chain = new StringBuilder();
+        int taken = 0;
+        for (StackTraceElement frame : new Throwable().getStackTrace()) {
+            String name = frame.getClassName();
+            if (name.startsWith("app.onlynazril.extension")
+                    || name.startsWith("android.widget.")
+                    || name.startsWith("android.view.")
+                    || name.startsWith("android.text.")
+                    || name.startsWith("java.lang.Thread")) {
+                continue;
+            }
+            if (taken++ > 0) chain.append(" <- ");
+            chain.append(name).append('#').append(frame.getMethodName());
+            if (taken >= MAX_RESTORE_FRAMES) break;
+        }
+        return chain.toString();
     }
 
     private static long createTimeOf(Object aweme) {

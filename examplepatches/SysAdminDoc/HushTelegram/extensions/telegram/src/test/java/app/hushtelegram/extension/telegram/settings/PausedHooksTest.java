@@ -169,6 +169,9 @@ public class PausedHooksTest {
         // A sideways swipe on a chat row starts nothing.
         probes.put(PatchFamily.DISABLE_CHAT_SWIPE, Collections.singletonList(
                 app.hushtelegram.extension.telegram.misc.ChatSwipe::keepRowStill));
+        probes.put(PatchFamily.DISABLE_CHANNEL_PULL, Arrays.asList(
+                app.hushtelegram.extension.telegram.misc.ChannelPull::stopBottomPull,
+                app.hushtelegram.extension.telegram.misc.ChannelPull::keepChannelStill));
         // After a "Not now", the Contacts tab neither asks again nor marks its icon.
         probes.put(PatchFamily.QUIET_CONTACTS_NAG, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.ContactsNag.skipAsk(declinedContactsPrompt()),
@@ -200,7 +203,22 @@ public class PausedHooksTest {
                         .putExtra(Intent.EXTRA_TEXT, TRACKED_URL)).getStringExtra(Intent.EXTRA_TEXT))));
         // telegram.org's build never asks the server whether a newer one is out.
         probes.put(PatchFamily.DISABLE_UPDATE_CHECKS, Collections.singletonList(UpdateChecks::skipUpdateCheck));
+        probes.put(PatchFamily.REPAIR_FIREBASE_PUSH, Collections.singletonList(PausedHooksTest::firebaseHeaderChanged));
         return probes;
+    }
+
+    private static boolean firebaseHeaderChanged() {
+        try {
+            java.net.URLConnection connection = new java.net.URLConnection(new java.net.URL(
+                    "https://firebaseinstallations.googleapis.com/v1/projects/test/installations")) {
+                @Override public void connect() { throw new AssertionError("a header hook must not connect"); }
+            };
+            connection.setRequestProperty("X-Android-Package", "org.telegram.messenger.web");
+            String original = "test-installed-signer";
+            return !original.equals(app.hushtelegram.extension.telegram.misc.FirebasePush.certificateHeader(connection, original));
+        } catch (java.net.MalformedURLException impossible) {
+            throw new AssertionError(impossible);
+        }
     }
 
     /** Telegram's prompt flags after a "Not now" in the Contacts tab. */

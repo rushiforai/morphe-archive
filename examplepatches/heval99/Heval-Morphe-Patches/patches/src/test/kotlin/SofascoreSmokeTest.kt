@@ -261,14 +261,18 @@ class SofascoreSmokeTest {
             label = "Crashlytics recordException(Throwable)", diagnostics.toString()
         )
 
-        // Disable Facebook SDK: both ContentProvider auto-init entry points.
-        assertForcedBoolean(
-            require(FACEBOOK_PROVIDER).methodsNamed("onCreate").single(),
-            expected = false, label = "FacebookInitProvider.onCreate()", diagnostics.toString()
-        )
+        // Disable Facebook SDK: only the Audience Network (ads) init provider is
+        // neutered. FacebookInitProvider must keep initializing the SDK, otherwise
+        // the login screen crashes with "SDK has not been initialized" (issue #24).
         assertForcedBoolean(
             require(AUDIENCE_PROVIDER).methodsNamed("onCreate").single(),
             expected = false, label = "AudienceNetworkContentProvider.onCreate()", diagnostics.toString()
+        )
+        val initOnCreate = require(FACEBOOK_PROVIDER).methodsNamed("onCreate").single()
+        assertTrue(
+            initOnCreate.insns().firstOrNull()?.opcode != Opcode.CONST_4,
+            "FacebookInitProvider.onCreate() must not be forced - login needs sdkInitialize() " +
+                "(issue #24)\n$diagnostics"
         )
 
         // Disable Play Integrity is intentionally absent: the Play Integrity classes are not

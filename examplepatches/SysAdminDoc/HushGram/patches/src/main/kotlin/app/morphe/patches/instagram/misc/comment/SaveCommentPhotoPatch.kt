@@ -26,7 +26,7 @@ val saveCommentPhotoPatch = bytecodePatch(
     name = "Save comment photo",
     description = "Adds an optional Save action to the common comment menu when a comment has a photo of its own. " +
         "It saves the largest size Instagram sent, the same way Download saves a post's photo.",
-    default = false,
+    default = true,
 ) {
     category("Downloads")
     dependsOn(settingsPatch, instagramExtensionPatch)

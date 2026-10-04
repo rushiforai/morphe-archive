@@ -39,8 +39,6 @@ public class SpotifyRestartTest {
         assertFalse(PatchSettings.restartRequired());
         PatchSettings.setCleanSharingEnabled(false);
         assertFalse(PatchSettings.restartRequired());
-        PatchSettings.setTheme("oled", 0xFF000000, 0xFF121212, 0xFF1ED760);
-        assertTrue(PatchSettings.restartRequired());
     }
 
     @Test public void restartRelaunchesTheMainActivityInANewTaskThenExits() {

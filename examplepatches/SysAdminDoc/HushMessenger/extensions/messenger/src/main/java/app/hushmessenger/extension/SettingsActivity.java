@@ -82,13 +82,18 @@ public final class SettingsActivity extends Activity {
     private boolean documentImport;
     private boolean documentBusy;
     private Button saveChoicesFile, readChoicesFile;
+    private Button cancelChoicesFile;
     private TextView documentStatus;
+    private DocumentJob documentJob;
+    static int documentTimeoutMillis = 30_000;
+    private static final java.util.concurrent.Semaphore documentSlots = new java.util.concurrent.Semaphore(2);
     // Process-wide so a page recreated by the theme switch can still replace the last toast.
     private static Toast toast;
     static final String[][] CONTROLS = {
         {"ads", "Hide inbox ads", "Removes inbox ad cards if Meta brings back the inbox ads it stopped selling in November 2025.", "inbox"},
         {"people", "Hide People You May Know", "Removes suggested people from chats, search and stories, and from the People and Notifications tabs.", "inbox"},
         {"friend_requests", "Hide friend request cards", "Hides cards without accepting or rejecting requests.", "inbox"},
+        {"community_inbox", "Hide joined community chats", "Hides joined community chats from the main inbox. Search and community folders keep them. Delivery and unread counts stay unchanged. Changes apply when the inbox next renders.", "inbox"},
         {"growth", "Hide growth prompts", "Removes add-more-people prompts, the tip sheets in notes like Make my notes public, and the Share your own story card after someone else's stories.", "inbox"},
         {"inbox_promotions", "Hide inbox promotions", "Hides Messenger's quick-promotion banners in the chat list.", "inbox"},
         {"stories", "Hide stories and notes", "Removes the horizontal tray above your chats.", "inbox"},
@@ -109,7 +114,7 @@ public final class SettingsActivity extends Activity {
         {"original_photo", "Send photos at original quality", "With HD on, sends a JPEG photo's own image data instead of Messenger's re-encoded copy. Its metadata, such as location and camera details, is left out, as it is from Messenger's copy, except the tag that turns a sideways photo upright. Photos over 20 MB and videos still get Messenger's compression.", "conversations"},
         {"external_browser", "Open web links externally", "Uses your default browser for HTTP and HTTPS links. Other link types keep their original behavior.", "links_bubbles"},
         {"bubbles", "Allow chat bubbles", "Choose Stock, Chat Heads or Native Bubbles below. Native Bubbles needs Android 11, account support and notification permissions. Restart Messenger after changing modes.", "links_bubbles"},
-        {"allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, including view-once media and Quicksnap, and stops screenshot notices.", "privacy"},
+        {"allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, including view-once media and Quicksnap, and stops screenshot notices. This doesn't add replay or saving.", "privacy"},
         {"hide_read_receipts", "Hide read receipts", "Stops sending read receipts. Opened encrypted chats can stay unread on this phone. Replying or switching this off may notify the sender. Group coverage isn't verified.", "privacy"},
         {"keep_unsent", "Keep unsent messages", "Keeps messages on verified legacy unsend routes. End-to-end encrypted chats aren't supported, and group coverage isn't verified. Activity records intercepted legacy unsends, not whether a chat is supported. Your own unsend may be limited.", "privacy"},
         {"anonymous_stories", "View stories anonymously", "Opens other people's stories without adding you to their viewer list. Stories you open this way are still marked as seen on your side.", "privacy"},
@@ -263,6 +268,13 @@ public final class SettingsActivity extends Activity {
 
     @Override protected void onDestroy() {
         documentGeneration++;
+        if (documentJob != null && documentJob.request == SAVE_CHOICES) {
+            // The provider may already have truncated the file. Finish this authorized save,
+            // keeping its original deadline and only an application context after the screen closes.
+            documentJob.owner.clear();
+            documentJob = null;
+            documentBusy = false;
+        } else cancelDocumentJob(null);
         cancelUpdateCheck();
         super.onDestroy();
     }
@@ -404,7 +416,11 @@ public final class SettingsActivity extends Activity {
         safeModeAction.setTag("resume_safe_mode");
         safeModeAction.setOnClickListener(view -> {
             boolean paused = Settings.preferences.getBoolean("paused", false);
-            CrashGuard.clearSafeMode();
+            if (!CrashGuard.clearSafeMode()) {
+                refreshChoices();
+                feedback(text.get("safe_mode_save_failed"), Toast.LENGTH_LONG);
+                return;
+            }
             refreshChoices();
             feedback(text.get(paused ? "safe_mode_cleared" : "changes_resumed"), Toast.LENGTH_SHORT);
         });
@@ -610,8 +626,12 @@ public final class SettingsActivity extends Activity {
         control.setOnCheckedChangeListener((button, checked) -> {
             refreshStatus(control);
             if (binding) return;
+            if ("paused".equals(key) && !checked && CrashGuard.isSafeMode() && !CrashGuard.clearSafeMode()) {
+                refreshChoices();
+                feedback(text.get("safe_mode_save_failed"), Toast.LENGTH_LONG);
+                return;
+            }
             Settings.preferences.edit().putBoolean(key, checked).apply();
-            if ("paused".equals(key) && !checked && CrashGuard.isSafeMode()) CrashGuard.clearSafeMode();
             refreshChoices();
             feedback("paused".equals(key) ? text.get(checked ? "changes_paused" : "changes_resumed")
                 : text.get(checked ? "choice_on" : "choice_off", title), Toast.LENGTH_SHORT);
@@ -778,6 +798,11 @@ public final class SettingsActivity extends Activity {
         documentStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         documentStatus.setVisibility(View.GONE);
         ui.add(about, documentStatus, 8);
+        cancelChoicesFile = ui.button(text.get("cancel_choices_file"));
+        cancelChoicesFile.setTag("cancel_choices_file");
+        cancelChoicesFile.setVisibility(View.GONE);
+        cancelChoicesFile.setOnClickListener(view -> cancelDocumentJob("choices_file_canceled"));
+        ui.add(about, cancelChoicesFile, 8);
         ui.add(about, ui.text(text.get("choices_file_help"), 13, ui.muted, false), 8);
         ui.add(content, about, 12);
         LinearLayout updates = ui.panel();
@@ -826,7 +851,7 @@ public final class SettingsActivity extends Activity {
                 .append("\nPaused: ").append(paused)
                 .append("\nSafe mode: ").append(safeMode).append('\n');
             if (Settings.preview) summary.append("Mode: UI preview. Does not change Messenger.\n");
-            summary.append("Controls:\n");
+            summary.append(text.get("setup_activity_help")).append("\nControls:\n");
             for (String[] spec : CONTROLS) {
                 String key = spec[0];
                 boolean installed = Settings.installed.contains(key);
@@ -836,6 +861,7 @@ public final class SettingsActivity extends Activity {
                     .append(", selected=").append(selected)
                     .append(", active=").append(!Settings.preview && installed && selected && !paused && !safeMode && Settings.available(key))
                     .append(", last_active=").append(lastActive == 0 ? "none" : ((System.currentTimeMillis() - lastActive) / 1000) + "s ago")
+                    .append(", scope=").append(text.control(spec, 2))
                     .append('\n');
             }
             summary.append("Facebook caller checks: ").append(MessengerSignature.callerSummary()).append('\n');
@@ -866,6 +892,7 @@ public final class SettingsActivity extends Activity {
     /** Where the update check asks, and how long it waits. Tests point these at a local server. */
     static String releasesUrl = "https://api.github.com/repos/SysAdminDoc/HushMessenger/releases/latest";
     static int updateTimeoutMillis = 5000;
+    static java.util.function.LongSupplier updateClock = System::currentTimeMillis;
 
     /**
      * Compares release numbers part by part as integers, so 0.10.0 is newer than 0.9.0. A leading "v"
@@ -903,6 +930,11 @@ public final class SettingsActivity extends Activity {
             && !htmlUrl.contains("..") ? htmlUrl : "";
     }
 
+    static String releasePage(String htmlUrl, String tag) {
+        return ReleaseCheck.validTag(tag) && !releasePage(htmlUrl).isEmpty()
+            && htmlUrl.equals("https://github.com/SysAdminDoc/HushMessenger/releases/tag/" + tag) ? htmlUrl : "";
+    }
+
     private void syncUpdateChoice(boolean check) {
         if (updateStatus == null) return;
         boolean enabled = Settings.preferences.getBoolean("check_updates", false);
@@ -925,93 +957,123 @@ public final class SettingsActivity extends Activity {
         }
     }
 
+    private boolean currentUpdate(long generation) {
+        return generation == updateGeneration && !isDestroyed() && Settings.preferences.getBoolean("check_updates", false);
+    }
+
+    private void showRelease(long generation, ReleaseCheck release) {
+        runOnUiThread(() -> {
+            if (!currentUpdate(generation)) return;
+            String latest = release.version();
+            int comparison = compareVersions(latest, BuildConfig.VERSION_NAME);
+            updateStatus.setTextColor(comparison > 0 ? ui.accent : ui.muted);
+            if (comparison > 0) {
+                updateStatus.setText(text.get("update_available", latest));
+                Button view = ui.button(text.get("update_action"));
+                view.setTag("update_release");
+                updateRelease = view;
+                view.setOnClickListener(v -> {
+                    try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(release.page))); }
+                    catch (android.content.ActivityNotFoundException error) { feedback(text.get("no_browser"), Toast.LENGTH_LONG); }
+                });
+                ViewGroup parent = (ViewGroup) updateStatus.getParent();
+                parent.addView(view, parent.indexOfChild(updateStatus) + 1);
+            } else updateStatus.setText(comparison == 0 ? text.get("up_to_date")
+                : text.get("update_ahead", BuildConfig.VERSION_NAME, latest));
+            updateStatus.setVisibility(View.VISIBLE);
+        });
+    }
+
+    private void showRetry(long generation, long deadline) {
+        runOnUiThread(() -> {
+            if (!currentUpdate(generation)) return;
+            String date = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.MEDIUM,
+                getResources().getConfiguration().getLocales().get(0)).format(new java.util.Date(deadline));
+            updateStatus.setText(text.get("update_retry", date));
+            updateStatus.setVisibility(View.VISIBLE);
+        });
+    }
+
     private void checkForUpdates() {
         cancelUpdateCheck();
         if (!Settings.preferences.getBoolean("check_updates", false) || isDestroyed()) return;
         long generation = updateGeneration;
+        String endpoint = releasesUrl;
         updateStatus.setText(text.get("update_loading"));
         updateStatus.setTextColor(ui.muted);
         updateStatus.setVisibility(View.VISIBLE);
         new Thread(() -> {
             java.net.HttpURLConnection conn = null;
             try {
-                conn = (java.net.HttpURLConnection) new java.net.URL(releasesUrl).openConnection();
+                long now = updateClock.getAsLong();
+                SharedPreferences prefs = Settings.preferences;
+                long retry = ReleaseCheck.retryDeadline(prefs, endpoint, now);
+                if (now < retry) { showRetry(generation, retry); return; }
+                ReleaseCheck cached = ReleaseCheck.cached(prefs, endpoint, now);
+                if (cached != null && cached.recent(now)) { showRelease(generation, cached); return; }
+                conn = (java.net.HttpURLConnection) new java.net.URL(endpoint).openConnection();
                 synchronized (this) {
-                    if (generation != updateGeneration || !Settings.preferences.getBoolean("check_updates", false)) return;
+                    if (!currentUpdate(generation)) return;
                     updateConnection = conn;
                 }
                 conn.setInstanceFollowRedirects(false);
                 conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                if (cached != null && !cached.etag.isEmpty()) conn.setRequestProperty("If-None-Match", cached.etag);
                 conn.setConnectTimeout(updateTimeoutMillis);
                 conn.setReadTimeout(updateTimeoutMillis);
-                if (conn.getResponseCode() != 200) throw new java.io.IOException("HTTP " + conn.getResponseCode());
-                java.io.ByteArrayOutputStream response = new java.io.ByteArrayOutputStream();
-                try (java.io.InputStream stream = conn.getInputStream()) {
-                    byte[] bytes = new byte[4096];
-                    int read;
-                    while ((read = stream.read(bytes)) != -1) {
-                        if (response.size() + read > 256 * 1024) throw new java.io.IOException("Release response exceeds 256 KiB");
-                        response.write(bytes, 0, read);
+                int code = conn.getResponseCode();
+                if (code == 403 || code == 429) {
+                    int failures = ReleaseCheck.failures(prefs);
+                    long deadline = ReleaseCheck.retryAt(conn, updateClock.getAsLong(), failures);
+                    synchronized (this) {
+                        if (!currentUpdate(generation)) return;
+                        if (!prefs.edit().putLong(ReleaseCheck.RETRY_KEY, deadline).putString(ReleaseCheck.RETRY_ENDPOINT_KEY, endpoint)
+                            .putInt(ReleaseCheck.FAILURES_KEY, Math.min(6, failures + 1)).commit())
+                            android.util.Log.w("HushMessenger", "Couldn't save update retry time");
                     }
+                    showRetry(generation, deadline);
+                    return;
                 }
-                String body = java.nio.charset.StandardCharsets.UTF_8.newDecoder()
-                    .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT).onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
-                    .decode(java.nio.ByteBuffer.wrap(response.toByteArray())).toString();
-                String tag = null, htmlUrl = null;
-                try (android.util.JsonReader reader = new android.util.JsonReader(new java.io.StringReader(body))) {
-                    reader.setLenient(false);
-                    reader.beginObject();
-                    while (reader.hasNext()) {
-                        String name = reader.nextName();
-                        if ("tag_name".equals(name) || "html_url".equals(name)) {
-                            if (reader.peek() != android.util.JsonToken.STRING) throw new java.io.IOException("Invalid release field type");
-                            if ("tag_name".equals(name)) {
-                                if (tag != null) throw new java.io.IOException("Duplicate release tag");
-                                tag = reader.nextString();
-                            } else {
-                                if (htmlUrl != null) throw new java.io.IOException("Duplicate release URL");
-                                htmlUrl = reader.nextString();
-                            }
-                        } else reader.skipValue();
-                    }
-                    reader.endObject();
-                    if (reader.peek() != android.util.JsonToken.END_DOCUMENT) throw new java.io.IOException("Trailing release data");
-                }
-                if (tag == null || !tag.matches("v?(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?"))
-                    throw new java.io.IOException("Invalid release tag");
-                String[] version = tag.split("\\+", 2)[0].split("-", 2);
-                if (version.length == 2) for (String identifier : version[1].split("\\."))
-                    if (identifier.matches("0[0-9]+")) throw new java.io.IOException("Invalid numeric pre-release identifier");
-                String latest = tag.startsWith("v") ? tag.substring(1) : tag;
-                boolean newer = compareVersions(latest, BuildConfig.VERSION_NAME) > 0;
-                String releaseUrl = htmlUrl == null ? "" : releasePage(htmlUrl);
-                if (releaseUrl.isEmpty()) throw new java.io.IOException("Invalid release URL");
-                runOnUiThread(() -> {
-                    if (generation != updateGeneration || isDestroyed() || !Settings.preferences.getBoolean("check_updates", false)) return;
-                    if (newer) {
-                        updateStatus.setText(text.get("update_available", latest));
-                        updateStatus.setTextColor(ui.accent);
-                        if (!releaseUrl.isEmpty()) {
-                            Button view = ui.button(text.get("update_action"));
-                            view.setTag("update_release");
-                            updateRelease = view;
-                            view.setOnClickListener(v -> {
-                                try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(releaseUrl))); }
-                                catch (android.content.ActivityNotFoundException e) { feedback(text.get("no_browser"), Toast.LENGTH_LONG); }
-                            });
-                            ViewGroup parent = (ViewGroup) updateStatus.getParent();
-                            int idx = parent.indexOfChild(updateStatus);
-                            parent.addView(view, idx + 1);
+                ReleaseCheck release;
+                if (code == 304) {
+                    if (cached == null || cached.etag.isEmpty()) throw new java.io.IOException("304 without a conditional release cache");
+                    release = cached.revalidated(conn.getHeaderField("ETag"), updateClock.getAsLong());
+                    if (release == null) {
+                        // A changed ETag can't confirm the cached release. Drop it so the next check asks unconditionally.
+                        synchronized (this) {
+                            if (!currentUpdate(generation)) return;
+                            if (!prefs.edit().remove(ReleaseCheck.CACHE_KEY).commit())
+                                android.util.Log.w("HushMessenger", "Couldn't clear the cached release");
                         }
-                    } else {
-                        updateStatus.setText(text.get("up_to_date"));
+                        throw new java.io.IOException("Changed ETag on 304");
                     }
-                    updateStatus.setVisibility(View.VISIBLE);
-                });
+                } else {
+                    if (code != 200) throw new java.io.IOException("HTTP " + code);
+                    java.io.ByteArrayOutputStream response = new java.io.ByteArrayOutputStream();
+                    try (java.io.InputStream stream = conn.getInputStream()) {
+                        byte[] bytes = new byte[4096];
+                        int read;
+                        while ((read = stream.read(bytes)) != -1) {
+                            if (response.size() + read > 256 * 1024) throw new java.io.IOException("Release response exceeds 256 KiB");
+                            response.write(bytes, 0, read);
+                        }
+                    }
+                    String body = java.nio.charset.StandardCharsets.UTF_8.newDecoder()
+                        .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT).onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+                        .decode(java.nio.ByteBuffer.wrap(response.toByteArray())).toString();
+                    release = ReleaseCheck.parse(body, endpoint, conn.getHeaderField("ETag"), updateClock.getAsLong());
+                }
+                synchronized (this) {
+                    if (!currentUpdate(generation)) return;
+                    if (!prefs.edit().putString(ReleaseCheck.CACHE_KEY, release.encode()).remove(ReleaseCheck.RETRY_KEY)
+                        .remove(ReleaseCheck.RETRY_ENDPOINT_KEY).remove(ReleaseCheck.FAILURES_KEY).commit())
+                        android.util.Log.w("HushMessenger", "Couldn't save checked release");
+                }
+                showRelease(generation, release);
             } catch (java.io.IOException | IllegalArgumentException | IllegalStateException | SecurityException error) {
                 if (generation == updateGeneration) android.util.Log.e("HushMessenger", "Update check failed", error);
                 runOnUiThread(() -> {
-                    if (generation != updateGeneration || isDestroyed() || !Settings.preferences.getBoolean("check_updates", false)) return;
+                    if (!currentUpdate(generation)) return;
                     updateStatus.setText(text.get("update_error"));
                     updateStatus.setVisibility(View.VISIBLE);
                 });
@@ -1111,57 +1173,194 @@ public final class SettingsActivity extends Activity {
             feedback(text.get(request == SAVE_CHOICES ? "export_failed" : "import_invalid"), Toast.LENGTH_LONG);
             return;
         }
-        long generation = documentGeneration;
-        String before = ChoiceCodec.encode(Settings.preferences, Settings.installed);
+        if (!documentSlots.tryAcquire()) {
+            documentStatus.setText(text.get("choices_file_busy"));
+            documentStatus.setVisibility(View.VISIBLE);
+            return;
+        }
+        DocumentJob job = new DocumentJob(this, uri, request, export);
+        documentJob = job;
         documentBusy = true;
         saveChoicesFile.setEnabled(false);
         readChoicesFile.setEnabled(false);
+        cancelChoicesFile.setVisibility(View.VISIBLE);
         documentStatus.setText(text.get(request == SAVE_CHOICES ? "choices_file_saving" : "choices_file_reading"));
         documentStatus.setVisibility(View.VISIBLE);
-        new Thread(() -> {
+        job.handler.postDelayed(job.deadline, Math.max(1, documentTimeoutMillis));
+        job.worker.start();
+    }
+
+    private void cancelDocumentJob(String status) {
+        DocumentJob job = documentJob;
+        if (job == null) return;
+        documentJob = null;
+        documentBusy = false;
+        documentGeneration++;
+        job.owner.clear();
+        job.handler.removeCallbacks(job.deadline);
+        job.cancel();
+        if (status != null) {
+            saveChoicesFile.setEnabled(true);
+            readChoicesFile.setEnabled(true);
+            cancelChoicesFile.setVisibility(View.GONE);
+            documentStatus.setText(text.get(status));
+            documentStatus.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void finishDocumentJob(DocumentJob job, boolean success, Map<String, Boolean> choices) {
+        if (documentJob != job || isDestroyed()) return;
+        documentJob = null;
+        documentBusy = false;
+        saveChoicesFile.setEnabled(true);
+        readChoicesFile.setEnabled(true);
+        cancelChoicesFile.setVisibility(View.GONE);
+        documentStatus.setVisibility(View.GONE);
+        if (!success) feedback(text.get(job.request == SAVE_CHOICES ? "export_failed" : "import_invalid"), Toast.LENGTH_LONG);
+        else if (job.request == SAVE_CHOICES) feedback(text.get("choices_file_saved"), Toast.LENGTH_SHORT);
+        else if (job.generation == documentGeneration && job.before.equals(ChoiceCodec.encode(Settings.preferences, Settings.installed)))
+            restoreChoices(choices);
+        else feedback(text.get("choices_file_changed"), Toast.LENGTH_LONG);
+    }
+
+    /** Provider calls may ignore cancellation. Keep their resources bounded without retaining a screen. */
+    private static final class DocumentJob implements Runnable {
+        final java.lang.ref.WeakReference<SettingsActivity> owner;
+        final Context context;
+        final android.net.Uri uri;
+        final int request;
+        final String export, before;
+        final String savedMessage, failedMessage, timeoutMessage;
+        final long generation;
+        final android.os.CancellationSignal cancellation = new android.os.CancellationSignal();
+        final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+        final Runnable deadline;
+        final Thread worker;
+        volatile boolean canceled;
+        volatile android.content.res.AssetFileDescriptor asset;
+        volatile java.io.Closeable stream;
+        private int users = 1;
+        private boolean finished;
+
+        DocumentJob(SettingsActivity screen, android.net.Uri uri, int request, String export) {
+            owner = new java.lang.ref.WeakReference<>(screen);
+            context = screen.getApplicationContext();
+            this.uri = uri;
+            this.request = request;
+            this.export = export;
+            savedMessage = screen.text.get("choices_file_saved");
+            failedMessage = screen.text.get("export_failed");
+            timeoutMessage = screen.text.get("choices_file_timeout");
+            generation = screen.documentGeneration;
+            before = ChoiceCodec.encode(Settings.preferences, Settings.installed);
+            deadline = () -> {
+                SettingsActivity current = owner.get();
+                if (current != null && current.documentJob == this) current.cancelDocumentJob("choices_file_timeout");
+                else if (!canceled) {
+                    cancel();
+                    Toast.makeText(context, timeoutMessage, Toast.LENGTH_LONG).show();
+                }
+            };
+            worker = new Thread(this, "HushChoicesDocument");
+            worker.setDaemon(true);
+        }
+
+        void cancel() {
+            synchronized (this) {
+                if (canceled) return;
+                canceled = true;
+                if (finished) return;
+                users++;
+            }
+            worker.interrupt();
+            // Both remote cancellation listeners and close can block, so neither runs on the UI thread.
+            Thread closer = new Thread(() -> {
+                try {
+                    try { cancellation.cancel(); }
+                    finally {
+                        java.io.Closeable currentStream = stream;
+                        android.content.res.AssetFileDescriptor currentAsset = asset;
+                        try { if (currentStream != null) currentStream.close(); }
+                        finally { if (currentAsset != null) currentAsset.close(); }
+                    }
+                } catch (java.io.IOException | RuntimeException error) {
+                    android.util.Log.w("HushMessenger", "Can't close choices document: " + error.getClass().getName());
+                } finally { release(); }
+            }, "HushChoicesCancel");
+            closer.setDaemon(true);
+            closer.start();
+        }
+
+        private synchronized void release() {
+            if (--users == 0) {
+                finished = true;
+                documentSlots.release();
+            }
+        }
+
+        @Override public void run() {
+            Map<String, Boolean> choices = null;
+            boolean success = false;
             try {
+                if (canceled) return;
                 String authority = uri.getAuthority();
                 if (authority == null || authority.isEmpty()) throw new SecurityException("Choices document has no provider");
                 // ContentResolver strips Android's userId@ prefix before resolving a provider.
                 authority = authority.substring(authority.lastIndexOf('@') + 1);
-                android.content.pm.ProviderInfo provider = getPackageManager().resolveContentProvider(authority, 0);
-                if (provider != null && (getPackageName().equals(provider.packageName) ||
+                android.content.pm.ProviderInfo provider = context.getPackageManager().resolveContentProvider(authority, 0);
+                if (provider != null && (context.getPackageName().equals(provider.packageName) ||
                         (provider.applicationInfo != null && provider.applicationInfo.uid == android.os.Process.myUid())))
                     throw new SecurityException("Choices document belongs to this app");
-                if (request == SAVE_CHOICES) {
-                    try (java.io.OutputStream stream = getContentResolver().openOutputStream(uri, "wt")) {
-                        if (stream == null) throw new java.io.IOException("No writable document");
-                        stream.write(export.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                    }
-                    runOnUiThread(() -> { if (!isDestroyed()) feedback(text.get("choices_file_saved"), Toast.LENGTH_SHORT); });
-                } else {
-                    Map<String, Boolean> choices;
-                    try (java.io.InputStream stream = getContentResolver().openInputStream(uri)) {
-                        choices = ChoiceCodec.parse(ChoiceCodec.read(stream));
-                    }
-                    runOnUiThread(() -> {
-                        if (!isDestroyed()) {
-                            if (generation == documentGeneration && before.equals(ChoiceCodec.encode(Settings.preferences, Settings.installed)))
-                                restoreChoices(choices);
-                            else feedback(text.get("choices_file_changed"), Toast.LENGTH_LONG);
+                try (android.content.res.AssetFileDescriptor opened = context.getContentResolver()
+                        .openAssetFileDescriptor(uri, request == SAVE_CHOICES ? "wt" : "r", cancellation)) {
+                    if (opened == null) throw new java.io.IOException("No choices document");
+                    asset = opened;
+                    if (canceled) return;
+                    if (request == SAVE_CHOICES) {
+                        byte[] bytes = export.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                        if (opened.getDeclaredLength() >= 0 && opened.getDeclaredLength() < bytes.length)
+                            throw new java.io.IOException("Choices document slice is too small");
+                        try (java.io.OutputStream output = opened.createOutputStream()) {
+                            stream = output;
+                            if (canceled) return;
+                            output.write(bytes);
                         }
-                    });
+                    } else {
+                        if (opened.getDeclaredLength() >= 0) {
+                            // Older AssetFileDescriptor input skips relative to the provider's position.
+                            // Normalize seekable descriptors so the declared slice has an absolute start.
+                            try { android.system.Os.lseek(opened.getFileDescriptor(), 0, android.system.OsConstants.SEEK_SET); }
+                            catch (android.system.ErrnoException error) {
+                                if (error.errno != android.system.OsConstants.ESPIPE)
+                                    throw new java.io.IOException("Choices document seek failed", error);
+                            }
+                        }
+                        try (java.io.InputStream input = opened.createInputStream()) {
+                            stream = input;
+                            if (canceled) return;
+                            choices = ChoiceCodec.parse(ChoiceCodec.read(input));
+                        }
+                    }
                 }
+                success = !canceled;
             } catch (java.io.IOException | RuntimeException error) {
                 // Providers run outside this app's trust boundary. Their messages can include private paths or contents.
-                android.util.Log.e("HushMessenger", "Can't use choices document: " + error.getClass().getName());
-                runOnUiThread(() -> { if (!isDestroyed()) feedback(text.get(request == SAVE_CHOICES ? "export_failed" : "import_invalid"), Toast.LENGTH_LONG); });
+                if (!canceled) android.util.Log.e("HushMessenger", "Can't use choices document: " + error.getClass().getName());
             } finally {
-                runOnUiThread(() -> {
-                    if (!isDestroyed()) {
-                        documentBusy = false;
-                        saveChoicesFile.setEnabled(true);
-                        readChoicesFile.setEnabled(true);
-                        documentStatus.setVisibility(View.GONE);
-                    }
+                asset = null;
+                stream = null;
+                handler.removeCallbacks(deadline);
+                boolean completed = success;
+                Map<String, Boolean> result = choices;
+                handler.post(() -> {
+                    SettingsActivity screen = owner.get();
+                    if (screen != null) screen.finishDocumentJob(this, completed, result);
+                    else if (request == SAVE_CHOICES && !canceled)
+                        Toast.makeText(context, completed ? savedMessage : failedMessage, Toast.LENGTH_LONG).show();
                 });
+                release();
             }
-        }, "HushChoicesDocument").start();
+        }
     }
 
     private void infoRow(LinearLayout parent, String title, String value) {
@@ -1269,10 +1468,10 @@ public final class SettingsActivity extends Activity {
         Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage(getPackageName());
         for (android.content.pm.ResolveInfo match : getPackageManager().queryIntentActivities(query, 0)) {
             var activity = match.activityInfo;
-            if (activity == null || !getPackageName().equals(activity.packageName) ||
-                activity.name == null || !activity.enabled ||
+            if (activity == null || !getPackageName().equals(activity.packageName) || activity.name == null ||
                 activity.name.startsWith("app.hushmessenger.extension.") ||
-                (activity.targetActivity != null && activity.targetActivity.startsWith("app.hushmessenger.extension."))) continue;
+                (activity.targetActivity != null && activity.targetActivity.startsWith("app.hushmessenger.extension.")) ||
+                !RestartActivity.enabledNow(getPackageManager(), getPackageName(), activity)) continue;
             try {
                 startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)

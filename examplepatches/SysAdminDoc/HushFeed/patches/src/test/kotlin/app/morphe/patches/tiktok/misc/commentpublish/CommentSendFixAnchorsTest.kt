@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.misc.commentpublish
 
 import app.morphe.Fixtures
 import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.Assert.assertEquals
@@ -20,7 +19,7 @@ class CommentSendFixAnchorsTest {
     @Test
     fun `the send click entry reads the top page and then checks the send against a screen`() {
         for (apk in Fixtures.apks()) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val entries = container.dexEntryNames.flatMap { name ->
                 container.getEntry(name)!!.dexFile.classes
                     .filter { it.type.endsWith(PUBLISH_VIEW_MODEL_SUFFIX) }

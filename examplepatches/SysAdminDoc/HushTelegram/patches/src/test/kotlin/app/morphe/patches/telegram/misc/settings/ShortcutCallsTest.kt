@@ -16,7 +16,6 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.RepoFiles
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -222,10 +221,9 @@ class ShortcutCallsTest {
      */
     @Test
     fun eachDeclaredBuildSendsEveryCallThatRanksItsShortcuts() {
-        val versions = AppCompatibilities.telegram().single().targets.mapNotNull { it.version }.toSet()
+        val builds = Fixtures.declaredBuilds()
         val checked = mutableSetOf<String>()
-        for (version in versions) {
-            for (bundle in Fixtures.files { it.name.startsWith("telegram-web-") && it.extension == "apk" && it.name.contains("-$version-") }) {
+        for (bundle in builds) {
                 val callers = mutableListOf<ClassDef>()
                 FixtureDex.forEach(bundle) { dex ->
                     if (dex.methodSection.none { it.definingClass == SHORTCUT_MANAGER && it.name in SHORTCUT_CALLS }) {
@@ -285,10 +283,9 @@ class ShortcutCallsTest {
                     }
                 }
                 assertEquals("${bundle.name}: calls sent to their stand-ins", found, sent)
-                checked += version
-            }
+                checked += bundle.name
         }
-        assertEquals("a declared build has no fixture", versions, checked)
+        assertEquals("a declared package build has no fixture", builds.map { it.name }.toSet(), checked)
     }
 
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()

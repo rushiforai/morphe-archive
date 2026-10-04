@@ -8,6 +8,7 @@ import static org.junit.Assert.*;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.os.Bundle;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Insets;
 import android.graphics.Rect;
@@ -30,6 +31,11 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
+import org.robolectric.annotation.RealObject;
+import org.robolectric.shadow.api.Shadow;
+import org.robolectric.util.ReflectionHelpers.ClassParameter;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowAlertDialog;
 
@@ -52,6 +58,8 @@ public class SettingsDialogBoundaryTest {
         info.flags |= ApplicationInfo.FLAG_SUPPORTS_RTL;
         PatchFamily.inBuildForTests = EnumSet.noneOf(PatchFamily.class);
         RuntimeEnvironment.setFontScale(2f);
+        BrokenPage.constructorFailures = 0;
+        BrokenPage.viewFailures = 0;
     }
 
     @After public void close() throws Exception {
@@ -125,6 +133,142 @@ public class SettingsDialogBoundaryTest {
         assertTrue(export.getOnPreferenceClickListener().onPreferenceClick(export));
         assertSame("a detached row opened another report chooser", previous,
                 ShadowAlertDialog.getLatestAlertDialog());
+    }
+
+    @Test @Config(sdk = {28, 37}, shadows = BrokenPage.class)
+    public void constructorFailureKeepsOneRetryAndBackThenShowsTheOrdinaryPage() {
+        android.view.accessibility.AccessibilityManager accessibility =
+                (android.view.accessibility.AccessibilityManager) RuntimeEnvironment.getApplication()
+                        .getSystemService(android.content.Context.ACCESSIBILITY_SERVICE);
+        org.robolectric.Shadows.shadowOf(accessibility).setEnabled(true);
+        org.robolectric.Shadows.shadowOf(accessibility).setTouchExplorationEnabled(true);
+        BrokenPage.constructorFailures = 1;
+        openRecovery();
+        View retry = text(dialog.getView(), "Retry");
+        assertNotNull("constructor failure left an empty shell", retry);
+        assertNotNull(text(dialog.getView(), "Settings couldn't open"));
+        android.view.accessibility.AccessibilityNodeInfo node = retry.createAccessibilityNodeInfo();
+        assertEquals("android.widget.Button", node.getClassName());
+        assertTrue(node.isClickable());
+        assertTrue((node.getActions() & android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK) != 0);
+        retry.performClick();
+        android.app.Fragment page = dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
+        assertTrue(page instanceof HushgramPreferenceFragment);
+        assertNotNull(page.getView());
+        assertTrue("recovery must leave focus in the ordinary page",
+                page.getView().findViewById(android.R.id.list).hasFocus());
+        ShadowLooper.idleMainLooper();
+        assertTrue("a screen reader must return to the page heading",
+                text(dialog.getView(), "HushGram").isAccessibilityFocused());
+        assertNull(text(dialog.getView(), "Retry"));
+        retry.performClick();
+        assertSame(page, dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID));
+        assertEquals(1, dialog.getChildFragmentManager().getFragments().size());
+    }
+
+    @Test @Config(sdk = {28, 37}, shadows = BrokenPage.class)
+    public void failureAfterNativeViewCreationRemovesThePartialChildBeforeRetry() {
+        BrokenPage.viewFailures = 1;
+        openRecovery();
+        assertNotNull(text(dialog.getView(), "Settings couldn't open"));
+        assertNull(dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID));
+        View retry = text(dialog.getView(), "Retry");
+        assertNotNull(retry);
+        retry.performClick();
+        assertNotNull(dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID).getView());
+        assertEquals(1, dialog.getChildFragmentManager().getFragments().size());
+    }
+
+    @Test @Config(sdk = {28, 37}, shadows = BrokenPage.class)
+    public void savedOrClosedOwnersCannotAcceptALateRetry() {
+        BrokenPage.constructorFailures = 1;
+        openRecovery();
+        View retry = text(dialog.getView(), "Retry");
+        assertNotNull(retry);
+        controller.pause().saveInstanceState(new Bundle()).stop();
+        retry.performClick();
+        assertNull(dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID));
+        controller.restart().start().resume().visible();
+        retry.performClick();
+        assertNotNull(dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID));
+        android.app.FragmentManager manager = controller.get().getFragmentManager();
+        dialog.dismissAllowingStateLoss();
+        manager.executePendingTransactions();
+        retry.performClick();
+        assertNull(dialog.getView());
+        dialog = new SettingsDialog();
+        dialog.show(manager, "boundary_settings");
+        manager.executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+        assertNotNull(dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID).getView());
+    }
+
+    @Test @Config(sdk = {28, 37}, shadows = BrokenPage.class,
+            qualifiers = "ar-rEG-ldrtl-w320dp-h640dp-xhdpi")
+    public void rotationRetainsReadableFailureAndRejectsTheOldRetry() {
+        BrokenPage.constructorFailures = 1;
+        openRecovery();
+        View oldRetry = text(dialog.getView(), "Retry");
+        assertNotNull(oldRetry);
+        controller.recreate();
+        dialog = (SettingsDialog) controller.get().getFragmentManager().findFragmentByTag("boundary_settings");
+        assertNotNull(dialog);
+        assertNotNull(text(dialog.getView(), "Settings couldn't open"));
+        View retry = text(dialog.getView(), "Retry");
+        assertNotSame(oldRetry, retry);
+        oldRetry.performClick();
+        assertNull(dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID));
+        View root = dialog.getView();
+        root.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+        root.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(1280, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, 640, 1280);
+        TextView message = (TextView) text(root, "Settings couldn't open");
+        assertEquals(0, message.getLayout().getEllipsisCount(0));
+        assertEquals(message.getText().length(), message.getLayout().getLineEnd(message.getLineCount() - 1));
+        assertTrue(retry.getHeight() >= 96);
+        ViewGroup header = (ViewGroup) ((ViewGroup) root).getChildAt(0);
+        header.getChildAt(0).performClick();
+        controller.get().getFragmentManager().executePendingTransactions();
+        assertNull(dialog.getView());
+        retry.performClick();
+    }
+
+    private void openRecovery() {
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = new SettingsDialog();
+        dialog.show(controller.get().getFragmentManager(), "boundary_settings");
+        controller.get().getFragmentManager().executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+    }
+
+    private static View text(View view, String wanted) {
+        if (view instanceof TextView && wanted.contentEquals(((TextView) view).getText())) return view;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = text(group.getChildAt(i), wanted);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    @Implements(value = HushgramPreferenceFragment.class, isInAndroidSdk = false)
+    public static class BrokenPage {
+        static int constructorFailures, viewFailures;
+        @RealObject private HushgramPreferenceFragment page;
+
+        @Implementation protected void __constructor__() {
+            Shadow.invokeConstructor(HushgramPreferenceFragment.class, page);
+            if (constructorFailures-- > 0) throw new IllegalStateException("fixture constructor failure");
+        }
+
+        @Implementation protected void onViewCreated(View view, Bundle state) {
+            Shadow.directlyOn(page, HushgramPreferenceFragment.class, "onViewCreated",
+                    ClassParameter.from(View.class, view), ClassParameter.from(Bundle.class, state));
+            if (viewFailures-- > 0) throw new IllegalStateException("fixture partial view failure");
+        }
     }
 
     private void checkInsets(boolean rtl) throws Exception {

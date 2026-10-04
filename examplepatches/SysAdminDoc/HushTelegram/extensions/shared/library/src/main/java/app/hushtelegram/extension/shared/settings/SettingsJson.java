@@ -96,6 +96,7 @@ public final class SettingsJson {
         if (text.getBytes(StandardCharsets.UTF_8).length > limits.maxBytes) {
             throw new IOException("Settings JSON is too large");
         }
+        validateStrings(text);
         try (JsonReader reader = new JsonReader(new StringReader(text))) {
             reader.setLenient(false);
             Object value = read(reader, 0, new State(limits));
@@ -103,6 +104,28 @@ public final class SettingsJson {
                 throw new IOException("Expected one settings object");
             }
             return (JSONObject) value;
+        }
+    }
+
+    /** JsonReader's strict mode still accepts unknown escapes and raw controls inside strings. */
+    private static void validateStrings(String text) throws IOException {
+        boolean quoted = false;
+        for (int at = 0; at < text.length(); at++) {
+            char letter = text.charAt(at);
+            if (letter == '"') { quoted = !quoted; continue; }
+            if (!quoted) continue;
+            if (letter < 0x20) throw new IOException("Unescaped settings string control");
+            if (letter != '\\') continue;
+            if (++at == text.length()) throw new IOException("Incomplete settings escape");
+            char escape = text.charAt(at);
+            if (escape == '"' || escape == '\\' || escape == '/' || "bfnrt".indexOf(escape) >= 0) continue;
+            if (escape != 'u' || at + 4 >= text.length()) throw new IOException("Invalid settings escape");
+            for (int digitAt = 0; digitAt < 4; digitAt++) {
+                char hex = text.charAt(++at);
+                if (!(hex >= '0' && hex <= '9') && !(hex >= 'a' && hex <= 'f') && !(hex >= 'A' && hex <= 'F')) {
+                    throw new IOException("Invalid settings unicode escape");
+                }
+            }
         }
     }
 

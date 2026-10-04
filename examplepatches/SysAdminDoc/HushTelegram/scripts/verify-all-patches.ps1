@@ -67,6 +67,7 @@ if (-not $Bundle) {
     }
 }
 if (-not $PatchList) { $PatchList = Join-Path $root 'patches-list.json' }
+$bundleVersion = Get-BundleVersion -Root $root
 if (-not $Bundle -or -not (Test-Path -LiteralPath $Bundle -PathType Leaf)) { throw "No bundle found. Run :patches:buildAndroid first." }
 if (-not (Test-Path -LiteralPath $PatchList -PathType Leaf)) { throw "No patch list found: $PatchList" }
 if (-not (Test-Path -LiteralPath $Apk -PathType Leaf)) { throw "APK not found: $Apk" }
@@ -78,7 +79,6 @@ try {
 } catch {
     throw "Could not read patch list ${PatchList}: $($_.Exception.Message)"
 }
-$expectedTarget = Get-PatchTarget -PatchList $catalog
 if ($names.Count -eq 0 -or @($names | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -ne 0) {
     throw "No valid patches listed in $PatchList."
 }
@@ -104,9 +104,7 @@ $stockApk = Get-BaseApk -Apk $Apk -Destination (Resolve-WithinRoot -Path (Join-P
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
 $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
 $stock = Get-ApkManifestFacts -Apk $stockApk -Aapt2 $Aapt2
-if ($stock.package -ne $expectedTarget.PackageName) {
-    throw "$(Split-Path -Leaf $Apk) is $($stock.package), not the catalog's target $($expectedTarget.PackageName)."
-}
+$expectedTarget = Get-PatchTarget -PatchList $catalog -PackageName ([string]$stock.package)
 if ([string]::IsNullOrWhiteSpace($stock.versionName)) {
     throw "$(Split-Path -Leaf $Apk) carries no versionName, so there is nothing to hold the result to."
 }
@@ -128,6 +126,7 @@ if ($forced) {
 $out = Resolve-WithinRoot -Path (Join-Path $runDir 'verify-all.apk') -Root $workRoot
 $temp = Resolve-WithinRoot -Path (Join-Path $runDir 'verify-all-tmp') -Root $workRoot
 $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runId.json") -Root $workRoot
+$summaryPath = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-public-summary-$runId.json") -Root $workRoot
 $exitCode = 1
 
 try {
@@ -157,32 +156,28 @@ try {
     }
     # WARNING lines are the patches' own: a patch that works down a list of targets names each one
     # the build lacks there, and still applies.
-    $cliOutput | ForEach-Object {
-        $line = [string]$_
-        if ($line -match 'SEVERE|ERROR|WARNING|Exception|result saved|Saved to') { Write-Host "[verify] $line" }
-    }
+    $public = Export-PublicPatchSummary -ReportPath $result -SummaryPath $summaryPath -PatchList $catalog `
+        -RequestedNames $names -BundleVersion $bundleVersion -OutputPath $out -CliExitCode $cliExitCode `
+        -ExpectedPackageName $expectedTarget.PackageName -ExpectedPackageVersion $expectedVersion
+    if (-not $public.Written) { throw $public.FailureCode }
+    Write-Host "[verify] public summary: $summaryPath"
 
     $report = $null
     if (Test-Path -LiteralPath $result -PathType Leaf) {
         try { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json }
-        catch { Write-Warning "Could not parse result JSON: $($_.Exception.Message)" }
+        catch { Write-Warning 'REPORT_INVALID' }
     }
     $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
         -AllowedDependencyNames $dependencyNames -OutputPath $out `
         -ExpectedPackageName $expectedTarget.PackageName -ExpectedPackageVersion $expectedVersion
     $reportApplied = if ($null -ne $report) { @($report.appliedPatches).Count } else { 0 }
     $reportFailed = if ($null -ne $report) { @($report.failedPatches).Count } else { 0 }
-    $target = if ($null -ne $report) { "$($report.packageName) $($report.packageVersion)" } else { 'unknown target' }
+    $target = if ($public.Summary.packageName) { "$($public.Summary.packageName) $($public.Summary.packageVersion)" } else { 'unknown target' }
     Write-Host "[verify] ${target}: applied $reportApplied, failed $reportFailed, CLI exit $cliExitCode"
-    if ($null -ne $report) {
-        foreach ($failure in @($report.failedPatches)) {
-            $patchName = if ($null -ne $failure.patch) { $failure.patch.name } else { 'unknown patch' }
-            Write-Host "[verify] FAILED ${patchName}: $($failure.reason -split "`n" | Select-Object -First 1)"
-        }
-    }
+    foreach ($code in @($public.Summary.failureCodes)) { Write-Warning "[verify] $code" }
     Write-Host "[verify] result file: $result"
     if ($cliExitCode -ne 0) { Write-Warning "The desktop CLI exited with $cliExitCode." }
-    if (-not $validation.Valid) { Write-Warning "[verify] $($validation.Reason)" }
+    if (-not $validation.Valid) { Write-Warning '[verify] patch summary reports an unsuccessful result' }
     $unapprovedChanges = @()
     if ($cliExitCode -eq 0 -and $validation.Valid) {
         # What patching did to the manifest, read the way the release receipt reads it, against the
@@ -191,6 +186,10 @@ try {
         # to the receipt, which needs every declared build to decide it.
         $stockManifest = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
         $patchedManifest = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
+        $nativeReport = Resolve-WithinRoot -Root $workRoot -Path (Join-Path $workRoot "verify-all-native-$runId.json")
+        $packaging = Get-NativePackagingEvidence -StockApk $patchInput -PatchedApk $out -Java $Java `
+            -Aapt2 $Aapt2 -ReportPath $nativeReport -SourceApk $Apk
+        Write-Host "[verify] native libraries: $($packaging.NativeLibraries.patched.nativeEntryCount) preserved; 64-bit LOAD and zipalign -c -P 16 -v 4 passed"
         $floor = Test-PatchedMinSdk -StockMinSdk $stockManifest.minSdk -PatchedMinSdk $patchedManifest.minSdk
         if (-not $floor.Valid) { throw "[verify] $($floor.Reason)" }
         Write-Host "[verify] binary minSdk: $($stockManifest.minSdk) -> $($patchedManifest.minSdk) (max(stock, 28))"

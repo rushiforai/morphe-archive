@@ -13,7 +13,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
+import android.os.Binder;
 import android.os.Process;
+import android.os.UserHandle;
 import android.util.Base64;
 
 import androidx.annotation.Nullable;
@@ -201,6 +203,64 @@ public final class InstagramSignature {
             return instagram();
         }
         return familyApp(info);
+    }
+
+    /**
+     * A named family app calling a SameKey provider with this build's real current key. The patch
+     * asks only after that provider's native policy returned false. Other provider policies never
+     * reach this helper, and a refusal keeps the original decision.
+     *
+     * <p>The family signer answer above must stay specific to each app for deep links. Those
+     * certificates differ from Instagram's original one, so they cannot satisfy a provider whose
+     * policy requires the same key. Read the real current certificates here instead. The provider
+     * already has its context before the application's onCreate, so this needs no setting or saved
+     * signer and works during a cold provider start too.
+     *
+     * <p>Binder's uid is the principal. It must belong to exactly one named family package in this
+     * Android user, and PackageManager must give that package the same uid. A shared or unreadable
+     * uid, another current key, a Meta-signed build or any failure leaves the native decision alone.
+     */
+    public static boolean isSameKeyFamilyProviderCaller(@Nullable Context context) {
+        try {
+            if (context == null || Process.isIsolated() || !PACKAGE.equals(context.getPackageName())) {
+                return false;
+            }
+            int callerUid = Binder.getCallingUid();
+            if (callerUid < 0 || !UserHandle.getUserHandleForUid(callerUid).equals(Process.myUserHandle())) {
+                return false;
+            }
+            PackageManager packages = context.getPackageManager();
+            if (packages == null) return false;
+            String[] names = packages.getPackagesForUid(callerUid);
+            if (names == null || names.length != 1 || metaSignersFor(names[0]) == null) return false;
+
+            PackageInfo self = packages.getPackageInfo(PACKAGE, PackageManager.GET_SIGNING_CERTIFICATES);
+            PackageInfo caller = packages.getPackageInfo(names[0], PackageManager.GET_SIGNING_CERTIFICATES);
+            if (!packageUid(self, PACKAGE, Process.myUid()) || !packageUid(caller, names[0], callerUid)) {
+                return false;
+            }
+            Set<ByteBuffer> own = certificates(currentSigners(self));
+            if (own.isEmpty()) return false;
+            for (List<Signature> meta : Arrays.asList(instagram(), metaSignersFor(THREADS), metaSignersFor(FACEBOOK))) {
+                for (Signature signer : meta) {
+                    if (own.contains(ByteBuffer.wrap(signer.toByteArray()))) return false;
+                }
+            }
+            Set<ByteBuffer> other = certificates(currentSigners(caller));
+            if (other.isEmpty() || !own.equals(other)) return false;
+            HookStatus.counted(FamilyNames.RESTORE_TRUST, "same-key provider caller");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.RESTORE_TRUST, "same-key provider caller", failure);
+            return false;
+        }
+    }
+
+    /** The system's package name and uid must agree with the principal being checked. */
+    private static boolean packageUid(@Nullable PackageInfo info, String name, int uid) {
+        ApplicationInfo app = info == null ? null : info.applicationInfo;
+        return info != null && name.equals(info.packageName) && app != null
+                && name.equals(app.packageName) && app.uid == uid;
     }
 
     /**

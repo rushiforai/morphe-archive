@@ -40,6 +40,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * guarded component. On a re-signed build an Instagram the user patched with the same key is
  * answered Instagram's own Meta certificate here, so Threads' caller rules judge it exactly as the
  * Meta-signed Instagram. {@link FamilySignatureTrust} makes that decision.
+ * It also recognizes a local lookup of the installed same-key Instagram provider, where there is
+ * no incoming Binder caller. The consumer can then apply its existing Meta certificate rules.
  */
 public final class ThreadsSignature {
 
@@ -96,7 +98,8 @@ public final class ThreadsSignature {
 
     /**
      * The original signers of Threads if [info] is this app, Instagram's if [info] is an Instagram
-     * the user patched with this build's key that is calling in, or {@code null} to keep the signers
+     * the user patched with this build's key that is calling in or being read as a local peer,
+     * or {@code null} to keep the signers
      * the system reports.
      */
     public static List<Signature> originalSigners(PackageInfo info) {
@@ -111,8 +114,9 @@ public final class ThreadsSignature {
         // An Instagram re-signed with this build's key, calling a guarded component over Binder:
         // answer Instagram's own certificate for it, so Threads' caller checks judge it as the
         // Meta-signed app. FamilySignatureTrust counts it under this same patch and takes Threads'
-        // own path for anyone else.
-        if (FamilySignatureTrust.isSameKeyFamilyCaller(info)) {
+        // own path for anyone else. Outbound provider reads use the separate local-peer policy.
+        if (FamilySignatureTrust.isSameKeyFamilyCaller(info)
+                || FamilySignatureTrust.isSameKeyFamilyProvider(info)) {
             return instagram();
         }
         return null;

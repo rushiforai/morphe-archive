@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.interaction.sharesheet
 
 import app.morphe.Fixtures
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -136,7 +135,7 @@ class ShareTargetsAnchorsTest {
         const val MORE_KEY = "more"
 
         fun classesOf(apk: File): List<ClassDef> {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             return container.dexEntryNames.flatMap { entry -> container.getEntry(entry)!!.dexFile.classes }
         }
 

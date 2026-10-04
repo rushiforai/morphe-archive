@@ -330,12 +330,15 @@ class SharedPermissionsFixtureTest {
     }
 
     /**
-     * The Meta App Manager row under Supported links (issue #30) reads App Manager's package without
-     * QUERY_ALL_PACKAGES. Android 11 and later only answer for a package the manifest names under
-     * `<queries>`, so a build that drops the name would hide the row on every phone, silently.
+     * The rows under Supported links for Meta App Manager (issue #30), Messenger and Instagram (#78)
+     * read each app's package without QUERY_ALL_PACKAGES. Android 11 and later only answer for a
+     * package `<queries>` covers, so a build that drops it would hide the row on every phone,
+     * silently. App Manager is named. Messenger and Instagram aren't: Facebook sees them through its
+     * bare MAIN intent query, which any app with a launcher activity matches (on a phone, `dumpsys
+     * package queries` lists them under "queries via component").
      */
     @Test
-    fun eachDeclaredBuildQueriesMetaAppManagerByName() {
+    fun eachDeclaredBuildQueriesTheLinkHolders() {
         val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()
         for (version in versions) {
@@ -346,7 +349,18 @@ class SharedPermissionsFixtureTest {
                     (0 until packages.length).map { (packages.item(it) as Element).getAttribute("android:name") }
                 }
                 assertTrue("${bundle.name}: <queries> doesn't name $APP_MANAGER", APP_MANAGER in queried)
-                assertTrue("${bundle.name}: asks for every package, so <queries> isn't what makes App Manager visible",
+                val launchable = document.elements("queries").flatMap { queries ->
+                    val intents = queries.getElementsByTagName("intent")
+                    (0 until intents.length).map { intents.item(it) as Element }
+                }.any { intent ->
+                    val actions = intent.getElementsByTagName("action")
+                    actions.length == 1 &&
+                        (actions.item(0) as Element).getAttribute("android:name") == "android.intent.action.MAIN" &&
+                        intent.getElementsByTagName("category").length == 0 &&
+                        intent.getElementsByTagName("data").length == 0
+                }
+                assertTrue("${bundle.name}: no bare MAIN intent query, so Messenger and Instagram are hidden", launchable)
+                assertTrue("${bundle.name}: asks for every package, so <queries> isn't what makes the holders visible",
                     document.elements("uses-permission").none {
                         it.getAttribute("android:name") == "android.permission.QUERY_ALL_PACKAGES"
                     })

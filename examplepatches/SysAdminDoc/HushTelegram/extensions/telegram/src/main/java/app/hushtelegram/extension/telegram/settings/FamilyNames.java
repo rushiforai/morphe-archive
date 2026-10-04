@@ -30,6 +30,7 @@ public final class FamilyNames {
     public static final String HIDE_SPONSORED_PROXY = "Hide sponsored proxy channel";
     public static final String HIDE_POPULAR_APPS = "Hide popular apps";
     public static final String DISABLE_CHAT_SWIPE = "Disable chat swipe actions";
+    public static final String DISABLE_CHANNEL_PULL = "Disable pull to next channel";
     public static final String QUIET_CONTACTS_NAG = "Quiet contacts nag";
     public static final String HOLIDAY_LOOK = "Holiday look all year";
     public static final String DISABLE_ANALYTICS = "Disable analytics";
@@ -39,6 +40,7 @@ public final class FamilyNames {
     public static final String OPEN_EXTERNAL_LINKS = "Open links externally";
     public static final String STRIP_LINK_TRACKING = "Strip link tracking";
     public static final String DISABLE_UPDATE_CHECKS = "Disable update checks";
+    public static final String REPAIR_FIREBASE_PUSH = "Repair Firebase push registration";
 
     private FamilyNames() {
     }

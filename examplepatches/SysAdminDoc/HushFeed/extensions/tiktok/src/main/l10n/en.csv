@@ -11,7 +11,9 @@ source,target
 %1$d results so far,%1$d results so far
 "%1$d results so far, and more not counted","%1$d results so far, and more not counted"
 "%1$d results, filtered to %2$s","%1$d results, filtered to %2$s"
+%1$d setting in that file can't be restored here and was skipped,%1$d setting in that file can't be restored here and was skipped
 %1$d setting wasn't in that file and was left as it is,%1$d setting wasn't in that file and was left as it is
+%1$d settings in that file can't be restored here and were skipped,%1$d settings in that file can't be restored here and were skipped
 %1$d settings weren't in that file and were left as they are,%1$d settings weren't in that file and were left as they are
 %1$d unavailable,%1$d unavailable
 %1$s (%2$s),%1$s (%2$s)
@@ -27,6 +29,8 @@ source,target
 %1$s days,%1$s days
 %1$s destinations must start with %2$s,%1$s destinations must start with %2$s
 %1$s dp,%1$s dp
+%1$s entries skipped.,%1$s entries skipped.
+%1$s entry skipped.,%1$s entry skipped.
 "%1$s has type %2$s, but the file says %3$s.","%1$s has type %2$s, but the file says %3$s."
 "%1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.","%1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted."
 %1$s is a kind of value the Lab can't override.,%1$s is a kind of value the Lab can't override.
@@ -61,6 +65,8 @@ source,target
 %1$s views per comment,%1$s views per comment
 %1$s views per like,%1$s views per like
 %1$s was rejected. %2$s,%1$s was rejected. %2$s
+%1$s watched video added.,%1$s watched video added.
+%1$s watched videos added.,%1$s watched videos added.
 %1$s · Hushfeed's list only,%1$s · Hushfeed's list only
 %1$s · current value only,%1$s · current value only
 %1$s · declared by TikTok,%1$s · declared by TikTok
@@ -166,7 +172,6 @@ Answer TikTok's reads of your contacts with an empty list. Find Friends and Peop
 "Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.","Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone."
 App,App
 App AB,App AB
-App checks,App checks
 Appearance,Appearance
 Applies to both video and photo downloads.,Applies to both video and photo downloads.
 Apply,Apply
@@ -191,7 +196,6 @@ Automatic clear display,Automatic clear display
 Avatar and follow button,Avatar and follow button
 Back,Back
 Back up settings,Back up settings
-Background play,Background play
 Backup and restore,Backup and restore
 Black,Black
 Block clipboard reads,Block clipboard reads
@@ -221,6 +225,7 @@ Bottom tabs to keep,Bottom tabs to keep
 Browse,Browse
 Build details,Build details
 Build details copied to the clipboard,Build details copied to the clipboard
+Buttons on videos,Buttons on videos
 Calm feed,Calm feed
 Calm feed couldn't be applied. Nothing was changed.,Calm feed couldn't be applied. Nothing was changed.
 Calm feed couldn't start. Try again in a moment.,Calm feed couldn't start. Try again in a moment.
@@ -314,6 +319,7 @@ Couldn't confirm the block for %1$s. Open their profile to check.,Couldn't confi
 Couldn't confirm the unblock for %1$s. Open their profile to check.,Couldn't confirm the unblock for %1$s. Open their profile to check.
 Couldn't copy the report. Use Save report instead.,Couldn't copy the report. Use Save report instead.
 Couldn't forget the saved videos. Try again.,Couldn't forget the saved videos. Try again.
+Couldn't import watch history. Your saved history is unchanged.,Couldn't import watch history. Your saved history is unchanged.
 Couldn't open settings search. Reopen settings and try again.,Couldn't open settings search. Reopen settings and try again.
 Couldn't open that settings section. Reopen settings and try again.,Couldn't open that settings section. Reopen settings and try again.
 Couldn't open the file picker to export. Try again.,Couldn't open the file picker to export. Try again.
@@ -321,6 +327,7 @@ Couldn't open the file picker to import. Try again.,Couldn't open the file picke
 Couldn't put back the diagnostic data. Try again.,Couldn't put back the diagnostic data. Try again.
 Couldn't put the saved videos back. Try again.,Couldn't put the saved videos back. Try again.
 Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.,Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.
+Couldn't read that file. Choose it again.,Couldn't read that file. Choose it again.
 Couldn't read who posted this comment. Open their profile and block them there.,Couldn't read who posted this comment. Open their profile and block them there.
 Couldn't record the screen's layout. Start again from Diagnostics.,Couldn't record the screen's layout. Start again from Diagnostics.
 Couldn't reset the settings. Try again.,Couldn't reset the settings. Try again.
@@ -333,6 +340,7 @@ Couldn't save these choices. Try again.,Couldn't save these choices. Try again.
 Couldn't save this override. Try again.,Couldn't save this override. Try again.
 Couldn't send the feedback. Try again in a moment.,Couldn't send the feedback. Try again in a moment.
 Couldn't start the Lab change. Try again in a moment.,Couldn't start the Lab change. Try again in a moment.
+Couldn't start the import. Try again in a moment.,Couldn't start the import. Try again in a moment.
 Couldn't start the report export. Try again in a moment.,Couldn't start the report export. Try again in a moment.
 Couldn't start the settings change. Try again in a moment.,Couldn't start the settings change. Try again in a moment.
 Couldn't tell which folder to update. Choose it again.,Couldn't tell which folder to update. Choose it again.
@@ -655,8 +663,11 @@ Hushfeed turns back on when TikTok restarts.,Hushfeed turns back on when TikTok 
 "Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision.","Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision."
 Import finished,Import finished
 Import loaded values,Import loaded values
+Import watch history,Import watch history
 Imported %1$d values,Imported %1$d values
 Imported %1$d values. Undo last Lab change is in the menu.,Imported %1$d values. Undo last Lab change is in the menu.
+Importing new history ended Undo for the earlier clear. You can clear the imported history.,Importing new history ended Undo for the earlier clear. You can clear the imported history.
+Importing watch history,Importing watch history
 Inbox,Inbox
 Include diagnostic events,Include diagnostic events
 Included diagnostics,Included diagnostics
@@ -705,7 +716,7 @@ Last recording: %1$d gates.,Last recording: %1$d gates.
 Last recording: 1 gate.,Last recording: 1 gate.
 Later,Later
 Layout,Layout
-"Layout, player, search and system","Layout, player, search and system"
+"Layout, search, profile and system","Layout, search, profile and system"
 Leave maximum empty to keep it unlimited.,Leave maximum empty to keep it unlimited.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.,Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.
 Leave when TikTok says time is up,Leave when TikTok says time is up
@@ -775,6 +786,7 @@ No,No
 No app on this phone opens that file,No app on this phone opens that file
 No apps match this search,No apps match this search
 "No chat with @%1$s turned up on this account. Open your chat with them once, then try again.","No chat with @%1$s turned up on this account. Open your chat with them once, then try again."
+No cleared videos fit the current history limits.,No cleared videos fit the current history limits.
 No creator to block on this video,No creator to block on this video
 No creator to hide on this video,No creator to hide on this video
 "No creators are hidden yet. Hide one from a video, or add a handle above.","No creators are hidden yet. Hide one from a video, or add a handle above."
@@ -927,6 +939,7 @@ Pulling down at the top of For You no longer reloads it.,Pulling down at the top
 Put %1$s in %2$s first.,Put %1$s in %2$s first.
 Put back the settings saved before the last restore or reset.,Put back the settings saved before the last restore or reset.
 Put every setting back to its default straight away. Your current settings are kept for Undo.,Put every setting back to its default straight away. Your current settings are kept for Undo.
+Putting seen videos back,Putting seen videos back
 Putting the saved videos back,Putting the saved videos back
 Putting the settings back to their defaults,Putting the settings back to their defaults
 Quality,Quality
@@ -934,6 +947,7 @@ Quality,Quality
 "Quality, speed and auto-advance","Quality, speed and auto-advance"
 Quick setup,Quick setup
 Reading,Reading
+Reading watch history,Reading watch history
 Record a screen's layout,Record a screen's layout
 Recorded gate reads (%1$d),Recorded gate reads (%1$d)
 "Recording gate reads. Use a feature, then return here to stop.","Recording gate reads. Use a feature, then return here to stop."
@@ -952,6 +966,7 @@ Remove feed ads,Remove feed ads
 Remove tracking parameters from shared links.,Remove tracking parameters from shared links.
 Remove watermark,Remove watermark
 Removed %1$s,Removed %1$s
+"Reopen Hushfeed settings, then choose the file","Reopen Hushfeed settings, then choose the file"
 Replace values when TikTok asks for them,Replace values when TikTok asks for them
 Report saved to %1$s,Report saved to %1$s
 Reporting calls were blocked here. Viewer-list privacy hasn't been verified. Online status is unchanged.,Reporting calls were blocked here. Viewer-list privacy hasn't been verified. Online status is unchanged.
@@ -1041,7 +1056,6 @@ Saving the story,Saving the story
 Saving video,Saving video
 Saving video to %1$s,Saving video to %1$s
 Saving video: %1$s,Saving video: %1$s
-Screen,Screen
 Screen layout recorded. Export the diagnostic report to send it.,Screen layout recorded. Export the diagnostic report to send it.
 Screen time,Screen time
 Search,Search
@@ -1064,6 +1078,7 @@ Seen this session,Seen this session
 Seen videos,Seen videos
 Seen videos cleared. You can undo until TikTok closes.,Seen videos cleared. You can undo until TikTok closes.
 Seen videos put back,Seen videos put back
+Seen videos put back: %1$s of %2$s,Seen videos put back: %1$s of %2$s
 Select,Select
 Select at least one field.,Select at least one field.
 Select every tab,Select every tab
@@ -1074,6 +1089,8 @@ Sending feedback,Sending feedback
 Sending the message,Sending the message
 "Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open TikTok.","Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open TikTok."
 Sends today's message right away. The daily one then waits for tomorrow.,Sends today's message right away. The daily one then waits for tomorrow.
+Sent to %1$d/%2$d chats. The rest still need a message.,Sent to %1$d/%2$d chats. The rest still need a message.
+Sent to %1$d/%2$d chats. They won't get another message today.,Sent to %1$d/%2$d chats. They won't get another message today.
 Series posts,Series posts
 Settings,Settings
 Settings are back to their defaults. Restart TikTok to apply all changes.,Settings are back to their defaults. Restart TikTok to apply all changes.
@@ -1128,8 +1145,10 @@ Show what is left of the budget,Show what is left of the budget
 Show when the camera or microphone is in use,Show when the camera or microphone is in use
 Show where a video was posted,Show where a video was posted
 Showing %1$s again,Showing %1$s again
+Sign in to TikTok before importing watch history.,Sign in to TikTok before importing watch history.
 Silence the feed while comments are open,Silence the feed while comments are open
 Skip content warnings,Skip content warnings
+"Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos.","Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos."
 Skipping videos with %1$s,Skipping videos with %1$s
 Some Calm feed settings changed. Restore still puts back your earlier setup.,Some Calm feed settings changed. Restore still puts back your earlier setup.
 Something is missing from %1$s. Tap for the whole report.,Something is missing from %1$s. Tap for the whole report.
@@ -1201,12 +1220,15 @@ Tap to start the feed,Tap to start the feed
 Tapping more under a video opens its comments with the whole caption at the top instead of spreading the caption over the video. A tap on the caption itself does the same. Photo posts keep TikTok's own page for this.,Tapping more under a video opens its comments with the whole caption at the top instead of spreading the caption over the video. A tap on the caption itself does the same. Photo posts keep TikTok's own page for this.
 Technical details,Technical details
 "Technical details, %1$s","Technical details, %1$s"
+That JSON file doesn't contain the supported TikTok watch history.,That JSON file doesn't contain the supported TikTok watch history.
 That backup was written by a newer Hushfeed than this one. Nothing was altered.,That backup was written by a newer Hushfeed than this one. Nothing was altered.
 That creator is already in the list,That creator is already in the list
 "That creator pattern could stall the feed, so it was skipped: %1$s","That creator pattern could stall the feed, so it was skipped: %1$s"
 "That creator pattern could stall the feed, so it wasn't added: %1$s","That creator pattern could stall the feed, so it wasn't added: %1$s"
 "That creator pattern is too long to use, so it was skipped: %1$s","That creator pattern is too long to use, so it was skipped: %1$s"
 "That creator pattern is too long, so it wasn't added: %1$s","That creator pattern is too long, so it wasn't added: %1$s"
+That file has more than %1$s watch-history entries.,That file has more than %1$s watch-history entries.
+That file is larger than %1$s MB. Choose a smaller watch-history export.,That file is larger than %1$s MB. Choose a smaller watch-history export.
 That file is too large to be a settings backup. Nothing was altered.,That file is too large to be a settings backup. Nothing was altered.
 "That file isn't a loaded-values export, or it's larger than the Lab accepts","That file isn't a loaded-values export, or it's larger than the Lab accepts"
 "That file isn't readable text, so it may have been damaged in transit. Nothing was altered.","That file isn't readable text, so it may have been damaged in transit. Nothing was altered."
@@ -1229,6 +1251,7 @@ That settings backup is damaged or only partly downloaded. Nothing was altered.,
 "That settings backup is incomplete, so it may have been cut short. Nothing was altered.","That settings backup is incomplete, so it may have been cut short. Nothing was altered."
 That settings change didn't go through. Nothing was altered.,That settings change didn't go through. Nothing was altered.
 That sticker is in a format Hushfeed can't read,That sticker is in a format Hushfeed can't read
+That watch-history file is damaged. Nothing was imported.,That watch-history file is damaged. Nothing was imported.
 The Activity row of likes and comments on your posts leaves the Inbox. Notifications about them still arrive.,The Activity row of likes and comments on your posts leaves the Inbox. Notifications about them still arrive.
 The Archive row leaves the Inbox. Archived chats are kept.,The Archive row leaves the Inbox. Archived chats are kept.
 The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.,The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.
@@ -1408,6 +1431,7 @@ Use the preset for the region TikTok reports for your account and its shop too. 
 "Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this."
 "Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.","Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this."
 "Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.","Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again."
+"Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.","Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone."
 Use value,Use value
 Use your own offline videos limit,Use your own offline videos limit
 Using TikTok's value,Using TikTok's value
@@ -1438,6 +1462,7 @@ Waiting to record. Go to the screen you want recorded.,Waiting to record. Go to 
 Waiting to save %1$s files,Waiting to save %1$s files
 Waiting to save one file,Waiting to save one file
 Waiting to save video,Waiting to save video
+Watch history was imported for the account that chose the file. Switch back to see it.,Watch history was imported for the account that chose the file. Switch back to see it.
 Watching and sharing,Watching and sharing
 "WebP, exactly as TikTok sent it","WebP, exactly as TikTok sent it"
 What TikTok gets,What TikTok gets
@@ -1458,6 +1483,7 @@ YTDLnis download type,YTDLnis download type
 Yes,Yes
 YouTube Music couldn't be opened. Open it yourself and search for the sound.,YouTube Music couldn't be opened. Open it yourself and search for the sound.
 YouTube Music isn't installed,YouTube Music isn't installed
+Your TikTok account changed. Choose the file again for this account.,Your TikTok account changed. Choose the file again for this account.
 Your current settings already match Calm feed.,Your current settings already match Calm feed.
 Your feed,Your feed
 Your filters hid everything TikTok just sent. Most were %1$s.,Your filters hid everything TikTok just sent. Most were %1$s.
@@ -1467,6 +1493,7 @@ Your filters hid everything TikTok just sent. Most were %1$s.,Your filters hid e
 Your previous feed setup couldn't be restored. Nothing was changed.,Your previous feed setup couldn't be restored. Nothing was changed.
 Your previous feed setup is back.,Your previous feed setup is back.
 Your previous feed setup is back. Restart TikTok to apply all changes.,Your previous feed setup is back. Restart TikTok to apply all changes.
+Your seen history changed before the import finished. Choose the file again.,Your seen history changed before the import finished. Choose the file again.
 "Zero leaves the way out of the hold there every time, which is what it has always done. Anything else is how many times a day it works, and once they are gone the hold stays up until the day starts over. Ignored while the budget is locked, which takes the way out away entirely.","Zero leaves the way out of the hold there every time, which is what it has always done. Anything else is how many times a day it works, and once they are gone the hold stays up until the day starts over. Ignored while the budget is locked, which takes the way out away entirely."
 "Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.","Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number."
 "Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.","Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away."

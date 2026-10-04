@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -28,8 +29,8 @@ class ExpandedControlsTest {
         val patches = Class.forName("app.hushmessenger.patches.controls.MessengerControlsPatchKt").methods
             .filter { it.name.startsWith("get") && it.returnType == BytecodePatch::class.java }
             .map { it.invoke(null) as BytecodePatch }.filter { it.name != null }
-        assertEquals(29, patches.size)
-        assertEquals(29, patches.map { it.name }.toSet().size)
+        assertEquals(30, patches.size)
+        assertEquals(30, patches.map { it.name }.toSet().size)
         val shared = patches.map { it.dependencies.filterIsInstance<BytecodePatch>().single() }.toSet()
         assertEquals(1, shared.size)
         assertNull(shared.single().name)
@@ -45,7 +46,7 @@ class ExpandedControlsTest {
             .filter { it.name.startsWith("get") && it.returnType == BytecodePatch::class.java }
             .map { it.invoke(null) as BytecodePatch }.filter { it.name != null }
         val directed = patches.filter { "Patch controls" in it.description.orEmpty() }
-        assertEquals(28, directed.size)
+        assertEquals(29, directed.size)
         for (patch in directed) {
             assertTrue("Long-press Messenger's home screen icon > Patch controls." in patch.description!!, "${patch.name}")
         }
@@ -142,6 +143,29 @@ class ExpandedControlsTest {
         }
     }
 
+    @Test fun messenger581AdExitsEachKeepTheirOwnResultRegister() {
+        val body = "goto/16 :first_exit\n" + "nop\n".repeat(1449) + ":first_exit\nreturn-object v7\n" +
+            "nop\n".repeat(8) + "return-object v2\n" + "nop\n".repeat(3)
+        activeProfile = PROFILE_346213494
+        try {
+            val method = method("LX/2LJ;", "D3q", 24, IMMUTABLE_LIST, body)
+            method.injectAdFilter()
+            val code = method.implementation!!.instructions
+            val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+            val filters = code.filter { (it as? ReferenceInstruction)?.reference.toString().contains("->filterInboxAds(") }
+            assertEquals(listOf(7, 2), filters.map { (it as FiveRegisterInstruction).registerC })
+            val kept = code.indices.filter { code[it].opcode == Opcode.IF_EQZ }.map { index ->
+                code[addresses.indexOf(addresses[index] + (code[index] as OffsetInstruction).codeOffset)]
+            }
+            assertEquals(listOf(7, 2), kept.map { (it as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA })
+            for (changed in listOf(body.replace("return-object v2", "return-object v7"), body.replace("return-object v7", "return-object v5"))) {
+                assertFailsWith<PatchException> { method("LX/2LJ;", "D3q", 24, IMMUTABLE_LIST, changed).injectAdFilter() }
+            }
+        } finally {
+            activeProfile = BASE_PROFILE
+        }
+    }
+
     // Mirrors the drawer case of Messenger 580's merged click listener: the row lands in a high register.
     private val folderClick = """
         move-object/from16 v3, p0
@@ -196,13 +220,26 @@ class ExpandedControlsTest {
         }
     }
 
-    @Test fun folderRowTypeComesFromTheSettingsBuilderAlone() {
+    private fun folderRow(type: String, key: String) = key + "\nnew-instance v0, $type\ninvoke-direct/range {v0 .. v8}, $type-><init>(" +
+        "Landroid/content/Context;LX/HHA;LX/IXL;$DRAWER_KEY$DRAWER_METADATA" + "Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;)V\n"
+    private val settingsKey = "sget-object v4, $SETTINGS_KEY->A00:$SETTINGS_KEY"
+    private val qrKey = "new-instance v4, ${DRAWER_MODEL}FolderNameDrawerFolderKey;"
+
+    @Test fun folderRowTypeComesFromTheSettingsRowAlone() {
         val id = "LX/HFb;->Ax1(LX/0MG;)Ljava/util/ArrayList;"
-        assertEquals("LX/HRf;", fixtureMethod(id, "new-instance v1, LX/HRf;\nconst/4 v0, 0x0\nreturn-object v0").menuFolderItemType())
-        assertFailsWith<PatchException> {
-            fixtureMethod(id, "new-instance v1, LX/HRf;\nnew-instance v2, LX/HRg;\nconst/4 v0, 0x0\nreturn-object v0").menuFolderItemType()
-        }
-        assertFailsWith<PatchException> { fixtureMethod(id, "const/4 v0, 0x0\nreturn-object v0").menuFolderItemType() }
+        fun builder(rows: String) = fixtureMethod(id, rows + "const/4 v0, 0x0\nreturn-object v0", 10)
+        assertEquals("LX/HRf;", builder(folderRow("LX/HRf;", settingsKey)).menuFolderItemType())
+        // 581 builds the QR code row in the same method, from the same row class and its own folder key.
+        val both = builder(folderRow("LX/HRf;", settingsKey) + folderRow("LX/HRf;", qrKey))
+        assertEquals("LX/HRf;", both.menuFolderItemType())
+        assertEquals(2, both.settingsRowCall())
+        for (changed in listOf(
+            folderRow("LX/HRf;", settingsKey) + "new-instance v2, LX/HRg;\n",
+            folderRow("LX/HRf;", settingsKey) + folderRow("LX/HRf;", settingsKey),
+            folderRow("LX/HRf;", qrKey),
+            "new-instance v1, LX/HRf;\n",
+            "",
+        )) assertFailsWith<PatchException> { builder(changed).menuFolderItemType() }
     }
 
     @Test fun keyboardTabFilterReplacesTheOnlyExitAndKeepsItsBranches() {

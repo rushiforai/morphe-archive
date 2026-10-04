@@ -42,6 +42,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>Nothing else counts, so a friend's story, a Page you follow, your own story, a friend
  * request and anything that isn't a bucket or whose type isn't one of those stay.
  *
+ * <p>The cards beside Create story that suggest a story to make aren't buckets. The server sends
+ * them in a list of their own, which the tray's fetch can ask it to leave out, and
+ * {@link #skipPromptCards} answers that question first.
+ *
  * <p>The bucket interface, its accessors and Facebook's label helper are Redex names that change
  * every build, so the patch fills in the five stubs below. It fails open: switch off, a pause,
  * settings that aren't ready, a bucket it can't read, a list it can't copy, or any failure in
@@ -368,6 +372,28 @@ public final class SuggestedStories {
             line.append(entry.getKey()).append(' ').append(entry.getValue());
         }
         return line.toString();
+    }
+
+    /**
+     * Injection point, right before each tray fetch sets skip_srtt_item_list, the query variable
+     * asking the server to leave out the cards beside Create story: "Share music you love", a text
+     * story, ready-made stories and the camera (issue #21). Facebook asks that for the Video tab's
+     * tray. With Hide story prompts on, every tray asks it.
+     *
+     * @param facebook what Facebook was about to send
+     * @return true when the switch is on, otherwise {@code facebook}. Never throws: switched off, a
+     * pause, settings that aren't ready or any failure in here, and Facebook's own value goes.
+     */
+    public static boolean skipPromptCards(boolean facebook) {
+        try {
+            HookStatus.invoked(FamilyNames.SUGGESTED_STORIES);
+            if (facebook || !Utils.settingsReady() || !Settings.HIDE_STORY_PROMPTS.get()) return facebook;
+            Logger.printDebug(() -> "Stories tray: the fetch asks the server to leave out the story prompt cards");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SUGGESTED_STORIES, "story prompt switch", failure);
+            return facebook;
+        }
     }
 
     /** Whether the People you may know switch is in this build: its patch is. */

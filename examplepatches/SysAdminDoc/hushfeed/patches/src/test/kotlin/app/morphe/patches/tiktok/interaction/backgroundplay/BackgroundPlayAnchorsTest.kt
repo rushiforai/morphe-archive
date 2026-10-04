@@ -8,7 +8,6 @@ import app.morphe.Fixtures
 import app.morphe.takes
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -45,7 +44,7 @@ class BackgroundPlayAnchorsTest {
     fun `the mode read and the remembered switch reads resolve on each build`() {
         Fixtures.forEachDeclared { apk ->
             val classes = HashMap<String, ClassDef>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) classes.putIfAbsent(classDef.type, classDef)
             }
@@ -103,7 +102,7 @@ class BackgroundPlayAnchorsTest {
     fun `the scene check and its photo post check resolve on each build`() {
         Fixtures.forEachDeclared { apk ->
             val classes = HashMap<String, ClassDef>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) classes.putIfAbsent(classDef.type, classDef)
             }
@@ -168,7 +167,7 @@ class BackgroundPlayAnchorsTest {
     fun `the page's claim on the sound resolves on each build`() {
         Fixtures.forEachDeclared { apk ->
             val classes = HashMap<String, ClassDef>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) classes.putIfAbsent(classDef.type, classDef)
             }

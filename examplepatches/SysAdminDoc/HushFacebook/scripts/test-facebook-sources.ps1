@@ -210,7 +210,8 @@ $behaviorOnly = [string]@($entries | Where-Object { $_.disposition -eq 'behavior
 Test-Broken { param($c) } '*credits*but the ledger lists it as behavior-only*' 'A provenance rule crediting a behavior-only source' {
     $path = Join-Path $rulesRoot 'provenance.json'
     $document = [IO.File]::ReadAllText($path) | ConvertFrom-Json
-    $document.rules[0].via = @(@($document.rules[0].via) + $behaviorOnly)
+    $rule = @($document.rules | Where-Object { $_.origin -eq 'ported' })[0]
+    $rule.via = @(@($rule.via) + $behaviorOnly)
     [IO.File]::WriteAllText($path, ($document | ConvertTo-Json -Depth 10))
 }
 Test-Broken { param($c) $e = Get-Entry $c $adoptedId; $e.disposition = 'candidate'; $e.PSObject.Properties.Remove('adopted') } '*ports files from*not adopted*' `
@@ -220,19 +221,20 @@ Test-Broken { param($c) $e = Get-Entry $c $adoptedId; $e.disposition = 'candidat
 $forkedEntry = @($entries | Where-Object { $_.disposition -eq 'behavior-only' -and @($_.forks | Where-Object { $_ }).Count -gt 0 })[0]
 $behaviorOnlyFork = 'https://' + (ConvertTo-SourceKey $forkedEntry.repository).Split('/')[0] + '/' + @($forkedEntry.forks)[0]
 $recordedMirror = [string]@(@($entries | Where-Object { @($_.mirrors | Where-Object { $_ }).Count -gt 0 })[0].mirrors)[0].repository
-function Set-FirstRule {
+function Set-FirstPortedRule {
     param([string]$Property, [string]$Value)
     $path = Join-Path $rulesRoot 'provenance.json'
     $document = [IO.File]::ReadAllText($path) | ConvertFrom-Json
-    $document.rules[0].$Property = if ($Property -eq 'via') { @(@($document.rules[0].via) + $Value) } else { $Value }
+    $rule = @($document.rules | Where-Object { $_.origin -eq 'ported' })[0]
+    $rule.$Property = if ($Property -eq 'via') { @(@($rule.via) + $Value) } else { $Value }
     [IO.File]::WriteAllText($path, ($document | ConvertTo-Json -Depth 10))
 }
 Test-Broken { param($c) } '*credits*as a fork of*behavior-only*' 'A provenance rule crediting a fork of a behavior-only source' {
-    Set-FirstRule 'via' $behaviorOnlyFork }
+    Set-FirstPortedRule 'via' $behaviorOnlyFork }
 Test-Broken { param($c) } '*ports files from*only as a fork of*' 'A ported provenance rule from a fork of a behavior-only source' {
-    Set-FirstRule 'upstream' $behaviorOnlyFork }
+    Set-FirstPortedRule 'upstream' $behaviorOnlyFork }
 Test-Broken { param($c) } '*ports files from*only as a mirror of*' 'A ported provenance rule from a recorded mirror' {
-    Set-FirstRule 'upstream' $recordedMirror }
+    Set-FirstPortedRule 'upstream' $recordedMirror }
 
 # The records themselves.
 Test-Broken { param($c) $c.indexes[0].hushfacebook.status = '' } '*records no Hushfacebook listing*' 'An index with no listing record'
@@ -344,6 +346,7 @@ Set-Content -LiteralPath (Join-Path $fixtureRoot 'patches/Keep.kt') -Value 'clas
 $receiptUrl = 'https://github.com/SysAdminDoc/Hushfacebook/releases/download/v9.9.9/release-receipt-9.9.9.json'
 $fixtureLedgerPath = Get-SourceLedgerPath -Root $fixtureRoot
 $fakeToken = 'fixture-token-' + [guid]::NewGuid().ToString('N')
+$fakeGitLabToken = 'fixture-gitlab-' + [guid]::NewGuid().ToString('N')
 $licenseText = "GNU GENERAL PUBLIC LICENSE`nVersion 3, 29 June 2007`n"
 $licenseHash = Get-Sha256Text $licenseText
 $licenseBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($licenseText))
@@ -354,7 +357,7 @@ $blobKnown = '1b' * 20
 $blobMirror = '2b' * 20
 $fixtureLedger = [ordered]@{
     schemaVersion = 1
-    census = [ordered]@{ checkedAt = '2026-09-01'; skipped = @('gitlab-code-search') }
+    census = [ordered]@{ checkedAt = '2026-09-01'; skipped = @() }
     self = [ordered]@{ repository = 'https://github.com/SysAdminDoc/Hushfacebook' }
     officialBundle = [ordered]@{ repository = 'https://github.com/MorpheApp/morphe-patches'; branch = 'main'; list = 'patches-list.json'; packages = @() }
     indexes = @(
@@ -450,6 +453,8 @@ function New-FakeAnswers {
         gammaLicense = @{ Status = 200; Content = (@{ file_name = 'LICENSE'; content = $licenseBase64 } | ConvertTo-Json) }
         gammaBranches = @{ Status = 200; Content = "[{`"name`":`"main`",`"commit`":{`"id`":`"$commitG1`"}}]" }
         gammaForks = @{ Status = 200; Content = '[]' }
+        gitlabSearch = @{ Status = 200; Content = '[{"project_id":303,"path":"patches/Lite.kt"}]' }
+        gitlabSearchProject = @{ Status = 200; Content = '{"path_with_namespace":"fixture-group/gamma-patches"}' }
         repoMeta = @{ Status = 200; Content = '{"full_name":"newcomer/fb-patches","license":{"spdx_id":"MIT"},"fork":false,"archived":false,"pushed_at":"2026-09-20T00:00:00Z","description":"Facebook patches"}' }
         oldNameMeta = @{ Status = 200; Content = '{"full_name":"fixture-owner/alpha-patches","fork":false,"archived":false}' }
         receipt = @{ Status = 200; Content = (@{ targets = @($declaredBuilds | ForEach-Object {
@@ -466,7 +471,8 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
         param($Uri, $Headers, $UserAgent, [switch]$UseBasicParsing, $TimeoutSec, $Method, $OutFile, $MaximumRedirection, [switch]$PassThru)
         $url = [string]$Uri
         $authorization = if ($Headers -and $Headers.ContainsKey('Authorization')) { [string]$Headers['Authorization'] } else { $null }
-        $fakeForge.Requests.Add([pscustomobject]@{ Uri = $url; Authorization = $authorization })
+        $privateToken = if ($Headers -and $Headers.ContainsKey('PRIVATE-TOKEN')) { [string]$Headers['PRIVATE-TOKEN'] } else { $null }
+        $fakeForge.Requests.Add([pscustomobject]@{ Uri = $url; Authorization = $authorization; PrivateToken = $privateToken })
         $a = $fakeForge.Answers
         $answer = $null
         switch -Regex ($url) {
@@ -503,6 +509,12 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
             }
             '^https://api\.github\.com/repos/fixture-owner/beta-module/forks\?per_page=100&page=1$' { $answer = $a.betaForks; break }
             '^https://gitlab\.com/api/v4/projects/fixture-group%2Fgamma-patches$' { $answer = $a.gammaProject; break }
+            '^https://gitlab\.com/api/v4/search\?scope=blobs&search=([^&]+)&per_page=100&page=1$' {
+                $package = [Uri]::UnescapeDataString($Matches[1])
+                $answer = if ($package -eq '"com.facebook.lite"') { $a.gitlabSearch } else { @{ Status = 200; Content = '[]' } }
+                break
+            }
+            '^https://gitlab\.com/api/v4/projects/303$' { $answer = $a.gitlabSearchProject; break }
             '^https://gitlab\.com/api/v4/projects/fixture-group%2Fgamma-patches/repository/tree\?ref=main&per_page=100&page=1$' { $answer = $a.gammaTree; break }
             '^https://gitlab\.com/api/v4/projects/fixture-group%2Fgamma-patches/repository/tree\?ref=[0-9a-f]{40}&per_page=100&page=1$' { $answer = $a.gammaSourceTree; break }
             '^https://gitlab\.com/api/v4/projects/fixture-group%2Fgamma-patches/repository/commits\?ref_name=main&path=patches&per_page=1$' { $answer = $a.gammaWatch; break }
@@ -526,7 +538,7 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
         param([hashtable]$Extra = @{})
         $report = Join-Path $caseRoot ('report-' + [guid]::NewGuid().ToString('N') + '.json')
         $fakeForge.Requests.Clear()
-        $arguments = @{ Root = $fixtureRoot; GitHubToken = $fakeToken; SkipGitLabCodeSearch = $true; SearchDelaySeconds = 0
+        $arguments = @{ Root = $fixtureRoot; GitHubToken = $fakeToken; GitLabToken = $fakeGitLabToken; SearchDelaySeconds = 0
             RateLimitWaitSeconds = 0; Today = '2026-09-25'; ReportPath = $report }
         foreach ($key in $Extra.Keys) { $arguments[$key] = $Extra[$key] }
         $global:LASTEXITCODE = 0
@@ -552,12 +564,32 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
         Assert-True ([IO.File]::ReadAllText($fixtureLedgerPath) -ceq $beforeLedger) "$Case changed the ledger although the audit found drift."
     }
 
+    function Assert-Incomplete {
+        param([hashtable]$Extra, [string]$Kind, [string]$Detail, [string]$Case)
+        $beforeLedger = [IO.File]::ReadAllText($fixtureLedgerPath)
+        $result = Invoke-Audit $Extra
+        Assert-True ($result.ExitCode -eq 1 -and $null -ne $result.Report -and -not $result.Report.clean) `
+            "$Case was accepted as a clean audit: $($result.Said)"
+        $found = @($result.Report.findings | Where-Object { $_.kind -eq $Kind -and $_.detail -like $Detail })
+        Assert-True ($found.Count -eq 1 -and $found[0].evidence.index -eq 'gitlab-code-search' -and
+            $found[0].evidence.documentation -contains 'https://docs.gitlab.com/user/search/advanced_search/' -and
+            $found[0].evidence.documentation -contains 'https://docs.gitlab.com/user/search/exact_code_search/') `
+            "$Case did not retain the unavailable global-index evidence."
+        Assert-True (@($result.Report.sources | Where-Object { $_.source -eq 'https://gitlab.com/fixture-group/gamma-patches' -and $_.status -eq 'read' }).Count -eq 1) `
+            "$Case stopped the remaining GitLab ledger reads."
+        Assert-True ([IO.File]::ReadAllText($fixtureLedgerPath) -ceq $beforeLedger) "$Case stamped or otherwise changed the ledger."
+    }
+
     # The control: nothing moved. Only dates change in the ledger, nothing else under the root
     # changes, and the copy with the lineage's own blob counts as that lineage.
     $before = Get-TreeState
     $clean = Invoke-Audit
     Assert-True ($clean.ExitCode -eq 0) ("The audit refused a fixture where nothing moved: " +
         (@($clean.Report.findings | ForEach-Object { "$($_.kind): $($_.repository) $($_.detail)" }) -join ' | ') + "`n$($clean.Said)")
+    Assert-True ($clean.Report.clean -and @($clean.Report.sources | Where-Object { $_.status -ne 'read' }).Count -eq 0 -and
+        @($fakeForge.Requests | Where-Object { $_.Uri -like 'https://gitlab.com/api/v4/search*' }).Count -eq 3 -and
+        @($clean.Report.knownHits | Where-Object { $_.repository -eq 'https://gitlab.com/fixture-group/gamma-patches' }).Count -eq 1) `
+        'The control stamped its census without searching every Facebook-family package on GitLab and resolving its hit.'
     $stamped = [IO.File]::ReadAllText($fixtureLedgerPath)
     Assert-True (($stamped -replace '\d{4}-\d{2}-\d{2}', 'DATE') -ceq ($fixtureLedgerText -replace '\d{4}-\d{2}-\d{2}', 'DATE')) `
         'The clean audit changed more of the ledger than its dates.'
@@ -582,18 +614,47 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like 'https://api.github.com/*' -and $_.Authorization -ne "Bearer $fakeToken" }).Count -eq 0) `
         'A GitHub API request went out without the token.'
     Assert-True ($clean.ReportText.IndexOf($fakeToken) -lt 0 -and $stamped.IndexOf($fakeToken) -lt 0) 'The token was written to the report or the ledger.'
+    Assert-True (@($fakeForge.Requests | Where-Object { $_.PrivateToken -and $_.Uri -notlike 'https://gitlab.com/*' }).Count -eq 0 -and
+        @($fakeForge.Requests | Where-Object { $_.Uri -like 'https://gitlab.com/api/*' -and $_.PrivateToken -ne $fakeGitLabToken }).Count -eq 0 -and
+        $clean.ReportText.IndexOf($fakeGitLabToken) -lt 0 -and $stamped.IndexOf($fakeGitLabToken) -lt 0) `
+        'The GitLab token leaked or a GitLab request lacked its private-token header.'
     Reset-FixtureLedger
 
-    # -SkipGitLabCodeSearch holds with GITLAB_TOKEN set, as the audit's help tells a maintainer to
-    # set it: no GitLab search goes out and the census keeps recording the skip.
+    # Neither an explicit skip nor a missing token can certify a complete census. Its existing
+    # skip and every date survive, even with -NoStamp or a token in the environment.
+    $skippedLedger = $fixtureLedgerText | ConvertFrom-Json
+    $skippedLedger.census.skipped = @('gitlab-code-search')
+    $skippedLedgerText = $skippedLedger | ConvertTo-Json -Depth 20
+    [IO.File]::WriteAllText($fixtureLedgerPath, $skippedLedgerText)
+    foreach ($extra in @(@{ SkipGitLabCodeSearch = $true; GitLabToken = '' },
+            @{ SkipGitLabCodeSearch = $true; GitLabToken = ''; NoStamp = $true }, @{ GitLabToken = '' })) {
+        Assert-Incomplete $extra 'source-skipped' '*GitLab.com*global code search*' 'A skipped or unauthenticated global GitLab search'
+        Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like 'https://gitlab.com/api/v4/search*' }).Count -eq 0) `
+            'GitLab code search ran although it was skipped or no token was present.'
+    }
     $env:GITLAB_TOKEN = 'fixture-gitlab-' + [guid]::NewGuid().ToString('N')
-    try { $withToken = Invoke-Audit } finally { $env:GITLAB_TOKEN = $null }
-    Assert-True ($withToken.ExitCode -eq 0) "The audit refused a clean fixture once GITLAB_TOKEN was set with -SkipGitLabCodeSearch: $($withToken.Said)"
+    try {
+        Assert-Incomplete @{ SkipGitLabCodeSearch = $true; GitLabToken = '' } 'source-skipped' '*GitLab.com*global code search*' `
+            'An explicit global GitLab skip with a token in the environment'
+    } finally { $env:GITLAB_TOKEN = $null }
     Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like 'https://gitlab.com/api/v4/search*' }).Count -eq 0) `
         'GitLab code search ran although -SkipGitLabCodeSearch was passed.'
     Assert-True (@(([IO.File]::ReadAllText($fixtureLedgerPath) | ConvertFrom-Json).census.skipped) -contains 'gitlab-code-search') `
         'The census stopped recording the GitLab skip because a token was set.'
     Reset-FixtureLedger
+
+    $fakeForge.Answers.gitlabSearch = @{ Status = 403; Content = $null }
+    Assert-Incomplete @{} 'source-failed' '*GitLab code search*HTTP 403*global code search*' 'A denied global GitLab search'
+    $fakeForge.Answers = New-FakeAnswers
+    $fakeForge.Answers.gitlabSearchProject = @{ Status = 403; Content = $null }
+    Assert-Incomplete @{} 'source-failed' '*GitLab project 303*HTTP 403*' 'A GitLab search hit whose project cannot be read'
+    $fakeForge.Answers = New-FakeAnswers
+    $fakeForge.Answers.gitlabSearch.Content = '[{"path":"patches/Lite.kt"}]'
+    Assert-Incomplete @{} 'source-failed' '*hit without a project ID or path*' 'A GitLab search hit with incomplete metadata'
+    $fakeForge.Answers = New-FakeAnswers
+    $fakeForge.Answers.gitlabSearchProject.Content = '{}'
+    Assert-Incomplete @{} 'source-failed' '*GitLab project 303*no repository path*' 'An unresolved GitLab repository path'
+    $fakeForge.Answers = New-FakeAnswers
 
     # -ValidateOnly and an invalid ledger never reach the network.
     $validate = Invoke-Audit @{ ValidateOnly = $true }
@@ -800,9 +861,9 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     Assert-Drift 'source-failed' '*Awesome Morphe could not be read*' 'An index that could not be read'
     $fakeForge.Answers = New-FakeAnswers
 
-    # GitLab code search needs a token, or an explicit skip the census records.
+    # A missing token is a reportable coverage gap, not a failure before the report is written.
     $env:GITLAB_TOKEN = $null
-    Assert-Throws { Invoke-Audit @{ SkipGitLabCodeSearch = $false } } '*GITLAB_TOKEN*' 'The audit ran without GitLab code search and without saying so.'
+    Assert-Incomplete @{ GitLabToken = '' } 'source-skipped' '*GITLAB_TOKEN*' 'A global GitLab search without a token'
     Assert-Throws { Invoke-Audit @{ ReportPath = (Join-Path $fixtureRoot 'patches/report.json') } } '*under patches/*' `
         'The audit wrote its report among the patch sources.'
     Assert-True ([IO.File]::ReadAllText($fixtureLedgerPath) -ceq $fixtureLedgerText) 'A refused run changed the ledger.'

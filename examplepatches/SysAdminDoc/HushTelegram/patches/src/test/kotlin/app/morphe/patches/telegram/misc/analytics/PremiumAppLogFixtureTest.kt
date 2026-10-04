@@ -348,7 +348,7 @@ class PremiumAppLogFixtureTest {
         assertFlags(empty, emptySet(), oldTargets = false, family = false)
     }
 
-    private fun hosts(build: File) = FixtureDex.classesWhere(build, { true }) { method -> buildsAppLog(method) || method.instructions().any {
+    private fun hosts(build: File) = FixtureDex.classesWhere(build, HOST_CENSUS, { true }) { method -> buildsAppLog(method) || method.instructions().any {
         it.opcode == Opcode.NEW_INSTANCE && it.reference() == REPORT_READ_METRICS
     } }
     private fun buildsAppLog(method: Method) = method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == SAVE_APP_LOG }
@@ -409,6 +409,7 @@ class PremiumAppLogFixtureTest {
     private fun Method.sameSignature(other: Method) = name == other.name && returnType == other.returnType &&
         parameterTypes.map { it.toString() } == other.parameterTypes.map { it.toString() }
     private companion object {
+        val HOST_CENSUS = FixtureDex.ClassCensus()
         const val ANALYTICS = "Lapp/hushtelegram/extension/telegram/misc/Analytics;"
         const val APP_EVENT = "Lorg/telegram/tgnet/TLRPC\$TL_inputAppEvent;"
         const val JSON_NULL = "Lorg/telegram/tgnet/TLRPC\$TL_jsonNull;"

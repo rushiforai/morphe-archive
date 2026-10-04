@@ -22,10 +22,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * The two lists behind "Hide posts with words you choose": the words and phrases that hide a post,
  * and the ones that keep it whatever else it says.
  *
- * <p>A list is stored as one phrase per line. Each phrase is plain text, matched anywhere in a
- * post's words, inside longer words too, with case and compatibility forms folded the Unicode way
+     * <p>A list is stored as one phrase per line. Each phrase is plain text, matched by default
+     * anywhere in a post's words, inside longer words too, with case and compatibility forms folded the Unicode way
  * (NFKC case folding), so "Spoiler", "SPOILER" and "ｓｐｏｉｌｅｒ" are one phrase. No pattern
- * syntax: a phrase means its own characters and nothing else.
+     * syntax: a phrase means its own characters and nothing else. Optional whole-word matching
+     * prevents a phrase's endpoints from cutting a Unicode word run.
  *
  * <p>Both lists are bounded, whatever wrote the store: at most {@link #MAX_PHRASES} phrases, each
  * {@link #MIN_LENGTH} to {@link #MAX_LENGTH} characters, or one that's a word on its own (an
@@ -203,15 +204,17 @@ public final class PostWords {
     static final class Rules {
         final String hideSource;
         final String keepSource;
+        final boolean wholeWords;
         private final boolean hidesNothing;
         private final Matcher matcher;
 
-        Rules(String hideSource, String keepSource) {
+        Rules(String hideSource, String keepSource, boolean wholeWords) {
             this.hideSource = hideSource;
             this.keepSource = keepSource;
+            this.wholeWords = wholeWords;
             String[] hide = folded(hideSource);
             hidesNothing = hide.length == 0;
-            matcher = new Matcher(hide, folded(keepSource));
+            matcher = new Matcher(hide, folded(keepSource), wholeWords);
         }
 
         private static String[] folded(String stored) {
@@ -249,14 +252,18 @@ public final class PostWords {
      * that still starts a phrase. Each node knows which lists have a phrase ending there or at a node
      * it falls back to, so every phrase inside a text is seen. UTF-16 chars are matched as
      * {@link String#contains} does: a phrase is whole code points, so a match never starts or ends
-     * inside a surrogate pair.
+     * inside a surrogate pair. Whole-word rules include a boundary token in each phrase and in
+     * the text, so each output's endpoints are checked even when it is another output's suffix.
      */
     static final class Matcher {
         static final int HIDES = 1;
         static final int KEEPS = 2;
         private static final long NO_EDGE = -1;
+        /** Outside the UTF-16 alphabet, so no phrase or post can impersonate a boundary. */
+        private static final int BOUNDARY = 1 << 16;
+        private final boolean wholeWords;
 
-        /** The trie's edges by key {@code node << 16 | char}, open addressing at most half full. */
+        /** The trie's edges by key {@code node << 17 | symbol}, open addressing at most half full. */
         private final long[] edgeKeys;
         private final int[] edgeNodes;
         private final int shift;
@@ -265,10 +272,13 @@ public final class PostWords {
         /** Per node: {@link #HIDES} and {@link #KEEPS} for the lists with a phrase ending there or along its fallbacks. */
         private final byte[] ends;
 
-        Matcher(String[] hide, String[] keep) {
+        Matcher(String[] hide, String[] keep, boolean wholeWords) {
+            this.wholeWords = wholeWords;
             int chars = 0;
             for (String phrase : hide) chars += phrase.length();
             for (String phrase : keep) chars += phrase.length();
+            // At most one boundary per char, and one at the start of each phrase.
+            if (wholeWords) chars = chars * 2 + hide.length + keep.length;
             int capacity = 16;
             while (capacity < chars * 2) capacity <<= 1;
             edgeKeys = new long[capacity];
@@ -278,16 +288,18 @@ public final class PostWords {
 
             // The trie: node 0 is the empty start, and each node remembers how it was reached.
             int[] parent = new int[chars + 1];
-            char[] via = new char[chars + 1];
+            int[] via = new int[chars + 1];
             int[] depth = new int[chars + 1];
             byte[] marks = new byte[chars + 1];
             int nodes = 1;
             int deepest = 0;
             for (int list = 0; list < 2; list++) {
                 for (String phrase : list == 0 ? hide : keep) {
+                    int[] symbols = wholeWords ? symbols(phrase) : null;
+                    int length = wholeWords ? symbols.length : phrase.length();
                     int node = 0;
-                    for (int i = 0; i < phrase.length(); i++) {
-                        char c = phrase.charAt(i);
+                    for (int i = 0; i < length; i++) {
+                        int c = wholeWords ? symbols[i] : phrase.charAt(i);
                         int next = edge(node, c);
                         if (next < 0) {
                             next = nodes++;
@@ -299,7 +311,7 @@ public final class PostWords {
                         node = next;
                     }
                     marks[node] |= list == 0 ? HIDES : KEEPS;
-                    deepest = Math.max(deepest, phrase.length());
+                    deepest = Math.max(deepest, length);
                 }
             }
 
@@ -329,23 +341,78 @@ public final class PostWords {
         int find(String text) {
             int found = 0;
             int node = 0;
-            for (int i = 0, length = text.length(); i < length; i++) {
-                char c = text.charAt(i);
-                int next;
-                while ((next = edge(node, c)) < 0 && node != 0) node = fallback[node];
-                node = Math.max(next, 0);
+            for (int i = 0, length = text.length(); i <= length; i++) {
+                if (wholeWords && boundary(text, i)) {
+                    node = next(node, BOUNDARY);
+                    found |= ends[node];
+                    if ((found & KEEPS) != 0) break;
+                }
+                if (i == length) break;
+                node = next(node, text.charAt(i));
                 found |= ends[node];
                 if ((found & KEEPS) != 0) break;
             }
             return found;
         }
 
+        private int next(int node, int symbol) {
+            int next;
+            while ((next = edge(node, symbol)) < 0 && node != 0) node = fallback[node];
+            return Math.max(next, 0);
+        }
+
+        /** Compiled once per phrase. The text streams the same symbols without allocating them. */
+        private static int[] symbols(String text) {
+            int[] symbols = new int[text.length() * 2 + 1];
+            int count = 0;
+            for (int i = 0; i <= text.length(); i++) {
+                if (boundary(text, i)) symbols[count++] = BOUNDARY;
+                if (i < text.length()) symbols[count++] = text.charAt(i);
+            }
+            return Arrays.copyOf(symbols, count);
+        }
+
+        /** A phrase may touch punctuation or a symbol, but may not cut a run or a code point. */
+        private static boolean boundary(String text, int at) {
+            if (at == 0 || at == text.length()) return true;
+            if (Character.isHighSurrogate(text.charAt(at - 1))
+                    && Character.isLowSurrogate(text.charAt(at))) return false;
+            return !run(text, at - Character.charCount(text.codePointBefore(at))) || !run(text, at);
+        }
+
+        private static boolean run(String text, int at) {
+            int point = text.codePointAt(at);
+            if (point == '\'' || point == 0x2018 || point == 0x2019) {
+                // Marks belong to their letters on either side. Each mark span is visited only
+                // from its adjacent apostrophes, so this stays linear in the text's length.
+                return letterBeside(text, at, false) && letterBeside(text, at + 1, true);
+            }
+            int type = Character.getType(point);
+            return Character.isLetter(point) || mark(type) || type == Character.DECIMAL_DIGIT_NUMBER
+                    || type == Character.LETTER_NUMBER || type == Character.OTHER_NUMBER
+                    || type == Character.CONNECTOR_PUNCTUATION;
+        }
+
+        private static boolean letterBeside(String text, int at, boolean forward) {
+            while (forward ? at < text.length() : at > 0) {
+                int point = forward ? text.codePointAt(at) : text.codePointBefore(at);
+                if (!mark(Character.getType(point))) return Character.isLetter(point);
+                at += forward ? Character.charCount(point) : -Character.charCount(point);
+            }
+            return false;
+        }
+
+        private static boolean mark(int type) {
+            return type == Character.NON_SPACING_MARK || type == Character.COMBINING_SPACING_MARK
+                    || type == Character.ENCLOSING_MARK;
+        }
+
         private int slot(long key) {
             return (int) ((key * 0x9E3779B97F4A7C15L) >>> shift);
         }
 
-        private int edge(int node, char c) {
-            long key = ((long) node << 16) | c;
+        private int edge(int node, int c) {
+            long key = ((long) node << 17) | c;
             int mask = edgeKeys.length - 1;
             for (int slot = slot(key); ; slot = (slot + 1) & mask) {
                 long at = edgeKeys[slot];
@@ -354,8 +421,8 @@ public final class PostWords {
             }
         }
 
-        private void put(int node, char c, int child) {
-            long key = ((long) node << 16) | c;
+        private void put(int node, int c, int child) {
+            long key = ((long) node << 17) | c;
             int mask = edgeKeys.length - 1;
             int slot = slot(key);
             while (edgeKeys[slot] != NO_EDGE) slot = (slot + 1) & mask;
@@ -366,11 +433,17 @@ public final class PostWords {
 
     private static volatile Rules cached;
 
-    /** The rules for these two stored lists, folded once and kept until either changes. */
+    /** Legacy callers use substring matching. */
     static Rules rules(String hideStored, String keepStored) {
+        return rules(hideStored, keepStored, false);
+    }
+
+    /** The lists and mode, folded and compiled once and kept until any of them changes. */
+    static Rules rules(String hideStored, String keepStored, boolean wholeWords) {
         Rules found = cached;
-        if (found != null && found.hideSource.equals(hideStored) && found.keepSource.equals(keepStored)) return found;
-        found = new Rules(hideStored, keepStored);
+        if (found != null && found.hideSource.equals(hideStored) && found.keepSource.equals(keepStored)
+                && found.wholeWords == wholeWords) return found;
+        found = new Rules(hideStored, keepStored, wholeWords);
         cached = found;
         return found;
     }

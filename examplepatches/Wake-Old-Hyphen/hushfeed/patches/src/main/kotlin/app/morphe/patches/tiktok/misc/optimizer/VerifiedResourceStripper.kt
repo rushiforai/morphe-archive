@@ -49,6 +49,7 @@ internal data class ResourceProfile(
     }
 }
 
+/** A language result without [retainedLocales] kept an unreviewed inventory untouched. */
 internal data class StripSummary(
     val files: Int,
     val bytes: Long,
@@ -181,6 +182,15 @@ internal fun stripVerifiedLanguagePacks(
     val byCode = languageDirectories.associateBy { it.name.removePrefix(LANGUAGE_DIRECTORY_PREFIX).lowercase(Locale.ROOT) }
     val contract = contracts.firstOrNull { it.directories == byCode.keys }
     if (contract == null) {
+        // Keeping every language removes nothing, so a set nobody reviewed is no reason to refuse:
+        // Morphe Manager abandons the whole run on any patch's exception (#96, a bundle merged
+        // with a single language). Without a reviewed inventory there's no retained set to report.
+        if (keepsEveryLanguage(targetLocales)) {
+            if (languageDirectories.any { directory -> directory.walkTopDown().any { it.isFile && it.length() == 0L } }) {
+                throw PatchException("$patchName: an unselected source has already emptied a language that must be retained.")
+            }
+            return StripSummary(0, 0L, alreadyStripped = false)
+        }
         val counts = contracts.map { it.directories.size }.distinct().sorted().joinToString(" or ")
         val reviewed = if (contracts.size == 1) "the reviewed set has" else "the reviewed sets have"
         throw PatchException(
@@ -235,6 +245,9 @@ internal fun stripVerifiedLanguagePacks(
 }
 
 private const val LANGUAGE_DIRECTORY_PREFIX = "strings#lang_"
+
+private fun keepsEveryLanguage(raw: String?) =
+    raw.orEmpty().split(',').map { it.trim().lowercase(Locale.ROOT) }.filter(String::isNotEmpty).all { it == "all" }
 
 /**
  * What a person patching needs after any "not a build we know" refusal, which Manager shows as

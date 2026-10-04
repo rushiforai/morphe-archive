@@ -1,13 +1,13 @@
-group = "app.rushiranpise.morphe-patches"
+group = "app.mohamedelnaggar.morphe-patches"
 
 patches {
     about {
-        name = "Doom's Morphe Patches"
-        description = "New mask, same task. All patches answer to Doom."
-        source = "https://github.com/rushiranpise/morphe-patches"
-        author = "rushiranpise"
-        contact = "https://github.com/rushiranpise"
-        website = "https://morphe.software/add-source?github=rushiranpise/morphe-patches"
+        name = "TikTok Lite Negro patches"
+        description = "TikTok Lite patches for Morphe."
+        source = "https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only"
+        author = "MohamedElnaggar00"
+        contact = "https://github.com/MohamedElnaggar00"
+        website = "https://morphe.software/add-source?github=MohamedElnaggar00/morphe-patches-tiktok-lite-only"
         license = "GPLv3"
     }
 }
@@ -31,7 +31,6 @@ fun String.kotlinStringLiteral() = replace("\\", "\\\\").replace("\"", "\\\"")
 val generateSecrets by tasks.registering {
     val sharedMapsApiKey = providers.environmentVariable("SHARED_MAPS_API_KEY")
     inputs.property("SHARED_MAPS_API_KEY", sharedMapsApiKey.orElse(""))
-    outputs.dir(generatedSecretsDir)
 
     doLast {
         val outputDir = generatedSecretsDir.get().asFile.resolve("app/template/patches/shared")
@@ -41,9 +40,9 @@ val generateSecrets by tasks.registering {
             package app.template.patches.shared
 
             internal object BuildSecrets {
-                const val SHARED_MAPS_API_KEY = "${sharedMapsApiKey.orNull.orEmpty().kotlinStringLiteral()}"
+                const val SHARED_MAPS_API_KEY = "__API_KEY_PLACEHOLDER__"
             }
-            """.trimIndent(),
+            """.trimIndent().replace("__API_KEY_PLACEHOLDER__", sharedMapsApiKey.orNull.orEmpty().kotlinStringLiteral()),
         )
     }
 }
@@ -56,8 +55,6 @@ tasks.named("sourcesJar") {
     dependsOn(generateSecrets)
 }
 
-// Separate configuration so gson is available at runtime for the
-// generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath: Configuration by configurations.creating
 
 dependencies {
@@ -67,7 +64,7 @@ dependencies {
 
 tasks {
     register<JavaExec>("generatePatchesList") {
-        description = "Build patch with patch list"
+        description = "Generate patches-list.json from the compiled .mpp"
 
         dependsOn(build)
 
@@ -75,7 +72,6 @@ tasks {
         mainClass.set("app.morphe.util.PatchListGeneratorKt")
     }
 
-    // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")
     }

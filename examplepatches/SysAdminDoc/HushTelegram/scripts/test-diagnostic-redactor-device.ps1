@@ -149,22 +149,25 @@ try {
     New-Item -ItemType Directory -Path $hostClasses, $deviceClasses, $dex | Out-Null
     $redactor = Join-Path $Root 'extensions/shared/library/src/main/java/app/hushtelegram/extension/shared/diagnostics/DiagnosticRedactor.java'
     $test = Join-Path $Root 'extensions/telegram/src/test/java/app/hushtelegram/extension/shared/diagnostics/DiagnosticRedactorTest.java'
+    $properties = Join-Path $Root 'extensions/telegram/src/test/java/app/hushtelegram/extension/shared/diagnostics/DiagnosticRedactorPropertyTest.java'
+    $grammar = Join-Path $Root 'extensions/telegram/src/test/java/app/hushtelegram/extension/shared/fuzz/BoundedJsonGrammar.java'
     $check = Join-Path $PSScriptRoot 'checks/DiagnosticRedactorDevice.java'
     [void](Invoke-RedactorHost -Program $javac -Description 'Compile host redactor corpus' `
-        -Arguments @('--release', '17', '-encoding', 'UTF-8', '-cp', $JUnitJar, '-d', $hostClasses, $redactor, $test, $check))
+        -Arguments @('--release', '17', '-encoding', 'UTF-8', '-cp', $JUnitJar, '-d', $hostClasses, $redactor, $test, $properties, $grammar, $check))
     $corpus = Join-Path $work 'corpus.tsv'
     $hostClasspath = $hostClasses + [System.IO.Path]::PathSeparator + $JUnitJar
     $export = @(Invoke-RedactorHost -Program $Java -Description 'Export real diagnostic corpus' `
         -Arguments @('-cp', $hostClasspath, 'DiagnosticRedactorDevice', '--export', $corpus))
-    $exportMarker = @($export | Where-Object { $_ -match '^HUSHTELEGRAM_REDACTOR_EXPORT rows=(\d+) exact=1$' })
-    if ($exportMarker.Count -ne 1 -or $exportMarker[0] -notmatch 'rows=(\d+)') { throw 'The host exported no corpus tally.' }
+    $exportMarker = @($export | Where-Object { $_ -match '^HUSHTELEGRAM_REDACTOR_EXPORT rows=(\d+) exact=1 grammar=(\d+)$' })
+    if ($exportMarker.Count -ne 1 -or $exportMarker[0] -notmatch '^HUSHTELEGRAM_REDACTOR_EXPORT rows=(\d+) exact=1 grammar=(\d+)$') { throw 'The host exported no corpus tally.' }
     $rows = [int]$Matches[1]
-    if ($rows -le 0) { throw 'The exported diagnostic corpus is empty.' }
-    $expectedMarker = "HUSHTELEGRAM_REDACTOR_OK rows=$rows joined=1 exact=1"
+    $grammarRows = [int]$Matches[2]
+    if ($rows -le 0 -or $grammarRows -le 0) { throw 'The exported diagnostic corpus is empty.' }
+    $expectedMarker = "HUSHTELEGRAM_REDACTOR_OK rows=$rows joined=1 exact=1 grammar=$grammarRows"
     $hostRun = @(Invoke-RedactorHost -Program $Java -Description 'Check diagnostic corpus on the JVM' `
         -Arguments @('-cp', $hostClasses, 'DiagnosticRedactorDevice', '--check', $corpus))
     if (@($hostRun | Where-Object { $_ -eq $expectedMarker }).Count -ne 1) { throw 'The JVM reported no complete diagnostic check.' }
-    Write-Host "[redactor] JVM passed $rows rows, joined report and exact Telegram controls."
+    Write-Host "[redactor] JVM passed $rows canaries and $grammarRows grammar cases, joined report and exact Telegram controls."
 
     [void](Invoke-RedactorHost -Program $javac -Description 'Compile device redactor payload' `
         -Arguments @('--release', '17', '-encoding', 'UTF-8', '-d', $deviceClasses, $redactor, $check))
@@ -183,7 +186,7 @@ try {
     if (@($deviceRun | Where-Object { $_ -eq $expectedMarker }).Count -ne 1) {
         throw "Android reported no complete diagnostic check: $($deviceRun -join ' ')"
     }
-    Write-Host "[redactor] ART/ICU passed $rows rows, joined report and exact Telegram controls on $model (API $api)."
+    Write-Host "[redactor] ART/ICU passed $rows canaries and $grammarRows grammar cases, joined report and exact Telegram controls on $model (API $api)."
 } catch {
     $primaryFailure = $_
     throw

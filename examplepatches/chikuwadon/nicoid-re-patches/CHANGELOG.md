@@ -1,3 +1,64 @@
+## 1.4.1 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Show video statistics with play, comment, heart, and folder icons in the official order.
+* **nicoid:** Dim video statistics icons in dark mode and remove the registration prompt and divider from video information.
+
+## 1.4.1-dev.2 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Dim video statistics icons in dark mode and remove the registration prompt and divider from video information.
+
+## 1.4.1-dev.1 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Show video statistics with play, comment, heart, and folder icons in the official order.
+
+## 1.4.0 (2026-10-03)
+
+### ✨ New Features
+
+* **nicoid:** Add manual session-cookie sign-in for devices that cannot use the WebView sign-in screen.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore video cache downloads with the required delivery cookie and Origin header.
+* **nicoid:** Open external pop-up playback links without bringing the main app to the foreground.
+
+## 1.4.0-dev.1 (2026-10-03)
+
+### ✨ New Features
+
+* **nicoid:** Add manual session-cookie sign-in for devices that cannot use the WebView sign-in screen, with Japanese, English, and Traditional Chinese UI.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore video cache downloads with the required delivery cookie and Origin header.
+* **nicoid:** Open external pop-up playback links without bringing the main app to the foreground.
+
+## 1.3.5-dev.3 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix an installation failure introduced in the previous development build.
+
+## 1.3.5-dev.2 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Keep the originating app in front when opening a video link in pop-up playback mode.
+
+## 1.3.5-dev.1 (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore the delivery credential used by video cache downloads.
+* **nicoid:** Suppress the outdated Android 11 migration prompt for the current app-specific folder.
+* **nicoid:** Clarify cache storage options.
+
 ## 1.3.4 (2026-10-02)
 
 ### 🐛 Bug Fixes

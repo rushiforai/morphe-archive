@@ -35,6 +35,14 @@ Repacked/re-signed builds otherwise get a "download from Google Play" paywall
 - **Fixed and verified on device (2026-09-30)** by the `Change installer source` patch, which
   spoofs the installer source (`InstallSourceInfo.getInstallingPackageName()` and related
   calls) so PairIP's local installer check passes. No license/tamper logic is modified.
+- **Android 9 and older: the installer spoof cannot work.** The app's
+  `performLocalInstallerCheck()` short-circuits on `SDK_INT < 30` ("Local install check
+  bypassed due to old SDK version"), so the spoofed call never runs and the app always
+  falls through to the full Google Play license verification, which fails for any
+  sideloaded (re-signed) install → paywall → Play Store redirect. Verified on an Ottocast
+  PICASOU (Android 9). For these devices use the `Remove license check` patch, which
+  removes the PairIP ContentProvider from the manifest so the check never starts.
+  It grants no entitlements and does not affect purchases.
 - Alternatives without code changes: install via root mount (Morphe Manager), which keeps
   the original Play install identity, or install with the installer recorded as
   `com.android.vending` (`pm install -i com.android.vending`).
@@ -78,6 +86,7 @@ Relevant when disabling network access (e.g. "Remove internet permission" patch)
 |---|---|---|---|
 | Remove ads | `patches/src/main/kotlin/app/bugg4/patches/oplmonitor/ads/RemoveAdsPatch.kt` | on | No-ops all Google Mobile Ads load methods (banner/interstitial/rewarded/rewarded interstitial/app open/native) |
 | Change installer source | `.../misc/ChangeInstallerSourcePatch.kt` | on | Spoofs installer source (`com.android.vending` option); required to pass the PairIP startup license check |
+| Remove license check | `.../misc/RemoveLicenseCheckPatch.kt` | off | Removes the PairIP startup check entirely. For Android ≤ 9 devices where the installer spoof cannot work (full Play verification always fails for sideloaded installs) |
 | Spoof app version | `.../misc/SpoofAppVersionPatch.kt` | off | Manifest `versionName` option (default `9.9.9`) |
 | Remove internet permission | `.../misc/RemoveInternetPermissionPatch.kt` | off | Removes `android.permission.INTERNET`; see table above |
 
@@ -123,7 +132,12 @@ To keep premium purchases working together with patches, install via **root moun
 
 | Patch | Status |
 |---|---|
-| Change installer source | ✅ Verified — app launches past PairIP (2026-09-30) |
-| Remove ads | ⏳ Needs verification across app screens |
-| Spoof app version | ⏳ Observe for update prompts over time |
+| Change installer source | ✅ Verified — app launches past PairIP on Android 10+ (2026-09-30) |
+| Remove license check | ✅ Verified on Ottocast PICASOU, Android 9 (2026-10-03) |
+| Remove ads | In use since 2026-09-30, no issues reported |
+| Spoof app version | In use since 2026-09-30, no update prompt reported so far |
 | Remove internet permission | Not tested (not recommended — breaks VIN/DTC/function downloads) |
+
+Recommended combinations: on Android 10+ use "Change installer source" (with "Remove ads");
+on Android 9 and older use "Remove license check" instead — the two license patches are
+mutually exclusive, only one is needed.

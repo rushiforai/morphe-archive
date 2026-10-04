@@ -5,6 +5,8 @@
 package app.hushgram.extension.instagram.reels;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.LongSupplier;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -24,7 +26,9 @@ import app.hushgram.extension.shared.settings.HushgramPause;
  * themselves. The patch passes every answer of that method, and every one of those reads, through
  * {@link #answer}, every answer of the saved preference's getter through {@link #saved}, and hands
  * each choice made with Instagram's own switches that turn it on or off to {@link #chosen}, and
- * again to {@link #stored} once Instagram has kept it in memory or saved it.
+ * again to {@link #stored} once Instagram has kept it in memory or saved it. A completed duration
+ * choice passes its actual expiration timestamp to {@link #timerSet} after the native save, so a
+ * future timer is remembered even if it expires before another check answers on.
  *
  * <p>HushGram keeps the last choice ({@link Settings#REEL_AUTO_SCROLL_ON}). The check answering on
  * is remembered as on, a choice Instagram keeps is remembered as it is, and turning auto scroll off
@@ -81,7 +85,7 @@ public final class ReelAutoScroll {
         boolean scrolling = instagram != 0;
         try {
             HookStatus.invoked(FamilyNames.REEL_AUTO_SCROLL);
-            if (reported < 2) report(scrolling, learning, on, memory);
+            if (reported.get() < 2) report(scrolling, learning, on, memory);
             if (!learning.getAsBoolean()) return scrolling;
             if (scrolling) {
                 if (!memory.on()) {
@@ -164,8 +168,26 @@ public final class ReelAutoScroll {
         }
     }
 
+    /** Called after a completed native duration save, with the expiration timestamp it saved. */
+    public static void timerSet(long expiration) {
+        timerSet(expiration, System::currentTimeMillis, ReelAutoScroll::learning, SAVED);
+    }
+
+    static void timerSet(long expiration, LongSupplier now, BooleanSupplier learning, Memory memory) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_AUTO_SCROLL);
+            if (!learning.getAsBoolean() || expiration <= now.getAsLong()) return;
+            if (!memory.on()) {
+                memory.remember(true);
+                Logger.printInfo(() -> "Reel auto scroll: duration saved, remembered on");
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_AUTO_SCROLL, "auto scroll timer", failure);
+        }
+    }
+
     /** What {@link #report} has logged in this process: 0 nothing, 1 an answer it couldn't learn from, 2 one it could. */
-    private static volatile int reported;
+    private static final AtomicInteger reported = new AtomicInteger();
 
     /**
      * Logs what the first answer after a start saw, and the first one HushGram may learn from if
@@ -174,8 +196,12 @@ public final class ReelAutoScroll {
      */
     private static void report(boolean scrolling, BooleanSupplier learning, BooleanSupplier on, Memory memory) {
         boolean learns = learning.getAsBoolean();
-        if (!learns && reported == 1) return;
-        reported = learns ? 2 : 1;
+        int next = learns ? 2 : 1;
+        int previous;
+        do {
+            previous = reported.get();
+            if (previous >= next) return;
+        } while (!reported.compareAndSet(previous, next));
         boolean keeping = learns && on.getAsBoolean();
         boolean left = learns && memory.on();
         Logger.printInfo(() -> "Reel auto scroll: answer since start, Instagram says " + (scrolling ? "on" : "off")

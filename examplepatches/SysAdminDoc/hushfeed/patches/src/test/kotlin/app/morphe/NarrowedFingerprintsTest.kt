@@ -15,7 +15,6 @@ import app.morphe.patches.tiktok.misc.shortcuts.ShortcutPublishFingerprint
 import app.morphe.patches.tiktok.misc.translation.CommentListLoadedFingerprint
 import app.morphe.patches.tiktok.promobanners.ProfileRewardsIconBinderFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -64,7 +63,7 @@ class NarrowedFingerprintsTest {
         val wide = narrowed.associateWith { it.unnarrowed() }
         for (apk in Fixtures.apks()) {
             val version = Fixtures.versionOf(apk)
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val taken = narrowed.associateWith { mutableListOf<String>() }
             val narrowTaken = narrowed.associateWith { mutableListOf<String>() }
             for (entry in container.dexEntryNames) {

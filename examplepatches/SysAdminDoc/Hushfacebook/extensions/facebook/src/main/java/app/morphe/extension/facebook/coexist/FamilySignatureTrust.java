@@ -177,6 +177,25 @@ public final class FamilySignatureTrust {
         }
     }
 
+    /**
+     * Whether this install still carries one of Meta's Facebook signing certificates, as a Root
+     * Mount install does. Those builds do not need Restore screens to make Facebook trust its own
+     * package, because Android already reports Meta's key.
+     */
+    public static boolean thisBuildCarriesMetaKey(@Nullable Context context) {
+        if (context == null) return false;
+        PackageManager packages = context.getPackageManager();
+        if (packages == null) return false;
+        try {
+            Set<String> ours = currentSigners(packages, context.getPackageName());
+            return !ours.isEmpty() && !Collections.disjoint(ours, META_SIGNER_DIGESTS);
+        } catch (Throwable failure) {
+            Logger.printInfo(() -> "Could not tell whether this build carries Meta's key: "
+                    + failure.getClass().getName());
+            return false;
+        }
+    }
+
     /** Records a refusal reason as an always-on count and, with Debug logging on, a line, then denies. */
     private static boolean no(String caller, String reason) {
         HookStatus.counted(FamilyNames.RESTORE_TRUST, reason);

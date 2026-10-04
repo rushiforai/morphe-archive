@@ -13,7 +13,7 @@ package app.morphe.extension.shared.diagnostics;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Removes request addresses, credentials and device identifiers from exported text. */
+/** Removes request addresses, filesystem paths, credentials and device identifiers from exported text. */
 public final class DiagnosticRedactor {
     /**
      * Threads' own hosts, Instagram's, which Threads shares an account and an API with, and the two
@@ -130,11 +130,11 @@ public final class DiagnosticRedactor {
      * unclosed one runs to the end of its line.
      */
     private static final String QUOTED =
-            "(?:(?<q>\\\\*)\"(?:[^\\\\\"\\r\\n]|\\\\++(?!\")|(?!\\k<q>\")\\\\+\")*(?:\\k<q>\")?"
-                    + "|'(?:[^\\\\'\\r\\n]|\\\\.)*'?"
-                    + "|" + ESCAPED_QUOTE + "(?:(?!" + ESCAPED_QUOTE + ")[^\\r\\n])*(?:" + ESCAPED_QUOTE + ")?"
-                    + "|&quot;(?:(?!&quot;)[^\\r\\n])*(?:&quot;)?"
-                    + "|%22(?:(?!%22)[^" + SPACE + "&])*(?:%22)?)";
+            "(?:(?<q>\\\\*)\"(?:[^\\\\\"\\r\\n]|\\\\++(?!\")|(?!\\k<q>\")\\\\+\")*+(?:\\k<q>\")?"
+                    + "|'(?:[^\\\\'\\r\\n]|\\\\.)*+'?"
+                    + "|" + ESCAPED_QUOTE + "(?:(?!" + ESCAPED_QUOTE + ")[^\\r\\n])*+(?:" + ESCAPED_QUOTE + ")?"
+                    + "|&quot;(?:(?!&quot;)[^\\r\\n])*+(?:&quot;)?"
+                    + "|%22(?:(?!%22)[^" + SPACE + "&])*+(?:%22)?)";
     /** The schemes an Authorization value names before its credential. */
     private static final String SCHEME = "(?:bearer|basic|digest|oauth|negotiate)";
     /** A credential's characters: the token68 of RFC 9110, and percent signs. */
@@ -266,9 +266,19 @@ public final class DiagnosticRedactor {
 
     /** Every rule, in order. */
     private static String withoutPrivateValues(String text) {
+        String pathStart = "(?:file(?::|%3a)(?:/+|\\\\+|%2f|%5c)"
+                + "|[a-z](?::|%3a)(?:/(?!/)|\\\\+|%2f|%5c)"
+                + "|\\\\{2,}[^\\\\/ \\t\\r\\n\"'<>]+[/\\\\]"
+                + "|(?:\\\\+u005c){2}"
+                + "|\\\\+(?!u[0-9a-f]{4})(?=[^\\\\\"'\\r\\n])"
+                + "|(?:\\.\\.?|~)?(?:\\\\*/(?!/)(?=[^\\r\\n])|\\\\+u002f|%2f))";
         String passed = text
                 .replaceAll(ISOLATED_NAME, "[name omitted]")
                 .replaceAll(HANDLE, "[handle omitted]")
+                // Quotes delimit the complete value, including embedded escaped quotes and spaces.
+                // An unquoted path takes the rest of its line. Guessing a word boundary leaks filenames.
+                .replaceAll("(?i)(?:(?=" + QUOTE_MARK + pathStart + ")" + QUOTED
+                        + "|(?<![A-Za-z0-9_./\\\\%])" + pathStart + "[^\\r\\n]*)", "[path omitted]")
                 .replaceAll("(?i)" + EDGE + "[a-z][a-z0-9+.-]*://[^" + SPACE + "\"'<>]+", "[url omitted]")
                 .replaceAll(HOST, "[host omitted]")
                 .replaceAll(NAME_VALUE_PAIR, "$1[omitted]")

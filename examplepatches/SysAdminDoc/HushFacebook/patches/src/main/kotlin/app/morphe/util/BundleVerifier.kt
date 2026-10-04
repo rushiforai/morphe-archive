@@ -41,6 +41,12 @@ object BundleVerifier {
             require(jar.manifest.mainAttributes.getValue("Version") == args[2]) {
                 "Bundle version does not match ${args[2]}"
             }
+            if (jar.getJarEntry("app/morphe/util/BundleIdentity.class") != null ||
+                jar.getJarEntry(BundleIdentity.ENTRY) != null) {
+                require(BundleIdentity.fromJar(jar).startsWith("sha256=")) {
+                    "Bundle identity is missing or does not match its packaged inputs"
+                }
+            }
         }
         val expectedDigest = File(args[3]).readText().trim()
         val actualDigest = MessageDigest.getInstance("SHA-256").digest(bundle.readBytes())

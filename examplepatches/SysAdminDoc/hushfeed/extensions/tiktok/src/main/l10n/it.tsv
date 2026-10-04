@@ -1,3 +1,27 @@
+Importing new history ended Undo for the earlier clear. You can clear the imported history.	L'importazione di una nuova cronologia impedisce di annullare la cancellazione precedente. Puoi cancellare la cronologia importata.
+%1$d setting in that file can't be restored here and was skipped	%1$d impostazione del file non può essere ripristinata qui ed è stata saltata
+%1$d settings in that file can't be restored here and were skipped	%1$d impostazioni del file non possono essere ripristinate qui e sono state saltate
+Import watch history	Importa cronologia di visualizzazione
+Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	Usa l'esportazione JSON di TikTok di questo account, fino a %1$s MB e %2$s voci. Le date senza fuso orario usano quello di questo telefono.
+Sign in to TikTok before importing watch history.	Accedi a TikTok prima di importare la cronologia di visualizzazione.
+Your TikTok account changed. Choose the file again for this account.	Il tuo account TikTok è cambiato. Scegli di nuovo il file per questo account.
+Reading watch history	Lettura della cronologia
+Importing watch history	Importazione della cronologia
+Reopen Hushfeed settings, then choose the file	Riapri le impostazioni di Hushfeed, poi scegli il file
+Couldn't start the import. Try again in a moment.	Impossibile avviare l'importazione. Riprova tra poco.
+Your seen history changed before the import finished. Choose the file again.	La cronologia è cambiata prima del termine dell'importazione. Scegli di nuovo il file.
+Couldn't import watch history. Your saved history is unchanged.	Impossibile importare la cronologia. Quella salvata non è stata modificata.
+%1$s watched video added.	Aggiunto %1$s video visto.
+%1$s watched videos added.	Aggiunti %1$s video visti.
+%1$s entry skipped.	Saltata %1$s voce.
+%1$s entries skipped.	Saltate %1$s voci.
+Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos.	Le voci saltate non sono valide, sono scadute, sono già salvate o precedono i %1$s video più recenti.
+Watch history was imported for the account that chose the file. Switch back to see it.	La cronologia è stata importata per l'account che ha scelto il file. Torna a quell'account per vederla.
+Couldn't read that file. Choose it again.	Impossibile leggere il file. Sceglilo di nuovo.
+That file is larger than %1$s MB. Choose a smaller watch-history export.	Il file supera i %1$s MB. Scegli un'esportazione della cronologia più piccola.
+That file has more than %1$s watch-history entries.	Il file contiene più di %1$s voci di cronologia.
+That JSON file doesn't contain the supported TikTok watch history.	Questo file JSON non contiene la cronologia di TikTok supportata.
+That watch-history file is damaged. Nothing was imported.	Il file della cronologia è danneggiato. Non è stato importato nulla.
 # Settings text, English on the left, Italian on the right, one entry per line, tab separated.
 # Keep %s and %d placeholders, {tokens} and product names as they are.
 # scripts/gen-l10n.py turns this into a table inside L10nTranslations.java.
@@ -600,7 +624,7 @@ Last original value	Ultimo valore originale
 Last recording: %1$d gates.	Ultima registrazione: %1$d gate.
 Last recording: 1 gate.	Ultima registrazione: 1 gate.
 Layout	Layout
-Layout, player, search and system	Layout, player, ricerca e sistema
+Layout, search, profile and system	Layout, ricerca, profilo e sistema
 Leave maximum empty to keep it unlimited.	Lascia il massimo vuoto per non avere limiti.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.	Non includere l'audio nel video salvato. Salva anche l'audio scrive comunque il file .m4a accanto al video, se vuoi entrambi.
 Length and views per like	Durata e visualizzazioni per Mi piace
@@ -876,7 +900,6 @@ Saving the story	Salvataggio della storia in corso
 Saving the sound	Salvataggio dell'audio in corso
 Saving the profile picture	Salvataggio della foto del profilo in corso
 Saving the live photo's clip	Salvataggio del clip della Live Photo in corso
-Screen	Schermo
 Screen time	Tempo di utilizzo dello schermo
 Search	Ricerca
 Search by name, description or category.	Cerca per nome, descrizione o categoria.
@@ -1406,7 +1429,6 @@ Problem detected.	Problema rilevato.
 Couldn't save these choices. Try again.	Non è stato possibile salvare queste scelte. Riprova.
 Clearing seen videos	Eliminazione dei video visti in corso
 Couldn't clear seen videos. Try again.	Non è stato possibile eliminare i video visti. Riprova.
-Background play	Riproduzione in background
 Keep playing in the background	Continua la riproduzione in background
 The video you're watching keeps playing to its end after you leave TikTok or turn the screen off, with TikTok's own media notification to pause it. TikTok's background play switch stays on while this is on. Restart TikTok to apply this.	Il video che stai guardando continua fino alla fine anche se esci da TikTok o spegni lo schermo, e puoi metterlo in pausa dalla notifica multimediale di TikTok. L'interruttore di riproduzione in background di TikTok resta attivo finché questa opzione è attiva. Riavvia TikTok per applicare la modifica.
 Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.	"Continua la riproduzione in background" è attivo nelle impostazioni di Riproduzione di Hushfeed, quindi TikTok riceve 2 per questa chiave, e una sovrascrittura qui non ha effetto finché quell'interruttore non è disattivato.
@@ -1435,7 +1457,6 @@ A different account is signed in. Switch back to the one you set this up on, or 
 TikTok's messages didn't start in time. It tries again at %1$s.	I messaggi di TikTok non si sono avviati in tempo. Verrà ritentato alle %1$s.
 The message didn't go through. It tries again at %1$s.	Il messaggio non è stato inviato. Verrà ritentato alle %1$s.
 Found %1$s in your chats.	%1$s trovato tra le tue chat.
-App checks	Controlli dell'app
 Look like the store app to TikTok's checks	Sembra l'app del Play Store per i controlli di TikTok
 Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.	Risponde ai controlli interni di TikTok su come è stato firmato e installato, allo stesso modo dell'app del Play Store. Utile per i follow o i Mi piace che si annullano da soli a un aggiornamento. TikTok può anche controllare da codice nativo che questa opzione non raggiunge, quindi potrebbe non essere d'aiuto.
 Add apps to Share via	Aggiungi app a "Condividi con"
@@ -1473,9 +1494,16 @@ Sends one message a day to each person below at the time below, so your streaks 
 Their usernames, separated by commas or new lines. Each person must already have a chat with you.	I loro nomi utente, separati da virgole o righe nuove. Devi già avere una chat con ciascuna persona.
 Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.	Consegna non confermata: %1$d/%2$d chat. Non verranno ritentate oggi.
 Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.	Consegna non confermata: %1$d/%2$d chat. Le altre chat hanno ancora bisogno di un messaggio.
+Sent to %1$d/%2$d chats. They won't get another message today.	Inviato a %1$d/%2$d chat. Oggi non riceveranno un altro messaggio.
+Sent to %1$d/%2$d chats. The rest still need a message.	Inviato a %1$d/%2$d chat. Le altre chat hanno ancora bisogno di un messaggio.
 TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.	TikTok potrebbe aver accettato questo messaggio. La consegna non è confermata, quindi non verrà ritentato oggi.
 Nothing was sent. Check the streak settings and try again.	Non è stato inviato nulla. Controlla le impostazioni degli streak e riprova.
 Don't save new searches	Non salvare le nuove ricerche
 Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.	Tieni ciò che cerchi fuori dalla cronologia delle ricerche che TikTok salva su questo telefono. Le ricerche già presenti restano finché non le elimini, e i server di TikTok potrebbero comunque tenere un proprio registro.
 Block suggested video notifications	Blocca le notifiche dei video suggeriti
 Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.	Ferma le notifiche che TikTok invia sui video popolari che ha scelto per te. Messaggi, commenti, Mi piace, nuovi follower e video degli account che segui continuano ad arrivare.
+Buttons on videos	Pulsanti sui video
+
+Seen videos put back: %1$s of %2$s	Video visti ripristinati: %1$s di %2$s
+No cleared videos fit the current history limits.	Nessun video cancellato rientra nei limiti attuali della cronologia.
+Putting seen videos back	Ripristino dei video visti

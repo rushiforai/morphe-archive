@@ -39,6 +39,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import app.morphe.extension.facebook.coexist.FamilySignatureTrust;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
@@ -101,8 +102,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     static final String CHECK_NOW = "action_check_for_release";
     /** The Supported links row's key. It stores nothing either. */
     static final String SUPPORTED_LINKS = "action_supported_links";
-    /** The Meta App Manager row's key, under Supported links. It stores nothing either. */
-    static final String APP_MANAGER_LINKS = "action_app_manager_links";
+    /** The key of the overview row explaining a missing re-signed build fix. */
+    static final String MISSING_RESTORE_TRUST = "action_missing_restore_trust";
     /** The key of the row naming the default patches this build lacks. It stores nothing either. */
     static final String MISSING_DEFAULTS = "action_missing_default_patches";
 
@@ -302,7 +303,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         HushfacebookPages.pause(this, screen, context, build);
         HushfacebookPages.about(this, screen, context, build);
 
-        // The overview shows it under the card by its key. Last in the model, it moves no other row.
+        // The overview shows these under the card by key. Last in the model, they move no other row.
+        Preference restore = missingRestoreTrustRow(context, build);
+        if (restore != null) screen.addPreference(restore);
         Preference lacking = missingDefaultsRow(context, build);
         if (lacking != null) screen.addPreference(lacking);
     }
@@ -465,6 +468,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     @Nullable
     private static Preference missingDefaultsRow(Context context, Set<PatchFamily> build) {
         List<String> missing = PatchFamily.missingDefaults(build);
+        missing.remove(PatchFamily.RESTORE_TRUST.patchName);
         if (missing.isEmpty()) return null;
         List<String> names = new ArrayList<>();
         for (String name : missing) names.add(L10n.isolate(name));
@@ -490,6 +494,22 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
+    /**
+     * A missing Restore screens patch breaks profiles on ordinary re-signed installs. Pull it out of
+     * the generic missing-defaults list so the overview says exactly what fails (#68). Root Mount
+     * installs still carry Meta's key and do not need this patch.
+     */
+    @Nullable
+    private static Preference missingRestoreTrustRow(Context context, Set<PatchFamily> build) {
+        if (build.contains(PatchFamily.RESTORE_TRUST)) return null;
+        if (FamilySignatureTrust.thisBuildCarriesMetaKey(context)) return null;
+        Preference row = info(context, L10n.t("Profiles and some Settings pages won't open"),
+                L10n.f("Patch again with %1$s selected. Re-signed builds need it for profiles and some Facebook "
+                        + "Settings pages.", L10n.isolate(FamilyNames.RESTORE_TRUST)));
+        row.setKey(MISSING_RESTORE_TRUST);
+        return row;
+    }
+
     void resumeFromOverview() {
         Context context = getContext();
         if (context == null || statusCard == null) return;
@@ -506,7 +526,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                     ? L10n.f("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.", file, folder)
                     : L10n.f("The file %1$s couldn't be removed. Delete it from %2$s to turn Hushfacebook back on.",
                     file, folder);
-            statusCard.setSummary(left);
+            statusCard.setSummary(left + "\n" + L10n.f("Build %1$s", L10n.isolate(Utils.getPatchesBuildIdentity())));
             // Resume can be tapped on a category page too, where the card isn't in view.
             Utils.showToastLong(left);
             return;
@@ -537,6 +557,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         } else {
             status = L10n.t("Hushfacebook turns back on when Facebook restarts.");
         }
+        status += "\n" + L10n.f("Build %1$s", L10n.isolate(Utils.getPatchesBuildIdentity()));
         String release = ReleaseCheck.statusLine();
         card.setSummary(release == null ? status : status + "\n" + release);
     }
@@ -572,7 +593,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         row.setKey(SUPPORTED_LINKS);
         row.setTitle(L10n.t("Supported links"));
         row.setPersistent(false);
-        row.setSummary(SupportedLinks.summary(SupportedLinks.read(context)));
+        row.setSummary(SupportedLinks.summary(SupportedLinks.read(context).state));
         row.setOnPreferenceClickListener(p -> {
             openLinkSettings(context);
             return true;
@@ -581,36 +602,40 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     }
 
     /**
-     * The way to Meta App Manager's link page, under Supported links, when Meta App Manager is on
-     * the phone and Facebook's addresses don't all open here (#30), or null. Android won't let a
-     * person select an address another app is verified for, so App Manager has to let go first.
+     * The way to the link page of each of Meta's apps on the phone that may hold an address that
+     * doesn't open here, under Supported links: Meta App Manager (#30), Messenger and Instagram
+     * (#78). Android won't let a person select an address another app is verified for, so that app
+     * has to let go first.
      */
-    @Nullable
-    Preference appManagerLinksRow(Context context) {
-        SupportedLinks.State state = SupportedLinks.read(context);
-        if (!SupportedLinks.appManagerMayHoldLinks(state, SupportedLinks.appManagerOn(context))) return null;
-        Row row = new Row(context);
-        row.setKey(APP_MANAGER_LINKS);
-        row.setTitle(L10n.t("Meta App Manager"));
-        row.setPersistent(false);
-        row.setSummary(SupportedLinks.appManagerSummary(state));
-        row.setOnPreferenceClickListener(p -> {
-            openLinkPage(SupportedLinks.appManagerIntents(), "Meta App Manager",
-                    L10n.t("Meta App Manager's settings didn't open. Find it in Android's app list with system apps "
-                            + "shown, then Open by default."));
-            return true;
-        });
-        return row;
+    List<Preference> linkHolderRows(Context context) {
+        SupportedLinks.Snapshot snapshot = SupportedLinks.read(context);
+        List<Preference> rows = new ArrayList<>();
+        for (SupportedLinks.Holder holder : SupportedLinks.Holder.values()) {
+            if (!SupportedLinks.mayHoldLinks(holder, snapshot, SupportedLinks.isOn(context, holder))) continue;
+            Row row = new Row(context);
+            row.setKey(holder.rowKey);
+            row.setTitle(holder.title());
+            row.setPersistent(false);
+            row.setSummary(SupportedLinks.holderSummary(holder, snapshot));
+            row.setOnPreferenceClickListener(p -> {
+                openLinkPage(SupportedLinks.holderIntents(holder), holder.reportKey, holder.notOpened());
+                return true;
+            });
+            rows.add(row);
+        }
+        return rows;
     }
 
     private void showSupportedLinks() {
         if (getPreferenceScreen() == null) return;
         Preference row = findPreference(SUPPORTED_LINKS);
         if (row == null) return;
-        SupportedLinks.State state = SupportedLinks.read(row.getContext());
-        row.setSummary(SupportedLinks.summary(state));
-        Preference appManager = findPreference(APP_MANAGER_LINKS);
-        if (appManager != null) appManager.setSummary(SupportedLinks.appManagerSummary(state));
+        SupportedLinks.Snapshot snapshot = SupportedLinks.read(row.getContext());
+        row.setSummary(SupportedLinks.summary(snapshot.state));
+        for (SupportedLinks.Holder holder : SupportedLinks.Holder.values()) {
+            Preference holderRow = findPreference(holder.rowKey);
+            if (holderRow != null) holderRow.setSummary(SupportedLinks.holderSummary(holder, snapshot));
+        }
     }
 
     private void openLinkSettings(Context context) {
@@ -811,6 +836,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         category.setTitle(title);
         screen.addPreference(category);
         return category;
+    }
+
+    static SwitchPreference toggle(Context context, BooleanSetting setting, String summary) {
+        return toggle(context, setting, SwitchLabels.title(setting), summary);
     }
 
     static SwitchPreference toggle(Context context, BooleanSetting setting, String title, String summary) {

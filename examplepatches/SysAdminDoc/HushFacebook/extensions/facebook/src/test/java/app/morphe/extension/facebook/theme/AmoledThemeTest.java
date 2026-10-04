@@ -28,7 +28,7 @@ import java.util.Map;
 public class AmoledThemeTest {
     /** Stands in for Facebook's colour token enums: only the constant names matter. */
     enum Token { CARD_BACKGROUND, COMMENT_BACKGROUND, POPOVER_BACKGROUND, WASH, DIVIDER, PRIMARY_TEXT,
-        PRIMARY_UI, BACKGROUND_PRIMARY_UI }
+        PRIMARY_UI, BACKGROUND_PRIMARY_UI, NEW_NOTIFICATION_BACKGROUND, ACCENT_DEEMPHASIZED }
 
     private static final int BLACK = 0xFF000000;
 
@@ -165,6 +165,38 @@ public class AmoledThemeTest {
 
         DarkMode.answer(false);
         assertEquals("light mode", 0xFF252728, AmoledTheme.react(0xFF252728));
+    }
+
+    /**
+     * Issue #72: Facebook's dark theme tints an unread notification's row with a 10% blue,
+     * #192D88FF. Over its grey page that's a blue row, over AMOLED's black page it's #050E1A,
+     * almost black. The tint goes to 25%, and the row then stands further from the black page than
+     * Facebook's own row does from its grey one.
+     */
+    @Test
+    public void anUnreadNotificationStandsOutOnTheBlackPage() {
+        int facebook = 0x192D88FF;
+        int drawn = AmoledTheme.apply(facebook, Token.NEW_NOTIFICATION_BACKGROUND);
+        assertEquals("Facebook's blue at 25%", 0x402D88FF, drawn);
+        assertEquals("over the black page", 0xFF0B2240, over(drawn, BLACK));
+
+        int page = 0xFF252728;
+        double facebookStep = TonePalette.lstar(over(facebook, page)) - TonePalette.lstar(page);
+        double step = TonePalette.lstar(over(drawn, BLACK)) - TonePalette.lstar(BLACK);
+        assertTrue("a step of " + step + " against Facebook's " + facebookStep, step >= 2 * facebookStep);
+    }
+
+    /** The mutation controls for issue #72: every other tint keeps its alpha. */
+    @Test
+    public void anyOtherTintKeepsItsAlpha() {
+        assertEquals("another token's tint", 0x192D88FF, AmoledTheme.apply(0x192D88FF, Token.ACCENT_DEEMPHASIZED));
+        assertEquals("no token to go on", 0x192D88FF, AmoledTheme.apply(0x192D88FF, "NEW_NOTIFICATION_BACKGROUND"));
+        assertEquals("a tint already stronger", 0x662D88FF, AmoledTheme.apply(0x662D88FF, Token.NEW_NOTIFICATION_BACKGROUND));
+        assertEquals("an opaque row", 0xFF0B2240, AmoledTheme.apply(0xFF0B2240, Token.NEW_NOTIFICATION_BACKGROUND));
+        assertEquals("a clear row", 0x002D88FF, AmoledTheme.apply(0x002D88FF, Token.NEW_NOTIFICATION_BACKGROUND));
+
+        DarkMode.answer(false);
+        assertEquals("light mode", 0x192D88FF, AmoledTheme.apply(0x192D88FF, Token.NEW_NOTIFICATION_BACKGROUND));
     }
 
     /** {@code top}, a colour with alpha, drawn over the opaque {@code under}, rounded as a screen does. */

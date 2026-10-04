@@ -184,6 +184,7 @@ public final class SettingsBackupPreference extends Preference
         boolean accepted = Utils.runOnBackgroundThread(() -> {
             boolean labRulesSkipped = false;
             int keptAsTheyWere = 0;
+            int settingsSkipped = 0;
             java.util.List<app.morphe.extension.tiktok.download.DownloadDestination.Kind> foldersKept =
                     java.util.Collections.emptyList();
             try {
@@ -201,6 +202,7 @@ public final class SettingsBackupPreference extends Preference
                             context, context.getContentResolver().openInputStream(uri), true);
                     labRulesSkipped = SettingsBackup.labRulesWereSkipped(text);
                     keptAsTheyWere = SettingsBackup.settingsNotInFile(text);
+                    settingsSkipped = SettingsBackup.settingsSkipped(text);
                     foldersKept = SettingsBackup.foldersKept(text);
                 } else if (action == RESET) SettingsBackup.reset(context);
                 else {
@@ -211,6 +213,7 @@ public final class SettingsBackupPreference extends Preference
                     String undone = SettingsBackup.undo(context);
                     labRulesSkipped = SettingsBackup.labRulesWereSkipped(undone);
                     keptAsTheyWere = SettingsBackup.settingsNotInFile(undone);
+                    settingsSkipped = SettingsBackup.settingsSkipped(undone);
                 }
                 // Anything the file did not carry stayed as the device had it, which is worth
                 // saying: an older backup used to put every setting added since back to its
@@ -244,6 +247,12 @@ public final class SettingsBackupPreference extends Preference
                 // downloads would otherwise have gone to DCIM/TikTok while the row showed the file's.
                 StringBuilder notes = new StringBuilder();
                 if (kept != null) notes.append(kept).append(". ");
+                if (settingsSkipped > 0) {
+                    notes.append(L10n.quantity(context, settingsSkipped,
+                            "%1$d setting in that file can't be restored here and was skipped",
+                            "%1$d settings in that file can't be restored here and were skipped",
+                            settingsSkipped)).append(". ");
+                }
                 for (app.morphe.extension.tiktok.download.DownloadDestination.Kind kind : foldersKept) {
                     notes.append(L10n.t(
                             kind == app.morphe.extension.tiktok.download.DownloadDestination.Kind.VIDEO

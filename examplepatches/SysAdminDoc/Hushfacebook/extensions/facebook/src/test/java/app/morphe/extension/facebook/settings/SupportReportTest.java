@@ -115,6 +115,7 @@ public class SupportReportTest {
                 "\nandroid: API " + Build.VERSION.SDK_INT + " (" + Build.VERSION.RELEASE + "), user "));
         assertTrue("no ABI: " + report, report.contains("\nabi: app "));
         assertTrue("no Hushfacebook version: " + report, report.contains("\nmorphe: "));
+        assertTrue("no honest build identity: " + report, report.contains("\npatch_build: unknown\n"));
         assertTrue("Debug logging's state is missing: " + report, report.contains("\ndebug_logging: off\n"));
         assertTrue("no patch list: " + report, report.contains("\n[PATCHES]\n"));
         assertTrue("no supported-link state: " + report, report.contains("\n[SUPPORTED LINKS]\n"));

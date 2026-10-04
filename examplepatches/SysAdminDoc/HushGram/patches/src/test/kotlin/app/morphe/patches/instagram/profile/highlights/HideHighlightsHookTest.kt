@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.NeutralNativePath
 import app.morphe.patches.instagram.profile.suggested.BUILD_ROWS
 import app.morphe.patches.instagram.profile.suggested.FOLLOW_CHAINING_BUTTON
 import app.morphe.patches.instagram.profile.suggested.HEADER_BIND
@@ -105,6 +106,8 @@ class HideHighlightsHookTest {
             classes(setup = siblingInTheTraysField) to "$row's setup doesn't store $REEL_TRAY",
             classes(setup = objectWrittenOverBeforeItsStore) to "$row's setup doesn't store $REEL_TRAY",
             classes(setup = jumpIntoTheStore) to "$row's setup doesn't store $REEL_TRAY",
+            classes(jumpIntoTray = 1) to "has a jump into the highlights tray's type read or add",
+            classes(jumpIntoTray = 2) to "has a jump into the highlights tray's type read or add",
         )
         for ((classes, expected) in cases) {
             val context = PatchContexts.of(classes)
@@ -146,6 +149,11 @@ class HideHighlightsHookTest {
         forEachFixture { bundle ->
             val holders = listOf(HEADER_BIND, REEL_TRAY).flatMap { FixtureDex.classesHolding(bundle, it) }.distinctBy { it.type }
             val context = PatchContexts.of(holders)
+            val site = context.findHighlightsRow()
+            val stockRows = context.mutableClassDefBy(site.type).methods.single {
+                it.name == site.name && it.parameterTypes.map(CharSequence::toString) == site.parameters
+            }
+            val original = NeutralNativePath(stockRows)
 
             context.hide()
 
@@ -156,6 +164,7 @@ class HideHighlightsHookTest {
             assertEquals("${bundle.name}: the rows method", BUILD_ROWS, rows.name)
             val keep = rows.code().indexOfFirst { it.referenceText() == KEEP_TRAY }
             assertTrayAsked(bundle.name, rows, (rows.code()[keep + 1] as OneRegisterInstruction).registerA)
+            original.assertPreserved(bundle.name, rows, (keep..keep + 2).toSet())
         }
     }
 
@@ -321,6 +330,7 @@ class HideHighlightsHookTest {
         readTypeAfterAdd: Boolean = false,
         setup: String? = null,
         bioRow: Boolean = false,
+        jumpIntoTray: Int = 0,
     ): List<ClassDef> {
         val rowEnums = (0 until rowSetups).map { copy ->
             val type = if (copy == 0) row else "Lfixture/OtherRow;"
@@ -371,12 +381,14 @@ class HideHighlightsHookTest {
                 """.trimIndent()
                 methods += method(type, BUILD_ROWS, listOf(rowList, "Ljava/lang/Object;", "Ljava/lang/Object;"), "V", 3, body = """
                     $bio
-                    if-eqz p3, :tray
+                    if-eqz p3, :${when (jumpIntoTray) { 1 -> "trayType"; 2 -> "trayAdd"; else -> "tray" }}
                     if-nez p2, :past
                     :tray
                     sget-object v1, $row->${if (trayReads == 0) "bio" else "tray"}:$row
+                    :trayType
                     $typeRead
                     $between
+                    :trayAdd
                     $add
                     ${if (readAfterAdd) "invoke-interface { p1, v1 }, $rowList->keep(Ljava/lang/Object;)V" else ""}
                     ${if (readTypeAfterAdd) "invoke-interface { p1, v0 }, $rowList->keepType(I)V" else ""}

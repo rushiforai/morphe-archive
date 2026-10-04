@@ -37,7 +37,7 @@ internal const val UNIFIED_TRAY = 1
  * yet at that point. Off by default: stories are people's own posts.
  *
  * The rows of Stories Facebook puts between posts are edges, DiscoverFeedUnit ones, so the feed
- * guard this patch brings takes them out under the same switch (issue #45), and the tray too
+ * guard this patch brings takes them out under the independent between-posts switch (issue #45), and the tray too
  * should it ever come as an edge, a StoriesTrayFeedUnit one. So do the single large Stories tile
  * and the single person's Stories viewer the same model answers through its table of type names,
  * StoriesOneColumnOneRowLargeTileFeedUnit and StoriesSingleBucketInlineViewerFeedUnit
@@ -48,7 +48,7 @@ internal const val UNIFIED_TRAY = 1
 @Suppress("unused")
 val hideStoriesTrayPatch = bytecodePatch(
     name = "Hide Stories tray",
-    description = "Removes the row of stories at the top of the news feed, Create story included, and the rows " +
+    description = "Adds separate controls for the row of stories at the top of the news feed, Create story included, and the rows " +
         "of stories Facebook puts between posts.",
     default = false,
 ) {

@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -161,13 +163,14 @@ public final class MaterialYouTheme {
      * Route one, for FDS: a colour a resolver returns for {@code token}.
      *
      * @return the palette's colour if {@code color} is the one Facebook's dark theme gives this
-     * token, otherwise {@code color}
+     * token, or AMOLED's stronger tint of it, otherwise {@code color}
      */
     public static int fds(int color, Object token) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
         if (!(token instanceof Enum) || !DarkMode.on()) return color;
         String name = ((Enum<?>) token).name();
-        if (listed(FDS.get(name), color) || (listed(SHARED.get(name), color) && DarkMode.saidOn())) {
+        if (listed(FDS.get(name), color) || tintedByAmoled(FDS.get(name), color, name)
+                || (listed(SHARED.get(name), color) && DarkMode.saidOn())) {
             return recolour(palette(), color);
         }
         return color;
@@ -177,6 +180,19 @@ public final class MaterialYouTheme {
         if (colours == null) return false;
         for (int value : colours) {
             if (value == color) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether {@code color} is AMOLED's stronger tint of one of {@code colours}: with AMOLED in the
+     * build its hook goes first, so an unread notification's row reaches this one at
+     * {@link AmoledTheme#NEW_NOTIFICATION_ALPHA}, issue #72. The palette's accent keeps that alpha.
+     */
+    private static boolean tintedByAmoled(@Nullable int[] colours, int color, String token) {
+        if (colours == null) return false;
+        for (int value : colours) {
+            if (value != color && AmoledTheme.unreadRow(value, token) == color) return true;
         }
         return false;
     }
@@ -239,6 +255,36 @@ public final class MaterialYouTheme {
 
     static int getColor(Resources resources, int id, @Nullable Resources.Theme theme, boolean amoled) {
         return withoutToken(amoled ? AmoledTheme.getColor(resources, id, theme) : resources.getColor(id, theme));
+    }
+
+    /**
+     * A colour resource read as a drawable with {@code Context.getDrawable}. Litho resolves a token's
+     * theme attribute to the resource it points at and asks for its drawable (581 {@code LX/2b3;->A05},
+     * 580 {@code LX/2Z3;->A05}, 577 {@code LX/23p;->A05}), so the feed's composer row is a plain
+     * drawable of SURFACE_BACKGROUND's #252728 (issue #37). Facebook keeps that colour only in its
+     * default configuration, and the night style can't move a token some code reads as a plain colour
+     * when no system tone sits close to it. A colour drawable of one of the {@link #SURFACES} takes
+     * the palette here, as a colour read with {@code getColor} does; any other drawable comes back as
+     * it was.
+     */
+    public static Drawable getDrawable(Context context, int id) {
+        return recolour(context.getDrawable(id));
+    }
+
+    /**
+     * The drawable with its colour from {@link #withoutToken}, on a copy of its state: drawables of
+     * one resource share it, and light mode reads the same resource.
+     */
+    @Nullable
+    static Drawable recolour(@Nullable Drawable drawable) {
+        if (!(drawable instanceof ColorDrawable)) return drawable;
+        ColorDrawable plain = (ColorDrawable) drawable;
+        int color = plain.getColor();
+        int themed = withoutToken(color);
+        if (themed == color) return drawable;
+        plain.mutate();
+        plain.setColor(themed);
+        return plain;
     }
 
     /**

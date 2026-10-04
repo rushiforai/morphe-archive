@@ -1,5 +1,6 @@
 package app.spicetify.extension.spotify.settings;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.os.Looper;
 import android.view.View;
@@ -35,10 +36,13 @@ public class HomePinsSettingsTest {
 
     @Test public void emptyPickerExplainsHowToLoadShortcuts() {
         HomePins.initialize(RuntimeEnvironment.getApplication());
-        SpicetifySettingsActivity activity = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_HOME)).setup().get();
-        choose(activity.getWindow().getDecorView()).performClick();
-        assertTrue(hasText(ShadowDialog.getLatestDialog().getWindow().getDecorView(), "No Home shortcuts loaded"));
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        SpicetifySettingsScreen.open(activity, SpicetifySettingsScreen.PAGE_HOME);
+        choose(ShadowDialog.getLatestDialog().getWindow().getDecorView()).performClick();
+        Dialog sheet = ShadowDialog.getLatestDialog();
+        assertTrue(hasText(sheet.getWindow().getDecorView(), "No Home shortcuts loaded"));
+        // The sheet pads its buttons by its owner's insets, and a page hands it a themed wrapper of that activity.
+        assertSame(activity, sheet.getOwnerActivity());
     }
 
     @Test public void excessSelectionKeepsPickerOpenAndLeavesSavedPinsUntouched() throws Exception {
@@ -50,9 +54,9 @@ public class HomePinsSettingsTest {
         java.lang.reflect.Method capture = HomePins.class.getDeclaredMethod("captureAndOrder", String[].class, String[].class);
         capture.setAccessible(true);
         capture.invoke(null, new String[]{"spotify:playlist:new"}, new String[]{"New playlist"});
-        SpicetifySettingsActivity activity = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_HOME)).setup().get();
-        choose(activity.getWindow().getDecorView()).performClick();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        SpicetifySettingsScreen.open(activity, SpicetifySettingsScreen.PAGE_HOME);
+        choose(ShadowDialog.getLatestDialog().getWindow().getDecorView()).performClick();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         Dialog picker = ShadowDialog.getLatestDialog();
         List<CheckBox> boxes = new ArrayList<>();

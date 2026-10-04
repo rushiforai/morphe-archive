@@ -100,6 +100,20 @@ class NativeBubblesTest {
         assertFailsWith<PatchException> { validateControls(ambiguous, setOf("bubble_mode")) }
     }
 
+    @Test fun the581RolloutSpecifierIsTheOnlyOtherAcceptedFlagAndIsPatchedTheSameWay() {
+        val mode = nativeBubbleModeMethod().apply { replaceInstruction(19, "const-wide v0, ${BUBBLE_ROLLOUT_581}L") }
+        assertEquals(listOf(mode.hookId()), findControls(listOf(fixtureClass(mode.definingClass, listOf(mode))))
+            .getValue("bubble_mode").map { it.hookId() })
+        val before = mode.implementation!!.instructions.toList()
+        injectNativeBubbles(bubbleEligibilityMethod(), mode, nativeBubbleRoutesMethod(), true)
+        val c = mode.implementation!!.instructions.toList()
+        assertEquals(BUBBLE_ROLLOUT_581, (c[24] as WideLiteralInstruction).wideLiteral)
+        assertEquals("$SETTINGS->nativeBubbleRollout(Z)Z", (c[28] as ReferenceInstruction).reference.toString())
+        assertEquals(listOf(31, 31), listOf(c.branchTarget(9), c.branchTarget(18)))
+        assertEquals(before, c.drop(5).take(23) + c.drop(30))
+        rejected(mode = nativeBubbleModeMethod().apply { replaceInstruction(19, "const-wide v0, ${BUBBLE_ROLLOUT_581 + 1}L") })
+    }
+
     @Test fun absentNativeRoutesLeaveAllStockGatesAndTheCompiledCapabilityUntouched() {
         val targets = listOf(bubbleEligibilityMethod(), nativeBubbleModeMethod(), nativeBubbleRoutesMethod())
         val before = targets.map { it.implementation!!.instructions.toList() }
@@ -306,6 +320,36 @@ class NativeBubblesTest {
         assertNotNull(findNativeBubbleRoutes(routes(alternate = true), gate))
         assertNull(findNativeBubbleRoutes(routes(alternate = true, changed = updated,
             from = "const/4 v1, 1", to = "const/4 v1, 0"), gate))
+    }
+
+    @Test fun aStaticGateHelperCountsOnlyWhenItReturnsTheGateForThePassedSession() {
+        val gate = BASE_PROFILE.hooks.getValue("bubble_mode").single()
+        val helper = "Lfixture/Gate;->read(${BUBBLE_SESSION}Lfixture/Lazy;)Z"
+        val body = """
+            iget-object v0, p1, Lfixture/Lazy;->A00:Lfixture/Provider;
+            invoke-interface {v0}, Lfixture/Provider;->get()Ljava/lang/Object;
+            move-result-object v0
+            check-cast v0, ${gate.substringBefore("->")}
+            invoke-virtual {v0, p0}, $gate
+            move-result v0
+            return v0
+        """.trimIndent()
+        fun helperRoutes(code: String) = routes(changed = attach, from = "invoke-virtual {v0, p3}, $gate",
+            to = "invoke-static {p3, v0}, $helper") + fixtureClass("Lfixture/Gate;",
+            listOf(fixtureMethod(helper, code, 3, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)))
+        val direct = findNativeBubbleRoutes(routes(), gate)
+        assertNotNull(direct)
+        assertEquals(direct, findNativeBubbleRoutes(helperRoutes(body), gate))
+        for ((from, to) in listOf(
+            "invoke-virtual {v0, p0}, $gate" to "invoke-virtual {v0, p0}, ${gate.replace("A01", "A99")}",
+            "invoke-virtual {v0, p0}" to "invoke-virtual {v0, v0}",
+            "check-cast v0, ${gate.substringBefore("->")}" to "check-cast v0, Lfixture/Other;",
+            "Lfixture/Provider;->get()" to "Lfixture/Other;->get()",
+            "return v0" to "const/4 v0, 0x1\nreturn v0",
+        )) {
+            assertTrue(from in body, "The rejection fixture must change an existing instruction")
+            assertNull(findNativeBubbleRoutes(helperRoutes(body.replace(from, to)), gate))
+        }
     }
 
     @Test fun aCaughtPackingFailureCannotOmitTheNullValueAtTheJoin() {

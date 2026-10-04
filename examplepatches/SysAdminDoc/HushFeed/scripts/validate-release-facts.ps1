@@ -14,6 +14,11 @@
 param(
     [string]$Root,
     [switch]$VerifyPublishedAsset,
+    # For a future immutable publication. Requires -VerifyPublishedAsset.
+    [switch]$RequireImmutableRelease,
+    # For a future signed publication. Requires -VerifyPublishedAsset.
+    [switch]$RequireBundleSignature,
+    [string]$Cosign,
     [string]$ArtifactPath,
     # The Morphe desktop CLI, the only thing that can read a patch list back out of a bundle
     # this checkout did not build. Falls back to HUSHFEED_DESKTOP_JAR.
@@ -56,6 +61,13 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($RequireImmutableRelease -and -not $VerifyPublishedAsset) {
+    throw '-RequireImmutableRelease requires -VerifyPublishedAsset.'
+}
+if ($RequireBundleSignature -and -not $VerifyPublishedAsset) {
+    throw '-RequireBundleSignature requires -VerifyPublishedAsset.'
+}
 
 # Not a parameter default. Windows PowerShell leaves $PSScriptRoot empty while it evaluates the
 # defaults of an advanced script started with -File, and any [CmdletBinding()] or
@@ -538,6 +550,27 @@ if ($VerifyPublishedAsset) {
         if ($listedHash -ne $publishedHash) {
             throw "SHA256SUMS.txt lists $listedHash for $assetName, but the hosted artifact is $publishedHash."
         }
+        $signatureUrl = [string]$bundle.signature_download_url
+        if ([string]::IsNullOrWhiteSpace($signatureUrl)) {
+            if ($RequireBundleSignature) { throw 'The indexed release does not advertise a bundle signature.' }
+            Write-Host '[release] signature verification skipped: the indexed release has no signature.'
+        } else {
+            $expectedSignatureUri = [Uri]::new($assetUri, ($assetName -replace '\.mpp$', '.sigstore.json'))
+            if ($signatureUrl -cne $expectedSignatureUri.AbsoluteUri) {
+                throw "The signature URL must name $expectedSignatureUri beside the indexed bundle."
+            }
+            $signaturePath = "$temporaryArtifact.sigstore.json"
+            try {
+                $signatureResponse = Invoke-WebRequest -Uri $expectedSignatureUri -OutFile $signaturePath `
+                    -MaximumRedirection 5 -TimeoutSec 60 -PassThru
+                if ($signatureResponse.StatusCode -ne 200) { throw "Signature download returned HTTP $($signatureResponse.StatusCode)." }
+                . (Join-Path $PSScriptRoot 'release-signature.ps1')
+                $null = Test-CosignBlobSignature -ArtifactPath $temporaryArtifact -SignaturePath $signaturePath `
+                    -PublicKeyPath (Join-Path $rootPath 'cosign.pub') -Cosign $Cosign
+            } finally {
+                if (Test-Path -LiteralPath $signaturePath) { Remove-Item -LiteralPath $signaturePath -Force }
+            }
+        }
         # A matching hash proves the published file is the one this checkout built. It does not
         # prove either of them is what the released commit builds, and on v0.28.0 the two came
         # apart: the bundle was built while HEAD was still two commits back, was published, and
@@ -609,6 +642,10 @@ if ($VerifyPublishedAsset) {
         Write-Host ("[release] published bundle is pinned to v$publishedVersion ($releaseCommit); timestamp=" +
             $publishedStamp)
         Write-Host ("[release] verified " + $assetName + " from the indexed URL; sha256=" + $publishedHash)
+        . (Join-Path $PSScriptRoot 'release-attestation.ps1')
+        $null = Test-ReleaseAttestation -Repository $slug -Tag "v$publishedVersion" `
+            -ArtifactPath $ArtifactPath -AssetName $assetName -ExpectedCommit $releaseCommit `
+            -RequireImmutableRelease:$RequireImmutableRelease
         # No caller passed -DesktopJar and nothing in the repo set the variable, so this check
         # printed "NOT COUNTED" and passed on every run it has ever had. A switch named
         # -VerifyPublishedAsset that quietly skips the only check reading the published asset is

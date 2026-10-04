@@ -1,0 +1,25 @@
+# Copyright 2026 HushGram contributors. https://github.com/SysAdminDoc/HushGram
+# category kind repository-relative path
+# Required trees contain tracked compiler inputs. Build output never belongs here.
+# Production selects main and release source sets in current and future extension modules.
+source tree patches/src/main
+source tree patches/stub/src/main
+source tree extensions/instagram/src/main
+source tree extensions/shared/src/main
+source tree extensions/shared/library/src/main
+source production extensions
+source file NOTICE
+catalog file patches-list.json
+toolchain tree gradle
+toolchain file build.gradle.kts
+toolchain file settings.gradle.kts
+toolchain module patches
+toolchain module extensions
+toolchain file extensions/proguard-rules.pro
+toolchain file scripts/build-inputs.gradle
+toolchain file gradle.properties
+toolchain file gradlew
+toolchain file gradlew.bat
+toolchain file scripts/VerifyGradleWrapper.java
+toolchain file scripts/gen-l10n.py
+toolchain file scripts/canonical-build-inputs.txt

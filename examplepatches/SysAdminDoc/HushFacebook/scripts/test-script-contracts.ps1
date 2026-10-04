@@ -45,6 +45,23 @@ function New-NotFoundAnswer {
     return $answer
 }
 
+# A combined patch log can fail in another source even when Hushfacebook supports the APK.
+# Reports must retain both the source versions and the selection belonging to each source.
+$bugReportForm = Get-Content -LiteralPath (Join-Path $Root '.github/ISSUE_TEMPLATE/bug_report.yml') -Raw
+foreach ($field in @('patch_sources', 'selected_patches')) {
+    $fieldBlock = [regex]::Match($bugReportForm,
+        ('(?ms)^  - type: textarea\r?\n    id: ' + $field + '\r?\n.*?(?=^  - type:|\z)')).Value
+    Assert-True ($fieldBlock -match '(?m)^      required: true\s*$') `
+        "The bug report must require $field so a mixed-source failure can be traced."
+    if ($field -eq 'patch_sources') {
+        Assert-True ($fieldBlock -match '(?s)Source:.*?version') `
+            'The source field must ask for the patch log Source lines and their versions.'
+    } else {
+        Assert-True ($fieldBlock -match 'each source') `
+            'The patch selection must be reported separately for each source.'
+    }
+}
+
 # --- patch-target.ps1 ------------------------------------------------------------------------
 #
 # Facebook ships a build a week, so the catalog declares the build the bundle was last proved on
@@ -293,6 +310,12 @@ exit /b 19
         Resolve-Java -Explicit $emptyJdk
     } "*$emptyJdk*" 'An explicit directory without bin/java fell through to the PATH Java.'
 
+    $pathCandidate = Resolve-Java -Explicit 'java' -Minimum 1
+    Assert-True ([System.IO.Path]::IsPathRooted($pathCandidate)) `
+        'A PATH Java selection returned a bare command instead of its executable path.'
+    Assert-True ($pathCandidate -eq (Get-Command java -CommandType Application | Select-Object -First 1).Source) `
+        'A PATH Java selection did not identify the executable that passed its version check.'
+
     $pathJava = Resolve-Java
     $jdkRoot = Split-Path -Parent (Split-Path -Parent $pathJava)
     $resolvedJava = Resolve-Java -Explicit $jdkRoot
@@ -505,7 +528,7 @@ try {
     $commitSeconds = 1700000000L
     function New-TestBundle {
         param([string]$Path, [string]$Version = '9.9.9', [long]$Timestamp = 1700000000000L,
-            [string]$Patcher = '1.12.0', [hashtable]$Entries = @{})
+            [string]$Patcher = '1.12.0', [hashtable]$Entries = @{}, [hashtable]$Source = @{})
         if (Test-Path -LiteralPath $Path) { Remove-Item -LiteralPath $Path -Force }
         $archive = [System.IO.Compression.ZipFile]::Open(
             $Path, [System.IO.Compression.ZipArchiveMode]::Create)
@@ -514,7 +537,9 @@ try {
             $writer = New-Object System.IO.StreamWriter($entry.Open())
             try {
                 $writer.Write("Manifest-Version: 1.0`nVersion: $Version`n" +
-                    "Timestamp: $Timestamp`nPatcher-Version: $Patcher`n`n")
+                    "Timestamp: $Timestamp`nPatcher-Version: $Patcher`n")
+                foreach ($name in @($Source.Keys | Sort-Object)) { $writer.Write("${name}: $($Source[$name])`n") }
+                $writer.Write("`n")
             } finally { $writer.Dispose() }
             foreach ($name in @($Entries.Keys | Sort-Object)) {
                 $writer = New-Object System.IO.StreamWriter($archive.CreateEntry($name).Open())
@@ -661,15 +686,88 @@ try {
     }
 
     function Test-TestReceipt {
-        param($Receipt, [string[]]$Approved = @())
+        param($Receipt, [string[]]$Approved = @(), [string]$BundlePath = $bundle)
         return Test-ReleaseReceipt -Receipt $Receipt -ExpectedVersion '9.9.9' `
             -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
             -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' -ExpectedPackageVersions $declaredBuilds `
-            -ExpectedPackageVersionCodes $declaredCodes -BundlePath $bundle -ApprovedManifestDelta $Approved
+            -ExpectedPackageVersionCodes $declaredCodes -BundlePath $BundlePath -ApprovedManifestDelta $Approved
     }
 
     $valid = Test-TestReceipt -Receipt (New-TestReceipt)
     Assert-True $valid.Valid "A complete receipt was refused: $($valid.Reason)"
+
+    # New source fields must be covered by the payload digest. Legacy release bytes stay valid.
+    Assert-True (-not (Get-BundleIdentityFacts -BundlePath $bundle).Present) 'A legacy bundle fabricated build identity.'
+    $identityRoot = Join-Path $allowlistRoot 'identity'
+    New-Item -ItemType Directory -Path $identityRoot -Force | Out-Null
+    $identityBundle = Join-Path $identityRoot 'patches-9.9.9.mpp'
+    function New-IdentityBundle([string]$State = 'clean', [string]$Commit = $template.release.commit) {
+        $source = @{
+            'Hushfacebook-Source-State' = $State; 'Hushfacebook-Source-Commit' = $Commit
+            'Hushfacebook-Source-Tree' = ('a' * 40); 'Hushfacebook-Input-SHA256' = ('b' * 64)
+        }
+        if ($State -ceq 'unknown') { $source['Hushfacebook-Source-Commit'] = 'unknown'; $source['Hushfacebook-Source-Tree'] = 'unknown' }
+        New-TestBundle -Path $identityBundle -Source $source -Entries @{
+            'classes.dex' = "dex`n035 payload"; 'META-INF/hushfacebook-build.identity' = 'placeholder'
+        }
+        $zip = [IO.Compression.ZipFile]::OpenRead($identityBundle)
+        try { $payload = Get-BundlePayloadSha256 -Archive $zip } finally { $zip.Dispose() }
+        $zip = [IO.Compression.ZipFile]::Open($identityBundle, [IO.Compression.ZipArchiveMode]::Update)
+        try {
+            $zip.GetEntry('META-INF/hushfacebook-build.identity').Delete()
+            $writer = [IO.StreamWriter]::new($zip.CreateEntry('META-INF/hushfacebook-build.identity').Open())
+            try { $writer.Write("hushfacebook-bundle-1`n$payload`n") } finally { $writer.Dispose() }
+        } finally { $zip.Dispose() }
+    }
+    function Test-IdentityReceipt {
+        $receipt = New-TestReceipt
+        $receipt.bundle.sha256 = Get-Sha256Hex -Path $identityBundle
+        $receipt.bundle.sizeBytes = (Get-Item -LiteralPath $identityBundle).Length
+        return Test-TestReceipt -Receipt $receipt -BundlePath $identityBundle
+    }
+    New-IdentityBundle
+    $identity = Get-BundleIdentityFacts -BundlePath $identityBundle
+    Assert-True ($identity.Present -and $identity.Valid -and $identity.SourceState -ceq 'clean' -and
+        $identity.SourceCommit -ceq $template.release.commit) 'Bound clean identity was not read.'
+    Assert-True (Test-IdentityReceipt).Valid 'A receipt refused its bound clean bundle identity.'
+    # The SBOM check holds that identity to the commit it's given, as the receipt build and the
+    # receipt check both call it; given none, it says so rather than refusing every new bundle.
+    $identitySbom = Join-Path $identityRoot 'patches-9.9.9.cdx.json'
+    New-TestSbom -Path $identitySbom -Bundle $identityBundle
+    $identitySbomRead = Read-ReleaseSbom -Path $identitySbom
+    $bound = Test-ReleaseSbom -Sbom $identitySbomRead -BundlePath $identityBundle -BundleName 'patches-9.9.9.mpp' `
+        -ExpectedCommit $template.release.commit
+    Assert-True $bound.Valid "An SBOM refused a bundle whose identity names the commit given: $($bound.Reason)"
+    $bound = Test-ReleaseSbom -Sbom $identitySbomRead -BundlePath $identityBundle -BundleName 'patches-9.9.9.mpp' `
+        -ExpectedCommit ('c' * 40)
+    Assert-True (-not $bound.Valid -and $bound.Reason -like '*build identity does not bind*') `
+        "An SBOM accepted a bundle whose identity names another commit: $($bound.Reason)"
+    $bound = Test-ReleaseSbom -Sbom $identitySbomRead -BundlePath $identityBundle -BundleName 'patches-9.9.9.mpp'
+    Assert-True (-not $bound.Valid -and $bound.Reason -like '*no source commit was given*') `
+        "An SBOM check with no commit to hold an identity to answered: $($bound.Reason)"
+    foreach ($state in @('dirty', 'unknown')) {
+        New-IdentityBundle -State $state
+        Assert-True (Get-BundleIdentityFacts -BundlePath $identityBundle).Valid "Honest $state identity was rejected by the reader."
+        $answer = Test-IdentityReceipt
+        Assert-True (-not $answer.Valid -and $answer.Reason -like '*build identity*') "A release accepted $state source identity."
+    }
+    New-IdentityBundle -Commit ('c' * 40)
+    $answer = Test-IdentityReceipt
+    Assert-True (-not $answer.Valid -and $answer.Reason -like '*build identity*') 'A receipt accepted another producer commit.'
+    New-IdentityBundle
+    $zip = [IO.Compression.ZipFile]::Open($identityBundle, [IO.Compression.ZipArchiveMode]::Update)
+    try {
+        $zip.GetEntry('classes.dex').Delete()
+        $writer = [IO.StreamWriter]::new($zip.CreateEntry('classes.dex').Open())
+        try { $writer.Write('changed payload') } finally { $writer.Dispose() }
+    } finally { $zip.Dispose() }
+    Assert-True (-not (Get-BundleIdentityFacts -BundlePath $identityBundle).Valid) 'Copied metadata verified a changed payload.'
+    Assert-True (-not (Test-IdentityReceipt).Valid) 'A rehashed receipt accepted stale build identity.'
+    New-IdentityBundle
+    $zip = [IO.Compression.ZipFile]::Open($identityBundle, [IO.Compression.ZipArchiveMode]::Update)
+    try { $zip.GetEntry('META-INF/hushfacebook-build.identity').Delete() } finally { $zip.Dispose() }
+    $identity = Get-BundleIdentityFacts -BundlePath $identityBundle
+    Assert-True ($identity.Present -and -not $identity.Valid) 'Removing identity downgraded a new bundle to legacy.'
 
     # Every fact the receipt exists to pin, put in front of the check one at a time. A gate that
     # has never been shown to fail is a gate nobody has tested.
@@ -1963,7 +2061,7 @@ try {
         $windowReadme = Get-Content -LiteralPath (Join-Path $factsRoot 'README.md') -Raw
         foreach ($stale in @(
                 @{ Pattern = '*version badge names 0.1.0*'; Edit = { param($text) $text -replace 'badge/version-\d+(?:\.\d+)+-', 'badge/version-0.1.0-' } },
-                @{ Pattern = '*latest release is v0.1.0*'; Edit = { param($text) $text -replace '(latest release is \[v)\d+(?:\.\d+)+', '${1}0.1.0' } })) {
+                @{ Pattern = '*latest release is v0.1.0*'; Edit = { param($text) $text -replace '(?i)(latest (?:published )?release is (?:still )?\[?v)\d+(?:\.\d+)+', '${1}0.1.0' } })) {
             Set-FactsFile 'README.md' $stale.Edit
             Assert-Throws { & $factsScript -Root $factsRoot -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipUrlCheck 6> $null } `
                 $stale.Pattern "The gate accepted a $window README naming a version that is neither the source's nor the published one."
@@ -2101,13 +2199,13 @@ try {
             @{ Name = 'no version badge'; Pattern = '*no version badge*'
                 Edit = { param($text) $text -replace '<img src="https://img\.shields\.io/badge/version-[^>]*>', '' } },
             @{ Name = 'a latest release of another version'; Pattern = '*latest release is v0.1.0*'
-                Edit = { param($text) $text -replace '(latest release is \[v)\d+(?:\.\d+)+(\]\([^)\s]*/tag/v)\d+(?:\.\d+)+', '${1}0.1.0${2}0.1.0' } },
+                Edit = { param($text) $text -replace '(?i)(latest (?:published )?release is (?:still )?\[v)\d+(?:\.\d+)+(\]\([^)\s]*/tag/v)\d+(?:\.\d+)+', '${1}0.1.0${2}0.1.0' -replace '(?i)(latest (?:published )?release is (?:still )?v)\d+(?:\.\d+)+', '${1}0.1.0' } },
             @{ Name = 'a latest release linked to another tag'; Pattern = '*links it to*/tag/v0.1.0*'
-                Edit = { param($text) $text -replace '(latest release is \[v\d+(?:\.\d+)+\]\([^)\s]*/tag/v)\d+(?:\.\d+)+', '${1}0.1.0' } },
+                Edit = { param($text) $text -replace '(?i)(latest (?:published )?release is (?:still )?\[v\d+(?:\.\d+)+\]\([^)\s]*/tag/v)\d+(?:\.\d+)+', '${1}0.1.0' -replace '(?i)(latest (?:published )?release is (?:still )?)v(\d+(?:\.\d+)+)', '${1}[v${2}](https://github.com/SysAdminDoc/Hushfacebook/releases/tag/v0.1.0)' } },
             @{ Name = 'a latest release counting other patches'; Pattern = '*latest release has 13 patches*'
-                Edit = { param($text) $text -replace '(latest release is \[v[^\]]+\]\([^)\s]*\), with )\d+( patches)', '${1}13${2}' } },
+                Edit = { param($text) $text -replace '(?i)(latest (?:published )?release is (?:still )?(?:\[v[^\]]+\]\([^)\s]*\)|v\d+(?:\.\d+)+), with )\d+( patches)', '${1}13${2}' } },
             @{ Name = 'no sentence naming the latest release'; Pattern = '*does not say which release is the latest*'
-                Edit = { param($text) $text -replace 'The latest release is \[v[^\]]+\]\([^)\s]*\), with \d+ patches\.', 'Releases are on GitHub.' } })) {
+                Edit = { param($text) $text -replace '(?i)The latest (?:published )?release is (?:still )?(?:\[v[^\]]+\]\([^)\s]*\)|v\d+(?:\.\d+)+), with \d+ patches\.', 'Releases are on GitHub.' } })) {
         $unedited = Get-Content -LiteralPath (Join-Path $factsRoot 'README.md') -Raw
         Set-FactsFile 'README.md' $case.Edit
         try {

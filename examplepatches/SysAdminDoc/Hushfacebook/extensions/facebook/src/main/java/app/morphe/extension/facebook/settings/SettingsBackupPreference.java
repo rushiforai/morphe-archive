@@ -16,12 +16,18 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.OperationCanceledException;
 import android.preference.Preference;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
@@ -34,6 +40,7 @@ import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,6 +55,7 @@ import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
@@ -392,7 +400,72 @@ public class SettingsBackupPreference extends Preference {
             builder.setNegativeButton(L10n.t("Cancel"), (dialog, which) -> answered(page));
         }
         page.importPreview = builder.show();
+        addSwitchDifferences(page.importPreview, snapshot);
         ScreenColors.dialog(page.importPreview);
+    }
+
+    /** Keep the framework's one scroll area and pinned actions, adding one spoken row per switch. */
+    private static void addSwitchDifferences(AlertDialog dialog, SettingsBackup.Snapshot snapshot) {
+        TextView message = dialog.findViewById(android.R.id.message);
+        if (message == null || !(message.getParent() instanceof ViewGroup)) return;
+        LinearLayout details = new LinearLayout(dialog.getContext());
+        details.setOrientation(LinearLayout.VERTICAL);
+        ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+        for (Map.Entry<BooleanSetting, Boolean> entry : snapshot.values.entrySet()) {
+            BooleanSetting setting = entry.getKey();
+            boolean current = setting.savedValue();
+            boolean incoming = entry.getValue();
+            if (current == incoming) continue;
+            String name = SwitchLabels.title(setting);
+            String before = current ? L10n.t("On") : L10n.t("Off");
+            String after = incoming ? L10n.t("On") : L10n.t("Off");
+            LinearLayout row = new LinearLayout(dialog.getContext());
+            row.setOrientation(LinearLayout.VERTICAL);
+            row.setPaddingRelative(message.getPaddingStart(), dp(row, 16), message.getPaddingEnd(), dp(row, 8));
+            row.setTag(setting);
+            row.setScreenReaderFocusable(true);
+            row.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            row.setContentDescription(name + ". " + L10n.f("Saved now %1$s. After import %2$s.",
+                    L10n.isolate(before), L10n.isolate(after)));
+            row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                @Override
+                public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    info.setClassName(TextView.class.getName());
+                    info.setScreenReaderFocusable(true);
+                    info.setContentDescription(host.getContentDescription());
+                }
+            });
+            TextView title = new TextView(dialog.getContext());
+            title.setText(name);
+            title.setTextSize(16);
+            title.setTextColor(colors.title);
+            title.setTypeface(Typeface.create("sans-serif-medium", 0));
+            title.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            row.addView(title);
+            TextView states = new TextView(dialog.getContext());
+            states.setText(L10n.isolate(before) + " \u2192 " + L10n.isolate(after));
+            states.setTextDirection(View.TEXT_DIRECTION_LTR);
+            states.setTextSize(14);
+            states.setTextColor(colors.summary);
+            states.setPaddingRelative(0, dp(row, 4), 0, 0);
+            states.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            row.addView(states);
+            details.addView(row);
+        }
+        if (details.getChildCount() == 0) return;
+        ViewGroup parent = (ViewGroup) message.getParent();
+        int index = parent.indexOfChild(message);
+        ViewGroup.LayoutParams size = message.getLayoutParams();
+        parent.removeView(message);
+        details.addView(message, 0, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        parent.addView(details, index, size);
+    }
+
+    private static int dp(View view, int value) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
+                view.getResources().getDisplayMetrics()));
     }
 
     /** The sentence that says which top folder saves go to after an import. */

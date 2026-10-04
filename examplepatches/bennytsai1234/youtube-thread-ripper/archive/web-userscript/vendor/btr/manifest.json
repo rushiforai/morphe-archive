@@ -1,0 +1,17 @@
+{
+  "repository": "https://github.com/MrTangLuyao/Bilibili-thread-ripper",
+  "commit": "e64553b1ea911946387a1cf14992ac3fc008e07d",
+  "files": {
+    "src/range-core.js": "56542f30275c76e5b592c13faa19952a1e365499f3db42c9f43025292e274e33",
+    "src/cdn-resolver.js": "4f86ea84722f4e291246fb1c807f37ecb3060eb90bdccb42ec9665f3c6100f18",
+    "src/idm-downloader.js": "20af240d9f67e01b7db5152d98d0ede7ee3fcc9b38ce299f58165b5f05746040",
+    "src/native-range-transport.js": "8c241111ea87c61bc6b31622e22b67a56cbc2d1a2b01dbe862f6bfdd470e82dc",
+    "src/settings-panel.js": "b958df7d726c7dd0e5b217b49dca3c919841ad3e9864cb7dc131fb91c829bb00",
+    "src/runtime-notices.js": "54763461c5b6b167cf879612a2e1d0c6a71cebbde02e2702669a1fc7a2be7564",
+    "src/notification-view.js": "a1dde6a3b406dd74156e31afb54260348e8fead7fd9fd1b023f4b3d8f05b8899",
+    "src/bridge.js": "e4027bd3fbd1f2cfbd5795e3639a58549ee720ea99bfd6d3daabaac222fe73e7",
+    "user_scripts/adapter/storage-shim.js": "54bced641df0ef34df0d6e299cec1bd41c29f07573ec2219f031d4124dd5b11a",
+    "user_scripts/adapter/loader.js": "040b3b03d8365ae1df9b48618f93c05220ef2e2c459ab967b7d09f25bb31b6cd",
+    "LICENSE": "79d6d4fb2540528717b06325ca4f17b84fbe136cb57f1b82d725f68bf21d875a"
+  }
+}

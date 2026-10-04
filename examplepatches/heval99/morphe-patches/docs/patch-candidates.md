@@ -13,14 +13,14 @@ test + decompile-verify.
 | App | Package | Latest seen | Notes |
 |---|---|---|---|
 | Shazam | `com.shazam.android` | 16.59.0 | Massive user base, ads-only free tier, no premium gate to fake |
-| Simple Radio | `com.streema.simpleradio` | 6.1.9 | Ad-supported radio; has a "remove ads" IAP to also check |
-| WiFi Analyzer | `com.farproc.wifi.analyzer` | 3.11.1-L | Tiny app, ad-only, quickest possible win |
+| Simple Radio | `com.streema.simpleradio` | 6.2.0 | **Shipped 2026-09-29** - "Enable Premium" (local `iab_premium` pref gate + `isPremium()`) and "Disable ads" (GMA init + MAX interstitial load/show) |
+| WiFi Analyzer | `com.farproc.wifi.analyzer` | 3.10.5-L | **Shipped 2026-09-29** - "Disable ads" (single `Settings` show-ad gate on the `next_show_ad_time_millisec` pref) |
 
 ## Tier 2 - ads + local Pro/Premium
 
 | App | Package | Latest seen | Notes |
 |---|---|---|---|
-| Pi Music Player | `com.Project100Pi.themusicplayer` | 3.2.0.0 | Ads + Pro IAP; expect a cached-purchase boolean |
+| Pi Music Player | `com.Project100Pi.themusicplayer` | 3.2.0.0 | **Shipped 2026-09-29** - "Enable Premium" (static flag + 5-list in R8 holder; a()/b() forced, temp-ad-free resetter neutered, flag seeded in clinit) and "Disable ads" (GMA init/loads + MAX interstitial load/show) |
 | Moon+ Reader | `com.flyersoft.moonreader` | 9.9 | The classic: ads + Pro unlock; very requested app |
 | TuneIn Radio | `tunein.player` | 42.4 | Ads patch only - Premium is server-side |
 | Podcast Republic | `com.podcast.podcasts` | 9.8.5 | Ads + premium; verify whether the gate is local |
@@ -29,7 +29,7 @@ test + decompile-verify.
 
 | App | Package | Latest seen | Notes |
 |---|---|---|---|
-| Device Info HW | `ru.andr7e.deviceinfohw` | 5.26.1 | Small app, one Pro boolean, near-zero risk |
+| Device Info HW | `ru.andr7e.deviceinfohw` | 5.27.1 | **Blocked 2026-09-29** - no Pro boolean exists in this build; see blocklist |
 | Xplore File Manager | `com.lonelycatgames.Xplore` | 4.49.10 | Pro features via its own license scheme - needs triage |
 
 ## Not suggested (checked, rejected or deferred)

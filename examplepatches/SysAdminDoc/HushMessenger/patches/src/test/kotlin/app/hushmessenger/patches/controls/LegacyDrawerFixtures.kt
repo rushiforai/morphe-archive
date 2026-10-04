@@ -19,6 +19,7 @@ private fun drawerMapping(refreshOwner: String) = when (refreshOwner) {
     "LX/9qQ;" -> DrawerFixtureMapping("LX/CPF;", "Ax6", "LX/HMx;", "LX/HNC;", "LX/HMg;", "LX/Ii7;", "LX/HKF;", "LX/1hI;", "LX/0R2;")
     "LX/9se;" -> DrawerFixtureMapping("LX/CQz;", "Ax3", "LX/HWZ;", "LX/HXQ;", "LX/HUQ;", "LX/IfE;", "LX/HU5;", "LX/1hI;", "LX/0R2;")
     "LX/9uD;" -> DrawerFixtureMapping("LX/CTI;", "AxF", "LX/HLj;", "LX/HLn;", "LX/HKb;", "LX/IgS;", "LX/HJn;", "LX/1iE;", "LX/0R7;")
+    "LX/8xS;" -> DrawerFixtureMapping("LX/9jp;", "AxT", "LX/HAB;", "LX/HAA;", "LX/HHA;", "LX/IXL;", "LX/H9v;", "LX/1g6;", "LX/0R8;")
     else -> error("Unrecorded drawer mapping: $refreshOwner")
 }
 
@@ -55,10 +56,17 @@ private fun drawerConstructor(owner: String, params: List<String>, names: List<S
         append("return-void")
     }, registers = params.size + 2, flags = PUBLIC_CONSTRUCTOR)
 
+/** 581 builds its QR code row after Settings, from the same row class and its own folder key. */
+private fun qrCodeRow(row: String, rowParams: List<String>) = listOf(
+    "new-instance v4, ${DRAWER_MODEL}FolderNameDrawerFolderKey;",
+    "new-instance v0, $row",
+    "invoke-direct/range {v0 .. v8}, $row-><init>(${rowParams.joinToString("")})V",
+).joinToString("\n                ")
+
 /** All five menu targets plus only the native contracts the new factory needs. */
 internal fun legacyDrawerFixture(profile: ControlProfile, broken: String = "none"): LegacyDrawerFixture {
     val ids = profile.hooks.getValue("menu_settings")
-    val refresh = ids.single { it.endsWith("->A1i()V") }
+    val refresh = ids.single { it.endsWith("()V") }
     val owner = refresh.substringBefore("->")
     val model = drawerMapping(owner)
     val binder = ids.single { it.contains(";I)V") }.substringBefore("->")
@@ -93,6 +101,7 @@ internal fun legacyDrawerFixture(profile: ControlProfile, broken: String = "none
                 const/4 v8, 0x0
                 new-instance v0, ${model.row}
                 invoke-direct/range {v0 .. v8}, ${model.row}-><init>(${rowParams.joinToString("")})V
+                ${if (owner == "LX/8xS;") qrCodeRow(model.row, rowParams) else "nop"}
                 const/4 v0, 0x0
                 return-object v0
             """.trimIndent()

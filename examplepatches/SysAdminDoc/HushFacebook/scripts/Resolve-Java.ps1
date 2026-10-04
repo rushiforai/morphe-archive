@@ -91,8 +91,11 @@ function Resolve-Java {
     foreach ($candidate in $candidates) {
         if ($seen.ContainsKey($candidate)) { continue }
         $seen[$candidate] = $true
-        $version = Get-JavaMajorVersion -Java $candidate
-        if ($version -ge $Minimum) { return $candidate }
+        $command = Get-Command $candidate -CommandType Application -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        $javaPath = if ($command) { $command.Source } else { $candidate }
+        $version = Get-JavaMajorVersion -Java $javaPath
+        if ($version -ge $Minimum) { return $javaPath }
         $rejected += if ($version -gt 0) { "$candidate is Java $version" } else { "$candidate would not run" }
     }
 

@@ -1,3 +1,9 @@
+## [1.36.0](https://github.com/legendsciber/morphe-patches/compare/v1.35.1...v1.36.0) (2026-10-03)
+
+### ✨ New Features
+
+* **solarsmash:** add all packages purchased patch ([b0b71a6](https://github.com/legendsciber/morphe-patches/commit/b0b71a6572d050bb1f9cbe73169234d6bfd9be53))
+
 ## [1.35.1](https://github.com/legendsciber/morphe-patches/compare/v1.35.0...v1.35.1) (2026-09-28)
 
 ### 🐛 Bug Fixes

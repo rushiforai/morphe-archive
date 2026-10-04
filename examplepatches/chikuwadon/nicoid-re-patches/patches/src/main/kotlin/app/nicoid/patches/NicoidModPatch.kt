@@ -2,8 +2,11 @@ package app.nicoid.patches
 
 import app.morphe.patcher.patch.*
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -119,7 +122,55 @@ val nicoidModPatch = bytecodePatch(
                 target.setAccessFlags(source.accessFlags)
             }
         }
-        val menu = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidTopActivity;").methods.single {
+        val cache = mutableClassDefBy("Le/e/a/CacheHls;")
+        val download = cache.methods.single { it.name == "download" }
+        val firstParameter = checkNotNull(download.implementation).registerCount - 4
+        val cookieParameter = firstParameter + 3
+        // Snapshot the delivery token once for this download, rather than reading a
+        // mutable global token for every segment while another video may be playing.
+        download.addInstructions(0, """
+            invoke-static {v$firstParameter, v$cookieParameter}, Le/e/a/CacheSupport;->cookieFor(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+            move-result-object v$cookieParameter
+        """.trimIndent())
+        val connect = cache.methods.single { it.name == "connect" }
+        val connectInstructions = checkNotNull(connect.implementation).instructions.toList()
+        val response = connectInstructions.indexOfFirst {
+            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Ljava/net/HttpURLConnection;" && ref.name == "getResponseCode"
+        }
+        check(response >= 0) { "Cache response-code hook was not found" }
+        val connectionRegister = (connectInstructions[response] as FiveRegisterInstruction).registerC
+        val statusRegister = (connectInstructions[response + 1] as OneRegisterInstruction).registerA
+        connect.addInstructions(response + 2, """
+            invoke-static {v$connectionRegister, v$statusRegister}, Le/e/a/CacheSupport;->http(Ljava/net/HttpURLConnection;I)V
+        """.trimIndent())
+        connect.addInstructions(response, """
+            invoke-static {v$connectionRegister}, Le/e/a/CacheSupport;->beforeRequest(Ljava/net/HttpURLConnection;)V
+        """.trimIndent())
+        val cacheInstructions = checkNotNull(download.implementation).instructions.toList()
+        val failure = cacheInstructions.indexOfFirst {
+            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.name == "printStackTrace"
+        }
+        check(failure >= 0) { "Cache error hook was not found" }
+        val exceptionRegister = (cacheInstructions[failure] as FiveRegisterInstruction).registerC
+        download.addInstructions(failure, """
+            invoke-static {v$exceptionRegister}, Le/e/a/CacheSupport;->failed(Ljava/lang/Throwable;)V
+        """.trimIndent())
+        val top = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidTopActivity;")
+        val create = top.methods.single { it.name == "onCreate" }
+        var migrationChecks = 0
+        for ((index, instruction) in checkNotNull(create.implementation).instructions.toList().withIndex()) {
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            if (ref?.definingClass == "Ljava/io/File;" && ref.name == "exists") {
+                val register = (instruction as FiveRegisterInstruction).registerC
+                create.replaceInstruction(index,
+                    "invoke-static {v$register}, Le/e/a/CacheSupport;->needsMigration(Ljava/io/File;)Z")
+                migrationChecks++
+            }
+        }
+        check(migrationChecks == 4) { "Unexpected legacy storage migration checks: $migrationChecks" }
+        val menu = top.methods.single {
             it.name == "a" && it.parameterTypes == listOf("Landroid/content/Context;", "Landroid/widget/ListView;", "Z")
         }
         val code = checkNotNull(menu.implementation)
@@ -133,6 +184,47 @@ val nicoidModPatch = bytecodePatch(
             invoke-static {v0, v7}, Le/e/a/ModernShorts;->finishMenu(Landroid/content/Context;Ljava/util/ArrayList;)V
             invoke-virtual {v8}, Landroid/widget/BaseAdapter;->notifyDataSetChanged()V
         """.trimIndent())
+        // Bind after the legacy Spanned-to-String conversion, so icon spans survive.
+        // The supported adapter keeps the count TextView in v12 (post time is v1).
+        val rows = mutableClassDefBy("Le/e/a/b0;").methods.single { it.name == "getView" }
+        var countBindings = 0
+        for ((index, instruction) in checkNotNull(rows.implementation).instructions.toList().withIndex()) {
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            val call = instruction as? FiveRegisterInstruction ?: continue
+            if (ref?.definingClass == "Landroid/widget/TextView;" && ref.name == "setText" &&
+                ref.parameterTypes == listOf("Ljava/lang/CharSequence;") && call.registerC == 12) {
+                rows.replaceInstruction(index,
+                    "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/VideoCounts;->setText(Landroid/widget/TextView;Ljava/lang/CharSequence;)V")
+                countBindings++
+            }
+        }
+        check(countBindings == 1) { "Unexpected video count bindings: $countBindings" }
+        val info = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoInfoFragment;")
+            .methods.single { it.name == "a" && it.parameterTypes == listOf(
+                "Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;") }
+        val infoInstructions = checkNotNull(info.implementation).instructions.toList()
+        val registrationText = infoInstructions.indices.filter {
+            (infoInstructions[it] as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f0f01ef
+        }.single()
+        val registrationBind = (registrationText + 1 until infoInstructions.size).first { index ->
+            val ref = (infoInstructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Landroid/widget/TextView;" && ref.name == "setText" &&
+                ref.parameterTypes == listOf("Ljava/lang/CharSequence;")
+        }
+        val registrationCall = infoInstructions[registrationBind] as FiveRegisterInstruction
+        info.replaceInstruction(registrationBind,
+            "invoke-static {v${registrationCall.registerC}, v${registrationCall.registerD}}, Le/e/a/VideoInfoUi;->hideRegistration(Landroid/widget/TextView;Ljava/lang/CharSequence;)V")
+        val infoCreate = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoInfoActivity;")
+            .methods.single { it.name == "onCreate" }
+        val infoCreateCode = checkNotNull(infoCreate.implementation)
+        val infoCreateInstructions = infoCreateCode.instructions.toList()
+        val contentView = infoCreateInstructions.indices.single { index ->
+            val ref = (infoCreateInstructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.name == "setContentView" && ref.parameterTypes == listOf("I")
+        }
+        val activityRegister = infoCreateCode.registerCount - 2
+        infoCreate.addInstructions(contentView + 1,
+            "invoke-static/range {v$activityRegister .. v$activityRegister}, Le/e/a/VideoInfoUi;->hideDivider(Landroid/app/Activity;)V")
         // Only known UI text is translated. URLs, IDs and preference values are preserved.
         val translatedStrings = Payload.open("ui-strings.txt").bufferedReader().useLines { lines ->
             lines.map { it.replace("\\n", "\n") }.toSet()
@@ -144,7 +236,8 @@ val nicoidModPatch = bytecodePatch(
         val uiClasses = mutableListOf<String>()
         classDefForEach { cls ->
             if ((cls.type.startsWith("Lcom/sauzask/nicoid/") || cls.type.startsWith("Le/e/a/")) &&
-                !cls.type.startsWith("Le/e/a/UiStrings") && !cls.type.startsWith("Le/e/a/UiText")) {
+                !cls.type.startsWith("Le/e/a/UiStrings") && !cls.type.startsWith("Le/e/a/UiText") &&
+                !cls.type.startsWith("Le/e/a/VideoCount")) {
                 if (cls.methods.any { method -> method.implementation?.instructions?.any { insn ->
                     val ref = (insn as? ReferenceInstruction)?.reference
                     (ref is StringReference && ref.string in translatedStrings) ||
@@ -175,5 +268,3 @@ val nicoidModPatch = bytecodePatch(
         }
     }
 }
-
-

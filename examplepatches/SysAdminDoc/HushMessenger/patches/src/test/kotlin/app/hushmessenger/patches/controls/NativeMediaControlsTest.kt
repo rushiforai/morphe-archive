@@ -18,13 +18,14 @@ import java.security.MessageDigest
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import kotlin.test.*
 
-internal fun screenshotViewerFixture(id: String, quickSize: Int = 438): MutableMethod {
+/** [castActivity] adds 581's check-cast of the provider result in v0, which moves the window code down one. */
+internal fun screenshotViewerFixture(id: String, quickSize: Int = 438, castActivity: Boolean = false): MutableMethod {
     val body: String
     val registers: Int
     when {
         id.contains("->onResume(") -> {
             registers = 5
-            body = List(7) { "nop" }.joinToString("\n") + "\n" + """
+            body = List(7) { "nop" }.joinToString("\n") + "\n" + (if (castActivity) "check-cast v0, LX/Provider;\n" else "") + """
                 invoke-virtual {p0}, LX/Fragment;->getActivity()Landroid/app/Activity;
                 move-result-object v0
                 const/16 v1, 0x2000
@@ -87,12 +88,16 @@ internal fun screenshotViewerFixture(id: String, quickSize: Int = 438): MutableM
     return fixtureMethod(id, body, registers)
 }
 
-internal fun aiStickerCellFixture(): List<MutableClass> {
-    val id = activeProfile.hooks.getValue("ai_sticker_cell").single()
+internal fun aiStickerCellFixture(
+    id: String = activeProfile.hooks.getValue("ai_sticker_cell").single(),
+    label: Int = if (id.startsWith("LX/Ez5;")) GENERATE_AI_LABEL_581 else GENERATE_AI_LABEL,
+    sourceCount: Int = if (id.startsWith("LX/Ez5;")) 5 else 4,
+): List<MutableClass> {
     val type = id.substringBefore("->")
-    val superclass = when (type) { "LX/FTy;", "LX/FfQ;" -> "LX/1Hw;"; "LX/FSU;" -> "LX/1IL;"; else -> "LX/1Hx;" }
-    val size = if (type == "LX/FfQ;") 106 else 104
-    val render = fixtureMethod(id, "const/4 v0, 0x0\n" + List(size - 2) { "nop" }.joinToString("\n") + "\nreturn-object v0", 23)
+    val superclass = when (type) { "LX/FTy;", "LX/FfQ;" -> "LX/1Hw;"; "LX/FSU;" -> "LX/1IL;"; "LX/Ez5;" -> "LX/1IO;"; else -> "LX/1Hx;" }
+    val size = when (type) { "LX/FfQ;" -> 106; "LX/Ez5;" -> 105; else -> 104 }
+    val registers = if (type == "LX/Ez5;") 24 else 23
+    val render = fixtureMethod(id, "const/4 v0, 0x0\n" + List(size - 2) { "nop" }.joinToString("\n") + "\nreturn-object v0", registers)
     render.implementation!!.run {
         for (at in listOf(1, 3, 5, 7)) addCatch(newLabelForIndex(at), newLabelForIndex(at + 1), newLabelForIndex(size - 1))
     }
@@ -101,10 +106,10 @@ internal fun aiStickerCellFixture(): List<MutableClass> {
         List(8) { "nop" }.joinToString("\n") + "\nreturn-void", 12)
     val cell = fixtureClass(type, listOf(ctor, render), superclass = superclass,
         extraFields = listOf(ImmutableField(type, "A00", "I", AccessFlags.PUBLIC.value, null, null, null)))
-    val sources = (0..3).map { index ->
+    val sources = (0 until sourceCount).map { index ->
         val source = "LX/CellSource$index;"
         fixtureClass(source, listOf(fixtureMethod("$source->render(LX/Scope;)LX/Component;", """
-            const v11, 0x7f1404fe
+            const v11, 0x${label.toString(16)}
             new-instance v0, $type
             invoke-direct/range {v0 .. v11}, $ctorId
             const/4 v0, 0x0
@@ -129,7 +134,7 @@ class NativeMediaControlsTest {
     @Test fun allMappingsReplaceOnlyTheFourCallsAndRetainTheirMasksAndLifecycle() {
         for (profile in controlProfiles.values.toSet()) {
             activeProfile = profile
-            for (size in listOf(438, 439, 441, 442, 448)) {
+            for (size in listOf(438, 439, 441, 442, 444, 448)) {
                 val methods = profile.hooks.getValue("screenshot_viewers").map { screenshotViewerFixture(it, size) }
                 for (method in methods) {
                     val before = method.implementation!!.instructions.toList()
@@ -178,6 +183,33 @@ class NativeMediaControlsTest {
         assertFailsWith<PatchException> { caught.injectScreenshotViewer() }
     }
 
+    @Test fun messenger581ViewerShapesKeepTheSameCallsAndRefuseAMissingCast() {
+        val resume = screenshotViewerFixture("$EPHEMERAL_VIEWER->onResume()V", castActivity = true)
+        val before = resume.implementation!!.instructions.toList()
+        assertEquals(49, before.size)
+        assertEquals(listOf(15, 22), resume.screenshotViewerSites())
+        resume.injectScreenshotViewer()
+        val after = resume.implementation!!.instructions.toList()
+        assertEquals(before.filterIndexed { i, _ -> i !in setOf(15, 22) }, after.filterIndexed { i, _ -> i !in setOf(15, 22) })
+        for (at in listOf(15, 22)) {
+            assertEquals("$SETTINGS->setScreenshotFlags(Landroid/view/Window;II)V", (after[at] as ReferenceInstruction).reference.toString())
+        }
+        val uncast = screenshotViewerFixture("$EPHEMERAL_VIEWER->onResume()V", castActivity = true).apply { replaceInstruction(7, "nop") }
+        assertFailsWith<PatchException> { uncast.screenshotViewerSites() }
+        val mask = screenshotViewerFixture("$EPHEMERAL_VIEWER->onResume()V", castActivity = true).apply { replaceInstruction(10, "const/16 v1, 0x80") }
+        assertFailsWith<PatchException> { mask.screenshotViewerSites() }
+        assertEquals(listOf(9), screenshotViewerFixture("$EPHEMERAL_VIEWER->A1E(Landroid/os/Bundle;)Landroid/app/Dialog;").screenshotViewerSites())
+        val quick = "$QUICKSNAP_VIEWER->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"
+        assertEquals(listOf(32), screenshotViewerFixture(quick, 444).screenshotViewerSites())
+    }
+
+    @Test fun messenger581CellNeedsItsOwnLabelAndFifthSource() {
+        val id = "LX/Ez5;->render(LX/2AL;)LX/1Gd;"
+        assertEquals(listOf(id), findAiStickerCells(aiStickerCellFixture(id, GENERATE_AI_LABEL_581, 5)).map { it.hookId() })
+        assertTrue(findAiStickerCells(aiStickerCellFixture(id, GENERATE_AI_LABEL_581, 4)).isEmpty())
+        assertTrue(findAiStickerCells(aiStickerCellFixture(id, GENERATE_AI_LABEL, 5)).isEmpty())
+    }
+
     @Test fun paymentWindowsCleanupAndWrongProfileDialogNeverBecomeViewerHooks() {
         val payment = fixtureMethod("Lcom/facebook/payments/paymentmethods/cardform/CardFormActivity;->onResume()V", """
             const/16 v0, 0x2000
@@ -214,7 +246,8 @@ class NativeMediaControlsTest {
             val after = method.implementation!!.instructions.toList()
             assertEquals(before, after.drop(10))
             assertEquals("${method.definingClass}->A00:I", (after[1] as ReferenceInstruction).reference.toString())
-            assertEquals(GENERATE_AI_LABEL, (after[2] as NarrowLiteralInstruction).narrowLiteral)
+            val label = if (method.definingClass == "LX/Ez5;") GENERATE_AI_LABEL_581 else GENERATE_AI_LABEL
+            assertEquals(label, (after[2] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(10, after.branchTarget(3))
             assertEquals(10, after.branchTarget(7))
             assertEquals(Opcode.IF_NE, after[3].opcode)
@@ -248,11 +281,11 @@ class NativeMediaControlsTest {
 
     @Test fun exactStockInputsKeepEveryLifecycleInstructionAndNativeCellBody() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
-        assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock21 directory")
+        assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
         assertEquals(controlProfiles.size, apks.size)
         for (apk in apks) {
-            val code = apk.fileName.toString().substringAfter("messenger-580-").substringBefore(".apk")
+            val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
             activeProfile = controlProfileFor(code)
             val expectedHash = Files.readAllLines(Path.of("../scripts/profiles/$code.txt")).single { it.startsWith("sha256 ") }.substringAfter(' ')
             val digest = MessageDigest.getInstance("SHA-256")

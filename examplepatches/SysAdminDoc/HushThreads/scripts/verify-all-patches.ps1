@@ -250,10 +250,19 @@ try {
             $registerExitCode = $LASTEXITCODE
             Write-Host "[verify] register report: $registerReport"
             if ($registerExitCode -eq 0) {
-                Write-Host ('[verify] success: every requested patch applied to a valid APK whose manifest changes ' +
-                    'are all approved, whose resource table holds every stock resource and whose injected code ' +
-                    'passes structural and selected feature contracts.')
-                $exitCode = 0
+                $global:LASTEXITCODE = 0
+                $identityOutput = @(& $Java '-cp' $DesktopJar (Join-Path $PSScriptRoot 'IdentityApkCheck.java') `
+                    $Bundle $out 2>&1)
+                $identityExitCode = $LASTEXITCODE
+                $identityOutput | ForEach-Object { Write-Host "[verify] $_" }
+                if ($identityExitCode -eq 0) {
+                    Write-Host ('[verify] success: every requested patch applied to a valid APK whose manifest changes ' +
+                        'are all approved, whose resource table holds every stock resource, whose injected code ' +
+                        'passes structural and selected feature contracts, and whose build identity matches the bundle.')
+                    $exitCode = 0
+                } else {
+                    Write-Warning "[verify] the final APK did not preserve the defining bundle identity (exit $identityExitCode)."
+                }
             } else {
                 Write-Warning "[verify] the injected code failed its structural or feature contracts (exit $registerExitCode)."
             }

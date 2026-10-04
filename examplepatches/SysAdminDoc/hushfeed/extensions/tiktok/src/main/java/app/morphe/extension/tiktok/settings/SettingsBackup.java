@@ -419,6 +419,15 @@ public final class SettingsBackup {
         }
     }
 
+    /** File keys this build cannot restore, separate from current settings absent from the file. */
+    public static int settingsSkipped(String text) {
+        try {
+            return parseForJournal(text).skipped;
+        } catch (Exception ignored) {
+            return 0;
+        }
+    }
+
     /** True when the file restored its settings but its Lab rules were for another TikTok build. */
     public static boolean labRulesWereSkipped(String text) {
         try {
@@ -602,6 +611,7 @@ public final class SettingsBackup {
         int absent = 0;
         for (Setting<?> setting : Setting.allLoadedSettings()) {
             if (!included(setting)) continue;
+            keys.remove(setting.key);
             if (values.has(setting.key)) {
                 Object converted = convert(setting.defaultValue, values.get(setting.key), setting.key);
                 if (holdRuleLists && feedRuleProblem(setting, converted) != null) {
@@ -630,6 +640,7 @@ public final class SettingsBackup {
             // about this TikTok build, so it is not evidence that the user wanted no rules.
             Snapshot snapshot = new Snapshot(updates, null, false, false, false, absent);
             snapshot.deviceState = !holdRuleLists;
+            snapshot.skipped = keys.size();
             snapshot.keptFolders = keptFolders;
             return snapshot;
         }
@@ -642,6 +653,7 @@ public final class SettingsBackup {
         Snapshot snapshot = new Snapshot(updates, FeatureGateLabStore.parseSettings(lab),
                 lab.getBoolean("master"), lab.getBoolean("acknowledged"), true, absent);
         snapshot.deviceState = !holdRuleLists;
+        snapshot.skipped = keys.size();
         snapshot.keptFolders = keptFolders;
         return snapshot;
     }
@@ -751,6 +763,8 @@ public final class SettingsBackup {
         final boolean labIncluded;
         /** Included settings the file did not carry, kept at whatever the device already held. */
         final int absent;
+        /** Unrecognized or device-local keys carried in the portable settings inventory. */
+        int skipped;
 
         /**
          * Read as the device's own state (an undo copy, the snapshot a restore replaces, a journal

@@ -66,6 +66,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DISABLE_CHAT_SWIPE =
             new BooleanSetting("hushtelegram_disable_chat_swipe", FALSE);
 
+    /** Bottom pulls stay in the current channel; explicit chat opening keeps its normal behavior. */
+    public static final BooleanSetting DISABLE_CHANNEL_PULL =
+            new BooleanSetting("hushtelegram_disable_channel_pull", TRUE);
+
     /**
      * The Contacts tab's automatic prompt and its "!" badge once a contacts prompt was declined;
      * the first request, the tab's own buttons and contact sync stay stock.
@@ -115,6 +119,10 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DISABLE_UPDATE_CHECKS =
             new BooleanSetting("hushtelegram_disable_update_checks", TRUE);
+
+    /** The official web certificate for the scoped Firebase Installations header only. */
+    public static final BooleanSetting REPAIR_FIREBASE_PUSH =
+            new BooleanSetting("hushtelegram_repair_firebase_push", TRUE);
 
     /**
      * Once a day, when Telegram starts, ask api.github.com whether a newer HushTelegram release is

@@ -5,9 +5,7 @@ import app.morphe.patcher.fieldAccess
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
-// X/5mk.LD(Aweme)Z -- ACL code gate. Returns true only when code==0.
-// Fingerprinted by stable iget-object on AwemeACLShare->downloadGeneral then
-// iget on ACLCommonShare->code in sequence.
+// Legacy ACL code gate. Kept for compatibility with the older Lite layout.
 internal object DownloadAllowedFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "Z",
@@ -26,12 +24,7 @@ internal object DownloadAllowedFingerprint : Fingerprint(
     ),
 )
 
-// X/7ZV.LB(Aweme)X/8k3 -- download params builder.
-// Reads Video->downloadAddr via iget-object directly (not via getter).
-// Patched to swap Video->downloadAddr with newDownloadAddr at entry when non-null,
-// so all downstream iget-object reads in this method get the clean URL.
-// Fingerprinted by: fieldAccess on Aweme->video then Video->downloadAddr in sequence.
-// .registers 7, enough scratch registers for the swap injection.
+// Legacy download params builder.
 internal object VideoGetDownloadAddrFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     filters = listOf(
@@ -49,26 +42,25 @@ internal object VideoGetDownloadAddrFingerprint : Fingerprint(
     custom = { _, classDef -> classDef.type == "LX/7ZV;" },
 )
 
-// X/5mk.LCI(Aweme)Z -- video status gate.
-// .registers 3 (p0=Aweme, v0=AwemeStatus, v1=boolean scratch).
-// Only (Aweme)Z method in X/5mk with registerCount==3.
-// No parameters list: custom alone is sufficient and avoids parameters+custom issues.
+// TikTok Lite 47.0.3 video-status gate.
+//
+// Verified in the supplied 47.0.3 APK:
+//   class:  LX/0eN;
+//   method: LBL(Lcom/ss/android/ugc/aweme/minilite/feed/model/Aweme;)Z
+//   access:  public static
+//   registers: 3
+//
+// 47.0.3 no longer contains the previous X/5mk class, uses the MiniLite
+// Aweme model, and this method is not FINAL.
 internal object VideoStatusGateFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    definingClass = "LX/0eN;",
+    name = "LBL",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
-    custom = { method, classDef ->
-        classDef.type.endsWith("/5mk;") &&
-            method.parameterTypes.size == 1 &&
-            method.parameterTypes[0] == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;" &&
-            (method.implementation?.registerCount ?: 0) == 3
-    },
+    parameters = listOf("Lcom/ss/android/ugc/aweme/minilite/feed/model/Aweme;"),
 )
 
-// X/5mk.LFFFF(Aweme)Z -- music copyright gate.
-// Unique: only PUBLIC STATIC FINAL (Aweme)Z method in X/5mk whose first
-// iget-object reads Aweme->music:Music (vs LF/LFFL which read Aweme->status).
-// Use fieldAccess filter only (no parameters list to avoid filters+params conflict).
-// custom narrows to X/5mk class.
+// Legacy music copyright gate.
 internal object MusicCopyrightGateFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "Z",
@@ -82,8 +74,7 @@ internal object MusicCopyrightGateFingerprint : Fingerprint(
     custom = { _, classDef -> classDef.type.endsWith("/5mk;") },
 )
 
-// X/7hr.L(Aweme, I, X/8Xi)String -- transcode URL selector (photo mode).
-// Unique: PUBLIC STATIC, String return, 3 params where [0]=Aweme, [1]=I, [2]=obfuscated obj.
+// Legacy transcode URL selector.
 internal object DownloadTranscodeFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Ljava/lang/String;",

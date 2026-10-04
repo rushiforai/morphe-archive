@@ -195,12 +195,15 @@ Stop swipe to create	Parar de deslizar para criar
 A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Deslizar para o lado no Início não abre mais a câmera. O botão + e as outras formas de abrir a câmera continuam funcionando.
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	Ocultar a Meta AI na pesquisa e na barra do Início
-The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.	A aba Pesquisar e o topo das suas mensagens ficam com uma barra de pesquisa comum, sem a Meta AI, os resultados da pesquisa perdem a barra de perguntas de acompanhamento e a barra superior do Início perde os botões da Meta AI. Reinicie o Instagram depois de mudar.
+The Search tab and the top of your messages get a plain search bar. Search results lose their Ask a follow-up bar. Meta AI's buttons disappear from Home and the message composer, and its optional inbox row is hidden. Restart Instagram after changing it.	A aba Pesquisar e a parte superior das suas mensagens passam a ter uma barra de pesquisa comum. A barra de perguntas adicionais sai dos resultados de pesquisa. Os botões da Meta AI somem da Página inicial e do editor de mensagens, e a linha opcional da Meta AI é ocultada na caixa de entrada. Reinicie o Instagram após alterar esta opção.
 Hide Meta AI posts	Ocultar posts da Meta AI
 Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.	Os vídeos, chats e imagens suas da Meta AI que o Instagram coloca no seu feed inicial.
 Explore	Explorar
 Hide the Explore grid	Ocultar a grade do Explorar
 The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.	Os posts e reels embaixo da barra da aba Pesquisar. A pesquisa, suas pesquisas recentes e os resultados continuam.
+Messages	Mensagens
+Hide the notes row	Ocultar a fileira de notas
+Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.	Tira a fileira de notas da parte superior das suas mensagens, incluindo a bolha do Mapa. Suas conversas, a pesquisa e as solicitações continuam lá.
 Start Home on Following	Abrir o Início em Seguindo
 Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.	O Início abre com posts das contas que você segue. Toque em Seguindo no topo para mudar para Para você, e o Início lembra da sua escolha. Reinicie o Instagram depois de mudar.
 Hide suggested stories	Ocultar stories sugeridos
@@ -337,7 +340,6 @@ Discard saved overrides	Descartar valores salvos
 Forget the copy saved for Restore so imports can run again. Instagram's overrides don't change.	Esquece a cópia salva para Restaurar, para que as importações voltem a funcionar. Os valores personalizados do Instagram não mudam.
 Discarded the saved copy. Imports can run again, and Instagram's overrides haven't changed.	A cópia salva foi descartada. As importações podem rodar de novo, e os valores personalizados do Instagram não mudaram.
 There's no saved copy to discard. Nothing changed.	Não há cópia salva para descartar. Nada mudou.
-Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.	Não foi possível descartar a cópia salva. Abra as configurações pela página inicial com a sessão iniciada. Nada mudou.
 Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Imports stay blocked until you use Discard saved overrides. Restart Instagram to apply the rest.	Restaurar devolveu o que pôde, exceto %1$d valores com o valor nulo do Instagram, que não podem ser devolvidos assim. As importações continuam bloqueadas até você usar Descartar valores salvos. Reinicie o Instagram para aplicar o resto.
 Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Restart Instagram to apply the rest.	Restaurar devolveu o que pôde, exceto %1$d valores com o valor nulo do Instagram, que não podem ser devolvidos assim. Reinicie o Instagram para aplicar o resto.
 Couldn't restore overrides. The saved copy doesn't fit this session and Instagram build. Use Discard saved overrides if you don't need it. Nothing changed.	Não foi possível restaurar os valores personalizados. A cópia salva não corresponde a esta sessão e versão do Instagram. Use Descartar valores salvos se não precisar dela. Nada mudou.
@@ -351,3 +353,7 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	Marcar como visto
 Marked as seen. Tap again to undo.	Marcado como visto. Toque de novo para desfazer.
 Marked as seen and sent	Marcado como visto e enviado
+View DM photos and videos anonymously	Ver fotos e vídeos de mensagens anonimamente
+Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.	Não envia confirmações de visualização de fotos e vídeos de visualização única. A mídia continua expirando. Este recurso de teste começa desativado.
+Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	Não foi possível descartar todas as cópias salvas. Tente Descartar valores salvos novamente. Os valores do Instagram não mudaram.
+Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	A limpeza da recuperação não terminou. Use Restaurar valores anteriores ou Descartar valores salvos.

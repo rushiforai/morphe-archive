@@ -9,6 +9,7 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.NeutralNativePath
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -232,8 +233,12 @@ class CopyCommentHookTest {
             assertTrue("fixture lost the separate legacy surface", legacy.isNotEmpty())
             val unchanged = CommentWorld.snapshot(patch, legacy)
             val menu = patch.findCommentMenu()
+            val renderer = patch.mutableClassDefBy(menu.surface.renderer.definingClass).methods.single { it.matches(menu.surface.renderer) }
+            val original = NeutralNativePath(renderer)
             patch.applyCommentMenu(menu)
             assertWiring(patch, menu)
+            val hook = renderer.code().indexOfFirst { it.call()?.toString() == COMMENT_HOOK }
+            original.assertPreserved(bundle.name, renderer, (hook - 3..hook + 1).toSet())
             assertEquals("legacy surface must not be reported as patched", unchanged, CommentWorld.snapshot(patch, legacy))
             checked += version
         }

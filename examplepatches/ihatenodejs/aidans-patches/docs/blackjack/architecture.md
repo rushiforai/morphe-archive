@@ -117,3 +117,5 @@ Patches for Blackjack introduce two native Java extension dialogs packaged into 
 3. **`Skip to Next Level` (`bytecodePatch`):** Hooks `UnityPlayerActivity.onCreate` to install the `SkipLevelDialog` touch proxy.
 4. **`Remove Ads` (`rawResourcePatch`):** Neutralizes ad flags, interstitial triggers, AdManager entry points, and level-up ad containers in `libil2cpp.so`.
 5. **`Remove Tracking and Analytics` (`rawResourcePatch`):** Injects ARM64 `ret` into entry points for Tripledot Analytics, Firebase Analytics, Crashlytics, Adjust, AppsFlyer, and Unity Analytics in `libil2cpp.so`.
+6. **`Remove Internet Permissions` (`resourcePatch`):** Removes `android.permission.INTERNET` from `AndroidManifest.xml`; its **Remove Broken Screens** option disables both Settings and Daily Challenge Help Center buttons whose Zendesk content cannot load offline.
+7. **`Remove Notifications` (`resourcePatch`):** Removes `android.permission.POST_NOTIFICATIONS` from `AndroidManifest.xml` to eliminate push notification delivery.

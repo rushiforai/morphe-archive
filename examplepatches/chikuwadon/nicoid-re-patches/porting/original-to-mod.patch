@@ -7,6 +7,15 @@
      <supports-screens android:anyDensity="true" android:largeScreens="true" android:normalScreens="true" android:smallScreens="true" android:xlargeScreens="true"/>
      <uses-permission android:name="android.permission.INTERNET"/>
      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+@@ -77,7 +77,7 @@
+                 <action android:name="android.intent.action.MAIN"/>
+             </intent-filter>
+         </activity>
+-        <activity android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|fontScale" android:enabled="false" android:label="@string/app_name" android:name="com.sauzask.nicoid.intent.NicoidPopupViewActivityIntent" android:theme="@android:style/Theme.Dialog">
++        <activity android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|fontScale" android:enabled="false" android:label="@string/app_name" android:name="com.sauzask.nicoid.intent.NicoidPopupViewActivityIntent" android:theme="@android:style/Theme.NoDisplay" android:taskAffinity="com.sauzask.nicoid.hls.popup_link" android:launchMode="singleTask" android:excludeFromRecents="true" android:noHistory="true">
+             <intent-filter>
+                 <action android:name="android.intent.action.VIEW"/>
+                 <category android:name="android.intent.category.DEFAULT"/>
 @@ -186,6 +186,7 @@
                  <data android:host="*.nicovideo.jp" android:pathPattern="/user/.*" android:scheme="https"/>
              </intent-filter>

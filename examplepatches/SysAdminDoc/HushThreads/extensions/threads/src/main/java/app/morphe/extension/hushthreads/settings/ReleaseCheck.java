@@ -151,7 +151,7 @@ public final class ReleaseCheck {
 
     /** One GET. The phone's is {@link ReleaseTransport}; a test hands in its own, so no test goes online. */
     interface Transport {
-        Exchange get(URL url, Map<String, String> headers) throws IOException;
+        Exchange get(URL url, Map<String, String> headers, long deadline) throws IOException;
     }
 
     /** One answer: its status, its headers and its body, until it's closed. */
@@ -342,7 +342,7 @@ public final class ReleaseCheck {
                 return Answer.failed(Result.REFUSED, (hop == 0 ? "the address " : "redirect " + hop + " ") + refusal);
             }
             if (System.nanoTime() - deadline > 0) return Answer.failed(Result.TIMEOUT, "the check ran out of time");
-            try (Exchange exchange = transport.get(url, headers)) {
+            try (Exchange exchange = transport.get(url, headers, deadline)) {
                 int status = exchange.status();
                 if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
                     String location = exchange.header("Location");

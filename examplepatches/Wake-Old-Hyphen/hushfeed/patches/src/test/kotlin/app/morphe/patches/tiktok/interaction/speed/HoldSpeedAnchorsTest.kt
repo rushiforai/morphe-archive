@@ -5,7 +5,6 @@ import app.morphe.util.getReference
 import app.morphe.util.literalReads
 import app.morphe.util.readsAfter
 import app.morphe.util.readsRegisterAsFloat
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -210,7 +209,7 @@ class HoldSpeedAnchorsTest {
     }
 
     private fun load(apk: File): Map<String, ClassDef> {
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         val classes = HashMap<String, ClassDef>()
         container.dexEntryNames.forEach { entry ->
             container.getEntry(entry)!!.dexFile.classes.forEach { classes.putIfAbsent(it.type, it) }

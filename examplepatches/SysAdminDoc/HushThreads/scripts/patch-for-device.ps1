@@ -203,6 +203,10 @@ try {
     }
     if ($signCode -ne 0) { throw "APK signing failed (exit $signCode): $($signOutput -join ' ')" }
     $signOutput | ForEach-Object { Write-Host "[device] $_" }
+    $identityOutput = @(& $Java -cp $DesktopJar (Join-Path $PSScriptRoot 'IdentityApkCheck.java') $bundle $out 2>&1)
+    $identityCode = $LASTEXITCODE
+    $identityOutput | ForEach-Object { Write-Host "[device] $_" }
+    if ($identityCode -ne 0) { throw "APK identity verification failed (exit $identityCode)." }
     $nativeFinal = Get-NativePageFacts -Apk $out -Java $Java -Aapt2 $Aapt2 `
         -ReportPath (Join-Path $OutDir "native-$nativeId-signed.json") -ExtractNativeLibs $patchedManifest.extractNativeLibs
     $nativeAlignment = Get-NativePageDelta -Stock $nativeStock -Patched $nativeFinal

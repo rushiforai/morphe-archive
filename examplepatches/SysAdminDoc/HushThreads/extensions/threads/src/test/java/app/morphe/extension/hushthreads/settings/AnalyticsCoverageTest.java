@@ -127,10 +127,14 @@ public class AnalyticsCoverageTest {
             assertNull(titled(screen, L10n.t("Stop analytics uploads")));
         }
         List<String> report = PatchFamily.reportLines(PatchFamily.inThisBuild(), false);
-        assertEquals(1, report.size());
+        // Upstream 814acd23 also discloses omitted Manager defaults.
+        assertEquals(2, report.size());
         assertTrue(report.get(0).contains("not in this build:"));
         assertTrue(report.get(0).contains("Disable analytics"));
         assertFalse(report.get(0).contains("analytics addresses:"));
+        assertTrue(report.get(1).startsWith("left out of Manager's default selection: "));
+        assertTrue(report.get(1).contains("Disable analytics"));
+        assertFalse(report.get(1).contains("analytics addresses:"));
     }
 
     @Test

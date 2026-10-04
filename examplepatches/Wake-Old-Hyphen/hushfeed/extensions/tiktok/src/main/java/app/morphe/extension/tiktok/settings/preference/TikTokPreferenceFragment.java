@@ -149,6 +149,15 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
     }
 
+    public static void openSeenVideoHistoryPicker() {
+        if (activeFragment != null && activeFragment.isAdded()) {
+            ImportSeenVideoHistoryPreference.pickFile(activeFragment);
+        } else {
+            SettingsActionBanner.showNotice(Utils.getContext(), L10n.t(
+                    "Reopen Hushfeed settings, then choose the file"));
+        }
+    }
+
     public static void openDownloadPathFolderPicker(DownloadPathPreference preference) {
         if (activeFragment == null) {
             app.morphe.extension.shared.Utils.showToastLong(L10n.t(
@@ -607,6 +616,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     @Override public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        ImportSeenVideoHistoryPreference.savePickerState(outState);
         outState.putString(PENDING_DOWNLOAD_PATH_STATE, pendingDownloadPathKey);
         if (searchInput != null) {
             String query = searchInput.getQuery();
@@ -616,6 +626,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     @Override public void onActivityCreated(Bundle state) {
         super.onActivityCreated(state);
+        ImportSeenVideoHistoryPreference.restorePickerState(state);
         if (pendingDownloadPathKey == null && state != null) {
             pendingDownloadPathKey = state.getString(PENDING_DOWNLOAD_PATH_STATE);
         }
@@ -1444,6 +1455,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (ImportSeenVideoHistoryPreference.onResult(this, requestCode, resultCode, data)) return;
         if (SettingsBackupPreference.onResult(this, requestCode, resultCode, data)) return;
         if (requestCode != REQUEST_DOWNLOAD_PATH_FOLDER) {
             return;

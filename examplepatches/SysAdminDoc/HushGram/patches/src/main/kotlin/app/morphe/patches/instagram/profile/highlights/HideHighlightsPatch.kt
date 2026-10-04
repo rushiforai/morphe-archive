@@ -47,8 +47,8 @@ internal const val KEEP_TRAY = "$PROFILE_HIGHLIGHTS->keepTray()I"
 internal const val REEL_TRAY = "ITEM_TYPE_REEL_TRAY"
 
 /**
- * Leaves the row of story highlights out of profiles. Off in the default selection: highlights are
- * one of Instagram's features, so leaving them out is the user's pick.
+ * Leaves the row of story highlights out of profiles. Included in the default selection with its
+ * switch initially off, so leaving highlights out remains the user's pick.
  *
  * Only the header's list of rows changes. The highlights themselves are still fetched, since the
  * Add to highlight list on a story shares that code, and a highlight opened from a message or a
@@ -59,7 +59,7 @@ val hideHighlightsPatch = bytecodePatch(
     name = "Hide highlights",
     description = "Takes the row of story highlights off profiles, yours and other people's. " +
         "Bios, counts, posts and the Add to highlight list on your stories stay.",
-    default = false,
+    default = true,
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)
@@ -118,6 +118,9 @@ internal fun BytecodePatchContext.findHighlightsRow(): HighlightsRowSite {
     val (rows, tray) = readers.singleOrNull()
         ?: refuse("expected one read of $field in ${header.type}->$BUILD_ROWS, found ${readers.size}")
     val code = rows.instructions()
+    if ((tray + 1..tray + 2).any { it in rows.jumpTargets() }) {
+        refuse("${header.type}->$BUILD_ROWS has a jump into the highlights tray's type read or add")
+    }
     val register = (code[tray] as OneRegisterInstruction).registerA
     val typeRead = code.getOrNull(tray + 1)
     val typeField = typeRead?.fieldReference()

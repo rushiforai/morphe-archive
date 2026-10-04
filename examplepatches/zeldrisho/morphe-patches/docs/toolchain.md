@@ -8,22 +8,14 @@ Install Homebrew by following [brew.sh](https://brew.sh). Repository development
 and Android/Java tools are managed with Brew:
 
 ```sh
-brew install uv pre-commit openjdk@21
+brew install pre-commit openjdk@21
 brew install --cask android-cli
 ```
 
-`JAVA_HOME` should point to Homebrew's Java 21 installation. Add this to your
-shell environment using its normal configuration mechanism, and put its `bin`
-directory first on `PATH` when the shell's default Java is not 21:
-
-```sh
-export JAVA_HOME="$HOMEBREW_PREFIX/opt/openjdk@21"
-export PATH="$JAVA_HOME/bin:$PATH"
-```
-
-`uv` is required by the documented toolchain for on-demand Python analysis tools
-such as APKiD and objection. Java and Android SDK tooling support repository
-builds and device workflows.
+`uv` is optional; install it with `brew install uv` to run on-demand Python
+analysis tools such as APKiD and objection. Java and Android SDK tooling support
+repository builds and device workflows. If another OpenJDK version takes
+precedence, optionally run `brew link openjdk@21` to select Java 21.
 
 ## 2. Java, Android CLI, and analysis tools
 
@@ -37,7 +29,8 @@ export ANDROID_HOME="$HOME/Android/Sdk"
 
 ### SDK packages: build requirements versus analysis utilities
 
-`android-cli` installs the SDK manager. Gradle downloads the Android 36 platform
+The `android-cli` package provides the `android` command for SDK management.
+Gradle downloads the Android 36 platform
 required by Morphe's `compileSdk` and the AGP-compatible Build-Tools as needed, so
 neither needs a manual install command. The SDK manager can install platform-tools
 and NDK for local device/native analysis. It treats NDK releases as side-by-side
@@ -75,11 +68,9 @@ and `zipalign`. An already-installed suitable build-tools version is fine; adjus
 PATH accordingly. `ANDROID_HOME` controls Gradle discovery, PATH controls terminal
 tools. No emulator or system image is required.
 
-Use the `android` CLI for supported deployment and UI workflows (install/run,
-layout inspection, and screen capture); see [validation](validation.md). Keep
-`adb` for lower-level device operations such as Wireless debugging pairing,
-connection/listing, and commands not exposed by `android`. `fd-find` is not part
-of the maintained toolchain; use `rg` for repository searches.
+Use `android` only for SDK management. Use `adb` for device operations,
+including pairing, installation, launch, UI inspection, screen capture, and
+logs; see [validation](validation.md).
 
 ### Python applications: persistent tools versus one-shot runs
 
@@ -89,11 +80,14 @@ of the maintained toolchain; use `rg` for repository searches.
 | APKiD | `uvx apkid app.apk` (requires uv) | On-demand recon |
 | objection | `uvx objection --help` (requires uv) | On-demand dynamic triage; never assume a persistent install |
 
-`uv` is required for the documented Python analysis tools, though not for the
-Gradle build itself. `uv tool` puts isolated executables in `~/.local/bin`; `uvx`
-uses cached temporary environments. Ruff and actionlint are installed in isolated
-environments by their pinned pre-commit hooks; no separate system installation is needed.
-Install Frida tooling only for runtime instrumentation, with a
+These are optional investigation tools, not build or test prerequisites. APKiD
+is used by `scripts/apk_recon.py`; install it persistently or run it on demand
+with `uvx`. Frida and objection are only needed when a specific runtime question
+cannot be answered statically; objection is a convenience layer over Frida, not
+a required workflow step. `uv tool` puts isolated executables in `~/.local/bin`;
+`uvx` uses cached temporary environments. Ruff and actionlint are installed in
+isolated environments by their pinned pre-commit hooks; no separate system
+installation is needed. Install Frida tooling only for runtime instrumentation, with a
 matching-version/ABI `frida-server` **on the device**:
 [releases](https://github.com/frida/frida/releases), [Android setup](https://frida.re/docs/android/).
 Use `scripts/extract_smali.py` with baksmali for canonical smali output; `rg` and

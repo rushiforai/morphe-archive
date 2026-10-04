@@ -1,5 +1,5 @@
 {
-  "version": "v0.67.0",
+  "version": "v0.67.1",
   "appNames": {
     "com.zhiliaoapp.musically": "TikTok"
   },
@@ -445,7 +445,7 @@
     },
     {
       "name": "Block author button",
-      "description": "Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. A confirmed account block skips to the next video and shows a small Unblock button at the top left for two seconds. The local-hide and sound controls have separate switches. Long press any visible control to move it. Hushfeed keeps it clear of system bars, cutouts and TikTok's bottom tabs when the window changes. A local action shows Undo only after its setting was saved. All controls hide while comments are open. Switch: Hushfeed settings > Feed filter.",
+      "description": "Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. A confirmed account block skips to the next video and shows a small Unblock button at the top left for two seconds. The local-hide and sound controls start off and have separate switches, and either one can show without the block control. Long press any visible control to move it. Hushfeed keeps it clear of system bars, cutouts and TikTok's bottom tabs when the window changes. A local action shows Undo only after its setting was saved. All controls hide while comments are open. Switch: Hushfeed settings > Feed filter.",
       "category": "Interaction",
       "use": false,
       "dependencies": [
@@ -4037,7 +4037,7 @@
     },
     {
       "name": "Limit background traffic",
-      "description": "Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop.",
+      "description": "Turns off TikTok's buffer-preload gate. Videos may start buffering later. Push setup stays on unless Skip push setup is enabled in the patch options.",
       "category": "Performance",
       "use": false,
       "dependencies": [],
@@ -4091,7 +4091,17 @@
           ]
         }
       ],
-      "options": []
+      "options": [
+        {
+          "key": "skipPushSetup",
+          "title": "Skip push setup",
+          "description": "Can stop TikTok notifications, including messages. Pause won't reverse this change. Repatch with this option off to restore push setup.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
     },
     {
       "name": "Location access governor",

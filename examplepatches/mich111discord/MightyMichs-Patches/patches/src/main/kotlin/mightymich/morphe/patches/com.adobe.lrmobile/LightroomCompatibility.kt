@@ -9,7 +9,7 @@ object LightroomCompatibility {
         name = "Adobe Lightroom",
         packageName = "com.adobe.lrmobile",
         apkFileType = ApkFileType.APK,
-        appIconColor = 0xFF00A8E1.toInt(),
+        appIconColor = 0x00A8E1,
         targets = listOf(
             AppTarget(version = "9.1.1")
         )

@@ -82,11 +82,13 @@ public class SwipeToCreateTest {
     public void offPausedAndUnreadyLetTheSwipeGo() {
         Settings.STOP_SWIPE_TO_CREATE.resetToDefault();
         assertEquals(Boolean.FALSE, Settings.STOP_SWIPE_TO_CREATE.defaultValue);
+        assertEquals(0, SwipeToCreate.enabled());
         assertEquals(0, SwipeToCreate.hold(-1f, 0f, "swipe"));
 
         Settings.STOP_SWIPE_TO_CREATE.save(true);
         BaseSettings.PAUSED.save(true);
         PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertEquals(0, SwipeToCreate.enabled());
         assertEquals(0, SwipeToCreate.hold(-1f, 0f, "swipe"));
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
@@ -104,5 +106,21 @@ public class SwipeToCreateTest {
         String missing = HookStatus.missing(FamilyNames.SWIPE_TO_CREATE).toString();
         assertTrue(missing, missing.contains("'" + SwipeToCreate.DRAG + "'"));
         assertTrue(missing, missing.contains(IllegalStateException.class.getName()));
+    }
+
+    @Test public void nativeReadGateStaysClosedUntilReadyAndEnabled() {
+        assertEquals(1, SwipeToCreate.enabled());
+        SettingsContextRule.withoutContext(() -> assertEquals(0, SwipeToCreate.enabled()));
+        SettingsContextRule.beforeThePauseIsDecided(() -> assertEquals(0, SwipeToCreate.enabled()));
+        assertEquals(1, SwipeToCreate.enabled());
+        Settings.STOP_SWIPE_TO_CREATE.save(false);
+        assertEquals(0, SwipeToCreate.enabled());
+    }
+
+    @Test public void nativeReadGateFailuresLeaveTheStockSetterInCharge() {
+        assertEquals(0, SwipeToCreate.enabled(THROWS));
+        assertEquals(0, SwipeToCreate.enabled(() -> { throw new OutOfMemoryError("no memory"); }));
+        String missing = HookStatus.missing(FamilyNames.SWIPE_TO_CREATE).toString();
+        assertTrue(missing, missing.contains("'swipe gate'"));
     }
 }

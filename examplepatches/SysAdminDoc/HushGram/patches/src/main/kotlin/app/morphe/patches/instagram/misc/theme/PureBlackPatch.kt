@@ -12,7 +12,6 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
@@ -88,13 +87,13 @@ internal fun isPrismBlack(instruction: Instruction): Boolean = when (instruction
 }
 
 /**
- * Loads [PURE_BLACK] wherever Instagram's own code loads [PRISM_BLACK], with the same opcode into
- * the same register, and answers the methods it changed. The extension's own colors are left alone.
+ * Loads [PURE_BLACK] where Instagram's Compose palette loads [PRISM_BLACK], with the same opcode
+ * into the same register, and answers the methods it changed.
  */
 internal fun BytecodePatchContext.blackenLiterals(): List<String> {
     val found = mutableListOf<Pair<String, Method>>()
     classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        if (classDef.type != COMPOSE_PALETTE) return@classDefForEach
         classDef.methods.forEach { method ->
             if (method.implementation?.instructions?.any(::isPrismBlack) == true) found += classDef.type to method
         }

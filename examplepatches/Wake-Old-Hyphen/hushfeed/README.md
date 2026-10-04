@@ -1,7 +1,7 @@
 ![Hushfeed. Take back your feed with focused controls for filtering, gestures, playback, downloads and privacy.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.67.0-6f42c1.svg" /></a>
+  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.67.1-6f42c1.svg" /></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-GPLv3-blue.svg" /></a>
   <a href="https://www.android.com/"><img alt="platform" src="https://img.shields.io/badge/platform-Android-3ddc84.svg" /></a>
   <a href="https://github.com/MorpheApp/morphe-manager"><img alt="Morphe" src="https://img.shields.io/badge/works%20with-Morphe-00b894.svg" /></a>
@@ -18,9 +18,9 @@ Hushfeed is a [Morphe](https://github.com/MorpheApp/morphe-manager) patch bundle
 > [!IMPORTANT]
 > Hushfeed targets the global TikTok package, `com.zhiliaoapp.musically`, versions [47.0.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-0-3-release/tiktok-47-0-3-3-android-apk-download/), [47.1.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-1-3-release/tiktok-47-1-3-android-apk-download/) and [47.1.4](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-1-4-release/tiktok-47-1-4-2-android-apk-download/). Use one of those exact APKs when patching. See [Supported target](#supported-target) for the verified build details.
 
-Hushfeed v0.66.0 contains 102 patches for TikTok 47.0.3, 47.1.3 and 47.1.4. New in this one: settings in Italian and Russian, a daily message that keeps a streak going, a name of your own under the app icon, and Look like the store app for follows that undo themselves. It needs Morphe Manager 1.32.0 or newer.
+Hushfeed v0.67.0 contains 106 patches for TikTok 47.0.3, 47.1.3 and 47.1.4. It needs Morphe Manager 1.33.0 or newer. Source v0.67.1 keeps the same patch count and adds fixes for the local hide and sound block controls, the paused Home long-press settings shortcut and Android 6 plural forms.
 
-The main branch contains 106 patches, including a block on TikTok's "Videos you might like" notifications, a switch that keeps new searches out of your history, separate sizes for feed descriptions and creator names, filters for the LIVE feed, and settings in Azerbaijani. They need a bundle built from source, which loads in Morphe Manager 1.33.0 or newer. Adding the source in Manager still downloads the published v0.66.0 bundle.
+The main branch contains 106 patches, the same set as v0.67.1.
 
 ## Pick what changes
 
@@ -66,11 +66,13 @@ The compact Unblock action, also rendered from the actual control in a local UI 
 1. Get the TikTok 47.0.3, 47.1.3 or 47.1.4 APK. Google Play only offers the newest build, so take it from APKMirror: [47.0.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-0-3-release/tiktok-47-0-3-3-android-apk-download/), [47.1.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-1-3-release/tiktok-47-1-3-android-apk-download/) or [47.1.4](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-1-4-release/tiktok-47-1-4-2-android-apk-download/). When you pick that file in Morphe Manager on Android 11 or newer, Manager checks that TikTok's own key signed it and warns you if a different one did. That warning means the file was changed after TikTok published it, so download it again instead of patching it.
 2. Use Morphe Manager 1.33.0 or newer. Manager refuses a bundle built against a patcher newer than its own, and this one is built against patcher 1.15.0, which Manager 1.33.0 was the first to ship. On anything older the bundle won't load.
 3. Add Hushfeed as a source in Morphe Manager. The quickest way is this link on the phone: [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed). Some in-app browsers block Android from handing a web link to another app. If **Open in Morphe** leaves you in the browser, open Morphe Manager, tap **Sources**, tap **+**, and paste `https://github.com/SysAdminDoc/hushfeed`. You can also download the `.mpp` file from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle.
-4. Pick the patches you want and patch the original APK from step 1. Hushfeed stops with an error on an APK it has already patched. Keep the manager's existing signing key so TikTok stays logged in across updates. AMOLED dark theme rewrites TikTok's color resources, and patching with it on runs slower when the memory limit is low, so give the manager 768 MB or more when it's on. It still finishes at 640 MB, just slower. On a Galaxy S22 patching TikTok 47.1.3 with the recommended patches plus AMOLED takes about 6 1/2 minutes at 640 MB and a little over 6 at 768 MB, and on a Galaxy S25 every patch at once took over an hour at 640 MB before Hushfeed's patches got faster. The recommended patches alone fit in 640 MB, about 5 1/2 minutes on the S22, and recent Manager versions already start capable phones at 1,024 MB. Hide Play Store update offer also decodes the manifest, so raise the limit if that patch runs out of memory. A run that sits at 24 or 25 percent and never moves may also need more memory. Cancel it, raise the limit to at least 768 MB if it's lower and start again. If that still stalls, try 512 MB, which gives the patcher less to hold at once.
+4. Turn on Expert mode in Manager settings to choose optional patches. Manager 1.33.0 shows all 106 Hushfeed patches in ten categories that you can expand or collapse. Pick the patches you want and patch the original APK from step 1. Hushfeed stops with an error on an APK it has already patched. Keep the manager's existing signing key so TikTok stays logged in across updates. AMOLED dark theme rewrites TikTok's color resources, and patching with it on runs slower when the memory limit is low, so give the manager 768 MB or more when it's on. It still finishes at 640 MB, just slower. On a Galaxy S22 patching TikTok 47.1.3 with the recommended patches plus AMOLED takes about 6 1/2 minutes at 640 MB and a little over 6 at 768 MB, and on a Galaxy S25 every patch at once took over an hour at 640 MB before Hushfeed's patches got faster. The recommended patches alone fit in 640 MB, about 5 1/2 minutes on the S22, and recent Manager versions already start capable phones at 1,024 MB. Hide Play Store update offer also decodes the manifest, so raise the limit if that patch runs out of memory. A run that sits at 24 or 25 percent and never moves may also need more memory. Cancel it, raise the limit to at least 768 MB if it's lower and start again. If that still stalls, try 512 MB, which gives the patcher less to hold at once.
 5. Install the patched APK. Google's 2026-09-30 verification rollout covers participating app stores in Brazil, Indonesia, Singapore and Thailand. Direct sideloads aren't included in that initial phase, and ADB installs are unchanged. See the [official Android FAQ](https://developer.android.com/developer-verification/guides/faq) for current requirements.
-6. Open TikTok and go to Settings and privacy. Hushfeed is the first row. Tap it to find the switches for every patch you selected.
+6. Open TikTok and go to Settings and privacy. Hushfeed is the first row. Tap it to find the switches for every patch you selected. If you're signed out, long-press **Home** on the bottom bar to open Hushfeed settings without going through Profile or signing in. Keep both **Settings** and **Feed tab navigation** selected when patching to use this shortcut.
 
 Selected runtime controls activate when TikTok starts and can be changed in Hushfeed settings. Resource-removal options run while patching and can't be undone by Pause or a settings import. Read the [native-language recovery steps](#tiktok-stays-in-english-after-removing-language-packs) before removing languages. The Settings patch adds the entry point and is selected by default. Deselect it and the other patches still apply, but their switches have nowhere to live. `patches-bundle.json` in the repository root is the source index Morphe reads for the published bundle.
+
+The Home shortcut starts on and keeps your choice during Pause, so you can return to settings and resume Hushfeed after closing the screen. Ordinary Home taps still work. If you turn off **Long-press Home for Hushfeed settings**, leave another settings entry available. A Home tab with its own TikTok long-press action keeps that action. This shortcut opens Hushfeed settings; TikTok still requires an account for its account-only features.
 
 If Morphe reported "The remote metadata file is unavailable" for Hushfeed v0.51.0, refresh the source. The v0.52.0 source update corrects a timestamp that Manager couldn't read. You don't need to reinstall Manager, clear its data or change its signing key.
 
@@ -138,6 +140,8 @@ A few patches change TikTok with no switch in front of them, and Pause can't rea
 
 While paused, TikTok's own bottom bar comes back, + button included. If Remove creation tools was patched in, the camera and editor behind that button still won't work, because their files were taken out when the app was patched.
 
+On the main branch, Limit background traffic keeps push setup intact unless you enable Skip push setup in that patch's options. The option starts off even when you select All. The published v0.67.0 bundle still skips push setup when this patch is selected. To restore it, repatch TikTok's original APK without Limit background traffic, or build the current source with Skip push setup off. Pause can't reverse that change in an installed APK.
+
 ### TikTok closes right after it opens
 
 If TikTok crashes within a minute of starting three times in a row, Hushfeed pauses itself on the next start. The top of Hushfeed settings then says why and offers Turn Hushfeed back on. Being swiped away or force-stopped doesn't count toward the three.
@@ -177,7 +181,7 @@ The eleven optional patches in the Performance group were measured on a Galaxy S
 | `Always show publish date` | Always shows the publish date in video author information. Switch: Hushfeed settings > Feed screen. |
 | `AMOLED dark theme` | Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It rewrites TikTok's resources, so patching with it on is slower when the manager's memory limit is low. Give the manager 768 MB or more. At 640 MB it still finishes, just more slowly. |
 | `Automatic video advance` | Keeps TikTok's automatic advance enabled while preserving its pause, dialog and gesture checks, and shows TikTok's own Auto scroll action in the video panel for accounts outside its rollout, with a switch that hides that action instead. Switch: Hushfeed settings > Playback. |
-| `Block author button` | Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. A confirmed account block skips to the next video and shows a small Unblock button at the top left for two seconds. The local-hide and sound controls have separate switches. Long press any visible control to move it. Hushfeed keeps it clear of system bars, cutouts and TikTok's bottom tabs when the window changes. A local action shows Undo only after its setting was saved. All controls hide while comments are open. Switch: Hushfeed settings > Feed filter. |
+| `Block author button` | Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. A confirmed account block skips to the next video and shows a small Unblock button at the top left for two seconds. The local-hide and sound controls start off and have separate switches, and either one can show without the block control. Long press any visible control to move it. Hushfeed keeps it clear of system bars, cutouts and TikTok's bottom tabs when the window changes. A local action shows Undo only after its setting was saved. All controls hide while comments are open. Switch: Hushfeed settings > Feed filter. |
 | `Block contact list access` | Answers TikTok's reads of your phone contacts with an empty list. Find Friends and People you may know lose access to your contact list. Switch: Hushfeed settings > Privacy. |
 | `Block installed app scanning` | Answers TikTok's scan of the apps installed on your phone with an empty list. Checks for one named app, which TikTok also uses to open an app you tap, are left alone. Switch: Hushfeed settings > Privacy. |
 | `Block P2P video relay` | Strips TikTok's peer-to-peer CDN libraries so your phone is not used as a relay node for other people's video traffic. The APK gets about 3.5 MB smaller. |
@@ -237,7 +241,7 @@ The eleven optional patches in the Performance group were measured on a Galaxy S
 | `Keep playing in the background` | Keeps TikTok's own background play on, whatever its server says, so the video you're watching keeps playing after you leave the app or turn the screen off, and TikTok's media notification pauses and resumes it. It also covers photo posts and the videos on your own profile, private ones included, which TikTok leaves out. A feed video plays to its end, because TikTok doesn't loop or move on in the feed while it's in the background, and another app's sound still pauses it. TikTok's own background play switch in the long-press menu stays on while this is on. Off by default. Restart TikTok after changing it. Switch: Hushfeed settings > Playback. |
 | `Keep the Favorites tab` | Keeps the Favorites tab on your profile when TikTok's server puts the account into an experiment that empties it. Two people saw that after patching: the tab was there and the saved videos were not. Switch: Hushfeed settings > App. |
 | `Keep the screen's refresh rate` | Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask takes the whole app down to that rate, scrolling included. A request that is not slower than the screen is left alone. Switch: Hushfeed settings > App. |
-| `Limit background traffic` | Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop. |
+| `Limit background traffic` | Turns off TikTok's buffer-preload gate. Videos may start buffering later. Push setup stays on unless Skip push setup is enabled in the patch options. |
 | `Location access governor` | Answers TikTok's location requests with nothing: the last known location comes back empty and update requests never fire. The SIM and region spoof change the locale and timezone, not the coordinates. This patch stops the coordinates. Switch: Hushfeed settings > Privacy. |
 | `Long-press controls` | Lets a long press on a video keep TikTok's own action, do nothing, open the video's comments, save the original sound, copy the link to the video or its sound, or look the sound up on YouTube Music. It can also turn a press on the left or right third of the screen into a jump back or forward, and make a long press on Comment, Share or Favorites play at the hold speed instead of opening TikTok's menu. Brings Double-tap controls with it, which supplies the comment control. Switch: Hushfeed settings > Feed screen. |
 | `Look like the store app` | Answers TikTok's own checks of how it was signed and installed the way the Play Store app would. Its signature hash reads as TikTok's certificate and its installer reads as the Play Store. For a follow or a like that undoes itself on a refresh on a patched build. TikTok can also read the APK from native code, which no patch reaches, so it may not be enough on its own. Off by default. Switch: Hushfeed settings > Privacy. |
@@ -293,6 +297,22 @@ The eleven optional patches in the Performance group were measured on a Galaxy S
 | A `Search this image` prompt over a video | Feed screen > **Hide Search this image prompts**. |
 
 Each switch controls its own surface. Turning one off doesn't change the others. The search field in Hushfeed settings only finds settings.
+
+### Restore older backups
+
+Watch-history import and the additional restore feedback below are available in source builds and await release.
+
+Backup and restore > **Restore settings** accepts portable settings from an older Hushfeed or another TikTok version. A setting missing from the file keeps its current value. Keys this build can't restore are skipped, and the outcome reports their count separately from missing settings. TikTok's own preferences and local device records stay intact.
+
+Feature Gate Lab rules are checked against the supported TikTok catalogs. Rules whose gates changed return turned off. A backup from a version without a catalog restores its portable settings and leaves the current Lab rules alone. **Undo last change** restores the settings and compatible Lab state from before the import.
+
+### Import watch history
+
+Request [your TikTok data](https://support.tiktok.com/en/account-and-privacy/personalized-ads-and-data/requesting-your-data) in JSON format. Extract the downloaded archive, sign in to the account the export belongs to, then open Hushfeed settings > Feed filter > Seen videos > **Import watch history** and choose the JSON file. The file must be at most 2 MB with at most 10,000 watch-history entries. TXT exports aren't supported yet.
+
+The importer reads the reviewed **Your Activity > Watch History** export layout. It keeps the watch dates, using the phone's time zone at file choice for dates that don't name a zone. **Forget seen videos after** applies to imported history too. Set it to zero before importing if you want to keep older watches. Invalid links and dates, repeated entries, videos already recorded at the same or a newer date, and entries beyond the newest 10,000 videos are skipped. A banner gives the added and skipped counts. Choosing the same file again adds nothing. Links are read locally and never opened or downloaded.
+
+The chosen account stays attached to the import, including when settings recreates while the picker is open. If you switch accounts before the write finishes, the import stops. An unsupported or damaged file leaves saved history unchanged and shows an error. An import that adds history ends Undo for an earlier clear and tells you in the banner. Failed imports and imports that add nothing keep that Undo available. Turn on **Hide videos you have already seen** to filter the imported videos from later feed batches.
 
 ### Pages and navigation
 
@@ -435,7 +455,15 @@ The Lab uses a compact toolbar so more gates fit on small screens. Tap the warni
 
 ## Building from source
 
+`tools/gen-release-notes.py` generates the in-app What's new text from published CHANGELOG entries starting at 0.60.0. It joins chunks at runtime so long notes and international text stay within Java's string-constant limit. Run `python -m unittest discover -s tools -p test_gen_release_notes.py` to check large notes through Java compilation and exact text round trips.
+
+APK fixture tests reuse read-only DEX containers only while the file's content and requested opcode version match. File replacement invalidates the cache even when its size and timestamp stay unchanged. Cache entries can be reclaimed under heap pressure, and each patch application keeps its own mutable context. Every declared and historical fixture stays in the test set.
+
+Use focused checks while editing and reserve the full suites and bundle build for a milestone. The configured `HUSHFEED_BUILD_WRAPPER` preserves spaced test filters, reports CPU and free memory, and runs with two workers at low priority. It defers a build when less than 6 GB is free instead of starting another heavy process.
+
 Use JDK 21 or newer and an Android SDK configured through `local.properties`. GitHub Packages needs `GITHUB_ACTOR` and a `GITHUB_TOKEN` with `read:packages` access for the Morphe dependencies.
+
+For runtime tests on Windows, use JDK 25. The tested JDK 21 build couldn't replace an existing file through `File.renameTo`, which broke Android's atomic file writes in the tests. JDK 25 passes that replacement check.
 
 Run the runtime and patch tests, then build the Morphe patch bundle and metadata. The patch tests read the vendor TikTok APKs from the folder `HUSHFEED_FIXTURE_DIR` names (see CONTRIBUTING.md), and the release check refuses a run in which any of them skipped:
 
@@ -515,9 +543,29 @@ pwsh -File scripts/validate-release-facts.ps1 -VerifyPublishedAsset -ArtifactPat
 
 The check follows the indexed URL, compares its SHA-256 with the local artifact, checks the matching entry in `SHA256SUMS.txt`, and counts the patches inside the published bundle against the number the index advertises.
 
+For an immutable release it also runs GitHub's release and asset attestation checks. Those checks bind the repository, tag, source commit and uploaded file hash. Rebuilding the bundle from that source remains a separate check. Add `-RequireImmutableRelease` when verifying a publication that must be immutable. Existing mutable releases keep the other checks and report that attestation verification was skipped.
+
+An advertised signature must be `patches-<version>.sigstore.json` beside the release bundle and verify with the repository's `cosign.pub`. Verification requires stable Cosign 3.1.3 or newer, checks the public key and transparency proof, and stops on missing inputs or a bad signature. Add `-RequireBundleSignature` when a publication must be signed, or `-Cosign <path>` to name the executable. Both requirement switches need `-VerifyPublishedAsset`. The current release doesn't advertise a signature. Prepare the signing key and final release assets before enabling that requirement.
+
+To verify a downloaded signed bundle directly, use:
+
+```bash
+cosign verify-blob --key cosign.pub --bundle patches-<version>.sigstore.json patches-<version>.mpp
+```
+
+For reviewed universal inputs, `scripts/verify-abi-apks.py` creates an ARM64-only APK, an ARMv7-only APK and an ARM64 copy with one altered P2P-library byte. It runs the complete patch and resource gate on both valid copies and requires the altered copy to be rejected. It preserves the original APK and writes hashes, reports and logs into a new output directory:
+
+```bash
+python scripts/verify-abi-apks.py --apk <universal.apk> --out <new-directory> --desktop-jar <desktop.jar> --bundle patches/build/release/patches-<version>.mpp
+```
+
+`verify-all-patches.ps1 -Force -ProbePackage <package>` qualifies an isolated candidate bundle without changing the production catalog. The candidate bundle must declare the package before the desktop CLI can select its patches. Force alone affects versions and doesn't select patches for an undeclared package. The gate rejects a zero-patch result and still checks every requested patch, actual output identity, resource and native language file. Supported targets need separate compatibility metadata and native acceptance.
+
 That last one needs the Morphe desktop CLI. Set `HUSHFEED_DESKTOP_JAR` to the jar, or put `morphe-desktop-<version>-all.jar` under `HUSHFEED_WORKDIR` or `build/morphe-tools`, and it is found on its own. Without it the check stops rather than passing, because the count is the only part that reads what people actually download. The CLI wants a JDK 21 or newer, which is often not the `java` first on PATH: `HUSHFEED_JAVA` or `JAVA_HOME` says which one to use. When `-Java` names a directory, that directory must contain `bin/java.exe` or `bin/java`. An invalid explicit directory is reported instead of falling back to PATH.
 
 ### Adding a language to the settings screen
+
+Quantity labels follow the language actually displayed. Android 6 uses compact integer rules from CLDR 48 for the shipped languages, so add that language's rule and API 23 coverage when adding a table. Android 7 and later keep their platform ICU rules. Extra forms use the other key followed by its category, such as `%1$d results|few`. If a row hasn't been translated, its English fallback still keeps the actual count.
 
 The English text in the code is the key. Each language is one table under `extensions/tiktok/src/main/l10n/`, with the English on the left and the translation on the right. A language is kept in one of two forms, and the generator reads both. `de.tsv` is tab separated, one entry per line, `#` starting a comment. `in.csv` is the comma form Weblate hosts: a `source,target` header and a row per entry, quoting whatever needs it. Copy either one to `<language code>.tsv` or `<language code>.csv`, translate the right hand column, then run:
 

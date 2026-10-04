@@ -71,7 +71,7 @@ public class RowChevronTest {
             "Jump to a section", "Reels in the feed", "Reels that play by themselves", "The Reels tab",
             "Everything except Marketplace",
             "Tab to open on", "Feeds opens on", "Words to hide", "Words that keep a post", "Comment order", "Playback quality", "Font file", "Download quality", "Save to", "Save folder",
-            "Video file name", "When you tap Download", "App to send to", "Supported links", "Meta App Manager",
+            "Video file name", "When you tap Download", "App to send to", "Supported links", "Meta App Manager", "Messenger", "Instagram",
             "Export settings", "Import settings",
             "Export diagnostic report", "Source code and issues", "Licenses"));
 
@@ -81,13 +81,16 @@ public class RowChevronTest {
     @Before
     public void everyPatchIn() {
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
-        // Meta App Manager on the phone puts its row under Supported links, which opens its page.
-        PackageInfo appManager = new PackageInfo();
-        appManager.packageName = SupportedLinks.APP_MANAGER;
-        appManager.applicationInfo = new ApplicationInfo();
-        appManager.applicationInfo.packageName = SupportedLinks.APP_MANAGER;
-        appManager.applicationInfo.enabled = true;
-        shadowOf(RuntimeEnvironment.getApplication().getPackageManager()).installPackage(appManager);
+        // Meta App Manager, Messenger and Instagram on the phone put their rows under Supported links,
+        // each opening its own page.
+        for (String name : Arrays.asList(SupportedLinks.APP_MANAGER, SupportedLinks.MESSENGER, SupportedLinks.INSTAGRAM)) {
+            PackageInfo holder = new PackageInfo();
+            holder.packageName = name;
+            holder.applicationInfo = new ApplicationInfo();
+            holder.applicationInfo.packageName = name;
+            holder.applicationInfo.enabled = true;
+            shadowOf(RuntimeEnvironment.getApplication().getPackageManager()).installPackage(holder);
+        }
     }
 
     @After

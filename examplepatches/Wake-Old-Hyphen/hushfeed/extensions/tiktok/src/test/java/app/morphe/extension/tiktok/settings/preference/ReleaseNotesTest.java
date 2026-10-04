@@ -12,16 +12,24 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
+import android.view.ViewGroup;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.rules.TemporaryFolder;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -33,6 +41,68 @@ import org.robolectric.shadows.ShadowAlertDialog;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class ReleaseNotesTest {
     public static class HostActivity extends Activity {}
+    @Rule public TemporaryFolder temporary = new TemporaryFolder();
+
+    @Test
+    public void generatedNotesLargerThanOneConstantStillRenderEveryReleaseInOrder() throws Exception {
+        Path cursor = Path.of(System.getProperty("user.dir"));
+        while (!Files.isRegularFile(cursor.resolve("CHANGELOG.md"))) cursor = cursor.getParent();
+        Path root = temporary.getRoot().toPath();
+        String notes = "## 0.67.0 (date)\nNewest starts.\n" + "content 🚀 \000 ".repeat(7_000)
+                + "\nNewest ends.\n\n## 0.60.0 (date)\nOldest kept.\n";
+        assertTrue(notes.getBytes(StandardCharsets.UTF_8).length > 65_535);
+        Path changelog = root.resolve("CHANGELOG.md");
+        Files.write(changelog, ("## Unreleased\nDraft stays out.\n\n" + notes).getBytes(StandardCharsets.UTF_8));
+        Path source = root.resolve("ReleaseNotesData.java");
+        String generate = "import importlib.util,sys; from pathlib import Path; "
+                + "s=importlib.util.spec_from_file_location('notes',sys.argv[1]); "
+                + "m=importlib.util.module_from_spec(s); s.loader.exec_module(m); "
+                + "m.CHANGELOG=Path(sys.argv[2]); m.OUTPUT=Path(sys.argv[3]); m.main()";
+        Process generator = new ProcessBuilder("python", "-c", generate,
+                cursor.resolve("tools/gen-release-notes.py").toString(), changelog.toString(), source.toString())
+                .redirectErrorStream(true).start();
+        String generated = new String(generator.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        assertEquals(generated, 0, generator.waitFor());
+        Process compiler = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "javac").toString(),
+                "-encoding", "UTF-8", "-d", root.toString(), source.toString()).redirectErrorStream(true).start();
+        String diagnostics = new String(compiler.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        assertEquals(diagnostics, 0, compiler.waitFor());
+
+        String name = ReleaseNotes.class.getName();
+        Path consumer = root.resolve(name.replace('.', '/') + ".class");
+        Files.createDirectories(consumer.getParent());
+        try (var input = ReleaseNotes.class.getResourceAsStream("ReleaseNotes.class")) {
+            Files.copy(input, consumer);
+        }
+        try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader()) {
+            @Override protected Class<?> loadClass(String target, boolean resolve) throws ClassNotFoundException {
+                if (!target.equals(name) && !target.equals(name + "Data")) return super.loadClass(target, resolve);
+                synchronized (this) {
+                    Class<?> loaded = findLoadedClass(target);
+                    if (loaded == null) loaded = findClass(target);
+                    if (resolve) resolveClass(loaded);
+                    return loaded;
+                }
+            }
+        }; var owner = Robolectric.buildActivity(HostActivity.class).setup()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            Utils.setActivity(activity);
+            activity.getSharedPreferences(ReleaseNotes.PREFS_NAME, Context.MODE_PRIVATE).edit()
+                    .putString("dismissed_version", "0.59.0").commit();
+            var show = loader.loadClass(name).getDeclaredMethod("show", Context.class, String.class, Runnable.class);
+            show.setAccessible(true);
+            show.invoke(null, activity, "0.67.0", (Runnable) () -> {});
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            ViewGroup custom = dialog.findViewById(android.R.id.custom);
+            ScrollView scroller = (ScrollView) custom.getChildAt(0);
+            TextView body = (TextView) scroller.getChildAt(0);
+            assertEquals(ReleaseNotes.text(notes, "0.67.0", "0.59.0"), body.getText().toString());
+            assertTrue(body.getText().toString().endsWith("Oldest kept."));
+            assertFalse(body.getText().toString().contains("Draft stays out."));
+            dialog.dismiss();
+        }
+    }
 
     @Test
     public void bundledTextMatchesPublishedChangelogAndLeavesDraftsOut() throws Exception {

@@ -53,9 +53,10 @@ fixtures/
 release-receipt-*.json
 
 # Local clones of the patch sources this bundle was assembled from (read, never committed).
-# The ledger of those sources is the one file in there that is tracked.
+# Reviewed source and carried-library license ledgers are tracked.
 /sources/*
 !/sources/instagram-sources.json
+!/sources/carried-library-licenses.json
 
 # Keep the selected marketing artwork and earlier concepts with the project; assets/ holds what ships.
 

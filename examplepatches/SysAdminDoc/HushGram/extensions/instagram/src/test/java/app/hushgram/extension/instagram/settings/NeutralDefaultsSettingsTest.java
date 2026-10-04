@@ -1,0 +1,173 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+package app.hushgram.extension.instagram.settings;
+
+import static org.junit.Assert.*;
+
+import android.app.Activity;
+import android.content.Context;
+import android.preference.SwitchPreference;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+import app.hushgram.extension.instagram.direct.NotesRow;
+import app.hushgram.extension.instagram.profile.ProfileHighlights;
+import app.hushgram.extension.instagram.feed.SwipeToCreate;
+import app.hushgram.extension.instagram.reels.ReelScrolling;
+import app.hushgram.extension.instagram.stories.StoryRing;
+import app.hushgram.extension.instagram.stories.StoryRingSize;
+import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
+import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.BooleanSetting;
+import app.hushgram.extension.shared.settings.HushgramPause;
+import app.hushgram.extension.shared.settings.PauseForTests;
+import app.hushgram.extension.shared.settings.Setting;
+
+/** Catalog expansion makes controls available without replacing their defaults or saved choices. */
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = {28, 37})
+@SuppressWarnings("deprecation")
+public class NeutralDefaultsSettingsTest {
+    @Rule public final SettingsContextRule settings = new SettingsContextRule();
+    private BooleanSetting[] initiallyOff;
+
+    /** Stands in for the inbox's section enum. */
+    enum StockSection { SEARCH_BAR, TRAY }
+
+    @Before public void prepare() {
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        initiallyOff = new BooleanSetting[]{Settings.COPY_COMMENTS, Settings.SAVE_COMMENT_PHOTOS,
+                Settings.HIDE_HIGHLIGHTS, Settings.HIDE_NOTES_ROW, Settings.STOP_SWIPE_TO_CREATE,
+                Settings.STOP_REELS_SCROLLING};
+        restoreDefaults();
+        BaseSettings.SAFE_MODE.save(false);
+        Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.COMMENT_COPY, PatchFamily.COMMENT_PHOTO,
+                PatchFamily.PROFILE_HIGHLIGHTS, PatchFamily.NOTES_ROW, PatchFamily.SWIPE_TO_CREATE,
+                PatchFamily.REEL_SCROLLING, PatchFamily.STORY_RING);
+    }
+
+    @After public void restore() throws Exception {
+        restoreDefaults();
+        Settings.SIGN_IN_NOTICE_HIDDEN.resetToDefault();
+        PatchFamily.inBuildForTests = null;
+        Utils.awaitBackgroundTasksForTests();
+    }
+
+    private void restoreDefaults() {
+        for (BooleanSetting setting : initiallyOff) setting.resetToDefault();
+        Settings.STORY_RING.resetToDefault();
+        Settings.STORY_RING_SCALE.resetToDefault();
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+    }
+
+    @Test public void expandedCatalogKeepsItsDeclaredInitialRuntimeValues() {
+        for (BooleanSetting setting : initiallyOff) {
+            assertEquals(setting.key, Boolean.FALSE, setting.defaultValue);
+            assertFalse(setting.key, setting.get());
+        }
+        assertEquals(Boolean.TRUE, Settings.STORY_RING.defaultValue);
+        assertEquals(StoryRingSize.INSTAGRAM, Settings.STORY_RING_SCALE.defaultValue);
+        assertStockHooks();
+    }
+
+    @Test public void remainingOptionalRuntimeFamiliesStartWithTheirBehaviorEnabled() {
+        BooleanSetting[] startsOn = {Settings.HIDE_REEL_FOLLOW_BUTTON, Settings.HIDE_REEL_CHIPS,
+                Settings.HIDE_REEL_SOCIAL_FOOTER, Settings.DONT_SEND_REEL_WATCH_HISTORY,
+                Settings.DOWNLOAD_VIDEOS, Settings.HIDE_FEED_REELS, Settings.HIDE_SHARE_SHEET_GROUP,
+                Settings.HIDE_REELS_SUGGESTIONS, Settings.HIDE_PROFILE_SUGGESTIONS,
+                Settings.HIDE_EXPLORE_GRID, Settings.HIDE_REELS_TAB, Settings.HIDE_REPOST_BUTTON,
+                Settings.KEEP_REEL_AUTO_SCROLL, Settings.REEL_SEEK_BAR, Settings.LOOP_STORIES,
+                Settings.OPEN_DEVELOPER_OPTIONS, Settings.REMOVE_BOTTOM_SPACE, Settings.SHOW_STORY_TIME,
+                Settings.START_ON_FOLLOWING, Settings.BLOCK_STORY_AUTO_ADVANCE, Settings.TAP_TO_PLAY,
+                Settings.TURN_OFF_DOUBLE_TAP_LIKE, Settings.VIEW_STORIES_ANONYMOUSLY};
+        for (BooleanSetting setting : startsOn) assertEquals(setting.key, Boolean.TRUE, setting.defaultValue);
+        // A false remembered value does not make the enabled persistence feature neutral.
+        assertEquals(Boolean.FALSE, Settings.REEL_AUTO_SCROLL_ON.defaultValue);
+        // DM receipts stay excluded for acceptance even though their switch starts off.
+        assertEquals(Boolean.FALSE, Settings.VIEW_DM_MEDIA_ANONYMOUSLY.defaultValue);
+    }
+
+    @Test public void ringKeepsExactNativeBitsUntilASizeIsChosen() {
+        for (int bits : new int[]{0, 0x80000000, 0x43870000, 0xbf800000, 0x7f800000, 0x7fc01234}) {
+            assertEquals("initial Instagram choice", bits,
+                    Float.floatToRawIntBits(StoryRing.size(Float.intBitsToFloat(bits))));
+        }
+        Settings.STORY_RING_SCALE.save(StoryRingSize.LARGEST);
+        assertEquals(351f, StoryRing.size(270f), 0.001f);
+        Settings.STORY_RING.save(false);
+        assertStockHooks();
+        Settings.STORY_RING.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertStockHooks();
+        assertEquals(StoryRingSize.LARGEST, Settings.STORY_RING_SCALE.savedValue());
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(this::assertStockHooks);
+        SettingsContextRule.beforeThePauseIsDecided(this::assertStockHooks);
+    }
+
+    @Test public void openingTheExpandedSettingsNeverReplacesEitherSavedChoice() throws Exception {
+        for (boolean chosen : new boolean[]{false, true}) {
+            for (BooleanSetting setting : initiallyOff) setting.save(chosen);
+            Settings.STORY_RING.save(chosen);
+            Settings.STORY_RING_SCALE.save(chosen ? StoryRingSize.SMALLER : StoryRingSize.LARGER);
+            Map<String, Object> before = savedChoices();
+            for (int opening = 0; opening < 2; opening++) {
+                try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+                    var page = new HushgramPreferenceFragment();
+                    controller.get().getFragmentManager().beginTransaction()
+                            .add(android.R.id.content, page).commitNow();
+                    Utils.awaitBackgroundTasksForTests();
+                    for (BooleanSetting setting : initiallyOff) {
+                        SwitchPreference row = (SwitchPreference) page.getPreferenceScreen().findPreference(setting.key);
+                        assertNotNull(setting.key, row);
+                        assertEquals(setting.key, chosen, row.isChecked());
+                    }
+                    SwitchPreference ring = (SwitchPreference) page.getPreferenceScreen().findPreference(Settings.STORY_RING.key);
+                    assertEquals(chosen, ring.isChecked());
+                }
+                assertEquals("binding and closing must not reset saved preferences", before, savedChoices());
+            }
+            PauseForTests.pause(HushgramPause.Reason.SWITCH);
+            assertStockHooks();
+            assertEquals("Pause must not rewrite saved choices", before, savedChoices());
+            PauseForTests.resume();
+        }
+    }
+
+    private Map<String, Object> savedChoices() {
+        Map<String, ?> all = RuntimeEnvironment.getApplication()
+                .getSharedPreferences(Setting.preferences.name, Context.MODE_PRIVATE).getAll();
+        Map<String, Object> selected = new HashMap<>();
+        for (BooleanSetting setting : initiallyOff) selected.put(setting.key, all.get(setting.key));
+        selected.put(Settings.STORY_RING.key, all.get(Settings.STORY_RING.key));
+        selected.put(Settings.STORY_RING_SCALE.key, all.get(Settings.STORY_RING_SCALE.key));
+        return selected;
+    }
+
+    private void assertStockHooks() {
+        Object pager = new Object();
+        assertEquals(1, ReelScrolling.pager(pager));
+        for (int nativeValue : new int[]{0, 1, -7}) assertEquals(nativeValue, ReelScrolling.userInput(pager, nativeValue));
+        assertEquals(1, ReelScrolling.pull());
+        assertEquals(1, ProfileHighlights.keepTray());
+        Object[] sections = {StockSection.SEARCH_BAR, StockSection.TRAY};
+        assertSame(sections, NotesRow.sections(sections));
+        assertEquals(0, SwipeToCreate.enabled());
+        assertEquals(0, SwipeToCreate.hold(-1f, 0f, "swipe"));
+        assertEquals(270f, StoryRing.size(270f), 0f);
+    }
+}

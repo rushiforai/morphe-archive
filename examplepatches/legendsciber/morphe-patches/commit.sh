@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix(dantheman): free iap works offline, drop 1.14.02 target"
+MSG="feat(solarsmash): add all packages purchased patch"
 
 cd "$DIR"
 

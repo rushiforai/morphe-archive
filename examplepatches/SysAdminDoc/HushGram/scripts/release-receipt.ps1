@@ -36,6 +36,8 @@
 . (Join-Path $PSScriptRoot 'apk-facts.ps1')
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 
+. (Join-Path $PSScriptRoot 'build-identity.ps1')
+
 function Get-ReleaseReceiptSchemaVersion {
     <#
     .SYNOPSIS
@@ -49,8 +51,9 @@ function Get-ReleaseReceiptSchemaVersion {
 
         2 added sbom: the file name, SHA-256 and component count of the release SBOM.
         3 added input-derived per-target coverage and exact-fixture coverage review.
+        4 adds the canonical production identity and verifies its exact extension payload bytes.
     #>
-    return 3
+    return 4
 }
 
 function Resolve-ReceiptSchema {
@@ -87,8 +90,11 @@ function Resolve-ReceiptSchema {
     if ($version -eq $current) { return [pscustomobject]@{ Version = $version; Note = $null } }
     return [pscustomobject]@{
         Version = $version
-        Note = ("the receipt is held to schema $version, which its own commit $short wrote, so it names no " +
-            'SBOM and none is checked for its release')
+        Note = if ($version -lt 2) {
+            "the receipt is held to schema $version, which its own commit $short wrote, so it names no SBOM and none is checked for its release"
+        } else {
+            "the receipt keeps historical schema $version from its own commit $short, without requiring newer metadata"
+        }
     }
 }
 
@@ -122,6 +128,79 @@ function Get-SbomSha256 {
     return $value
 }
 
+function Assert-SbomCarriedLicenses {
+    param($Document, [switch]$RequireCurrent, [string]$LedgerPath)
+    $policy = @($Document.metadata.properties | Where-Object { $_.name -ceq 'hushgram:license-policy' })
+    if ($policy.Count -eq 0 -and -not $RequireCurrent) { return } # Historical published SBOM.
+    if ($policy.Count -ne 1 -or $policy[0].value -cne 'reviewed-artifacts-v1') {
+        throw 'The SBOM lacks the reviewed carried-library license policy.'
+    }
+    $stamp = @($Document.metadata.properties | Where-Object { $_.name -ceq 'hushgram:license-ledger' })
+    if ($stamp.Count -ne 1 -or $stamp[0].value -cnotmatch '^[0-9a-f]{64}$') {
+        throw 'The SBOM lacks one valid license ledger SHA-256.'
+    }
+    $approved = @()
+    $reviewedInventory = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    if ($RequireCurrent) {
+        if (-not (Test-Path -LiteralPath $LedgerPath -PathType Leaf)) { throw 'The reviewed license ledger is missing.' }
+        if ($stamp[0].value -cne (Get-FileHash -LiteralPath $LedgerPath -Algorithm SHA256).Hash.ToLowerInvariant()) {
+            throw 'The SBOM names another reviewed license ledger.'
+        }
+        $ledger = Get-Content -LiteralPath $LedgerPath -Raw | ConvertFrom-Json
+        if ($ledger.schemaVersion -ne 1 -or @($ledger.artifacts).Count -eq 0) { throw 'The license ledger schema is invalid.' }
+        $approved = @($ledger.artifacts)
+    }
+    foreach ($component in @($Document.components | Where-Object { $_.type -eq 'library' -and $_.purl })) {
+        $choices = @($component.licenses | Where-Object { $null -ne $_ })
+        if ($choices.Count -ne 1 -or $choices[0].license.id -cne 'Apache-2.0' -or
+                $choices[0].license.url -cne 'https://www.apache.org/licenses/LICENSE-2.0.txt') {
+            throw "The carried library $($component.purl) lacks its reviewed license."
+        }
+        $artifacts = @($component.properties | Where-Object { $_.name -ceq 'hushgram:artifact' })
+        $evidence = @($component.properties | Where-Object { $_.name -ceq 'hushgram:license-evidence' })
+        if ($artifacts.Count -eq 0 -or $evidence.Count -ne $artifacts.Count) {
+            throw "The carried library $($component.purl) lacks exact artifact license evidence."
+        }
+        $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+        foreach ($item in $evidence) {
+            try { $record = $item.value | ConvertFrom-Json } catch { throw 'The license evidence is not JSON.' }
+            $pom = 'https://repo.maven.apache.org/maven2/' + $component.group.Replace('.', '/') + '/' +
+                $component.name + '/' + $component.version + '/' + $component.name + '-' + $component.version + '.pom'
+            $artifact = "$($record.file) sha256:$($record.sha256)"
+            if ($record.purl -cne $component.purl -or $record.file -cnotmatch '^[A-Za-z0-9_.+\-]+\.jar$' -or
+                    $record.sha256 -cnotmatch '^[0-9a-f]{64}$' -or -not $seen.Add($record.file) -or
+                    @($artifacts | Where-Object { $_.value -ceq $artifact }).Count -ne 1 -or
+                    $record.license.id -cne $choices[0].license.id -or $record.license.url -cne $choices[0].license.url -or
+                    $record.evidence.url -cne $pom -or $record.evidence.sha256 -cnotmatch '^[0-9a-f]{64}$' -or
+                    -not $record.evidence.declaredLicense) {
+                throw "The carried library $($component.purl) has unbound or duplicate license evidence."
+            }
+            if ($artifacts.Count -eq 1 -and (Get-SbomSha256 -Component $component -Label 'licensed artifact') -cne $record.sha256) {
+                throw 'The licensed artifact hash does not match the component hash.'
+            }
+            if ($RequireCurrent) {
+                $matches = @($approved | Where-Object { $_.purl -ceq $record.purl -and $_.file -ceq $record.file })
+                if ($matches.Count -ne 1 -or $matches[0].sha256 -cne $record.sha256 -or
+                        $matches[0].license.id -cne $record.license.id -or $matches[0].license.url -cne $record.license.url -or
+                        $matches[0].evidence.url -cne $record.evidence.url -or $matches[0].evidence.sha256 -cne $record.evidence.sha256 -or
+                        $matches[0].evidence.declaredLicense -cne $record.evidence.declaredLicense) {
+                    throw "The carried artifact $($record.file) has no matching reviewed license record."
+                }
+                if (-not $reviewedInventory.Add($record.purl + "`t" + $record.file)) {
+                    throw 'The SBOM repeats a reviewed carried license artifact.'
+                }
+            }
+        }
+    }
+    if ($RequireCurrent) {
+        foreach ($record in $approved) {
+            if (-not $reviewedInventory.Contains($record.purl + "`t" + $record.file)) {
+                throw "The SBOM omits the reviewed carried license artifact $($record.purl)/$($record.file)."
+            }
+        }
+    }
+}
+
 function Read-ReleaseSbom {
     <#
     .SYNOPSIS
@@ -138,7 +217,8 @@ function Read-ReleaseSbom {
         would a library with no package URL at all, which only the modules built from this
         repository may be, marked hushgram:first-party.
     #>
-    param([Parameter(Mandatory = $true)][string]$Path)
+    param([Parameter(Mandatory = $true)][string]$Path, [switch]$RequireReviewedLicenses,
+        [string]$LicenseLedger = (Join-Path (Split-Path -Parent $PSScriptRoot) 'sources/carried-library-licenses.json'))
 
     $Path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw "There is no SBOM at $Path." }
@@ -195,6 +275,7 @@ function Read-ReleaseSbom {
         $components.Add($entry)
     }
     if ($components.Count -eq 0) { throw "$name lists no component." }
+    Assert-SbomCarriedLicenses -Document $document -RequireCurrent:$RequireReviewedLicenses -LedgerPath $LicenseLedger
 
     return [pscustomobject]@{
         Path          = $Path
@@ -320,6 +401,9 @@ function Get-BundleManifestFacts {
     $timestamp = [regex]::Match($text, '(?m)^Timestamp:\s*(\d+)\s*$')
     $version = [regex]::Match($text, '(?m)^Version:\s*(\S+)\s*$')
     $patcher = [regex]::Match($text, '(?m)^Patcher-Version:\s*(\S+)\s*$')
+    $mainAttributes = ($text -split '\r?\n\r?\n', 2)[0]
+    $identities = [regex]::Matches($mainAttributes, '(?m)^HushGram-Build-Identity:\s*(\S+)\s*$')
+    if ($identities.Count -gt 1) { throw 'The bundle manifest has duplicate production build identities.' }
     if (-not $timestamp.Success) { throw "The bundle manifest has no Timestamp: $BundlePath" }
     if (-not $version.Success) { throw "The bundle manifest has no Version: $BundlePath" }
     if (-not $patcher.Success) { throw "The bundle manifest has no Patcher-Version: $BundlePath" }
@@ -328,7 +412,41 @@ function Get-BundleManifestFacts {
         version        = $version.Groups[1].Value
         timestamp      = [long]$timestamp.Groups[1].Value
         patcherVersion = $patcher.Groups[1].Value
+        buildIdentity  = if ($identities.Count) { $identities[0].Groups[1].Value } else { $null }
     }
+}
+
+function Get-ExtensionPayloads {
+    <#
+    .SYNOPSIS
+        Names, sizes and hashes of the actual extension DEX bytes in a final bundle.
+    #>
+    param([string]$BundlePath)
+    $BundlePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($BundlePath)
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $payloads = [Collections.Generic.List[object]]::new()
+    $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $archive = [IO.Compression.ZipFile]::OpenRead($BundlePath)
+    try {
+        foreach ($entry in @($archive.Entries | Where-Object { $_.FullName -like 'extensions/*.mpe' } | Sort-Object FullName)) {
+            if ($entry.FullName -cnotmatch '^extensions/[^/]+\.mpe$' -or -not $seen.Add($entry.FullName)) {
+                throw 'The final bundle has a duplicate or invalid extension payload name.'
+            }
+            $stream = $entry.Open()
+            $memory = [IO.MemoryStream]::new()
+            try { $stream.CopyTo($memory); $bytes = $memory.ToArray() }
+            finally { $stream.Dispose(); $memory.Dispose() }
+            if ([Text.Encoding]::ASCII.GetString($bytes, 0, [Math]::Min(4, $bytes.Length)) -ne "dex`n") {
+                throw "$($entry.FullName) in $BundlePath is not an Android DEX payload."
+            }
+            $sha = [Security.Cryptography.SHA256]::Create()
+            try { $hash = -join ($sha.ComputeHash($bytes) | ForEach-Object { $_.ToString('X2') }) }
+            finally { $sha.Dispose() }
+            $payloads.Add([ordered]@{ name = $entry.FullName; sizeBytes = [long]$bytes.Length; sha256 = $hash })
+        }
+    } finally { $archive.Dispose() }
+    if (-not $payloads.Count) { throw "The bundle carries no extension payload: $BundlePath" }
+    return $payloads.ToArray()
 }
 
 function Resolve-ReceiptManifestAllowlist {
@@ -829,6 +947,10 @@ function Test-ReleaseReceipt {
         return Fail ("The receipt is schema version $($Receipt.schemaVersion); its release is read at " +
             "version $ExpectedSchemaVersion.")
     }
+    if ($ExpectedSchemaVersion -ge 4) {
+        try { Assert-CanonicalBuildIdentity -Identity $Receipt.buildIdentity }
+        catch { return Fail $_.Exception.Message }
+    }
     if ($Receipt.release.version -ne $ExpectedVersion) {
         return Fail "The receipt is for $($Receipt.release.version), not $ExpectedVersion."
     }
@@ -897,6 +1019,9 @@ function Test-ReleaseReceipt {
         }
 
         $manifest = Get-BundleManifestFacts -BundlePath $BundlePath
+        if ($ExpectedSchemaVersion -ge 4 -and $manifest.buildIdentity -cne $Receipt.buildIdentity.id) {
+            return Fail 'The receipt identity differs from the bundle production build identity.'
+        }
         if ($manifest.version -ne $ExpectedVersion) {
             return Fail "The bundle's manifest says version $($manifest.version), not $ExpectedVersion."
         }
@@ -947,6 +1072,11 @@ function Test-ReleaseReceipt {
             $bound = Test-ReleaseSbom -Sbom $document -BundlePath $BundlePath -BundleName ([string]$Receipt.bundle.file)
             if (-not $bound.Valid) { return Fail $bound.Reason }
         }
+        if ($ExpectedSchemaVersion -ge 4) {
+            try { $sbomIdentity = Read-SbomCanonicalBuildIdentity -Path $SbomPath }
+            catch { return Fail $_.Exception.Message }
+            if ($sbomIdentity.id -cne $Receipt.buildIdentity.id) { return Fail 'The receipt identity differs from its SBOM production identity.' }
+        }
     }
 
     # Nulls dropped first. A receipt with the key missing altogether gives $null here, and
@@ -963,6 +1093,20 @@ function Test-ReleaseReceipt {
         }
         if ([string]$payload.sha256 -notmatch '^[0-9A-F]{64}$') {
             return Fail "The recorded DEX payload $($payload.name) has no SHA-256."
+        }
+    }
+    if ($ExpectedSchemaVersion -ge 4 -and $BundlePath) {
+        try { $actualPayloads = @(Get-ExtensionPayloads -BundlePath $BundlePath) }
+        catch { return Fail $_.Exception.Message }
+        if ($payloads.Count -ne $actualPayloads.Count -or @($payloads.name | Sort-Object -Unique).Count -ne $payloads.Count) {
+            return Fail 'The receipt does not map each final extension payload exactly once.'
+        }
+        foreach ($actual in $actualPayloads) {
+            $recorded = @($payloads | Where-Object { $_.name -ceq $actual.name })
+            if ($recorded.Count -ne 1 -or $recorded[0].sizeBytes -ne $actual.sizeBytes -or
+                $recorded[0].sha256 -cne $actual.sha256) {
+                return Fail "The receipt bytes differ from the final extension payload $($actual.name)."
+            }
         }
     }
 

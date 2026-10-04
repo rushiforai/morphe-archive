@@ -369,7 +369,7 @@ public final class FeedFilter {
                     }
                 }
             }
-            if (reason == null && trayPatched && Settings.HIDE_STORIES_TRAY.get()) {
+            if (reason == null && trayPatched && Settings.HIDE_STORIES_BETWEEN_POSTS.get()) {
                 reason = storiesRowReason(typeName(feedUnit));
             }
             boolean aiLabelled = aiPatched && Settings.HIDE_AI_LABELLED_POSTS.get();
@@ -532,7 +532,8 @@ public final class FeedFilter {
      */
     private static String wordsReason(Object feedUnit, StoryFlag.Accessor message, StoryFlag.Accessor attached) {
         FeedFilterCounters.sawList(WORDS_ROUTE, 1);
-        PostWords.Rules rules = PostWords.rules(Settings.HIDDEN_WORDS.get(), Settings.KEPT_WORDS.get());
+        PostWords.Rules rules = PostWords.rules(Settings.HIDDEN_WORDS.get(), Settings.KEPT_WORDS.get(),
+                Settings.POST_WORDS_WHOLE_WORDS.get());
         if (rules.hidesNothing()) {
             FeedFilterCounters.sawKind(WORDS_ROUTE, NO_WORDS);
             return null;
@@ -737,7 +738,7 @@ public final class FeedFilter {
             String kind = adapter == UNIFIED_TRAY ? "unified" : "legacy";
             FeedFilterCounters.sawList(TRAY_ROUTE, 1);
             FeedFilterCounters.sawKind(TRAY_ROUTE, kind);
-            boolean hide = Utils.settingsReady() && Settings.HIDE_STORIES_TRAY.get();
+            boolean hide = Utils.settingsReady() && Settings.HIDE_TOP_STORIES_TRAY.get();
             if (hide) FeedFilterCounters.removed(TRAY_ROUTE, 1, kind + " adapter skipped");
             logTrayOnce(adapter, kind, hide);
             return hide;

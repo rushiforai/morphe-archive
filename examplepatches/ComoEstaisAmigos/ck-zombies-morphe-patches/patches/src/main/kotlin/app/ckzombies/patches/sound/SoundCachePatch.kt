@@ -55,7 +55,7 @@ internal object InitialiseSoundEventFingerprint : Fingerprint(
  *
  * A sound whose duration cannot be read is never given to `SoundPool`, since the engine needs a
  * completion callback and `SoundPool` has none. It stays on the prepared-player tier, which is
- * also what happens below API 10, where `MediaMetadataRetriever` does not exist.
+ * also what happens on older Android, which has no `MediaMetadataRetriever`.
  */
 @Suppress("unused")
 val soundCachePatch = bytecodePatch(

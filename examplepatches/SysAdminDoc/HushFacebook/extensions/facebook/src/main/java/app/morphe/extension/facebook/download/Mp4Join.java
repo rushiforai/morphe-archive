@@ -156,6 +156,10 @@ final class Mp4Join {
         long[] runStarts = new long[16];
         final Ints runEnds = new Ints();
         final Ints runDescriptions = new Ints();
+        /** Ordered payload bounds, excluding each mdat's eight- or sixteen-byte header. */
+        long[] mediaStarts = new long[16];
+        long[] mediaEnds = new long[16];
+        int mediaBoxes;
 
         /** The decode time of the first sample, and of the next one to be read. */
         long firstDecodeTime = -1;
@@ -185,14 +189,14 @@ final class Mp4Join {
             long at = 0;
             boolean described = false;
             byte[] head = new byte[16];
-            while (at + 8 <= length) {
+            while (length - at >= 8) {
                 file.seek(at);
                 file.readFully(head, 0, 8);
                 long size = ByteBuffer.wrap(head).getInt(0) & 0xFFFFFFFFL;
                 int type = ByteBuffer.wrap(head).getInt(4);
                 int header = 8;
                 if (size == 1) {
-                    if (at + 16 > length) throw new IOException("a box runs past the end of the " + kind + " file");
+                    if (length - at < 16) throw new IOException("a box runs past the end of the " + kind + " file");
                     file.readFully(head, 8, 8);
                     size = ByteBuffer.wrap(head).getLong(8);
                     header = 16;
@@ -209,11 +213,44 @@ final class Mp4Join {
                 } else if (type == MOOF) {
                     if (!described) throw new IOException("the " + kind + " file has a fragment before its moov");
                     fragment(whole(at + header, size - header), at, length);
+                } else if (type == MDAT) {
+                    // Keep range metadata within the same budget as the sample tables, even when
+                    // an input lists media boxes its fragments never reference.
+                    if (mediaBoxes == MAX_SAMPLES) {
+                        throw new IOException("the " + kind + " file lists too many media data boxes");
+                    }
+                    if (mediaBoxes == mediaStarts.length) {
+                        int capacity = Math.min(MAX_SAMPLES, mediaBoxes * 2);
+                        mediaStarts = Arrays.copyOf(mediaStarts, capacity);
+                        mediaEnds = Arrays.copyOf(mediaEnds, capacity);
+                    }
+                    mediaStarts[mediaBoxes] = at + header;
+                    mediaEnds[mediaBoxes++] = at + size;
                 }
                 at += size;
             }
             if (!described) throw new IOException("the " + kind + " file has no moov");
             if (sizes.size == 0) throw new IOException("the " + kind + " file holds no samples");
+            validateMediaData();
+        }
+
+        /** Runs are contiguous, so containing the run contains every nonempty sample in it. */
+        private void validateMediaData() throws IOException {
+            if (mediaBoxes == 0) throw new IOException("the " + kind + " file has no media data boxes");
+            int first = 0;
+            for (int run = 0; run < runEnds.size; run++) {
+                long bytes = 0;
+                int end = runEnds.get(run);
+                for (int sample = first; sample < end; sample++) bytes += sizes.get(sample);
+                first = end;
+                if (bytes == 0) continue;
+                long start = runStarts[run];
+                int box = Arrays.binarySearch(mediaStarts, 0, mediaBoxes, start);
+                if (box < 0) box = -box - 2;
+                if (box < 0 || bytes > mediaEnds[box] - start) {
+                    throw new IOException("a fragment's samples lie outside the " + kind + " file's media data");
+                }
+            }
         }
 
         /** The [size] bytes at [at], which hold one box's payload. */
@@ -347,6 +384,9 @@ final class Mp4Join {
                 } else {
                     throw new IOException("a fragment of the " + kind + " file puts its data after another track's");
                 }
+                // tfhd stores an unsigned 64-bit base. A signed-negative representation cannot
+                // name a position in this RandomAccessFile and must not wrap into a small offset.
+                if (base < 0) throw new IOException("a fragment of the " + kind + " file has an unsupported data offset");
                 int description = (flags & 0x2) != 0 ? h.getInt() : defaultDescription;
                 int duration = (flags & 0x8) != 0 ? h.getInt() : defaultDuration;
                 int size = (flags & 0x10) != 0 ? h.getInt() : defaultSize;
@@ -377,7 +417,14 @@ final class Mp4Join {
                 long length) throws IOException {
             int flags = r.getInt() & 0xFFFFFF;
             long count = u32(r);
-            long start = (flags & 0x1) != 0 ? base + r.getInt() : next;
+            long start = next;
+            if ((flags & 0x1) != 0) {
+                try {
+                    start = Math.addExact(base, r.getInt());
+                } catch (ArithmeticException e) {
+                    throw new IOException("a fragment's data offset overflows in the " + kind + " file", e);
+                }
+            }
             boolean hasFirstFlags = (flags & 0x4) != 0;
             int firstFlags = hasFirstFlags ? r.getInt() : 0;
             int fields = Integer.bitCount(flags & 0xF00);
@@ -402,7 +449,7 @@ final class Mp4Join {
                 decodeTime += sampleDuration & 0xFFFFFFFFL;
                 bytes += sampleSize;
             }
-            if (start < 0 || start + bytes > length) {
+            if (start < 0 || start > length || bytes > length - start) {
                 throw new IOException("a fragment's samples run past the end of the " + kind + " file");
             }
             int runs = runEnds.size;

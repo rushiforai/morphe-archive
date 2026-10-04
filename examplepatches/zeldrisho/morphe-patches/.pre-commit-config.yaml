@@ -1,6 +1,7 @@
+minimum_pre_commit_version: '3.2.0'
 default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, pre-push]
-# Fast, check-only hooks. JVM checks stay in Gradle, not the commit path.
+# Fast commit-time hooks; fixers may modify files. JVM checks stay in Gradle.
 repos:
   - repo: local
     hooks:
@@ -9,6 +10,8 @@ repos:
         entry: python3 scripts/check_markdown_links.py
         language: system
         files: '\.md$'
+        pass_filenames: false
+        require_serial: true
       - id: gradle-quality
         name: Gradle JVM quality checks
         entry: bash ./gradlew qualityCheck --no-daemon
@@ -17,6 +20,11 @@ repos:
         files: '\.(kt|kts|java|xml|properties|toml)$'
         pass_filenames: false
         require_serial: true
+
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
@@ -29,6 +37,7 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-json
+      - id: check-yaml
 
   - repo: https://github.com/rhysd/actionlint
     rev: 914e7df21a07ef503a81201c76d2b11c789d3fca # v1.7.12

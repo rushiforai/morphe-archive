@@ -1,10 +1,10 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "patches": [
     {
       "name": "Modern Android compatibility",
-      "description": "Fixes the crash at launch on current Android and targets API 25 so that Android 14 and later install the game normally. If the OBB is missing, the game says why. The game is 32-bit only, so the device must still run 32-bit apps.",
+      "description": "Fixes the crash at launch on current Android and targets API 25 so that Android 14 and later install the game normally. The game is 32-bit only, so the device must still run 32-bit apps.",
       "default": true,
       "category": null,
       "dependencies": [

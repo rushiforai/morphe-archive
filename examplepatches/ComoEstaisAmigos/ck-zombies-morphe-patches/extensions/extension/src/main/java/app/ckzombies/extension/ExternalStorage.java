@@ -1,7 +1,6 @@
 package app.ckzombies.extension;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.Log;
 
 import java.io.File;
@@ -61,9 +60,7 @@ public final class ExternalStorage {
         try {
             File files = context.getExternalFilesDir(null);
             context.getExternalCacheDir();
-            if (Build.VERSION.SDK_INT >= 11) {
-                context.getObbDir();
-            }
+            askForObbDir(context);
             if (files != null) {
                 int removed = removeUnreadable(soundCache(files), OPEN_AND_CLOSE);
                 if (removed > 0) {
@@ -72,6 +69,19 @@ public final class ExternalStorage {
             }
         } catch (Throwable ignored) {
             // Best effort. The engine copes with a missing directory; it only loses its sounds.
+        }
+    }
+
+    /**
+     * Asks for Android/obb/&lt;package&gt;/, see above. Older Android has no Context.getObbDir(),
+     * and the extension is built for a newer minimum, so R8 drops any SDK_INT check around the
+     * call. There the call throws; it is caught here so that what comes after it still runs.
+     */
+    static void askForObbDir(Context context) {
+        try {
+            context.getObbDir();
+        } catch (Throwable ignored) {
+            // Older Android: there is nothing to ask for.
         }
     }
 

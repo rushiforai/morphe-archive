@@ -12,7 +12,9 @@
     told to go ahead with -f. -Force does that for a retained newer build: the stock APK's own
     version is read with aapt2 and the result is held to that instead of the catalog's, so the
     run answers "which patches still apply on this build" rather than being refused before it
-    starts. The package still has to be the catalog's.
+    starts. The package still has to be the catalog's unless -ProbePackage explicitly names an
+    undeclared package with -Force. That route qualifies a candidate without changing support
+    metadata, and still holds every patch, output package, resource and language file to the APK.
 
     A clean run then holds the patched APK's resource table to the stock one with
     ResourceTableCheck.java: every resource of every package has to resolve by its id with its
@@ -37,7 +39,8 @@ param(
     [string]$PatchList,
     [string]$Java,
     [switch]$Force,
-    [string]$Aapt2
+    [string]$Aapt2,
+    [string]$ProbePackage
 )
 
 $ErrorActionPreference = 'Stop'
@@ -81,20 +84,14 @@ Write-Host "[verify] $($names.Count) patches from $(Split-Path -Leaf $Bundle)"
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
 $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
 $stock = Get-ApkManifestFacts -Apk $Apk -Aapt2 $Aapt2
-if ($stock.package -ne $expectedTarget.PackageName) {
-    throw "$(Split-Path -Leaf $Apk) is $($stock.package), not the catalog's target $($expectedTarget.PackageName)."
-}
-if ([string]::IsNullOrWhiteSpace($stock.versionName)) {
-    throw "$(Split-Path -Leaf $Apk) carries no versionName, so there is nothing to hold the result to."
-}
-$expectedVersion = $stock.versionName
+$verificationTarget = Resolve-PatchVerificationTarget -Stock $stock -Target $expectedTarget `
+    -Force:$Force -ProbePackage $ProbePackage
+$expectedVersion = $verificationTarget.PackageVersion
 $declaredText = Format-VersionList -Versions @($expectedTarget.PackageVersions)
-$forced = $stock.versionName -cnotin @($expectedTarget.PackageVersions)
-if ($forced -and -not $Force) {
-    throw ("$(Split-Path -Leaf $Apk) is $($stock.package) $($stock.versionName); the bundle declares " +
-        "$declaredText. Pass -Force to patch it anyway.")
-}
-if ($forced) {
+$forced = $verificationTarget.Forced
+if ($verificationTarget.Probe) {
+    Write-Host "[verify] undeclared-package qualification: $($stock.package) $expectedVersion; this does not establish supported metadata"
+} elseif ($forced) {
     Write-Host "[verify] forcing the bundle onto $($stock.package) $($stock.versionName); it declares $declaredText"
 } else {
     Write-Host "[verify] $($stock.package) $($stock.versionName) is a declared target, so nothing is forced"
@@ -138,7 +135,7 @@ try {
     }
     $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
         -AllowedDependencyNames $dependencyNames -OutputPath $out `
-        -ExpectedPackageName $expectedTarget.PackageName -ExpectedPackageVersion $expectedVersion
+        -ExpectedPackageName $verificationTarget.PackageName -ExpectedPackageVersion $expectedVersion
     $reportApplied = if ($null -ne $report) { @($report.appliedPatches).Count } else { 0 }
     $reportFailed = if ($null -ne $report) { @($report.failedPatches).Count } else { 0 }
     $target = if ($null -ne $report) { "$($report.packageName) $($report.packageVersion)" } else { 'unknown target' }

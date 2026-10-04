@@ -32,7 +32,7 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
 
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
-        return hasTracking() || hasDeviceAccess() || hasLinks() || SettingsStatus.storeIdentityEnabled;
+        return hasTracking() || hasDeviceAccess() || hasLinks();
     }
 
     private static boolean hasTracking() {
@@ -201,16 +201,5 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             ));
         }
 
-        if (SettingsStatus.storeIdentityEnabled) {
-            addPreference(new SectionHeadingPreference(context, "App checks"));
-            addPreference(new TogglePreference(
-                    context,
-                    "Look like the store app to TikTok's checks",
-                    "Answer TikTok's own checks of how it was signed and installed the way the Play "
-                            + "Store app would. For follows or likes that undo themselves on a refresh. "
-                            + "TikTok can also check from native code this doesn't reach, so it may not help.",
-                    Settings.STORE_IDENTITY
-            ));
-        }
     }
 }

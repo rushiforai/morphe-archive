@@ -8,8 +8,8 @@ import java.io.InputStream;
  * Whether a sound fits SoundPool, which depends on its decoded size, not its size on disk.
  *
  * SoundPool decodes a sample into one 1 MiB buffer and silently drops whatever does not fit:
- * kDefaultHeapSize in AOSP's Sound.cpp (Android 11 on) and SoundPool.cpp (before), and in the
- * AudioCache behind MediaPlayer::decode on 2.3. At 44.1 kHz stereo that is 5.94 s, so the
+ * kDefaultHeapSize in AOSP's Sound.cpp (Android 11 on), SoundPool.cpp (before) and, on very old
+ * versions, the AudioCache behind MediaPlayer::decode. At 44.1 kHz stereo that is 5.94 s, so the
  * mission briefings, 7 to 21 s of speech in a few hundred KB of Vorbis each, played cut short
  * from their second play on. A sound whose PCM would not fit stays with the MediaPlayer tier.
  *

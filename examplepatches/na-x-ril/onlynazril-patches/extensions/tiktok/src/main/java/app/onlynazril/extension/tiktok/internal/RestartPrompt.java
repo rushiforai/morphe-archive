@@ -1,43 +1,40 @@
 package app.onlynazril.extension.tiktok.internal;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import app.onlynazril.extension.tiktok.ui.ActionView;
-import app.onlynazril.extension.tiktok.ui.Tokens;
+import app.onlynazril.extension.tiktok.ui.Prompt;
 
 /**
- * Asks for one restart after the app is patched.
+ * Asks for a restart, for either reason the extension has one.
  *
- * A freshly patched install can render a name from values the app cached before this extension was
- * there — a name can come out with the handle twice until the process starts again. The extension
- * cannot clear that cache, so it asks instead, once per install: the app's own `lastUpdateTime` is
- * remembered, and a newer one means the APK changed since the last time it asked.
+ * The install reason: a freshly patched install can render a name from values the app cached before
+ * this extension was there, and the extension cannot clear that cache. The app's own
+ * `lastUpdateTime` is remembered, and a newer one means the APK changed since it last asked.
  *
- * Shown from the first feed header, which is the earliest point where an Activity is in hand and
- * the patch has no separate hook of its own for.
+ * The change reason: the background colour is applied where the app builds its views, so a screen
+ * already on the display keeps the colour it was built with. Every change in the Background section
+ * asks, and that ask is not tied to an install.
+ *
+ * Both are the same prompt, built once in {@link Prompt}; only the copy and the moment differ.
  */
 public final class RestartPrompt {
     private static final String TAG = "tiktokHandle";
     private static final String PREFS = "tiktokHandle_prefs";
     private static final String KEY_INSTALL = "restart_prompt_install";
 
-    /** One prompt per process: the pref decides across restarts. */
+    private static final String INSTALL_TITLE = "Restart TikTok once";
+    private static final String INSTALL_MESSAGE = "Restart to finish setting up.";
+
+    /** One line is enough here, so the prompt is given a title and no message. */
+    private static final String CHANGE_TITLE = "Restart app to apply changes.";
+    private static final String CHANGE_MESSAGE = null;
+
+    /** One install prompt per process: the pref decides across restarts. */
     private static boolean handled;
 
     private RestartPrompt() {}
@@ -62,7 +59,21 @@ public final class RestartPrompt {
             handled = true;
             prefs.edit().putLong(KEY_INSTALL, installed).apply();
             Debug.print("restart prompt: asked, install=" + installed);
-            activity.runOnUiThread(() -> show(activity));
+            Prompt.show(activity, INSTALL_TITLE, INSTALL_MESSAGE, () -> restart(activity));
+        } catch (Throwable t) {
+            Log.w(TAG, "restart prompt failed", t);
+        }
+    }
+
+    /**
+     * Asks on purpose, after a setting that only a fresh process can pick up. Not tied to an
+     * install, and dropped by the prompt itself when one is already on screen.
+     */
+    public static void askNow(Context context) {
+        try {
+            Activity activity = Activities.of(context);
+            if (activity == null || activity.isFinishing()) return;
+            Prompt.show(activity, CHANGE_TITLE, CHANGE_MESSAGE, () -> restart(activity));
         } catch (Throwable t) {
             Log.w(TAG, "restart prompt failed", t);
         }
@@ -80,112 +91,6 @@ public final class RestartPrompt {
     }
 
     /**
-     * The panel is built here rather than taken from a dialog theme: a theme brings its own corner
-     * radius, its own panel colour and its own button chrome, and the app's preferred theme decides
-     * all three. This one is the screen's own palette — a `PANEL` background, a small radius, a
-     * hairline — with the same rounded controls the screen uses, so the prompt and the screen read as
-     * one thing rather than two.
-     */
-    private static void show(Activity activity) {
-        try {
-            Dialog dialog = new Dialog(activity);
-            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-            dialog.setContentView(panel(activity, dialog));
-
-            Window window = dialog.getWindow();
-            if (window != null) {
-                window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-                WindowManager.LayoutParams attributes = window.getAttributes();
-                attributes.dimAmount = 0.6f;
-                window.setAttributes(attributes);
-                int width = Math.min(
-                        Tokens.dp(activity, 320),
-                        (int) (activity.getResources().getDisplayMetrics().widthPixels * 0.86f));
-                window.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT);
-            }
-            dialog.show();
-        } catch (Throwable t) {
-            Log.w(TAG, "restart prompt failed", t);
-        }
-    }
-
-    private static View panel(Activity activity, Dialog dialog) {
-        Context context = activity;
-        LinearLayout column = new LinearLayout(context);
-        column.setOrientation(LinearLayout.VERTICAL);
-        column.setBackground(panelBackground(context));
-        column.setPadding(
-                Tokens.dp(context, Tokens.SPACE_4),
-                Tokens.dp(context, Tokens.SPACE_4),
-                Tokens.dp(context, Tokens.SPACE_4),
-                Tokens.dp(context, Tokens.SPACE_4));
-
-        // Title and message run the panel's full width and centre their text in it, so the content
-        // reads as one centred block while the actions keep the bottom-right corner.
-        TextView title = new TextView(context);
-        title.setText("Restart TikTok once");
-        title.setTextSize(Tokens.PANEL_TITLE_SP);
-        title.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
-        title.setTextColor(Tokens.TEXT_PRIMARY);
-        title.setGravity(Gravity.CENTER);
-        title.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        column.addView(title);
-
-        TextView message = new TextView(context);
-        message.setText("Restart to finish setting up.");
-        message.setTextSize(Tokens.SUBTITLE_SP);
-        message.setTextColor(Tokens.TEXT_SECONDARY);
-        message.setGravity(Gravity.CENTER);
-        message.setLineSpacing(Tokens.dp(context, Tokens.SPACE_1), 1f);
-
-        LinearLayout.LayoutParams messageParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        messageParams.topMargin = Tokens.dp(context, Tokens.SPACE_2);
-        messageParams.bottomMargin = Tokens.dp(context, Tokens.SPACE_2);
-        message.setLayoutParams(messageParams);
-        column.addView(message);
-
-        // Right-aligned, the same as the screen's own control, and on the panel's own fill. Only the
-        // gap above the row is tight: the title and the message keep the panel's full padding.
-        LinearLayout actions = new LinearLayout(context);
-        actions.setOrientation(LinearLayout.HORIZONTAL);
-        actions.setLayoutParams(new LinearLayout.LayoutParams(
-              LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        actions.setPadding(0, Tokens.dp(context, Tokens.SPACE_2), 0, 0);
-
-        // LayoutParams untuk membagi 50% (weight = 1f, width = 0)
-        LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(
-              0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-
-        // Tombol kiri (Later)
-        ActionView later = new ActionView(
-                context, "Later", Tokens.PANEL, Tokens.TEXT_SECONDARY, dialog::dismiss);
-        actions.addView(later, actionParams);
-
-        // Tombol kanan (Restart now) dengan margin kiri sebagai pemisah
-        ActionView restart = new ActionView(
-                context, "Restart now", Tokens.PANEL, Tokens.ACCENT, () -> restart(activity));
-        LinearLayout.LayoutParams restartParams = new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-        restartParams.leftMargin = Tokens.dp(context, Tokens.SPACE_2);
-        actions.addView(restart, restartParams);
-
-        column.addView(actions);
-        return column;
-    }
-
-    private static Drawable panelBackground(Context context) {
-        GradientDrawable panel = new GradientDrawable();
-        panel.setShape(GradientDrawable.RECTANGLE);
-        panel.setCornerRadius(Tokens.dp(context, 14));
-        panel.setColor(Tokens.PANEL);
-        panel.setStroke(Tokens.dp(context, 1), Tokens.HAIRLINE);
-        return panel;
-    }
-
-    /**
      * Restarts the app rather than only closing it: the launcher activity is put in a fresh task and
      * this process is ended, so the app comes back on its own with the state a fresh install left
      * behind cleared.
@@ -193,9 +98,8 @@ public final class RestartPrompt {
      * The exit follows the launch request immediately, with nothing in between. That ordering is the
      * whole trick: the request is already with the system when the process goes, so the activity is
      * brought up by a new process instead of this one. Waiting even a moment lets the activity start
-     * here, and then ending the process takes the app down with it — the app opens and dies, which is
-     * what a delay produced. `makeRestartActivityTask` is what clears the back stack this process
-     * was holding.
+     * here, and then ending the process takes the app down with it, which is what a delay produced.
+     * `makeRestartActivityTask` is what clears the back stack this process was holding.
      */
     private static void restart(Activity activity) {
         Intent launch = activity.getPackageManager()

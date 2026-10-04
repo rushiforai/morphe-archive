@@ -135,10 +135,10 @@ public class SaveProgressTest {
         return RuntimeEnvironment.getApplication().getSystemService(NotificationManager.class);
     }
 
-    /** The save's notification, or null when none is showing. */
+    /** The running save's progress notification, or null after it ends. */
     private static Notification saveNotification() {
-        for (Notification shown : Shadows.shadowOf(notifications()).getAllNotifications()) {
-            if (SaveControl.CHANNEL.equals(shown.getChannelId())) return shown;
+        for (android.service.notification.StatusBarNotification shown : notifications().getActiveNotifications()) {
+            if (SaveControl.TAG.equals(shown.getTag())) return shown.getNotification();
         }
         return null;
     }
@@ -645,6 +645,179 @@ public class SaveProgressTest {
         assertTrue(file.delete());
     }
 
+    /** The last write and flush still belong to the cancellable part of the save. */
+    @Test public void cancellingTheFinalWriteOrFlushNeverPublishesOrReportsSuccess() throws Exception {
+        for (String boundary : new String[] { "write", "flush", "flush failure" }) {
+            PublicationBarrier stream = new PublicationBarrier(boundary.startsWith("flush") ? "flush" : "write",
+                    boundary.endsWith("failure"));
+            File file = publicationFile();
+            Shadows.shadowOf(context.getContentResolver()).registerOutputStream(gallery.videoUri(gallery.nextId), stream);
+            CompletableFuture<SaveControl.Save> control = new CompletableFuture<>();
+            CompletableFuture<Downloader.Result> result = new CompletableFuture<>();
+            Thread worker = MediaDownload.start(context, true, (writer, progress) -> {
+                control.complete((SaveControl.Save) progress);
+                Downloader.Result saved = Downloader.publish(file, "video/mp4", writer, Downloader.after(0, progress));
+                result.complete(saved);
+                return saved;
+            });
+            try {
+                assertTrue(boundary, stream.entered.await(20, TimeUnit.SECONDS));
+                SaveControl.Save save = control.get(20, TimeUnit.SECONDS);
+                assertTrue("cancel wasn't accepted before publication at " + boundary, SaveControl.cancel(save.id));
+                assertFalse("a repeated cancel was accepted", SaveControl.cancel(save.id));
+                assertFalse(shown(SaveControl.TAG, save.id));
+                stream.leave.countDown();
+                finish(worker);
+                assertEquals(boundary, Downloader.Status.CANCELLED, result.get(20, TimeUnit.SECONDS).status);
+                assertEquals(SaveControl.State.CANCELLED, save.state());
+                assertEquals("Save cancelled", ShadowToast.getTextOfLatestToast());
+                assertEquals("cancellation published a row", 0, gallery.updates);
+                assertTrue("cancellation left a gallery row", gallery.rows.isEmpty());
+                assertTrue(pendingList().isEmpty());
+            } finally {
+                stream.leave.countDown();
+                finish(worker);
+                Downloader.delete(file);
+            }
+        }
+    }
+
+    /** Once commit starts, a late Cancel must leave the running feedback intact. */
+    @Test public void publicationDeclinesLateCancellationUntilTheGalleryCommitSucceeds() throws Exception {
+        PublicationBarrier stream = new PublicationBarrier("close", false);
+        File file = publicationFile();
+        Uri row = gallery.videoUri(gallery.nextId);
+        Shadows.shadowOf(context.getContentResolver()).registerOutputStream(row, stream);
+        CompletableFuture<SaveControl.Save> control = new CompletableFuture<>();
+        CompletableFuture<Downloader.Result> result = new CompletableFuture<>();
+        Thread worker = MediaDownload.start(context, true, (writer, progress) -> {
+            control.complete((SaveControl.Save) progress);
+            Downloader.Result saved = Downloader.publish(file, "video/mp4", writer, Downloader.after(0, progress));
+            result.complete(saved);
+            return saved;
+        });
+        try {
+            assertTrue(stream.entered.await(20, TimeUnit.SECONDS));
+            SaveControl.Save save = control.get(20, TimeUnit.SECONDS);
+            assertEquals(SaveControl.State.PUBLISHING, save.state());
+            assertFalse("publication was claimed twice", save.publishing());
+            assertFalse("Cancel was accepted after publication claimed the save", SaveControl.cancel(save.id));
+            assertFalse("a repeated late cancel was accepted", SaveControl.cancel(save.id));
+            assertTrue("the publishing save disappeared", SaveControl.running().stream().anyMatch(s -> s.id == save.id));
+            assertTrue("the publishing notification disappeared", shown(SaveControl.TAG, save.id));
+            Notification note = saveNotification();
+            assertTrue("a publishing notification still offers Cancel", note.actions == null || note.actions.length == 0);
+            stream.leave.countDown();
+            finish(worker);
+            assertEquals(Downloader.Status.OK, result.get(20, TimeUnit.SECONDS).status);
+            assertEquals(SaveControl.State.SUCCEEDED, save.state());
+            assertFalse("a finished save could publish twice", save.publishing());
+            assertEquals(Integer.valueOf(0), gallery.rows.get(ContentUris.parseId(row)).getAsInteger(MediaStore.MediaColumns.IS_PENDING));
+            assertEquals("publication ran more than once", 1, gallery.updates);
+            assertFalse(SaveControl.cancel(save.id));
+            assertTrue(pendingList().isEmpty());
+        } finally {
+            stream.leave.countDown();
+            finish(worker);
+            Downloader.delete(file);
+        }
+    }
+
+    /** A claimed publication can still fail while closing or updating the pending row. */
+    @Test public void postClaimCloseAndUpdateFailuresReportFailureAndRemoveTheRow() throws Exception {
+        for (boolean failClose : new boolean[] { true, false }) {
+            PublicationBarrier stream = new PublicationBarrier("close", failClose);
+            File file = publicationFile();
+            Shadows.shadowOf(context.getContentResolver()).registerOutputStream(gallery.videoUri(gallery.nextId), stream);
+            gallery.refuseUpdate = !failClose;
+            CompletableFuture<SaveControl.Save> control = new CompletableFuture<>();
+            CompletableFuture<Downloader.Result> result = new CompletableFuture<>();
+            Thread worker = MediaDownload.start(context, true, (writer, progress) -> {
+                control.complete((SaveControl.Save) progress);
+                Downloader.Result saved = Downloader.publish(file, "video/mp4", writer, progress);
+                result.complete(saved);
+                return saved;
+            });
+            try {
+                assertTrue(stream.entered.await(20, TimeUnit.SECONDS));
+                SaveControl.Save save = control.get(20, TimeUnit.SECONDS);
+                assertFalse("a claimed publication accepted Cancel", SaveControl.cancel(save.id));
+                stream.leave.countDown();
+                finish(worker);
+                assertEquals(Downloader.Status.WRITE_ERROR, result.get(20, TimeUnit.SECONDS).status);
+                assertEquals(SaveControl.State.FAILED, save.state());
+                assertEquals("Download failed", ShadowToast.getTextOfLatestToast());
+                assertTrue("failed publication left a gallery row", gallery.rows.isEmpty());
+                assertTrue(pendingList().isEmpty());
+            } finally {
+                stream.leave.countDown();
+                finish(worker);
+                gallery.refuseUpdate = false;
+                Downloader.delete(file);
+            }
+        }
+    }
+
+    @Test public void aFailedFlushMarksTheSaveFailedAndRemovesItsPendingRow() throws Exception {
+        File file = publicationFile();
+        SaveControl.Save save = SaveControl.begin(context, true);
+        Shadows.shadowOf(context.getContentResolver()).registerOutputStream(gallery.videoUri(gallery.nextId),
+                new OutputStream() {
+                    @Override public void write(int value) { }
+                    @Override public void flush() throws IOException { throw new IOException("gallery refused flush"); }
+                });
+        try {
+            Downloader.Result result = Downloader.publish(file, "video/mp4", new MediaStoreWriter(context, true), save);
+            assertEquals(Downloader.Status.WRITE_ERROR, result.status);
+            assertEquals(SaveControl.State.FAILED, save.state());
+            assertFalse(save.publishing());
+            assertFalse(SaveControl.cancel(save.id));
+            assertEquals(0, gallery.updates);
+            assertTrue(gallery.rows.isEmpty());
+            assertTrue(pendingList().isEmpty());
+        } finally {
+            save.end();
+            Downloader.delete(file);
+        }
+    }
+
+    private File publicationFile() throws IOException {
+        File file = File.createTempFile("publication", ".mp4", context.getCacheDir());
+        try (OutputStream out = new FileOutputStream(file)) {
+            out.write(MP4_HEAD);
+        }
+        return file;
+    }
+
+    private static final class PublicationBarrier extends OutputStream {
+        final CountDownLatch entered = new CountDownLatch(1);
+        final CountDownLatch leave = new CountDownLatch(1);
+        private final String boundary;
+        private final boolean fail;
+
+        PublicationBarrier(String boundary, boolean fail) {
+            this.boundary = boundary;
+            this.fail = fail;
+        }
+
+        @Override public void write(int value) throws IOException { stopAt("write"); }
+        @Override public void write(byte[] bytes, int offset, int count) throws IOException { stopAt("write"); }
+        @Override public void flush() throws IOException { stopAt("flush"); }
+        @Override public void close() throws IOException { stopAt("close"); }
+
+        private void stopAt(String here) throws IOException {
+            if (!here.equals(boundary)) return;
+            entered.countDown();
+            try {
+                if (!leave.await(20, TimeUnit.SECONDS)) throw new IOException("publication barrier timed out");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException(e);
+            }
+            if (fail) throw new IOException("gallery rejected " + here);
+        }
+    }
+
     /**
      * A DASH save that's cancelled stays cancelled. It used to be a failed DASH save like any other,
      * and the single file behind it started the save over.
@@ -671,6 +844,27 @@ public class SaveProgressTest {
         assertFalse("a cancelled DASH save went on to the single file:\n" + report,
                 report.contains("the DASH save ended with"));
         assertEquals(0, gallery.inserts.size());
+        assertEquals(0, workFiles());
+    }
+
+    @Test public void aFailedDashPublicationDoesNotFetchTheSingleFileAgain() throws Exception {
+        FragmentedMp4ForTests picture = FragmentedMp4ForTests.picture("vp09", 720, 1280, 1000);
+        picture.fragment(0L).add(32, 1000, FragmentedMp4ForTests.SYNC, 0);
+        byte[] body = picture.build();
+        server.serve("/joined.mp4", 200, "video/mp4", body, body.length);
+        server.serve("/fallback.mp4", 200, "video/mp4", MP4_HEAD, MP4_HEAD.length);
+        DashManifest.Track video = new DashManifest.Track("video/mp4", "vp09.00.40.08", 720, 1280, 1000,
+                server.origin() + "/joined.mp4");
+        gallery.refuseUpdate = true;
+        Shadows.shadowOf(context.getContentResolver()).registerOutputStream(gallery.videoUri(gallery.nextId), published);
+        Thread worker = MediaDownload.start(context, true,
+                MediaDownload.dashJob(context, video, null, server.origin() + "/fallback.mp4"));
+        finish(worker);
+        assertEquals("Download failed", ShadowToast.getTextOfLatestToast());
+        assertEquals("a terminal gallery failure fetched the fallback", 0, server.hits("/fallback.mp4"));
+        assertEquals(1, gallery.updates);
+        assertTrue(gallery.rows.isEmpty());
+        assertTrue(pendingList().isEmpty());
         assertEquals(0, workFiles());
     }
 
@@ -865,6 +1059,8 @@ public class SaveProgressTest {
         final List<Uri> inserts = new ArrayList<>();
         boolean refuseDeletion;
         boolean throwOnDelete;
+        boolean refuseUpdate;
+        int updates;
         /** While set, a deletion waits for it: a gallery that's slow while Facebook starts. */
         volatile CountDownLatch holdDeletes;
         final CountDownLatch deleteAsked = new CountDownLatch(1);
@@ -892,6 +1088,8 @@ public class SaveProgressTest {
         }
 
         @Override public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+            updates++;
+            if (refuseUpdate) return 0;
             ContentValues row = rows.get(ContentUris.parseId(uri));
             if (row == null) return 0;
             row.putAll(values);

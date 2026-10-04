@@ -1,4 +1,28 @@
 source,target
+Importing new history ended Undo for the earlier clear. You can clear the imported history.,Impor riwayat baru mengakhiri opsi Urungkan untuk penghapusan sebelumnya. Anda dapat menghapus riwayat yang diimpor.
+%1$d setting in that file can't be restored here and was skipped,%1$d pengaturan dalam berkas tidak dapat dipulihkan di sini dan dilewati
+%1$d settings in that file can't be restored here and were skipped,%1$d pengaturan dalam berkas tidak dapat dipulihkan di sini dan dilewati
+"Import watch history","Impor riwayat tontonan"
+"Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.","Gunakan ekspor JSON TikTok akun ini, maksimal %1$s MB dan %2$s entri. Tanggal tanpa zona waktu memakai zona waktu ponsel ini."
+"Sign in to TikTok before importing watch history.","Masuk ke TikTok sebelum mengimpor riwayat tontonan."
+"Your TikTok account changed. Choose the file again for this account.","Akun TikTok Anda berubah. Pilih kembali berkas untuk akun ini."
+"Reading watch history","Membaca riwayat tontonan"
+"Importing watch history","Mengimpor riwayat tontonan"
+"Reopen Hushfeed settings, then choose the file","Buka kembali pengaturan Hushfeed, lalu pilih berkas"
+"Couldn't start the import. Try again in a moment.","Impor tidak dapat dimulai. Coba lagi sebentar."
+"Your seen history changed before the import finished. Choose the file again.","Riwayat tontonan berubah sebelum impor selesai. Pilih kembali berkas."
+"Couldn't import watch history. Your saved history is unchanged.","Riwayat tontonan tidak dapat diimpor. Riwayat tersimpan tidak berubah."
+"%1$s watched video added.","%1$s video yang ditonton ditambahkan."
+"%1$s watched videos added.","%1$s video yang ditonton ditambahkan."
+"%1$s entry skipped.","%1$s entri dilewati."
+"%1$s entries skipped.","%1$s entri dilewati."
+"Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos.","Entri yang dilewati tidak valid, kedaluwarsa, sudah tersimpan, atau lebih lama dari %1$s video terbaru."
+"Watch history was imported for the account that chose the file. Switch back to see it.","Riwayat diimpor untuk akun yang memilih berkas. Kembali ke akun itu untuk melihatnya."
+"Couldn't read that file. Choose it again.","Berkas tidak dapat dibaca. Pilih kembali."
+That file is larger than %1$s MB. Choose a smaller watch-history export.,Berkas lebih besar dari %1$s MB. Pilih ekspor riwayat yang lebih kecil.
+That file has more than %1$s watch-history entries.,Berkas berisi lebih dari %1$s entri riwayat tontonan.
+"That JSON file doesn't contain the supported TikTok watch history.","Berkas JSON ini tidak berisi riwayat tontonan TikTok yang didukung."
+"That watch-history file is damaged. Nothing was imported.","Berkas riwayat tontonan rusak. Tidak ada yang diimpor."
 %1$d already matched,%1$d sudah cocok
 %1$d areas were checked and everything they need is here.,%1$d area diperiksa dan semua yang dibutuhkan ada.
 %1$d fields overridden,%1$d kolom ditimpa
@@ -596,7 +620,7 @@ Last original value,Nilai asli terakhir
 Last recording: %1$d gates.,Rekaman terakhir: %1$d gate.
 Last recording: 1 gate.,Rekaman terakhir: 1 gate.
 Layout,Tata letak
-"Layout, player, search and system","Tata letak, pemutar, pencarian, dan sistem"
+"Layout, search, profile and system","Tata letak, pencarian, profil, dan sistem"
 Leave when TikTok says time is up,Keluar saat TikTok bilang waktunya habis
 Leave maximum empty to keep it unlimited.,Kosongkan nilai maksimum agar tetap tanpa batas.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.,Hilangkan suara dari video yang disimpan. Simpan suaranya juga tetap menulis berkas .m4a di sebelahnya kalau kamu mau keduanya.
@@ -873,7 +897,6 @@ Saving the story,Menyimpan Story
 Saving the sound,Menyimpan suara
 Saving the profile picture,Menyimpan foto profil
 Saving the live photo's clip,Menyimpan klip foto langsung
-Screen,Layar
 Screen time,Waktu layar
 Search,Pencarian
 "Search by name, description or category.","Cari berdasarkan nama, deskripsi, atau kategori."
@@ -1403,7 +1426,6 @@ Problem detected.,Masalah terdeteksi.
 Couldn't save these choices. Try again.,Pilihan ini tidak dapat disimpan. Coba lagi.
 Clearing seen videos,Menghapus video yang sudah ditonton
 Couldn't clear seen videos. Try again.,Video yang sudah ditonton tidak dapat dihapus. Coba lagi.
-Background play,Putar di latar belakang
 Keep playing in the background,Tetap putar di latar belakang
 "The video you're watching keeps playing to its end after you leave TikTok or turn the screen off, with TikTok's own media notification to pause it. TikTok's background play switch stays on while this is on. Restart TikTok to apply this.","Video yang sedang kamu tonton tetap diputar sampai selesai setelah kamu keluar dari TikTok atau mematikan layar, dengan notifikasi media TikTok sendiri untuk menjedanya. Tombol putar di latar belakang milik TikTok tetap aktif selama ini aktif. Mulai ulang TikTok agar berlaku."
 "Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.","Tetap putar di latar belakang aktif di pengaturan Pemutaran Hushfeed, jadi TikTok mendapat 2 untuk kunci ini dan penggantian di sini tidak berpengaruh sampai tombol itu dimatikan."
@@ -1432,7 +1454,6 @@ Next message: tomorrow at %1$s.,Pesan berikutnya: besok pukul %1$s.
 TikTok's messages didn't start in time. It tries again at %1$s.,Pesan TikTok tidak mulai tepat waktu. Akan dicoba lagi pukul %1$s.
 The message didn't go through. It tries again at %1$s.,Pesan tidak terkirim. Akan dicoba lagi pukul %1$s.
 Found %1$s in your chats.,%1$s ditemukan di obrolanmu.
-App checks,Pemeriksaan aplikasi
 Look like the store app to TikTok's checks,Tampak seperti aplikasi dari toko bagi pemeriksaan TikTok
 "Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.","Menjawab pemeriksaan TikTok sendiri tentang cara ia ditandatangani dan dipasang seperti yang dilakukan aplikasi Play Store. Untuk follow atau suka yang batal sendiri saat disegarkan. TikTok juga bisa memeriksa dari kode native yang tidak dijangkau ini, jadi mungkin tidak membantu."
 Add apps to Share via,Tambahkan aplikasi ke Bagikan via
@@ -1470,9 +1491,15 @@ Build details copied to the clipboard,Detail build disalin ke papan klip
 "Their usernames, separated by commas or new lines. Each person must already have a chat with you.","Nama pengguna mereka, dipisahkan dengan koma atau baris baru. Kamu harus sudah memiliki chat dengan setiap orang."
 Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.,Pengiriman belum terkonfirmasi: %1$d/%2$d chat. Chat tersebut tidak akan dicoba lagi hari ini.
 Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.,Pengiriman belum terkonfirmasi: %1$d/%2$d chat. Chat lainnya masih memerlukan pesan.
+Sent to %1$d/%2$d chats. They won't get another message today.,Terkirim ke %1$d/%2$d chat. Hari ini tidak akan ada pesan lain.
+Sent to %1$d/%2$d chats. The rest still need a message.,Terkirim ke %1$d/%2$d chat. Chat lainnya masih memerlukan pesan.
 "TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.","TikTok mungkin telah menerima pesan ini. Pengirimannya belum terkonfirmasi, jadi tidak akan dicoba lagi hari ini."
 Nothing was sent. Check the streak settings and try again.,Tidak ada yang dikirim. Periksa pengaturan streak dan coba lagi.
 Don't save new searches,Jangan simpan pencarian baru
 "Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.","Jangan masukkan apa yang kamu cari ke riwayat pencarian yang disimpan TikTok di ponsel ini. Pencarian yang sudah ada tetap tersimpan sampai kamu menghapusnya, dan server TikTok mungkin tetap menyimpan catatannya sendiri."
 Block suggested video notifications,Blokir notifikasi video yang disarankan
 "Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.","Hentikan notifikasi yang dikirim TikTok tentang video populer yang dipilihkan untukmu. Pesan, komentar, suka, pengikut baru, dan video dari akun yang kamu ikuti tetap masuk."
+Buttons on videos,Tombol di video
+Seen videos put back: %1$s of %2$s,Video ditonton yang dipulihkan: %1$s dari %2$s
+No cleared videos fit the current history limits.,Tidak ada video yang dihapus yang memenuhi batas riwayat saat ini.
+Putting seen videos back,Memulihkan video yang ditonton

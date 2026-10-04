@@ -80,6 +80,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean visualSeen() {
+        return false;
+    }
+
     public static boolean feedReels() {
         return false;
     }
@@ -93,6 +97,10 @@ public final class SettingsStatus {
     }
 
     public static boolean exploreGrid() {
+        return false;
+    }
+
+    public static boolean notesRow() {
         return false;
     }
 

@@ -40,11 +40,11 @@ val blockAuthorPatch = bytecodePatch(
     description = "Adds one-tap controls for blocking the creator, hiding them locally and " +
         "blocking the current sound. A confirmed account block skips to the next video and " +
         "shows a small Unblock button at the top left for two seconds. " +
-        "The local-hide and sound controls have separate switches. " +
-        "Long press any visible control to move it. Hushfeed keeps it clear of system bars, " +
-        "cutouts and TikTok's bottom tabs when the window changes. A local action shows Undo " +
-        "only after its setting was saved. All controls hide while comments are open. Switch: " +
-        "Hushfeed settings > Feed filter.",
+        "The local-hide and sound controls start off and have separate switches, and either " +
+        "one can show without the block control. Long press any visible control to move it. " +
+        "Hushfeed keeps it clear of system bars, cutouts and TikTok's bottom tabs when the " +
+        "window changes. A local action shows Undo only after its setting was saved. All " +
+        "controls hide while comments are open. Switch: Hushfeed settings > Feed filter.",
     default = false,
 ) {
     category("Interaction")

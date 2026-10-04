@@ -181,6 +181,23 @@ public class CommentPhotoTest {
         assertTrue(queued.isEmpty());
     }
 
+    @Test public void initialOffAndSafetyGatesNeverReadOrSaveNativeCommentMedia() {
+        Settings.SAVE_COMMENT_PHOTOS.resetToDefault();
+        assertSame(stock, CommentPhoto.rows(stock, photo("selected"), context, nativeRows, save));
+        assertSame(null, CommentPhoto.rows(null, photo("selected"), context, nativeRows, save));
+        Settings.SAVE_COMMENT_PHOTOS.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertSame(stock, CommentPhoto.rows(stock, photo("selected"), context, nativeRows, save));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertSame(stock, CommentPhoto.rows(stock, photo("selected"), context, nativeRows, save)));
+        SettingsContextRule.beforeThePauseIsDecided(() ->
+                assertSame(stock, CommentPhoto.rows(stock, photo("selected"), context, nativeRows, save)));
+        assertEquals("no media getter or native row callback", 0, nativeRows.inspected);
+        assertEquals(0, nativeRows.created);
+        assertTrue(queued.isEmpty());
+    }
+
     static final class Row {
         final Function0<?> callback;
         Row(Object callback) { this.callback = (Function0<?>) callback; }
@@ -188,8 +205,10 @@ public class CommentPhotoTest {
 
     static final class FakeNative implements CommentPhoto.NativeRows {
         int created;
+        int inspected;
         boolean fail, failRow, nullRow;
         @SuppressWarnings("unchecked") public List<MediaSave.Rendition> photo(Object comment) {
+            inspected++;
             if (fail) throw new IllegalStateException("native photo getter failed");
             return comment instanceof List ? (List<MediaSave.Rendition>) comment : null;
         }
@@ -199,6 +218,6 @@ public class CommentPhotoTest {
             created++;
             return new Row(callback);
         }
-        public Object callback(Object row) { return row instanceof Row ? ((Row) row).callback : null; }
+        public Object callback(Object row) { inspected++; return row instanceof Row ? ((Row) row).callback : null; }
     }
 }

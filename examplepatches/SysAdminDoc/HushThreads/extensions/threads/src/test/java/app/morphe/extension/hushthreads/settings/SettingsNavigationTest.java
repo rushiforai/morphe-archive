@@ -170,8 +170,11 @@ public class SettingsNavigationTest {
             layout(dialog.getView());
             assertTrue(BaseSettings.PAUSED.savedValue());
             assertEquals("Resume", statusAction().getText().toString());
-            String line = String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary());
+            String[] lines = String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary()).split("\n", 2);
+            String line = lines[0];
             assertTrue(line, line.contains("couldn't be removed") && line.endsWith("then tap Resume again."));
+            assertEquals(app.morphe.extension.shared.L10n.f("Build %1$s",
+                    app.morphe.extension.shared.L10n.isolate(app.morphe.extension.shared.Utils.getPatchesBuildIdentity())), lines[1]);
         } finally {
             held.delete();
             marker.delete();
@@ -343,15 +346,18 @@ public class SettingsNavigationTest {
         recreate();
         layout(dialog.getView());
         TextView summary = list().getChildAt(0).findViewById(android.R.id.summary);
-        assertEquals("Your choices are saved. Tap Resume, then restart Threads.", String.valueOf(summary.getText()));
+        String[] lines = summary.getText().toString().split("\n", 2);
+        assertEquals("Your choices are saved. Tap Resume, then restart Threads.", lines[0]);
+        assertEquals(app.morphe.extension.shared.L10n.f("Build %1$s",
+                app.morphe.extension.shared.L10n.isolate(app.morphe.extension.shared.Utils.getPatchesBuildIdentity())), lines[1]);
     }
 
     /**
      * At twice the text size the button beside the status text left the name too little room and
-     * "HushThreads" broke inside the word. From one and a half times, the button goes under the text.
+     * "HushThreads" broke inside the word. Large text gets a full column, with recovery before the summary.
      */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
-    public void atLargeTextTheStatusActionSitsUnderItsText() {
+    public void atLargeTextTheStatusActionSitsBetweenItsTitleAndSummary() {
         org.robolectric.RuntimeEnvironment.setFontScale(2f);
         try {
             recreate();
@@ -368,7 +374,8 @@ public class SettingsNavigationTest {
             android.widget.Button action = firstButton(row);
             assertNotNull("no Pause button in the status row", action);
             assertEquals(summary.getParent(), action.getParent());
-            assertTrue("the button isn't under the text", action.getTop() >= summary.getBottom());
+            assertTrue("the button isn't under the title", action.getTop() >= title.getBottom());
+            assertTrue("the summary covers the button", summary.getTop() >= action.getBottom());
             assertEquals("Pause", action.getText().toString());
         } finally {
             org.robolectric.RuntimeEnvironment.setFontScale(1f);
@@ -871,5 +878,42 @@ public class SettingsNavigationTest {
             }
         }
         return null;
+    }
+
+    // Disclosure behavior ported from Hushfacebook 814acd23.
+    @Test public void theOverviewNamesTheDefaultPatchesABuildLacks() {
+        assertFalse(contains(HushThreadsPreferenceFragment.MISSING_DEFAULTS));
+        controller.close();
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        PatchFamily.inBuildForTests.remove(PatchFamily.VIDEO_AUTOPLAY);
+        PatchFamily.inBuildForTests.remove(PatchFamily.HIDE_SUGGESTED_USERS);
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = SettingsL10nTest.show(controller.get());
+        page = page(dialog);
+        Map<String, Object> before = savedValues();
+
+        assertEquals(6, list().getCount());
+        assertEquals(1, position(HushThreadsPreferenceFragment.MISSING_DEFAULTS));
+        Preference row = (Preference) list().getItemAtPosition(1);
+        assertEquals("1 default patch isn't in this build", String.valueOf(row.getTitle()));
+        assertEquals("Tap to see which.", String.valueOf(row.getSummary()));
+        tap(HushThreadsPreferenceFragment.MISSING_DEFAULTS);
+        assertEquals("Not in this build: " + L10n.isolate("Hide suggested users") + ". Morphe Manager selects it by "
+                + "default. Patch again with it selected to get what it does.", String.valueOf(row.getSummary()));
+        tap(HushThreadsPreferenceFragment.MISSING_DEFAULTS);
+        assertEquals("Tap to see which.", String.valueOf(row.getSummary()));
+        assertEquals(before, savedValues());
+
+        controller.close();
+        PatchFamily.inBuildForTests.remove(PatchFamily.HIDE_ADS);
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = SettingsL10nTest.show(controller.get());
+        page = page(dialog);
+        row = (Preference) list().getItemAtPosition(1);
+        assertEquals("2 default patches aren't in this build", String.valueOf(row.getTitle()));
+        tap(HushThreadsPreferenceFragment.MISSING_DEFAULTS);
+        assertEquals("Not in this build: " + L10n.isolate("Hide ads") + " and "
+                + L10n.isolate("Hide suggested users") + ". Morphe Manager selects them by default. Patch again with "
+                + "them selected to get what they do.", String.valueOf(row.getSummary()));
     }
 }

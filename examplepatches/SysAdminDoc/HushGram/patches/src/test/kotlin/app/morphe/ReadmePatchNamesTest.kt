@@ -8,6 +8,7 @@ package app.morphe
 import com.google.gson.JsonParser
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -15,11 +16,12 @@ import org.junit.Test
  * The patch table in the README against the catalog Morphe Manager actually reads.
  *
  * <p>A patch is chosen by name in Morphe Manager, while its description comes from the generated
- * patch list. The README is the public lookup table before patching, so both fields have to agree
+ * patch list. The README is the public lookup table before patching, so its names, descriptions and
+ * default selections have to agree
  * with what the Manager presents.
  */
 class ReadmePatchNamesTest {
-    private data class ReadmeRow(val name: String, val description: String)
+    private data class ReadmeRow(val name: String, val description: String, val included: Boolean)
 
     /**
      * Every name a patch declares, and how many patches were found declaring one.
@@ -94,18 +96,19 @@ class ReadmePatchNamesTest {
     private fun readmePatchRows(): List<ReadmeRow> {
         val readme = File("../README.md").takeIf { it.isFile } ?: File("README.md")
         assertTrue("could not find the README from ${File(".").absolutePath}", readme.isFile)
-        return readme.readLines().mapNotNull { line ->
-            ROW.find(line)?.let { match ->
-                ReadmeRow(
-                    name = match.groupValues[1],
-                    description = match.groupValues[2].trim().replace("\\|", "|"),
-                )
-            }
-        }
+        return readme.readLines().mapNotNull(::readmePatchRow)
     }
 
-    /** Names and descriptions from the generated catalog shipped beside the bundle. */
-    private fun shippedPatchDescriptions(): Map<String, String> {
+    private fun readmePatchRow(line: String): ReadmeRow? = ROW.find(line)?.let { match ->
+        ReadmeRow(
+            name = match.groupValues[1],
+            description = match.groupValues[2].trim().replace("\\|", "|"),
+            included = match.groupValues[3] == "Included",
+        )
+    }
+
+    /** Names, descriptions and selections from the generated catalog shipped beside the bundle. */
+    private fun shippedPatchRows(): Map<String, ReadmeRow> {
         val catalog = File("../patches-list.json").takeIf { it.isFile }
             ?: File("patches-list.json")
         assertTrue("could not find the patch list from ${File(".").absolutePath}", catalog.isFile)
@@ -113,7 +116,8 @@ class ReadmePatchNamesTest {
             .asJsonObject.getAsJsonArray("patches")
         return patches.associate { element ->
             val patch = element.asJsonObject
-            patch.get("name").asString to patch.get("description").asString.trim()
+            val name = patch.get("name").asString
+            name to ReadmeRow(name, patch.get("description").asString.trim(), patch.get("use").asBoolean)
         }
     }
 
@@ -130,7 +134,7 @@ class ReadmePatchNamesTest {
         }
         val rows = readmePatchRows()
         val listed = rows.map { it.name }.toSet()
-        val shipped = shippedPatchDescriptions()
+        val shipped = shippedPatchRows()
         assertTrue("the scan found no patches", factories >= 6)
         assertEquals("the README has a duplicate patch row", rows.size, listed.size)
 
@@ -151,10 +155,22 @@ class ReadmePatchNamesTest {
             shipped.keys.sorted(),
         )
         assertEquals(
-            "a README description differs from the description shipped to Morphe Manager",
+            "a README description or simple-mode selection differs from the catalog shipped to Morphe Manager",
             shipped.toSortedMap(),
-            rows.associate { it.name to it.description }.toSortedMap(),
+            rows.associateBy { it.name }.toSortedMap(),
         )
+    }
+
+    @Test
+    fun `the README row scan keeps descriptions separate from their selection`() {
+        assertEquals(ReadmeRow("One", "Keeps A | B.", true),
+            readmePatchRow("| `One` | Keeps A \\| B. | Included |"))
+        assertEquals(ReadmeRow("Two", "Keeps it.", false),
+            readmePatchRow("| `Two` | Keeps it. | Opt-in |"))
+        assertNull("a missing selection must not silently pass", readmePatchRow("| `Two` | Keeps it. |"))
+        assertNull("an unknown selection must not silently pass", readmePatchRow("| `Two` | Keeps it. | Maybe |"))
+        assertNull("an extra column must not become part of the description",
+            readmePatchRow("| `Two` | Keeps it. | Extra | Opt-in |"))
     }
 
     /**
@@ -231,6 +247,6 @@ class ReadmePatchNamesTest {
 
         // The table rows are the only lines that open with a pipe and a backticked name. The
         // credits further down name patches in prose, which is not a claim about the table.
-        val ROW = Regex("""^\|\s*`([^`]+)`\s*\|\s*(.*?)\s*\|$""")
+        val ROW = Regex("""^\|\s*`([^`]+)`\s*\|\s*((?:\\\||[^|])*?)\s*\|\s*(Included|Opt-in)\s*\|$""")
     }
 }

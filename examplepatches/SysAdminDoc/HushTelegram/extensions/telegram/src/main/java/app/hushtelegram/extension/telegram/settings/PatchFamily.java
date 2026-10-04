@@ -26,6 +26,7 @@ import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.shared.settings.BooleanSetting;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
+import app.hushtelegram.extension.telegram.misc.FirebasePush;
 
 /**
  * Every patch in this source, and what Pause does to it.
@@ -57,6 +58,8 @@ public enum PatchFamily {
             Settings.HIDE_POPULAR_APPS),
     DISABLE_CHAT_SWIPE(FamilyNames.DISABLE_CHAT_SWIPE, "disableChatSwipe", null,
             Settings.DISABLE_CHAT_SWIPE),
+    DISABLE_CHANNEL_PULL(FamilyNames.DISABLE_CHANNEL_PULL, "disableChannelPull", null,
+            Settings.DISABLE_CHANNEL_PULL),
     QUIET_CONTACTS_NAG(FamilyNames.QUIET_CONTACTS_NAG, "quietContactsNag", null,
             Settings.QUIET_CONTACTS_NAG),
     HOLIDAY_LOOK(FamilyNames.HOLIDAY_LOOK, "holidayLook", null,
@@ -74,7 +77,9 @@ public enum PatchFamily {
     STRIP_LINK_TRACKING(FamilyNames.STRIP_LINK_TRACKING, "stripLinkTracking", null,
             Settings.STRIP_LINK_TRACKING),
     DISABLE_UPDATE_CHECKS(FamilyNames.DISABLE_UPDATE_CHECKS, "disableUpdateChecks", null,
-            Settings.DISABLE_UPDATE_CHECKS);
+            Settings.DISABLE_UPDATE_CHECKS),
+    REPAIR_FIREBASE_PUSH(FamilyNames.REPAIR_FIREBASE_PUSH, "repairFirebasePush", null,
+            Settings.REPAIR_FIREBASE_PUSH);
 
     /** The patch's name in Morphe Manager. */
     public final String patchName;
@@ -122,7 +127,7 @@ public enum PatchFamily {
 
     /** The families whose switches the Chats page holds. The page and its home row both read this. */
     static final Set<PatchFamily> CHATS_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_STORIES,
-            HIDE_RECOMMENDATIONS, HIDE_COMMERCE, HIDE_PROMOTIONAL_BANNERS, HIDE_SPONSORED_PROXY, HIDE_POPULAR_APPS, DISABLE_CHAT_SWIPE,
+            HIDE_RECOMMENDATIONS, HIDE_COMMERCE, HIDE_PROMOTIONAL_BANNERS, HIDE_SPONSORED_PROXY, HIDE_POPULAR_APPS, DISABLE_CHAT_SWIPE, DISABLE_CHANNEL_PULL,
             QUIET_CONTACTS_NAG, HOLIDAY_LOOK));
 
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
@@ -160,7 +165,9 @@ public enum PatchFamily {
         CACHED_PROXY_FILTERS(HIDE_SPONSORED_PROXY, "cachedProxyFilters", "cached proxy folder entries"),
         EXTERNAL_BROWSER_ROUTING(OPEN_EXTERNAL_LINKS, "externalBrowserRouting", "external browser routing"),
         OPENED_LINK_TRACKING(STRIP_LINK_TRACKING, "openedLinkTracking", "opened link tracking"),
-        SHARED_LINK_TRACKING(STRIP_LINK_TRACKING, "sharedLinkTracking", "shared link tracking");
+        SHARED_LINK_TRACKING(STRIP_LINK_TRACKING, "sharedLinkTracking", "shared link tracking"),
+        FIREBASE_CERTIFICATE_HEADER(REPAIR_FIREBASE_PUSH, "firebaseCertificateHeader", "Firebase certificate header"),
+        FIREBASE_LOCAL_STATUS(REPAIR_FIREBASE_PUSH, "firebaseLocalStatus", "local notification status");
 
         public final PatchFamily family;
         final String statusMethod;
@@ -357,7 +364,9 @@ public enum PatchFamily {
 
         @Override
         public List<String> lines() {
-            return reportLines(inThisBuild(), HushTelegramPause.isPaused());
+            List<String> lines = reportLines(inThisBuild(), HushTelegramPause.isPaused());
+            lines.addAll(FirebasePush.localReportLines());
+            return lines;
         }
     };
 }

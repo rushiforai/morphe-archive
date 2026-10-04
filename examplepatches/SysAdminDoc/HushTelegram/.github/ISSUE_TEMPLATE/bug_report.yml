@@ -11,13 +11,13 @@ body:
         Thanks for taking the time to report this. Before you start:
 
         - **Check whether it's already reported.** Search the [open and closed bug reports](https://github.com/SysAdminDoc/HushTelegram/issues?q=is%3Aissue%20label%3Abug). If yours was closed and it still happens, comment on it and we'll reopen it. GitHub doesn't let the person who reported something reopen it.
-        - **Patching stopped with an error?** That usually means Telegram moved something in a new build. Say which Telegram version you picked, and paste the error.
+        - **Patching stopped with an error?** Say which Telegram version you picked. The desktop scripts write a public patch summary you can attach below. Keep raw patching reports and configured APKs private because they can contain credentials.
   - type: input
     id: versions
     attributes:
       label: HushTelegram and Telegram versions
       description: Long-press the Telegram icon and tap HushTelegram, or open Telegram's App info page and tap Additional settings in the app. Then open More settings, then About, and copy the Version line.
-      placeholder: HushTelegram 0.0.6 on Telegram 12.10.6
+      placeholder: HushTelegram 0.0.8 on Telegram 12.10.6
     validations:
       required: true
   - type: input
@@ -41,7 +41,7 @@ body:
     attributes:
       label: Its version
       description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
-      placeholder: Morphe Manager 1.32.0
+      placeholder: Morphe Manager 1.33.0
     validations:
       required: true
   - type: dropdown
@@ -66,12 +66,13 @@ body:
     id: selected_patches
     attributes:
       label: Which patches were in your build?
-      description: All of them are selected by default. If you kept the manager's own selection, pick them all.
+      description: Pick the patches included in your build. The manager shows which ones it selected by default.
       multiple: true
       options:
         - Disable analytics
         - Disable call debug upload
         - Disable chat swipe actions
+        - Disable pull to next channel
         - Disable draft link previews
         - Disable update checks
         - Gallery camera on tap
@@ -85,6 +86,9 @@ body:
         - Holiday look all year
         - Open links externally
         - Quiet contacts nag
+        - Repair Firebase push registration
+        - Use registered Telegram API credentials
+        - Use registered Maps API key
         - Strip link tracking
         - HushTelegram settings
     validations:
@@ -136,6 +140,11 @@ body:
     attributes:
       label: Anything else?
       description: A workaround you found, an older version where it still worked, or anything else that might help.
+  - type: textarea
+    id: public_patch_summary
+    attributes:
+      label: Public patch summary
+      description: If you used the desktop scripts, attach public-summary.json or verify-all-public-summary-*.json. These contain validated targets, patch names and fixed failure codes. Don't attach result.json, a configured APK, option values or keystore details. If you used Morphe Manager, describe the visible error after removing private values.
   - type: checkboxes
     id: acknowledgements
     attributes:

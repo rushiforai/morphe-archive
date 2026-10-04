@@ -10,8 +10,51 @@ import zipfile
 from pathlib import Path
 
 
+def run_apkid(apk):
+    """Scan an APK path, preferring standalone APKiD and using uvx if it is absent.
+
+    Return stripped stdout, or a diagnostic for missing tools, an OSError while
+    running the command, a timeout after 300 seconds, a nonzero exit, or empty
+    output. A failed standalone command does not trigger a retry through uvx.
+    Output decoding errors propagate.
+    """
+    executable = shutil.which("apkid")
+    command = [executable, str(apk)] if executable else None
+    if command is None and shutil.which("uvx"):
+        command = ["uvx", "apkid", str(apk)]
+    if command is None:
+        return "unknown (apkid not available)"
+    try:
+        result = subprocess.run(
+            command,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        return "apkid failed: timed out after 300s"
+    except OSError as error:
+        return f"apkid unavailable ({error})"
+    if result.returncode:
+        detail = result.stderr.strip() or f"exit status {result.returncode}"
+        return f"apkid failed: {detail}"
+    return result.stdout.strip() or "apkid returned no results"
+
+
 def main():
-    """Inspect an APK or bundle and write identity, DEX, and protection details to a report."""
+    """Inspect an APK or bundle and write identity, DEX, and protection details to a report.
+
+    Read input and optional output paths from CLI arguments, overwriting recon.md
+    by default. For APKM, XAPK, and APKS bundles, inspect identity and protections
+    on base.apk or base-master.apk when present, otherwise the first sorted APK;
+    count DEX entries and list native libraries across all extracted APKs.
+
+    Exit via SystemExit for invalid arguments, a missing input, or a bundle with
+    no APKs. File, ZIP, aapt launch, and output decoding errors propagate; APKiD
+    availability and command failures are recorded as diagnostics in the report.
+    """
     p = argparse.ArgumentParser()
     p.add_argument("apk")
     p.add_argument("output", nargs="?", default="recon.md")
@@ -60,17 +103,7 @@ def main():
         libs = sorted(
             {x for x in listing if x.startswith("lib/") and x.endswith(".so")}
         )
-        apkid = "unknown (apkid not available)"
-        if shutil.which("uvx"):
-            apkid = (
-                subprocess.run(
-                    ["uvx", "apkid", str(apk)],
-                    text=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.DEVNULL,
-                ).stdout.strip()
-                or "apkid failed"
-            )
+        apkid = run_apkid(target)
         report = f"""# Recon — {field("application-label:")}
 
 ## Identity

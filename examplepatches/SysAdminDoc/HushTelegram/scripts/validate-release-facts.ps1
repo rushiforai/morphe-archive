@@ -197,6 +197,10 @@ $patchCount = $patches.Count
 $target = Get-PatchTarget -PatchList $patchList
 $targetPackage = $target.PackageName
 $targetVersion = $target.PackageVersion
+foreach ($declaredTarget in @(Get-PatchTargets -PatchList $patchList)) {
+    Require-Match -Text $readme -Pattern ([regex]::Escape($declaredTarget.PackageName)) -Description 'README declared package name'
+    Require-Match -Text $readme -Pattern ([regex]::Escape($declaredTarget.PackageVersion)) -Description 'README declared package version'
+}
 
 $bundleVersion = [string]$bundle.version
 $publishedFacts = Get-DescriptionFacts -Text ([string]$bundle.description) -Source 'The patches-bundle.json description'
@@ -871,6 +875,11 @@ function Test-ChangelogHere {
         throw "There is no CHANGELOG.md at $path, so no release can be described."
     }
     $current = Get-Content -LiteralPath $path -Raw
+    if ($indexLagsSource -and $AllowPublishedIndexLag -and -not $VerifyPublishedAsset) {
+        # Only the preparation path accepts an explicit Unreleased working version.
+        # The published parser and saved changelog continue to describe actual releases.
+        $current = Get-PreparedChangelog -Current $current -ExpectedVersion $releaseVersion
+    }
 
     $previous = $null
     $label = 'the last release'
@@ -992,7 +1001,7 @@ function Test-ReleaseReceiptHere {
         -WorkingPath (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt')
     if ($resolvedAllowlist.Note) { Write-Host "[release] $($resolvedAllowlist.Note)" }
     $approvedDelta = @($resolvedAllowlist.Entries)
-    $receiptTarget = Get-PatchTarget -PatchList $resolvedList.PatchList
+    $receiptTargets = @(Get-PatchTargets -PatchList $resolvedList.PatchList)
     # From schema 2 a receipt names the release SBOM, and which schema is read at the receipt's own
     # commit, so a release cut before there was an SBOM is read as it was written.
     $schema = Resolve-ReceiptSchema -Root $rootPath -Commit $receiptCommit
@@ -1033,15 +1042,14 @@ function Test-ReleaseReceiptHere {
         -ExpectedPatchNames @($resolvedList.PatchList.patches | ForEach-Object { [string]$_.name }) `
         -ExpectedPatcherVersion $expectedToolchain.PatcherVersion `
         -ExpectedManagerFloor $expectedToolchain.ManagerFloor `
-        -ExpectedPackageName $receiptTarget.PackageName -ExpectedPackageVersions $receiptTarget.PackageVersions `
-        -ExpectedPackageVersionCodes $receiptTarget.PackageVersionCodes `
+        -ExpectedPackageTargets $receiptTargets `
         -BundlePath $BundleForComparison -ApprovedManifestDelta $approvedDelta `
         -ActualCommitTimestamp $actualEpoch -ExpectedCommit $expectedCommit `
         -ExpectedSchemaVersion $schema.Version -SbomPath $sbomForComparison
     if (-not $receiptCheck.Valid) {
         throw "The release provenance receipt does not describe this release: $($receiptCheck.Reason)"
     }
-    $proved = @($receiptDocument.targets | ForEach-Object { "$($_.source.versionName)" })
+    $proved = @($receiptDocument.targets | ForEach-Object { "$($_.source.package) $($_.source.versionName) ($($_.source.versionCode))" })
     Write-Host ("[release] the receipt proves $($receiptDocument.release.patchCount) patches on " +
         ($proved -join ', ') + " from commit " + $receiptCommit.Substring(0, 8) +
         ", with no unreviewed manifest change")

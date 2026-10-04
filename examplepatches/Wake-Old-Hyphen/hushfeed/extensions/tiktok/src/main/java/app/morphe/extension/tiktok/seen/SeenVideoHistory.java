@@ -64,6 +64,45 @@ public final class SeenVideoHistory {
         void onComplete(int added);
     }
 
+    public enum ImportStatus { IMPORTED, ACCOUNT_CHANGED, SUPERSEDED, FAILED }
+
+    /** The account and history generation that opened the picker, never the account at write time. */
+    public static final class ImportTarget {
+        private final String account;
+        private final int generation;
+
+        private ImportTarget(String account, int generation) {
+            this.account = account;
+            this.generation = generation;
+        }
+
+        public String accountKey() { return account; }
+        public boolean isCurrentAccount() { return account.equals(SignedInUser.id()); }
+    }
+
+    public static final class ImportResult {
+        public final ImportStatus status;
+        public final int imported;
+        public final int skipped;
+        /** A successful import replaces the history, so a previous clear's Undo is retired. */
+        public final boolean undoRetired;
+
+        private ImportResult(ImportStatus status, int imported, int skipped) {
+            this(status, imported, skipped, false);
+        }
+
+        private ImportResult(ImportStatus status, int imported, int skipped, boolean undoRetired) {
+            this.status = status;
+            this.imported = imported;
+            this.skipped = skipped;
+            this.undoRetired = undoRetired;
+        }
+    }
+
+    public interface ImportCallback {
+        void onComplete(ImportResult result);
+    }
+
     interface DatabaseFactory {
         Database create(Context context);
     }
@@ -478,6 +517,132 @@ public final class SeenVideoHistory {
         account();
         ensureLoaded();
         return SEEN.size();
+    }
+
+    /** Null while signed out. Capture this before the file picker can change the foreground account. */
+    public static ImportTarget captureImportTarget() {
+        String current = account();
+        synchronized (HISTORY_LOCK) {
+            return SIGNED_OUT.equals(current) ? null : new ImportTarget(current, generation);
+        }
+    }
+
+    /** Commits a bounded batch before publishing anything to the feed's memory cache. */
+    public static void importHistory(ImportTarget target, WatchHistoryImport.Records records,
+                                     ImportCallback callback) {
+        try {
+            IO.execute(() -> importOnWorker(target, records, callback));
+        } catch (java.util.concurrent.RejectedExecutionException failure) {
+            Logger.printException(() -> "Seen video history could not queue the import", failure);
+            notifyImport(callback, new ImportResult(ImportStatus.FAILED, 0, 0));
+        }
+    }
+
+    private static ImportStatus importTargetStatus(ImportTarget target) {
+        String current = account();
+        synchronized (HISTORY_LOCK) {
+            if (target == null || !target.account.equals(current)) return ImportStatus.ACCOUNT_CHANGED;
+            return target.generation == generation ? ImportStatus.IMPORTED : ImportStatus.SUPERSEDED;
+        }
+    }
+
+    private static final class ImportStopped extends Exception {
+        final ImportStatus status;
+        ImportStopped(ImportStatus status) { this.status = status; }
+    }
+
+    private static void requireImportTarget(ImportTarget target) throws ImportStopped {
+        ImportStatus status = importTargetStatus(target);
+        if (status != ImportStatus.IMPORTED) throw new ImportStopped(status);
+    }
+
+    private static void importOnWorker(ImportTarget target, WatchHistoryImport.Records records,
+                                       ImportCallback callback) {
+        try {
+            requireImportTarget(target);
+            if (records == null || records.videos.size() > MAX_RECORDS) {
+                throw new IllegalArgumentException("Invalid seen-history import batch");
+            }
+            long now = System.currentTimeMillis();
+            long cutoff = retentionCutoff(now);
+            Map<String, Long> before;
+            Map<String, Long> after;
+            int unownedCount;
+            Map<String, Long> changed = new HashMap<>();
+            SQLiteDatabase writable = getDatabase().getWritableDatabase();
+            writable.beginTransaction();
+            try {
+                before = readAll(target.account);
+                for (Map.Entry<String, Long> row : records.videos.entrySet()) {
+                    long imported = row.getValue();
+                    Long existing = before.get(row.getKey());
+                    if (imported < cutoff || imported > now
+                            || (existing != null && existing >= imported)) continue;
+                    ContentValues values = new ContentValues();
+                    values.put(COLUMN_ACCOUNT, target.account);
+                    values.put(COLUMN_AID, row.getKey());
+                    values.put(COLUMN_LAST_SEEN, imported);
+                    if (rowWriter.insert(writable, values) == -1L) {
+                        throw new IllegalStateException("SQLite rejected a watch-history import row");
+                    }
+                    changed.put(row.getKey(), imported);
+                }
+                // Pruning is part of this transaction. Its failure must roll back the entire import.
+                if (cutoff != Long.MIN_VALUE) {
+                    writable.delete(TABLE, COLUMN_ACCOUNT + " = ? AND " + COLUMN_LAST_SEEN + " < ?",
+                            new String[]{target.account, String.valueOf(cutoff)});
+                }
+                writable.execSQL("DELETE FROM " + TABLE + " WHERE " + COLUMN_ACCOUNT + " = ? AND "
+                        + COLUMN_AID + " NOT IN (SELECT " + COLUMN_AID + " FROM " + TABLE + " WHERE "
+                        + COLUMN_ACCOUNT + " = ? ORDER BY " + COLUMN_LAST_SEEN + " DESC, "
+                        + COLUMN_AID + " ASC LIMIT " + MAX_RECORDS + ")",
+                        new Object[]{target.account, target.account});
+                after = readAll(target.account);
+                try (Cursor count = writable.rawQuery("SELECT COUNT(*) FROM " + TABLE + " WHERE "
+                        + COLUMN_ACCOUNT + " = ?", new String[]{UNOWNED})) {
+                    unownedCount = count.moveToFirst() ? count.getInt(0) : 0;
+                }
+                requireImportTarget(target);
+                writable.setTransactionSuccessful();
+            } finally {
+                writable.endTransaction();
+            }
+            int imported = 0;
+            for (String id : changed.keySet()) if (after.containsKey(id)) imported++;
+            boolean undoRetired = false;
+            synchronized (HISTORY_LOCK) {
+                if (importTargetStatus(target) == ImportStatus.IMPORTED) {
+                    // A sighting queued during this transaction keeps its newer memory timestamp.
+                    // Remove pruned old entries only if memory still holds exactly their old value.
+                    for (Map.Entry<String, Long> row : before.entrySet()) {
+                        if (!after.containsKey(row.getKey())) SEEN.remove(row.getKey(), row.getValue());
+                    }
+                    for (Map.Entry<String, Long> row : after.entrySet()) mergeSeen(row.getKey(), row.getValue());
+                    trimMemory();
+                    unowned = unownedCount;
+                    LOAD_STARTED.set(true);
+                    // Restoring an older clear on top of a full imported history can prune every
+                    // restored ID. Retire that offer only after a committed, mutating import.
+                    if (imported > 0 && undoOffered && target.account.equals(undoAccount)) {
+                        undo = null;
+                        undoAccount = null;
+                        undoOffered = false;
+                        undoRetired = true;
+                    }
+                }
+            }
+            notifyImport(callback, new ImportResult(ImportStatus.IMPORTED, imported,
+                    records.skipped + records.videos.size() - imported, undoRetired));
+        } catch (ImportStopped stopped) {
+            notifyImport(callback, new ImportResult(stopped.status, 0, 0));
+        } catch (Exception failure) {
+            Logger.printException(() -> "Seen video history import failed", failure);
+            notifyImport(callback, new ImportResult(ImportStatus.FAILED, 0, 0));
+        }
+    }
+
+    private static void notifyImport(ImportCallback callback, ImportResult result) {
+        if (callback != null) Utils.runOnMainThread(() -> callback.onComplete(result));
     }
 
     /**

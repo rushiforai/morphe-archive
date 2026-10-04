@@ -8,7 +8,6 @@ import app.morphe.Fixtures
 import app.morphe.patcher.Fingerprint
 import app.morphe.takes
 import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -32,7 +31,7 @@ class AiProfilingAnchorsTest {
     fun `the Pitaya doors resolve on each build and every lookup caller copes with no plugin`() {
         Fixtures.forEachDeclared { apk ->
             val classes = HashMap<String, ClassDef>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) classes.putIfAbsent(classDef.type, classDef)
             }

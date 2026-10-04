@@ -16,7 +16,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 val copyCommentPatch = bytecodePatch(
     name = "Copy comment",
     description = "Adds an optional Copy action to the common comment menu. Copies the original text with its line breaks.",
-    default = false,
+    default = true,
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)

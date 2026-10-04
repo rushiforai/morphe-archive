@@ -7,6 +7,7 @@
  */
 package app.morphe.extension.hushthreads.settings;
 
+import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -137,6 +138,69 @@ public class SupportedLinksTest {
         Preference row = show(true).findPreference(KEY);
         assertNotNull("no Supported links row", row);
         return String.valueOf(row.getSummary());
+    }
+
+    // Ported diagnostic contracts from Hushfacebook 4d1fec1e and c7059151.
+    private List<String> reportFor(Object answer) throws ClassNotFoundException {
+        this.answer = answer;
+        controller = Robolectric.buildActivity(Activity.class).setup();
+        installService(controller.get().getBaseContext());
+        return SupportedLinks.reportLines(controller.get());
+    }
+
+    @Test public void reportsEveryDomainInStableOrderWithExplicitUnknownStates() throws Exception {
+        Map<String, Integer> hosts = new LinkedHashMap<>();
+        hosts.put("z.threads.com", null);
+        hosts.put("www.threads.com", SELECTED);
+        hosts.put("*.threads.net", VERIFIED);
+        hosts.put("m.threads.com", NONE);
+        hosts.put("future.threads.com", 99);
+        hosts.put("münchen.threads.com", SELECTED);
+        hosts.put("ki\u0301.threads.com", SELECTED);
+        assertEquals(Arrays.asList("availability: reported", "link_handling_allowed: true",
+                "*.threads.net -> verified", "future.threads.com -> unknown", "ki\u0301.threads.com -> selected", "m.threads.com -> none",
+                "münchen.threads.com -> selected", "www.threads.com -> selected", "z.threads.com -> unknown"),
+                reportFor(state(true, hosts)));
+        for (String name : askedFor) assertEquals(RuntimeEnvironment.getApplication().getPackageName(), name);
+    }
+
+    @Test public void disabledLinkHandlingDoesNotEraseDomainSelectionsOrChangeOwnership() throws Exception {
+        Map<String, Integer> hosts = hosts(SELECTED, NONE);
+        Map<String, Integer> before = new LinkedHashMap<>(hosts);
+        assertEquals(Arrays.asList("availability: reported", "link_handling_allowed: false",
+                "www.threads.com -> selected", "www.threads.net -> none"), reportFor(state(false, hosts)));
+        assertEquals(before, hosts);
+    }
+
+    @Test public void anEmptyDomainMapIsDistinctFromAnUnreadableService() throws Exception {
+        assertEquals(Arrays.asList("availability: reported", "link_handling_allowed: true", "domains: none_declared"),
+                reportFor(state(true, new LinkedHashMap<>())));
+    }
+
+    @Test public void aNullServiceAnswerIsExplicitlyUnknown() throws Exception {
+        assertEquals(Arrays.asList("availability: unknown", "link_handling_allowed: unknown", "domains: unknown"), reportFor(null));
+    }
+
+    @Test public void serviceFailuresDoNotPutTheirSensitiveMessageInReports() throws Exception {
+        List<String> report = reportFor(new IllegalStateException("https://www.threads.com/private?account_id=999000111 certificate:AA:BB"));
+        assertEquals(Arrays.asList("availability: unknown", "link_handling_allowed: unknown", "domains: unknown"), report);
+    }
+
+    @Test public void invalidHostDataCannotInjectUrlsAccountFieldsOrCertificateFields() throws Exception {
+        Map<String, Integer> hosts = hosts(SELECTED, NONE);
+        hosts.put("https://www.threads.com/private?account_id=999000111", VERIFIED);
+        hosts.put("certificate:AA:BB", VERIFIED);
+        hosts.put("account_id=999000111", VERIFIED);
+        hosts.put("host\nvisited-url", VERIFIED);
+        assertEquals(Arrays.asList("availability: reported", "link_handling_allowed: true",
+                "domains: unknown (invalid host data)", "www.threads.com -> selected", "www.threads.net -> none"),
+                reportFor(state(true, hosts)));
+    }
+
+    @Test @Config(sdk = {28, 30}) public void android11ReportsThatTheStateCannotBeRead() {
+        assertEquals(Arrays.asList("availability: not_reported (API below 31)", "link_handling_allowed: not_reported",
+                "domains: not_reported"), SupportedLinks.reportLines(RuntimeEnvironment.getApplication()));
+        assertTrue(askedFor.isEmpty());
     }
 
     @Test

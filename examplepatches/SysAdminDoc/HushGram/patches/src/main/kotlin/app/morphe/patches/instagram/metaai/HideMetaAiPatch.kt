@@ -69,8 +69,8 @@ val hideMetaAiPatch = bytecodePatch(
     name = "Hide Meta AI",
     description = "Takes Meta AI out of the search bars, in the Search tab and at the top of your messages, so they " +
         "search the plain way, drops the Ask a follow-up bar under search results and Meta AI's buttons in Home's " +
-        "top bar, and removes Meta AI's posts from your home feed. Each has its own switch, and the search one " +
-        "shows once Instagram restarts.",
+        "top bar and the message composer, hides its optional row in your inbox, and removes Meta AI's posts from your home feed. " +
+        "Search and posts have separate switches. The search switch applies after Instagram restarts.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)
@@ -83,10 +83,14 @@ val hideMetaAiPatch = bytecodePatch(
         val reads = findSearchFlagReads()
         val followUp = findFollowUpBarCheck()
         val homeButtons = findHomeButtonNames()
+        val composer = findComposerButtonVisibility()
+        val inbox = findOptionalInboxRow()
         filterParsedFeedItems(PATCH, META_AI_FILTER, META_AI_UNITS)
         answerSearchFlagReads(reads)
         dropFollowUpBar(followUp)
         dropHomeButton(homeButtons)
+        holdComposerButtons(composer)
+        holdOptionalInboxRow(inbox)
         enableStatus("metaAi")
     }
 }

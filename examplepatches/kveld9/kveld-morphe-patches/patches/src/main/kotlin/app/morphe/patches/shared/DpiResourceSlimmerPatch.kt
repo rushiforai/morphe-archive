@@ -1,8 +1,14 @@
 package app.morphe.patches.shared
 
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import org.w3c.dom.Document
+import org.w3c.dom.Element
 import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
+
+private const val ANDROID_XML_NAMESPACE = "http://schemas.android.com/apk/res/android"
 
 private val STRIPPABLE_DENSITY_QUALIFIERS = setOf(
     "ldpi", "mdpi", "tvdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"
@@ -10,6 +16,16 @@ private val STRIPPABLE_DENSITY_QUALIFIERS = setOf(
 
 private val PROTECTED_DENSITY_QUALIFIERS = setOf(
     "nodpi", "anydpi"
+)
+
+private val DENSITY_RANK = mapOf(
+    "ldpi" to 120,
+    "mdpi" to 160,
+    "tvdpi" to 213,
+    "hdpi" to 240,
+    "xhdpi" to 320,
+    "xxhdpi" to 480,
+    "xxxhdpi" to 640
 )
 
 private val DPI_ALIASES = mapOf(
@@ -28,9 +44,8 @@ private val DPI_ALIASES = mapOf(
 
 private class SlimmerStats(
     var removedFiles: Int = 0,
-    var preservedOrphans: Int = 0,
+    var preservedInSitu: Int = 0,
     var savedBytes: Long = 0L,
-    val rescuedNames: MutableList<String> = mutableListOf(),
 )
 
 private fun parseTargetDpis(rawInput: String?): Set<String> {
@@ -55,6 +70,18 @@ private fun extractDensityQualifier(dirName: String): String? {
         .firstOrNull { it in STRIPPABLE_DENSITY_QUALIFIERS || it in PROTECTED_DENSITY_QUALIFIERS }
 }
 
+private fun getPrefixWithoutDensity(dirName: String, density: String): String {
+    return dirName.replace("-$density", "")
+}
+
+private fun getDirectoryBucket(dirName: String): String? {
+    val density = extractDensityQualifier(dirName) ?: return dirName
+    if (density in PROTECTED_DENSITY_QUALIFIERS || density in STRIPPABLE_DENSITY_QUALIFIERS) {
+        return getPrefixWithoutDensity(dirName, density)
+    }
+    return null
+}
+
 private fun isGraphicResourceDirectory(dirName: String): Boolean {
     return dirName.startsWith("drawable") || dirName.startsWith("mipmap")
 }
@@ -66,40 +93,93 @@ private fun isDensityDirectoryCandidate(dir: File): Boolean {
     return density !in PROTECTED_DENSITY_QUALIFIERS
 }
 
-private fun getPrefixWithoutDensity(dirName: String, density: String): String {
-    return dirName.replace("-$density", "")
+private fun extractResourceEntryName(fileName: String): String {
+    if (fileName.endsWith(".9.png", ignoreCase = true)) {
+        return fileName.substring(0, fileName.length - 6)
+    }
+    return fileName.substringBeforeLast('.')
 }
 
-private fun resolveTargetDir(sourceDir: File, keptDirs: List<File>): File? {
-    val sourceDensity = extractDensityQualifier(sourceDir.name) ?: return keptDirs.firstOrNull()
-    val basePrefix = getPrefixWithoutDensity(sourceDir.name, sourceDensity)
-
-    return keptDirs.firstOrNull {
-        val keptDensity = extractDensityQualifier(it.name) ?: ""
-        getPrefixWithoutDensity(it.name, keptDensity) == basePrefix
-    } ?: keptDirs.firstOrNull()
+private fun extractEntryNameFromResourceRef(ref: String): String? {
+    val clean = ref.trim()
+    if (!clean.startsWith("@")) return null
+    val slashIndex = clean.lastIndexOf('/')
+    if (slashIndex == -1 || slashIndex >= clean.length - 1) return null
+    return extractResourceEntryName(clean.substring(slashIndex + 1))
 }
 
-private fun preserveOrphanFile(file: File, targetDir: File): Boolean {
-    val destination = File(targetDir, file.name)
-    if (destination.exists()) return false
-
-    file.copyTo(destination, overwrite = false)
-    return true
+private fun getAttributeValue(element: Element, attributeName: String): String {
+    val attrNs = element.getAttributeNS(ANDROID_XML_NAMESPACE, attributeName)
+    if (attrNs.isNotBlank()) return attrNs.trim()
+    val attrPrefixed = element.getAttribute("android:$attributeName")
+    if (attrPrefixed.isNotBlank()) return attrPrefixed.trim()
+    return element.getAttribute(attributeName).trim()
 }
 
-private fun collectProtectedFileNames(resDir: File, keptDirs: List<File>): MutableSet<String> {
+private fun extractIconNamesFromElement(
+    el: Element,
+    iconNames: MutableSet<String>,
+) {
+    val iconAttrs = listOf("icon", "roundIcon")
+    for (attr in iconAttrs) {
+        val value = getAttributeValue(el, attr)
+        if (value.isNotEmpty()) {
+            extractEntryNameFromResourceRef(value)?.let { iconNames.add(it) }
+        }
+    }
+}
+
+private fun collectLauncherIconNames(doc: Document): Set<String> {
+    val iconNames = mutableSetOf<String>()
+    val tags = listOf("application", "activity", "activity-alias")
+
+    for (tag in tags) {
+        val elements = doc.getElementsByTagName(tag)
+        for (i in 0 until elements.length) {
+            val el = elements.item(i) as? Element ?: continue
+            extractIconNamesFromElement(el, iconNames)
+        }
+    }
+    return iconNames
+}
+
+private fun parseManifestReadOnly(manifestFile: File): Document? {
+    if (!manifestFile.exists() || !manifestFile.isFile) return null
+    return try {
+        val factory = DocumentBuilderFactory.newInstance()
+        factory.isNamespaceAware = true
+        val builder = factory.newDocumentBuilder()
+        manifestFile.inputStream().use { builder.parse(it) }
+    } catch (_: Exception) {
+        null
+    }
+}
+
+private fun collectEntryNamesFromDir(dir: File, names: MutableSet<String>) {
+    dir.listFiles { f -> f.isFile }?.forEach {
+        names.add(extractResourceEntryName(it.name))
+    }
+}
+
+private fun collectProtectedEntryNamesForBucket(
+    resDir: File,
+    bucket: String,
+    keptDirs: List<File>,
+): MutableSet<String> {
     val protectedNames = mutableSetOf<String>()
 
     keptDirs.forEach { dir ->
-        dir.listFiles { f -> f.isFile }?.forEach { protectedNames.add(it.name) }
+        if (getDirectoryBucket(dir.name) == bucket) {
+            collectEntryNamesFromDir(dir, protectedNames)
+        }
     }
 
     resDir.listFiles { f -> f.isDirectory }?.forEach { dir ->
         if (isGraphicResourceDirectory(dir.name)) {
             val density = extractDensityQualifier(dir.name)
-            if (density == null || density in PROTECTED_DENSITY_QUALIFIERS) {
-                dir.listFiles { f -> f.isFile }?.forEach { protectedNames.add(it.name) }
+            val isDensityIndependent = density == null || density in PROTECTED_DENSITY_QUALIFIERS
+            if (isDensityIndependent && getDirectoryBucket(dir.name) == bucket) {
+                collectEntryNamesFromDir(dir, protectedNames)
             }
         }
     }
@@ -109,27 +189,54 @@ private fun collectProtectedFileNames(resDir: File, keptDirs: List<File>): Mutab
 
 private fun trimDirectoryFiles(
     dir: File,
-    targetDir: File?,
-    protectedFileNames: MutableSet<String>,
+    protectedEntryNames: MutableSet<String>,
+    launcherIconNames: Set<String>,
     stats: SlimmerStats,
 ) {
     val files = dir.listFiles { f -> f.isFile } ?: return
 
     for (file in files) {
-        val fileSize = file.length()
-        if (file.name !in protectedFileNames && targetDir != null) {
-            if (preserveOrphanFile(file, targetDir)) {
-                stats.preservedOrphans++
-                stats.rescuedNames.add(file.name)
-                protectedFileNames.add(file.name)
-            }
+        val entryName = extractResourceEntryName(file.name)
+        if (entryName in launcherIconNames) {
+            continue
         }
 
-        if (file.delete()) {
-            stats.removedFiles++
-            stats.savedBytes += fileSize
+        if (entryName in protectedEntryNames) {
+            val fileSize = file.length()
+            if (file.delete()) {
+                stats.removedFiles++
+                stats.savedBytes += fileSize
+            }
+        } else {
+            stats.preservedInSitu++
+            protectedEntryNames.add(entryName)
         }
     }
+}
+
+private val UI_MODE_WATCH = setOf("watch")
+private val UI_MODE_TV = setOf("television")
+private val UI_MODE_OTHER = setOf("car", "desk", "appliance", "vrheadset")
+
+private fun stripUiModeDirectories(resDir: File, stripModes: Set<String>, stats: SlimmerStats): Int {
+    if (stripModes.isEmpty()) return 0
+    var removedDirs = 0
+    resDir.listFiles { f -> f.isDirectory }?.forEach { dir ->
+        // Never touch values directories to avoid deleting string/style/dimen resource IDs
+        if (dir.name.startsWith("values")) return@forEach
+
+        val qualifiers = dir.name.split("-").drop(1).map { it.lowercase() }
+        if (qualifiers.none { it in stripModes }) return@forEach
+
+        val dirFiles = dir.walkTopDown().filter { it.isFile }.toList()
+        val dirSize = dirFiles.sumOf { it.length() }
+        if (dir.deleteRecursively()) {
+            removedDirs++
+            stats.removedFiles += dirFiles.size
+            stats.savedBytes += dirSize
+        }
+    }
+    return removedDirs
 }
 
 private fun pruneEmptyDirectories(resDir: File): Int {
@@ -142,15 +249,10 @@ private fun pruneEmptyDirectories(resDir: File): Int {
     return pruned
 }
 
-private fun formatRescuedSample(rescued: List<String>): String {
-    if (rescued.size <= 6) return rescued.joinToString(", ")
-    return "${rescued.take(6).joinToString(", ")} ... (+${rescued.size - 6} more)"
-}
-
 @Suppress("unused")
 val dpiResourceSlimmerPatch = resourcePatch(
     name = "DPI Resource Slimmer",
-    description = "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved.",
+    description = "Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved in-situ.",
     default = false,
 ) {
     // Universal patch: applies to any target APK in Morphe Manager / CLI
@@ -162,51 +264,101 @@ val dpiResourceSlimmerPatch = resourcePatch(
         required = false,
     )
 
+    val stripSmartwatch by booleanOption(
+        key = "stripSmartwatch",
+        title = "Remove smartwatch (Wear OS) resources",
+        description = "Removes graphic and non-values layout resources qualified for Wear OS smartwatches (e.g. watch qualifiers).",
+        default = false,
+        required = false,
+    )
+
+    val stripTelevision by booleanOption(
+        key = "stripTelevision",
+        title = "Remove Android TV resources",
+        description = "Removes graphic and non-values layout resources qualified for Android TV / Leanback (e.g. television qualifiers).",
+        default = false,
+        required = false,
+    )
+
+    val stripOtherFormFactors by booleanOption(
+        key = "stripOtherFormFactors",
+        title = "Remove automotive, dock, and VR resources",
+        description = "Removes graphic and non-values layout resources qualified for car head units, desk docks, appliances, or VR headsets.",
+        default = false,
+        required = false,
+    )
+
     execute {
-        val resDir = get("res")
-        if (!resDir.exists() || !resDir.isDirectory) {
+        val mainRes = get("res")
+        val resDirs = LocaleUtils.resolveResourceDirectories(mainRes)
+        if (resDirs.isEmpty()) {
             println("[DPI Resource Slimmer] Skipped: res directory not found.")
             return@execute
         }
 
         val keepSet = parseTargetDpis(targetDpis)
-        val allDirs = resDir.listFiles { f -> f.isDirectory }?.toList() ?: run {
-            println("[DPI Resource Slimmer] Skipped: res directory has no subdirectories.")
-            return@execute
+        val uiModeStripSet = buildSet {
+            if (stripSmartwatch == true) addAll(UI_MODE_WATCH)
+            if (stripTelevision == true) addAll(UI_MODE_TV)
+            if (stripOtherFormFactors == true) addAll(UI_MODE_OTHER)
         }
 
-        val keptDirs = allDirs.filter { isGraphicResourceDirectory(it.name) && extractDensityQualifier(it.name) in keepSet }
-        if (keptDirs.isEmpty()) {
-            val available = allDirs
-                .filter { isGraphicResourceDirectory(it.name) }
-                .mapNotNull { extractDensityQualifier(it.name) }
-                .distinct()
-                .sorted()
-            println("[DPI Resource Slimmer] No matching density directories found for target $keepSet across APK (available: $available) - skipping safely to prevent resource loss.")
-            return@execute
-        }
-
-        val protectedFileNames = collectProtectedFileNames(resDir, keptDirs)
-        val candidateDirs = allDirs.filter { isDensityDirectoryCandidate(it) && extractDensityQualifier(it.name) !in keepSet }
-
-        println("[DPI Resource Slimmer] Keeping densities ${keepSet.sorted().joinToString(", ")} across ${keptDirs.size} directories: ${keptDirs.map { it.name }.sorted().joinToString(", ")}")
-        if (candidateDirs.isNotEmpty()) {
-            println("[DPI Resource Slimmer] Trimming ${candidateDirs.size} unselected directories: ${candidateDirs.map { it.name }.sorted().joinToString(", ")}")
-        }
+        val manifestFile = get("AndroidManifest.xml")
+        val launcherIconNames = parseManifestReadOnly(manifestFile)?.let {
+            collectLauncherIconNames(it)
+        } ?: emptySet()
 
         val stats = SlimmerStats()
-        for (dir in candidateDirs) {
-            val targetDir = resolveTargetDir(dir, keptDirs)
-            trimDirectoryFiles(dir, targetDir, protectedFileNames, stats)
+        var totalRemovedDirs = 0
+
+        println("[DPI Resource Slimmer] Target densities: ${keepSet.sorted().joinToString(", ")}")
+        if (uiModeStripSet.isNotEmpty()) {
+            println("[DPI Resource Slimmer] Stripping non-phone UI mode qualifiers: ${uiModeStripSet.sorted().joinToString(", ")}")
         }
 
-        val removedDirs = pruneEmptyDirectories(resDir)
+        for (resDir in resDirs) {
+            if (uiModeStripSet.isNotEmpty()) {
+                totalRemovedDirs += stripUiModeDirectories(resDir, uiModeStripSet, stats)
+            }
+
+            val allDirs = resDir.listFiles { f -> f.isDirectory }?.toList() ?: continue
+            val keptDirs = allDirs.filter { isGraphicResourceDirectory(it.name) && extractDensityQualifier(it.name) in keepSet }
+            if (keptDirs.isEmpty()) {
+                val available = allDirs
+                    .filter { isGraphicResourceDirectory(it.name) }
+                    .mapNotNull { extractDensityQualifier(it.name) }
+                    .distinct()
+                    .sorted()
+                val pkgName = resDir.parentFile?.name ?: "package"
+                println("[DPI Resource Slimmer] $pkgName: No matching density directories found for target $keepSet (available: $available) - skipping density trimming safely.")
+                continue
+            }
+
+            val candidateDirs = allDirs.filter { isDensityDirectoryCandidate(it) && extractDensityQualifier(it.name) !in keepSet }
+            val candidateBuckets = candidateDirs.groupBy { getDirectoryBucket(it.name) ?: it.name }
+
+            for ((bucket, dirsInBucket) in candidateBuckets) {
+                val protectedEntryNames = collectProtectedEntryNamesForBucket(resDir, bucket, keptDirs)
+                val sortedDirs = dirsInBucket.sortedByDescending { dir ->
+                    val density = extractDensityQualifier(dir.name)
+                    DENSITY_RANK[density] ?: 0
+                }
+                for (dir in sortedDirs) {
+                    trimDirectoryFiles(dir, protectedEntryNames, launcherIconNames, stats)
+                }
+            }
+
+            totalRemovedDirs += pruneEmptyDirectories(resDir)
+        }
+
         val savedFormatted = LocaleUtils.formatBytes(stats.savedBytes)
+        val packageSuffix = if (resDirs.size > 1) " across ${resDirs.size} resource packages" else ""
 
-        if (stats.preservedOrphans > 0) {
-            println("[DPI Resource Slimmer] Rescued ${stats.preservedOrphans} single-density orphan assets into kept targets: ${formatRescuedSample(stats.rescuedNames)}")
+        if (stats.preservedInSitu > 0) {
+            println("[DPI Resource Slimmer] Preserved ${stats.preservedInSitu} single-density orphan asset(s) in-situ.")
         }
 
-        println("[DPI Resource Slimmer] Stripped ${stats.removedFiles} files across $removedDirs density dirs (${stats.preservedOrphans} orphan resources preserved, kept: ${keepSet.sorted().joinToString(", ")}) -> Saved $savedFormatted")
+        println("[DPI Resource Slimmer] Stripped ${stats.removedFiles} files across $totalRemovedDirs density/device dirs$packageSuffix (${stats.preservedInSitu} orphan resources preserved in-situ, kept: ${keepSet.sorted().joinToString(", ")}) -> Saved $savedFormatted")
     }
 }
+

@@ -82,6 +82,7 @@ public class PostWordsRuleTest {
     public void restore() {
         PauseForTests.resume();
         Settings.HIDE_POSTS_WITH_WORDS.resetToDefault();
+        Settings.POST_WORDS_WHOLE_WORDS.resetToDefault();
         Settings.HIDDEN_WORDS.resetToDefault();
         Settings.KEPT_WORDS.resetToDefault();
         Settings.HIDE_SPONSORED_POSTS.resetToDefault();
@@ -152,6 +153,56 @@ public class PostWordsRuleTest {
         assertEquals(FeedFilter.WORDS_ROUTE + ": 1 lists, 1 items, 1 removed. Last reason: hide word. "
                 + "Removed: hide word 1. Kinds: hide word 1", wordsLine());
         assertEquals(1, PostWords.hiddenSinceStart());
+    }
+
+    @Test
+    public void theWholeWordSwitchStartsOffAndChangesOnlyBoundaries() {
+        assertFalse(Settings.POST_WORDS_WHOLE_WORDS.defaultValue);
+        assertFalse(Settings.POST_WORDS_WHOLE_WORDS.savedValue());
+        listen("hat\ncopycat", "cat");
+        assertTrue(guard("what"));
+        Settings.POST_WORDS_WHOLE_WORDS.save(true);
+        assertFalse(guard("what"));
+        assertTrue(guard("hat!"));
+        assertTrue(guard("copycat"));
+        assertFalse(guard("copycat and cat"));
+        Settings.POST_WORDS_WHOLE_WORDS.save(false);
+        assertTrue(guard("what"));
+    }
+
+    @Test
+    public void wholeWordModeReadsNothingWithTheFilterOffOrPaused() {
+        Settings.POST_WORDS_WHOLE_WORDS.save(true);
+        Settings.HIDDEN_WORDS.save("hat");
+        Answers answers = new Answers(FeedGuardForTests.postText("hat!"));
+        assertFalse(guard(Category.ORGANIC, new GraphQLStory(), answers, new Answers(null)));
+        assertEquals(0, answers.calls);
+        listen("hat", "");
+        for (HushfacebookPause.Reason why : new HushfacebookPause.Reason[]{
+                HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP,
+                HushfacebookPause.Reason.MARKER_FILE}) {
+            PauseForTests.pause(why);
+            assertFalse(guard(Category.ORGANIC, new GraphQLStory(), answers, new Answers(null)));
+            assertEquals(0, answers.calls);
+            assertTrue(Settings.POST_WORDS_WHOLE_WORDS.savedValue());
+        }
+        PauseForTests.resume();
+        assertTrue(guard(Category.ORGANIC, new GraphQLStory(), answers, new Answers(null)));
+        assertEquals(1, answers.calls);
+    }
+
+    @Test
+    public void wholeWordDiagnosticsContainOnlyShapesAndCounts() {
+        BaseSettings.DEBUG.save(true);
+        listen("zanzibarquux", "pomegranatekeep");
+        Settings.POST_WORDS_WHOLE_WORDS.save(true);
+        assertFalse(guard("zanzibarquuxes"));
+        assertTrue(guard("zanzibarquux!"));
+        assertFalse(guard("zanzibarquux and pomegranatekeep"));
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains(FeedFilter.WORDS_ROUTE + ": 3 lists, 3 items, 1 removed"));
+        assertFalse(report, report.toLowerCase().contains("zanzibarquux"));
+        assertFalse(report, report.toLowerCase().contains("pomegranatekeep"));
     }
 
     /** The control for the one above: the same post without the phrase stays. */

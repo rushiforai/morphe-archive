@@ -13,6 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ import app.hushgram.extension.instagram.reels.FeedReels;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.diagnostics.FeedFilterCounters;
+import app.hushgram.extension.shared.settings.BooleanSetting;
 
 /** Which home feed items Hide suggested posts takes out, and which it leaves. */
 @RunWith(RobolectricTestRunner.class)
@@ -161,6 +163,36 @@ public class FeedSuggestionsTest {
         FeedSuggestions.filter(new Item(Kind.EXPLORE_STORY));
         assertEquals(1, FeedSuggestions.feedEnded(0));
         assertEquals(1, FeedSuggestions.feedEnded(1));
+    }
+
+    @Test
+    @Config(sdk = {28, 37})
+    public void turningOffAllSuggestionSwitchesRestoresBothNativeEndAnswers() {
+        BooleanSetting[] switches = {Settings.HIDE_SUGGESTED_POSTS,
+                Settings.HIDE_SUGGESTED_ACCOUNTS, Settings.HIDE_THREADS_POSTS};
+        try {
+            for (Kind removed : new Kind[] {Kind.EXPLORE_STORY, Kind.SUGGESTED_USERS,
+                    Kind.THREADS_IN_FEED_UNIT}) {
+                for (BooleanSetting setting : switches) setting.save(true);
+                FeedSuggestions.tookOut = false;
+                assertNull(removed.name(), FeedSuggestions.filter(new Item(removed)));
+                assertEquals("filtered " + removed, 1, FeedSuggestions.feedEnded(0));
+
+                for (BooleanSetting setting : switches) setting.save(false);
+                assertEquals("all switches off after " + removed, 0, FeedSuggestions.feedEnded(0));
+                assertEquals("native EOF after " + removed, 1, FeedSuggestions.feedEnded(1));
+
+                for (BooleanSetting setting : switches) {
+                    setting.save(true);
+                    assertEquals(setting.key, 1, FeedSuggestions.feedEnded(0));
+                    assertEquals(setting.key, 1, FeedSuggestions.feedEnded(1));
+                    setting.save(false);
+                }
+            }
+        } finally {
+            for (BooleanSetting setting : switches) setting.resetToDefault();
+            FeedSuggestions.tookOut = false;
+        }
     }
 
     /**

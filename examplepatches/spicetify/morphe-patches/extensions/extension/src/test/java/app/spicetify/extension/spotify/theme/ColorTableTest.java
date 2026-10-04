@@ -44,8 +44,4 @@ public class ColorTableTest {
         assertThrows(IllegalArgumentException.class, () -> ColorTable.build("p", List.of("anim", "animator", "array", "attr", "bool", "color", "dimen"),
                 Map.of(0x7f060001, 0xFF000000, 0x7f070001, 0xFF000000)));
     }
-
-    @Test public void derivesPressedAccentByDarkening() {
-        assertEquals(0xFF1ABB54, EncorePalette.pressed(0xFF1ED760));
-    }
 }

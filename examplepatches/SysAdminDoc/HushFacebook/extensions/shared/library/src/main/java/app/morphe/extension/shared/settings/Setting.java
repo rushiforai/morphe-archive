@@ -440,7 +440,7 @@ public abstract class Setting<T> {
     /**
      * Remove {@link #value} from {@link #preferences}.
      */
-    protected final void removeFromPreferences() {
+    protected void removeFromPreferences() {
         Logger.printDebug(() -> "Clearing stored preference value (reset to default): " + key);
         preferences.removeKey(key);
     }

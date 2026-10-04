@@ -19,6 +19,7 @@ import app.morphe.extension.tiktok.settings.preference.RangeValuePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.AdoptSeenVideoHistoryPreference;
 import app.morphe.extension.tiktok.settings.preference.ClearSeenVideoHistoryPreference;
+import app.morphe.extension.tiktok.settings.preference.ImportSeenVideoHistoryPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.CreatorListPreference;
 import app.morphe.extension.tiktok.settings.preference.CalmFeedPresetPreference;
@@ -343,6 +344,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.",
                 Settings.SEEN_VIDEO_MARK_PERCENT, "%1$s%%"
         ).zeroMeans("A few seconds"));
+        addPreference(new ImportSeenVideoHistoryPreference(context));
         addPreference(new ClearSeenVideoHistoryPreference(context));
         int unowned = SeenVideoHistory.unownedCount();
         if (unowned > 0) addPreference(new AdoptSeenVideoHistoryPreference(context, unowned));

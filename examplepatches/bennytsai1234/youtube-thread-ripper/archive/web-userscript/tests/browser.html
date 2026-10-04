@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<title>BTR 原碼移植整合驗證</title>
+<style>body{background:#101418;color:#e8edf2;font:16px/1.7 system-ui;margin:40px;max-width:1000px}button{padding:10px 16px;margin:8px 8px 8px 0;background:#283c4b;color:white;border:1px solid #7292a8;border-radius:6px}pre{white-space:pre-wrap;background:#19232c;padding:20px;border-radius:10px}.pass{color:#78e2aa}.fail{color:#ff8e8e}</style>
+<h1>YouTube Thread Ripper · BTR 原碼移植驗證</h1>
+<p>這頁使用合成媒體與 protobuf 固定案例，驗證瀏覽器接管與狀態介面。沒有連線到 YouTube，也不代表播放已加速。</p>
+<video class="html5-main-video" muted hidden></video>
+<button id="run">執行整合驗證</button><button id="status">顯示／隱藏實驗狀態</button>
+<pre id="result">尚未執行</pre>
+<script>
+const testVideo = document.querySelector('video'); testVideo.playbackRate = 3;
+localStorage.setItem('YTR_Userscript.sync', JSON.stringify({ autoConcurrency: false, concurrency: 8, floatingButton: false, mode: 'mainland', takeover: 'compat' }));
+const savedFetch = window.fetch.bind(window);
+const fixedRequest = Uint8Array.from('0a0fe001b9609d0200004040a20602cafe2a03aabbcc82010308fb018a01030889011a0e0a03088901100018a846200028039a0105a201021234'.match(/../g), s => parseInt(s, 16));
+const mediaData = Uint8Array.from({ length: 524288 }, (_, i) => (i * 31) % 251);
+let interceptedBody, active = 0, peak = 0;
+window.fetch = async function(input, init) {
+  const url = new URL(typeof input === 'string' ? input : input.url);
+  if (!url.hostname.endsWith('.googlevideo.com')) return savedFetch(input, init);
+  if ((init?.method || input?.method || 'GET') === 'POST') { interceptedBody = init.body; return new Response('native SABR response'); }
+  const [start, end] = url.searchParams.get('range').split('-').map(Number);
+  active++; peak = Math.max(peak, active);
+  await new Promise(resolve => setTimeout(resolve, 10));
+  active--;
+  return new Response(mediaData.slice(start, end + 1), { status: 206, headers: { 'content-type': 'video/webm', 'content-range': `bytes ${start}-${end}/524288` } });
+};
+</script>
+<script src="/bundle.js"></script>
+<script>
+const output = document.getElementById('result');
+document.getElementById('status').onclick = () => window.__BTR_SETTINGS_PANEL__.toggle();
+document.getElementById('run').onclick = async () => {
+  const lines = [], check = (value, label) => { if (!value) throw Error(label); lines.push('PASS  ' + label); };
+  try {
+    check(!document.getElementById('__bilibili_thread_ripper_launcher__') && !document.getElementById('__bilibili_thread_ripper_settings_dialog__'), '初始化沒有懸浮按鈕或狀態面板');
+    await new Promise(resolve => { const listener = event => { if (event.data?.channel === '__YOUTUBE_RANGE_ACCELERATOR_V2__' && event.data.type === 'settings' && event.data.payload.mode === 'custom') { window.removeEventListener('message', listener); resolve(); } }; window.addEventListener('message', listener); window.postMessage({channel:'__YOUTUBE_RANGE_ACCELERATOR_V2__', type:'settings-update', payload:{mode:'custom'}}, '*'); });
+    const sabr = await fetch('https://rr1.test.googlevideo.com/videoplayback?sabr=1', { method: 'POST', body: fixedRequest });
+    check(await sabr.text() === 'native SABR response', 'SABR 回應保持原樣');
+    const hex = Array.from(interceptedBody, byte => byte.toString(16).padStart(2, '0')).join('');
+    check(hex.includes('9d020000c040'), 'SABR 的 float32 播放速度回報為 6');
+    check(testVideo.playbackRate === 3, '實際播放速度保持 3 倍');
+    const range = await fetch('https://rr1.test.googlevideo.com/videoplayback?mime=video%2Fwebm&clen=524288&range=0-524287');
+    const result = new Uint8Array(await range.arrayBuffer());
+    check(result.length === mediaData.length && result.every((byte, i) => byte === mediaData[i]), 'BTR 分段下載合併後每一個位元組與原始媒體一致');
+    check(peak > 1 && peak <= 8, '原版 BTR 排程實際併行，上限為 8');
+    const state = window.__YTR_EXPERIMENT_V2__.snapshot();
+    check(state.youtube.sabrPatched >= 1 && state.youtube.ranges >= 1, '運作計數能辨識 SABR 修改與 Range 成功');
+    const xhr = new XMLHttpRequest(); xhr.open('GET', 'https://rr1.test.googlevideo.com/videoplayback?mime=video%2Fwebm&clen=524288&range=0-524287'); xhr.responseType = 'arraybuffer'; await new Promise((resolve, reject) => { xhr.onload = resolve; xhr.onerror = reject; xhr.send(); });
+    check(new Uint8Array(xhr.response).every((byte, i) => byte === mediaData[i]) && xhr.response.byteLength === mediaData.length, '原版 BTR XHR 輸送每個位元組正確');
+    output.className = 'pass'; output.textContent = lines.join('\n') + '\n\n8 / 8 通過（合成案例，尚非 YouTube 播放測試）';
+  } catch (error) { output.className = 'fail'; output.textContent = lines.join('\n') + '\nFAIL  ' + error.message; }
+};
+</script>
+</html>

@@ -384,6 +384,14 @@ try {
         $_ -eq 'patches-bundle.png' -or $_ -like 'assets/readme-*' -or $_ -like 'concepts/marketing/*'
     }).Count -gt 0
     $touchesScripts = @($paths | Where-Object { $_ -like 'scripts/*' }).Count -gt 0
+    $touchesAttestation = @($paths | Where-Object {
+        $_ -in @('scripts/release-attestation.ps1', 'scripts/test-release-attestation.ps1',
+            'scripts/validate-release-facts.ps1')
+    }).Count -gt 0
+    $touchesBundleSignature = @($paths | Where-Object {
+        $_ -in @('scripts/release-signature.ps1', 'scripts/test-release-signature.ps1',
+            'scripts/validate-release-facts.ps1', 'cosign.pub')
+    }).Count -gt 0
     $apkSigningPaths = @(
         'scripts/apk-signing.ps1', 'scripts/SigningCertificateCheck.java',
         'scripts/SigningKeyFixtures.java', 'scripts/test-apk-signing.ps1',
@@ -463,7 +471,7 @@ try {
         $_ -eq 'scripts/manifest-delta-allowlist.txt' -or
         # A released version's heading is the only record a reader has that it shipped, and one
         # was renamed away by a post-release commit that no gate read.
-        $_ -eq 'CHANGELOG.md' -or
+        $_ -eq 'CHANGELOG.md' -or $_ -eq 'cosign.pub' -or
         # Its version placeholders are held to the target and the published index.
         $_ -eq '.github/ISSUE_TEMPLATE/bug_report.yml'
     }).Count -gt 0
@@ -510,12 +518,20 @@ try {
             'in a clean worktree of the commit instead.')
     }
 
-    if ($touchesScripts -or $touchesCatalog -or $touchesApkSigning -or $touchesProbeTests) {
+    if ($touchesScripts -or $touchesCatalog -or $touchesApkSigning -or $touchesProbeTests -or $touchesBundleSignature) {
         # Script, notice, failure message. The two injected-register suites and the resource
         # table check's run only when their own files moved; each one is the pushed commit's
         # copy, run against that commit.
         $suites = @(, @('scripts/test-script-contracts.ps1', 'scripts or catalog inputs changed, running their contract tests',
             'The script contract tests did not pass.'))
+        if ($touchesAttestation) {
+            $suites += , @('scripts/test-release-attestation.ps1', 'release attestation inputs changed, running identity and asset contracts',
+                'The release attestation contracts did not pass.')
+        }
+        if ($touchesBundleSignature) {
+            $suites += , @('scripts/test-release-signature.ps1', 'bundle signature inputs changed, running pinned-key verification contracts',
+                'The bundle signature contracts did not pass.')
+        }
         if ($touchesApkSigning) {
             $suites += , @('scripts/test-apk-signing.ps1', 'device builder inputs changed, running SDK signing and cleanup fixtures',
                 'The device builder signing and cleanup fixtures did not pass.')

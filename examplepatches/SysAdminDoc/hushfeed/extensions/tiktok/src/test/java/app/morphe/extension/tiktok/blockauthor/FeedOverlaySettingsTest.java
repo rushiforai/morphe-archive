@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Looper;
 import android.preference.Preference;
+import android.preference.PreferenceScreen;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,6 +19,9 @@ import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
+import app.morphe.extension.tiktok.settings.preference.categories.FeedFilterPreferenceCategory;
+import app.morphe.extension.tiktok.settings.preference.categories.InterfacePreferenceCategory;
+import app.morphe.extension.tiktok.settings.preference.categories.PlaybackPreferenceCategory;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 import java.lang.ref.WeakReference;
@@ -91,7 +95,75 @@ public class FeedOverlaySettingsTest {
         Utils.setContext(RuntimeEnvironment.getApplication());
     }
 
+    /** Every control drawn on a video is opt-in, so a fresh install with every patch shows none. */
+    @Test public void aFreshInstallDrawsNoControlOnTheVideo() {
+        boolean oldMuteStatus = SettingsStatus.feedMuteEnabled;
+        SettingsStatus.feedMuteEnabled = true;
+        try {
+            BooleanSetting[] switches = {Settings.BLOCK_AUTHOR_BUTTON, Settings.LOCAL_HIDE_BUTTON,
+                    Settings.BLOCK_SOUND_BUTTON, Settings.NOT_INTERESTED_BUTTON, Settings.FEED_MUTE_BUTTON};
+            for (BooleanSetting setting : switches) {
+                setting.resetToDefault();
+                assertFalse(setting.key + " starts on", setting.get());
+            }
+            bind("video-one");
+            for (String name : new String[]{"Block this creator", "Hide this creator on this phone",
+                    "Block this sound", "Not interested in this video", "Mute feed videos"}) {
+                View control = button(name);
+                assertTrue(name + " shows on a fresh install",
+                        control == null || control.getVisibility() != View.VISIBLE);
+            }
+        } finally {
+            Settings.FEED_MUTE_BUTTON.resetToDefault();
+            SettingsStatus.feedMuteEnabled = oldMuteStatus;
+        }
+    }
+
+    /**
+     * The five switches sit in one card on Feed screen. They were split between Feed filter and
+     * Playback, so nobody could tell from one page which controls a video would carry.
+     */
+    @Test public void everyOnVideoSwitchIsInOneCardOnFeedScreen() {
+        boolean oldMuteStatus = SettingsStatus.feedMuteEnabled;
+        SettingsStatus.feedMuteEnabled = true;
+        try (var owner = Robolectric.buildActivity(
+                app.morphe.extension.tiktok.interaction.GestureActionsTest.TestActivity.class).setup()) {
+            var host = owner.get();
+            Utils.setContext(host);
+            PreferenceScreen feedScreen = host.getPreferenceManager().createPreferenceScreen(host);
+            new InterfacePreferenceCategory(host, feedScreen);
+            PreferenceScreen feedFilter = host.getPreferenceManager().createPreferenceScreen(host);
+            new FeedFilterPreferenceCategory(host, feedFilter);
+            PreferenceScreen playback = host.getPreferenceManager().createPreferenceScreen(host);
+            new PlaybackPreferenceCategory(host, playback);
+            for (BooleanSetting setting : new BooleanSetting[]{Settings.BLOCK_AUTHOR_BUTTON,
+                    Settings.LOCAL_HIDE_BUTTON, Settings.BLOCK_SOUND_BUTTON,
+                    Settings.NOT_INTERESTED_BUTTON, Settings.FEED_MUTE_BUTTON}) {
+                assertNotNull(setting.key + " is missing from Feed screen", feedScreen.findPreference(setting.key));
+                assertNull(setting.key + " is still on Feed filter", feedFilter.findPreference(setting.key));
+                assertNull(setting.key + " is still on Playback", playback.findPreference(setting.key));
+            }
+            assertNotNull("muting without the button stays on Playback",
+                    playback.findPreference(Settings.FEED_MUTED.key));
+
+            // Hide and block sound act through the feed filter's lists, so without it they'd draw
+            // nothing and aren't offered. The block button works on its own.
+            SettingsStatus.feedFilterEnabled = false;
+            PreferenceScreen withoutFilter = host.getPreferenceManager().createPreferenceScreen(host);
+            new InterfacePreferenceCategory(host, withoutFilter);
+            assertNotNull(withoutFilter.findPreference(Settings.BLOCK_AUTHOR_BUTTON.key));
+            assertNull(withoutFilter.findPreference(Settings.LOCAL_HIDE_BUTTON.key));
+            assertNull(withoutFilter.findPreference(Settings.BLOCK_SOUND_BUTTON.key));
+        } finally {
+            SettingsStatus.feedMuteEnabled = oldMuteStatus;
+            SettingsStatus.feedFilterEnabled = true;
+            Utils.setContext(activity);
+        }
+    }
+
     @Test public void feedbackRowEnablesTheCurrentCreatorWhileBlockIsOff() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
         showSettings(false, false);
         bind("video-one");
         assertNull(button("Not interested in this video"));
@@ -109,6 +181,8 @@ public class FeedOverlaySettingsTest {
     }
 
     @Test public void blockRowEnablesTheCurrentCreatorWhileFeedbackIsOff() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
         showSettings(false, false);
         bind("video-one");
         assertNull(button("Block this creator"));
@@ -119,6 +193,29 @@ public class FeedOverlaySettingsTest {
         assertFalse(Settings.NOT_INTERESTED_BUTTON.get());
         assertVisible("Block this creator");
         assertEquals(View.GONE, button("Not interested in this video").getVisibility());
+    }
+
+    @Test public void secondaryBlockRowsEnableTheirControlsWithoutTheBlockRow() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
+        showSettings(false, false);
+        bind("video-one");
+        assertNull(button("Hide this creator on this phone"));
+        assertNull(button("Block this sound"));
+
+        click(Settings.LOCAL_HIDE_BUTTON);
+
+        assertFalse(Settings.BLOCK_AUTHOR_BUTTON.get());
+        assertVisible("Hide this creator on this phone");
+        assertEquals(View.GONE, button("Block this creator").getVisibility());
+        assertEquals(View.GONE, button("Block this sound").getVisibility());
+
+        click(Settings.BLOCK_SOUND_BUTTON);
+
+        assertFalse(Settings.BLOCK_AUTHOR_BUTTON.get());
+        assertVisible("Hide this creator on this phone");
+        assertVisible("Block this sound");
+        assertEquals(View.GONE, button("Block this creator").getVisibility());
     }
 
     @Test public void localHideRefusesTheTenThousandAndFirstEntryWithoutThrowing() {
@@ -146,6 +243,8 @@ public class FeedOverlaySettingsTest {
     }
 
     @Test public void lastFeedbackRowOffDetachesTheInstalledControls() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
         showSettings(false, true);
         bind("video-one");
         assertVisible("Not interested in this video");
@@ -157,6 +256,8 @@ public class FeedOverlaySettingsTest {
     }
 
     @Test public void lastBlockRowOffDetachesTheInstalledControls() {
+        Settings.LOCAL_HIDE_BUTTON.save(false);
+        Settings.BLOCK_SOUND_BUTTON.save(false);
         showSettings(true, false);
         bind("video-one");
         assertVisible("Block this creator");
@@ -335,6 +436,8 @@ public class FeedOverlaySettingsTest {
             Settings.SESSION_BUDGET_VIDEOS.save(1);
             Settings.SESSION_BUDGET_MINUTES.save(0);
             Settings.SESSION_BUDGET_LOCK.save(true);
+            Settings.LOCAL_HIDE_BUTTON.save(false);
+            Settings.BLOCK_SOUND_BUTTON.save(false);
             ReflectionHelpers.callStaticMethod(SessionBudget.class, "resetForTests");
             showSettings(false, false);
             bind("held-video");
@@ -417,7 +520,7 @@ public class FeedOverlaySettingsTest {
         Settings.NOT_INTERESTED_BUTTON.save(feedback);
         fragment = new TikTokPreferenceFragment();
         Bundle arguments = new Bundle();
-        arguments.putString("morphe_settings_section", "FEED_FILTER");
+        arguments.putString("morphe_settings_section", "INTERFACE");
         fragment.setArguments(arguments);
         activity.getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, fragment).commit();

@@ -23,9 +23,16 @@ val nettyTestPlatformConfigurations = setOf(
     "_internal-unified-test-platform-core",
     "_internal-unified-test-platform-android-test-plugin-host-emulator-control",
 )
+// The Android Gradle result listener is a host tool. Its Lang 3.16.0 and HttpClient
+// 4.5.6 requests have CVE-2025-48924 and CVE-2020-13956. Match the reviewed settings
+// libraries on these graphs while preserving requests on unrelated runtime classpaths.
+val resultListenerConfiguration = "_internal-unified-test-platform-android-test-plugin-result-listener-gradle"
+val reviewedHostCommonsLang = "3.20.0"
+val reviewedHostHttpClient = "4.5.14"
 allprojects {
     configurations.configureEach {
         val isNettyTestPlatform = name in nettyTestPlatformConfigurations
+        val isResultListener = name == resultListenerConfiguration
         resolutionStrategy.eachDependency {
             if (requested.group == "org.bouncycastle") {
                 useVersion(reviewedBouncyCastle)
@@ -34,6 +41,14 @@ allprojects {
             if (isNettyTestPlatform && requested.group == "io.netty") {
                 useVersion(reviewedUtpNetty)
                 because("The Android host test tools must use the reviewed Netty 4.1 release.")
+            }
+            if (isResultListener && requested.group == "org.apache.commons" && requested.name == "commons-lang3") {
+                useVersion(reviewedHostCommonsLang)
+                because("The Android Gradle result listener must use the reviewed Commons Lang release.")
+            }
+            if (isResultListener && requested.group == "org.apache.httpcomponents" && requested.name == "httpclient") {
+                useVersion(reviewedHostHttpClient)
+                because("The Android Gradle result listener must use the reviewed HttpClient 4.5 release.")
             }
         }
     }

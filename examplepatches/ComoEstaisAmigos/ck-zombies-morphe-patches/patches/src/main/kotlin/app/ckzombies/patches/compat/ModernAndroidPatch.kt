@@ -11,7 +11,6 @@ val modernAndroidPatch = bytecodePatch(
     name = "Modern Android compatibility",
     description = "Fixes the crash at launch on current Android and targets API 25 so that Android 14 and later " +
         "install the game normally. " +
-        "If the OBB is missing, the game says why. " +
         "The game is 32-bit only, so the device must still run 32-bit apps.",
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)

@@ -139,6 +139,25 @@ public class PatchFamilyTest {
     }
 
     @Test
+    public void wholeWordModeDoesNotEnableTheWordFilterByItself() {
+        try {
+            Settings.HIDE_POSTS_WITH_WORDS.save(false);
+            Settings.POST_WORDS_WHOLE_WORDS.save(true);
+            String line = PatchFamily.reportLines(EnumSet.of(PatchFamily.POST_WORDS), false).get(0);
+            assertTrue(line, line.startsWith(FamilyNames.POST_WORDS + ": disabled by its switch ("));
+            assertTrue(line, line.contains(Settings.POST_WORDS_WHOLE_WORDS.key + "=on"));
+            Settings.HIDE_POSTS_WITH_WORDS.save(true);
+            assertTrue(PatchFamily.reportLines(EnumSet.of(PatchFamily.POST_WORDS), false).get(0)
+                    .startsWith(FamilyNames.POST_WORDS + ": on ("));
+            assertTrue(PatchFamily.reportLines(EnumSet.of(PatchFamily.POST_WORDS), true).get(0)
+                    .startsWith(FamilyNames.POST_WORDS + ": disabled while paused (saved "));
+        } finally {
+            Settings.HIDE_POSTS_WITH_WORDS.resetToDefault();
+            Settings.POST_WORDS_WHOLE_WORDS.resetToDefault();
+        }
+    }
+
+    @Test
     public void everyStatusFlagBelongsToExactlyOneFamily() {
         Set<String> flags = new TreeSet<>();
         for (Method method : SettingsStatus.class.getDeclaredMethods()) {

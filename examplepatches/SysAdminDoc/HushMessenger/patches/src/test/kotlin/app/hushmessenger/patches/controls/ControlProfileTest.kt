@@ -24,8 +24,8 @@ class ControlProfileTest {
                 assertEquals(BASE_PROFILE.hooks.getValue(key).size, profile.hooks.getValue(key).size, key)
             }
         }
-        assertEquals(99, PROFILE_346013370.hooks.values.sumOf { it.size })
-        assertEquals(99, PROFILE_346013423.hooks.values.sumOf { it.size })
+        assertEquals(100, PROFILE_346013370.hooks.values.sumOf { it.size })
+        assertEquals(100, PROFILE_346013423.hooks.values.sumOf { it.size })
     }
 
     @Test fun theVersionCodePicksTheProfile() {
@@ -38,7 +38,7 @@ class ControlProfileTest {
     }
 
     @Test fun aSecondVersionNameUsesItsOwnBuildsProfile() {
-        val versions = MessengerTarget.VERSIONS + ("581.0.0.1.91" to listOf(347000001))
+        val versions = MessengerTarget.VERSIONS + ("582.0.0.1.91" to listOf(347000001))
         val profiles = controlProfiles + (347000001 to PROFILE_346013370)
         assertSame(PROFILE_346013370, controlProfileFor("347000001", profiles))
         assertSame(BASE_PROFILE, controlProfileFor("346013387", profiles))
@@ -49,8 +49,8 @@ class ControlProfileTest {
         validateControls(found, setOf("people"), versions)
         activeProfile = controlProfileFor("346013387", profiles)
         val failure = assertFailsWith<PatchException> { validateControls(found, setOf("people"), versions) }
-        assertContains(failure.message.orEmpty(), "Use an unmodified arm64 Messenger 580.0.0.49.91 APK (version code " +
-            "${app.hushmessenger.patches.coexist.CODES_580}) or 581.0.0.1.91 APK (version code 347000001).")
+        assertContains(failure.message.orEmpty(),
+            "Use an unmodified arm64 Messenger ${MessengerTarget.supportedApks()} or 582.0.0.1.91 APK (version code 347000001).")
     }
 
     @Test fun validationFollowsTheActiveBuild() {

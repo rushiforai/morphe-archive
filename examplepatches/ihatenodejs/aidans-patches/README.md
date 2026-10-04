@@ -36,7 +36,7 @@ My [Morphe](https://morphe.software) patches
 ## 📱 Supported Applications & Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/ihatenodejs/aidans-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v1.2.0](https://github.com/ihatenodejs/aidans-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;47 patches total
 <details open>
 <summary>📦 AfterShip&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
@@ -63,7 +63,7 @@ My [Morphe](https://morphe.software) patches
 </details>
 
 <details open>
-<summary>📦 Blackjack&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 Blackjack&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -76,6 +76,8 @@ My [Morphe](https://morphe.software) patches
 | [Add Custom Chip Store](#add-custom-chip-store) | Replaces the unavailable store with a dialog to view and set your exact chip balance. |  |
 | [Custom Chip Store Binary Hook](#custom-chip-store-binary-hook) | Hooks BlackjackApplication.OpenShop and CheckUpdateToVersion in libil2cpp.so to bridge the custom chip store. |  |
 | [Remove Ads](#remove-ads) | Removes banner, interstitial, and rewarded advertising and removes ad-based chip offers. |  |
+| [Remove Internet Permissions](#remove-internet-permissions) | Removes Internet permissions from AndroidManifest.xml to prevent network access. | • Remove Broken Screens |
+| [Remove Notifications](#remove-notifications) | Removes notification permissions from AndroidManifest.xml to eliminate push notifications entirely. |  |
 | [Remove Tracking and Analytics](#remove-tracking-and-analytics) | Neutralizes active advertising telemetry, analytics, attribution, and crash reporting. |  |
 | [Skip to Next Level](#skip-to-next-level) | Allows tapping the next level indicator on the top bar to show a confirmation dialog and skip to the next level. REQUIRES Add Custom Chip Store to be enabled. |  |
 
@@ -123,6 +125,43 @@ My [Morphe](https://morphe.software) patches
 | [Unlock Custom App Icons](#unlock-custom-app-icons) | Enables custom launcher app icons (Arctic, Peach, Glass, Rainbow, Sand, Classic) without requiring a Sezzle Premium subscription. |  |
 | [Unlock Developer Settings](#unlock-developer-settings) | Makes the internal Development Settings menu visible to every signed-in account. |  |
 | [Unlock Receipt Scanner](#unlock-receipt-scanner) | Makes the receipt scanner available from Development Settings and forces its V2 flow to render. REQUIRES Unlock Developer Settings to be enabled. |  |
+
+</details>
+
+<details open>
+<summary>📦 Fizz&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.53.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Developer Settings](#enable-developer-settings) | Adds an in-app developer mod menu accessible via a top-bar header button, with controls for Mobile Studio. | • Mobile Studio |
+| [Remove Tracking and Analytics](#remove-tracking-and-analytics) | Neutralizes first-party client event tracking, Mixpanel analytics, Airbridge and Adjust attribution SDKs, Google Advertising ID (AAID) collection, and bypasses PairIP Play Integrity verification, with options for silent DM screenshots and Sentry telemetry removal. | • Silent Screenshots<br>• Disable Crash Reporting |
+| [Replace Emoji Font with iOS](#replace-emoji-font-with-ios) | Replaces Android system emoji with iOS Apple Color Emoji across Compose UI, posts, comments, and direct messages. |  |
+| [Replace Emoji Font with iOS Asset](#replace-emoji-font-with-ios-asset) | Copies the packaged Apple Color Emoji font into the target APK assets. |  |
+
+</details>
+
+<details open>
+<summary>📦 Adobe Scan&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.09.25 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Remove Ads and Tracking](#remove-ads-and-tracking) | Disables Adobe, Branch, Facebook, Creative SDK, and Crashlytics telemetry; removes in-app ads and review prompts; blocks install-referrer collection; and zeroes the Google Play Advertising ID. | • Remove Settings |
+| [Remove Login](#remove-login) | Starts Adobe Scan in its existing account-free local workspace and removes account sign-in gates; Adobe cloud features are unavailable. | • Clean Up Auth Components<br>• Remove Link Sharing<br>• Remove Edit Text<br>• Remove Move<br>• Remove Save as Word Doc |
+| [Remove Useless/Promotional Items](#remove-useless-promotional-items) | Removes promotional, feedback, and support items from Settings and file menus. | • About Adobe Scan<br>• Help<br>• Rate App<br>• Online Support Forum<br>• Share This App<br>• Fill & Sign<br>• Open in Adobe Acrobat |
+| [Unlock Premium](#unlock-premium) | Enables locally executable premium OCR, editing, compression, and page-organization tools without cloud or GenAI access. | • Remove Broken Features<br>• Enable Cloud Tools (Experimental) |
+| [Use System Font](#use-system-font) | Overrides Adobe Clean fonts across XML layouts, dialogs, and Jetpack Compose screens with the device's system font. |  |
 
 </details>
 

@@ -17,8 +17,10 @@ import app.onlynazril.extension.tiktok.Surfaces;
 import app.onlynazril.extension.tiktok.feedfilter.FeedFilterStats;
 import app.onlynazril.extension.tiktok.internal.Debug;
 import app.onlynazril.extension.tiktok.internal.RestartPrompt;
+import app.onlynazril.extension.tiktok.settings.DownloadSettings;
 import app.onlynazril.extension.tiktok.settings.FeedFilterSettings;
 import app.onlynazril.extension.tiktok.settings.HandleSettings;
+import app.onlynazril.extension.tiktok.settings.ProfileBgSettings;
 
 /**
  * Builds the screen: header, one Handle section (master switch on top, then one row per surface,
@@ -118,10 +120,74 @@ public final class TweaksScreen {
                 RangeAction.create(context, "Min/Max likes", likes[0], likes[1],
                         (min, max) -> FeedFilterSettings.setLikesRange(context, min, max))));
 
+        boolean downloadOn = DownloadSettings.isEnabled(context);
+        List<RowView> downloadDependents = new ArrayList<>();
+
+        column.addView(section(context, "Download"));
+        ToggleView downloadMaster = new ToggleView(context);
+        downloadMaster.setChecked(downloadOn);
+        column.addView(new RowView(
+                context,
+                "Download",
+                "Fetch the media from the share sheet. Each part below has its own switch.",
+                downloadMaster));
+
+        column.addView(divider(context));
+        RowView noWatermarkRow = new RowView(
+                context,
+                "No watermark",
+                "Take the address that carries no watermark.",
+                toggle(context, DownloadSettings.isNoWatermarkEnabled(context),
+                        checked -> DownloadSettings.setNoWatermarkEnabled(context, checked)));
+        downloadDependents.add(noWatermarkRow);
+        column.addView(noWatermarkRow);
+
+        column.addView(divider(context));
+        RowView everySheetRow = new RowView(
+                context,
+                "Every share sheet",
+                "Offer the row for a video as well, not only for a photo post.",
+                toggle(context, DownloadSettings.isEverySheetEnabled(context),
+                        checked -> DownloadSettings.setEverySheetEnabled(context, checked)));
+        downloadDependents.add(everySheetRow);
+        column.addView(everySheetRow);
+
+        column.addView(divider(context));
+        RowView bestQualityRow = new RowView(
+                context,
+                "Best quality",
+                "Take the highest quality among the variants this feed carries, not the highest "
+                        + "the server has: a lower one is possible when the feed omits the top.",
+                toggle(context, DownloadSettings.isBestQualityEnabled(context),
+                        checked -> DownloadSettings.setBestQualityEnabled(context, checked)));
+        downloadDependents.add(bestQualityRow);
+        column.addView(bestQualityRow);
+
+        downloadMaster.setOnCheckedChangeListener(checked -> {
+            DownloadSettings.setEnabled(context, checked);
+            for (RowView row : downloadDependents) row.setRowEnabled(checked);
+        });
+        for (RowView row : downloadDependents) row.setRowEnabled(downloadOn);
+
+        // Independent of the master: the profile background is not the
+        // @handle stamp, and its gate is the app's own AB decision, not a
+        // switch above it.
+        column.addView(section(context, "Profile background"));
+        column.addView(new RowView(
+                context,
+                "Profile background",
+                "Set a static image or a video as the profile background, on "
+                        + "accounts TikTok has not rolled it out to. Others see it, not you: the "
+                        + "background shows on your profile to everyone who opens it, so pick an "
+                        + "image you are happy to publish, or choose one from your posts",
+                toggle(context, ProfileBgSettings.isEnabled(context),
+                        checked -> ProfileBgSettings.setEnabled(context, checked))));
+
         column.addView(section(context, "About"));
         column.addView(description(
                 context,
-                "Tweaks for TikTok 47.0.3. The display name is read, never rewritten."));
+                "Tweaks for TikTok 47.0.3 and 47.1.4. "
+                        + "The display name is read, never rewritten."));
         column.addView(diagnostics(context));
         column.addView(actions(context));
 
@@ -194,7 +260,7 @@ public final class TweaksScreen {
         block.setOrientation(LinearLayout.VERTICAL);
         block.setPadding(
                 Tokens.dp(context, Tokens.SPACE_4),
-                Tokens.dp(context, Tokens.SPACE_12),
+                Tokens.dp(context, Tokens.SPACE_2),
                 Tokens.dp(context, Tokens.SPACE_4),
                 Tokens.dp(context, Tokens.SPACE_6));
 
@@ -206,7 +272,8 @@ public final class TweaksScreen {
         block.addView(title);
 
         TextView subtitle = new TextView(context);
-        subtitle.setText("Handle stamp, region, post time, feed filter");
+        subtitle.setText("Handle stamp, region, post time, feed filter, download, "
+                + "profile background");
         subtitle.setTextSize(Tokens.SUBTITLE_SP);
         subtitle.setTextColor(Tokens.TEXT_SECONDARY);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(

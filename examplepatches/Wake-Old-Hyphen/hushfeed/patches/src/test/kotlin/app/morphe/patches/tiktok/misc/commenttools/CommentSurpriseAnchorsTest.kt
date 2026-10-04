@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok.misc.commenttools
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
@@ -54,7 +53,7 @@ class CommentSurpriseAnchorsTest {
             val eggLoggers = mutableListOf<Method>()
             val firstCommentLoggers = mutableListOf<Method>()
             val typeReaders = mutableListOf<Pair<String, List<Instruction>>>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             container.dexEntryNames.asSequence()
                 .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
                 .flatMap { it.methods.asSequence() }
@@ -139,7 +138,7 @@ class CommentSurpriseAnchorsTest {
     @Test
     fun `each declared build builds the surprise struct in three places the patch can tell apart`() {
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val builders = container.dexEntryNames.asSequence()
                 .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
                 .flatMap { it.methods.asSequence() }

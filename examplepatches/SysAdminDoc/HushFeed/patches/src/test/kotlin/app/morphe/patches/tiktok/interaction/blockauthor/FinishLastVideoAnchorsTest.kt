@@ -8,7 +8,6 @@ import app.morphe.Fixtures
 import app.morphe.patches.tiktok.interaction.resume.FeedPlayCompletedFingerprint
 import app.morphe.takes
 import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -102,7 +101,7 @@ class FinishLastVideoAnchorsTest {
 
     private fun wanted(apk: java.io.File): Map<String, ClassDef> {
         val found = HashMap<String, ClassDef>()
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         for (entry in container.dexEntryNames) {
             for (classDef in container.getEntry(entry)!!.dexFile.classes) {
                 if (classDef.type == PAGER || classDef.type == PLAYER_CONTROLLER) found.putIfAbsent(classDef.type, classDef)

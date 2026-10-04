@@ -22,8 +22,9 @@
       "name": "Morphe community directory",
       "url": "https://morphe-patches.software",
       "hushtelegram": {
-        "status": "not-listed",
-        "checked": "2026-10-01"
+        "status": "listed",
+        "checked": "2026-10-03",
+        "url": "https://morphe-patches.software/data/bundles.json"
       }
     },
     {
@@ -32,7 +33,7 @@
       "url": "https://github.com/nvbangg/awesome-morphe",
       "hushtelegram": {
         "status": "not-listed",
-        "checked": "2026-10-01"
+        "checked": "2026-10-03"
       }
     },
     {
@@ -40,8 +41,9 @@
       "name": "Morphe Patch Tracker",
       "url": "https://drnx64.github.io/morphe-track-patches/",
       "hushtelegram": {
-        "status": "not-listed",
-        "checked": "2026-10-01"
+        "status": "listed",
+        "checked": "2026-10-03",
+        "url": "https://drnx64.github.io/morphe-track-patches/data/bundles/hushtelegram_stable.json"
       }
     },
     {
@@ -49,17 +51,19 @@
       "name": "Jman's ReVanced Patch Bundles",
       "url": "https://github.com/Jman-Github/ReVanced-Patch-Bundles",
       "hushtelegram": {
-        "status": "not-listed",
-        "checked": "2026-10-01"
+        "status": "listed",
+        "checked": "2026-10-03",
+        "url": "https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hushtelegram-patch-bundles/hushtelegram-stable-patches-bundle.json"
       }
     },
     {
       "id": "morphe-archive",
       "name": "Morphe Archive",
-      "url": "https://rushiforai.github.io/morphe-archive/",
+      "url": "https://github.com/rushiforai/morphe-archive",
       "hushtelegram": {
-        "status": "not-listed",
-        "checked": "2026-10-01"
+        "status": "listed",
+        "checked": "2026-10-03",
+        "url": "https://raw.githubusercontent.com/rushiforai/morphe-archive/main/repos.txt"
       }
     }
   ],
@@ -170,7 +174,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "The pinned set has 14 patches for standard and web Telegram 12.10.1, and 15 for Plus Messenger. The features list is their union, not a count for each package. Its signature chain seeds Telegram's DER certificate and answers Telegram's fingerprint check and Firebase's certificate hash. That is a candidate for restoring push registration on a re-signed build. Listing a feature does not approve it for HushTelegram. Premium, restriction bypass and anti-screenshot-notification patches remain rejected.",
+      "reason": "The pinned set has 14 patches for standard and web Telegram 12.10.1, and 15 for Plus Messenger. The features list is their union, not a count for each package. Its signature chain seeds Telegram's DER certificate and answers Telegram's fingerprint check and Firebase's certificate hash. HushTelegram's current source instead uses a fresh implementation scoped to the Firebase Installations X-Android-Cert header, with the certificate digest verified from the official fixture and with existing callback and header bindings checked before insertion. Fixture and runtime tests verify that scope. Genuine push registration still needs a device comparison. No signature-chain code was adopted. Listing a feature does not approve it for HushTelegram. Premium, restriction bypass and anti-screenshot-notification patches remain rejected.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
@@ -548,8 +552,21 @@
     },
     {
       "repository": "https://github.com/DrKLO/Telegram",
-      "reason": "Telegram's own source (GPL-2.0-or-later). Read for research, at f2908b1 for 12.10.6; the newest tag is still 11.4.2. Not a patch source.",
+      "reason": "Telegram's own source (GPL-2.0-or-later), pinned at f2908b1 for 12.10.6. It's a behavior reference, not a patch source or adopted code. BuildVars, phone and passkey authentication, ConnectionsManager and the binary manifest establish the bindings used by HushTelegram's fresh optional API and Maps credential patches. Configured fixture tests and a signed CLI proof on web 12.10.6 change only the APP_ID and APP_HASH initialization literals and the Maps SDK key metadata. All 118,949 method declarations, native libraries and resource-table values remain intact. Both patches leave the original credentials untouched when options are unset. Telegram issues registered API credentials through my.telegram.org/apps, and Google requires the Maps Android SDK key to authorize the installed package and signer. No real credentials or live service authorization were tested.",
       "lastChecked": "2026-10-01"
+    },
+    {
+      "repository": "https://github.com/firebase/firebase-android-sdk",
+      "reason": "Google's official Android SDK is a maintained implementation reference, not a Telegram patch source or adopted code. The pinned FirebaseInstallationServiceClient computes the installed package's SHA-1 certificate fingerprint and sends it in X-Android-Cert alongside X-Android-Package. This establishes the narrow header binding checked by HushTelegram's fresh Firebase repair. The inspected root license is Apache-2.0 at https://github.com/firebase/firebase-android-sdk/blob/53c7411df8fb5c577b8d898ead74d087c1cc8f2b/LICENSE, with SHA-256 cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30. No SDK source was copied or adopted. Genuine push registration still needs a device comparison.",
+      "reference": {
+        "kind": "maintained",
+        "branch": "main",
+        "commit": "53c7411df8fb5c577b8d898ead74d087c1cc8f2b",
+        "archived": false,
+        "verifiedAt": "2026-10-03",
+        "archivedAt": null
+      },
+      "lastChecked": "2026-10-03"
     },
     {
       "repository": "https://github.com/chsbuffer/ReVancedXposed",

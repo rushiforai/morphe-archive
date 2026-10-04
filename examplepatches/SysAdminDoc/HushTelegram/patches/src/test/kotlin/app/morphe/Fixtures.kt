@@ -49,15 +49,27 @@ internal object Fixtures {
         return found
     }
 
-    /** Every Telegram APK in the fixture folder: the files named `telegram-web-*.apk`. */
-    fun apks(): List<File> = files { it.extension == "apk" && it.name.startsWith("telegram-web-") }
+    /** Every retained APK of a declared Telegram distribution. */
+    fun apks(): List<File> = files { file -> file.extension == "apk" &&
+        AppCompatibilities.telegram().any { file.name.startsWith("${prefix(it.packageName)}-") } }
 
     /**
-     * The Telegram builds of every version the bundle declares: `telegram-web-<version>-*.apk`, the
-     * single universal APK telegram.org ships. A declared version with none of them fails.
+     * The exact universal APK of every declared package, version and code. A web fixture cannot
+     * stand in for beta, and a different code of the same version cannot prove either build.
      */
     fun declaredBuilds(): List<File> =
-        AppCompatibilities.telegram().single().targets.mapNotNull { it.version }.distinct().flatMap { version ->
-            files { it.name.startsWith("telegram-web-$version-") && it.extension == "apk" }
+        AppCompatibilities.telegram().flatMap { compatibility ->
+            compatibility.targets.flatMap { target ->
+                val version = checkNotNull(target.version)
+                val codes = checkNotNull(target.versionCodes).values.toSet()
+                check(codes.isNotEmpty()) { "${compatibility.packageName} $version has no pinned code" }
+                codes.flatMap { code -> files { it.name == "${prefix(compatibility.packageName)}-$version-$code.apk" } }
+            }
         }
+
+    fun prefix(packageName: String?): String = when (packageName) {
+        AppCompatibilities.TELEGRAM_WEB_PACKAGE -> "telegram-web"
+        AppCompatibilities.TELEGRAM_BETA_PACKAGE -> "telegram-beta"
+        else -> error("No vendor fixture naming rule for $packageName")
+    }
 }

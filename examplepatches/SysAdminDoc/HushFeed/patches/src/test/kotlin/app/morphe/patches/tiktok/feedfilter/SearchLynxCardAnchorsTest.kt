@@ -4,7 +4,6 @@ import app.morphe.Fixtures
 import app.morphe.patcher.Fingerprint
 import app.morphe.takes
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -108,7 +107,7 @@ class SearchLynxCardAnchorsTest {
         val byType = HashMap<String, ClassDef>()
 
         init {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) byType.putIfAbsent(classDef.type, classDef)
             }

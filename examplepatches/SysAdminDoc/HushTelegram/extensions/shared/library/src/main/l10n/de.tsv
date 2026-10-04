@@ -229,3 +229,24 @@ Once you've said no to contacts access, the Contacts tab stops asking again and 
 
 New Year look all year	Neujahrs-Look das ganze Jahr
 Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Telegrams Neujahrsschnee fällt jeden Tag über der oberen Leiste der Chatliste und, wenn animierte Chat-Hintergründe an sind, über den Chat-Hintergründen. In den Einstellungen standardmäßig ausgeschaltet.
+
+# context: Notifications repair and bottom-pull controls.
+Notifications	Benachrichtigungen
+Repair Firebase push registration	Firebase-Push-Registrierung reparieren
+Uses Telegram's official certificate for Firebase push registration. Notification permission and battery settings still apply.	Verwendet das offizielle Telegram-Zertifikat für die Firebase-Push-Registrierung. Die Berechtigung für Benachrichtigungen und die Akku-Einstellungen gelten weiterhin.
+Firebase certificate header	Firebase-Zertifikat-Header
+Stop pull to next channel	Ziehen zum nächsten Kanal verhindern
+Pulling up at the bottom of a channel only scrolls. Open the next channel from your chat list.	Wenn du am unteren Ende eines Kanals nach oben ziehst, scrollt die Ansicht nur. Öffne den nächsten Kanal über deine Chatliste.
+# context: Read-only local notification facts, independent of repair and Pause.
+Local notification status	Lokaler Benachrichtigungsstatus
+local notification status	lokaler Benachrichtigungsstatus
+Notification permission: %1$s	Benachrichtigungsberechtigung: %1$s
+Push token saved: %1$s	Push-Token gespeichert: %1$s
+Signed-in accounts: %1$s	Angemeldete Konten: %1$s
+Accounts confirmed for push: %1$s	Für Push bestätigte Konten: %1$s
+Read-only local state. This doesn't confirm notification delivery.	Lokaler Status, nur lesend. Die Zustellung von Benachrichtigungen wird dadurch nicht bestätigt.
+Unknown	Unbekannt
+Allowed	Erlaubt
+Blocked	Blockiert
+Yes	Ja
+No	Nein

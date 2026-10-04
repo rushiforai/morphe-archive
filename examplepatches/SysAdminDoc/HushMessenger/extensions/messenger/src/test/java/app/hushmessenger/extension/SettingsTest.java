@@ -318,6 +318,23 @@ public class SettingsTest {
         assertTrue(hush.metadata.entries.isEmpty());
     }
 
+    @Test public void menuSettingsRowFollowsSettingsWhenTheQrCodeRowSharesTheList() {
+        var application = RuntimeEnvironment.getApplication();
+        FolderRow settings = new FolderRow(application, new FakeSettingsFolderKey(), null, null, "Settings");
+        FolderRow qrCode = new FolderRow(application, new FakeDrawerFolderKey("qr_code"), null, null, "QR code");
+        java.util.ArrayList<Object> rows = new java.util.ArrayList<>(java.util.List.of(settings, qrCode));
+        Settings.addMenuSettingsEntry(rows);
+        assertEquals(3, rows.size());
+        assertSame(settings, rows.get(0));
+        assertEquals("HushMessenger", ((FolderRow) rows.get(1)).title);
+        assertEquals(FakeSettingsFolderKey.class, ((FolderRow) rows.get(1)).key.getClass());
+        assertSame(qrCode, rows.get(2));
+        // Without its Settings row the list gets no copy, so the QR code row is never relabeled.
+        java.util.ArrayList<Object> qrOnly = new java.util.ArrayList<>(java.util.List.of(qrCode));
+        Settings.addMenuSettingsEntry(qrOnly);
+        assertEquals(java.util.List.of(qrCode), qrOnly);
+    }
+
     @Test public void menuSettingsRowLeavesListsItCannotLabelAlone() {
         java.util.ArrayList<Object> rows = new java.util.ArrayList<>(java.util.List.of(new TwoTitleRow()));
         Settings.addMenuSettingsEntry(rows);
@@ -485,17 +502,41 @@ public class SettingsTest {
             entry.activityInfo = new ActivityInfo();
             entry.activityInfo.packageName = app.getPackageName();
             entry.activityInfo.name = name;
-            entry.activityInfo.enabled = !name.endsWith("Disabled");
             if (name.equals("settings.Alias")) entry.activityInfo.targetActivity = SettingsActivity.class.getName();
             entries.add(entry);
         }
         Shadows.shadowOf(app.getPackageManager()).addResolveInfoForIntent(query, entries);
+        // Disabled at runtime while its manifest flag stays true, as when an alternate icon is chosen.
+        app.getPackageManager().setComponentEnabledSetting(new android.content.ComponentName(app, "com.facebook.orca.Disabled"),
+            android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED, android.content.pm.PackageManager.DONT_KILL_APP);
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             screen.get().getWindow().getDecorView().findViewWithTag("open_messenger").performClick();
             Intent launched = Shadows.shadowOf(screen.get()).getNextStartedActivity();
             assertNotNull(launched);
             assertEquals("com.facebook.orca.auth.StartScreenActivity", launched.getComponent().getClassName());
             assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED, launched.getFlags());
+        }
+    }
+
+    @Test public void openFindsAnAlternateIconAliasEnabledAtRuntime() {
+        var app = RuntimeEnvironment.getApplication();
+        Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+            .setPackage(app.getPackageName());
+        // The chosen LauncherAlias* icon is declared android:enabled="false" and enabled at runtime.
+        ResolveInfo alias = new ResolveInfo();
+        alias.activityInfo = new ActivityInfo();
+        alias.activityInfo.packageName = app.getPackageName();
+        alias.activityInfo.name = "com.facebook.orca.auth.LauncherAliasFab";
+        alias.activityInfo.targetActivity = "com.facebook.messenger.neue.MainActivity";
+        alias.activityInfo.enabled = false;
+        Shadows.shadowOf(app.getPackageManager()).addResolveInfoForIntent(query, java.util.List.of(alias));
+        app.getPackageManager().setComponentEnabledSetting(new android.content.ComponentName(app, alias.activityInfo.name),
+            android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.DONT_KILL_APP);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            screen.get().getWindow().getDecorView().findViewWithTag("open_messenger").performClick();
+            Intent launched = Shadows.shadowOf(screen.get()).getNextStartedActivity();
+            assertNotNull(launched);
+            assertEquals(alias.activityInfo.name, launched.getComponent().getClassName());
         }
     }
 

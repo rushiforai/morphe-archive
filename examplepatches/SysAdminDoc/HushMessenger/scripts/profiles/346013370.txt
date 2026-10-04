@@ -35,6 +35,7 @@ hook chat_inbox LX/1fr;-><init>()V
 hook chat_legacy LX/1hc;->onCreateAnimation(IZI)Landroid/view/animation/Animation;
 hook chat_promotions LX/HCH;->A0D()Z
 hook chat_promotions LX/HCH;->A0E()Z
+hook community_inbox LX/2GV;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
 hook delta_unsent LX/VsH;->Btd(I)Z
 hook emoji_typeface LX/1KU;->A00()Landroid/graphics/Typeface;
 hook event_prompts LX/HCH;->A07()Z
@@ -113,6 +114,7 @@ adFilterExits 915 930
 bubbleCapabilityGetter LX/1hx;->A03(Lcom/facebook/auth/usersession/FbUserSession;I)Z
 bubbleRolloutGetter Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->AhB(J)Z
 nativeBubbleRoutes LX/8pO;->A02(Landroid/graphics/Bitmap;LX/0MX;Lcom/facebook/auth/usersession/FbUserSession;LX/8pT;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/6dR;Lcom/facebook/push/constants/PushProperty;Z)V|LX/8pR;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/messaging/model/threadkey/ThreadKey;Ljava/lang/String;)LX/8pT;|LX/PSx;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/auth/usersession/FbUserSession;LX/PSx;Lcom/facebook/messaging/model/threads/ThreadSummary;)Z
+nativeCommunityInbox LX/1k2;->A0G(LX/1k2;LX/1mL;Ljava/lang/String;Z)V|LX/2GV;-><init>(Lcom/facebook/auth/usersession/FbUserSession;LX/2Ft;LX/2GB;LX/2GT;LX/2EV;LX/2GQ;LX/4my;LX/4t2;LX/1lP;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;LX/4pp;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;Z)V|LX/1mD;->A01()LX/1lP;|LX/1k2;->A0H(LX/1k2;LX/1lP;)V|LX/2WQ;->A03:Lcom/facebook/messaging/model/threads/ThreadSummary;|LX/2hJ;->A03(Lcom/facebook/messaging/model/threads/ThreadSummary;)Z|Lcom/facebook/messaging/model/threadkey/ThreadKey;->A0n(Lcom/facebook/messaging/model/threadkey/ThreadKey;)Z|Lcom/facebook/messaging/model/threadkey/ThreadKey;->A1I()Z|Lcom/facebook/messaging/model/threadkey/ThreadKey;->A1V()Z|LX/1lP;->A0E:LX/1lP;|LX/2GV;->$prefixOffsetCallback:LX/4my;|LX/1ke;->A00:LX/1k2;|LX/1k2;->A0Y:LX/1mD;|LX/1mD;->A07:LX/1mG;|LX/1mG;->A01:LX/1mZ;|LX/1mZ;->A00:LX/1mY;|LX/1mY;->A00()LX/1V3;|LX/1V3;->A0L:LX/1V3;
 dexSite LX/0iY;->A04(Landroid/app/Application;)V@18 com.facebook.permission.%s.FB_APP_COMMUNICATION
 dexSite LX/15l;->A03()V@25 com.facebook.permission.prod.FB_APP_COMMUNICATION
 dexSite LX/1f3;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f3;Ljava/lang/String;Ljava/lang/String;)V@36 com.facebook.permission.prod.FB_APP_COMMUNICATION

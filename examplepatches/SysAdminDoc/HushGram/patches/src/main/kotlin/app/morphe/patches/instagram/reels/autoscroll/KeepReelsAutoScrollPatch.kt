@@ -132,6 +132,8 @@ internal class ReelAutoScrollSites(
     val toggleChoice: Int,
     /** Every read of the memory outside the check: each goes through [AUTO_SCROLL_ANSWER]. */
     val memoryReads: List<MemoryRead>,
+    /** The completed duration callback and the proved wide timestamps it saves. */
+    val timer: TimerChoices,
 )
 
 /** In the handler, right [after] it keeps its choice, which [register] holds. */
@@ -154,6 +156,8 @@ internal class MemoryRead(val method: MethodSite, val index: Int, val register: 
  * instance method taking nothing in a class keeping a [MAIN_ACTIVITY]. That last one, which calls
  * the setter once with no jump landing right after the call, is where its choice is read.
  *
+ * The completed duration callback hands over the actual expiration timestamp after each native
+ * save. [findTimerChoices] proves its captured preferences and the wide value through the setter.
  * The memory is the one boolean field the check reads. Its class has a static method marked
  * [AUTOSCROLL_MEMORY] answering it, and keeps no other instance boolean. The handler writes it once,
  * with the choice it was handed (see [requireKeepsChoice]). Every other read of it anywhere in the
@@ -273,7 +277,7 @@ internal fun BytecodePatchContext.findReelAutoScroll(): ReelAutoScrollSites {
 
     return ReelAutoScrollSites(
         isActive.site(), getter.site(), click.site(), click.parameterRegisterNumber(click.parameterTypes.lastIndex), clickKeeps,
-        toggle.site(), toggleAt, toggleChoice, memoryReads,
+        toggle.site(), toggleAt, toggleChoice, memoryReads, findTimerChoices(isActive, click, getter.parameters().single()),
     )
 }
 
@@ -288,6 +292,10 @@ internal fun BytecodePatchContext.findReelAutoScroll(): ReelAutoScrollSites {
  * own label, so a branch straight to a return passes through it too.
  */
 internal fun BytecodePatchContext.keepReelAutoScroll(sites: ReelAutoScrollSites) {
+    val duration = mutable(sites.timer.method)
+    sites.timer.keeps.sortedByDescending { it.after }.forEach { kept ->
+        duration.addInstructions(kept.after, "invoke-static/range { v${kept.register} .. v${kept.register + 1} }, $AUTO_SCROLL_TIMER_SET")
+    }
     val click = mutable(sites.click)
     sites.clickKeeps.sortedByDescending { it.after }.forEach { kept ->
         click.addInstructions(kept.after, "invoke-static/range { v${kept.register} .. v${kept.register} }, $AUTO_SCROLL_STORED")

@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.misc.comment
 
 import app.morphe.Fixtures
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
@@ -37,7 +36,7 @@ class CopyCommentsAnchorsTest {
             val menus = mutableListOf<Method>()
             val plainHelpers = mutableSetOf<String>()
             val builders = mutableSetOf<String>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             container.dexEntryNames.forEach { entry ->
                 container.getEntry(entry)!!.dexFile.classes.forEach { classDef ->
                     classDef.methods.forEach methods@{ method ->

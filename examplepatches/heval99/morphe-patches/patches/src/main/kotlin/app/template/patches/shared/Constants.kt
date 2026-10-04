@@ -39,16 +39,27 @@ object Constants {
             //     the two boxed-Boolean flags every premium gate reads.
             //   - Disable telemetry: AppsFlyer Lib subclass logEvent, AppMeasurementSdk.logEvent,
             //     and Crashlytics (located via its collection-enabled SharedPreferences key).
-            //   - Disable Facebook SDK: FacebookInitProvider / AudienceNetworkContentProvider onCreate.
+            //   - Disable Facebook SDK: AudienceNetworkContentProvider onCreate only, plus
+            //     manifest flags disabling FB auto-log/advertiser-ID. FacebookInitProvider
+            //     must NOT be killed: the login screen builds FB Login handlers and crashes
+            //     with "SDK has not been initialized" without sdkInitialize() (issue #24,
+            //     fixed 2026-09-30; verified on 26.09.14).
             //   - Block marketing notifications: PromotionModal / tennis promo bottom sheet
             //     onViewCreated dismiss the sheet before it renders.
             // The "Disable Play Integrity" patch was dropped: this build does not bundle the
             // Play Integrity classes (the AppsFlyer SDK only references them, behind a catch),
             // so the patch had nothing to patch.
             // All 5 patches apply cleanly; SofascoreSmokeTest asserts the emitted bytecode.
+            // Re-verified 2026-09-28 against 26.09.14 (versionCode 260914002, from
+            // APKMirror): all 5 patches apply unchanged and the decompiled output shows
+            // the same forced values (getHasPremium -> TRUE, ad flags false).
             AppTarget(
                 version = "26.09.07",
                 versionCode = 260907002
+            ),
+            AppTarget(
+                version = "26.09.14",
+                versionCode = 260914002
             )
         )
     )
@@ -93,12 +104,17 @@ object Constants {
     // (feature + entitlement + tier). The patch overrides the two enum-companion parsers
     // (Entitlement -> Entitled, Tier -> PremiumPlus), which is the single conversion point
     // for every feature state deserialized from the server.
+    // Re-verified 2026-09-28 against 26.38.0 (versionCode 51448) from APKPure: the same
+    // companion parsers still match and the patched output returns Entitled/PremiumPlus.
     val COMPATIBILITY_MYFITNESSPAL = Compatibility(
         name = "MyFitnessPal",
         packageName = "com.myfitnesspal.android",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0072BC,
-        targets = listOf(AppTarget(version = "26.37.0", versionCode = 51401))
+        targets = listOf(
+            AppTarget(version = "26.37.0", versionCode = 51401),
+            AppTarget(version = "26.38.0", versionCode = 51448)
+        )
     )
 
     // Verified 2026-09-18 against club.boxbox.android 5.4.9 (versionCode 251, the current
@@ -128,19 +144,6 @@ object Constants {
         targets = listOf(AppTarget(version = "6.6.0", versionCode = 212620))
     )
 
-    val COMPATIBILITY_ANYDESK = Compatibility(
-        name = "AnyDesk",
-        packageName = "com.anydesk.anydeskandroid",
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0xEF443B,
-        // Verified 2026-09-18 against 9.0.0 (versionCode 90000) from APKMirror. The old
-        // fingerprints pinned R8 wrapper names (r3/a2/b2/Q1) that rotated - on 9.0.0 they
-        // point at unrelated helpers and the patch silently no-opped. The patch now anchors
-        // on the stable native jniIsFreeLicense/jniDoesLicenseAllow*/jniCanRemoveLicense
-        // calls and forces every wrapper; bytecode-verified in AnyDeskSmokeTest.
-        targets = listOf(AppTarget(version = "9.0.0", versionCode = 90000))
-    )
-
     // Verified 2026-08-19 against 365scores.apkm v14.8.8 (universal, Android 7.0+).
     // App uses Google Mobile Ads (AdMob) loaded via the Blaze GAM SDK wrapper.
     // MobileAds.initialize(Landroid/content/Context;)V and the (Context, Listener)
@@ -148,12 +151,17 @@ object Constants {
     // Ad SDKs observed: Google Mobile Ads, Unity, InMobi, Vungle, Mintegral,
     // ByteDance Pangle, Meta Audience Network (all GAM-mediated).
     // Re-verified 2026-09-17 on 14.9.4 with morphe-cli -f: Disable ads still applies.
+    // Re-verified 2026-09-28 on 14.9.5 (versionCode 1495, APKPure): both initialize
+    // overloads are empty in the decompiled output.
     val COMPATIBILITY_365SCORES = Compatibility(
         name = "365Scores",
         packageName = "com.scores365",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFFC107,
-        targets = listOf(AppTarget(version = "14.9.4", versionCode = 1494))
+        targets = listOf(
+            AppTarget(version = "14.9.4", versionCode = 1494),
+            AppTarget(version = "14.9.5", versionCode = 1495)
+        )
     )
 
     // Verified 2026-08-20 against livescore.apk v9.9.1 (universal, Android 7.0+).
@@ -473,5 +481,84 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x9C27B0,
         targets = listOf(AppTarget(version = "3.26", versionCode = 57))
+    )
+
+    // Verified 2026-09-28 against com.camerasideas.trimmer 1.716.1222 (versionCode 1222)
+    // from APKMirror. The billing code keeps readable names: the central subscribed
+    // check is `store/billing/c.d(Context)`, which reads the "SubscribePro" preference
+    // and falls back to the "com.camerasideas.trimmer.vip" purchase flag. It gates the
+    // export/watermark flow, template unlocks, the ads manager and the paywall, so
+    // forcing it true unlocks Pro everywhere including watermark-free export.
+    val COMPATIBILITY_YOUCUT = Compatibility(
+        name = "YouCut",
+        packageName = "com.camerasideas.trimmer",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xFF5722,
+        targets = listOf(AppTarget(version = "1.716.1222", versionCode = 1222))
+    )
+
+    // Verified 2026-09-29 against com.streema.simpleradio 6.2.0 (versionCode 872,
+    // APKPure universal). App code is not obfuscated. Premium state is entirely local:
+    // SimpleRadioBaseActivity.isPremium() returns mIabService.isInitialized() &&
+    // mIabService.c(), and the IAB service (b9/j) answers c() from SharedPreferences
+    // ("iab_premium" boolean OR "iab_subscription_date_end" timestamp in the future).
+    // Ads run through AppLovin MAX mediation (the SDK init key is inline) plus Google
+    // Mobile Ads (AdMob native/interstitial), so "Disable ads" hooks those stable
+    // library surfaces (MobileAds.initialize overloads, MaxInterstitialAd loadAd/showAd).
+    val COMPATIBILITY_SIMPLERADIO = Compatibility(
+        name = "Simple Radio",
+        packageName = "com.streema.simpleradio",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xFF6D00,
+        targets = listOf(AppTarget(version = "6.2.0", versionCode = 872))
+    )
+
+    // Verified 2026-09-29 against com.farproc.wifi.analyzer 3.10.5-L (versionCode 999,
+    // APKPure). Tiny single-dex app, not obfuscated. Banner ads are gated by
+    // Settings.a(Context), which reads the "next_show_ad_time_millisec" preference and
+    // returns true once the hide-until date passes; MainScreen.N() shows the legacy
+    // AdMob banner (com.google.android.gms.ads.e) only when the gate is true. Forcing
+    // the gate false hides the banner everywhere.
+    val COMPATIBILITY_WIFIANALYZER = Compatibility(
+        name = "WiFi Analyzer",
+        packageName = "com.farproc.wifi.analyzer",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x00ACC1,
+        targets = listOf(AppTarget(version = "3.10.5-L", versionCode = 999))
+    )
+
+    // Verified 2026-09-29 against com.Project100Pi.themusicplayer 3.2.0.0_release_2
+    // (versionCode 32001, APKPure universal). Premium state is a static boolean flag
+    // plus a 5-element purchase list in an R8-obfuscated holder class (`v7/g` here):
+    // a() checks the list size, b() returns flag && a(), and ~20 call sites read the
+    // flag field directly. Purchases (remove_ads / combo SKUs) set the flag via c(Z);
+    // a temp-ad-free resetter clears it when the trial timestamp expires. The patch
+    // forces a()/b() true, neuters the resetter and seeds the flag true in <clinit>,
+    // so every consumer sees premium without touching Play Billing.
+    // Ads run through AppLovin MAX mediation plus Google Mobile Ads, so "Disable ads"
+    // hooks those stable library surfaces (MobileAds.initialize overloads, GMA loads,
+    // MaxInterstitialAd loadAd/showAd).
+    val COMPATIBILITY_PIMUSICPLAYER = Compatibility(
+        name = "Pi Music Player",
+        packageName = "com.Project100Pi.themusicplayer",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x3F51B5,
+        targets = listOf(AppTarget(version = "3.2.0.0_release_2", versionCode = 32001))
+    )
+
+    // Verified 2026-10-03 against net.zedge.android 9.38.3 (versionCode 93800300,
+    // APKPure universal). Ads run through a heavy mediation stack (GMA, AppLovin MAX,
+    // Meta Audience Network, InMobi, Vungle, Pangle, ironSource, Fyber, BidMachine via
+    // Etermax XMedia), so "Disable ads" hooks those stable library surfaces.
+    // No premium patch: the subscription is server-validated and 9.38.3 ships no local
+    // ad-free gate. A circulating "(Premium)" mod of this version grafts a whole newer
+    // net.zedge.subscription module (CheckAdFreeUseCase et al, absent from stock) and
+    // deletes ad SDK classes - neither technique ports to a bytecodePatch.
+    val COMPATIBILITY_ZEDGE = Compatibility(
+        name = "Zedge",
+        packageName = "net.zedge.android",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x673AB7,
+        targets = listOf(AppTarget(version = "9.38.3", versionCode = 93800300))
     )
 }

@@ -21,10 +21,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.json.JSONArray;
@@ -851,6 +853,15 @@ public final class AutoStreak {
     private static String dispatchSummary(Context context, State state, String today) {
         int[] dispatches = dispatchCounts(state, today);
         if (dispatches[0] == 0) return null;
+        // TikTok took every one of these without an error. Only a hand-off that threw or never
+        // wrote its result stays unconfirmed. A clean one used to read as a failure too (#92).
+        if (dispatches[2] == 0) {
+            return dispatches[0] == dispatches[1]
+                    ? L10n.f(context, "Sent to %1$d/%2$d chats. They won't get another message today.",
+                    dispatches[0], dispatches[1])
+                    : L10n.f(context, "Sent to %1$d/%2$d chats. The rest still need a message.",
+                    dispatches[0], dispatches[1]);
+        }
         return dispatches[0] == dispatches[1]
                 ? L10n.f(context, "Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.",
                 dispatches[0], dispatches[1])
@@ -886,16 +897,18 @@ public final class AutoStreak {
 
     private static int[] dispatchCounts(State state, String today) {
         Map<String, Boolean> chats = new LinkedHashMap<>();
+        Set<String> uncertain = new HashSet<>();
         for (String handle : recipients()) {
             RecipientState record = state.recipient(handle);
             String identity = record == null || record.conversation.isEmpty() ? "@" + handle : record.conversation;
             boolean reserved = wasDispatched(state, today, handle)
                     || (record != null && today.equals(record.dispatchDay));
             chats.put(identity, reserved || Boolean.TRUE.equals(chats.get(identity)));
+            if (reserved && (record == null || record.result != Result.DISPATCHED)) uncertain.add(identity);
         }
         int reserved = 0;
         for (boolean value : chats.values()) if (value) reserved++;
-        return new int[]{reserved, chats.size()};
+        return new int[]{reserved, chats.size(), uncertain.size()};
     }
 
     private static String problem(Context context, Result result) {

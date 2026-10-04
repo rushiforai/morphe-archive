@@ -4,6 +4,8 @@
  */
 import groovy.json.JsonOutput
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 
 // Run with -I, so the settings plugin's own classpath is observed before project scripts.
@@ -14,14 +16,26 @@ def describeGraph = { scope, owner, configuration ->
         throw new GradleException("${owner}:${configuration.name} has unresolved dependencies: " +
                 unresolved.collect { it.attempted.displayName }.sort().join(', '))
     }
+    def root = result.rootComponent.get()
+    def purl = { id -> 'pkg:maven/' + URLEncoder.encode(id.group, 'UTF-8') + '/' +
+            URLEncoder.encode(id.module, 'UTF-8') + '@' + URLEncoder.encode(id.version, 'UTF-8') }
+    def ref = { component ->
+        if (component == root) return 'root'
+        if (component.id instanceof ModuleComponentIdentifier) return purl(component.id)
+        if (component.id instanceof ProjectComponentIdentifier) return 'project:' + component.id.projectPath
+        throw new GradleException('The dependency graph has an unsupported component: ' + component.id)
+    }
     def modules = result.allComponents.findAll { it.id instanceof ModuleComponentIdentifier }
             .collect { component ->
                 def id = component.id
                 [group: id.group, name: id.module, version: id.version,
-                 purl: 'pkg:maven/' + URLEncoder.encode(id.group, 'UTF-8') + '/' +
-                         URLEncoder.encode(id.module, 'UTF-8') + '@' + URLEncoder.encode(id.version, 'UTF-8')]
+                 purl: purl(id)]
             }.unique { it.purl }.sort { it.purl }
-    [scope: scope, owner: owner, configuration: configuration.name, libraries: modules]
+    def edges = result.allComponents.collect { component ->
+        [ref: ref(component), dependsOn: component.dependencies.findAll { it instanceof ResolvedDependencyResult }
+                .collect { ref(it.selected) }.unique().sort()]
+    }.sort { it.ref }
+    [scope: scope, owner: owner, configuration: configuration.name, root: 'root', libraries: modules, dependencies: edges]
 }
 
 def settingsClasspath
@@ -44,6 +58,7 @@ gradle.projectsEvaluated {
             description = 'Reports resolved dependency coordinates, failing on unresolved edges.'
             outputs.file(report)
             outputs.upToDateWhen { false }
+            dependsOn(gradle.rootProject.tasks.named('writeDependencyAuditInputs'))
             doLast {
                 def graphs = []
                 if (isRoot) graphs.add(describeGraph('settings-plugin', 'settings', settingsClasspath))
@@ -57,7 +72,9 @@ gradle.projectsEvaluated {
                 }
                 def output = report.get().asFile
                 output.parentFile.mkdirs()
-                output.setText(JsonOutput.prettyPrint(JsonOutput.toJson([schemaVersion: 1, graphs: graphs])), 'UTF-8')
+                def inputs = new groovy.json.JsonSlurper().parse(gradle.rootProject.layout.buildDirectory
+                        .file('reports/dependencies/build-inputs.json').get().asFile, 'UTF-8')
+                output.setText(JsonOutput.prettyPrint(JsonOutput.toJson([schemaVersion: 2, inputs: inputs, graphs: graphs])), 'UTF-8')
             }
         })
     }
@@ -70,10 +87,13 @@ gradle.projectsEvaluated {
         outputs.file(aggregate)
         outputs.upToDateWhen { false }
         doLast {
-            def graphs = reports.collectMany { new groovy.json.JsonSlurper().parse(it.get().asFile, 'UTF-8').graphs }
+            def documents = reports.collect { new groovy.json.JsonSlurper().parse(it.get().asFile, 'UTF-8') }
+            def inputs = documents[0].inputs
+            if (documents.any { it.inputs != inputs }) throw new GradleException('Resolved graphs have different build inputs.')
+            def graphs = documents.collectMany { it.graphs }.sort { it.scope + ' ' + it.owner + ' ' + it.configuration }
             def output = aggregate.get().asFile
             output.parentFile.mkdirs()
-            output.setText(JsonOutput.prettyPrint(JsonOutput.toJson([schemaVersion: 1, graphs: graphs])), 'UTF-8')
+            output.setText(JsonOutput.prettyPrint(JsonOutput.toJson([schemaVersion: 2, inputs: inputs, graphs: graphs])), 'UTF-8')
             logger.lifecycle('Resolved dependency graphs: ' + output)
         }
     }

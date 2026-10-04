@@ -11,7 +11,7 @@ This repository publishes patch source and bundles, not Spotify APKs.
 [**➕ Add Spicetify to Morphe**](https://morphe.software/add-source?github=spicetify/morphe-patches/tree/main)
 
 Open this link on Android with Morphe Manager installed to add the stable
-source. Pre-releases are published from the `dev` branch.
+source. Releases are published from `main`.
 
 ## Patches
 
@@ -32,12 +32,12 @@ Pixel 8 with a 35,000-track Jellyfin library.
 | Patch | Default | Behavior |
 | --- | --- | --- |
 | Clean sharing links | Enabled | Removes `si`, `pi`, and known `utm_*` parameters from `open.spotify.com` links. Preserves timestamps, context, other parameters, and fragments. |
-| Theme colors | Disabled | Choose a theme such as OLED, Midnight, or Nord in Spicetify settings, or pick background, surface, and accent colors yourself, then restart Spotify. Hardcoded colors and some screens keep Spotify's colors; Android 10 and earlier change fewer screens. |
+| Theme colors | Disabled | Choose a theme such as OLED, Midnight, or Nord in Spicetify settings, apply a community theme's colors and background image from the Spicetify Marketplace, paste a desktop Spicetify theme's `color.ini`, or pick background, surface, and accent colors yourself, then restart Spotify when it offers. Requires Android 11 or later. Hardcoded colors and some screens keep Spotify's colors. |
 | Pin shortcuts on Home | Disabled | Moves selected native Home shortcuts first. Configure pins in Spotify's Spicetify settings, then restart Spotify. |
-| Local files from a server | Disabled | Streams an HTTPS WebDAV folder or Jellyfin library into Local Files and Your Library, with its own filter chip. Requires Android 8 or later, byte-range support, and Spotify's Local audio files setting; configure the server in Spotify's Spicetify settings. |
+| Local files from a server | Disabled | Streams an HTTPS WebDAV folder or Jellyfin library into Local Files and Your Library, with its own filter chip. Requires Android 8 or later, byte-range support, and Spotify's Local audio files setting; configure the server in Spotify's Spicetify settings. Not available for root mount installs, because its track provider and server browser must be in the manifest. |
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/spicetify/morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.1.0](https://github.com/spicetify/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 Spotify&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -54,9 +54,9 @@ Pixel 8 with a 35,000-track Jellyfin library.
 | [Hide Home and Browse ads](#hide-home-and-browse-ads) | Hides image and video brand-ad sections on Home and Browse. Does not suppress audio ads, player ads, or upgrade prompts. Experimental. |  |
 | [Hide Premium tab](#hide-premium-tab) | Hides the Premium navigation tab. Change this in Spicetify settings, then restart Spotify. Does not change your subscription or remove other ads. |  |
 | [Hide player ad cards](#hide-player-ad-cards) | Hides image brand-ad cards and embedded ad pages in Now Playing. Does not suppress audio ads or other player overlays. Experimental. |  |
-| [Local files from a server](#local-files-from-a-server) | Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. Configure the server in Spicetify settings; playback needs Spotify's Local audio files setting. Experimental; requires byte-range support. |  |
+| [Local files from a server](#local-files-from-a-server) | Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. Configure the server in Spicetify settings; playback needs Spotify's Local audio files setting. Experimental; requires byte-range support. Not available for root mount installs. |  |
 | [Pin shortcuts on Home](#pin-shortcuts-on-home) | Choose which of Spotify's Home shortcuts appear first in Spicetify settings. Pins are saved on this device. Restart Spotify after changing pins. |  |
-| [Theme colors](#theme-colors) | Choose a theme, such as OLED, or your own colors in Spicetify settings. Restart Spotify after changing it. Some screens and hardcoded colors keep Spotify's colors. |  |
+| [Theme colors](#theme-colors) | Choose a theme, such as OLED, or your own colors in Spicetify settings. Requires Android 11 or later. Some screens and hardcoded colors keep Spotify's colors. |  |
 
 </details>
 
@@ -83,7 +83,7 @@ instead of adding it again. To add it manually and patch Spotify:
    https://raw.githubusercontent.com/spicetify/morphe-patches/refs/heads/main/patches-bundle.json
    ```
 
-   For pre-releases, use the same URL with `dev` in place of `main`.
+   If your source uses the former `dev` URL, switch to this `main` URL.
 
 3. Expand **Spicetify Android patches** and enable **Experimental app versions**.
 4. Return to the app list. Spotify appears with the target version
@@ -117,8 +117,20 @@ Patched Spotify has a **Spicetify** row in its settings.
    immediately. The setting survives restarting Spotify.
 
 Only installed patches appear here, grouped by category. With **Theme colors**
-installed, **Appearance** lists themes, including OLED, and a **Custom** option
-for picking background, surface, and accent colors. Settings that Spotify
+installed, **Appearance** lists themes, including OLED and, on Android 12 or
+later, Material You, and a **Custom** option for picking background, surface,
+and accent colors. **Spicetify Marketplace** lists the community themes the
+desktop Marketplace offers, most stars first, with previews and search. Tap one
+to download its `color.ini` and choose a color scheme. Its colors apply, and
+so does the background image it shows on desktop when its scripts or
+`user.css` name one, as Hazy's and CyberNight's do. The list is kept for six
+hours, and **Refresh** reloads it from GitHub. **Galaxy V2**, pinned at the
+top, brings Galaxy's colors and background image. A background image shows
+behind Spotify's main screen, whose pages turn see-through over it, and
+**Appearance** offers **Blur background image** while one is in use.
+**Paste a Spicetify theme** takes a desktop theme's
+`color.ini`, or CSS with `--spice-*` colors, and lets you choose its color
+scheme and an accent key such as Catppuccin's `mauve`. Settings that Spotify
 reads at startup, such as themes, offer to restart Spotify for you. Home pins and server files have their own
 controls here when installed.
 

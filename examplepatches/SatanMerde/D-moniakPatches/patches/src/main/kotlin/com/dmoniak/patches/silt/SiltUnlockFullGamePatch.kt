@@ -29,7 +29,85 @@ fun BytecodePatchContext.executeSiltUnlockFullGameLogic(logger: Logger) {
     // 1. Hook Google Play Billing Client SDK and local purchase listeners
     hookedPoints += executeGooglePlayBillingBypass(logger, "Silt")
 
-    // 2. Hook game unlock and chapter access checks
+    // 2. Hook Google Play License Verification Library (LVL) & Installer Verification
+    classDefForEach { classDef ->
+        val type = classDef.type
+        val tl = type.lowercase()
+        val mutableClass by lazy { mutableClassDefBy(classDef) }
+
+        // Google Play LVL Licensing (LicenseChecker / LicenseCheckerCallback)
+        if (tl.contains("licensing") || tl.contains("licensechecker")) {
+            for (method in classDef.methods.toList()) {
+                if (method.implementation == null) continue
+                val mName = method.name
+
+                // Hook dontAllow(int reason) -> suppress failure
+                if (mName == "dontAllow" && method.returnType == "V") {
+                    try {
+                        val mm = mutableClass.findMutableMethodOf(method)
+                        mm?.addInstructions(
+                            0,
+                            """
+                            return-void
+                            """.trimIndent()
+                        )
+                        hookedPoints++
+                        logger.info("[Silt LVL] Neutralized dontAllow check in: $type->$mName")
+                    } catch (e: Exception) {
+                        logger.fine("[Silt LVL] Failed to hook dontAllow: ${e.message}")
+                    }
+                }
+
+                // Hook checkAccess(LicenseCheckerCallback) -> force allow(256)
+                if (mName == "checkAccess" && method.parameterTypes.size == 1) {
+                    val cbType = method.parameterTypes[0]
+                    if (cbType.contains("Callback") || cbType.contains("Listener")) {
+                        try {
+                            val mm = mutableClass.findMutableMethodOf(method)
+                            mm?.addInstructions(
+                                0,
+                                """
+                                const/16 v0, 0x100
+                                invoke-interface {p1, v0}, $cbType->allow(I)V
+                                return-void
+                                """.trimIndent()
+                            )
+                            hookedPoints++
+                            logger.info("[Silt LVL] Hooked checkAccess to force allow(0x100) in: $type->$mName")
+                        } catch (e: Exception) {
+                            logger.fine("[Silt LVL] Failed to hook checkAccess: ${e.message}")
+                        }
+                    }
+                }
+            }
+        }
+
+        // Spoof installer source to Google Play (com.android.vending)
+        for (method in classDef.methods.toList()) {
+            if (method.implementation == null) continue
+            val mName = method.name.lowercase()
+            if ((mName == "getinstallerpackagename" || mName == "getinstallsource") &&
+                method.returnType == "Ljava/lang/String;" && method.parameterTypes.size <= 1
+            ) {
+                try {
+                    val mm = mutableClass.findMutableMethodOf(method)
+                    mm?.addInstructions(
+                        0,
+                        """
+                        const-string v0, "com.android.vending"
+                        return-object v0
+                        """.trimIndent()
+                    )
+                    hookedPoints++
+                    logger.info("[Silt Installer] Spoofed installer package name to com.android.vending in: $type->${method.name}")
+                } catch (e: Exception) {
+                    logger.fine("[Silt Installer] Failed installer hook: ${e.message}")
+                }
+            }
+        }
+    }
+
+    // 3. Hook game unlock and chapter access checks
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
         if (tl.contains("androidx") || tl.contains("android/support") || tl.contains("com/google")) return@classDefForEach

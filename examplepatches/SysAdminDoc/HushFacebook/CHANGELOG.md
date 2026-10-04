@@ -2,6 +2,73 @@
 
 Every Hushfacebook release, newest first.
 
+## Unreleased
+
+### Fixed
+
+* **Supported links:** Messenger and Instagram rows no longer say links open here when Android's link handling is off or the relevant address states are missing. The rows refresh together from one Android answer when you return from settings.
+
+### Changed
+
+* **Setup:** Installation help explains Expert mode and how to identify overlapping Facebook patch sources. Bug reports now ask for every source's version and patch selection, including the details needed to diagnose issue #79.
+
+## 0.7.1 (2026-10-03)
+
+* **Facebook:** This release gathers everything since v0.7.0. It keeps the same 60 patches for Facebook 581.0.0.45.58, and 580.0.0.51.74 and 577.0.0.50.72 still work. New this time are separate switches for the top Stories tray and Stories between posts, Hide story prompts, whole-word matching for the post filters, an optional Saved shortcut, and Open and Share buttons on the notification when a save finishes. Morphe Manager 1.33.0 or newer is still required.
+
+### Added
+
+* **Facebook:** Hide story prompts, a new switch under Stories (issue #21). It takes out the cards next to Create story that suggest a story to make, like Share music you love. It's off until you turn it on, and the change shows the next time Facebook loads the tray.
+
+* **Facebook:** Messenger and Instagram rows under Supported links, next to the Meta App Manager one (issue #78). Android verifies Meta's own Messenger for facebook.com, www.facebook.com, m.me and www.m.me, and Instagram for facebook.com, www.facebook.com and m.facebook.com. With either one installed, those switches on Hushfacebook's Open by default page kept turning themselves back off, and links to those addresses went through the browser first. Each row shows only while one of that app's addresses doesn't open here. A tap opens that app's own page, where you turn off Open supported links before selecting the addresses for Hushfacebook. Back from that page, the row tells you as soon as its links open here. Diagnostic reports now say whether Messenger and Instagram are installed and enabled.
+
+* **Facebook:** Completed native saves now keep a generic notification with Open and Share actions for the committed gallery file. It uses temporary read grants and stores no source links or post details.
+
+* **Facebook:** Optional whole-word matching for both post-filter lists. It starts off, preserves existing imports, and respects Unicode word boundaries and keep-list overrides.
+
+* **Facebook:** Settings-import previews name each changed switch and show its saved current and incoming state. Long lists scroll above the actions, with spoken state labels and no phrase contents.
+
+* **Facebook:** Separate controls for the top Stories tray and Stories between posts. Upgrades keep the old choice, imports accept the combined or independent values, and exports save the independent choices.
+
+* **Facebook:** Diagnostic reports now carry a build identity that also appears in status and About. Later source builds bind it to the packaged bytes and their source inputs. Missing or inconsistent metadata remains unknown or unverified.
+
+* **Facebook:** Debug diagnostics for Marketplace response shapes, including the themed-ad and related-ad queries and the stock local-pickup/radius request fields. The report records fixed field names and types with model counts, leaves private values out, and identifies incomplete captures. It doesn't enable another listing filter.
+
+* **Facebook:** An optional Saved shortcut under Menu. It starts off, opens Saved in the same Facebook install, and leaves every existing launcher entry in place. A full launcher or missing Saved route gives a status message. The Saved route has been checked from cold and warm starts on a phone. Its icon is rendered locally because Android rejects shortcut resources borrowed from another package.
+
+### Changed
+
+* **Facebook:** With AMOLED black on, unread notifications are easy to spot again (issue #72). Facebook tints an unread row with a very faint blue that looked almost black on a black page, so that tint is now stronger in dark mode. Material You still gives it your palette's accent.
+
+* **Tooling:** The manifest check now also makes sure every supported Facebook build keeps the plain launcher query that lets it see Messenger and Instagram. Facebook doesn't name either app, and without that query their rows would never show.
+
+* **Tooling:** Source-build notes now explain Saved's launcher limits and the codec runner's verified process ownership.
+
+* **Facebook:** The black-Reels report in #62 was traced to a custom ROM, with stock-firmware playback confirmed by the reporter. The Stories-between-posts fix (#45) and suggested Groups/Stories fixes (#8/#10) also have reporter confirmation. Their remaining switch and preserved-content comparisons are still tracked.
+
+* **Facebook:** Messenger and Threads support have their own projects and release schedules, [HushMessenger](https://github.com/SysAdminDoc/HushMessenger) and [HushThreads](https://github.com/SysAdminDoc/HushThreads).
+
+* **Tooling:** Source audits now fail when GitLab search is skipped, denied, unresolved or malformed, and keep the existing census date. GitLab.com's disabled global code search is documented instead of treating a token as the missing requirement.
+
+* **Tooling:** Codec tests now own each tool's descendants before it starts, so an immediately exiting parent can't leave a child holding output open. Windows checks preserve the exact native Unicode arguments. Windows and Linux checks pass. macOS remains unverified.
+
+### Fixed
+
+* **Facebook:** With `Material You theme` in dark mode, the "What's on your mind?" row at the top of the feed now takes your palette like the rest of the feed, instead of staying Facebook's dark gray (issue #37). Facebook paints that row straight from a gray it keeps in its resources, a path none of the theme's other changes reached.
+
+* **Tooling:** Codec test cleanup no longer fails a successful tool run just because the launcher closes its control pipe while exiting.
+
+* **Facebook:** The overview now calls out a missing Restore screens on re-signed builds patch directly, including the profile and Settings pages it can break. Root Mount installs don't show that warning.
+
+* **Tooling:** Patch tests ignore nested fixture extraction files when checking their inputs. Top-level fixture changes still rerun tests, and an empty or invalid configured folder can't reuse a skipped result.
+
+* **Facebook:** Build identity detects missing source inputs even when Git hides their removal. A clean claim requires the complete input set to match the committed tree.
+
+* **Facebook:** Fragmented video saves now reject samples that point into box headers, gaps or past a media-data payload. Valid codec joins keep their existing samples, including media stored before a fragment or across several boxes.
+
+* **Tooling:** Java lookup now returns the executable's full path when a suitable JDK is already on PATH. Push checks and explicit JDK validation use the same executable.
+
+* **Facebook:** Cancellation and gallery publication now choose one winner. A cancellation accepted through the final flush leaves no saved entry. Once publication starts, progress stays visible and Cancel is disabled. A failed gallery close or update reports failure and removes the unfinished entry.
 ## 0.7.0 (2026-10-02)
 
 * **Facebook:** This release gathers everything since v0.6.0: 60 patches, up from 59, now for Facebook 581.0.0.45.58, the newest release. Facebook 580.0.0.51.74 and 577.0.0.50.72 still work. The new patch is `Force dark mode`, for tablets whose Settings page has no Dark mode row. Morphe Manager 1.33.0 or newer is required.

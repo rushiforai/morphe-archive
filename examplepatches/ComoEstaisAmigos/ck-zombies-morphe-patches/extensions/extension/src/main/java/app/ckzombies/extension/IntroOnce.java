@@ -17,7 +17,7 @@ public final class IntroOnce {
     static final String PREFS = "app.ckzombies.extension";
     static final String KEY = "intro_seen_install";
 
-    /** Stands in for firstInstallTime, which API 9 added, so the mark works as a plain flag there. */
+    /** Stands in for firstInstallTime where older Android lacks it, so the mark is a plain flag. */
     static final long NO_INSTALL_TIME = 1;
 
     private IntroOnce() {
@@ -39,7 +39,7 @@ public final class IntroOnce {
             long stamp = stamp(context);
             SharedPreferences prefs = prefs(context);
             if (!seen(prefs.getLong(KEY, 0), stamp)) {
-                // commit(), not apply(): apply() needs API 9, and this runs once per install.
+                // commit(), not apply(), which older Android lacks; this runs once per install.
                 prefs.edit().putLong(KEY, stamp).commit();
             }
         } catch (Throwable ignored) {

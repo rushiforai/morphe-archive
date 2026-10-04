@@ -1,3 +1,25 @@
+## [1.2.0](https://github.com/Bugg4/bugg4s-patches/compare/v1.1.0...v1.2.0) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* Clarify patch descriptions and remove emojis from README ([209d0c9](https://github.com/Bugg4/bugg4s-patches/commit/209d0c9740ba9378c5e50a46cf62f964c7ec1f5e))
+
+### ✨ New Features
+
+* Add Remove license check patch for Android 9 and older devices ([eca270b](https://github.com/Bugg4/bugg4s-patches/commit/eca270bf6dde165758f41c008d322bd97169b3d8))
+
+## [1.2.0-dev.2](https://github.com/Bugg4/bugg4s-patches/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* Clarify patch descriptions and remove emojis from README ([209d0c9](https://github.com/Bugg4/bugg4s-patches/commit/209d0c9740ba9378c5e50a46cf62f964c7ec1f5e))
+
+## [1.2.0-dev.1](https://github.com/Bugg4/bugg4s-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-10-01)
+
+### ✨ New Features
+
+* Add Remove license check patch for Android 9 and older devices ([eca270b](https://github.com/Bugg4/bugg4s-patches/commit/eca270bf6dde165758f41c008d322bd97169b3d8))
+
 ## [1.1.0](https://github.com/Bugg4/bugg4s-patches/compare/v1.0.0...v1.1.0) (2026-09-30)
 
 ### ✨ New Features

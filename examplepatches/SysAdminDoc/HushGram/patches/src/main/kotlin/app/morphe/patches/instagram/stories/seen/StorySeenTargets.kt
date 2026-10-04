@@ -114,6 +114,7 @@ internal class StorySeenTargets(
     val item: Int,
     val holder: Int,
     val itemView: FieldReference,
+    val queue: StoryRetryQueue?,
     internal val stubs: StorySeenStubs,
 )
 
@@ -165,7 +166,8 @@ private class Stories(val field: FieldReference, val add: Int)
 internal fun BytecodePatchContext.findStorySeen(): StorySeenTargets {
     val request = uniqueMethod(PATCH, "story seen request", StorySeenRequestFingerprint)
     val batch = request.definingClass
-    val store = uniqueMethod(PATCH, "pending story seen store", PendingStorySeenStoreFingerprint).definingClass
+    val storeReader = uniqueMethod(PATCH, "pending story seen store", PendingStorySeenStoreFingerprint)
+    val store = storeReader.definingClass
     val storeClass = classDefByOrNull(store) ?: refuse("$store isn't in this build")
     val batchClass = classDefByOrNull(batch) ?: refuse("$batch isn't in this build")
     requireSealedBatch(batchClass, request)
@@ -235,9 +237,11 @@ internal fun BytecodePatchContext.findStorySeen(): StorySeenTargets {
         if (!AccessFlags.PUBLIC.isSet(reachable.accessFlags)) refuse("${reachable.type} isn't public, so the extension can't reach it")
     }
 
+    val stubs = storySeenStubs()
+    val queue = retry?.let { findStoryRetryQueue(storeClass, it, storeReader, sessionGetter) }
     return StorySeenTargets(
         batch, store, send.name, retry, getter.name, sessionGetter.definingClass, sessionGetter.name, reels, binder.definingClass,
-        binder.name, parameters, session, item, holder, itemView, storySeenStubs(),
+        binder.name, parameters, session, item, holder, itemView, queue, stubs,
     )
 }
 
@@ -551,6 +555,16 @@ private fun BytecodePatchContext.requireEveryRouteToTheRequest(
     send: Method,
     constructors: List<Method>,
 ): StoreRetry? {
+    val storeClass = classDefBy(store)
+    val owner = storeClass.superclass?.let { classDefByOrNull(it) }
+    val builders = owner?.methods?.filter { AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
+        it.parameterTypes.map(Any::toString) == listOf(OBJECT) && it.returnType.startsWith("L") }.orEmpty()
+    if (storeClass.methods.any { method ->
+            (AccessFlags.NATIVE.isSet(method.accessFlags) || AccessFlags.ABSTRACT.isSet(method.accessFlags)) && builders.any {
+                it.name == method.name && it.returnType == method.returnType &&
+                    it.parameterTypes.map(Any::toString) == method.parameterTypes.map(Any::toString)
+            }
+        }) refuse("retry bridge has no executable DEX body")
     val callers = mutableListOf<Pair<Method, Int>>()
     classDefForEach { classDef ->
         if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
@@ -730,7 +744,8 @@ private fun BytecodePatchContext.storySeenStubs(): StorySeenStubs {
                 it.parameterTypes.map(Any::toString) == parameters
         } ?: refuse("$owner has no static $returns $name(${parameters.joinToString("")})")
     for ((owner, methods, hook) in listOf(
-        Triple(STORY_SEEN, seen.methods, TO_SEND), Triple(STORY_SEEN, seen.methods, TO_RETRY), Triple(STORY_SEEN_BUTTON, button.methods, BIND_BUTTON),
+        Triple(STORY_SEEN, seen.methods, TO_SEND), Triple(STORY_SEEN, seen.methods, TO_RETRY),
+        Triple(STORY_SEEN_BUTTON, button.methods, BIND_BUTTON),
     )) {
         methods.singleOrNull {
             "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == hook.substringAfter("->") &&
@@ -769,27 +784,6 @@ internal fun BytecodePatchContext.hookStorySend(found: StorySeenTargets) {
             if-nez $batch, :send
             return-void
             :send
-            check-cast $batch, ${found.batch}
-        """,
-    )
-}
-
-/**
- * Puts the retry's hook right before its build of the seen request, handed the store and the batch:
- * the answer, never null, takes the batch's place for the request alone, since nothing reads the
- * batch after it.
- */
-internal fun BytecodePatchContext.hookStoryRetry(found: StorySeenTargets) {
-    val retry = found.retry ?: return
-    val method = mutableClassDefBy(found.store).methods.single {
-        it.name == retry.name && it.parameterTypes.map(Any::toString) == retry.parameters
-    }
-    val batch = method.parameterRegister(0)
-    method.addInstructionsWithLabels(
-        retry.build,
-        """
-            invoke-static/range { p0 .. $batch }, $TO_RETRY
-            move-result-object $batch
             check-cast $batch, ${found.batch}
         """,
     )

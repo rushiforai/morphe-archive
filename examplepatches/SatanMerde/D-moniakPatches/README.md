@@ -14,16 +14,16 @@
     <img src="https://img.shields.io/github/stars/SatanMerde/D-moniakPatches?style=for-the-badge&logo=github&color=EAC54F" alt="GitHub Stars">
   </a>
   <a href="#-liste-des-patchs--patches-list">
-    <img src="https://img.shields.io/badge/Patches-233-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Total Patches">
+    <img src="https://img.shields.io/badge/Patches-457-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Total Patches">
   </a>
   <a href="#-patchs-validés--fonctionnels--tested--functional-patches">
     <img src="https://img.shields.io/badge/Fonctionnels-10-00C853?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Functional Patches">
   </a>
   <a href="#-patchs-expérimentaux--en-développement--experimental-patches-ai-generated">
-    <img src="https://img.shields.io/badge/Expérimentaux-223-FFA000?style=for-the-badge&logo=probot&logoColor=white" alt="Experimental Patches">
+    <img src="https://img.shields.io/badge/Expérimentaux-447-FFA000?style=for-the-badge&logo=probot&logoColor=white" alt="Experimental Patches">
   </a>
   <a href="#-liste-des-patchs--patches-list">
-    <img src="https://img.shields.io/badge/Apps_Support%C3%A9es-82-3388FF?style=for-the-badge&logo=googleplay&logoColor=white" alt="Supported Apps">
+    <img src="https://img.shields.io/badge/Apps_Support%C3%A9es-90-3388FF?style=for-the-badge&logo=googleplay&logoColor=white" alt="Supported Apps">
   </a>
   <a href="https://github.com/SatanMerde/D-moniakPatches/releases/latest">
     <img src="https://img.shields.io/github/v/release/SatanMerde/D-moniakPatches?style=for-the-badge&logo=github&color=blueviolet" alt="Latest Release">
@@ -44,10 +44,10 @@
 ### 📖 Présentation du projet / Project Overview
 
 **🇫🇷 Français :**  
-**D-moniak Patches** est une bibliothèque tierce de patchs pour le framework **[Morphe](https://github.com/morpheapp)**. Ce projet rassemble **233 patchs** pour **82 applications et jeux Android** populaires, clairement séparés entre **patchs validés & fonctionnels** (testés sur appareil réel / émulateur : Hungry Shark World, Movix, Moises) et **patchs expérimentaux** (en cours de développement, générés par IA).
+**D-moniak Patches** est une bibliothèque tierce de patchs pour le framework **[Morphe](https://github.com/morpheapp)**. Ce projet rassemble **253 patchs** pour **86 applications et jeux Android** populaires, clairement séparés entre **patchs validés & fonctionnels** (testés sur appareil réel / émulateur : Hungry Shark World, Movix, Moises) et **patchs expérimentaux** (en cours de développement, générés par IA).
 
 **🇬🇧 English :**  
-**D-moniak Patches** is a third-party patch library for the **[Morphe](https://github.com/morpheapp)** framework. This project brings together **233 patches** for **82 popular Android apps and games**, clearly separated into **tested & functional patches** (verified on real hardware / emulator: Hungry Shark World, Movix, Moises) and **experimental patches** (currently under development, AI-generated).
+**D-moniak Patches** is a third-party patch library for the **[Morphe](https://github.com/morpheapp)** framework. This project brings together **253 patches** for **86 popular Android apps and games**, clearly separated into **tested & functional patches** (verified on real hardware / emulator: Hungry Shark World, Movix, Moises) and **experimental patches** (currently under development, AI-generated).
 
 ---
 
@@ -116,7 +116,7 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 ## 🩹 Liste des patchs / Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.36.0](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.36.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**233 patchs au total** (10 validés & fonctionnels • 223 expérimentaux)
+> **[v1.46.1](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.46.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**457 patchs au total** (10 validés & fonctionnels • 447 expérimentaux)
 
 ---
 
@@ -192,11 +192,12 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 > 💡 **Want a patch to work?** [Submit a request here](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize reverse-engineering and make it fully functional in the next update!
 
 <details open>
-<summary>📦 AllTrails&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 AllTrails&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
+| [Persistent Off-Route Audio Alerts & 3D Maps - AllTrails (Experimental)](#persistent-off-route-audio-alerts-3d-maps-alltrails-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks 3D topographic trail elevation rendering, satellite weather overlays, and forces persistent wrong-turn audio alerts when straying off the trail. |
 | [Unlock AllTrails+ & Offline Maps - AllTrails (Experimental)](#unlock-alltrails-offline-maps-alltrails-experimental) | ⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for AllTrails+ (offline topo map downloads, wrong-turn navigation alerts, and 3D trail previews). |
 
 </details>
@@ -436,6 +437,26 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 </details>
 
 <details open>
+<summary>📦 Free Fire&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Free Fire MAX 120 FPS & Device Model Spoof (Experimental)](#free-fire-max-120-fps-device-model-spoof-experimental) | ⚠️ [Expérimental / Risque de ban en ligne] Débloque l'option 120 FPS / Taux de rafraîchissement élevé dans Free Fire MAX en simulant un modèle d'appareil gaming supporté (ASUS ROG Phone 8 Pro / ASUS_AI2401) et en forçant le taux de rafraîchissement de la fenêtre d'affichage à 120Hz. |
+
+</details>
+
+<details open>
+<summary>📦 Free Fire MAX&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Free Fire MAX 120 FPS & Device Model Spoof (Experimental)](#free-fire-max-120-fps-device-model-spoof-experimental) | ⚠️ [Expérimental / Risque de ban en ligne] Débloque l'option 120 FPS / Taux de rafraîchissement élevé dans Free Fire MAX en simulant un modèle d'appareil gaming supporté (ASUS ROG Phone 8 Pro / ASUS_AI2401) et en forçant le taux de rafraîchissement de la fenêtre d'affichage à 120Hz. |
+
+</details>
+
+<details open>
 <summary>📦 Fruit Ninja&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -458,13 +479,14 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 </details>
 
 <details open>
-<summary>📦 Google Drive&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Google Drive&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | [AMOLED Dark Theme & Declutter - Google Drive (Experimental)](#amoled-dark-theme-declutter-google-drive-experimental) | ⚠️ [En cours de développement / Non testé] Forces pure OLED pitch black (#000000) across Google Drive file lists, folder navigation, status bars, and navigation bars, eliminating dark gray tint for maximum OLED power savings. |
 | [Allow Screenshots & Secure Share - Google Drive (Experimental)](#allow-screenshots-secure-share-google-drive-experimental) | ⚠️ [En cours de développement / Non testé] Removes Android FLAG_SECURE window restrictions in Google Drive to permit taking screenshots and screen recordings of documents, spreadsheets, and presentation previews. |
+| [Unlock View-Only Download & Export Restrictions - Google Drive (Experimental)](#unlock-view-only-download-export-restrictions-google-drive-experimental) | ⚠️ [En cours de développement / Non testé] Bypasses 'Viewers cannot download, print, or copy' restrictions on shared Google Drive files, re-enabling the download, save, print, and export menu actions for protected documents and PDFs. |
 
 </details>
 
@@ -481,13 +503,15 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 </details>
 
 <details open>
-<summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | [AMOLED Black Navigation - Google Maps (Experimental)](#amoled-black-navigation-google-maps-experimental) | ⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into navigation mode and map exploration screens to minimize battery consumption and glare. |
 | [Always Show Speedometer & Compass - Google Maps (Experimental)](#always-show-speedometer-compass-google-maps-experimental) | ⚠️ [En cours de développement / Non testé] Forces the real-time GPS speedometer and compass navigation overlay to stay permanently visible on screen regardless of speed or route type. |
+| [Block Sponsored Pins & Search Ads - Google Maps (Experimental)](#block-sponsored-pins-search-ads-google-maps-experimental) | ⚠️ [En cours de développement / Non testé] Removes sponsored pins (promoted logos and commercial icons on the map), search suggestion ads, promoted place suggestions, and explore feed ads. |
+| [Navigation Supercharged: Speed Cameras & Auto-Zoom Lock - Google Maps (Experimental)](#navigation-supercharged-speed-cameras-auto-zoom-lock-google-maps-experimental) | ⚠️ [En cours de développement / Non testé] Forces persistent speed camera & radar audio alerts, prevents high-speed auto-zoom out to keep your chosen map view, and keeps the screen awake during route guidance. |
 
 </details>
 
@@ -570,6 +594,86 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 |----------|----------------|
 | [Fast Gold Rush - Hungry Shark (Experimental)](#fast-gold-rush-hungry-shark-experimental) | ⚠️ [En cours de développement / Non testé] Accelerates Gold Rush gauge filling in Hungry Shark World and Evolution, triggering frenzy coin multipliers and invulnerability much faster. (Experimental - Not yet tested on device). |
 | [Infinite Boost - Hungry Shark (Experimental)](#infinite-boost-hungry-shark-experimental) | ⚠️ [En cours de développement / Non testé] Disables boost meter depletion in Hungry Shark World and Hungry Shark Evolution, granting unlimited turbo swimming and continuous dash attacks without waiting for recharge. (Experimental - Not yet tested on device). |
+
+</details>
+
+<details open>
+<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;71 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Add settings - Instagram (Experimental)](#add-settings-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds settings to control preferences are patching |
+| [Allow user network certificate - Instagram (Experimental)](#allow-user-network-certificate-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Allows user network certificate for whitehat testing |
+| [Anti-Distraction UI & Declutter - Instagram (Experimental)](#anti-distraction-ui-declutter-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Hides Reels tab button, hides 'Suggested Posts' ('You're all caught up'), hides Shop tab, and hides explore distractions. |
+| [Block Ads & Sponsored Content - Instagram (Experimental)](#block-ads-sponsored-content-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Strips sponsored feed posts, sponsored stories, promoted reels, and shopping tags in Instagram. |
+| [Change like animation - Instagram (Experimental)](#change-like-animation-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Change the animation to one from existing Rings like animations |
+| [Change version code - Instagram (Experimental)](#change-version-code-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Changes the version code of the app. This will turn off app store updates and allows downgrading an existing app install to an older app version. |
+| [Clone - Instagram (Experimental)](#clone-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Changes the package name and the app name. This allows you to install the patched app alongside the original Instagram app. Caution: Do not select the official Morphe's "Change package name" universal patch. |
+| [Copy Captions & Comments - Instagram (Experimental)](#copy-captions-comments-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enables text selection and direct clipboard copying on post captions, user biographies, and comments. |
+| [Copy comment - Instagram (Experimental)](#copy-comment-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds a button to copy comments on posts and reels. |
+| [Custom sharing domain - Instagram (Experimental)](#custom-sharing-domain-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Allows for using custom domains when sharing posts, reels and stories. |
+| [Customise story ring size - Instagram (Experimental)](#customise-story-ring-size-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Customise story timestamp - Instagram (Experimental)](#customise-story-timestamp-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Customise the timestamp that shows when the story was posted |
+| [Disable Double Tap To Like - Instagram (Experimental)](#disable-double-tap-to-like-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Disables accidental double-tap gestures that trigger likes on feed photos, videos, and reels while scrolling or zooming. |
+| [Disable Reels scrolling - Instagram (Experimental)](#disable-reels-scrolling-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds. |
+| [Disable Screenshot Detection & Vanish Alert - Instagram (Experimental)](#disable-screenshot-detection-vanish-alert-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Silently disables screenshot notifications in disappearing messages, view-once media, and vanish mode, and unlocks screen recording across all Instagram DMs. |
+| [Disable ads - Instagram (Experimental)](#disable-ads-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Disable analytics - Instagram (Experimental)](#disable-analytics-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Block analytics that are sent to Instagram/Facebook servers. |
+| [Disable comments - Instagram (Experimental)](#disable-comments-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Disable discover people - Instagram (Experimental)](#disable-discover-people-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Disables discover people section on user profile |
+| [Disable double tap like - Instagram (Experimental)](#disable-double-tap-like-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Disable double tap like on post, reel, comment and message |
+| [Disable explore - Instagram (Experimental)](#disable-explore-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Disable highlights - Instagram (Experimental)](#disable-highlights-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Disable onboarding permission prompts - Instagram (Experimental)](#disable-onboarding-permission-prompts-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Prevents contacts and location permission onboarding prompts from appearing. |
+| [Disable screenshot detection - Instagram (Experimental)](#disable-screenshot-detection-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Disables screenshots detection in DM |
+| [Disable stories - Instagram (Experimental)](#disable-stories-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Disable story flipping - Instagram (Experimental)](#disable-story-flipping-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Disable automatic flipping/moving to next story |
+| [Disable swipe to create - Instagram (Experimental)](#disable-swipe-to-create-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Prevents opening the creation screen by swiping right on the home tab. |
+| [Disable typing status - Instagram (Experimental)](#disable-typing-status-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Disable video autoplay - Instagram (Experimental)](#disable-video-autoplay-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Download media - Instagram (Experimental)](#download-media-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds ability to download posts, reels, stories and highlights |
+| [Download voice message - Instagram (Experimental)](#download-voice-message-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enables ability to download voice messages |
+| [External downloader - Instagram (Experimental)](#external-downloader-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds support to share post links directly to external downloader |
+| [Filter stories - Instagram (Experimental)](#filter-stories-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Filter stories to hide based on different categories |
+| [Friendship status indicator - Instagram (Experimental)](#friendship-status-indicator-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds a follows you back status label on the profile page andshows a detailed friendship status breakdown on click |
+| [Ghost Privacy Mode: Anonymous DMs & Stories - Instagram (Experimental)](#ghost-privacy-mode-anonymous-dms-stories-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Disables 'Seen' receipts in Direct Messages, hides story viewed tracking, silences live stream join broadcasts, and hides DM typing indicator. |
+| [Hide group creation button on sharesheet - Instagram (Experimental)](#hide-group-creation-button-on-sharesheet-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Hide navigation buttons - Instagram (Experimental)](#hide-navigation-buttons-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Hides navigation bar buttons, such as the Reels and Create button. |
+| [Hide notes tray - Instagram (Experimental)](#hide-notes-tray-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Hides notes tray in DM section |
+| [Hide reshare button - Instagram (Experimental)](#hide-reshare-button-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Hides the reshare button from both posts and reels. |
+| [Hide stories tray - Instagram (Experimental)](#hide-stories-tray-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Hides stories tray from main feed. |
+| [Hide suggested content - Instagram (Experimental)](#hide-suggested-content-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Hides suggested stories, reels, threads (Suggested posts will still be shown). |
+| [Improve image viewing - Instagram (Experimental)](#improve-image-viewing-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Fetches max resolution images from server. |
+| [Limit feed to following profiles - Instagram (Experimental)](#limit-feed-to-following-profiles-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Filters the home feed to display only content from profiles you follow. |
+| [Loop story - Instagram (Experimental)](#loop-story-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Replay the current story when it ends |
+| [Make ephemeral media permanent - Instagram (Experimental)](#make-ephemeral-media-permanent-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Changes unexpired view once, view twice media to permanent view. |
+| [Mark chat as read manually - Instagram (Experimental)](#mark-chat-as-read-manually-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds option to mark a thread aka message as read manually |
+| [Media Downloader & Uncompressed Media Upload - Instagram (Experimental)](#media-downloader-uncompressed-media-upload-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enables downloading original high-resolution photos, reels, stories, and voice messages without watermarks, and bypasses image/video compression downscalers on upload. |
+| [More options on post - Instagram (Experimental)](#more-options-on-post-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc |
+| [More options on profile - Instagram (Experimental)](#more-options-on-profile-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds a new button to handle user related data like copy handle, download profile picture etc |
+| [Open links externally - Instagram (Experimental)](#open-links-externally-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Changes links to always open in your external browser, instead of the in-app browser. |
+| [Pure AMOLED Black Theme - Instagram (Experimental)](#pure-amoled-black-theme-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Injects pure pitch-black (#000000) for OLED displays across main feed, reels, direct messages, stories bar, and profile in Instagram. |
+| [Recommended flags - Instagram (Experimental)](#recommended-flags-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Developer flags suggested by the community |
+| [Reels Seekbar & Fast-Forward Scrubbing - Instagram (Experimental)](#reels-seekbar-fast-forward-scrubbing-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Forces the interactive seekbar / progress bar to always display on Reels, allowing users to freely scrub, fast-forward, and rewind any Instagram Reel without waiting for it to loop. |
+| [Remove build expired popup - Instagram (Experimental)](#remove-build-expired-popup-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Removes the popup that appears after a while, when the app version ages. |
+| [Remove empty bottom space - Instagram (Experimental)](#remove-empty-bottom-space-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Removes empty space below bottom navigation bar |
+| [Sanitize Share Links & Open in External Browser - Instagram (Experimental)](#sanitize-share-links-open-in-external-browser-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Strips telemetry tracking parameters (?igsh=..., ?utm_...) from copied and shared Instagram URLs, and opens external web links directly in the system default browser instead of the in-app browser. |
+| [Sanitize share links - Instagram (Experimental)](#sanitize-share-links-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Save deleted messages - Instagram (Experimental)](#save-deleted-messages-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Captures incoming DMs locally as they arrive from the server and marks them when the sender deletes them. |
+| [Save media comment - Instagram (Experimental)](#save-media-comment-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds a button to save media comments on posts and reels. |
+| [Stories audio autoplay - Instagram (Experimental)](#stories-audio-autoplay-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [Theme - Instagram (Experimental)](#theme-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Adds Material You and AMOLED controls to Piko settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an optional AMOLED theme. |
+| [Unlock Developer Options & Quick Experiments - Instagram (Experimental)](#unlock-developer-options-quick-experiments-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks Meta internal Employee Developer Options, Debug Mode, and Quick Experiment (QE) override menus in Instagram by long-pressing the home button or opening settings. |
+| [Unlock Instagram Plus & Client Entitlements - Instagram (Experimental)](#unlock-instagram-plus-client-entitlements-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Locally unlocks Instagram Plus subscription benefits, custom app launcher icons, enhanced 60 FPS story rendering, and extended multi-media carousel limits. |
+| [Unlock Plus benefits - Instagram (Experimental)](#unlock-plus-benefits-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks 'Plus' subscription benefits that are checked locally. USE IT AT YOUR OWN RISK |
+| [Unlock developer options - Instagram (Experimental)](#unlock-developer-options-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks developer option by long pressing home icon |
+| [Unlock employee options - Instagram (Experimental)](#unlock-employee-options-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks all options using by employee for debugging |
+| [Validate links - Instagram (Experimental)](#validate-links-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Fixes app crashing issue while opening links from a different app |
+| [View DMs anonymously - Instagram (Experimental)](#view-dms-anonymously-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [View live anonymously - Instagram (Experimental)](#view-live-anonymously-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [View stories anonymously - Instagram (Experimental)](#view-stories-anonymously-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Enhances application behavior and unlocks additional user controls. |
+| [View story mentions - Instagram (Experimental)](#view-story-mentions-instagram-experimental) | ⚠️ [En cours de développement / Non testé] Add option to view visible and hidden story mentions. |
 
 </details>
 
@@ -669,11 +773,12 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 </details>
 
 <details open>
-<summary>📦 Photomath&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Photomath&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
+| [Ad-Free & Unlock Animated Step Solutions - Photomath (Experimental)](#ad-free-unlock-animated-step-solutions-photomath-experimental) | ⚠️ [En cours de développement / Non testé] Blocks ads and unlocks deep step-by-step animated explanations, textbook geometry solutions, and calculation tips in Photomath. |
 | [Unlock Photomath Plus - Photomath (Experimental)](#unlock-photomath-plus-photomath-experimental) | ⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app subscription verification for Photomath Plus (detailed math explanations, animated tutorials, and textbook solutions). |
 
 </details>
@@ -697,6 +802,32 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 | [Block Promoted Pins & Ads - Pinterest (Experimental)](#block-promoted-pins-ads-pinterest-experimental) | ⚠️ [En cours de développement / Non testé] Strips sponsored / promoted pins from the home and search feeds, shopping recommendation popups, and interstitial ad banners by neutralizing ad SDK calls. |
 | [Direct Media Download - Pinterest (Experimental)](#direct-media-download-pinterest-experimental) | ⚠️ [En cours de développement / Non testé] Enables native high-resolution image and video downloading directly from pins without watermarks or third-party scrapers. |
 | [Unlock Creator & Pro Tools - Pinterest (Experimental)](#unlock-creator-pro-tools-pinterest-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks Pinterest Creator and Pro business dashboard analytics, advanced pin inspector, and rich pin creation preview tools. |
+
+</details>
+
+<details open>
+<summary>📦 Plague Inc.&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlimited DNA Points & Fast Mutation - Plague Inc. (Experimental)](#unlimited-dna-points-fast-mutation-plague-inc-experimental) | ⚠️ [En cours de développement / Non testé] Hooks DNA points balance getter to provide 9999 DNA points and multiplies DNA points earned on orange and red biohazard bubble pops. |
+| [Unlock All Genetic Genes - Plague Inc. (Experimental)](#unlock-all-genetic-genes-plague-inc-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks all 5 categories of genetic modification genes (DNA genes, Travel genes, Evolution genes, Mutation genes, Environment genes) for every plague. |
+| [Unlock All Plagues & Disease Types - Plague Inc. (Experimental)](#unlock-all-plagues-disease-types-plague-inc-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks all standard disease types (Bacteria, Virus, Fungus, Parasite, Prion, Nano-Virus, Bio-Weapon) and special plagues (Neurax Worm, Necroa Virus, Simian Flu, Shadow Plague) without Brutal completion. |
+| [Unlock Scenarios & Full Expansion - Plague Inc. (Experimental)](#unlock-scenarios-full-expansion-plague-inc-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks Official Scenarios, Custom Scenario Creator, Speed Runs, and Fast Forward (speed 3x) by hooking Google Play Billing and expansion license checks. |
+
+</details>
+
+<details open>
+<summary>📦 Plague Inc. (Ndemic)&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlimited DNA Points & Fast Mutation - Plague Inc. (Experimental)](#unlimited-dna-points-fast-mutation-plague-inc-experimental) | ⚠️ [En cours de développement / Non testé] Hooks DNA points balance getter to provide 9999 DNA points and multiplies DNA points earned on orange and red biohazard bubble pops. |
+| [Unlock All Genetic Genes - Plague Inc. (Experimental)](#unlock-all-genetic-genes-plague-inc-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks all 5 categories of genetic modification genes (DNA genes, Travel genes, Evolution genes, Mutation genes, Environment genes) for every plague. |
+| [Unlock All Plagues & Disease Types - Plague Inc. (Experimental)](#unlock-all-plagues-disease-types-plague-inc-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks all standard disease types (Bacteria, Virus, Fungus, Parasite, Prion, Nano-Virus, Bio-Weapon) and special plagues (Neurax Worm, Necroa Virus, Simian Flu, Shadow Plague) without Brutal completion. |
+| [Unlock Scenarios & Full Expansion - Plague Inc. (Experimental)](#unlock-scenarios-full-expansion-plague-inc-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks Official Scenarios, Custom Scenario Creator, Speed Runs, and Fast Forward (speed 3x) by hooking Google Play Billing and expansion license checks. |
 
 </details>
 
@@ -736,12 +867,14 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 </details>
 
 <details open>
-<summary>📦 Proton Pass&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Proton Pass&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | [AMOLED Black & Declutter - Proton Pass (Experimental)](#amoled-black-declutter-proton-pass-experimental) | ⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into Proton Pass vaults and hides Proton Pass Plus upgrade banners and promotional popups. |
+| [Allow Screenshots & Screen Recording - Proton Pass (Experimental)](#allow-screenshots-screen-recording-proton-pass-experimental) | ⚠️ [En cours de développement / Non testé] Bypasses Android WindowManager FLAG_SECURE restrictions in Proton Pass, allowing you to take screenshots or record screens of recovery keys, 2FA QR codes, and credentials. |
+| [Unlock Pro Vaults & 2FA Authenticator - Proton Pass (Experimental)](#unlock-pro-vaults-2fa-authenticator-proton-pass-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks client-side Proton Pass Plus capabilities: built-in 2FA TOTP authenticator generation, unlimited custom vaults, custom item fields, and disables upgrade lock screens. |
 
 </details>
 
@@ -758,6 +891,41 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 | [Enhanced Privacy & Telemetry Blocker - Proton VPN (Experimental)](#enhanced-privacy-telemetry-blocker-proton-vpn-experimental) | ⚠️ [En cours de développement / Non testé] Blocks diagnostic telemetry, analytical event reporting (Firebase, Sentry, Mixpanel, Matomo), and crashlytics logging for zero metadata leakage. |
 | [Unlock Custom DNS Settings - Proton VPN (Experimental)](#unlock-custom-dns-settings-proton-vpn-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks custom upstream DNS resolver preferences (NextDNS, AdGuard DNS, Quad9) in Proton VPN settings without subscription restrictions. |
 | [Unlock NetShield DNS Blocker - Proton VPN (Experimental)](#unlock-netshield-dns-blocker-proton-vpn-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks the NetShield DNS ad & malware blocking toggle in Proton VPN preferences without requiring a Plus subscription. |
+
+</details>
+
+<details open>
+<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;26 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [App icon - Reddit (Experimental)](#app-icon-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to select from the Reddit app icons available in the manifest. |
+| [Block Promoted Posts & Ads - Reddit (Experimental)](#block-promoted-posts-ads-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Strips Promoted posts, sponsored comment ads, promoted user carousels, and in-feed commercial cards in Reddit. |
+| [Bypass NSFW Blur & Warning Dialogs - Reddit (Experimental)](#bypass-nsfw-blur-warning-dialogs-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Automatically unblurs mature/NSFW media thumbnails and bypasses annoying confirmation dialogs for adult communities in Reddit. |
+| [Custom branding name for Reddit - Reddit (Experimental)](#custom-branding-name-for-reddit-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Changes the Reddit app name to the name specified in patch options. |
+| [Custom font - Reddit (Experimental)](#custom-font-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime. |
+| [Declutter Feed & Hide Recommendations - Reddit (Experimental)](#declutter-feed-hide-recommendations-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Hides 'Because you visited...', 'Communities you may like', 'Popular near you', awards animations, and live RPAN stream banners in Reddit. |
+| [Disable modern home - Reddit (Experimental)](#disable-modern-home-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier. |
+| [Disable screenshot popup - Reddit (Experimental)](#disable-screenshot-popup-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable the popup that appears when taking a screenshot. |
+| [Force system font - Reddit (Experimental)](#force-system-font-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto. |
+| [Hide Ask button - Reddit (Experimental)](#hide-ask-button-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide Ask button in the search bar. |
+| [Hide Reddit search - Reddit (Experimental)](#hide-reddit-search-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting |
+| [Hide Trending shelves - Reddit (Experimental)](#hide-trending-shelves-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide the Trending shelves from feed and search suggestions. |
+| [Hide ads - Reddit (Experimental)](#hide-ads-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide ads. |
+| [Hide communities shelf - Reddit (Experimental)](#hide-communities-shelf-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide the related or suggested communities shelf in subreddits. |
+| [Hide navigation buttons - Reddit (Experimental)](#hide-navigation-buttons-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide buttons in the navigation bar. |
+| [Hide sidebar components - Reddit (Experimental)](#hide-sidebar-components-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide the sidebar components. |
+| [Open links directly - Reddit (Experimental)](#open-links-directly-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to skip over redirection URLs in external links. |
+| [Open links externally - Reddit (Experimental)](#open-links-externally-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to always open links in your browser instead of with the in-app-browser. |
+| [Pure AMOLED Black Theme - Reddit (Experimental)](#pure-amoled-black-theme-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Injects pure pitch-black (#000000) for OLED screens across feeds, post viewer, comments, and drawer in Reddit. |
+| [Remove subreddit dialog - Reddit (Experimental)](#remove-subreddit-dialog-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically. |
+| [Sanitize Links & Open Externally - Reddit (Experimental)](#sanitize-links-open-externally-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Strips telemetry tracking params (utm_source, out.reddit.com redirects) and opens external links directly in the user's default browser. |
+| [Sanitize sharing links - Reddit (Experimental)](#sanitize-sharing-links-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to sanitize sharing links by removing tracking query parameters. |
+| [Show view count - Reddit (Experimental)](#show-view-count-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to show the view count of Posts. |
+| [Spoof signature - Reddit (Experimental)](#spoof-signature-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Spoofs the signature of the app to fix notification issues. |
+| [Start as guest - Reddit (Experimental)](#start-as-guest-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Skips the forced startup login screen using Reddit's native guest browsing mode. |
+| [Unlock Reddit Premium & Custom App Icons - Reddit (Experimental)](#unlock-reddit-premium-custom-app-icons-reddit-experimental) | ⚠️ [En cours de développement / Non testé] Locally unlocks Reddit Premium status, unlocks exclusive custom application launcher icons (Doge, Retro, Neon, Gold), and removes Premium promotional prompts. |
 
 </details>
 
@@ -939,7 +1107,7 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 |----------|----------------|
 | [Spicetify AMOLED Black Theme - Spotify (Experimental)](#spicetify-amoled-black-theme-spotify-experimental) | ⚠️ [En cours de développement / Non testé] Implements an OLED True Black (#000000) theme for Spotify Mobile, replacing dark-grey backgrounds on AMOLED displays for maximum contrast and battery savings across updates. |
 | [Spicetify Community Addons & Settings - Spotify (Experimental)](#spicetify-community-addons-settings-spotify-experimental) | ⚠️ [En cours de développement / Non testé] Attempts to expose developer lab flags. NOTE: Spicetify extensions are made for Desktop and cannot run natively on Android without an LSPosed/Xposed framework. |
-| [Spicetify Custom Accent Color - Spotify (Experimental)](#spicetify-custom-accent-color-spotify-experimental) | ⚠️ [En cours de développement / Non testé] Replaces the default Spotify green (#1DB954) with custom theme accents (Purple, Cyan, Crimson, Gold) resilient across weekly updates. |
+| [Spicetify Custom Accent Color - Spotify (Experimental)](#spicetify-custom-accent-color-spotify-experimental) | ⚠️ [En cours de développement / Non testé] Replaces Spotify brand green (#1DB954 / #1ED760) with custom Cyberpunk Electric Purple (#8A2BE2) across obfuscated bytecode, string tables, and color models. |
 | [Spicetify Declutter UI - Spotify (Experimental)](#spicetify-declutter-ui-spotify-experimental) | ⚠️ [En cours de développement / Non testé] Attempts to hide Premium upgrade prompts and promotional elements. NOTE: Spotify uses server-driven UI and code obfuscation; some banners are injected directly from Spotify backend. |
 | [Unlock Spotify Premium & Playback Restrictions - Spotify (Experimental)](#unlock-spotify-premium-playback-restrictions-spotify-experimental) | ⚠️ [En cours de développement / Non testé] Débloque les fonctionnalités Premium sur Spotify : zapping illimité (skips), lecture à la demande sans mode aléatoire forcé (no shuffle), recherche libre sur la barre de lecture (scrubbing/seeking), répétition de pistes et suppression des publicités audio/visuelles. |
 
@@ -1074,6 +1242,21 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 </details>
 
 <details open>
+<summary>📦 Undercover&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [AMOLED Dark Theme & Privacy - Undercover (Experimental)](#amoled-dark-theme-privacy-undercover-experimental) | ⚠️ [En cours de développement / Non testé] Enforces dark mode and strips analytics telemetry (Firebase Analytics, App Measurement) in Undercover. |
+| [Block Ads & Commercials - Undercover (Experimental)](#block-ads-commercials-undercover-experimental) | ⚠️ [En cours de développement / Non testé] Strips interstitial video ads between rounds, banner ads in lobby and voting screens, and rewarded video gates by neutralizing ad SDK calls. |
+| [Block Cookie & Consent Banner - Undercover (Experimental)](#block-cookie-consent-banner-undercover-experimental) | ⚠️ [En cours de développement / Non testé] Blocks and removes the GDPR / Google UMP Cookie consent dialog on first launch by spoofing consent status as OBTAINED and neutralizing consent form presentation. |
+| [Unlock Advanced Game Settings - Undercover (Experimental)](#unlock-advanced-game-settings-undercover-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks advanced game configuration (custom player counts, exact role distribution sliders for Civilians, Undercover agents, and Mr. White, custom discussion timers, and voting rules). |
+| [Unlock All Word Packs & Premium - Undercover (Experimental)](#unlock-all-word-packs-premium-undercover-experimental) | ⚠️ [En cours de développement / Non testé] Hooks in-app purchase verification, pack enums, and preference stores to unlock all premium word packs (Adult 18+, Pop Culture, Geek, Cinema, Science & History, 50+ languages) and remove all paywalls. |
+| [Unlock Custom Words Creator - Undercover (Experimental)](#unlock-custom-words-creator-undercover-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks the custom word pack creator allowing players to create, save, and edit unlimited secret word pairs and custom clue databases without subscription restrictions. |
+
+</details>
+
+<details open>
 <summary>📦 Vector 2&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
@@ -1087,11 +1270,13 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 </details>
 
 <details open>
-<summary>📦 VLC&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 VLC&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
+| [200% Volume Boost & Audio Gain - VLC (Experimental)](#200-volume-boost-audio-gain-vlc-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks 200% volume amplification (software preamp gain up to +12dB) for low-volume videos/audio and prevents volume ducking on notifications. |
+| [Background Playback & Universal PIP - VLC (Experimental)](#background-playback-universal-pip-vlc-experimental) | ⚠️ [En cours de développement / Non testé] Forces background audio playback and automatic Picture-in-Picture (PIP) for all videos and audio streams when switching apps or minimizing VLC. |
 | [Pure AMOLED Dark Theme & Declutter - VLC (Experimental)](#pure-amoled-dark-theme-declutter-vlc-experimental) | ⚠️ [En cours de développement / Non testé] Forces a pitch-black AMOLED dark theme, hides tips and audio/video discovery clutter across the VLC player UI. |
 
 </details>
@@ -1133,11 +1318,12 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 </details>
 
 <details open>
-<summary>📦 Windy.com&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Windy.com&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
+| [120 FPS Smooth Radar Animations - Windy.com (Experimental)](#120-fps-smooth-radar-animations-windy-com-experimental) | ⚠️ [En cours de développement / Non testé] Forces 120Hz display refresh rate and unlocks high-framerate wind particle simulations and smooth satellite weather animation layers in Windy. |
 | [Unlock Windy Premium - Windy.com (Experimental)](#unlock-windy-premium-windy-com-experimental) | ⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for Windy Premium (1-hour forecast resolution, extended forecasts, and high-res satellite radar archive). |
 
 </details>
@@ -1150,6 +1336,121 @@ Un problème constaté ou vous souhaitez qu'un patch expérimental fonctionne en
 |----------|----------------|
 | [Block Ads & Video Interruptions - World Map Quiz (Experimental)](#block-ads-video-interruptions-world-map-quiz-experimental) | ⚠️ [En cours de développement / Non testé] Eliminates full-screen interstitial video ads between quiz rounds, bottom banners, and promotional reward prompts in World Map Quiz. |
 | [Unlock Premium & Unlimited Hints - World Map Quiz (Experimental)](#unlock-premium-unlimited-hints-world-map-quiz-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks the Premium edition, all continental maps, flag & capital quiz modes, and provides unlimited hint tokens in World Map Quiz by hooking Google Play Billing and purchase listeners. |
+
+</details>
+
+<details open>
+<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;106 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Add to queue - YouTube (Experimental)](#add-to-queue-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Overrides the feed flyout 'Play next in queue' with the Morphe video queue. |
+| [Alternative thumbnails - YouTube (Experimental)](#alternative-thumbnails-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to replace video thumbnails using the DeArrow API or image captures from the video. |
+| [Ambient mode - YouTube (Experimental)](#ambient-mode-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen. |
+| [App refresh rate - YouTube (Experimental)](#app-refresh-rate-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to change the app refresh rate. |
+| [Background & PiP Playback - YouTube (Experimental)](#background-pip-playback-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Enables background audio playback when the screen is locked or switching between apps, and unlocks Picture-in-Picture (PiP) mode without YouTube Premium. |
+| [Block Video & Feed Ads - YouTube (Experimental)](#block-video-feed-ads-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Strips pre-roll and mid-roll video advertisements, home feed sponsored cards, search result ads, shorts ads, and info card promos in YouTube. |
+| [Bypass image region restrictions - YouTube (Experimental)](#bypass-image-region-restrictions-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries. |
+| [Bypass link redirects - YouTube (Experimental)](#bypass-link-redirects-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to bypass redirects and open the original link directly. |
+| [Captions - YouTube (Experimental)](#captions-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable captions from being automatically enabled or to set caption cookies. |
+| [Change form factor - YouTube (Experimental)](#change-form-factor-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to change the UI appearance to a phone, tablet, or automotive device. |
+| [Change header - YouTube (Experimental)](#change-header-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to change the header logo in the top left corner of the app. |
+| [Change start page - YouTube (Experimental)](#change-start-page-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to set which page the app opens in instead of the homepage. |
+| [Channel search - YouTube (Experimental)](#channel-search-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to search inside the channel that is currently open instead of searching all of YouTube. |
+| [Check watch history domain name resolution - YouTube (Experimental)](#check-watch-history-domain-name-resolution-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Checks if the device DNS server is preventing user watch history from being saved. |
+| [Copy Video URL With Timestamp - YouTube (Experimental)](#copy-video-url-with-timestamp-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds a convenient option to copy the current video URL with the exact playback timestamp (?t=...) directly to the clipboard. |
+| [Copy video link - YouTube (Experimental)](#copy-video-link-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to display buttons in the video player to copy video links. |
+| [Custom Playback Speed & High-Res Audio - YouTube (Experimental)](#custom-playback-speed-high-res-audio-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Unlocks speed slider up to 3.0x/5.0x and forces highest audio bitrate (Opus 160kbps / 256kbps) and default highest video resolution (1080p/1440p/4K) on Wi-Fi and Cellular. |
+| [Custom branding - YouTube (Experimental)](#custom-branding-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings. |
+| [Custom player overlay opacity - YouTube (Experimental)](#custom-player-overlay-opacity-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to change the opacity of the video player background when player controls are visible. |
+| [Declutter UI & Remove Shorts - YouTube (Experimental)](#declutter-ui-remove-shorts-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Hides Shorts tab from bottom navigation bar, hides Shorts shelf from Home and Subscriptions feeds, hides Create button (+), hides Playables, and removes End Screen suggestions. |
+| [Disable DRC Audio (Dynamic Range Compression) - YouTube (Experimental)](#disable-drc-audio-dynamic-range-compression-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Disables dynamic range compression (DRC) in YouTube's audio engine, restoring original uncompressed audio dynamics, punchy bass, and full volume without artificial normalization. |
+| [Disable DRC audio - YouTube (Experimental)](#disable-drc-audio-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable DRC (Dynamic Range Compression) audio. |
+| [Disable QUIC Protocol - YouTube (Experimental)](#disable-quic-protocol-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Disables Google's experimental QUIC (HTTP/3) UDP network protocol in YouTube, forcing reliable HTTP/2 TCP streams to bypass carrier and ISP video throttling. |
+| [Disable Shorts resuming on startup - YouTube (Experimental)](#disable-shorts-resuming-on-startup-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched. |
+| [Disable auto feed refresh - YouTube (Experimental)](#disable-auto-feed-refresh-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to stop feeds from refreshing automatically after they become outdated. |
+| [Disable double tap actions - YouTube (Experimental)](#disable-double-tap-actions-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable player double tap gestures. |
+| [Disable fullscreen gestures - YouTube (Experimental)](#disable-fullscreen-gestures-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to selectively disable gestures for entering and exiting fullscreen mode, and to disable pinch-to-zoom. |
+| [Disable haptic feedback - YouTube (Experimental)](#disable-haptic-feedback-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable haptic feedback in the player for various actions. |
+| [Disable layout updates - YouTube (Experimental)](#disable-layout-updates-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable server side layout updates and use an older UI. |
+| [Disable player popup panels - YouTube (Experimental)](#disable-player-popup-panels-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable panels (such as live chat) from opening automatically. |
+| [Disable playlist autoplay - YouTube (Experimental)](#disable-playlist-autoplay-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to stop a playlist from automatically advancing to the next video. |
+| [Disable rolling number animations - YouTube (Experimental)](#disable-rolling-number-animations-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable rolling number animations of video view count, user likes, and upload time. |
+| [Disable scrolling speed limit - YouTube (Experimental)](#disable-scrolling-speed-limit-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to remove limits of how fast the home and subscription feed can be scrolled. |
+| [Disable sign in to TV popup - YouTube (Experimental)](#disable-sign-in-to-tv-popup-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to disable the popups asking to sign into or connect to a TV on the same local network. |
+| [Disable video codecs - YouTube (Experimental)](#disable-video-codecs-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to disable or force HDR, and to disable VP9 codecs. |
+| [Double tap to seek - YouTube (Experimental)](#double-tap-to-seek-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds additional double-tap to seek values to the YouTube settings menu. |
+| [Downloads - YouTube (Experimental)](#downloads-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds support to download videos with an external downloader app using the in-app download button or a video player action button. |
+| [Enable debugging - YouTube (Experimental)](#enable-debugging-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options for debugging and exporting Morphe logs to the clipboard. |
+| [Exit fullscreen mode - YouTube (Experimental)](#exit-fullscreen-mode-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to automatically exit fullscreen mode when a video reaches the end. |
+| [Fix Video Playback Buffer & Freeze - YouTube (Experimental)](#fix-video-playback-buffer-freeze-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Bypasses Google's video stream throttling and 1:00 min playback buffering freezes by spoofing client payload parameters (iOS/Android VR/TV client identifiers). |
+| [Fix Watch History & DNS Resolution - YouTube (Experimental)](#fix-watch-history-dns-resolution-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Fixes broken or paused watch history when using private DNS, Pi-hole, or adblocking resolvers by rerouting playback tracking endpoints directly to fallback servers. |
+| [Force Original Audio Language (Bypass Auto-Dubbing) - YouTube (Experimental)](#force-original-audio-language-bypass-auto-dubbing-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Forces YouTube to automatically play the creator's original authentic audio track, bypassing unwanted AI/human auto-dubbed voiceovers and language translations. |
+| [Force fullscreen landscape - YouTube (Experimental)](#force-fullscreen-landscape-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to rotate the player to landscape when entering fullscreen mode on tablets and other large screen devices. |
+| [Force original audio - YouTube (Experimental)](#force-original-audio-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to always use the original audio track. |
+| [Fullscreen video scale - YouTube (Experimental)](#fullscreen-video-scale-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to stretch or zoom videos to fill the screen in fullscreen mode. |
+| [GmsCore Support - YouTube (Experimental)](#gmscore-support-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Redirects Google Play Services and account authentication calls to GmsCore (MicroG / app.revanced.android.gms) to allow logging in to YouTube without root. |
+| [Hide Endscreen Cards & Suggestions - YouTube (Experimental)](#hide-endscreen-cards-suggestions-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Hides floating endscreen cards, suggested video boxes, channel stickers, and overlay elements that clutter the end of videos. |
+| [Hide Player Overlay Buttons (Cast, Autoplay, Remix) - YouTube (Experimental)](#hide-player-overlay-buttons-cast-autoplay-remix-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Hides unwanted player overlay buttons including Chromecast icon (prevents accidental casting), Autoplay toggle, Remix button, and Thanks button. |
+| [Hide Shorts components - YouTube (Experimental)](#hide-shorts-components-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide components related to Shorts. |
+| [Hide ads - YouTube (Experimental)](#hide-ads-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide general ads, Premium promotions and video ads. |
+| [Hide autoplay preview - YouTube (Experimental)](#hide-autoplay-preview-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide the autoplay preview at the end of videos. |
+| [Hide end screen cards - YouTube (Experimental)](#hide-end-screen-cards-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide suggested video cards at the end of videos. |
+| [Hide end screen suggested video - YouTube (Experimental)](#hide-end-screen-suggested-video-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide the suggested video at the end of videos. |
+| [Hide info cards - YouTube (Experimental)](#hide-info-cards-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide info cards that creators add in the video player. |
+| [Hide layout components - YouTube (Experimental)](#hide-layout-components-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide general layout components. |
+| [Hide player flyout menu components - YouTube (Experimental)](#hide-player-flyout-menu-components-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide menu components that appear when pressing the gear icon in the video player. |
+| [Hide player overlay buttons - YouTube (Experimental)](#hide-player-overlay-buttons-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and to hide or change the opacity of the player control buttons background. |
+| [Hide related video overlay - YouTube (Experimental)](#hide-related-video-overlay-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide the related video overlay shown when swiping up in fullscreen. |
+| [Hide related videos - YouTube (Experimental)](#hide-related-videos-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide related videos. |
+| [Hide status bar - YouTube (Experimental)](#hide-status-bar-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide the system status bar. Swipe down from the top edge to show it for a moment. |
+| [Hide timestamp - YouTube (Experimental)](#hide-timestamp-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide the timestamp in the bottom left of the video player. |
+| [Hide video action buttons - YouTube (Experimental)](#hide-video-action-buttons-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide video action buttons in fullscreen and portrait modes. |
+| [Loop video - YouTube (Experimental)](#loop-video-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to loop videos and display loop video button in the video player. |
+| [Media notification controls - YouTube (Experimental)](#media-notification-controls-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls. |
+| [Miniplayer - YouTube (Experimental)](#miniplayer-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from. |
+| [Mute button - YouTube (Experimental)](#mute-button-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to show a player button that mutes the video audio. |
+| [Navigation bar - YouTube (Experimental)](#navigation-bar-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to hide and change the bottom navigation bar (such as the Shorts button) and the upper navigation toolbar. |
+| [Network proxy - YouTube (Experimental)](#network-proxy-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices |
+| [Old Video Quality Menu - YouTube (Experimental)](#old-video-quality-menu-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Restores the classic direct video resolution menu (2160p, 1440p, 1080p, 720p, 480p), bypassing Google's simplified and confusing 'Higher picture quality / Data saver' sub-menus. |
+| [Open Shorts in regular player - YouTube (Experimental)](#open-shorts-in-regular-player-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to open Shorts in the regular video player. |
+| [Open channel of live avatar - YouTube (Experimental)](#open-channel-of-live-avatar-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to prevent a channel's current live video from opening when tapping its avatar. |
+| [Open links externally - YouTube (Experimental)](#open-links-externally-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to always open links in your browser instead of with the in-app browser. |
+| [Open system share sheet - YouTube (Experimental)](#open-system-share-sheet-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to always open the system share sheet instead of the in-app share sheet. |
+| [Open videos fullscreen - YouTube (Experimental)](#open-videos-fullscreen-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to automatically open videos in fullscreen portrait or landscape mode. |
+| [Override YouTube Music buttons - YouTube (Experimental)](#override-youtube-music-buttons-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client. |
+| [Picture-in-picture button - YouTube (Experimental)](#picture-in-picture-button-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to display a picture-in-picture button in the video player. |
+| [Play all - YouTube (Experimental)](#play-all-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to play all the videos from a channel and to display play all button in the video player. |
+| [Playback buffer - YouTube (Experimental)](#playback-buffer-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to change the video playback buffer size. |
+| [Playback in feeds - YouTube (Experimental)](#playback-in-feeds-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, where it is always available even if YouTube hides it. |
+| [Playback speed - YouTube (Experimental)](#playback-speed-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog button in the video player. |
+| [Player icon style - YouTube (Experimental)](#player-icon-style-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to change the style of the player button icons. |
+| [PoToken provider - YouTube (Experimental)](#potoken-provider-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds option to get PoToken using an external PoToken minter app. |
+| [Pure AMOLED Black Theme - YouTube (Experimental)](#pure-amoled-black-theme-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Injects pure pitch-black (#000000) into YouTube player controls, navigation bars, comments bottom sheets, and panels for AMOLED battery saving. |
+| [Reload video - YouTube (Experimental)](#reload-video-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to display reload video button in the video player. |
+| [Remember Video Quality - YouTube (Experimental)](#remember-video-quality-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Forces and locks preferred default video resolution (such as 1080p, 1440p, or 4K) separately for Wi-Fi and mobile cellular networks, overriding YouTube's adaptive downscaling. |
+| [Remember live stream playback position - YouTube (Experimental)](#remember-live-stream-playback-position-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to remember the playback position of an ongoing live stream and resume from there when reopening that live stream. |
+| [Remove background playback restrictions - YouTube (Experimental)](#remove-background-playback-restrictions-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Removes restrictions on background playback, including playing kids videos in the background. |
+| [Remove viewer discretion dialog - YouTube (Experimental)](#remove-viewer-discretion-dialog-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction. |
+| [Restore original titles - YouTube (Experimental)](#restore-original-titles-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to show the original video titles, video descriptions and channel descriptions instead of the auto-translated ones. |
+| [Return YouTube Dislike - YouTube (Experimental)](#return-youtube-dislike-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Restores public dislike counts and like/dislike ratio bars on YouTube videos and Shorts using the official Return YouTube Dislike (RYD) API. |
+| [Sanitize sharing links - YouTube (Experimental)](#sanitize-sharing-links-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Removes the tracking query parameters from shared links. |
+| [Save to Watch later - YouTube (Experimental)](#save-to-watch-later-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to display save to Watch later button in the video player. |
+| [Seekbar - YouTube (Experimental)](#seekbar-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in live streams, and expanding the live stream DVR duration. |
+| [Settings menu filter - YouTube (Experimental)](#settings-menu-filter-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to hide items on the standard YouTube settings screen by their visible name. |
+| [Shorts autoplay - YouTube (Experimental)](#shorts-autoplay-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to automatically play the next Short. |
+| [Shorts icon style - YouTube (Experimental)](#shorts-icon-style-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to change the style of the Shorts action button icons. |
+| [Sound Boost (Audio Gain Amplification) - YouTube (Experimental)](#sound-boost-audio-gain-amplification-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Amplifies YouTube audio playback volume with software gain booster up to 200% for quiet videos, recordings, and podcasts. |
+| [SponsorBlock - YouTube (Experimental)](#sponsorblock-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Automatically detects and skips sponsored video segments, sponsor intros/outros, self-promotions, interaction reminders, and filler music in YouTube videos via the community SponsorBlock API. |
+| [Spoof app version - YouTube (Experimental)](#spoof-app-version-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to trick the app into thinking you are running an older version. |
+| [Spoof device dimensions - YouTube (Experimental)](#spoof-device-dimensions-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to spoof the device dimensions which can unlock higher video qualities. |
+| [Spoof video streams - YouTube (Experimental)](#spoof-video-streams-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to spoof the client video streams to fix playback. |
+| [Swipe Controls - YouTube (Experimental)](#swipe-controls-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Enables intuitive vertical swipe gestures during fullscreen video playback to adjust volume (right side) and brightness (left side). |
+| [Theme - YouTube (Experimental)](#theme-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options for theming, and settings to change the app foreground and background colors. |
+| [Video quality - YouTube (Experimental)](#video-quality-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to set default video qualities and always use the advanced video quality menu. |
+| [Voice over translation - YouTube (Experimental)](#voice-over-translation-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds additional voice over languages using text-to-speech synchronized to the video playback. |
+| [Wide search bar - YouTube (Experimental)](#wide-search-bar-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds a wide search bar to the top of the home and subscription feed. |
 
 </details>
 

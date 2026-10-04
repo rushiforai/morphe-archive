@@ -121,8 +121,43 @@ public class UyuSettingsFragment extends PreferenceFragment {
     }
 
     private void addGeneralSettings(PreferenceScreen screen) {
+        Preference homeTab = new Preference(screen.getContext());
+        homeTab.setTitle("Default Home Tab");
+        homeTab.setSummary(homeTabName(Settings.DEFAULT_HOME_TAB.get()));
+        homeTab.setOnPreferenceClickListener(clicked -> {
+            Activity activity = getActivity();
+            if (activity == null) return true;
+            String[] names = {"Following", "Live", "Clips"};
+            String[] values = {"following", "live", "clips"};
+            String current = Settings.DEFAULT_HOME_TAB.get();
+            int selected = homeTabIndex(current);
+            new AlertDialog.Builder(activity)
+                    .setTitle("Default Home Tab")
+                    .setSingleChoiceItems(names, selected, (dialog, which) -> {
+                        Settings.DEFAULT_HOME_TAB.save(values[which]);
+                        homeTab.setSummary(names[which]);
+                        dialog.dismiss();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            return true;
+        });
+        screen.addPreference(homeTab);
+
         if (PatchStatus.autoClaimChannelPoints()) addSwitch(screen, Settings.AUTO_CLAIM_CHANNEL_POINTS,
                 "Auto claim channel points", "Claims the bonus chest on the channel you are watching.");
+    }
+
+    private static int homeTabIndex(String value) {
+        if ("live".equalsIgnoreCase(value)) return 1;
+        if ("clips".equalsIgnoreCase(value)) return 2;
+        return 0;
+    }
+
+    private static String homeTabName(String value) {
+        if ("live".equalsIgnoreCase(value)) return "Live";
+        if ("clips".equalsIgnoreCase(value)) return "Clips";
+        return "Following";
     }
 
     private void addAppearanceSettings(PreferenceScreen screen) {
@@ -215,9 +250,8 @@ public class UyuSettingsFragment extends PreferenceFragment {
     }
 
     private void addEmoteSettings(PreferenceScreen screen) {
-        addSwitch(screen, Settings.EMOTES_7TV, "7TV emotes", "Show global and channel 7TV emotes in live chat.");
-        addSwitch(screen, Settings.EMOTES_BTTV, "BTTV emotes", "Show global and channel BetterTTV emotes in live chat.");
-        addSwitch(screen, Settings.EMOTES_FFZ, "FFZ emotes", "Show global and channel FrankerFaceZ emotes in live chat.");
+        addSwitch(screen, Settings.EMOTES_THIRD_PARTY, "3rd party emotes",
+                "Show 7TV, BTTV and FFZ emotes in live chat.");
         addSwitch(screen, Settings.EMOTES_ANIMATED, "Animated emotes", "Play animated third-party emotes. Turn this off to use static frames.");
         addSwitch(screen, Settings.EMOTES_PICKER, "Third-party emote menu", "Show the separate Kizu third-party emote menu when the Twitch emote button is opened.");
         addSwitch(screen, Settings.EMOTES_AUTOCOMPLETE, "Third-party autocomplete", "Offer third-party emote names while typing in chat.");
@@ -227,6 +261,13 @@ public class UyuSettingsFragment extends PreferenceFragment {
     private void addChatSettings(PreferenceScreen screen) {
         addSwitch(screen, Settings.CHAT_DELETED_MESSAGES, "Deleted messages", "Control whether deleted chat messages remain visible locally.");
         addSwitch(screen, Settings.CHAT_TIMESTAMPS, "Chat timestamps", "Show timestamps on chat messages.");
+        addSwitch(screen, Settings.CHAT_MENTION_HIGHLIGHT, "Highlight on mention",
+                "Highlight chat messages that directly mention your account.");
+        addColor(screen, Settings.CHAT_MENTION_HIGHLIGHT_COLOR, "Highlight color");
+        addSwitch(screen, Settings.CHAT_MENTION_SOUND, "Play sound on mention",
+                "Play a short notification sound when a new chat message directly mentions your account.");
+        addSlider(screen, Settings.CHAT_MENTION_SOUND_COOLDOWN_MS, 1000, "Sound cooldown",
+                value -> value == 0 ? "No cooldown" : (value / 1000) + " seconds between sounds.");
         addSwitch(screen, Settings.LANDSCAPE_CHAT_SIZE_ENABLED, "Landscape chat size", "Use the custom landscape chat width.");
         addSlider(screen, Settings.LANDSCAPE_CHAT_SIZE, 5, "Landscape chat width", value -> value + "% of the screen");
         addSwitch(screen, Settings.LANDSCAPE_CHAT_OPACITY_ENABLED, "Landscape chat opacity", "Use the custom landscape chat opacity.");

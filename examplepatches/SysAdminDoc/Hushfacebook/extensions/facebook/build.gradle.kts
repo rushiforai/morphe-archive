@@ -216,6 +216,7 @@ dependencies {
     testImplementation(libs.kotlin.stdlib)
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation(libs.jna)
 }
 
 extension {
@@ -266,6 +267,7 @@ android {
                 .withPropertyName("patchSources")
                 .withPathSensitivity(PathSensitivity.RELATIVE)
             it.jvmArgs(
+                "--enable-native-access=ALL-UNNAMED",
                 "--add-opens=java.base/java.lang=ALL-UNNAMED",
                 "--add-opens=java.base/java.util=ALL-UNNAMED",
                 "--add-opens=java.base/java.io=ALL-UNNAMED",

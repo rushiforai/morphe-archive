@@ -1,3 +1,27 @@
+Importing new history ended Undo for the earlier clear. You can clear the imported history.	Durch den Import ist das Rückgängigmachen des früheren Löschens beendet. Du kannst den importierten Verlauf löschen.
+%1$d setting in that file can't be restored here and was skipped	%1$d Einstellung in der Datei kann hier nicht wiederhergestellt werden und wurde übersprungen
+%1$d settings in that file can't be restored here and were skipped	%1$d Einstellungen in der Datei können hier nicht wiederhergestellt werden und wurden übersprungen
+Import watch history	Wiedergabeverlauf importieren
+Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	Wähle den TikTok-JSON-Export dieses Kontos mit höchstens %1$s MB und %2$s Einträgen. Datumsangaben ohne Zeitzone verwenden die Zeitzone dieses Telefons.
+Sign in to TikTok before importing watch history.	Melde dich bei TikTok an, bevor du den Wiedergabeverlauf importierst.
+Your TikTok account changed. Choose the file again for this account.	Dein TikTok-Konto hat sich geändert. Wähle die Datei für dieses Konto erneut.
+Reading watch history	Wiedergabeverlauf wird gelesen
+Importing watch history	Wiedergabeverlauf wird importiert
+Reopen Hushfeed settings, then choose the file	Öffne die Hushfeed-Einstellungen erneut und wähle dann die Datei
+Couldn't start the import. Try again in a moment.	Der Import konnte nicht gestartet werden. Versuche es gleich noch einmal.
+Your seen history changed before the import finished. Choose the file again.	Dein Verlauf hat sich vor Abschluss des Imports geändert. Wähle die Datei erneut.
+Couldn't import watch history. Your saved history is unchanged.	Der Wiedergabeverlauf konnte nicht importiert werden. Dein gespeicherter Verlauf ist unverändert.
+%1$s watched video added.	%1$s angesehenes Video hinzugefügt.
+%1$s watched videos added.	%1$s angesehene Videos hinzugefügt.
+%1$s entry skipped.	%1$s Eintrag übersprungen.
+%1$s entries skipped.	%1$s Einträge übersprungen.
+Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos.	Übersprungene Einträge sind ungültig, abgelaufen, bereits gespeichert oder älter als die neuesten %1$s Videos.
+Watch history was imported for the account that chose the file. Switch back to see it.	Der Wiedergabeverlauf wurde für das Konto importiert, das die Datei gewählt hat. Wechsle zurück, um ihn zu sehen.
+Couldn't read that file. Choose it again.	Die Datei konnte nicht gelesen werden. Wähle sie erneut.
+That file is larger than %1$s MB. Choose a smaller watch-history export.	Die Datei ist größer als %1$s MB. Wähle einen kleineren Export des Wiedergabeverlaufs.
+That file has more than %1$s watch-history entries.	Die Datei enthält mehr als %1$s Einträge im Wiedergabeverlauf.
+That JSON file doesn't contain the supported TikTok watch history.	Diese JSON-Datei enthält keinen unterstützten TikTok-Wiedergabeverlauf.
+That watch-history file is damaged. Nothing was imported.	Die Datei mit dem Wiedergabeverlauf ist beschädigt. Es wurde nichts importiert.
 # Settings text, English on the left, German on the right, one entry per line, tab separated.
 # Keep %s and %d placeholders, {tokens} and product names as they are.
 # scripts/gen-l10n.py turns this into a table inside L10nTranslations.java.
@@ -1476,6 +1500,8 @@ Sends one message a day to each person below at the time below, so your streaks 
 Their usernames, separated by commas or new lines. Each person must already have a chat with you.	Ihre Benutzernamen, durch Kommas oder Zeilenumbrüche getrennt. Mit jeder Person muss bereits ein Chat bestehen.
 Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.	Zustellung unbestätigt: %1$d/%2$d Chats. Für diese Chats gibt es heute keinen weiteren Versuch.
 Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.	Zustellung unbestätigt: %1$d/%2$d Chats. Die übrigen Chats brauchen noch eine Nachricht.
+Sent to %1$d/%2$d chats. They won't get another message today.	An %1$d/%2$d Chats gesendet. Sie bekommen heute keine weitere Nachricht.
+Sent to %1$d/%2$d chats. The rest still need a message.	An %1$d/%2$d Chats gesendet. Die übrigen Chats brauchen noch eine Nachricht.
 TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.	TikTok hat diese Nachricht möglicherweise angenommen. Die Zustellung ist unbestätigt, deshalb wird sie heute nicht erneut versucht.
 Nothing was sent. Check the streak settings and try again.	Es wurde nichts gesendet. Prüfe die Streak-Einstellungen und versuche es erneut.
 Don't save new searches	Neue Suchen nicht speichern

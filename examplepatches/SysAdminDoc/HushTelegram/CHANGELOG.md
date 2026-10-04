@@ -2,6 +2,53 @@
 
 Every HushTelegram release, newest first.
 
+## 0.0.8 (2026-10-03)
+
+The third release, with 22 patches for telegram.org's Telegram 12.10.6 and the official Telegram beta 12.10.7.
+
+* **Telegram:** Use registered Telegram API credentials now works as an update over a build that used Telegram's own API ID. On its first start the patched app introduces itself to Telegram again with your ID, so login codes no longer fail with API_ID_INVALID.
+* **Telegram:** The Notifications page shows a read-only local status: whether notifications are allowed, whether a push token is saved, and how many signed-in accounts Telegram has confirmed for push. It reads what's already loaded, never asks for a new registration, and the diagnostic report gets the same counts without the token.
+* **Tooling:** Cached tests survive equivalent text line endings in temporary checkouts. Source changes still rerun the affected checks, and fixture bytes keep their exact comparisons. Isolated controls exercise cache reuse and invalidation through both real test tasks.
+* **Tooling:** The README's install steps point to the Download Telegram button on telegram.org/android and say the file saves as plain `Telegram.apk`, since nothing in its name says it's the 12.10.6 web build.
+* **Tooling:** The directory ledger records four confirmed HushTelegram listings. Only the Awesome Morphe request remains pending.
+
+* **Telegram:** Diagnostics match credential names encoded with JSON Unicode escapes. Backup imports reject invalid string escapes before changing preferences. Fixed-seed grammar checks cover preservation and idempotence. The expanded synthetic corpus also passes on Samsung's Android 16 runtime.
+
+* **Tooling:** Fixture tests reuse bounded query facts keyed by the exact APK content. Mutable test copies remain isolated, and changed fixtures invalidate retained facts. Both required targets pass the full suite, including collision and changed-content controls.
+
+* **Tooling:** First installations accept both genuine package-absence exit forms after exact-device and signer preflight. Ambiguous package-manager results still fail. Updates retain their signing and permission checks.
+
+* **Tooling:** Independent pushes and manual checks use separate commit snapshots and output directories. Every pushed commit keeps its required checks, and cleanup removes only its own temporary files.
+
+* **Tooling:** Native test fixtures now contain genuine stored ZIP entries on both supported PowerShell versions. Independent header and byte checks preserve the compression and alignment refusal tests.
+
+* **Tooling:** The settings and Android test result-listener graphs use reviewed Commons Lang 3.20.0 and HttpClient 4.5.14. Unrelated runtime requests and the shipped dependency inventory stay unchanged.
+
+* **Telegram:** Diagnostics remove named API identity values from multiline and reordered JSON, including escaped quotes. Counters and unrelated hashes stay intact.
+* **Tooling:** The current bundle uses Morphe Patcher 1.15.0, desktop CLI 1.18.0 and Manager 1.33.0. The settings and label compatibility checks cover the pinned internals, and both official Telegram targets remain supported. Manager 1.33 imported the bundle and applied all 22 patches on a phone.
+
+* **Tooling:** Native receipts reject ELF values outside their binary field widths and overflowing LOAD ranges, even when both library records agree. Exact boundary values and historical receipts remain valid on both supported PowerShell versions.
+
+* **Tooling:** Public summaries refuse destinations that reach a private report through a directory alias. Separate exports and hard links keep the private report intact. The checks pass on PowerShell 7 and Windows PowerShell 5.1.
+
+* **Telegram:** Diagnostics remove named API IDs and hashes, including quoted and escaped aliases, from events, crash sections, clipboard exports and files. Versions, counters and unrelated hashes remain readable. Synthetic canaries pass on the desktop runtime and Samsung's Android runtime.
+
+* **Tooling:** Fixture verification and receipt schema 4 require native-library preservation, relevant 64-bit ELF LOAD alignment and a successful 16 KB ZIP alignment check. Receipts record library hashes and compression with the checker and tool identities. Historical receipts retain their original schema rules. Changed or missing libraries and damaged alignment fail validation. Valid compressed libraries remain supported.
+
+* **Tooling:** Desktop patching scripts write a separate public summary with supported targets, catalog patch names and fixed failure codes. Raw CLI reports and configured APKs stay private. Credential canaries in options, names, targets and error fields are excluded, and bug instructions now request the safe summary.
+
+* **Tooling:** Device updates require an owned, unexpired lease and the expected device identity. Installed signing certificates and version codes are checked before installation, and updates preserve data and existing permissions. The script refuses the old uninstall option. Isolated checks cover refusal and command ordering, and a retained-key Samsung update kept its first-install identity and every permission grant and flag.
+
+* **Telegram:** Settings navigation and backups were checked on Samsung Android 16 at normal and 200% text. Matching imports, damaged-file recovery and Pause restart/resume kept saved choices intact. TalkBack reached all settings pages and exposed each switch's state.
+
+* **Telegram:** Two optional patch-time controls accept your own registered Telegram API ID/hash and Android Maps key. Unset options retain the original credentials. Incomplete API pairs and ambiguous Maps metadata are refused before editing.
+* **Telegram:** The restart notice now stays visible when it follows an informational row in settings.
+* **Tooling:** Source checks accept an explicit working version under Unreleased while published-release checks still require a dated entry.
+* **Telegram:** The official beta 12.10.7 joins the web 12.10.6 target. Each package has its own pinned fixture, version code and verified vendor signer. Build and release checks require both targets.
+
+* **Telegram:** A separate default-on switch stops the bottom pull gesture from opening the next unread broadcast channel. Ordinary scrolling and topic pulls keep their usual behavior.
+* **Telegram:** Repair Firebase push registration changes only the certificate header on the web and beta apps' Firebase Installations requests. Its switch and Pause restore the original header.
+
 ## 0.0.6 (2026-10-02)
 
 The second release, with 18 patches for telegram.org's Telegram 12.10.6. It also brings everything listed under 0.0.5.

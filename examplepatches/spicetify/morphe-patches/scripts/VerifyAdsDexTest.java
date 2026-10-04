@@ -50,15 +50,16 @@ class VerifyAdsDexTest {
         var code = List.<Instruction>of(
                 new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 4, 0, 0, 0, 0,
                         new ImmutableMethodReference("Lcom/spotify/scrollsita/v1/Section;",
-                                change == PlayerChange.GETTER ? "a0" : "Z", List.of(), "Z")),
+                                change == PlayerChange.GETTER ? "p0" : "o0", List.of(), "Z")),
                 new ImmutableInstruction11x(Opcode.MOVE_RESULT, 4),
                 new ImmutableInstruction3rc(change == PlayerChange.OPCODE ? Opcode.INVOKE_VIRTUAL_RANGE : Opcode.INVOKE_STATIC_RANGE,
                         change == PlayerChange.ARGUMENT ? 5 : 4, 1,
                         new ImmutableMethodReference(VerifyAdsDex.PLAYER_HELPER, "showImageBrandAd", List.of("Z"), "Z")),
                 new ImmutableInstruction11x(Opcode.MOVE_RESULT, change == PlayerChange.RESULT ? 5 : 4),
+                new ImmutableInstruction11n(Opcode.CONST_4, 5, 3),
                 new ImmutableInstruction21t(Opcode.IF_EQZ, change == PlayerChange.BRANCH ? 5 : 4, 2),
                 new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 4));
-        var caller = new ImmutableMethod(VerifyAdsDex.IMAGE_AD_CALLER, "invoke",
+        var caller = new ImmutableMethod("Lp/ja31;", "invoke",
                 List.of(new ImmutableMethodParameter("Ljava/lang/Object;", Set.of(), null)),
                 "Ljava/lang/Object;", 1, Set.of(), Set.of(),
                 new ImmutableMethodImplementation(7, code, List.of(), List.of()));
@@ -69,7 +70,7 @@ class VerifyAdsDexTest {
                         new ImmutableInstruction11x(Opcode.RETURN, 0)), List.of(), List.of()));
         var capability = new ImmutableClassDef(VerifyAdsDex.INSTALLED, 1, "Ljava/lang/Object;", List.of(), null,
                 Set.of(), List.of(), List.of(capabilityMethod));
-        var classes = new ArrayList<>(List.of(new ImmutableClassDef(VerifyAdsDex.IMAGE_AD_CALLER, 1, "Ljava/lang/Object;", List.of(), null,
+        var classes = new ArrayList<>(List.of(new ImmutableClassDef("Lp/ja31;", 1, "Ljava/lang/Object;", List.of(), null,
                 Set.of(), List.of(), List.of(caller)), capability));
         if (change != PlayerChange.EMBEDDED_MISSING) classes.add(embeddedFixture(change));
         if (change == PlayerChange.EMBEDDED_DUPLICATE) classes.add(embeddedFixture(change));
@@ -77,7 +78,7 @@ class VerifyAdsDexTest {
     }
 
     ImmutableClassDef embeddedFixture(PlayerChange change) {
-        String owner = change == PlayerChange.EMBEDDED_OWNER ? "Lp/other;" : VerifyAdsDex.EMBEDDED_AD_OWNER;
+        String owner = change == PlayerChange.EMBEDDED_OWNER ? "Lp/other;" : "Lp/onq;";
         int guard = change == PlayerChange.EMBEDDED_PARAM ? 4 : 0;
         var code = List.<Instruction>of(
                 new ImmutableInstruction35c(Opcode.INVOKE_STATIC, change == PlayerChange.EMBEDDED_ARGUMENT ? 1 : 0, 0, 0, 0, 0, 0,
@@ -86,11 +87,11 @@ class VerifyAdsDexTest {
                 new ImmutableInstruction21t(Opcode.IF_NEZ, guard, change == PlayerChange.EMBEDDED_BRANCH ? 3 : 4),
                 new ImmutableInstruction11n(Opcode.CONST_4, guard, change == PlayerChange.EMBEDDED_LITERAL ? 1 : 0),
                 new ImmutableInstruction11x(change == PlayerChange.EMBEDDED_RETURN ? Opcode.RETURN_OBJECT : Opcode.RETURN, guard),
-                new ImmutableInstruction22c(Opcode.IGET_OBJECT, guard, 4, new ImmutableFieldReference(VerifyAdsDex.EMBEDDED_AD_OWNER,
+                new ImmutableInstruction22c(Opcode.IGET_OBJECT, guard, 4, new ImmutableFieldReference("Lp/onq;",
                         change == PlayerChange.EMBEDDED_ORIGINAL ? "c" : "b", "Ljava/lang/Object;")),
                 new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
                 new ImmutableInstruction11x(Opcode.RETURN, 0));
-        var method = new ImmutableMethod(owner, VerifyAdsDex.EMBEDDED_AD_METHOD,
+        var method = new ImmutableMethod(owner, "z",
                 List.of(new ImmutableMethodParameter("Lcom/spotify/player/model/ContextTrack;", Set.of(), null)),
                 "Z", 1, Set.of(), Set.of(), new ImmutableMethodImplementation(6, code, List.of(), List.of()));
         return new ImmutableClassDef(owner, 1, "Ljava/lang/Object;", List.of(), null, Set.of(), List.of(), List.of(method));
@@ -98,28 +99,29 @@ class VerifyAdsDexTest {
 
     List<ImmutableClassDef> fixture(Change change) {
         var classes = new ArrayList<ImmutableClassDef>();
-        for (var owner : List.of("Lp/s840;", "Lp/wwo;", VerifyAdsDex.BROWSE_CALLER)) {
-            if (change == Change.MISSING && owner.equals("Lp/s840;")) continue;
-            boolean browse = owner.equals(VerifyAdsDex.BROWSE_CALLER);
+        for (var owner : List.of("Lp/jb20;", "Lp/vot;", "Lp/x7v0;")) {
+            if (change == Change.MISSING && owner.equals("Lp/jb20;")) continue;
+            boolean browse = owner.equals("Lp/x7v0;");
             String structure = browse ? "Lcom/spotify/browsita/v1/resolved/BrowseStructure;"
                     : "Lcom/spotify/casita/v1/resolved/HomeStructure;";
             var code = new ArrayList<Instruction>(List.of(
                 new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 4, 0, 0, 0, 0,
-                    new ImmutableMethodReference(structure, change == Change.GETTER ? "x" : browse ? "o" : "p", List.of(), "Lp/uj60;")),
+                    new ImmutableMethodReference(structure, change == Change.GETTER ? "x" : browse ? "o" : "p", List.of(), "Lp/ih40;")),
                 new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 4),
                 new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, change == Change.ARGUMENT ? 5 : 4, 1,
                     new ImmutableMethodReference(VerifyAdsDex.HELPER, change == Change.FILTER ? "filter" : browse ? "browse" : "home",
                         List.of("Ljava/util/List;"), "Ljava/util/List;")),
                 new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, change == Change.RESULT ? 5 : 4),
                 new ImmutableInstruction10x(Opcode.NOP), new ImmutableInstruction10x(Opcode.NOP)));
+            if (owner.equals("Lp/jb20;")) code.add(new ImmutableInstruction10x(Opcode.NOP));
             code.add(new ImmutableInstruction35c(Opcode.INVOKE_INTERFACE, 1, change == Change.ITERATOR ? 5 : 4, 0, 0, 0, 0,
                     new ImmutableMethodReference("Ljava/lang/Iterable;", "iterator", List.of(), "Ljava/util/Iterator;")));
             code.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 4));
             code.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 4));
-            String actualOwner = change == Change.CALLER && owner.equals("Lp/s840;") ? "Ltest/Other;" : owner;
+            String actualOwner = change == Change.CALLER && owner.equals("Lp/jb20;") ? "Ltest/Other;" : owner;
             var definition = definition(actualOwner, VerifyAdsDex.CALLERS.get(owner), "Ljava/lang/Object;", code);
             classes.add(definition);
-            if (change == Change.DUPLICATE && owner.equals("Lp/s840;")) classes.add(definition);
+            if (change == Change.DUPLICATE && owner.equals("Lp/jb20;")) classes.add(definition);
         }
         classes.add(definition(VerifyAdsDex.INSTALLED, "hideBrandAds", "Z", List.of(
                 new ImmutableInstruction11n(Opcode.CONST_4, 0, change == Change.CAPABILITY ? 0 : 1),

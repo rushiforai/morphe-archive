@@ -114,6 +114,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting VIEW_STORIES_ANONYMOUSLY =
             new BooleanSetting("hushgram_view_stories_anonymously", TRUE);
 
+    /** A separate opt-in for the direct visual-media receipt. Ordinary chat receipts stay native. */
+    public static final BooleanSetting VIEW_DM_MEDIA_ANONYMOUSLY =
+            new BooleanSetting("hushgram_view_dm_media_anonymously", FALSE);
+
     /**
      * The Mark as seen button in the story viewer's header
      * ({@link app.hushgram.extension.instagram.stories.StorySeenButton}). Off to start. A story you
@@ -206,6 +210,14 @@ public class Settings extends BaseSettings {
     /** The grid of posts and reels under the Search tab's bar. Search and its results stay. */
     public static final BooleanSetting HIDE_EXPLORE_GRID =
             new BooleanSetting("hushgram_hide_explore_grid", TRUE);
+
+    /**
+     * The row of notes at the top of your messages, its Map bubble included
+     * ({@link app.hushgram.extension.instagram.direct.NotesRow}). Read each time Instagram works out
+     * your messages again, so a change shows the next time they update. Off to start.
+     */
+    public static final BooleanSetting HIDE_NOTES_ROW =
+            new BooleanSetting("hushgram_hide_notes_row", FALSE);
 
     /**
      * The New group button beside the share sheet's search bar, whichever form Instagram gives it,

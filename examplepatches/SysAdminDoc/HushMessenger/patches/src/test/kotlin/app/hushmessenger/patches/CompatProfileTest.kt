@@ -50,6 +50,7 @@ class CompatProfileTest {
         "bubbleCapabilityGetter $bubbleCapabilityGetter",
         "bubbleRolloutGetter $bubbleRolloutGetter",
         "nativeBubbleRoutes $nativeBubbleRoutes",
+        "nativeCommunityInbox $nativeCommunityInbox",
     )
 
     private fun source(file: String) =

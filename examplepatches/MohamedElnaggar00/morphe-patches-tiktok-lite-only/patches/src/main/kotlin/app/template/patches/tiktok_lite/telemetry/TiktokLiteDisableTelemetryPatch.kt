@@ -1,17 +1,25 @@
 package app.template.patches.tiktok_lite.telemetry
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+/*
+ * Disables TikTok Lite analytics for the 47.0.3 compatibility target.
+ *
+ * The supplied 47.0.3 APK uses MiniLiteApplogServiceImpl for the analytics
+ * wrapper. The older LiteApplogServiceImpl/network/startup fingerprints
+ * are intentionally not invoked here because their classes are not present
+ * under the expected names in 47.0.3.
+ */
+
+import app.template.patches.shared.Constants.TIKTOK_LITE_COMPATIBILITY
 import app.template.patches.shared.returnEarly
-import app.template.patches.tiktok_lite.TIKTOK_LITE_4683_COMPATIBILITY
+import app.morphe.patcher.patch.bytecodePatch
 
 @Suppress("unused")
 val tiktokLiteDisableTelemetryPatch = bytecodePatch(
     name = "Disable Telemetry",
-    description = "Disables TikTok Lite analytics at the event wrapper and network client layers.",
+    description = "Disables ByteDance analytics by blocking the MiniLiteApplogServiceImpl wrapper.",
     default = true,
 ) {
-    compatibleWith(TIKTOK_LITE_4683_COMPATIBILITY)
+    compatibleWith(TIKTOK_LITE_COMPATIBILITY)
 
     execute {
         ApplogOnEventFingerprint.method.returnEarly()
@@ -20,17 +28,5 @@ val tiktokLiteDisableTelemetryPatch = bytecodePatch(
         ApplogReportPendingFingerprint.method.returnEarly()
         ApplogConfigFingerprint.method.returnEarly()
         ApplogBeforeInitFingerprint.method.returnEarly()
-
-        NetClientSendBatchFingerprint.method.returnEarly("")
-        NetClientSendListFingerprint.method.returnEarly("")
-        NetClientSendBytesRawFingerprint.method.returnEarly("")
-        NetClientSendBytesFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                new-array v0, v0, [B
-                return-object v0
-            """,
-        )
     }
 }

@@ -9,7 +9,7 @@ object WearfitProCompatibility {
         name = "Wearfit Pro",
         packageName = "com.wakeup.howear",
         apkFileType = ApkFileType.APK,
-        appIconColor = 0xFF2196F3.toInt(),
+        appIconColor = 0x2196F3,
         targets = listOf(
             AppTarget(version = "5.5.83")
         )

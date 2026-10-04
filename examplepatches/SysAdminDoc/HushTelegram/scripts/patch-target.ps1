@@ -9,7 +9,7 @@
     which is generated from AppCompatibilities.kt, prevents those callers from drifting apart.
 #>
 
-function Get-PatchTarget {
+function Get-PatchTargets {
     [CmdletBinding()]
     param([Parameter(Mandatory = $true)][object]$PatchList)
 
@@ -19,10 +19,13 @@ function Get-PatchTarget {
     $targets = @{}
     # The version codes the first patch to name each package pins its builds to, by version name.
     $targetCodes = @{}
+    $targetSignatures = @{}
     # The first patch to name each package, and the builds it declared. Every other patch has to
     # declare the same ones: a build only some patches support is one the bundle can't fully patch,
     # and a union of them would hand the release scripts that build as a declared target.
     $declaredBy = @{}
+    $packageSet = $null
+    $packagesDeclaredBy = $null
     foreach ($patch in $patches) {
         if ($null -eq $patch) { throw 'patches-list.json contains a null patch.' }
         $nameProperty = $patch.PSObject.Properties['name']
@@ -39,6 +42,14 @@ function Get-PatchTarget {
         if ($packages.Count -eq 0) {
             throw "$patchName has no compatible package in patches-list.json."
         }
+        $currentSet = @($packages.Name | Sort-Object -Unique) -join ', '
+        if ($null -eq $packageSet) {
+            $packageSet = $currentSet
+            $packagesDeclaredBy = $patchName
+        } elseif ($currentSet -cne $packageSet) {
+            throw ("Every patch has to declare the same packages: $packagesDeclaredBy declares $packageSet, " +
+                "but $patchName declares $currentSet.")
+        }
         foreach ($property in $packages) {
             $versions = @($property.Value | ForEach-Object { [string]$_ } |
                 Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -50,9 +61,11 @@ function Get-PatchTarget {
             # alone doesn't say which of them the patches were proved on. A patch that pins none is
             # read by the name, as before.
             $codes = @{}
+            $signatures = @()
             $compatibility = $patch.PSObject.Properties['compatibility']
             foreach ($entry in @(if ($null -ne $compatibility) { $compatibility.Value })) {
                 if ($null -eq $entry -or [string]$entry.packageName -ne $property.Name) { continue }
+                $signatures += @($entry.signatures | Where-Object { $_ } | ForEach-Object { ([string]$_).ToLowerInvariant() })
                 foreach ($appTarget in @($entry.targets)) {
                     if ($null -eq $appTarget -or $null -eq $appTarget.versionCodes) { continue }
                     $version = [string]$appTarget.version
@@ -60,26 +73,30 @@ function Get-PatchTarget {
                     $codes[$version] = @(@($codes[$version]) + $pinned | Where-Object { $_ } | Sort-Object -Unique)
                 }
             }
+            $signatures = @($signatures | Sort-Object -Unique)
+            if (@($signatures | Where-Object { $_ -notmatch '^[0-9a-f]{64}$' }).Count -gt 0) {
+                throw "$patchName declares an invalid signing certificate for $($property.Name)."
+            }
             $declared = @(foreach ($version in @($versions | Sort-Object -Unique)) {
                 if ($codes.ContainsKey($version)) { "$version ($($codes[$version] -join ', '))" } else { $version }
             }) -join ', '
             if (-not $targets.ContainsKey($property.Name)) {
                 $targets[$property.Name] = $versions
                 $targetCodes[$property.Name] = $codes
+                $targetSignatures[$property.Name] = $signatures
                 $declaredBy[$property.Name] = @($patchName, $declared)
             } elseif ($declaredBy[$property.Name][1] -ne $declared) {
                 throw ("Every patch has to declare the same $($property.Name) builds: " +
                     "$($declaredBy[$property.Name][0]) declares $($declaredBy[$property.Name][1]), " +
                     "but $patchName declares $declared.")
+            } elseif (($targetSignatures[$property.Name] -join ',') -cne ($signatures -join ',')) {
+                throw "Every patch has to declare the same signing certificates for $($property.Name)."
             }
         }
     }
 
     $packages = @($targets.Keys | Sort-Object)
-    if ($packages.Count -ne 1) {
-        throw "Expected one compatible package, found $($packages -join ', ')."
-    }
-    $packageName = $packages[0]
+    foreach ($packageName in @($packages | Sort-Object @{ Expression = { $_ -cne 'org.telegram.messenger.web' } }, { $_ })) {
     # Every version the catalog declares, newest first. Telegram moves a release a week, so the
     # bundle declares the build it was last proved on and can keep the one before it; the newest is
     # the one a device build and the README name. Compared part by part as numbers, every part:
@@ -107,12 +124,55 @@ function Get-PatchTarget {
     foreach ($version in $versions) {
         $versionCodes[$version] = [string[]]@($targetCodes[$packageName][$version] | Where-Object { $_ })
     }
-    return [pscustomobject]@{
+    [pscustomobject]@{
         PackageName = $packageName
         PackageVersion = $versions[0]
         PackageVersions = [string[]]$versions
         PackageVersionCodes = $versionCodes
+        PackageSignatures = [string[]]$targetSignatures[$packageName]
     }
+    }
+}
+
+function Get-PatchTarget {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][object]$PatchList,
+        [string]$PackageName
+    )
+    $targets = @(Get-PatchTargets -PatchList $PatchList)
+    if ([string]::IsNullOrWhiteSpace($PackageName)) {
+        # Adding beta must not switch existing device and release commands to a different app.
+        if (@($targets | Where-Object { $_.PackageName -ceq 'org.telegram.messenger.web' }).Count -eq 1) {
+            $PackageName = 'org.telegram.messenger.web'
+        } elseif ($targets.Count -eq 1) {
+            $PackageName = $targets[0].PackageName
+        } else {
+            throw 'The catalog has no default web target. Pass an exact -PackageName.'
+        }
+    }
+    $selected = @($targets | Where-Object { $_.PackageName -ceq $PackageName })
+    if ($selected.Count -ne 1) {
+        throw "The catalog does not declare package $PackageName. It declares $($targets.PackageName -join ', ')."
+    }
+    return $selected[0]
+}
+
+function Get-VendorFixtureName {
+    param(
+        [Parameter(Mandatory = $true)]$Target,
+        [Parameter(Mandatory = $true)][string]$VersionName,
+        [Parameter(Mandatory = $true)][string]$VersionCode
+    )
+    $prefix = switch -CaseSensitive ($Target.PackageName) {
+        'org.telegram.messenger.web' { 'telegram-web' }
+        'org.telegram.messenger.beta' { 'telegram-beta' }
+        default { throw "Patch verification has no retained fixture naming rule for $($Target.PackageName)." }
+    }
+    if (-not (Test-DeclaredBuild -Target $Target -VersionName $VersionName -VersionCode $VersionCode)) {
+        throw "$($Target.PackageName) $VersionName ($VersionCode) is not a declared build."
+    }
+    return "$prefix-$VersionName-$VersionCode.apk"
 }
 
 function Test-DeclaredBuild {

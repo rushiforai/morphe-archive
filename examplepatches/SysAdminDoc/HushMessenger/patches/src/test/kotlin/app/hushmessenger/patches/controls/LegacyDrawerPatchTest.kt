@@ -18,7 +18,7 @@ class LegacyDrawerPatchTest {
 
     private fun plan(fixture: LegacyDrawerFixture, profile: ControlProfile): LegacyDrawerPlan {
         val ids = profile.hooks.getValue("menu_settings")
-        return prepareLegacyDrawer(fixture.method(ids.single { it.endsWith("->A1i()V") }),
+        return prepareLegacyDrawer(fixture.method(ids.single { it.endsWith("()V") }),
             fixture.method(ids.single { it.endsWith("Ljava/util/ArrayList;") }), fixture.resolve(SETTINGS)!!, fixture::resolve)
     }
 

@@ -78,6 +78,9 @@ class OverrideWriterTest {
             val before = bridgeCode(patch)
             val failure = runCatching { patch.fillOverrideWriter(patch.findOverrideWriter(model())) }.exceptionOrNull()
             assertTrue("$case: $failure", failure?.message?.startsWith("Open developer options: ") == true)
+            if (option in setOf("unusedDecoder", "otherId")) {
+                assertEquals(case, "Open developer options: typed put doesn't send decoder code 1 only to its Z writer", failure?.message)
+            }
             assertEquals(case, before, bridgeCode(patch))
         }
     }

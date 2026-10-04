@@ -1,3 +1,73 @@
+## [1.7.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.6.0...v1.7.0) (2026-10-03)
+
+### ⚠ BREAKING CHANGES
+
+* **anydesk:** remove Enable Premium patch (issue #23)
+
+### 🐛 Bug Fixes
+
+* **anydesk:** remove Enable Premium patch (issue [#23](https://github.com/heval99/Heval-Morphe-Patches/issues/23)) ([9643e03](https://github.com/heval99/Heval-Morphe-Patches/commit/9643e030623a54dd242df199e2fabc58dcfbfe09))
+
+### ✨ New Features
+
+* add Zedge Disable ads patch ([92ee853](https://github.com/heval99/Heval-Morphe-Patches/commit/92ee8533fd71e784228a713ae77406a232b5bc78))
+
+## [1.6.0-dev.5](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.6.0-dev.4...v1.6.0-dev.5) (2026-10-03)
+
+### ✨ New Features
+
+* add Zedge Disable ads patch ([92ee853](https://github.com/heval99/Heval-Morphe-Patches/commit/92ee8533fd71e784228a713ae77406a232b5bc78))
+
+## [1.6.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.5.0...v1.6.0) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **anydesk:** also force the license name and banner type (issue [#21](https://github.com/heval99/Heval-Morphe-Patches/issues/21)) ([f809b50](https://github.com/heval99/Heval-Morphe-Patches/commit/f809b50398100f9bdba74d4ddbe83c043b86716c))
+* **sofascore:** keep Facebook SDK initialized so login works (issue [#24](https://github.com/heval99/Heval-Morphe-Patches/issues/24)) ([f2d5544](https://github.com/heval99/Heval-Morphe-Patches/commit/f2d5544168a33a0255febfbff37c409658952582))
+* verify Sofascore, MyFitnessPal and 365Scores patches on their latest builds ([92837ff](https://github.com/heval99/Heval-Morphe-Patches/commit/92837ff977c12ed8f6b6e70a8adbb3505bf5663d))
+
+### ✨ New Features
+
+* add Pi Music Player patches ([653855c](https://github.com/heval99/Heval-Morphe-Patches/commit/653855ca2e5a8474febc5fbdf1660aa5849e24e4))
+* add Simple Radio and WiFi Analyzer patches ([831f00b](https://github.com/heval99/Heval-Morphe-Patches/commit/831f00b6d0c8b344f4ed38cea30b63d62d5192cf))
+* add YouCut Enable Pro patch ([889ca6a](https://github.com/heval99/Heval-Morphe-Patches/commit/889ca6a80c010162a9c614dfd7842e51f05c455a))
+
+## [1.6.0-dev.4](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.6.0-dev.3...v1.6.0-dev.4) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* **sofascore:** keep Facebook SDK initialized so login works (issue [#24](https://github.com/heval99/Heval-Morphe-Patches/issues/24)) ([f2d5544](https://github.com/heval99/Heval-Morphe-Patches/commit/f2d5544168a33a0255febfbff37c409658952582))
+
+## [1.6.0-dev.3](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.6.0-dev.2...v1.6.0-dev.3) (2026-09-30)
+
+### ✨ New Features
+
+* add Pi Music Player patches ([653855c](https://github.com/heval99/Heval-Morphe-Patches/commit/653855ca2e5a8474febc5fbdf1660aa5849e24e4))
+
+## [1.6.0-dev.2](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-09-29)
+
+### ✨ New Features
+
+* add Simple Radio and WiFi Analyzer patches ([831f00b](https://github.com/heval99/Heval-Morphe-Patches/commit/831f00b6d0c8b344f4ed38cea30b63d62d5192cf))
+
+## [1.6.0-dev.1](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.5.1-dev.2...v1.6.0-dev.1) (2026-09-29)
+
+### ✨ New Features
+
+* add YouCut Enable Pro patch ([889ca6a](https://github.com/heval99/Heval-Morphe-Patches/commit/889ca6a80c010162a9c614dfd7842e51f05c455a))
+
+## [1.5.1-dev.2](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.5.1-dev.1...v1.5.1-dev.2) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **anydesk:** also force the license name and banner type (issue [#21](https://github.com/heval99/Heval-Morphe-Patches/issues/21)) ([f809b50](https://github.com/heval99/Heval-Morphe-Patches/commit/f809b50398100f9bdba74d4ddbe83c043b86716c))
+
+## [1.5.1-dev.1](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.5.0...v1.5.1-dev.1) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* verify Sofascore, MyFitnessPal and 365Scores patches on their latest builds ([92837ff](https://github.com/heval99/Heval-Morphe-Patches/commit/92837ff977c12ed8f6b6e70a8adbb3505bf5663d))
+
 ## [1.5.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.4.0...v1.5.0) (2026-09-28)
 
 ### 🐛 Bug Fixes

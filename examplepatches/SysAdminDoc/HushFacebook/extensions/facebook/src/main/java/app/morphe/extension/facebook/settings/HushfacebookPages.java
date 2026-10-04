@@ -63,11 +63,11 @@ final class HushfacebookPages {
         // is one Pause turns off, so it sits above the Pause row with the rest.
         PreferenceCategory updates = category(screen, L10n.t("Updates"));
         if (build.contains(PatchFamily.UPDATE_PROMPTS)) {
-            updates.addPreference(toggle(context, Settings.STOP_UPDATE_PROMPTS, L10n.t("Stop update prompts"),
+            updates.addPreference(toggle(context, Settings.STOP_UPDATE_PROMPTS,
                     L10n.t("Facebook stops asking you to update through Meta App Manager and stops having it look for one. "
                             + "Chat promotions aimed at older versions go too. A patched build can't install Meta's updates anyway.")));
         }
-        updates.addPreference(toggle(context, Settings.CHECK_FOR_RELEASES, L10n.t("Check for new Hushfacebook releases"),
+        updates.addPreference(toggle(context, Settings.CHECK_FOR_RELEASES,
                 L10n.t("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.")));
         updates.addPreference(page.checkNowRow(context));
         ReleaseCheck.watch(page);
@@ -80,7 +80,7 @@ final class HushfacebookPages {
                 || build.contains(PatchFamily.BOTTOM_TAB_BAR) || build.contains(PatchFamily.FORCE_DARK_MODE)) {
             PreferenceCategory appearance = category(screen, L10n.t("Appearance"));
             if (build.contains(PatchFamily.SYSTEM_FONT)) {
-                appearance.addPreference(toggle(context, Settings.USE_SYSTEM_FONT, L10n.t("Use the system font"),
+                appearance.addPreference(toggle(context, Settings.USE_SYSTEM_FONT,
                         L10n.t("Use your phone's font or a file chosen below. Restart Facebook after changing it.")));
                 // The file the switch draws in, and, while one is picked, the way back to the phone's font.
                 // The way back goes in once whatever is picked, so it keeps its place right after Font file
@@ -93,18 +93,18 @@ final class HushfacebookPages {
             }
             if (build.contains(PatchFamily.SYSTEM_EMOJI)) {
                 // The quick emoji picker keeps the first typeface it's given until Facebook restarts.
-                appearance.addPreference(toggle(context, Settings.USE_SYSTEM_EMOJI, L10n.t("Use the phone's emoji"),
+                appearance.addPreference(toggle(context, Settings.USE_SYSTEM_EMOJI,
                         L10n.t("Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.")));
             }
             if (build.contains(PatchFamily.BOTTOM_TAB_BAR)) {
                 // Facebook places the tab bar as its main screen starts, so a change waits for a restart.
-                appearance.addPreference(toggle(context, Settings.BOTTOM_TAB_BAR, L10n.t("Tab bar at the bottom"),
+                appearance.addPreference(toggle(context, Settings.BOTTOM_TAB_BAR,
                         L10n.t("Put Facebook's tab bar at the bottom of the screen on accounts that have it at the top. "
                                 + "Restart Facebook after changing it.")));
             }
             if (build.contains(PatchFamily.FORCE_DARK_MODE)) {
                 // Facebook asks for dark mode as each screen applies its theme, so a change shows fully after a restart.
-                appearance.addPreference(toggle(context, Settings.FORCE_DARK_MODE, L10n.t("Force dark mode"),
+                appearance.addPreference(toggle(context, Settings.FORCE_DARK_MODE,
                         L10n.t("Keep Facebook in dark mode whatever its own setting says, for tablets where Facebook's "
                                 + "settings have no Dark mode. Restart Facebook after changing it.")));
             }
@@ -215,7 +215,8 @@ final class HushfacebookPages {
             Set<PatchFamily> build) {
         PreferenceCategory about = category(screen, L10n.t("About"));
         about.addPreference(mark(info(context, L10n.t("Version"), L10n.f("Hushfacebook %1$s on Facebook %2$s",
-                L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()))), SettingsIcons.ABOUT));
+                L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()))
+                + "\n" + L10n.f("Build %1$s", L10n.isolate(Utils.getPatchesBuildIdentity()))), SettingsIcons.ABOUT));
 
         Preference source = new Row(context);
         source.setTitle(L10n.t("Source code and issues"));

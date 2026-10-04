@@ -9,6 +9,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
+import app.morphe.util.BundleIdentity
 import com.android.tools.smali.dexlib2.iface.Method
 import java.net.URLDecoder
 import java.util.jar.JarFile
@@ -42,6 +43,7 @@ fun sharedExtensionPatch(
     vararg hooks: ExtensionHook,
 ) = bytecodePatch {
     val extensionName = if (isYouTubeOrYouTubeMusic) "shared-youtube" else "shared"
+    val readBuildIdentity = BundleIdentity.boundToClass(BundleIdentity::class.java)
     extendWith("extensions/$extensionName.mpe")
 
     execute {
@@ -86,7 +88,16 @@ fun sharedExtensionPatch(
             val manifestValue = getPatchesManifestEntry("Version")
             returnEarly(manifestValue)
         }
+        // Missing or damaged provenance remains visible without making a compatible patch fail.
+        injectBuildIdentity(readBuildIdentity())
     }
+}
+
+/** Shared payload owns this stub on every host build. Keep its verified value through DEX output. */
+internal fun BytecodePatchContext.injectBuildIdentity(identity: String) {
+    mutableClassDefBy(EXTENSION_CLASS_DESCRIPTOR).methods.single {
+        it.name == "getPatchesBuildIdentity" && it.returnType == "Ljava/lang/String;" && it.parameterTypes.isEmpty()
+    }.returnEarly(identity)
 }
 
 /**

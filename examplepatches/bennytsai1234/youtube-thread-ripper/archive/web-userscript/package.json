@@ -1,0 +1,12 @@
+{
+  "name": "youtube-thread-ripper-experiment",
+  "version": "0.2.0",
+  "private": true,
+  "description": "BTR source fork with the original UI and downloader, adapted to YouTube",
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "check": "node --check src/core.js && node --check src/site-adapter.js && node --check src/runtime.js && node --check dist/youtube-thread-ripper.user.js"
+  },
+  "license": "MIT"
+}

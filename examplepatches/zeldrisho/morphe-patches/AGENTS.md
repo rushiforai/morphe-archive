@@ -1,14 +1,13 @@
 # Agent Instructions
 
 ## Toolchain
-- Use the checked-in Gradle wrapper (`./gradlew`) with Java 21; setup and registry credentials: `docs/toolchain.md`.
-- Use `uvx` for on-demand Python tools and system `pre-commit` for repository hooks; see `docs/toolchain.md` for toolchain setup.
-- Use `adb` for Android device operations; see `docs/toolchain.md` and `docs/validation.md`.
+- Use the checked-in Gradle wrapper (`./gradlew`) with Java 21.
+- Use `uvx` for on-demand Python tools.
+- Use `adb` for device operations.
 
 ## Commands
 | Task | Command |
 | ---- | ------- |
-| Check selected files (Markdown, scripts, workflows) | `pre-commit run --files <file> --show-diff-on-failure` |
 | Test Python script file | `python3 -m unittest discover -s scripts/tests -p 'test_<script>.py' -v` |
 | Test patch class | `./gradlew :patches:test --tests '<fully.qualified.Class>' --no-daemon` |
 | Test Threads extension class | `./gradlew :extensions:threads:testDebugUnitTest --tests '<fully.qualified.Class>' --no-daemon` |
@@ -26,21 +25,17 @@
 - Follow `docs/release.md#changelog-policy` for `CHANGELOG.md`; add only user-visible app changes under `## Unreleased`.
 - Work on branches and follow `docs/release.md` for staging and publishing.
 - Follow `docs/development.md#testing-guidance` for synthetic DEX tests, Robolectric tests, and opt-in private APK qualification.
+- Before APK reverse-engineering or qualification, inspect the existing gitignored `analysis/<app>/<version>/` workspace and its notes; reuse verified local evidence and avoid redundant extraction. Follow `docs/reverse-engineering.md#analysis-workspace`.
 - Build and unit-test success does not establish real-APK compatibility or device behavior; use `docs/validation.md`.
 - Keep credentials, signing keys, APK analysis, logs, and screenshots out of Git.
 
 ## External References
 | Need | File |
 | ---- | ---- |
-| Development entry and verification | `docs/development.md` |
 | Host setup and credentials | `docs/toolchain.md` |
-| Patch authoring and fingerprints | `docs/patch-development.md` |
-| APK analysis and reverse-engineering | `docs/reverse-engineering.md` |
-| Local analysis layout and cleanup | `docs/reverse-engineering.md#analysis-workspace` |
+| APK analysis, workspace layout, and cleanup | `docs/reverse-engineering.md` |
 | Bytecode and smali reference | `docs/bytecode-reference.md` |
-| Bypass patterns and target selection | `docs/patch-development.md#target-selection` |
-| CLI patching and signing | `docs/cli.md` |
+| Fingerprints, bypass patterns, and target selection | `docs/patch-development.md#fingerprints`, `docs/patch-development.md#target-selection` |
 | Zalo microG/Drive status and troubleshooting | `docs/zalo-microg.md` |
-| Release and generated-file policy | `docs/release.md` |
-| Device validation and Zalo feature roadmap | `docs/validation.md`, `docs/plan.md` |
+| Zalo feature roadmap | `docs/plan.md` |
 | Cross-app maintenance backlog and provenance | `docs/maintenance.md` |

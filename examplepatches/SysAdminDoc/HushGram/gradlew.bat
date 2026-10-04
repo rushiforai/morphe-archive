@@ -97,6 +97,10 @@ if exist "%JAVA_EXE%" goto execute
 goto exitWithErrorLevel
 
 :execute
+@rem Verify the version-bound publisher checksums before the wrapper JAR can execute.
+"%JAVA_EXE%" --source 17 "%APP_HOME%\scripts\VerifyGradleWrapper.java" "%APP_HOME%."
+if errorlevel 1 goto exitWithErrorLevel
+
 @rem Setup the command line
 
 

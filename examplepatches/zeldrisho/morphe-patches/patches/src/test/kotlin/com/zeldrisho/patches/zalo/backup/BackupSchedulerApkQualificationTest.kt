@@ -3,6 +3,7 @@ package com.zeldrisho.patches.zalo.backup
 import app.morphe.patcher.PackageMetadata
 import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import org.junit.Assume.assumeTrue
@@ -41,8 +42,9 @@ class BackupSchedulerApkQualificationTest {
         with(context()) {
             BackupScheduler.clearMatch()
             val match = BackupScheduler.matchAll(schedulerClass, 1..1).single()
-            assertEquals("b", match.originalMethod.name)
-            assertEquals(emptyList(), match.originalMethod.parameterTypes)
+            assertEquals("g", match.originalMethod.name)
+            assertEquals(listOf("I"), match.originalMethod.parameterTypes)
+            overrideBackupInterval(match.originalMethod.toMutable(), "6")
         }
     }
 }

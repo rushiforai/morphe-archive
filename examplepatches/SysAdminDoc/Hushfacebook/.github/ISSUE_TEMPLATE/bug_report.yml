@@ -12,13 +12,13 @@ body:
 
         - **Check whether it's already reported.** Search the [open and closed bug reports](https://github.com/SysAdminDoc/Hushfacebook/issues?q=is%3Aissue%20label%3Abug). If yours was closed and it still happens, comment on it and we'll reopen it. GitHub doesn't let the person who reported something reopen it.
         - **Not sure it's a bug?** Ask in [Discussions](https://github.com/SysAdminDoc/Hushfacebook/discussions) instead.
-        - **Patching stopped with an error?** That usually means Facebook moved something in a new build. Say which Facebook version you picked, and paste the error.
+        - **Patching stopped with an error?** Include the full error and its Source lines. Check the [patch-selection guide](https://github.com/SysAdminDoc/Hushfacebook#patching-stops-on-one-patch) if you use more than one Facebook patch source.
   - type: input
     id: versions
     attributes:
       label: Hushfacebook and Facebook versions
       description: Long-press Facebook's icon and tap Hushfacebook. Copy the version below its status. If you have the new category pages, open More settings, then About, and copy the Version line.
-      placeholder: Version 0.6.0 for Facebook 581.0.0.45.58
+      placeholder: Version 0.7.1 for Facebook 581.0.0.45.58
     validations:
       required: true
   - type: input
@@ -64,11 +64,25 @@ body:
     validations:
       required: true
   - type: textarea
+    id: patch_sources
+    attributes:
+      label: Patch sources and versions
+      description: |
+        Copy every Source: line from the patching log, including each source's version. If you don't have the log, open Sources in Morphe Manager and list the names and versions you used. For a local bundle, include its file name too.
+      placeholder: |
+        Source: Hushfacebook (version shown in Manager)
+        Source: Morphe Patches (version shown in Manager)
+    validations:
+      required: true
+  - type: textarea
     id: selected_patches
     attributes:
       label: Which patches did you select?
-      description: If you kept the manager's own selection, just say so. Otherwise list what you added or removed.
-      placeholder: The default selection, plus Download any video.
+      description: List the selection for each source. If you kept a source's recommended selection, name that source and say so. Include any other Facebook source, even if none of its patches are selected.
+      placeholder: |
+        Hushfacebook: recommended selection, plus Download any video
+        Morphe Patches: Disable Play Store updates
+        De-ReVanced: none selected
     validations:
       required: true
   - type: dropdown

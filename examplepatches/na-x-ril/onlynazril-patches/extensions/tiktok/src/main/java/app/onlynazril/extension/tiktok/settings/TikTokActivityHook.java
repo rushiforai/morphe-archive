@@ -2,7 +2,11 @@ package app.onlynazril.extension.tiktok.settings;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Insets;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.WindowInsets;
 import android.widget.ScrollView;
 
 import app.onlynazril.extension.tiktok.internal.AppContext;
@@ -37,8 +41,44 @@ public class TikTokActivityHook {
                 new ScrollView.LayoutParams(
                         ScrollView.LayoutParams.MATCH_PARENT,
                         ScrollView.LayoutParams.WRAP_CONTENT));
+        padForSystemBars(screen);
         base.setContentView(screen);
         return true;
+    }
+
+    /**
+     * Keeps the screen's content clear of the status and navigation bars.
+     *
+     * The app targets SDK 36, and from Android 15 the platform enforces edge to edge: the window
+     * reaches under both bars whatever the activity asks for, so a plain `setContentView` puts the
+     * title behind the clock and the last row behind the navigation bar.
+     *
+     * The insets are taken as padding rather than by asking the window to stop being edge to edge:
+     * the background still reaches the edges, the content does not, and it works the same on a build
+     * where the window is not edge to edge, because the bars report a zero inset there.
+     */
+    private static void padForSystemBars(View screen) {
+        screen.setOnApplyWindowInsetsListener((view, insets) -> {
+            int[] bars = systemBars(insets);
+            view.setPadding(bars[0], bars[1], bars[2], bars[3]);
+            return insets;
+        });
+        screen.requestApplyInsets();
+    }
+
+    /** Left, top, right and bottom of the status and navigation bars. */
+    @SuppressWarnings("deprecation")
+    private static int[] systemBars(WindowInsets insets) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+            return new int[] {bars.left, bars.top, bars.right, bars.bottom};
+        }
+        return new int[] {
+                insets.getSystemWindowInsetLeft(),
+                insets.getSystemWindowInsetTop(),
+                insets.getSystemWindowInsetRight(),
+                insets.getSystemWindowInsetBottom(),
+        };
     }
 
     public static boolean handleBackPressed(AdPersonalizationActivity activity) {

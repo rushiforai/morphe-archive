@@ -98,6 +98,7 @@ final class SettingsNavigation extends BaseAdapter {
         Set<PatchFamily> build = PatchFamily.inThisBuild();
         section("Chats", L10n.t("Chats"), chatsSummary(build), SettingsIcons.CHAT, true);
         section("Privacy", L10n.t("Privacy"), privacySummary(build), SettingsIcons.BLOCK, true);
+        section("Notifications", L10n.t("Notifications"), null, SettingsIcons.BELL, false);
         section("Links", L10n.t("Links"), null, SettingsIcons.LINKS, false);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES, false);
         section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED, false);
@@ -276,7 +277,23 @@ final class SettingsNavigation extends BaseAdapter {
         // selection in touch mode. Rebind when changing pages; normal preference updates
         // still keep their current views and scroll position through notifyDataSetChanged.
         list.setAdapter(this);
-        list.setSelectionFromTop(position, offset);
+        // Outside touch mode, selection skips an informational row. Scroll to it without
+        // turning the notice into an action: place the next selectable row below its height.
+        int anchor = position;
+        int top = offset;
+        if (!list.isInTouchMode()) {
+            int width = list.getWidth() > 0 ? list.getWidth()
+                    : screen.getContext().getResources().getDisplayMetrics().widthPixels;
+            width -= list.getPaddingLeft() + list.getPaddingRight();
+            while (anchor >= 0 && anchor < getCount() && !isEnabled(anchor)) {
+                View preceding = getView(anchor, null, list);
+                preceding.measure(View.MeasureSpec.makeMeasureSpec(Math.max(0, width), View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                top += preceding.getMeasuredHeight();
+                anchor++;
+            }
+        }
+        list.setSelectionFromTop(anchor < getCount() ? anchor : position, anchor < getCount() ? top : offset);
     }
 
     private void rememberIndex() {

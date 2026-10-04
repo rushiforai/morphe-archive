@@ -108,6 +108,36 @@ class ColourCallRerouteTest {
     }
 
     /**
+     * A colour resource read as a drawable, the way Litho draws the feed's composer row (issue #37),
+     * goes to Material You's stand-in on the same registers, with AMOLED in the build or not: AMOLED
+     * leaves the call alone, since its route two wrote black into the resource itself.
+     */
+    @Test
+    fun `a drawable read goes to Material You's stand-in, and AMOLED leaves it`() {
+        val smali = """
+            invoke-virtual { v1, v2 }, $CONTEXT_GET_DRAWABLE
+            move-result-object v0
+            return-void
+        """
+        val stand = Triple(Opcode.INVOKE_STATIC,
+            "Lapp/morphe/extension/facebook/theme/MaterialYouTheme;->getDrawable(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;",
+            listOf(1, 2))
+
+        val both = method(3, smali)
+        val amoled = AMOLED_COLOUR_CALLS.keys.associateWith { 0 }.toMutableMap()
+        both.rerouteColourCalls(AMOLED_COLOUR_CALLS, amoled)
+        assertEquals(AMOLED_COLOUR_CALLS.keys.associateWith { 0 }, amoled)
+        val counts = YOU_COLOUR_CALLS.keys.associateWith { 0 }.toMutableMap()
+        both.rerouteColourCalls(YOU_COLOUR_CALLS, counts)
+        assertEquals(listOf(stand), both.calls())
+        assertEquals(1, counts.getValue(CONTEXT_GET_DRAWABLE))
+
+        val alone = method(3, smali)
+        alone.rerouteColourCalls(YOU_COLOUR_CALLS, mutableMapOf<String, Int>().withDefault { 0 })
+        assertEquals(listOf(stand), alone.calls())
+    }
+
+    /**
      * The controls: a super call inside an override would come back to the override from the
      * extension and never end, and another class's getColor is no colour resource.
      */

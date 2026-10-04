@@ -47,13 +47,22 @@ class ExtensionHostsTest {
     @Test
     fun `only the release check opens a connection itself`() {
         val openers = sources().filter { (_, source) -> NETWORK.containsMatchIn(split(source).second) }
-            .map { it.first }.toSortedSet()
+            .map { it.first }.filter { it != FIREBASE_HEADER }.toSortedSet()
         assertEquals(
             "The README says the extension goes online by itself only to ask GitHub for the newest " +
                 "release once that check is turned on. These files open connections",
             TRANSPORTS.toSortedSet(),
             openers,
         )
+    }
+
+    @Test
+    fun `Firebase certificate repair only reads the existing connection and never starts a request`() {
+        val code = split(sources().single { it.first == FIREBASE_HEADER }.second).second
+        assertFalse("the certificate helper starts network work", HEADER_NETWORK.containsMatchIn(code))
+        assertEquals("the existing Firebase connection must only be read for public request scope",
+            setOf("getURL", "getRequestProperty"),
+            Regex("""\bconnection\.([A-Za-z_][A-Za-z0-9_]*)\s*\(""").findAll(code).map { it.groupValues[1] }.toSet())
     }
 
     @Test
@@ -121,6 +130,8 @@ class ExtensionHostsTest {
         val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org", "127.0.0.1")
         const val RELEASE_CHECK =
             "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/ReleaseCheck.java"
+        const val FIREBASE_HEADER =
+            "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/FirebasePush.java"
         val TRANSPORTS = listOf(
             "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/ReleaseTransport.java",
         )
@@ -128,6 +139,10 @@ class ExtensionHostsTest {
         val NETWORK = Regex(
             """\b(?:HttpURLConnection|HttpsURLConnection|URLConnection|openConnection|Socket|SSLSocket|""" +
                 """OkHttpClient|WebSocket|DatagramSocket)\b"""
+        )
+        val HEADER_NETWORK = Regex(
+            """\b(?:HttpURLConnection|HttpsURLConnection|openConnection|connect|getInputStream|getOutputStream|""" +
+                """getErrorStream|getResponseCode|getContent|Socket|SSLSocket|OkHttpClient|WebSocket|DatagramSocket)\b"""
         )
     }
 }

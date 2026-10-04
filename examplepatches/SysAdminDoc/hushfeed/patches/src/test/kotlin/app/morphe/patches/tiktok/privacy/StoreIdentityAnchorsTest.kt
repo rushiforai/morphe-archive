@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.privacy
 
 import app.morphe.Fixtures
 import app.morphe.takes
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -27,7 +26,7 @@ class StoreIdentityAnchorsTest {
         Fixtures.forEachDeclared { apk ->
             val version = Fixtures.versionOf(apk)
             val matches = mutableListOf<Method>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             container.dexEntryNames.forEach { entry ->
                 container.getEntry(entry)!!.dexFile.classes.forEach { classDef ->
                     classDef.methods.forEach { method ->
@@ -51,7 +50,7 @@ class StoreIdentityAnchorsTest {
         Fixtures.forEachDeclared { apk ->
             val version = Fixtures.versionOf(apk)
             val reads = sortedSetOf<String>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             container.dexEntryNames.forEach { entry ->
                 container.getEntry(entry)!!.dexFile.classes.forEach { classDef ->
                     classDef.methods.forEach { method ->

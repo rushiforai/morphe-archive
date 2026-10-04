@@ -1622,7 +1622,7 @@ val TIKTOK_LITE_COMPATIBILITY = Compatibility(
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFE2C55,
         targets = listOf(
-            AppTarget(version = "44.9.52", versionCode = 440952)
+            AppTarget(version = "47.0.3")
         )
     )
 

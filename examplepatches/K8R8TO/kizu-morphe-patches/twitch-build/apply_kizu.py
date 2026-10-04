@@ -172,13 +172,13 @@ s = s.replace(
 s = s.replace(
     "        schedule(globalSevenTv, now, () -> loadGlobalSevenTv(applicationContext));\n"
     "        schedule(globalBetterTtv, now, () -> loadGlobalBetterTtv(applicationContext));",
-    "        if (Settings.EMOTES_7TV.get()) {\n"
+    "        if (Settings.EMOTES_THIRD_PARTY.get()) {\n"
     "            schedule(globalSevenTv, now, () -> loadGlobalSevenTv(applicationContext));\n"
     "        }\n"
-    "        if (Settings.EMOTES_BTTV.get()) {\n"
+    "        if (Settings.EMOTES_THIRD_PARTY.get()) {\n"
     "            schedule(globalBetterTtv, now, () -> loadGlobalBetterTtv(applicationContext));\n"
     "        }\n"
-    "        if (Settings.EMOTES_FFZ.get()) {\n"
+    "        if (Settings.EMOTES_THIRD_PARTY.get()) {\n"
     "            schedule(globalFfz, now, () -> loadGlobalFfz(applicationContext));\n"
     "        }",
 )
@@ -186,23 +186,23 @@ s = s.replace(
     "        schedule(channel.sevenTv, now, () -> loadChannelSevenTv(applicationContext, channelId, channel));\n"
     "        schedule(channel.betterTtv, now,\n"
     "                () -> loadChannelBetterTtv(applicationContext, channelId, channel));",
-    "        if (Settings.EMOTES_7TV.get()) {\n"
+    "        if (Settings.EMOTES_THIRD_PARTY.get()) {\n"
     "            schedule(channel.sevenTv, now, () -> loadChannelSevenTv(applicationContext, channelId, channel));\n"
     "        }\n"
-    "        if (Settings.EMOTES_BTTV.get()) {\n"
+    "        if (Settings.EMOTES_THIRD_PARTY.get()) {\n"
     "            schedule(channel.betterTtv, now,\n"
     "                    () -> loadChannelBetterTtv(applicationContext, channelId, channel));\n"
     "        }\n"
-    "        if (Settings.EMOTES_FFZ.get()) {\n"
+    "        if (Settings.EMOTES_THIRD_PARTY.get()) {\n"
     "            schedule(channel.ffz, now, () -> loadChannelFfz(applicationContext, channelId, channel));\n"
     "        }",
 )
 s, count = re.subn(
     r"    Emote find\(String channelId, String name\) \{.*?\n    \}\n\n    private void schedule",
     """    Emote find(String channelId, String name) {
-        boolean sevenTv = Settings.EMOTES_7TV.get();
-        boolean betterTtv = Settings.EMOTES_BTTV.get();
-        boolean ffz = Settings.EMOTES_FFZ.get();
+        boolean sevenTv = Settings.EMOTES_THIRD_PARTY.get();
+        boolean betterTtv = Settings.EMOTES_THIRD_PARTY.get();
+        boolean ffz = Settings.EMOTES_THIRD_PARTY.get();
 
         if (channelId != null) {
             ChannelState channel = getChannel(channelId, false);
@@ -661,7 +661,7 @@ if needle not in s:
 s = s.replace(
     needle,
     needle +
-    "        if (!Settings.EMOTES_7TV.get() && !Settings.EMOTES_BTTV.get() && !Settings.EMOTES_FFZ.get()) {\n"
+    "        if (!Settings.EMOTES_THIRD_PARTY.get() && !Settings.EMOTES_THIRD_PARTY.get() && !Settings.EMOTES_THIRD_PARTY.get()) {\n"
     "            forget(textView);\n"
     "            return;\n"
     "        }\n"
@@ -823,17 +823,17 @@ if "getAllForChannel" not in _ps:
         if (channelId != null) {
             ChannelState channel = getChannel(channelId, false);
             if (channel != null) {
-                if (Settings.EMOTES_7TV.get()) {
+                if (Settings.EMOTES_THIRD_PARTY.get()) {
                     for (Emote emote : channel.sevenTv.emotes.values()) {
                         if (!unique.containsKey(emote.name)) unique.put(emote.name, emote);
                     }
                 }
-                if (Settings.EMOTES_BTTV.get()) {
+                if (Settings.EMOTES_THIRD_PARTY.get()) {
                     for (Emote emote : channel.betterTtv.emotes.values()) {
                         if (!unique.containsKey(emote.name)) unique.put(emote.name, emote);
                     }
                 }
-                if (Settings.EMOTES_FFZ.get()) {
+                if (Settings.EMOTES_THIRD_PARTY.get()) {
                     for (Emote emote : channel.ffz.emotes.values()) {
                         if (!unique.containsKey(emote.name)) unique.put(emote.name, emote);
                     }
@@ -841,17 +841,17 @@ if "getAllForChannel" not in _ps:
             }
         }
 
-        if (Settings.EMOTES_7TV.get()) {
+        if (Settings.EMOTES_THIRD_PARTY.get()) {
             for (Emote emote : globalSevenTv.emotes.values()) {
                 if (!unique.containsKey(emote.name)) unique.put(emote.name, emote);
             }
         }
-        if (Settings.EMOTES_BTTV.get()) {
+        if (Settings.EMOTES_THIRD_PARTY.get()) {
             for (Emote emote : globalBetterTtv.emotes.values()) {
                 if (!unique.containsKey(emote.name)) unique.put(emote.name, emote);
             }
         }
-        if (Settings.EMOTES_FFZ.get()) {
+        if (Settings.EMOTES_THIRD_PARTY.get()) {
             for (Emote emote : globalFfz.emotes.values()) {
                 if (!unique.containsKey(emote.name)) unique.put(emote.name, emote);
             }

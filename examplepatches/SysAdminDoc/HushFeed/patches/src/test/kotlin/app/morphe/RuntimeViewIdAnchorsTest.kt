@@ -2,7 +2,6 @@ package app.morphe
 
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.apksig.internal.apk.AndroidBinXmlParser
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.DexFile
@@ -729,7 +728,7 @@ class RuntimeViewIdAnchorsTest {
                 }
             }
         }
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         for (entry in container.dexEntryNames) scan(container.getEntry(entry)!!.dexFile)
         ZipFile(apk).use { zip ->
             val modules = zip.entries().asSequence().filter { FEATURE_DEX.matches(it.name) }
@@ -772,7 +771,7 @@ class RuntimeViewIdAnchorsTest {
                 }
             }
         }
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         for (entry in container.dexEntryNames) scan(container.getEntry(entry)!!.dexFile)
         ZipFile(apk).use { zip ->
             val modules = zip.entries().asSequence().filter { FEATURE_DEX.matches(it.name) }

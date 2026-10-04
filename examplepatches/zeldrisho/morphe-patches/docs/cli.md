@@ -70,9 +70,9 @@ Replace `<version>` with the built bundle version:
 ./gradlew :patches:test buildAndroid --no-daemon
 MPP="patches/build/libs/patches-<version>.mpp" \
   python3 scripts/repatch.py /path/to/app.apkm /tmp/app_patched.apk
-android install --apks=/tmp/app_patched.apk --device="$SERIAL"
-# Or to install and launch:
-android run --apks=/tmp/app_patched.apk --device="$SERIAL"
+adb -s "$SERIAL" install -r /tmp/app_patched.apk
+# Launch the patched package (use its renamed ID if applicable):
+adb -s "$SERIAL" shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1
 ```
 
 For release QA, follow [full verification](development.md#verify) and
@@ -190,16 +190,13 @@ Morphe JAR.
 ## Updating and debugging
 
 - Update = re-patch with the new `.mpp` (or new APK) and install with
-  `android install --apks=<path-to-verified.apk> --device="$SERIAL"` (or
-  `android run --apks=<path-to-verified.apk> --device="$SERIAL"` to install and
-  launch); no uninstall when the cert matches. `Your apps`-style update badges are a
+  `adb -s "$SERIAL" install -r <path-to-verified.apk>`; no uninstall when the cert matches. `Your apps`-style update badges are a
   Manager concept; on CLI compare `list-versions` output and the `-r` result JSON.
 - Failed run: keep scratch (`--disable-purge`), save the result
   (`-r result.json`), read `morphe-data/logs/`, then device logcat:
-  `adb logcat | grep 'morphe\|AndroidRuntime'`. Patched-app runtime logs are
-  just logcat — no special CLI log subcommand. For UI diagnosis, prefer
-  `android layout --device="$SERIAL" --full` and
-  `android screen capture --device="$SERIAL" --output=<path>`.
+  `adb -s "$SERIAL" logcat | grep 'morphe\|AndroidRuntime'`. Patched-app runtime logs are
+  just logcat — no special CLI log subcommand. For UI diagnosis, use the
+  [ADB inspection commands](validation.md#repeatable-device-journeys).
 - Post-install link routing (patched app opens its web links; optionally strip
   stock's claim after a rename): `utility install -a /tmp/out.apk --route-links
   [--disable-stock com.example.app]` — needs ADB-authorized device.

@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -48,6 +49,13 @@ class SuggestedStoriesFixtureTest {
         AppCompatibilities.FACEBOOK_TARGET_VERSION to ("CB0" to "LX/2OQ;"),
         AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to ("C9d" to "LX/2LX;"),
         AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to ("CAm" to "LX/24X;"),
+    )
+
+    /** The query builders that set skip_srtt_item_list, per build (issue #21). */
+    private val expectedSkips = mapOf(
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to setOf("LX/24x;->A03", "LX/24x;->A07"),
+        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to setOf("LX/1y6;->A03", "LX/1y6;->A07"),
+        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to setOf("LX/1sa;->A03", "LX/1sa;->A08"),
     )
 
     private fun reference(instruction: Instruction): String {
@@ -150,6 +158,56 @@ class SuggestedStoriesFixtureTest {
                     reference(first(LABEL_STUB)[1]),
                 )
                 assertEquals("$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMMUTABLE_LIST", reference(first(COPY_STUB)[0]))
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /**
+     * Issue #21: each declared build's two tray query builders set skip_srtt_item_list once, a
+     * const-string and then the builder's (String, boolean) setter. The hook puts the extension's
+     * answer in the boolean's register right before each setter, and leaves Facebook's code as it was.
+     */
+    @Test
+    fun `each tray fetch asks the extension before it sets skip_srtt_item_list`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        assertEquals("the declared builds", expectedSkips.keys, versions)
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val classes = FixtureDex.classesHolding(bundle, SKIP_PROMPT_CARDS)
+                val methods = classes.flatMap { methodsHolding(it, SKIP_PROMPT_CARDS) }
+                fun key(method: Method) = "${method.definingClass}->${method.name}"
+                assertEquals("${bundle.name}: methods holding \"$SKIP_PROMPT_CARDS\"", expectedSkips.getValue(version), methods.map(::key).toSet())
+                assertEquals("${bundle.name}: one method per name", 2, methods.size)
+
+                val own = methods.associate { key(it) to body(it) }
+                val sites = methods.associate { key(it) to promptCardSkips(it) }
+                for ((name, found) in sites) {
+                    assertEquals("${bundle.name}: $name sets $SKIP_PROMPT_CARDS once, straight to its setter", 1, found?.size)
+                }
+
+                val context = PatchContexts.of(classes + ExtensionDex.classDef(SUGGESTED_STORIES))
+                assertEquals("${bundle.name}: places hooked", 2, with(context) { hookPromptCardSkips() })
+                for (classDef in classes) {
+                    val mutable = with(context) { mutableClassDefBy(classDef.type) }
+                    for (method in mutable.methods.filter { key(it) in own }) {
+                        val (index, register) = sites.getValue(key(method))!!.single()
+                        val before = own.getValue(key(method))
+                        val hooked = body(method)
+                        assertEquals("${bundle.name}: ${key(method)} two instructions in", before.size + 2, hooked.size)
+                        assertEquals(SKIP_PROMPT_CARDS_HOOK, reference(hooked[index]))
+                        val call = hooked[index] as RegisterRangeInstruction
+                        assertEquals("${bundle.name}: the boolean's register", register to 1, call.startRegister to call.registerCount)
+                        assertEquals(Opcode.MOVE_RESULT, hooked[index + 1].opcode)
+                        assertEquals(register, (hooked[index + 1] as OneRegisterInstruction).registerA)
+                        val setter = hooked[index + 2] as FiveRegisterInstruction
+                        assertEquals("${bundle.name}: the setter still takes the boolean", register, setter.registerE)
+                        assertEquals("${bundle.name}: Facebook's own code around it",
+                            before.map { it.opcode }, (hooked.take(index) + hooked.drop(index + 2)).map { it.opcode })
+                    }
+                }
                 checked += version
             }
         }

@@ -780,6 +780,10 @@ public final class MediaDownload {
             Downloader.Result result = DashSave.save(application, video, audio, writer, policyFor(application), cap(),
                 progress);
             if (result.ok() || fallback == null || result.status == Downloader.Status.CANCELLED) return result;
+            // A failed gallery publication is terminal. A fallback can repair a fetch or join,
+            // but mustn't start another fetch after this save's publication state has failed.
+            if (progress instanceof SaveControl.Save
+                    && ((SaveControl.Save) progress).state() == SaveControl.State.FAILED) return result;
 
             DashManifest.Track better = better(java.util.Collections.singletonList(video),
                 RenditionPicker.qualityOf(fallback), quality);
@@ -861,6 +865,7 @@ public final class MediaDownload {
                 if (result.ok() || cancelled) info(() -> "save finished: " + result);
                 else failure(() -> "save finished: " + result, null);
                 String text = message(application, result.status, writer.savedLocation(), result.lower);
+                if (result.ok()) SaveControl.showCompleted(save, writer);
                 if (result.ok() && result.refused && !compatibleSaves()) {
                     info(() -> "the saved file has a track WhatsApp and some editors refuse, with Save videos "
                         + "other apps can open off");

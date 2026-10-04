@@ -118,6 +118,12 @@ public class Utils {
         return ""; // Value is replaced during patching.
     }
 
+    /** Identity verified against the loaded bundle at patch time, or unknown/unverified. */
+    @SuppressWarnings("SameReturnValue")
+    public static String getPatchesBuildIdentity() {
+        return "unknown"; // Value is replaced during patching.
+    }
+
     public static boolean isPreReleasePatches() {
         return getPatchesReleaseVersion().contains("dev");
     }

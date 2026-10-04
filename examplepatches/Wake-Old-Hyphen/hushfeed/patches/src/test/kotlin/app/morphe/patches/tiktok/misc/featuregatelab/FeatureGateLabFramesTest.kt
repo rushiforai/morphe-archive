@@ -7,7 +7,6 @@ package app.morphe.patches.tiktok.misc.featuregatelab
 import app.morphe.Fixtures
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -143,7 +142,7 @@ class FeatureGateLabFramesTest {
     }
 
     private fun load(apk: File): Map<String, ClassDef> {
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         val classes = HashMap<String, ClassDef>()
         container.dexEntryNames.forEach { entry ->
             container.getEntry(entry)!!.dexFile.classes.forEach { classes.putIfAbsent(it.type, it) }

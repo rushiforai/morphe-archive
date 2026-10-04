@@ -1,3 +1,27 @@
+Importing new history ended Undo for the earlier clear. You can clear the imported history.	Yeni tarixçənin idxalı əvvəlki təmizləməni geri qaytarmaq imkanını bitirdi. İdxal olunmuş tarixçəni təmizləyə bilərsiniz.
+%1$d setting in that file can't be restored here and was skipped	Bu fayldakı %1$d ayar burada bərpa edilə bilmir və ötürüldü
+%1$d settings in that file can't be restored here and were skipped	Bu fayldakı %1$d ayar burada bərpa edilə bilmir və ötürüldü
+Import watch history	İzləmə tarixçəsini idxal et
+Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	Bu hesabın TikTok JSON ixracını seçin. Fayl ən çox %1$s MB və %2$s qeyd ola bilər. Saat qurşağı olmayan tarixlər üçün bu telefonun saat qurşağı istifadə edilir.
+Sign in to TikTok before importing watch history.	İzləmə tarixçəsini idxal etməzdən əvvəl TikTok-a daxil olun.
+Your TikTok account changed. Choose the file again for this account.	TikTok hesabınız dəyişdi. Bu hesab üçün faylı yenidən seçin.
+Reading watch history	İzləmə tarixçəsi oxunur
+Importing watch history	İzləmə tarixçəsi idxal edilir
+Reopen Hushfeed settings, then choose the file	Hushfeed ayarlarını yenidən açın, sonra faylı seçin
+Couldn't start the import. Try again in a moment.	İdxal başlaya bilmədi. Bir az sonra yenidən cəhd edin.
+Your seen history changed before the import finished. Choose the file again.	İdxal bitməzdən əvvəl baxılmış videoların tarixçəsi dəyişdi. Faylı yenidən seçin.
+Couldn't import watch history. Your saved history is unchanged.	İzləmə tarixçəsi idxal edilə bilmədi. Saxlanmış tarixçəniz dəyişməyib.
+%1$s watched video added.	%1$s izlənmiş video əlavə edildi.
+%1$s watched videos added.	%1$s izlənmiş video əlavə edildi.
+%1$s entry skipped.	%1$s qeyd ötürüldü.
+%1$s entries skipped.	%1$s qeyd ötürüldü.
+Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos.	Ötürülmüş qeydlər etibarsızdır, vaxtı keçib, artıq saxlanıb və ya ən yeni %1$s videodan köhnədir.
+Watch history was imported for the account that chose the file. Switch back to see it.	İzləmə tarixçəsi faylı seçən hesab üçün idxal edildi. Görmək üçün həmin hesaba qayıdın.
+Couldn't read that file. Choose it again.	Bu fayl oxuna bilmədi. Onu yenidən seçin.
+That file is larger than %1$s MB. Choose a smaller watch-history export.	Bu fayl %1$s MB-dan böyükdür. Daha kiçik izləmə tarixçəsi ixracı seçin.
+That file has more than %1$s watch-history entries.	Bu faylda %1$s-dən çox izləmə tarixçəsi qeydi var.
+That JSON file doesn't contain the supported TikTok watch history.	Bu JSON faylında dəstəklənən TikTok izləmə tarixçəsi yoxdur.
+That watch-history file is damaged. Nothing was imported.	Bu izləmə tarixçəsi faylı zədələnib. Heç nə idxal edilmədi.
 %1$d already matched	%1$d dənəsi artıq uyğun gəlir
 %1$d areas were checked and everything they need is here.	%1$d sahə yoxlanıldı və onların ehtiyac duyduğu hər şey burada var.
 %1$d fields overridden	%1$d sahə əvəzlənib
@@ -624,7 +648,7 @@ Last original value	Son orijinal dəyər
 Last recording: %1$d gates.	Son qeyd: %1$d qapı.
 Last recording: 1 gate.	Son qeyd: 1 qapı.
 Layout	Düzülüş
-Layout, player, search and system	Düzülüş, pleyer, axtarış və sistem
+Layout, search, profile and system	Düzülüş, axtarış, profil və sistem
 Leave maximum empty to keep it unlimited.	Limitsiz saxlamaq üçün maksimumu boş buraxın.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.	Səsi saxlanılan videodan çıxarın. İkisini də istəyirsinizsə, Səsi də saxla yenə də .m4a faylını onun yanında yazır.
 Length and views per like	Uzunluq və bəyənməyə düşən baxışlar
@@ -909,7 +933,6 @@ Saving the story	Hekayə saxlanılır
 Saving the sound	Səs saxlanılır
 Saving the profile picture	Profil şəkli saxlanılır
 Saving the live photo's clip	Canlı fotonun klipi saxlanılır
-Screen	Ekran
 Screen time	Ekran vaxtı
 Search	Axtarış
 Search and override gates	Qapıları axtarın və əvəzləyin
@@ -1406,7 +1429,6 @@ Problem detected.	Problem aşkarlandı.
 Couldn't save these choices. Try again.	Bu seçimləri saxlamaq alınmadı. Yenidən cəhd edin.
 Clearing seen videos	İzlənmiş videolar təmizlənir
 Couldn't clear seen videos. Try again.	İzlənmiş videoları təmizləmək alınmadı. Yenidən cəhd edin.
-Background play	Fonda oxutma
 Keep playing in the background	Fonda oxutmağa davam edin
 The video you're watching keeps playing to its end after you leave TikTok or turn the screen off, with TikTok's own media notification to pause it. TikTok's background play switch stays on while this is on. Restart TikTok to apply this.	TikTok-dan çıxandan və ya ekranı söndürəndən sonra izlədiyiniz video sonuna qədər oxunmağa davam edir, dayandırmaq üçün TikTok-un öz media bildirişi var. Bu açıq olduqda TikTok-un fonda oxutma açarı açıq qalır. Tətbiq etmək üçün TikTok-u yenidən başladın.
 Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.	Fonda oxutmağa davam edin Hushfeed-in Oxutma ayarlarında açıqdır, ona görə TikTok bu açar üçün 2 alır və buradakı əvəzləmə həmin açar qapanana qədər təsirsizdir.
@@ -1435,7 +1457,6 @@ A different account is signed in. Switch back to the one you set this up on, or 
 TikTok's messages didn't start in time. It tries again at %1$s.	TikTok-un mesajları vaxtında başlamadı. %1$s vaxtında yenidən cəhd edəcək.
 The message didn't go through. It tries again at %1$s.	Mesaj göndərilmədi. %1$s vaxtında yenidən cəhd edəcək.
 Found %1$s in your chats.	Söhbətlərinizdə %1$s tapıldı.
-App checks	Tətbiq yoxlamaları
 Look like the store app to TikTok's checks	TikTok-un yoxlamalarına mağaza tətbiqi kimi görünün
 Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.	TikTok-un onun necə imzalandığı və quraşdırıldığı barədə öz yoxlamalarına Play Store tətbiqi kimi cavab verin. Yeniləmədə özünü geri qaytaran izləmələr və ya bəyənmələr üçündür. TikTok bunun çatmadığı doğma koddan da yoxlaya bilər, ona görə kömək etməyə bilər.
 Add apps to Share via	Share via bölməsinə tətbiqlər əlavə edin
@@ -1473,9 +1494,16 @@ Sends one message a day to each person below at the time below, so your streaks 
 Their usernames, separated by commas or new lines. Each person must already have a chat with you.	Onların istifadəçi adları, vergüllə və ya yeni sətirlərlə ayrılmış. Hər kəsin sizinlə artıq söhbəti olmalıdır.
 Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.	Çatdırılma təsdiqlənməyib: %1$d/%2$d söhbət. Bu söhbətlər bu gün yenidən cəhd edilməyəcək.
 Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.	Çatdırılma təsdiqlənməyib: %1$d/%2$d söhbət. Qalan söhbətlərə hələ də mesaj lazımdır.
+Sent to %1$d/%2$d chats. They won't get another message today.	%1$d/%2$d söhbətə göndərildi. Bu gün başqa mesaj almayacaqlar.
+Sent to %1$d/%2$d chats. The rest still need a message.	%1$d/%2$d söhbətə göndərildi. Qalan söhbətlərə hələ də mesaj lazımdır.
 TikTok may have taken this message. Delivery isn't confirmed, so it won't be retried today.	TikTok bu mesajı götürmüş ola bilər. Çatdırılma təsdiqlənməyib, ona görə bu gün yenidən cəhd edilməyəcək.
 Nothing was sent. Check the streak settings and try again.	Heç nə göndərilmədi. Seriya ayarlarını yoxlayın və yenidən cəhd edin.
 Don't save new searches	Yeni axtarışları saxlamayın
 Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.	Axtardıqlarınızı TikTok-un bu telefonda saxladığı axtarış tarixçəsindən kənarda saxlayın. Orada artıq olan axtarışlar siz silənə qədər qalır və TikTok-un serverləri öz qeydini hələ də saxlaya bilər.
 Block suggested video notifications	Təklif olunan video bildirişlərini bloklayın
 Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.	TikTok-un sizin üçün seçdiyi populyar videolar haqqında göndərdiyi bildirişləri dayandırın. Mesajlar, şərhlər, bəyənmələr, yeni izləyicilər və izlədiyiniz hesabların videoları yenə gəlir.
+Buttons on videos	Videolardakı düymələr
+
+Seen videos put back: %1$s of %2$s	Bərpa edilən baxılmış videolar: %1$s / %2$s
+No cleared videos fit the current history limits.	Silinmiş videoların heç biri cari tarixçə limitlərinə uyğun gəlmir.
+Putting seen videos back	Baxılmış videolar bərpa edilir

@@ -7,6 +7,8 @@
  */
 package app.morphe.extension.hushthreads.settings;
 
+import java.util.Collections;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -116,6 +118,68 @@ public class PatchFamilyTest {
         assertEquals(listed, families);
     }
 
+    // Contracts ported from Hushfacebook 814acd23.
+    /**
+     * The overview and the report name the default patches a build lacks from this list, so it has
+     * to be Morphe Manager's own default selection: a new default patch fails here until it's listed.
+     */
+    @Test
+    public void theDefaultSelectionIsTheOneManagerMakes() throws Exception {
+        JSONArray patches = new JSONObject(new String(Files.readAllBytes(patchesList().toPath()),
+                StandardCharsets.UTF_8)).getJSONArray("patches");
+        Set<String> selected = new TreeSet<>();
+        for (int i = 0; i < patches.length(); i++) {
+            JSONObject patch = patches.getJSONObject(i);
+            if (patch.getBoolean("use")) selected.add(patch.getString("name"));
+        }
+        assertTrue("the settings entry left the default selection", selected.remove("HushThreads settings"));
+
+        Set<String> listed = new TreeSet<>();
+        for (PatchFamily family : PatchFamily.DEFAULT_SELECTION) listed.add(family.patchName);
+        assertEquals(selected, listed);
+        // The check can fail: an opt-in patch isn't in either list.
+        assertFalse(selected.contains(PatchFamily.VIDEO_AUTOPLAY.patchName));
+        assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.VIDEO_AUTOPLAY));
+    }
+
+    /**
+     * A build that lacks default patches names them, in the order the report lists families, and
+     * one with every default patch names none. Opt-in patches left out are never named.
+     */
+    @Test
+    public void theMissingDefaultsAreTheDefaultPatchesABuildLacks() {
+        Set<PatchFamily> build = EnumSet.allOf(PatchFamily.class);
+        assertEquals(Collections.emptyList(), PatchFamily.missingDefaults(build));
+        build.remove(PatchFamily.VIDEO_AUTOPLAY);
+        build.remove(PatchFamily.RETURN_REFRESH);
+        assertEquals(Collections.emptyList(), PatchFamily.missingDefaults(build));
+        for (String line : PatchFamily.reportLines(build, false)) {
+            assertFalse(line, line.startsWith("left out of Manager's default selection"));
+        }
+
+        build.remove(PatchFamily.HIDE_SUGGESTED_USERS);
+        build.remove(PatchFamily.HIDE_ADS);
+        assertEquals(Arrays.asList("Hide ads", "Hide suggested users"), PatchFamily.missingDefaults(build));
+        List<String> lines = PatchFamily.reportLines(build, false);
+        assertEquals("left out of Manager's default selection: Hide ads, Hide suggested users",
+                lines.get(lines.size() - 1));
+        assertEquals("not in this build: Hide ads, Hide suggested users, Block background-return feed refresh, Disable video autoplay", lines.get(lines.size() - 2));
+    }
+
+    /** The new line goes through the redactor like the rest of the section and comes out whole. */
+    @Test
+    public void theExportCarriesTheMissingDefaultsWhole() {
+        Set<PatchFamily> build = EnumSet.allOf(PatchFamily.class);
+        build.remove(PatchFamily.RESTORE_TRUST);
+        build.remove(PatchFamily.REMOVE_AD_ID);
+        PatchFamily.inBuildForTests = build;
+        LogBufferManager.registerReportSection(PatchFamily.REPORT);
+        PauseForTests.pause(HushThreadsPause.Reason.SWITCH);
+
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("\nleft out of Manager's default selection: Remove the advertising ID, Restore screens on re-signed builds\n"));
+    }
+
     @Test
     public void aPatchWithNoSwitchSaysWhatOfItStaysIn() {
         for (PatchFamily family : PatchFamily.values()) {
@@ -165,7 +229,8 @@ public class PatchFamilyTest {
                 "Sanitize sharing links: disabled by its switch (hushthreads_sanitize_sharing_links=off)",
                 "Remove the advertising ID: no switch, stays in while paused: the removed advertising ID permission",
                 "not in this build: Hide suggested users, Block background-return feed refresh, Disable video autoplay, Open links in browser, Disable analytics, "
-                        + "Restore screens on re-signed builds"),
+                        + "Restore screens on re-signed builds",
+                "left out of Manager's default selection: Hide suggested users, Open links in browser, Disable analytics, Restore screens on re-signed builds"),
                 running);
         assertEquals("Restore screens on re-signed builds: no switch, stays in while paused: the re-signed build fix",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.RESTORE_TRUST), false).get(0));
@@ -176,6 +241,7 @@ public class PatchFamilyTest {
                 paused.get(1));
         assertEquals("a patch with no switch reads the same paused", running.get(2), paused.get(2));
         assertEquals(running.get(3), paused.get(3));
+        assertEquals(running.get(4), paused.get(4));
     }
 
     /**

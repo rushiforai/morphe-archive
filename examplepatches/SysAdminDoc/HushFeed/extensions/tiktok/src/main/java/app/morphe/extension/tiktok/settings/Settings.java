@@ -495,7 +495,7 @@ public class Settings extends BaseSettings {
      * so a backup doesn't carry it; paused, Hushfeed plays the feed with sound as TikTok would.
      */
     public static final BooleanSetting FEED_MUTED = new BooleanSetting("feed_muted", FALSE, false, false);
-    public static final BooleanSetting FEED_MUTE_BUTTON = new BooleanSetting("feed_mute_button", TRUE);
+    public static final BooleanSetting FEED_MUTE_BUTTON = new BooleanSetting("feed_mute_button", FALSE);
     public static final BooleanSetting HIDE_FEED_CAPTION = new BooleanSetting("hide_feed_caption", FALSE);
     /** Native description and creator name, independently of spoken subtitles. Zero keeps TikTok's size. */
     public static final IntegerSetting FEED_DESCRIPTION_TEXT_SIZE =
@@ -525,9 +525,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting BLOCK_AUTHOR_BUTTON =
             new BooleanSetting("block_author_button", FALSE, true);
     public static final BooleanSetting LOCAL_HIDE_BUTTON =
-            new BooleanSetting("local_hide_button", TRUE);
+            new BooleanSetting("local_hide_button", FALSE);
     public static final BooleanSetting BLOCK_SOUND_BUTTON =
-            new BooleanSetting("block_sound_button", TRUE);
+            new BooleanSetting("block_sound_button", FALSE);
     public static final StringSetting BLOCK_AUTHOR_BUTTON_POSITION =
             new StringSetting("block_author_button_position", "");
     public static final StringSetting LOCAL_HIDE_BUTTON_POSITION =
@@ -728,6 +728,9 @@ public class Settings extends BaseSettings {
                 // The budget's day is worked out from this hour. Paused, the budget counts
                 // nothing and holds nothing, but its record still has to name the right day.
                 SESSION_BUDGET_RESET_HOUR);
+        // Guests cannot use Profile to reach settings. Keep their chosen Home shortcut so
+        // they can reopen settings and resume Hushfeed after leaving the Pause screen.
+        Setting.keepWhenPaused(HOME_TAB_OPENS_SETTINGS);
         // Downloads rewrite TikTok's own save folder and file name with no switch in front, so
         // pausing cannot give TikTok its own back. They keep the reader's choice instead of
         // falling back to Hushfeed's defaults. The README lists them as not paused.

@@ -2,7 +2,6 @@ package app.ckzombies.extension;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.os.Build;
 import android.os.Environment;
 
 import java.io.File;
@@ -63,11 +62,9 @@ public final class ObbCheck {
                 return state;
             }
             String pkg = context.getPackageName();
-            if (Build.VERSION.SDK_INT >= 11) {
-                // Asking for the folder makes Android create it for the game, or hand it back to
-                // the game when another app made it (see ExternalStorage).
-                context.getObbDir();
-            }
+            // Asking for the folder makes Android create it for the game, or hand it back to the
+            // game when another app made it.
+            ExternalStorage.askForObbDir(context);
             File obb = new File(storage, "Android/obb/" + pkg);
             File[] obbEntries = obb.listFiles();
             boolean found = match(obbEntries, expectedSize, true) != null

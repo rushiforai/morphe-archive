@@ -7,7 +7,6 @@ package app.morphe.patches.tiktok.interaction.downloads
 import app.morphe.Fixtures
 import app.morphe.takes
 import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -21,7 +20,7 @@ class DownloadDestinationFixturesTest {
             val fingerprints = listOf(VideoDownloadUriFingerprint, PhotoDownloadUriFingerprint,
                 VideoLookupUriFingerprint, PhotoLookupUriFingerprint, ImagePostMediaCopyFingerprint)
             val matches = fingerprints.associateWith { mutableListOf<Method>() }
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) for (type in container.getEntry(entry)!!.dexFile.classes) {
                 for (method in type.methods) for (fingerprint in fingerprints) {
                     if (fingerprint.takes(method, type)) matches.getValue(fingerprint).add(method)

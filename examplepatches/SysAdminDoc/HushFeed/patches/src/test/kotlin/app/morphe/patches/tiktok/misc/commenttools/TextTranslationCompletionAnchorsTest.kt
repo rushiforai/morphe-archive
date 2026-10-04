@@ -3,7 +3,6 @@ package app.morphe.patches.tiktok.misc.commenttools
 import app.morphe.Fixtures
 import app.morphe.patches.tiktok.misc.translation.carriesTranslationCompletionAnchor
 import app.morphe.patches.tiktok.misc.translation.isTextTranslationCompletionCarrier
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -22,7 +21,7 @@ class TextTranslationCompletionAnchorsTest {
     @Test
     fun `each fixture has one text completion for the keyword filter and leaves the audio one out`() {
         for (apk in Fixtures.apks()) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val anchors = mutableListOf<String>()
             val text = mutableListOf<String>()
             for (entry in container.dexEntryNames) {

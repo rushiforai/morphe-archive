@@ -30,6 +30,20 @@ jobs:
         run: |
           javac -d /tmp/nicoid-ui-tests extensions/extension/src/main/java/e/e/a/UiStrings.java porting/tests/UiStringsTest.java
           java -cp /tmp/nicoid-ui-tests e.e.a.UiStringsTest
+      - name: Check cache authentication and storage migration
+        run: |
+          javac -d /tmp/nicoid-cache-tests extensions/extension/src/main/java/e/e/a/CacheSupport.java porting/tests/CacheSupportTest.java
+          java -cp /tmp/nicoid-cache-tests e.e.a.CacheSupportTest
+      - name: Check video count order and precision
+        run: |
+          javac -d /tmp/nicoid-count-tests extensions/extension/src/main/java/e/e/a/VideoCountRules.java porting/tests/VideoCountRulesTest.java
+          java -cp /tmp/nicoid-count-tests e.e.a.VideoCountRulesTest
+      - name: Check manual login cookie input
+        run: |
+          javac -d /tmp/nicoid-cookie-tests extensions/extension/src/main/java/e/e/a/ManualCookie.java porting/tests/ManualCookieTest.java
+          java -cp /tmp/nicoid-cookie-tests e.e.a.ManualCookieTest
+      - name: Validate bundled Android manifest
+        run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:
@@ -41,4 +55,3 @@ jobs:
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 7
-

@@ -1,3 +1,53 @@
+## [1.13.4](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.13.3...v1.13.4) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Patches:** match official collage naming, local wall-clock timestamp, and permanent save state ([d370f79](https://github.com/Akash-Sriram/morphe-google-photos/commit/d370f79222f71bd1c9649cbd4f3ea1eaf7633e37))
+
+## [1.13.3](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.13.2...v1.13.3) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **Google Photos:** remove toast popups from local creation downloader ([11b28bc](https://github.com/Akash-Sriram/morphe-google-photos/commit/11b28bc29143e30d69e9295e5f759b3f6ec450a0))
+* **Google Photos:** save collages to DCIM/Google Photos and upgrade Fife URL quality ([2fa4468](https://github.com/Akash-Sriram/morphe-google-photos/commit/2fa4468732b202794070a6cbc51f2298088c8d4f))
+
+### ✨ New Features
+
+* **Google Photos:** add local creation downloader for quota-free memory collages ([b3db13b](https://github.com/Akash-Sriram/morphe-google-photos/commit/b3db13b6fa0c4c9bb15707e5e48e036df7c06586))
+* **Google Photos:** hide save button when saved locally and prevent duplicate downloads ([6f81101](https://github.com/Akash-Sriram/morphe-google-photos/commit/6f8110154ae3f664ca110a433d8db55396039a5a))
+
+## [1.13.2](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.13.1...v1.13.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Avatar:** restore active account from native preferences to prevent startup flicker ([585cdf0](https://github.com/Akash-Sriram/morphe-google-photos/commit/585cdf05b7096f4bc0fc4be0bba6a50cc6725701))
+* **Google Photos - Branding:** realign pinwheel logos and recolor collapse lottie animation ([4078c4b](https://github.com/Akash-Sriram/morphe-google-photos/commit/4078c4b5c55c72382003cfe93daedadf8ae6fdf3))
+* **Google Photos - Gms:** restrict scroll offset injection to static non-RecyclerView methods ([549f918](https://github.com/Akash-Sriram/morphe-google-photos/commit/549f9184900e64cf529ca1906f3f95e48ec042cc))
+
+## [1.13.1](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.13.0...v1.13.1) (2026-10-03)
+
+### 🚀 Updated App Support
+
+* **Google Photos:** promote 7.95.0.989626323 as sole supported version ([0aa6704](https://github.com/Akash-Sriram/morphe-google-photos/commit/0aa6704ad3b2cc6cbbcf66577c604a0a65cba1b6))
+
+## [1.13.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.12.2...v1.13.0) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Diagnostics:** disable text selection in log viewer and upgrade logcat reader to zero-drop buffered pipeline ([01d36f8](https://github.com/Akash-Sriram/morphe-google-photos/commit/01d36f872558a66577431b78c07bd9204083c487))
+* **Google Photos - Flags:** respect theme, fix search filter expand/collapse, and disallow multiline in search bar ([06289d5](https://github.com/Akash-Sriram/morphe-google-photos/commit/06289d5b44f68312a309b6dfd35981b07193c898))
+* **Google Photos:** handle missing MicroG location permission and resolve avatar layout loop ([#25](https://github.com/Akash-Sriram/morphe-google-photos/issues/25)) ([205ba91](https://github.com/Akash-Sriram/morphe-google-photos/commit/205ba915719ca626d5236a07b51be428640c84b5))
+
+### ✨ New Features
+
+* **Google Photos - Flags:** scope enable/disable all to active list and tab, implement reset/load preset lifecycle, and scope category toggle ([083bf00](https://github.com/Akash-Sriram/morphe-google-photos/commit/083bf00dfbe98d405ee3054bed0fbdcaf67823ae))
+* **Google Photos - Map:** fix explore map photo count recalculation and grid clipping on location center ([3df096f](https://github.com/Akash-Sriram/morphe-google-photos/commit/3df096faeb063d6c64b563eb4409e1e2d9b2515a))
+* **Google Photos:** add custom flags tab with individual/bulk clear, fix category enable/disable logic, update restart icon, and unify diagnostics to single view ([60f4e32](https://github.com/Akash-Sriram/morphe-google-photos/commit/60f4e32a816dfec51eeb461328a215a2479584ae))
+* **Google Photos:** redesign diagnostics dialog to M3, fix flag manager dialog rounding, and remove duplicate logs menu item ([b8ea57b](https://github.com/Akash-Sriram/morphe-google-photos/commit/b8ea57bf7bbab4e098c0ba9aabc8653c03c50e97))
+* **Google Photos - Ui:** redesign session selector with M3 picker, add expand/collapse quick pills, and enable Google One Bento Badge ([cb130b6](https://github.com/Akash-Sriram/morphe-google-photos/commit/cb130b6b0e9c008ba106acd2fa7d48498b692ca6))
+* **Google Photos - Ui:** redesign settings dock and flag manager with native Material 3 styling and vector icons ([91eec8d](https://github.com/Akash-Sriram/morphe-google-photos/commit/91eec8dd42fa33589f17b91712d617b7d79c86cc))
+* **Google Photos - Ui:** tailor-made Material vector icons, meaningful category names, and 24dp curves ([ae0246a](https://github.com/Akash-Sriram/morphe-google-photos/commit/ae0246a856df9df9ba078d8a2ec9214aebb83844))
+
 ## [1.12.2](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.12.1...v1.12.2) (2026-09-26)
 
 ### 🐛 Bug Fixes

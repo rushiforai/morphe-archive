@@ -6,6 +6,7 @@
 package app.morphe.patches.tiktok.misc.optimizer
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.shared.requireRegisters
@@ -77,18 +78,25 @@ val instantLaunchSplashBlockerPatch = bytecodePatch(
 @Suppress("unused")
 val networkTrafficGovernorPatch = bytecodePatch(
     name = "Limit background traffic",
-    description = "Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop.",
+    description = "Turns off TikTok's buffer-preload gate. Videos may start buffering later. Push setup stays on unless Skip push setup is enabled in the patch options.",
     default = false,
 ) {
     category("Performance")
     compatibleWith(*AppCompatibilities.tiktok())
 
+    val skipPushSetup by booleanOption(
+        "skipPushSetup",
+        default = false,
+        title = "Skip push setup",
+        description = "Can stop TikTok notifications, including messages. Pause won't reverse this change. Repatch with this option off to restore push setup.",
+        required = false,
+    )
+
     execute {
         val bufferGate = BufferPreloadGateFingerprint.method
-        val pushTask = InitPushTaskFingerprint.method
         bufferGate.requireRegisters("Network & Background Traffic Governor", 1)
         bufferGate.returnEarly(false)
-        pushTask.returnEarly()
+        if (skipPushSetup == true) InitPushTaskFingerprint.method.returnEarly()
     }
 }
 

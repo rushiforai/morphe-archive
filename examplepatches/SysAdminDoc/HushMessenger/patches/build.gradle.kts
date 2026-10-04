@@ -62,6 +62,24 @@ for ((taskName, mode) in mapOf("generatePatchCatalog" to "generate", "checkPatch
 
 tasks.check { dependsOn("checkPatchCatalog") }
 
+tasks.register<JavaExec>("checkFrozenPatchCatalog") {
+    group = "verification"
+    description = "Check a frozen bundle without running any bundle producer."
+    // Materialize plain paths. Kotlin's test compilation graph also depends on jar.
+    // The required preceding test run supplies these classes; validation must never rebuild them.
+    val toolClasses = sourceSets["test"].output.classesDirs.files
+    classpath = files(toolClasses, configurations["testRuntimeClasspath"].files)
+    doFirst {
+        val compiled = toolClasses.map { it.resolve("app/hushmessenger/tools/CatalogTool.class") }.firstOrNull { it.isFile }
+        require(compiled != null && compiled.lastModified() >= file("src/test/kotlin/app/hushmessenger/tools/CatalogTool.kt").lastModified()) {
+            "Run :patches:test before validating a frozen bundle. The catalog tool is missing or stale."
+        }
+    }
+    mainClass.set("app.hushmessenger.tools.CatalogTool")
+    args("check", providers.gradleProperty("validationBundle").getOrElse(""), rootDir.absolutePath,
+        providers.gradleProperty("validationEvidence").getOrElse(""))
+}
+
 tasks.register<JavaExec>("scanDex") {
     group = "verification"
     description = "Scan a stock Messenger APK for hookable method anchors."

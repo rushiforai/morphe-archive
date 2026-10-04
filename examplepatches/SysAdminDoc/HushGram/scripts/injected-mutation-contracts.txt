@@ -9,6 +9,7 @@
 #   sole-call <method reference> replacing <method reference> [in [static|instance] <shape>] [calling [static|instance] <method reference>] holding <string> [<string> ...]
 #   once-call <method reference> [in [static|instance] <shape>] [calling [static|instance] <method reference>] holding <string> [<string> ...]
 #   shared-call <method reference> [in [static|instance] <shape>] [calling [static|instance] <method reference>] holding <string> [<string> ...]
+#   story-loop-call <native method reference> [in [static|instance] <shape>] [calling [static|instance] <method reference>] holding <string> [<string> ...]
 # A start-call, next-call, sole-call, once-call or shared-call rule picks its method by every string
 # it names and its shape, and exactly one of Instagram's methods may answer that; name as much as the
 # patch's own fingerprint finds the method by. A string with a space in it is written with \s for
@@ -30,6 +31,20 @@
 # Taken from Hushfacebook's scripts/injected-mutation-contracts.txt
 # (https://github.com/SysAdminDoc/Hushfacebook, commit 3a47363954eea853357e71e7cf3951a5ee984cee).
 # GPL-3.0-only. Modified for HushGram (Instagram), 2026.
+#
+# The optional DM visual guard applies when its patch is explicitly selected. Both strings keep
+# the shared voice endpoint separate. Its source remains excluded from default builds pending
+# sender-side acceptance.
+start-call Lapp/hushgram/extension/instagram/direct/VisualSeen;->hold()Z in instance (L*;L*;L*;)V holding direct_v2/visual_threads/%s/item_seen/ raven_media
+once-call Lapp/hushgram/extension/instagram/direct/VisualSeen;->hold()Z in instance (L*;L*;L*;)V holding direct_v2/visual_threads/%s/item_seen/ raven_media
+# The inbox builder holds this selector in a sibling and filters its native Meta AI row once.
+once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->inboxRow(Ljava/lang/Object;)Ljava/lang/Object; in static (L*;L*;L*;L*;)Z class-holding No\ssection\sgenerator\sfound\sfor\ssection\stype\s
+# Hide the notes row hands the sections your messages may show to NotesRow right before the inbox
+# generator builds its set of enabled sections from them (04Iu.A02 on 449, the one method holding
+# the trace name below). It's called once there and nowhere else. Left out, the notes row comes
+# back; twice or elsewhere, it isn't the hook the patch wrote. HideNotesRowHookTest checks on the
+# 449 fixture where it lands.
+once-call Lapp/hushgram/extension/instagram/direct/NotesRow;->sections([Ljava/lang/Object;)[Ljava/lang/Object; in static (L*;)V holding InboxViewModelGenerator.calculateAndApplyDiffUpdate
 #
 # The patch fingerprint picks the method that puts a sponsored item into a feed by
 # "cross_surface_duplicate_ad" and "Is ad pod", a static method answering a boolean. "Is ad pod" has
@@ -80,6 +95,9 @@ start-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/
 shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in instance (Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V holding bloks_screen_config bottom_sheet_content_fragment
 start-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in instance (Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V calling static LX/*;->*(Landroid/content/Context;LX/*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;LX/*;LX/*;I)V class-holding CacheTTL\smust\sbe\spositive
 shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in instance (Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V calling static LX/*;->*(Landroid/content/Context;LX/*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;LX/*;LX/*;I)V class-holding CacheTTL\smust\sbe\spositive
+# The direct screen presenter needs a null-data bypass before reading its immutable app id.
+# The existing opener routes share this hook, so one call is required here without forbidding them.
+shared-call Lapp/hushgram/extension/instagram/misc/Analytics;->setupScreen(Ljava/lang/String;)I in static (Landroid/content/Context;L*;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;L*;L*;I)V holding FragmentActivity\sis\srequired\sto\sopen\sCDS\sbottom\ssheet foa_bottom_sheet_config cds_bloks
 # Open developer options asks open() first in Home's long press, the one onLongClick holding the
 # two values the server can set the press to. Nothing else calls open().
 start-call Lapp/hushgram/extension/instagram/misc/DeveloperOptions;->open()I in instance (Landroid/view/View;)Z holding click activity
@@ -205,6 +223,9 @@ once-call Lapp/hushgram/extension/instagram/stories/StoryAdvance;->hold()Z in in
 # Its guard asks holdUnlessItLoops() once, right after hold(), in the same handler. Left out, the
 # stories Loop a story can't loop move on while both are on.
 once-call Lapp/hushgram/extension/instagram/stories/StoryAdvance;->holdUnlessItLoops()Z in instance (Ljava/lang/Object;)V calling static L*;->*(Lcom/instagram/common/session/UserSession;Lcom/instagram/model/reels/ReelItem;)Z holding userSession Required\svalue\swas\snull.
+# Its native guard call must be invoke-direct/range {p0 .. p1} to A1K on 449. The original
+# handler's A1K call stays too. Source discovery independently proves that method reads Loop's flag.
+story-loop-call Linstagram/features/stories/fragment/ReelViewerFragment;->A1K(Lcom/instagram/model/reels/ReelItem;)Z in instance (Ljava/lang/Object;)V calling static L*;->*(Lcom/instagram/common/session/UserSession;Lcom/instagram/model/reels/ReelItem;)Z holding userSession Required\svalue\swas\snull.
 # Show a story's exact time asks label() in front of the long-to-double in the story item's time
 # label, the item's one instance method taking a Context and answering a String. The label holds
 # no string, so the rule names one only ReelItem's methods hold on 449. Left out, every story says
@@ -229,6 +250,12 @@ once-call Lapp/hushgram/extension/instagram/stories/StoryLoop;->loop(I)Z in inst
 # your key; twice or elsewhere, it isn't the call the patch wrote.
 start-call Lapp/hushgram/extension/instagram/misc/InstagramSignature;->originalSigners(Landroid/content/pm/PackageInfo;)Ljava/util/List; in instance ()LX/*; calling Landroid/content/pm/SigningInfo;->getSigningCertificateHistory()[Landroid/content/pm/Signature; holding Landroid/content/pm/PackageInfo;->signatures:[Landroid/content/pm/Signature;
 once-call Lapp/hushgram/extension/instagram/misc/InstagramSignature;->originalSigners(Landroid/content/pm/PackageInfo;)Ljava/util/List; in instance ()LX/*; calling Landroid/content/pm/SigningInfo;->getSigningCertificateHistory()[Landroid/content/pm/Signature; holding Landroid/content/pm/PackageInfo;->signatures:[Landroid/content/pm/Signature;
+# The secure provider's inline gate asks for real current family keys after a native refusal,
+# once. The native fixture proves its error and kill-switch strings together with the kept policy
+# getter call pick one instance ()V across every dex. The query helper shares its strings with the
+# inline gate, so its body, operands and branch targets rest on SameKeyProvidersTest. That test
+# also rejects absent, duplicate, wrong-context, wrong-result and other-policy guards in both.
+shared-call Lapp/hushgram/extension/instagram/misc/InstagramSignature;->isSameKeyFamilyProviderCaller(Landroid/content/Context;)Z in instance ()V calling instance Lcom/facebook/secure/content/delegate/TrustedCallerContentProviderDelegate;->*()L*; holding Component\saccess\snot\sallowed\sfor\s Content\sProvider\sblocked\sby\skill\sswitch\sfor\s
 # Start on x86 devices asks protectCode() in front of each call Instagram makes to its code
 # protection step, RuntimeInternals.mprotectExecCode(). One caller is the idle task runner, an
 # instance method taking nothing whose other arms hold "IgProfiloSessionManager"; the call picks it
@@ -313,12 +340,15 @@ shared-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->flag(I)Z in (
 # freezes it, once. Left out, For you stays in the picker; twice or elsewhere, it isn't that list.
 once-call Lapp/hushgram/extension/instagram/feed/FollowingFeed;->limitPicker(Ljava/util/List;)V in (L*;I)Ljava/lang/Object; holding FeedPickerStateManager feedPickerStateManager
 # Stop swipe to create hands every move of Home's sliding container to SwipeToCreate.hold right
-# after the move's animate flag is read, in the container's setInternalPosition. It loads no string,
+# before the move's animate flag is read, in the container's setInternalPosition. It loads no string,
 # and setPosition has the same shape and reads the same flag, so the rule picks it as the one also
 # calling setEndPanelExtraParameter (both names Instagram keeps). It's called once there and nowhere
 # else. Left out, a swipe opens the camera again; twice or elsewhere, it isn't the hook the patch
 # wrote. StopSwipeToCreateHookTest checks on the 449 fixture where it lands and what it's handed.
 once-call Lapp/hushgram/extension/instagram/feed/SwipeToCreate;->hold(FFLjava/lang/String;)I in instance (Lcom/instagram/ui/swipenavigation/container/PositionConfig;)V calling instance Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->setEndPanelExtraParameter(Lcom/instagram/ui/swipenavigation/container/PositionConfig;)V holding Lcom/instagram/ui/swipenavigation/container/PositionConfig;->A0F:Z
+# The disabled path must skip the added native getter and reason reads. The 449 fixture checks
+# the gate's branch and the full stock instruction path, in addition to the hold hook above.
+once-call Lapp/hushgram/extension/instagram/feed/SwipeToCreate;->enabled()I in instance (Lcom/instagram/ui/swipenavigation/container/PositionConfig;)V calling instance Lcom/instagram/ui/swipenavigation/container/SwipeNavigationContainer;->setEndPanelExtraParameter(Lcom/instagram/ui/swipenavigation/container/PositionConfig;)V holding Lcom/instagram/ui/swipenavigation/container/PositionConfig;->A0F:Z
 #
 # Hide suggested stories asks hideTray() first thing in Home's story tray row build, the one method
 # holding "MainFeedStoryTrayBinderGroup.buildRowViewTypes", and nowhere else. It passes each item
@@ -489,11 +519,15 @@ once-call Lapp/hushgram/extension/instagram/media/QualityChoice;->firstChoice(Lj
 # or elsewhere, it isn't the guard the patch wrote.
 start-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
 once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toSend(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (L*;)V class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
-# The store's retry of a batch an earlier session saved to disk builds the same request, so a second
-# guard goes right before that build, not first: the retry casts its batch first. It's the store's
-# one instance method taking an Object and answering the request (00CT.A0J on 449, a bridge). Left
-# out, a retried batch posts the stories in it; twice or elsewhere, it isn't the guard the patch wrote.
-once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (Ljava/lang/Object;)L*; class-holding pending_reel_seen_states_ PendingReelSeenStateStore.deserializeFromDisk
+# The saved-story selection happens in the shared pending-action loop before claiming a pending
+# key. It returns the original while off or paused, a marked-only batch, or null to take the owned
+# snapshot-loop backedge. Stock request results and the story bridge stay unchanged.
+once-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\scannot\sbe\scast\sto\snon-null\stype\sT\sof\scom.instagram.store.PendingActionStore
+# The route rule checks the emitted branch opcodes, operands and targets. Null does no native
+# ownership operation, allocation or removal. Other stores use the native claim and builder,
+# and the selected local reaches that builder. Source proofs on original449 also require the
+# owned maps, every builder caller, claim literals, monitor and disk cleanup key dataflow.
+retry-call Lapp/hushgram/extension/instagram/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\scannot\sbe\scast\sto\snon-null\stype\sT\sof\scom.instagram.store.PendingActionStore
 # Its second switch hands each story on screen to StorySeenButton first thing in the story header
 # binder (05UI.A06 on 449), the one static method holding the trace section Instagram names after
 # it, behind three moves of its account, story and view holder into borrowed locals. Left out, no
@@ -596,6 +630,10 @@ once-call Lapp/hushgram/extension/instagram/share/ShareSheet;->hideGroupSend()Z 
 # state hold strings of their own and get shared-call rules. The repost button's use case reads it
 # twice, and the repost action and one more button state load no string of their own, so they get
 # none. HideRepostButtonHookTest checks on the 449 fixture that all six are filtered.
+# The Feed view binder and component renderer are selected by resource IDs, which this rule
+# format cannot express. The same fixture test checks every incoming branch at the view hide
+# and the component's single early guard; its only string, android.widget.Button, is shared
+# by unrelated renderers and cannot safely select this one.
 start-call Lapp/hushgram/extension/instagram/share/RepostButton;->hide()Z in instance ()Ljava/lang/Boolean; holding enable_media_notes_production
 once-call Lapp/hushgram/extension/instagram/share/RepostButton;->hide()Z in instance ()Ljava/lang/Boolean; holding enable_media_notes_production
 shared-call Lapp/hushgram/extension/instagram/share/RepostButton;->eligible(Ljava/lang/Boolean;)Ljava/lang/Boolean; holding MediaUfiUseCase#getUiState

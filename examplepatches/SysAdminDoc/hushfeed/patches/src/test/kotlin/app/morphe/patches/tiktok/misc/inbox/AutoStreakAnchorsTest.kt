@@ -7,7 +7,6 @@ package app.morphe.patches.tiktok.misc.inbox
 import app.morphe.Fixtures
 import app.morphe.takes
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import org.junit.Assert.assertEquals
@@ -100,7 +99,7 @@ class AutoStreakAnchorsTest {
     private fun wanted(apk: java.io.File): Map<String, ClassDef> {
         val names = setOf(QUICK_REPLY_RECEIVER, SERVICE_MANAGER, IM_SERVICE, IM_START_TASK, IM_SERVICE_IMPL, IM_PROXY)
         val found = HashMap<String, ClassDef>()
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         for (entry in container.dexEntryNames) {
             for (classDef in container.getEntry(entry)!!.dexFile.classes) {
                 if (classDef.type in names) found.putIfAbsent(classDef.type, classDef)

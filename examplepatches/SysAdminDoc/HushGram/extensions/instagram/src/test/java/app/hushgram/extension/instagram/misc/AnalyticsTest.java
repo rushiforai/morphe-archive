@@ -83,12 +83,27 @@ public class AnalyticsTest {
         assertEquals(1, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ci.entry.screen"));
         assertEquals(1, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ls.entry.screen"));
         assertEquals(0, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ci.entry.screen.other"));
+        assertEquals(0, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ls.entry.screen.other"));
+        assertEquals(0, Analytics.setupScreen("COM.BLOKS.WWW.BLOKS.IG.NDX.CI.ENTRY.SCREEN"));
+        assertEquals(0, Analytics.setupScreen(""));
         assertEquals(0, Analytics.setupScreen("com.bloks.www.ig.account_center"));
         assertEquals(0, Analytics.setupScreen(null));
 
         Settings.DISABLE_ANALYTICS.save(false);
         assertEquals(0, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ci.entry.screen"));
         assertEquals(0, Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ls.entry.screen"));
+    }
+
+    @Test
+    public void setupScreensKeepTheNativePathBeforeSettingsAreReady() {
+        Settings.DISABLE_ANALYTICS.save(true);
+        int[] answers = new int[3];
+        SettingsContextRule.withoutContext(() -> {
+            answers[0] = Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ci.entry.screen");
+            answers[1] = Analytics.setupScreen("com.bloks.www.bloks.ig.ndx.ls.entry.screen");
+            answers[2] = Analytics.setupScreen("com.bloks.www.ig.account_center");
+        });
+        for (int answer : answers) assertEquals(0, answer);
     }
 
     /** Before the settings are ready the stream stays off, even with the switch off: the event is batched instead. */

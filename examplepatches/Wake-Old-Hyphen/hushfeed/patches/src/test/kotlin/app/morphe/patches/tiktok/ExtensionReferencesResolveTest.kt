@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -98,7 +97,7 @@ class ExtensionReferencesResolveTest {
     }
 
     private fun classes(file: File): Map<String, ClassDef> {
-        val container = DexFileFactory.loadDexContainer(file, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(file, Opcodes.getDefault())
         val result = mutableMapOf<String, ClassDef>()
         for (entry in container.dexEntryNames) {
             for (definition in container.getEntry(entry)!!.dexFile.classes) result.putIfAbsent(definition.type, definition)

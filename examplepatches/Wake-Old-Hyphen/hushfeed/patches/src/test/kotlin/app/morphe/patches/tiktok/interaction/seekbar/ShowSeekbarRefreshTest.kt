@@ -6,7 +6,6 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -28,7 +27,7 @@ class ShowSeekbarRefreshTest {
     @Test
     fun `each declared build's show type setter keeps the native equality contract`() {
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val methods = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.flatMap { classDef ->
                     classDef.methods.filter { method ->

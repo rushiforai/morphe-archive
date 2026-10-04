@@ -1,0 +1,33 @@
+name: Sync edited release notes
+
+on:
+  push:
+    branches: [main, dev]
+    paths: ['.github/release-notes/*.md']
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Update existing release bodies
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          git diff --name-only --diff-filter=AM "$BEFORE_SHA" "$GITHUB_SHA" -- .github/release-notes/ | while IFS= read -r note; do
+            [[ "$note" == *.md ]] || continue
+            tag="$(basename "$note" .md)"
+            # New releases are published separately by semantic-release.
+            gh release view "$tag" --json body -q .body > /tmp/current-release-body || continue
+            head -n 1 /tmp/current-release-body > /tmp/edited-release-body
+            printf '\n' >> /tmp/edited-release-body
+            cat "$note" >> /tmp/edited-release-body
+            gh release edit "$tag" --notes-file /tmp/edited-release-body
+          done

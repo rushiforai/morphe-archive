@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok.interaction.downloads
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -27,7 +26,7 @@ class DownloadGearsFixturesTest {
     @Test
     fun `every fixture hands the whole rendition list to getRawBitRate`() {
         for (apk in Fixtures.apks()) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val video = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.filter { it.type == VIDEO }
             }.first()
@@ -79,7 +78,7 @@ class DownloadGearsFixturesTest {
     @Test
     fun `the play address a save falls back to is TikTok's H264 or ByteVC1 one on every fixture`() {
         for (apk in Fixtures.apks()) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val video = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.filter { it.type == VIDEO }
             }.first()

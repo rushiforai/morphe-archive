@@ -116,5 +116,50 @@ public final class LicenseNotice {
             "\n" +
             "This License does not grant any rights or permission under trademark law\n" +
             "to use the name \"Morphe\" or any of the Program's trade names, trademarks,\n" +
-            "service marks, or logos.";
+            "service marks, or logos.\n" +
+            "\n" +
+            "Unicode CLDR 48 integer cardinal plural rules\n" +
+            "Copyright © 1991-2025 Unicode, Inc.\n" +
+            "Source: https://github.com/unicode-org/cldr/blob/acd6d88ae493633240e19a87a721076a8a75c310/common/supplemental/plurals.xml\n" +
+            "UNICODE LICENSE V3\n" +
+            "\n" +
+            "COPYRIGHT AND PERMISSION NOTICE\n" +
+            "\n" +
+            "Copyright © 2004-2025 Unicode, Inc.\n" +
+            "\n" +
+            "NOTICE TO USER: Carefully read the following legal agreement. BY\n" +
+            "DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR\n" +
+            "SOFTWARE, YOU UNEQUIVOCALLY ACCEPT, AND AGREE TO BE BOUND BY, ALL OF THE\n" +
+            "TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT\n" +
+            "DOWNLOAD, INSTALL, COPY, DISTRIBUTE OR USE THE DATA FILES OR SOFTWARE.\n" +
+            "\n" +
+            "Permission is hereby granted, free of charge, to any person obtaining a\n" +
+            "copy of data files and any associated documentation (the \"Data Files\") or\n" +
+            "software and any associated documentation (the \"Software\") to deal in the\n" +
+            "Data Files or Software without restriction, including without limitation\n" +
+            "the rights to use, copy, modify, merge, publish, distribute, and/or sell\n" +
+            "copies of the Data Files or Software, and to permit persons to whom the\n" +
+            "Data Files or Software are furnished to do so, provided that either (a)\n" +
+            "this copyright and permission notice appear with all copies of the Data\n" +
+            "Files or Software, or (b) this copyright and permission notice appear in\n" +
+            "associated Documentation.\n" +
+            "\n" +
+            "THE DATA FILES AND SOFTWARE ARE PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY\n" +
+            "KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\n" +
+            "MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF\n" +
+            "THIRD PARTY RIGHTS.\n" +
+            "\n" +
+            "IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE\n" +
+            "BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES,\n" +
+            "OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,\n" +
+            "WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,\n" +
+            "ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE DATA\n" +
+            "FILES OR SOFTWARE.\n" +
+            "\n" +
+            "Except as contained in this notice, the name of a copyright holder shall\n" +
+            "not be used in advertising or otherwise to promote the sale, use or other\n" +
+            "dealings in these Data Files or Software without prior written\n" +
+            "authorization of the copyright holder.\n" +
+            "\n" +
+            "SPDX-License-Identifier: Unicode-3.0";
 }

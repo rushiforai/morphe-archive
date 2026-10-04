@@ -1,8 +1,10 @@
 [versions]
-morphe-patcher = "1.8.0"
+morphe-patcher = "1.15.0"
 #noinspection GradleDependency
 smali = "d92701d947"
 gson = "2.14.0"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

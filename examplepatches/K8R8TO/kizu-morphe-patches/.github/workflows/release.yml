@@ -44,7 +44,7 @@ jobs:
           python3 - <<'PY'
           import json, os, pathlib, re
           v = os.environ["VERSION"]
-          if not re.fullmatch(r"\d+\.\d+\.\d+", v): raise SystemExit(f"Invalid version: {v}")
+          if not re.fullmatch(r"\d+\.\d+\.\d+(?:\.\d+)?", v): raise SystemExit(f"Invalid version: {v}")
           bundle = json.loads(pathlib.Path("patches-bundle.json").read_text())
           plist = json.loads(pathlib.Path("patches-list.json").read_text())
           if bundle.get("version") != v or plist.get("version") != v:

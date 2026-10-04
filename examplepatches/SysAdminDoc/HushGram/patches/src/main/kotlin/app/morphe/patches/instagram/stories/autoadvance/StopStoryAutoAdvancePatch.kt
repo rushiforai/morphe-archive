@@ -16,6 +16,7 @@ import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireLocals
 import app.morphe.patches.instagram.misc.extension.uniqueMethod
 import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.instagram.stories.loop.findStoryLoop
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -93,7 +94,8 @@ internal fun BytecodePatchContext.holdFinishedStories() {
  * asks it: the one call in the handler's own code to a private instance method of the viewer
  * taking the story item and answering a boolean. Loop a story answers that check's flag and proves
  * from the flag that the handler asks it, so with both patches in a build the two name the same
- * method. Fails before anything changes when there isn't exactly one such call.
+ * method. Its flag read is proved even when Loop isn't selected. Fails before anything changes
+ * when there isn't exactly one such call or it isn't the actual loop check.
  */
 internal fun BytecodePatchContext.loopCheck(handler: Method): String {
     val calls = instagramCode(handler).mapNotNull { instruction ->
@@ -110,8 +112,14 @@ internal fun BytecodePatchContext.loopCheck(handler: Method): String {
     val target = classDefBy(STORY_VIEWER).methods.singleOrNull {
         it.name == call.name && it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == listOf(REEL_ITEM)
     }
-    if (target == null || !AccessFlags.PRIVATE.isSet(target.accessFlags) || AccessFlags.STATIC.isSet(target.accessFlags)) {
+    if (target == null || !AccessFlags.PRIVATE.isSet(target.accessFlags) || AccessFlags.STATIC.isSet(target.accessFlags) ||
+        AccessFlags.NATIVE.isSet(target.accessFlags) || AccessFlags.ABSTRACT.isSet(target.accessFlags)
+    ) {
         throw PatchException("$PATCH: $where asks $STORY_VIEWER->${call.name}($REEL_ITEM)Z, which isn't a private instance method of the viewer")
+    }
+    val read = findStoryLoop()
+    if (read.type != target.definingClass || read.name != target.name || read.parameters != listOf(REEL_ITEM)) {
+        throw PatchException("$PATCH: $where asks ${call.name}, which doesn't read the story loop flag")
     }
     return "$STORY_VIEWER->${call.name}($REEL_ITEM)Z"
 }

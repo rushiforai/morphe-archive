@@ -342,7 +342,7 @@ public class AutoStreakTest {
         Settings.AUTO_STREAK_RECIPIENT.save("@friend.one");
         Settings.AUTO_STREAK_MESSAGE.save("🔥");
 
-        assertTrue(sendNow().contains("Delivery unconfirmed: 1/1 chats"));
+        assertTrue(sendNow().contains("Sent to 1/1 chats. They won't get another message today."));
 
         assertEquals(1, PushQuickActionReceiver.RECEIVED.size());
         Intent handed = PushQuickActionReceiver.RECEIVED.get(0);
@@ -455,7 +455,7 @@ public class AutoStreakTest {
         Settings.AUTO_STREAK.save(true);
         Settings.AUTO_STREAK_RECIPIENT.save("@Friend.One, friend.two\n@FRIEND.ONE");
 
-        assertTrue(sendNow().contains("Delivery unconfirmed: 2/2 chats"));
+        assertTrue(sendNow().contains("Sent to 2/2 chats. They won't get another message today."));
         assertEquals(List.of("0:1:100:200", "0:1:200:300"), receivedChats());
         assertEquals("0:1:100:200", AutoStreak.state().recipient("friend.one").conversation);
         assertEquals("0:1:200:300", AutoStreak.state().recipient("friend.two").conversation);
@@ -470,7 +470,7 @@ public class AutoStreakTest {
         Settings.AUTO_STREAK.save(true);
         Settings.AUTO_STREAK_RECIPIENT.save("friend.one\nfriend.two");
 
-        assertTrue(sendNow().contains("Delivery unconfirmed: 1/2 chats"));
+        assertTrue(sendNow().contains("Sent to 1/2 chats. The rest still need a message."));
         assertEquals(AutoStreak.Result.PARTIAL, AutoStreak.state().result);
         assertEquals(AutoStreak.Result.DISPATCHED, AutoStreak.state().recipient("friend.one").result);
         assertEquals(AutoStreak.Result.NOT_FOUND, AutoStreak.state().recipient("friend.two").result);
@@ -488,7 +488,7 @@ public class AutoStreakTest {
         Settings.AUTO_STREAK.save(true);
         Settings.AUTO_STREAK_RECIPIENT.save("friend.one,old.name");
 
-        assertTrue(sendNow().contains("Delivery unconfirmed: 1/1 chats"));
+        assertTrue(sendNow().contains("Sent to 1/1 chats. They won't get another message today."));
         assertEquals(List.of("0:1:100:200"), receivedChats());
         assertEquals("2026-09-30", AutoStreak.state().recipient("old.name").dispatchDay);
     }
@@ -554,11 +554,11 @@ public class AutoStreakTest {
         assertEquals(AutoStreak.Result.DISPATCHED, AutoStreak.state().recipient("friend.one").result);
     }
 
-    @Test public void aManualSendWithTheSwitchOffStillReturnsAnUnconfirmedDispatchMessage() throws Exception {
+    @Test public void aManualSendWithTheSwitchOffStillReportsTheDispatch() throws Exception {
         contacts("200", "100", "friend.one", "First");
         Settings.AUTO_STREAK_RECIPIENT.save("friend.one");
 
-        assertTrue(sendNow().contains("Delivery unconfirmed: 1/1 chats"));
+        assertTrue(sendNow().contains("Sent to 1/1 chats. They won't get another message today."));
         assertEquals(List.of("0:1:100:200"), receivedChats());
         assertNull(AutoStreak.statusLine(context));
     }
@@ -689,6 +689,7 @@ public class AutoStreakTest {
         assertEquals(AutoStreak.Result.DISPATCHING, AutoStreak.state().recipient("friend.one").result);
         assertEquals(AutoStreak.Result.DISPATCHED, AutoStreak.state().recipient("friend.two").result);
         assertFalse(AutoStreak.statusLine(context).contains("Sent"));
+        assertTrue(AutoStreak.statusLine(context).startsWith("Delivery unconfirmed: 2/2 chats."));
     }
 
     @Test public void aReceiverThrowAfterAcceptingTheMessageDoesNotAuthorizeADuplicateRetry() throws Exception {
@@ -699,6 +700,8 @@ public class AutoStreakTest {
 
         sendNow();
         assertEquals(AutoStreak.Result.UNCONFIRMED, AutoStreak.state().recipient("friend.one").result);
+        assertTrue("a throw after the hand-off isn't called sent",
+                AutoStreak.statusLine(context).startsWith("Delivery unconfirmed: 1/1 chats."));
         PushQuickActionReceiver.AFTER_RECEIVE = null;
         sendNow();
         assertEquals(List.of("0:1:100:200"), receivedChats());

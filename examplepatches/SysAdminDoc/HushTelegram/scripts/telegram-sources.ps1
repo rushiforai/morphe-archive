@@ -526,7 +526,12 @@ function Test-SourceLedger {
     $declaredBuilds = @()
     if ($adoptedEntries.Count -gt 0) {
         try {
-            $declaredBuilds = @((Get-PatchTarget -PatchList ([System.IO.File]::ReadAllText($catalogPath) | ConvertFrom-Json)).PackageVersions)
+            $declaredBuilds = @(foreach ($target in @(Get-PatchTargets -PatchList (
+                    [System.IO.File]::ReadAllText($catalogPath) | ConvertFrom-Json))) {
+                foreach ($version in @($target.PackageVersions)) {
+                    foreach ($code in @($target.PackageVersionCodes[$version])) { "$($target.PackageName) $version ($code)" }
+                }
+            })
         } catch {
             $problems.Add("The declared Telegram builds could not be read from patches-list.json: $($_.Exception.Message)")
         }

@@ -617,6 +617,37 @@ try {
             'in a clean worktree of the commit instead.')
     }
 
+    # The script suites and either release-facts route can run before a bundle build. Prepare
+    # the pushed tree's verified comparator in each route, including isolated worktrees.
+    function Prepare-GateAdvisoryTool([string]$ProjectDir) {
+        if (-not (Test-Path -LiteralPath (Join-Path $ProjectDir 'scripts/MavenAdvisoryRanges.java') -PathType Leaf)) { return }
+        if (-not $env:GITHUB_ACTOR -or -not $env:GITHUB_TOKEN) {
+            if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+                throw 'Set GITHUB_ACTOR and GITHUB_TOKEN, or install the gh CLI to resolve the build plugin.'
+            }
+            $login = (& gh api user --jq .login 2>$null)
+            $token = (& gh auth token 2>$null)
+            if ([string]::IsNullOrWhiteSpace($login) -or [string]::IsNullOrWhiteSpace($token)) {
+                throw 'gh is not signed in, so the build plugin cannot be resolved. Run gh auth login.'
+            }
+            $env:GITHUB_ACTOR = $login
+            $env:GITHUB_TOKEN = $token
+        }
+        $advisoryWrapper = $env:HUSHTHREADS_BUILD_WRAPPER
+        if ($advisoryWrapper -and -not (Test-Path -LiteralPath $advisoryWrapper -PathType Leaf)) {
+            throw "HUSHTHREADS_BUILD_WRAPPER names $advisoryWrapper, which is not there."
+        }
+        $global:LASTEXITCODE = 0
+        Invoke-WithoutGitEnvironment {
+            if ($advisoryWrapper) {
+                & $advisoryWrapper -ProjectDir $ProjectDir -Tasks @('prepareAdvisoryTool')
+            } else {
+                & (Join-Path $ProjectDir 'gradlew.bat') -p $ProjectDir prepareAdvisoryTool
+            }
+        }
+        if ($LASTEXITCODE -ne 0) { throw 'The verified Maven advisory comparator could not be prepared.' }
+    }
+
     # Script, notice, failure message. The contract tests run for every script change and for the
     # other files above; the two injected-register suites and the resource table check's run only
     # when their own files moved, and the source ledger's when the ledger or a file its rules read
@@ -660,6 +691,7 @@ try {
                     $scriptsRoot = Get-GateWorktree -Commit $scriptsCommit
                 }
                 try {
+                Prepare-GateAdvisoryTool -ProjectDir $scriptsRoot
                 foreach ($suite in $suites) {
                     $suiteScript = Join-Path $scriptsRoot $suite[0]
                     if (-not (Test-Path -LiteralPath $suiteScript -PathType Leaf)) {
@@ -791,6 +823,7 @@ try {
             }
             $validate = Join-Path $Root 'scripts/validate-release-facts.ps1'
             try {
+            Prepare-GateAdvisoryTool -ProjectDir $Root
             $global:LASTEXITCODE = 0
             # The release copy buildAndroid leaves in patches/build/release, which no other task
             # writes. patches/build/libs was read here until 2026-09-21: the patch tests this hook
@@ -857,6 +890,7 @@ try {
                         $arguments['SkipTestResults'] = $true
                     }
                     try {
+                    Prepare-GateAdvisoryTool -ProjectDir $factsRoot
                     $global:LASTEXITCODE = 0
                     if ($factsRoot -eq $Root) {
                         & $validate -Root $factsRoot @arguments

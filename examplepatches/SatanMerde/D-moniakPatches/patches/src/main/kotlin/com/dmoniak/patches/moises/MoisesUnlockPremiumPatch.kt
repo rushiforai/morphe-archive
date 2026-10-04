@@ -40,6 +40,150 @@ fun BytecodePatchContext.executeMoisesUnlockPremiumLogic(logger: Logger) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
+        // 1. Hook Moises User data model:
+        //    q() -> isSubscriptionActive (Ljava/lang/Boolean;)
+        //    e() -> availableCredits (Ljava/lang/Integer;)
+        if (type == "Lai/moises/data/model/User;") {
+            for (method in classDef.methods.toList()) {
+                val mName = method.name
+                if (mName == "q" && method.returnType == "Ljava/lang/Boolean;") {
+                    try {
+                        val mutableMethod = mutableClass.findMutableMethodOf(method)
+                        mutableMethod.addInstructions(
+                            0,
+                            """
+                            sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                            return-object v0
+                            """.trimIndent()
+                        )
+                        hookedMethods++
+                        logger.info("[Moises Pro] Hooked User.q() -> Boolean.TRUE")
+                    } catch (e: Exception) {
+                        logger.fine("[Moises Pro] Failed to hook User.q: ${e.message}")
+                    }
+                }
+                if (mName == "e" && method.returnType == "Ljava/lang/Integer;") {
+                    try {
+                        val mutableMethod = mutableClass.findMutableMethodOf(method)
+                        mutableMethod.addInstructions(
+                            0,
+                            """
+                            const/16 v0, 0x3e7
+                            invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+                            move-result-object v0
+                            return-object v0
+                            """.trimIndent()
+                        )
+                        hookedMethods++
+                        logger.info("[Moises Pro] Hooked User.e() -> 999 available credits")
+                    } catch (e: Exception) {
+                        logger.fine("[Moises Pro] Failed to hook User.e: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        // 2. Hook GraphQL subscription responses:
+        //    UserDetailsQuery$Subscription -> c() (isPremium -> Boolean.TRUE)
+        //    UserSubscriptionStatusQuery$Subscription -> a() (isPremium -> Boolean.TRUE)
+        if (
+            type == "Lai/moises/graphql/generated/UserDetailsQuery\$Subscription;" ||
+            type == "Lai/moises/graphql/generated/UserSubscriptionStatusQuery\$Subscription;"
+        ) {
+            for (method in classDef.methods.toList()) {
+                val mName = method.name
+                if ((mName == "c" || mName == "a") && method.returnType == "Ljava/lang/Boolean;") {
+                    try {
+                        val mutableMethod = mutableClass.findMutableMethodOf(method)
+                        mutableMethod.addInstructions(
+                            0,
+                            """
+                            sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                            return-object v0
+                            """.trimIndent()
+                        )
+                        hookedMethods++
+                        logger.info("[Moises Pro] Hooked ${classDef.type}->${method.name} -> Boolean.TRUE")
+                    } catch (e: Exception) {
+                        logger.fine("[Moises Pro] Failed to hook ${method.name}: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        // 3. Hook UserFeatureFlags:
+        //    a() -> mobileAdaptPremiumToFree (Z -> false)
+        //    b() -> slowerProcessingTime (Z -> false)
+        if (type == "Lai/moises/data/model/UserFeatureFlags;") {
+            for (method in classDef.methods.toList()) {
+                val mName = method.name
+                if ((mName == "a" || mName == "b") && method.returnType == "Z") {
+                    try {
+                        val mutableMethod = mutableClass.findMutableMethodOf(method)
+                        mutableMethod.addInstructions(
+                            0,
+                            """
+                            const/4 v0, 0x0
+                            return v0
+                            """.trimIndent()
+                        )
+                        hookedMethods++
+                        logger.info("[Moises Pro] Hooked UserFeatureFlags.${method.name} -> false")
+                    } catch (e: Exception) {
+                        logger.fine("[Moises Pro] Failed to hook ${method.name}: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        // 4. Hook RevenueCat EntitlementInfo:
+        //    isActive() -> Z (true)
+        if (type == "Lcom/revenuecat/purchases/EntitlementInfo;") {
+            for (method in classDef.methods.toList()) {
+                val mName = method.name
+                if (mName == "isActive" && method.returnType == "Z") {
+                    try {
+                        val mutableMethod = mutableClass.findMutableMethodOf(method)
+                        mutableMethod.addInstructions(
+                            0,
+                            """
+                            const/4 v0, 0x1
+                            return v0
+                            """.trimIndent()
+                        )
+                        hookedMethods++
+                        logger.info("[Moises Pro] Hooked EntitlementInfo.isActive() -> true")
+                    } catch (e: Exception) {
+                        logger.fine("[Moises Pro] Failed to hook ${method.name}: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        // 5. Hook MainActivity paywall popup:
+        //    H(PurchaseSource) -> void (no-op)
+        if (type == "Lai/moises/ui/MainActivity;") {
+            for (method in classDef.methods.toList()) {
+                val mName = method.name
+                if (mName == "H" && method.parameterTypes.size == 1 && method.returnType == "V") {
+                    try {
+                        val mutableMethod = mutableClass.findMutableMethodOf(method)
+                        mutableMethod.addInstructions(
+                            0,
+                            """
+                            return-void
+                            """.trimIndent()
+                        )
+                        hookedMethods++
+                        logger.info("[Moises Pro] Hooked MainActivity.H() -> return-void (paywall dialog suppressed)")
+                    } catch (e: Exception) {
+                        logger.fine("[Moises Pro] Failed to hook MainActivity.H: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        // Generic fallback hooks for other subscription/pro status getters
         for (method in classDef.methods.toList()) {
             if (method.implementation == null) continue
             val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)

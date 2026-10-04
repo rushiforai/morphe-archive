@@ -26,13 +26,14 @@ import java.nio.file.StandardCopyOption;
  * a Windows JVM it fails whenever the file exists, and the framework only logs that, so under
  * Robolectric on Windows every write after the first was lost without a word: a newer crash
  * report read back as the older one. This moves the new file over the old one, as Linux does, and
- * fails the test if it can't. Applied to every test through {@code robolectric.properties}.
+ * fails the test if it can't. Applied through {@code robolectric.properties} only on API 29+,
+ * where AtomicFile has the new-file field. API 28 keeps the framework's legacy write path.
  */
 @Implements(AtomicFile.class)
 public class ShadowReplacingAtomicFile {
     @RealObject private AtomicFile realObject;
 
-    @Implementation
+    @Implementation(minSdk = 29)
     protected void finishWrite(FileOutputStream output) {
         if (output == null) return;
         try {

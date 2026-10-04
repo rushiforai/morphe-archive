@@ -77,5 +77,38 @@ val customBrandingPatch = resourcePatch(
                 *monochromeAsset.toTypedArray(),
             ),
         )
+
+        // Recolor the header pinwheel Lottie ("rotate to disappear") that plays when the
+        // home header collapses. It draws the official 4-colour pinwheel from vector paths,
+        // so no PNG replacement covers it.
+        val lottie = get("res/raw/photos_lumos_pinwheel_rotate_to_disappear.json")
+        if (lottie.exists()) {
+            var text = lottie.readText()
+            val gradient = Regex("\"g\":\\{\"p\":(\\d+),\"k\":\\{\"a\":0,\"k\":\\[([^\\]]*)\\]")
+            lottiePetalColors.forEach { (petal, rgb) ->
+                val layerIdx = text.indexOf("\"nm\":\"$petal\"")
+                if (layerIdx < 0) return@forEach
+                val match = gradient.find(text, layerIdx) ?: return@forEach
+                val count = match.groupValues[1].toInt()
+                val stops = match.groupValues[2].split(",").map { it.trim() }.toMutableList()
+                // Each colour stop = offset, r, g, b; keep offsets, replace colour.
+                for (c in 0 until count) {
+                    stops[c * 4 + 1] = "%.4f".format(java.util.Locale.US, rgb[0])
+                    stops[c * 4 + 2] = "%.4f".format(java.util.Locale.US, rgb[1])
+                    stops[c * 4 + 3] = "%.4f".format(java.util.Locale.US, rgb[2])
+                }
+                val replacement = "\"g\":{\"p\":$count,\"k\":{\"a\":0,\"k\":[${stops.joinToString(",")}]"
+                text = text.replaceRange(match.range, replacement)
+            }
+            lottie.writeText(text)
+        }
     }
 }
+
+// Morphe palette mapped onto the Lottie's petal layer names (0..1 floats).
+private val lottiePetalColors = mapOf(
+    "Red" to doubleArrayOf(108 / 255.0, 72 / 255.0, 178 / 255.0),    // violet
+    "Yellow" to doubleArrayOf(27 / 255.0, 121 / 255.0, 99 / 255.0),  // teal
+    "Green" to doubleArrayOf(116 / 255.0, 117 / 255.0, 178 / 255.0), // indigo
+    "Blue" to doubleArrayOf(95 / 255.0, 130 / 255.0, 162 / 255.0),   // slate
+)

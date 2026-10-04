@@ -152,3 +152,44 @@ function Format-DeclaredBuilds {
     }
     return (@($named) -join ', ')
 }
+
+function Test-SelectedPatchTargets {
+    <# Checks actual selected bundle definitions and their dependencies, not a caller's catalog. #>
+    param([object[]]$Sources, [string]$PackageName, [string]$VersionName, [string]$VersionCode)
+
+    foreach ($source in $Sources) {
+        foreach ($patch in @($source.patches)) {
+            # A null compatibility is Morphe's universal dependency/patch declaration.
+            if ($null -eq $patch.compatibility) { continue }
+            $compatible = @($patch.compatibility | Where-Object { $null -eq $_.packageName -or $_.packageName -ceq $PackageName })
+            $label = if ($patch.name) { [string]$patch.name } else { [string]$patch.implementation }
+            $owner = "$($source.identity.name) $($source.identity.version) [$($source.identity.sha256)]"
+            if ($compatible.Count -eq 0) {
+                return [pscustomobject]@{ Valid = $false; Reason = "$owner / $label does not declare $PackageName." }
+            }
+            $targets = @($compatible | ForEach-Object { $_.targets })
+            # Morphe's unrestricted version is an AppTarget with a null version, not missing targets.
+            if ($targets.Count -eq 0) {
+                return [pscustomobject]@{ Valid = $false; Reason = (
+                    "$owner / $label has unknown declared targets. No APK mutation was started.") }
+            }
+            foreach ($target in $targets) {
+                $codes = @($target.versionCodes.PSObject.Properties | ForEach-Object { [string]$_.Value })
+                if (($null -eq $target.version -or $target.version -ceq $VersionName) -and
+                        ($codes.Count -eq 0 -or $codes -ccontains $VersionCode)) {
+                    $compatible = $null
+                    break
+                }
+            }
+            if ($null -eq $compatible) { continue }
+            $declared = foreach ($target in $targets) {
+                $codes = @($target.versionCodes.PSObject.Properties | ForEach-Object { [string]$_.Value })
+                if ($codes.Count) { "$($target.version) ($($codes -join ', '))" } else { [string]$target.version }
+            }
+            return [pscustomobject]@{ Valid = $false; Reason = (
+                "$owner / $label declares $PackageName $($declared -join ', '), " +
+                "not $VersionName ($VersionCode). No APK mutation was started.") }
+        }
+    }
+    return [pscustomobject]@{ Valid = $true; Reason = $null }
+}

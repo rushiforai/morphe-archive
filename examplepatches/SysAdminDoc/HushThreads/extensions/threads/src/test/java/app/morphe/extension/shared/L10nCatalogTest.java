@@ -196,6 +196,57 @@ public class L10nCatalogTest {
         assertEquals(none.toString(), 0, none.size());
     }
 
+    @Test
+    public void qualifiedToggleCallsExposeEachUntranslatedArgument() {
+        String visible = "Untranslated visible sentence";
+        String[] targets = {"HushThreadsPreferenceFragment.toggle", "HushThreadsPreferenceFragment \n . toggle",
+                "app.morphe.extension.hushthreads.settings.HushThreadsPreferenceFragment.toggle",
+                "HushThreadsPreferenceFragment /* before dot */ . /* after dot */ toggle /* before arguments */ "};
+        for (String target : targets) {
+            for (String arguments : new String[]{"\"" + visible + "\", L10n.t(\"Translated summary\")",
+                    "L10n.t(\"Translated title\"), \"" + visible + "\""}) {
+                String source = "package app.morphe.extension.hushthreads.settings;\n"
+                        + "import app.morphe.extension.shared.L10n;\n"
+                        + "class OtherSettings { void row(android.content.Context context, "
+                        + "app.morphe.extension.shared.settings.BooleanSetting setting) { "
+                        + target + "(context, setting, " + arguments + "); } }";
+                for (String name : new String[]{"OtherSettings.java", "HushThreadsPreferenceFragment.java"}) {
+                    List<String> found = new ArrayList<>();
+                    assertEquals(source, 1, unwrappedProse(name, source, found));
+                    assertEquals(source, Collections.singletonList(name + ": " + visible), found);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void wrappedQualifiedCallsIgnoreCommentsStringsAndUnrelatedLogs() {
+        String source = "package app.morphe.extension.hushthreads.settings;\n"
+                + "import app.morphe.extension.shared.L10n;\n"
+                + "class OtherSettings { void row(android.content.Context context, "
+                + "app.morphe.extension.shared.settings.BooleanSetting setting, java.util.logging.Logger logger) { "
+                + "HushThreadsPreferenceFragment.toggle(context, setting, L10n.t(\"Translated title\"), L10n.t(\"Translated summary\"));"
+                + "logger.info(\"Internal diagnostic sentence\");"
+                + "// HushThreadsPreferenceFragment.toggle(context, setting, \"Line comment title\", \"Line comment summary\");\n"
+                + "/* HushThreadsPreferenceFragment.toggle(context, setting, \"Block comment title\", \"Block comment summary\"); */"
+                + "String example = \"HushThreadsPreferenceFragment.toggle(context, setting, \\\"String literal title\\\", \\\"String literal summary\\\")\"; } }";
+        List<String> found = new ArrayList<>();
+        assertEquals(1, unwrappedProse("OtherSettings.java", source, found));
+        assertEquals(found.toString(), Collections.emptyList(), found);
+    }
+
+    @Test
+    public void localRowHelpersStillRequireTheCatalog() {
+        String visible = "Untranslated visible sentence";
+        for (String call : new String[]{"toggle(context, setting, \"" + visible + "\", L10n.t(\"Translated summary\"))",
+                "info(context, \"" + visible + "\", L10n.t(\"Translated summary\"))", "category(screen, \"" + visible + "\")"}) {
+            List<String> found = new ArrayList<>();
+            String source = "class HushThreadsPreferenceFragment { void row() { " + call + "; } }";
+            assertEquals(1, unwrappedProse("HushThreadsPreferenceFragment.java", source, found));
+            assertEquals(Collections.singletonList("HushThreadsPreferenceFragment.java: " + visible), found);
+        }
+    }
+
     /** The literal reader, which both scans lean on. */
     @Test
     public void theLiteralReaderJoinsWhatThePlusJoins() {
@@ -243,8 +294,14 @@ public class L10nCatalogTest {
             for (int index = l10n.start(); index <= close && index >= 0; index++) outside[index] = WRAPPED;
         }
         int calls = 0;
-        Matcher shows = (name.equals("HushThreadsPreferenceFragment.java")
-                ? Pattern.compile(SHOWS.pattern() + "|" + ROW_HELPERS.pattern()) : SHOWS).matcher(text);
+        String showingCalls = SHOWS.pattern() + "|\\bHushThreadsPreferenceFragment\\s*\\.\\s*" + ROW_HELPERS.pattern();
+        if (name.equals("HushThreadsPreferenceFragment.java")) showingCalls += "|" + ROW_HELPERS.pattern();
+        // Comments between Java tokens are whitespace. Keep offsets aligned with the original literals.
+        char[] callText = text.toCharArray();
+        for (int index = 0; index < callText.length; index++) {
+            if (kind[index] == COMMENT) callText[index] = ' ';
+        }
+        Matcher shows = Pattern.compile(showingCalls).matcher(new String(callText));
         while (shows.find()) {
             if (kind[shows.start()] != CODE) continue;
             int open = shows.end() - 1;
@@ -490,5 +547,15 @@ public class L10nCatalogTest {
             }
         }
         return out.toString();
+    }
+
+    /** Hushfacebook 88a7f512: the surviving Turkish GitHub row uses the catalog's apostrophe. */
+    @Test
+    public void upstream88a7f512KeepsTheTurkishGitHubApostropheConsistent() throws IOException {
+        String key = "Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.";
+        String translated = readTable("tr").get(key);
+        assertTrue(translated, translated.contains("GitHub'ı"));
+        assertFalse(translated, translated.contains("GitHub\u2019ı"));
+        assertEquals(translated, L10nTranslations.of("tr").get(key));
     }
 }

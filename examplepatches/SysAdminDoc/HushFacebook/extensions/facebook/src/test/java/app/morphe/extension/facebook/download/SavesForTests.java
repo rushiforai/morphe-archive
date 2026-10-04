@@ -38,6 +38,10 @@ public final class SavesForTests {
         STARTED.get(id).saving();
     }
 
+    public static boolean publishing(int id) {
+        return STARTED.get(id).publishing();
+    }
+
     /** Whether the save saw a cancel, as its worker would at its next check. */
     public static boolean cancelled(int id) {
         return STARTED.get(id).cancelled();

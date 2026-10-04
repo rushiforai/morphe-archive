@@ -2,6 +2,40 @@
 
 Every Hushfeed release, newest first.
 
+## Unreleased
+
+* **TikTok:** Local storage scanner checks now keep Java diagnostics visible without treating successful runs as failures in Windows PowerShell.
+
+* **TikTok:** Local APK signing now accepts harmless Java startup diagnostics from heap and CPU limits. Invalid certificates and failed signing checks still stop installation.
+
+* **TikTok:** Undo clearing seen videos now restores history in the background and reports how many cleared records still fit the history limits. It no longer says videos were restored when newer watches leave no room for them. A failed save keeps Undo available.
+
+## 0.67.1 (2026-10-03)
+
+* **TikTok:** Settings are easier to find. All five buttons Hushfeed draws on videos sit together under Feed screen > Buttons on videos. Playback now holds every player switch, including the progress bar and its thumbnail, stop looping and resume after scrolling, which were on App. Screenshots and the status bar moved to App > System along with Look like the store app. Allow Duet and Stitch is on Share sheet now. Your saved choices stay as they were.
+
+* **TikTok:** Every button Hushfeed draws on videos now starts off: block, hide, block sound, Not interested and mute. A fresh install shows none of them until you turn one on under Feed screen > Buttons on videos. If you used the mute button, turn on Show the mute button on videos again.
+
+* **TikTok:** Remove unused language packs no longer stops the whole patch run when Languages to keep is left at all and the APK carries a language set that hasn't been checked, like a split bundle merged with a single language. Nothing is removed then, and the patch log says why (#96).
+
+* **TikTok:** The streak line under Keep a streak going says "Sent to 15/15 chats" once TikTok has taken every message. It calls delivery unconfirmed only for a chat whose hand-off hit an error or never finished (#92).
+
+* **TikTok:** Show the hide button and Show the block sound button now draw their own feed controls even when Show the block button is off. Both work through Feed filter, so they're listed only when that patch is in. New installs start those two helper switches off, so choosing Block author button doesn't add extra chips until you ask for them (#95).
+
+* **TikTok:** Pause keeps the saved Home long-press shortcut available, so guests can reopen settings and resume Hushfeed after closing the screen. A disabled shortcut stays disabled, ordinary Home taps still work, and TikTok's own long-press action is preserved (#89).
+
+* **TikTok:** Settings on Android 6 use the shipped languages' plural forms, including Russian one, few and many. Missing quantity translations fall back to English with the right singular form. Newer Android versions keep their own ICU rules.
+
+* **TikTok:** What's new keeps its full release history as the text grows. Large notes and international text no longer exceed Java's single-string build limit.
+
+* **TikTok:** Morphe Manager 1.33.0 shows all 106 patches in their ten categories, with nothing left uncategorized. The checks run before each build now cover single-ABI inputs on every supported TikTok version and reject altered native libraries or an empty patch result. Published bundles can be checked against GitHub release attestations or a pinned signing key.
+
+* **TikTok:** Limit background traffic keeps push setup intact by default, including when All is selected. Its optional Skip push setup choice starts off and can stop message and other notifications when enabled. Existing APKs need repatching from TikTok's original APK to restore push setup. Pause can't reverse this patch-time change (#86).
+
+* **TikTok:** Restoring settings now reports keys the current build can't restore, separately from settings missing from an older backup. Portable settings still migrate across TikTok versions, local device state stays intact, and Feature Gate Lab compatibility and Undo keep their existing behavior.
+
+* **TikTok:** Feed filter's Seen videos section can import the reviewed TikTok JSON watch-history export. Watch dates and the chosen account stay attached to the import, the existing age limit applies, and a banner reports added and skipped entries. Repeating an import adds nothing. Invalid or unsupported files and failed writes leave saved history unchanged. Files are limited to 2 MB and 10,000 entries, and links never leave the phone. An import that adds history ends Undo for an earlier clear and explains that change.
+
 ## 0.67.0 (2026-10-02)
 
 * **TikTok:** New patch, Block suggested video notifications, stops TikTok's "Videos you might like" pushes, the ones about popular videos it picked for you, like "25M+ people viewed". Its switch under Inbox starts on once the patch is in, so they're blocked from the first launch, and turning it off lets them through again. Messages, comments, likes, follows and videos from accounts you follow aren't touched.

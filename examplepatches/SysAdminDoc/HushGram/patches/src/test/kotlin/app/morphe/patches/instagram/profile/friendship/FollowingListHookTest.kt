@@ -30,6 +30,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -80,6 +81,26 @@ class FollowingListHookTest {
         assertTrue(reads("listOwnerId").containsAll(listOf("$BINDER->config:$CONFIG", "$CONFIG->data:$FOLLOW_LIST_DATA", "$FOLLOW_LIST_DATA->owner:$STRING")))
         assertTrue(reads("viewerId").containsAll(listOf("$BINDER->session:$USER_SESSION", "$USER_SESSION->getUserId()$STRING")))
         assertTrue("$HOLDER->name:$TEXT_VIEW" in reads("subtitle"))
+    }
+
+    @Test
+    fun theListReaderDoesNotUseTheProfileFallback() {
+        val reader = ExtensionDex.classDef(FOLLOWING_LIST.replace(";", "\$1;"))
+        val followedBy = reader.methods.single {
+            it.name == "followedBy" &&
+                it.parameterTypes.map(CharSequence::toString) == listOf(OBJECT) &&
+                it.returnType == "Ljava/lang/Boolean;"
+        }
+        val calls = followedBy.implementation!!.instructions
+            .mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+        assertTrue(
+            "Following-list rows must read Instagram's friendship status for the row account: $calls",
+            "$FRIENDSHIP_STATUS->friendshipFollowedBy($OBJECT)Ljava/lang/Boolean;" in calls,
+        )
+        assertFalse(
+            "Following-list rows must not trust the profile user field before the profile refreshes: $calls",
+            "$FRIENDSHIP_STATUS->followedBy($OBJECT)Ljava/lang/Boolean;" in calls,
+        )
     }
 
     /** A filled stub answering something narrower than Object returns on each way out by itself (see FriendshipStatusHookTest). */

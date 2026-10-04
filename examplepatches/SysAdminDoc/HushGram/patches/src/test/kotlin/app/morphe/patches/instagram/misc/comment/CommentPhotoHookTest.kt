@@ -9,6 +9,7 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.NeutralNativePath
 import app.morphe.patches.instagram.download.IMAGE_INFO
 import app.morphe.patches.instagram.download.IMAGE_URL
 import app.morphe.patches.instagram.download.INSTAGRAM_MEDIA
@@ -135,6 +136,8 @@ class CommentPhotoHookTest {
             assertTrue("fixture lost the separate legacy surface", legacy.isNotEmpty())
             for (families in listOf("photo", "copy+photo", "photo+copy")) {
                 val patch = PatchContexts.of(classes + extension())
+                val stockRenderer = renderer(patch, patch.findCommentPhoto().surface)
+                val original = NeutralNativePath(stockRenderer)
                 val unchanged = CommentWorld.snapshot(patch, legacy)
                 if (families == "copy+photo") patch.applyCommentMenu(patch.findCommentMenu())
                 val plan = patch.findCommentPhoto()
@@ -147,6 +150,8 @@ class CommentPhotoHookTest {
                 patch.applyCommentPhoto(plan)
                 if (families == "photo+copy") patch.applyCommentMenu(patch.findCommentMenu())
                 assertPhotoWiring(patch, plan)
+                val hook = stockRenderer.code().indexOfFirst { it.call()?.toString() == COMMENT_HOOK }
+                original.assertPreserved("${bundle.name} $families", stockRenderer, (hook - 3..hook + 1).toSet())
                 assertEquals("legacy surface must not be reported as patched", unchanged, CommentWorld.snapshot(patch, legacy))
             }
             checked += version

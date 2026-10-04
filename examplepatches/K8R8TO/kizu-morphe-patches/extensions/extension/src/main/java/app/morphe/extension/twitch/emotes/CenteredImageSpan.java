@@ -10,11 +10,17 @@ import android.widget.TextView;
 
 final class CenteredImageSpan extends DynamicDrawableSpan {
     private final Drawable drawable;
+    private final boolean zeroWidth;
     private final Paint.FontMetricsInt paintMetrics = new Paint.FontMetricsInt();
 
     CenteredImageSpan(TextView textView, Drawable drawable) {
+        this(textView, drawable, false);
+    }
+
+    CenteredImageSpan(TextView textView, Drawable drawable, boolean zeroWidth) {
         super(ALIGN_BOTTOM);
         this.drawable = drawable;
+        this.zeroWidth = zeroWidth;
 
         int height = Math.max(1, Math.round(textView.getTextSize() * 1.25f));
         int intrinsicHeight = drawable.getIntrinsicHeight();
@@ -52,7 +58,7 @@ final class CenteredImageSpan extends DynamicDrawableSpan {
             metrics.descent = center + halfHeight;
             metrics.bottom = metrics.descent;
         }
-        return bounds.width();
+        return zeroWidth ? 0 : bounds.width();
     }
 
     @Override
@@ -70,8 +76,9 @@ final class CenteredImageSpan extends DynamicDrawableSpan {
         paint.getFontMetricsInt(paintMetrics);
         int textCenter = baseline + (paintMetrics.ascent + paintMetrics.descent) / 2;
         int drawableTop = textCenter - drawable.getBounds().height() / 2;
+        float drawX = zeroWidth ? x - drawable.getBounds().width() : x;
         canvas.save();
-        canvas.translate(x, drawableTop);
+        canvas.translate(drawX, drawableTop);
         drawable.draw(canvas);
         canvas.restore();
     }

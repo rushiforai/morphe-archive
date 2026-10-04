@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok.misc.theme
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
@@ -60,7 +59,7 @@ class AmoledSheetTokensTest {
     /** R$styleable.TuxSheet[TuxSheet__tux_sheetBackgroundColor]: the int field and the array <clinit> fills. */
     private fun tuxSheetBackgroundAttr(apk: File): Int {
         val styleable = "Lcom/ss/android/ugc/aweme/app/R\$styleable;"
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         val classDef = container.dexEntryNames.asSequence().mapNotNull { entry ->
             container.getEntry(entry)!!.dexFile.classes.firstOrNull { it.type == styleable }
         }.first()

@@ -66,8 +66,9 @@ $assistant = @('c', 'l', 'a', 'u', 'd', 'e') -join ''
 $aiPattern = "(?i)\b($assistant|anthropic|openai|chatgpt|codex|copilot|gemini)\b"
 $buildPaths = '^(extensions/|patches/|gradle/|build\.gradle\.kts$|settings\.gradle\.kts$|gradle\.properties$|' +
     'NOTICE$|provenance\.json$|README\.md$|patches-list\.json$|sources/|' +
-    'scripts/(DexDiff\.java|ResourceTableCheck\.java|MergeSplits\.java|injected-mutation-contracts\.txt|' +
-    'injected-register-removal-allowlist\.txt|verify-all-patches\.ps1|verify-injected-registers\.ps1)$)'
+    'scripts/(build-inputs\.gradle|canonical-build-inputs\.txt|build-identity\.ps1|test-build-identity\.ps1|DexDiff\.java|ResourceTableCheck\.java|MergeSplits\.java|injected-mutation-contracts\.txt|' +
+    'injected-register-removal-allowlist\.txt|verify-all-patches\.ps1|verify-injected-registers\.ps1|' +
+    'test-android-boundaries\.ps1|pre-push\.ps1|script-wiring\.ps1)$)'
 $ledgerPaths = '^(sources/|scripts/(instagram-sources|test-instagram-sources|audit-instagram-sources)\.ps1$|NOTICE$|provenance\.json$)'
 $zero = '0' * 40
 
@@ -171,9 +172,14 @@ $releaseToolingPaths = @(
     'gradle/libs.versions.toml',
     'patches-list.json',
     'sources/instagram-sources.json',
+    'sources/carried-library-licenses.json',
     'scripts/advisory-exceptions.txt',
     'scripts/audit-dependencies.ps1',
     'scripts/dependency-graphs.init.gradle',
+    'scripts/build-inputs.gradle',
+    'scripts/build-identity.ps1',
+    'scripts/canonical-build-inputs.txt',
+    'scripts/test-build-identity.ps1',
     'scripts/dependency-advisory-exceptions.txt',
     'scripts/apk-facts.ps1',
     'scripts/build-release-receipt.ps1',
@@ -187,12 +193,25 @@ $releaseToolingPaths = @(
     'scripts/release-receipt.ps1',
     'scripts/script-wiring.ps1',
     'scripts/test-release-tooling.ps1',
+    'scripts/test-carried-licenses.ps1',
     'scripts/PatchCoverage.java',
     'scripts/patch-coverage-expectations.json',
     'scripts/validate-release-facts.ps1'
 )
 $touchesReleaseTooling = @($changed | Where-Object { $_ -in $releaseToolingPaths }).Count -gt 0
+$androidBoundaryPaths = @(
+    'extensions/instagram/build.gradle.kts',
+    'extensions/instagram/src/test/java/app/hushgram/extension/instagram/misc/SameKeyProviderCallerTest.java',
+    'scripts/test-android-boundaries.ps1', 'scripts/pre-push.ps1', 'scripts/script-wiring.ps1'
+)
+$touchesAndroidBoundaries = @($changed | Where-Object { $_ -in $androidBoundaryPaths }).Count -gt 0
 $suites = @()
+if (@($changed | Where-Object {
+    $_ -in @('gradlew', 'gradlew.bat', 'gradle/wrapper/gradle-wrapper.jar', 'gradle/wrapper/gradle-wrapper.properties',
+        'scripts/VerifyGradleWrapper.java', 'scripts/test-gradle-wrapper.ps1', 'scripts/pre-push.ps1')
+}).Count -gt 0) {
+    $suites += , @('scripts/test-gradle-wrapper.ps1', 'the Gradle wrapper changed, checking refusal before execution')
+}
 if ($touchesInjectedRegisterVerifier) {
     $suites += , @('scripts/test-injected-registers.ps1', 'the injected-register verifier changed, running its fixture tests')
 }
@@ -204,6 +223,30 @@ if ($touchesInjectedRegisterDevice) {
 }
 if ($touchesReleaseTooling) {
     $suites += , @('scripts/test-release-tooling.ps1', 'the release tooling or a file it reads changed, running its contract tests')
+    $suites += , @('scripts/test-carried-licenses.ps1', 'checking reviewed carried-library license evidence')
+}
+if (@($changed | Where-Object {
+    $_ -in @('scripts/InspectPatchBundle.java', 'scripts/CompositionFixture.java', 'scripts/CompositionInitializer.java',
+        'scripts/patch-sources.ps1', 'scripts/patch-with-sources.ps1', 'scripts/test-source-composition.ps1',
+        'scripts/patch-target.ps1', 'scripts/apk-facts.ps1', 'scripts/common.ps1', 'scripts/patch-report.ps1',
+        'scripts/pre-push.ps1', 'scripts/script-wiring.ps1')
+}).Count -gt 0) {
+    $suites += , @('scripts/test-source-composition.ps1', 'selected-source tooling changed, checking targets and native dependency ownership')
+}
+if (@($changed | Where-Object {
+    $_ -in @('scripts/build-inputs.gradle', 'scripts/canonical-build-inputs.txt', 'scripts/build-identity.ps1',
+        'scripts/test-build-identity.ps1', 'scripts/release-receipt.ps1', 'patches/build.gradle.kts',
+        'scripts/pre-push.ps1', 'scripts/script-wiring.ps1')
+}).Count -gt 0) {
+    $suites += , @('scripts/test-build-identity.ps1', 'the production identity boundary changed, checking canonical inputs')
+}
+if (@($changed | Where-Object {
+    $_ -in @('scripts/gen-l10n.py', 'scripts/sync-l10n.py', 'scripts/crowdin-l10n.py',
+        'scripts/test-l10n.py', 'scripts/test-crowdin-l10n.py', 'scripts/test-translations.ps1',
+        'scripts/pre-push.ps1', 'scripts/script-wiring.ps1') -or
+    $_ -like 'extensions/*/src/main/java/*' -or $_ -like 'extensions/shared/library/src/main/l10n/*'
+}).Count -gt 0) {
+    $suites += , @('scripts/test-translations.ps1', 'translation catalog or tooling changed, checking its tests')
 }
 foreach ($suite in $suites) {
     $suiteScript = Join-Path $Root $suite[0]
@@ -306,6 +349,11 @@ try {
     & $gradle -p $gate --console=plain :patches:test :extensions:instagram:testDebugUnitTest :extensions:instagram:verifyAndroidBoundaries `
         :extensions:instagram:lint :extensions:shared:library:lint
     if ($LASTEXITCODE -ne 0) { Stop-Push 'tests or lint failed' }
+
+    if ($touchesAndroidBoundaries) {
+        & pwsh -NoProfile -File (Join-Path $gate 'scripts/test-android-boundaries.ps1') -Root $gate
+        if ($LASTEXITCODE -ne 0) { Stop-Push 'Android boundary gate self-tests failed' }
+    }
 
     $catalog = Join-Path $gate 'patches-list.json'
     $before = Get-Content -LiteralPath $catalog -Raw

@@ -25,7 +25,6 @@ import app.morphe.patches.tiktok.misc.commenttools.resolveLikeTouchListener
 import app.morphe.patches.tiktok.interaction.videooverlays.*
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
@@ -54,7 +53,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
     fun `regional Report gate and search rewards accessor stay unique on every retained fixture`() {
         val apks = fixtures()
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val gates = mutableListOf<Method>()
             val accessors = mutableListOf<Method>()
             container.dexEntryNames.asSequence()
@@ -87,7 +86,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
     fun `sticker sheet keeps one group of like typed action fields on every retained fixture`() {
         val apks = fixtures()
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val byType = container.dexEntryNames.asSequence()
                 .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }.associateBy { it.type }
             fun descendsFrom(type: String, ancestor: String): Boolean {
@@ -128,7 +127,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
     fun `both search page Tako entrances keep one nullable inflater on every retained fixture`() {
         val apks = fixtures()
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val inflaters = container.dexEntryNames.asSequence()
                 .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
                 .filter { it.type in takoSearchEntranceVariants }
@@ -174,7 +173,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
 
         val apks = fixtures()
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val wanted = setOf(TAKO_COMMENT_TOP_BAR_SERVICE, COMMENT_TOP_BAR_BRIDGE_BASE, TAKO_COMMENT_TOP_BAR_BRIDGE)
             val classes = container.dexEntryNames.asSequence()
                 .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
@@ -207,7 +206,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
     fun `block skip native pager methods survive every retained fixture`() {
         val apks = fixtures()
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val pager = container.dexEntryNames.asSequence()
                 .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
                 .single { it.type == "Lcom/ss/android/ugc/aweme/common/widget/VerticalViewPager;" }
@@ -218,7 +217,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
     fun `bottom search banner model and native component key survive every retained fixture`() {
         val apks = fixtures()
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val wanted = setOf(
                 "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
                 "Lcom/ss/android/ugc/aweme/feed/model/banner/BannerCommonStruct;",
@@ -249,7 +248,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
     fun `fullscreen entry and both location card contracts survive every retained fixture`() {
         val apks=fixtures()
         for(apk in apks) {
-            val container=DexFileFactory.loadDexContainer(apk,Opcodes.getDefault())
+            val container=Fixtures.dexContainer(apk,Opcodes.getDefault())
             val classes=container.dexEntryNames.flatMap{container.getEntry(it)!!.dexFile.classes}
             val byType=classes.associateBy{it.type}
             val listFactories = classes.asSequence().flatMap { it.methods.asSequence() }
@@ -289,7 +288,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
     fun `native comment like installer is unique and leaves other actions intact on every fixture`() {
         val apks = fixtures()
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val classes = container.dexEntryNames.flatMap { container.getEntry(it)!!.dexFile.classes }
             val owners = classes.filter { type -> type.methods.any { method ->
                 method.implementation?.instructions?.any {
@@ -325,7 +324,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
     fun `all three compact comment roots keep their named lifecycle contract on every fixture`() {
         val apks = fixtures()
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val components = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.filter { it.type in compactCommentHeaderComponents }
             }
@@ -347,7 +346,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
     fun `comment suggestion banner factory is unique and guardable on every fixture`() {
         val apks = fixtures()
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val matches = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.filter {
                     it.type == "Lcom/ss/android/ugc/aweme/search/common/communicate/AbsSearchService;"
@@ -374,7 +373,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
         val model = "Lcom/ss/android/ugc/aweme/feed/model/"
         val expectedClasses = listOf("Aweme", "ContentModel", "StandardBusinessModel", "LocalAllianceInfo")
         for (apk in apks) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val models = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.filter { it.type in expectedClasses.map { "$model$it;" } }
             }.associateBy { it.type }
@@ -419,7 +418,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
 
         for (apk in apks) {
             val matches = mutableListOf<Method>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) {
                     if (classDef.type !=
@@ -447,7 +446,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
         for (apk in apks.sortedByDescending { it.name }) {
             val matches = mutableListOf<Method>()
             val classMethods = mutableListOf<Method>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) {
                     if (classDef.type.endsWith("/SettingsComposeRvmpFragment;")) {
@@ -481,7 +480,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
             val offlineCache = mutableListOf<Method>()
             val speed = mutableListOf<Method>()
 
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) {
                     for (method in classDef.methods) {

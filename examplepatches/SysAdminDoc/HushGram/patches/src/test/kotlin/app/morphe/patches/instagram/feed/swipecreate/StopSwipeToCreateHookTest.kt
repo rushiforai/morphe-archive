@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.NeutralNativePath
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -56,6 +57,7 @@ class StopSwipeToCreateHookTest {
             .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         assertTrue("$HOLD is not in the extension: $declared", HOLD.substringAfter("->") in declared)
+        assertTrue("$ENABLED is not in the extension: $declared", ENABLED.substringAfter("->") in declared)
     }
 
     /**
@@ -77,6 +79,39 @@ class StopSwipeToCreateHookTest {
         val rest = code.indexOfLast { it.opcode == Opcode.IF_EQZ && (it as OneRegisterInstruction).registerA == 3 }
         assertEquals("the flag's branch still goes to the at-rest move", "setAtRest", (code[setter.targetOf(rest)].reference() as MethodReference).name)
         assertEquals("one hook", 1, context.mutableClassDefBy(container).methods.sumOf { method -> method.code().count { it.referenceText() == HOLD } })
+    }
+
+    @Test
+    fun disabledHookSkipsEveryAddedNativeReadAndKeepsTheWholeOriginalSetter() {
+        val context = PatchContexts.of(classes())
+        val before = context.setter().code().map { it.describe() }
+        val original = NeutralNativePath(context.setter())
+        context.stop()
+        assertDisabledPath("stand-in", context.setter(), before)
+        assertOriginalPath("stand-in", context.setter(), original)
+    }
+
+    private fun assertDisabledPath(what: String, setter: MutableMethod, before: List<String>) {
+        val code = setter.code()
+        val gate = code.indexOfFirst { it.referenceText() == ENABLED }
+        assertTrue("$what: switch must be checked before any added native reads", gate >= 0)
+        assertEquals("$what: switch answer", Opcode.MOVE_RESULT, code[gate + 1].opcode)
+        val free = (code[gate + 1] as OneRegisterInstruction).registerA
+        assertEquals("$what: disabled branch", Opcode.IF_EQZ, code[gate + 2].opcode)
+        assertEquals("$what: disabled branch uses the switch answer", free,
+            (code[gate + 2] as OneRegisterInstruction).registerA)
+        val resume = setter.targetOf(gate + 2)
+        assertEquals("$what: disabled skips the native getter, reason and hold logic", gate + 13, resume)
+        assertEquals("$what: resumes at the stock animate read", Opcode.IGET_BOOLEAN, code[resume].opcode)
+        assertEquals("$what: disabled leaves every original instruction in order", before,
+            (code.take(gate) + code.drop(resume)).map { it.describe() })
+        val getter = code.indexOfFirst { it.referenceText() == "$container->$CLAMPED_POSITION()F" }
+        assertTrue("$what: added getter must be after the disabled branch", getter > gate + 2 && getter < resume)
+    }
+
+    private fun assertOriginalPath(what: String, setter: MutableMethod, original: NeutralNativePath) {
+        val gate = setter.code().indexOfFirst { it.referenceText() == ENABLED }
+        original.assertPreserved(what, setter, (gate until gate + 13).toSet())
     }
 
     /** A build the patch can't read fails at patch time, saying what it found, and nothing is changed. */
@@ -121,7 +156,7 @@ class StopSwipeToCreateHookTest {
         }
     }
 
-    /** In each declared build the container's move is asked once, right after its animate flag. */
+    /** In each declared build the container's move is asked once, before its animate flag. */
     @Test
     fun eachDeclaredBuildAsksBeforeTheSpringMoves() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
@@ -134,6 +169,8 @@ class StopSwipeToCreateHookTest {
                     val classes = classesOf(bundle, setOf(container, config)).values
                     assertEquals("$what: the container and its config", 2, classes.size)
                     val context = PatchContexts.of(classes)
+                    val before = context.setter().code().map { it.describe() }
+                    val original = NeutralNativePath(context.setter())
 
                     context.stop()
 
@@ -143,11 +180,13 @@ class StopSwipeToCreateHookTest {
                     val code = setter.code()
                     val hold = code.indexOfFirst { it.referenceText() == HOLD }
                     val flag = (code[hold + 6] as OneRegisterInstruction).registerA
-                    val target = (code[hold - 5] as OneRegisterInstruction).registerA
+                    val target = (code[hold - 8] as OneRegisterInstruction).registerA
                     val reason = code[hold - 1].reference() as FieldReference
                     assertEquals("$what: the reason's class", config, reason.definingClass)
                     assertHeld(what, setter, target, flag, reason.toString())
                     assertEquals("$what: what comes after the flag's read", Opcode.INVOKE_DIRECT, code[hold + 7].opcode)
+                    assertDisabledPath(what, setter, before)
+                    assertOriginalPath(what, setter, original)
                 }
                 checked += version
             }
@@ -236,9 +275,9 @@ class StopSwipeToCreateHookTest {
         val hold = holds.single()
         val self = setter.implementation!!.registerCount - 2
         val configRegister = self + 1
-        assertEquals("$what: the clamp", Opcode.INVOKE_DIRECT, code[hold - 6].opcode)
-        assertEquals("$what: the clamp's answer", Opcode.MOVE_RESULT, code[hold - 5].opcode)
-        assertEquals("$what: the target", target, (code[hold - 5] as OneRegisterInstruction).registerA)
+        assertEquals("$what: the clamp", Opcode.INVOKE_DIRECT, code[hold - 9].opcode)
+        assertEquals("$what: the clamp's answer", Opcode.MOVE_RESULT, code[hold - 8].opcode)
+        assertEquals("$what: the target", target, (code[hold - 8] as OneRegisterInstruction).registerA)
         assertEquals("$what: where the panels are", "$container->$CLAMPED_POSITION()F", code[hold - 4].referenceText())
         assertEquals("$what: read on this", listOf(self), code[hold - 4].arguments())
         assertEquals("$what: its answer", Opcode.MOVE_RESULT, code[hold - 3].opcode)
@@ -266,7 +305,7 @@ class StopSwipeToCreateHookTest {
         assertTrue("$what: the borrowed register fits an invoke", current <= 15)
         assertTrue("$what: the borrowed register is neither the target nor the flag", current != target && current != flag)
         assertNotEquals("$what: the flag isn't the target", target, flag)
-        assertFalse("$what: a jump lands inside the hook", (hold - 3..hold + 5).any { it in setter.jumpTargets() })
+        assertFalse("$what: a jump lands inside the hook", (hold - 6..hold + 5).any { it in setter.jumpTargets() })
     }
 
     private fun BytecodePatchContext.stop() = stopSwipeToCreate(findSwipeToCreate())

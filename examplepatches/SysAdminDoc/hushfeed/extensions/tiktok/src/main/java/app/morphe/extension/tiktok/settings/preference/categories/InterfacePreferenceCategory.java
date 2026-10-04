@@ -24,9 +24,10 @@ import app.morphe.extension.tiktok.settings.preference.SwitchListPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
 /**
- * Everything drawn on the feed itself, grouped by where it sits: the right column, the text
- * beside the video, what is around it, what pops over it, then captions, the screen, clear
- * display and gestures. The page used to be one 27-row "Feed controls" card after the
+ * Everything drawn on the feed itself, grouped by where it sits: the right column, the buttons
+ * Hushfeed adds, the text beside the video, what is around it, what pops over it, then
+ * captions, clear display and gestures. The status bar and screenshot switches cover the whole
+ * app, so they're on App. The page used to be one 27-row "Feed controls" card after the
  * captions, in the order the patches were written.
  */
 @SuppressWarnings("deprecation")
@@ -51,7 +52,9 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 || SettingsStatus.captchaPopupSuppressionEnabled
                 || SettingsStatus.sensitiveWarningsEnabled
                 || SettingsStatus.subtitleToolsEnabled
-                || SettingsStatus.screenCaptureEnabled
+                || SettingsStatus.blockAuthorEnabled
+                || SettingsStatus.notInterestedEnabled
+                || SettingsStatus.feedMuteEnabled
                 || SettingsStatus.automaticClearDisplayEnabled
                 || SettingsStatus.doubleTapEnabled
                 || SettingsStatus.swipeLeftEnabled
@@ -70,11 +73,11 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
     @Override
     public void addPreferences(Context context) {
         addRightColumn(context);
+        addButtonsOnVideos(context);
         addVideoInfo(context);
         addAroundTheVideo(context);
         addPopups(context);
         addCaptions(context);
-        addScreen(context);
         addClearDisplay(context);
         addGestures(context);
     }
@@ -129,6 +132,52 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide the save button in the right column. Ticking Save in the list above hides it too.",
                     Settings.HIDE_FEED_SAVE_BUTTON
             ));
+        }
+    }
+
+    /**
+     * Every control Hushfeed draws on the video, in one card. They were split between Feed filter
+     * and Playback, so nobody could see in one place which of them would show up. Each starts off.
+     */
+    private void addButtonsOnVideos(Context context) {
+        boolean any = SettingsStatus.blockAuthorEnabled || SettingsStatus.notInterestedEnabled
+                || SettingsStatus.feedMuteEnabled;
+        if (!any) return;
+        addPreference(new SectionHeadingPreference(context, "Buttons on videos"));
+        if (SettingsStatus.blockAuthorEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Show the block button on videos",
+                    "Block the creator in one tap. Once TikTok confirms, skip to the next video. "
+                            + "A small Unblock button appears at the top left for two seconds. "
+                            + "You can also unblock later in TikTok's Privacy > Blocked accounts.",
+                    Settings.BLOCK_AUTHOR_BUTTON
+            ));
+        }
+        // These two act through the feed filter's lists, and without it they would draw nothing.
+        if (SettingsStatus.blockAuthorEnabled && SettingsStatus.feedFilterEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Show the hide button on videos",
+                    "Add a button that hides the current creator on this phone without blocking them.",
+                    Settings.LOCAL_HIDE_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Show the block sound button",
+                    "Add a separate button that skips videos using the current sound.",
+                    Settings.BLOCK_SOUND_BUTTON
+            ));
+        }
+        if (SettingsStatus.notInterestedEnabled) {
+            addPreference(new TogglePreference(context, "Show the Not interested button",
+                    "Add a button beside the block control to send feedback about the current video.",
+                    Settings.NOT_INTERESTED_BUTTON));
+        }
+        if (SettingsStatus.feedMuteEnabled) {
+            addPreference(new TogglePreference(context, "Show the mute button on videos",
+                    "Add a button beside the block control that turns the feed's sound off and on.",
+                    Settings.FEED_MUTE_BUTTON));
         }
     }
 
@@ -353,32 +402,6 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     new String[]{"default", "transparent", "dark", "black"}));
             addPreference(new TogglePreference(context, "Keep captions in clear display",
                     "Show the current spoken caption while the other controls are hidden.", Settings.KEEP_CAPTIONS_CLEAR_DISPLAY));
-        }
-    }
-
-    private void addScreen(Context context) {
-        boolean any = SettingsStatus.screenCaptureEnabled || SettingsStatus.videoOverlaysEnabled;
-        if (!any) return;
-        addPreference(new SectionHeadingPreference(context, "Screen"));
-        if (SettingsStatus.screenCaptureEnabled) {
-            addPreference(new TogglePreference(context, "Allow screenshots and Circle to Search",
-                    "Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this.", Settings.ALLOW_SCREEN_CAPTURE));
-        }
-        if (SettingsStatus.videoOverlaysEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Hide the status bar",
-                    "Keep the clock and status icons off the screen while TikTok is open. "
-                            + "Swipe down from the top to peek at them.",
-                    Settings.HIDE_STATUS_BAR
-            ));
-            addPreference(new TogglePreference(
-                    context,
-                    "Hide the status bar in LIVE rooms",
-                    "Let a LIVE fill the screen up to the top edge. The status bar comes back when "
-                            + "you leave the LIVE. Swipe down from the top to peek at it.",
-                    Settings.HIDE_STATUS_BAR_IN_LIVE
-            ));
         }
     }
 

@@ -205,6 +205,27 @@ Write-Host '[scripts] guarded phone foreground parser contracts passed'
 $catalog = Get-Content -LiteralPath (Join-Path $Root 'patches-list.json') -Raw | ConvertFrom-Json
 $target = Get-PatchTarget -PatchList $catalog
 Assert-True ($target.PackageName -eq 'com.zhiliaoapp.musically') 'The catalog package was not resolved.'
+$stockTarget = [pscustomobject]@{ package = 'com.zhiliaoapp.musically'; versionName = '47.1.4' }
+$normalTarget = Resolve-PatchVerificationTarget -Stock $stockTarget -Target $target
+Assert-True (-not $normalTarget.Forced -and -not $normalTarget.Probe) 'Declared support became a qualification probe.'
+$asiaTarget = [pscustomobject]@{ package = 'com.ss.android.ugc.trill'; versionName = '47.0.3' }
+Assert-Throws { Resolve-PatchVerificationTarget -Stock $asiaTarget -Target $target -Force } `
+    '*not the catalog*' 'Force alone allowed an undeclared package.'
+Assert-Throws { Resolve-PatchVerificationTarget -Stock $asiaTarget -Target $target -ProbePackage $asiaTarget.package } `
+    '*requires -Force*' 'A package probe did not require an explicit force.'
+Assert-Throws { Resolve-PatchVerificationTarget -Stock $stockTarget -Target $target -Force -ProbePackage $asiaTarget.package } `
+    '*not the requested probe*' 'A package probe trusted a different APK.'
+Assert-Throws { Resolve-PatchVerificationTarget -Stock $stockTarget -Target $target -Force -ProbePackage $stockTarget.package } `
+    '*must name an undeclared package*' 'A package probe mislabeled supported input.'
+$qualifiedTarget = Resolve-PatchVerificationTarget -Stock $asiaTarget -Target $target -Force -ProbePackage $asiaTarget.package
+Assert-True ($qualifiedTarget.Forced -and $qualifiedTarget.Probe -and
+    $qualifiedTarget.PackageName -ceq $asiaTarget.package -and $qualifiedTarget.PackageVersion -ceq $asiaTarget.versionName) `
+    'The package probe did not preserve the actual APK identity.'
+$futureStock = [pscustomobject]@{ package = $stockTarget.package; versionName = '99.0.0' }
+Assert-Throws { Resolve-PatchVerificationTarget -Stock $futureStock -Target $target } '*Pass -Force*' `
+    'A future build was accepted without force.'
+Assert-True (Resolve-PatchVerificationTarget -Stock $futureStock -Target $target -Force).Forced `
+    'An explicitly forced future build was not marked forced.'
 Assert-True ((@($target.PackageVersions) -join ',') -eq '47.0.3,47.1.3,47.1.4' -and $target.PackageVersion -eq '47.1.4') `
     "The catalog versions were not resolved: $(@($target.PackageVersions) -join ', ')."
 Assert-True ((Format-VersionList -Versions @('47.0.3')) -eq '47.0.3' -and
@@ -1620,6 +1641,8 @@ try {
     $factsMarker = Join-Path $hookRoot 'facts-ran.txt'
     $contractsMarker = Join-Path $hookRoot 'contracts-ran.txt'
     $signingMarker = Join-Path $hookRoot 'signing-ran.txt'
+    $attestationMarker = Join-Path $hookRoot 'attestation-ran.txt'
+    $bundleSignatureMarker = Join-Path $hookRoot 'bundle-signature-ran.txt'
     Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/validate-release-facts.ps1') -Encoding UTF8 -Value @(
         'param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag,',
         '    [switch]$VerifyPublishedAsset, [string]$ArtifactPath)',
@@ -1633,10 +1656,17 @@ try {
         'param([string]$Root)',
         "Set-Content -LiteralPath '$signingMarker' -Value `"root=`$Root`"",
         'exit 0')
+    foreach ($suite in @(
+        @('test-release-attestation.ps1', $attestationMarker),
+        @('test-release-signature.ps1', $bundleSignatureMarker)
+    )) {
+        Set-Content -LiteralPath (Join-Path $hookRoot "scripts/$($suite[0])") -Encoding UTF8 -Value @(
+            'param([string]$Root)', "Set-Content -LiteralPath '$($suite[1])' -Value 'ran'", 'exit 0')
+    }
 
     function Invoke-Hook {
         param([string[]]$Paths)
-        Remove-Item -LiteralPath $factsMarker, $contractsMarker, $signingMarker -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $factsMarker, $contractsMarker, $signingMarker, $attestationMarker, $bundleSignatureMarker -Force -ErrorAction SilentlyContinue
         $global:LASTEXITCODE = 0
         & $prePushScript -Root $hookRoot -ChangedPaths $Paths 6> $null
         if ($LASTEXITCODE -ne 0) { throw "pre-push exited $LASTEXITCODE for $($Paths -join ', ')" }
@@ -1651,6 +1681,17 @@ try {
 
     # The previous routing fixtures covered scripts and catalog consumers, but no probe
     # source or signing input. Exercise the real selector without running SDK tools here.
+    foreach ($inputPath in @('scripts/release-attestation.ps1', 'scripts/test-release-attestation.ps1',
+        'scripts/validate-release-facts.ps1')) {
+        Invoke-Hook -Paths @($inputPath)
+        Assert-True (Test-Path -LiteralPath $attestationMarker) "An attestation input $inputPath skipped its contracts."
+    }
+    foreach ($inputPath in @('scripts/release-signature.ps1', 'scripts/test-release-signature.ps1',
+        'scripts/validate-release-facts.ps1', 'cosign.pub')) {
+        Invoke-Hook -Paths @($inputPath)
+        Assert-True (Test-Path -LiteralPath $bundleSignatureMarker) "A signature input $inputPath skipped its contracts."
+    }
+    Assert-True (Test-Path -LiteralPath $factsMarker) 'A public-key change skipped release validation.'
     foreach ($signingInput in @(
         'scripts/apk-signing.ps1', 'scripts/SigningCertificateCheck.java',
         'scripts/SigningKeyFixtures.java', 'scripts/test-apk-signing.ps1',

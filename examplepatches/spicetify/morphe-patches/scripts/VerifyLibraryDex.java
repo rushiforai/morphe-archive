@@ -26,24 +26,24 @@ class VerifyLibraryDex {
     }
 
     static final List<Hook> HOOKS = List.of(
-        new Hook("Lp/g8e1;", "i", List.of("Lp/ki90;"), ROWS, "begin", List.of("Ljava/lang/Object;"), OBSERVABLE, After.EARLY_RETURN_OBJECT, -1),
-        new Hook("Lp/g8e1;", "i", List.of("Lp/ki90;"), ROWS, "page", List.of(OBSERVABLE), OBSERVABLE, After.RETURN_SAME, 0),
-        new Hook("Lp/j200;", "<init>", List.of("Ljava/util/List;", "Ljava/util/List;", "I", "I", "Z", "Z"), ROWS, "chipRow",
+        new Hook("Lp/ub21;", "z", List.of("Lp/z770;"), ROWS, "begin", List.of("Ljava/lang/Object;"), OBSERVABLE, After.EARLY_RETURN_OBJECT, -1),
+        new Hook("Lp/ub21;", "z", List.of("Lp/z770;"), ROWS, "page", List.of(OBSERVABLE), OBSERVABLE, After.RETURN_SAME, 0),
+        new Hook("Lp/aey;", "<init>", List.of("Ljava/util/List;", "Ljava/util/List;", "I", "I", "Z", "Z"), ROWS, "chipRow",
             List.of("Ljava/util/List;", "Ljava/util/List;"), "Ljava/util/List;", After.REPLACE_ARGUMENT, 1),
-        new Hook("Lp/l500;", "a", List.of("Lp/r4k;"), ROWS, "description", List.of("Ljava/lang/Object;"), "Ljava/lang/String;", After.EARLY_RETURN_OBJECT, -1),
-        new Hook("Lp/l500;", "b", List.of("Lp/r4k;"), ROWS, "label", List.of("Ljava/lang/Object;"), "Ljava/lang/String;", After.EARLY_RETURN_OBJECT, -1),
-        new Hook("Lp/t100;", "b", List.of("Ljava/util/List;"), ROWS, "remembered", List.of("Ljava/util/List;"), "Ljava/util/List;", After.REPLACE_ARGUMENT, 0),
-        new Hook("Lp/ruj0;", "a", List.of("Ljava/lang/String;", "Lp/xd60;", "Landroid/os/Bundle;"), ROWS, "open",
+        new Hook("Lp/igy;", "a", List.of("Lp/y1j;"), ROWS, "description", List.of("Ljava/lang/Object;"), "Ljava/lang/String;", After.EARLY_RETURN_OBJECT, -1),
+        new Hook("Lp/igy;", "b", List.of("Lp/y1j;"), ROWS, "label", List.of("Ljava/lang/Object;"), "Ljava/lang/String;", After.EARLY_RETURN_OBJECT, -1),
+        new Hook("Lp/ldy;", "b", List.of("Ljava/util/List;"), ROWS, "remembered", List.of("Ljava/util/List;"), "Ljava/util/List;", After.REPLACE_ARGUMENT, 0),
+        new Hook("Lp/s4h0;", "b", List.of("Ljava/lang/String;", "Lp/mb40;", "Landroid/os/Bundle;"), ROWS, "open",
             List.of("Ljava/lang/Object;", "Ljava/lang/String;"), "Ljava/lang/String;", After.EARLY_RETURN_VOID, 1),
-        new Hook("Lp/ruj0;", "h", List.of("Ljava/lang/String;"), ROWS, "open",
+        new Hook("Lp/s4h0;", "g", List.of("Ljava/lang/String;"), ROWS, "open",
             List.of("Ljava/lang/Object;", "Ljava/lang/String;"), "Ljava/lang/String;", After.EARLY_RETURN_VOID, 1),
         new Hook("Lcom/spotify/imageloader/localfileimage/LocalFileImageLoader;", "loadImage", List.of("Ljava/lang/String;"), ARTWORK, "bytes",
             List.of("Ljava/lang/String;"), "[B", After.EARLY_RETURN_OBJECT, -1),
-        new Hook("Lp/qb61;", "onCreate", List.of(), SERVER_PROCESS, "skipApplication",
+        new Hook("Lcom/spotify/music/SpotifyApplication;", "onCreate", List.of(), SERVER_PROCESS, "skipApplication",
             List.of("Landroid/content/Context;"), "Z", After.GATE, -1),
-        new Hook("Lp/qb61;", "onTrimMemory", List.of("I"), SERVER_PROCESS, "isCurrent",
+        new Hook("Lcom/spotify/music/SpotifyApplication;", "onTrimMemory", List.of("I"), SERVER_PROCESS, "isCurrent",
             List.of("Landroid/content/Context;"), "Z", After.GATE, -1),
-        new Hook("Lp/ynx;", "<init>", List.of("Lp/vuk;", "Lp/h1c0;", "Z", "Ljava/util/List;"), PLAYBACK, "setPlayer",
+        new Hook("Lp/s2w;", "<init>", List.of("Lp/wrj;", "Lp/lm90;", "Z", "Ljava/util/List;"), PLAYBACK, "setPlayer",
             List.of("Ljava/lang/Object;"), "V", After.NOTHING, -1));
 
     static void require(boolean condition, String message) {

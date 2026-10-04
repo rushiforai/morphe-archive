@@ -1,27 +1,58 @@
-## [1.1.1](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/compare/v1.1.0...v1.1.1) (2026-09-11)
+## [1.0.1](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/compare/v1.0.0...v1.0.1) (2026-10-03)
 
 ### Bug Fixes
 
-* relax TikTok Lite telemetry fingerprints ([e3a4adf](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/e3a4adfeac534e2e00695f935889fb0b4a765b8c))
+* update TikTok Lite 47.0.3 downloads status fingerprint ([c342a74](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/c342a74fb1f0a2aad349a08cf5a59358adb6f15f))
 
-## [1.1.0](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/compare/v1.0.0...v1.1.0) (2026-09-11)
+## 1.0.0 (2026-10-03)
 
 ### Features
 
-* target TikTok Lite 46.8.3 compatibility ([70fd74a](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/70fd74af35aa080de65f4025c14fe762e8049cba))
+* target TikTok Lite 47.0.3 ([4dcab97](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/4dcab971f8eac27dda026c5137cde8af35bf6079))
 
 ### Bug Fixes
 
-* match telemetry fingerprints to TikTok Lite 46.8.3 ([7ca6968](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/7ca69684dd5e6a7ddf01fba2eaeb97b2a54dd3e4))
-* patch TikTok Lite 46.8.3 telemetry methods ([5f53155](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/5f53155339d999f22d3a75e5d0f6cdb989e51350))
-* use TikTok Lite 46.8.3 compatibility ([892fb3e](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/892fb3ea038d05e798af4d08f65b697fe45152a6))
+* authenticate Gradle package access during verification ([2de2858](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/2de2858910e9bcc823bae75041a97f399ccf45d4))
+* correct semantic-release configuration quoting ([5dc52d7](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/5dc52d71b8ae2da71405280e588ab56a6c5dd340))
+* limit telemetry patch to verified 47.0.3 targets ([1659892](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/16598926839f68b2ead3555b249bd33233bbc465))
+* make Gradle wrapper executable in CI ([4f009ed](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/4f009ed3505f47ff6b381208da2feea4d094e07e))
+* provide Gradle package credentials as project properties ([a1e0588](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/a1e05885e22c4875edaa76aa6ef8b56250950795))
+* restore Morphe Gradle plugin 1.3.4 ([90133ec](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/90133ec7886baf1a3e013c3bbddcbb03c0b1edf4))
+* restore Morphe Release workflow ([777f639](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/777f63915fe7599114ab1022ed58825fe58dfbfe))
+* restore Semantic Release configuration ([170cdbd](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/170cdbda47ee4b8b85dde6120d174e7c291e5457))
+* restore valid Kotlin string escaping ([aced3a3](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/aced3a33bb40e271cea6216f9e6890dd0202dd63))
+* target TikTok Lite 47.0.3 telemetry wrapper ([0a2cbbe](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/0a2cbbea1993867c1a6481a9e3639ede2bed31de))
+* use published Morphe Gradle plugin 1.3.3 ([f0e65ec](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/f0e65ec8ea7273d5f17efa27a9abb7e4862964cc))
 
-## 1.0.0 (2026-09-11)
+## 1.0.0 (2026-10-03)
 
 ### Bug Fixes
 
-* make Gradle wrapper executable ([2e6e034](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/2e6e0346f7bd5a4258e3de6fc79545743a4a1950))
-* restore Morphe release workflow ([866ac4f](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/866ac4f43552b9995e09fcad0e7c61b9e7b62cb1))
+* correct semantic-release configuration quoting ([5dc52d7](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/5dc52d71b8ae2da71405280e588ab56a6c5dd340))
+* make Gradle wrapper executable in CI ([4f009ed](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/4f009ed3505f47ff6b381208da2feea4d094e07e))
+* restore Morphe Release workflow ([777f639](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/777f63915fe7599114ab1022ed58825fe58dfbfe))
+* restore Semantic Release configuration ([170cdbd](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/170cdbda47ee4b8b85dde6120d174e7c291e5457))
+* restore valid Kotlin string escaping ([aced3a3](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/aced3a33bb40e271cea6216f9e6890dd0202dd63))
+
+## 1.0.0 (2026-10-03)
+
+### Bug Fixes
+
+* correct semantic-release configuration quoting ([5dc52d7](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/5dc52d71b8ae2da71405280e588ab56a6c5dd340))
+* make Gradle wrapper executable in CI ([4f009ed](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/4f009ed3505f47ff6b381208da2feea4d094e07e))
+* restore Morphe Release workflow ([777f639](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/777f63915fe7599114ab1022ed58825fe58dfbfe))
+* restore Semantic Release configuration ([170cdbd](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/170cdbda47ee4b8b85dde6120d174e7c291e5457))
+* restore valid Kotlin string escaping ([aced3a3](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/aced3a33bb40e271cea6216f9e6890dd0202dd63))
+
+## 1.0.0 (2026-10-03)
+
+### Bug Fixes
+
+* correct semantic-release configuration quoting ([5dc52d7](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/5dc52d71b8ae2da71405280e588ab56a6c5dd340))
+* make Gradle wrapper executable in CI ([4f009ed](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/4f009ed3505f47ff6b381208da2feea4d094e07e))
+* restore Morphe Release workflow ([777f639](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/777f63915fe7599114ab1022ed58825fe58dfbfe))
+* restore Semantic Release configuration ([170cdbd](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/170cdbda47ee4b8b85dde6120d174e7c291e5457))
+* restore valid Kotlin string escaping ([aced3a3](https://github.com/MohamedElnaggar00/morphe-patches-tiktok-lite-only/commit/aced3a33bb40e271cea6216f9e6890dd0202dd63))
 
 ## [1.21.5](https://github.com/rushiranpise/morphe-patches/compare/v1.21.4...v1.21.5) (2026-09-08)
 

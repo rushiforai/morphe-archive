@@ -118,11 +118,16 @@ val languagePackPurgerPatch = rawResourcePatch(
 
     execute {
         val result = stripVerifiedLanguagePacks(get("."), targetLocales, languageInventories)
-        BuildDetails.languages(get(BUILD_DETAILS_ASSET), result)
-        if (result.files == 0) {
-            println("[Language Pack Purger] Kept every reviewed language pack.")
+        if (result.retainedLocales == null) {
+            // Build details keep "unverified": nothing here was checked against a reviewed APK.
+            println("[Language Pack Purger] Kept every language pack. This APK's set isn't a reviewed one, so none could be removed.")
         } else {
-            result.report("Language Pack Purger")
+            BuildDetails.languages(get(BUILD_DETAILS_ASSET), result)
+            if (result.files == 0) {
+                println("[Language Pack Purger] Kept every reviewed language pack.")
+            } else {
+                result.report("Language Pack Purger")
+            }
         }
     }
 }
@@ -130,7 +135,7 @@ val languagePackPurgerPatch = rawResourcePatch(
 @Suppress("unused")
 val studioCreationDebloatPatch = rawResourcePatch(
     name = "Remove creation tools",
-    description = "Empties TikTok's reviewed editor, camera-effect and face-model assets. The Create tab and all recording, editing and effects tools stop working. Saves about 40 MB of storage. Switch: Hushfeed settings > App behavior.",
+    description = "Empties TikTok's reviewed editor, camera-effect and face-model assets. The Create tab and all recording, editing and effects tools stop working. Saves about 40 MB of storage.",
     default = false,
 ) {
     category("Performance")

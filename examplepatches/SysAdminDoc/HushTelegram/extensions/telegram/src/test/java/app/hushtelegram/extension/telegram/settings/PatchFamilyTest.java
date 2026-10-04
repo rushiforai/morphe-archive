@@ -133,6 +133,8 @@ public class PatchFamilyTest {
         assertEquals(EnumSet.of(PatchFamily.Capability.READ_METRICS),
                 PatchFamily.DISABLE_ANALYTICS.installedCapabilities());
         assertTrue(PatchFamily.DISABLE_UPDATE_CHECKS.expectedCapabilities().isEmpty());
+        assertEquals(EnumSet.of(PatchFamily.Capability.FIREBASE_CERTIFICATE_HEADER, PatchFamily.Capability.FIREBASE_LOCAL_STATUS),
+                PatchFamily.REPAIR_FIREBASE_PUSH.expectedCapabilities());
         assertThrows(UnsupportedOperationException.class, () -> PatchFamily.HIDE_ADS.expectedCapabilities().clear());
         assertThrows(UnsupportedOperationException.class, () -> PatchFamily.HIDE_ADS.installedCapabilities().clear());
 
@@ -147,11 +149,30 @@ public class PatchFamilyTest {
 
     /** The names are Morphe Manager's, so a report and the patch list say the same thing. */
     @Test
-    public void everyPatchButTheSettingsEntryIsAFamily() throws Exception {
+    public void everyRuntimePatchButTheSettingsEntryIsAFamily() throws Exception {
         JSONArray patches = new JSONObject(new String(Files.readAllBytes(patchesList().toPath()),
                 StandardCharsets.UTF_8)).getJSONArray("patches");
         Set<String> listed = new TreeSet<>();
-        for (int i = 0; i < patches.length(); i++) listed.add(patches.getJSONObject(i).getString("name"));
+        for (int i = 0; i < patches.length(); i++) {
+            JSONObject patch = patches.getJSONObject(i);
+            String name = patch.getString("name");
+            if ("Use registered Telegram API credentials".equals(name) || "Use registered Maps API key".equals(name)) {
+                assertFalse("patch-time credentials must be optional", patch.getBoolean("use"));
+                JSONArray options = patch.getJSONArray("options");
+                Set<String> keys = new TreeSet<>();
+                for (int option = 0; option < options.length(); option++) {
+                    JSONObject input = options.getJSONObject(option);
+                    assertFalse(input.getBoolean("required"));
+                    assertTrue(input.isNull("default"));
+                    keys.add(input.getString("key"));
+                }
+                Set<String> expected = "Use registered Telegram API credentials".equals(name)
+                        ? new TreeSet<>(Arrays.asList("apiId", "apiHash"))
+                        : Collections.singleton("apiKey");
+                assertEquals(expected, keys);
+                assertEquals(expected.size(), options.length());
+            } else listed.add(patch.getString("name"));
+        }
         assertTrue("the settings entry left the patch list", listed.remove("HushTelegram settings"));
 
         Set<String> families = new TreeSet<>();
@@ -221,7 +242,7 @@ public class PatchFamilyTest {
         assertEquals(Arrays.asList(
                 "Hide ads: on (hushtelegram_hide_ads=on)",
                 "Disable analytics: disabled by its switch (hushtelegram_disable_analytics=off)",
-                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Disable chat swipe actions, Quiet contacts nag, Holiday look all year, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks",
+                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Disable chat swipe actions, Disable pull to next channel, Quiet contacts nag, Holiday look all year, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration",
                 "Hide ads coverage: channel ads, video ads, search ads",
                 "Disable analytics coverage: device statistics reports, channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"),
                 running);

@@ -1,6 +1,63 @@
 # Changelog
 
-Every HushThreads release, newest first.
+Changes in the source build, then released versions.
+
+## Unreleased
+
+## 0.0.10 (2026-10-03)
+
+* **Threads:** HushThreads now builds on Morphe patcher 1.15.0, so it needs Morphe Manager 1.33.0 or newer. Manager 1.32.0 asks for an update before it loads the bundle.
+* **Tooling:** smali now matches the commit patcher 1.15.0 asks for. The old pin was one commit behind it but sorted higher, so Gradle had been compiling and testing against the older dexlib2. The fixture gates move to desktop CLI 1.18.0.
+* **Tooling:** The localization guard also catches a settings row built through a qualified `HushThreadsPreferenceFragment` call in another source file. Before, it only looked for the row helpers inside the fragment itself, so an untranslated title elsewhere passed.
+* **Threads:** The README explains how safe mode and Threads' own crash protection fit together. Five quick crashes within four hours make Threads delete its data, and safe mode steps in after three, so it gets there first. It also says which crashes Pause can't stop and what to do about them.
+* **Tooling:** A fixture test reads Threads' crash-loop thresholds out of each declared build and fails if safe mode would wait as long as Threads' data wipe, or if it counts fewer seconds after a start than Threads does.
+
+## 0.0.9 (2026-10-03)
+
+* **Threads:** A Galaxy S23 Ultra running Threads 449 with HushThreads 0.0.4 confirmed that Hide suggested users takes the live Suggested Users block out of the feed.
+* **Threads:** The overview, About and support reports identify the exact packaged bundle, including its payload hash and clean, modified or unknown source state. Identical repacks keep the same identity. Missing or damaged current metadata remains unverified.
+* **Threads:** The overview keeps the full payload hash with a compact source state. About and exports retain the complete source record. At large text sizes, Pause, Resume and Undo appear above the summary so build details can't push recovery off the screen.
+* **Tooling:** Bundle and receipt checks verify the packaged identity before accepting source claims. Existing display tests expected version-only text and placed recovery below the summary, which could hide it behind the new build details. Assertions now cover the payload field and accessible action placement, alongside tampering, archive, loaded-bundle and export checks.
+
+* **Threads:** The settings overview names any default patches omitted from a build. Diagnostic exports include the app's declared web domains and Android's current link selections, with an explicit unavailable state on older versions.
+* **Tooling:** Shared fixes and the Turkish GitHub wording correction are ported with per-file provenance. Tests cover missing defaults, Unicode domains and both report exports. An older analytics test expected only one report line and missed the new default-selection disclosure. Its analytics assertions remain intact. Android 9 also exercises the saved-file report through its actual legacy destination.
+
+* **Threads:** Diagnostic exports redact filesystem paths from buffered events and saved Java/native crashes, including quoted paths with spaces, escaped forms and file URLs. Stack-trace filenames, package names and current signing-certificate hashes remain useful.
+* **Tooling:** Clipboard and saved-file tests cover every diagnostic section on Android 9, 11 and 16 with Debug logging on and off. The earlier tests only checked request addresses and credentials. Long quoted values now avoid regex stack overflow, and the Windows file-write fixture only uses the new-file field on Android versions that have it.
+
+* **Tooling:** Package-specific advisory ratings now follow OSV's listed-version/range union with Maven version ordering. Introduced, fixed, last-affected and limit boundaries are checked across unsorted intervals. Known nonmatching ranges no longer cause a false hold, and unreadable range metadata requires review. Previous package tests covered listed versions but never excluded an unaffected range.
+
+* **Tooling:** Advisory objects and rating fields are checked before reading them. Arrays in scalar fields and nested severity/affected arrays require review, including package metadata without optional severity. Query containers, IDs, aliases, summaries and page tokens keep their JSON types and UTF-8 values. Malformed withdrawals stop the check instead of discarding an advisory. Valid UTC timestamp strings work on PowerShell 7.5+ and Windows PowerShell 5.1. Supported HIGH/CRITICAL ratings remain visible. Earlier fixtures missed shapes PowerShell could coerce or silently skip.
+
+* **Tooling:** Release checks include OSV's package-specific severity for the queried library, including ecosystem-wide ratings. Unrelated packages and entries listing only other versions are excluded. Malformed or unsupported ratings still require review. Previous tests used advisory-wide vectors and missed a package-specific HIGH rating hidden by a LOW database label.
+
+* **Tooling:** The release-check deadline covers name resolution, TLS handshakes and request writes as well as response reads. A stalled resolver leaves bounded background work, and expired waiting requests are removed. Earlier transport tests checked body reads but missed slow connection phases. Thirteen transport checks pass on native Android 9 and 17, and both platforms read the live release endpoint with the shared cookie store unchanged.
+
+* **Tooling:** Explicit null severity entries and malformed non-array severity fields require advisory review. A missing optional field or a valid empty array stays distinct. Existing tests covered unreadable vectors but missed null entries that the pipeline silently removed.
+
+* **Threads:** Support reports label the HushThreads bundle explicitly and include bounded hashes of the installed app's current signing certificates and available installer details. Android 9 uses the legacy installer API. Missing facts and query failures remain explicit. No certificate contents, signing keys or other apps' details are exported. Add your Manager version and install method when you send one.
+* **Tooling:** Support-report tests now exercise Android 9 and newer install-source APIs, current versus past certificates, missing or excessive signer data and unsafe source names through the exports. The previous version assertion accepted the misleading morphe label and didn't check these installation facts. The reporting guide also clarifies Android 9's saved-file location.
+
+* **Tooling:** The release advisory gate holds unsupported or malformed severity data for review even beside a lower label or score. CVSS 4 findings can no longer pass under LOW/MODERATE labels. Supported HIGH/CRITICAL ratings remain visible. CVSS 3 vectors with duplicate metrics or invalid optional values are refused as unreadable instead of receiving a score.
+
+* **Threads:** Release checks use a separate TLS connection that sends no cookies and leaves Threads' shared cookie handler and store untouched. Response cookies are discarded. GitHub host checks, opt-in behavior, Pause, redirect limits and bounded responses still apply.
+* **Tooling:** Release transport tests capture the transmitted request, including changing and header-dependent cookie handlers. The old preflight test required deleting shared GitHub cookies, which contradicted preserving the store. Nine wire tests pass on native Android 9 and 17, and both platforms read the live release endpoint with their normal TLS trust and hostname checks.
+
+## 0.0.8 (2026-10-03)
+
+* **Threads:** If you patch Instagram with HushGram using the same Morphe Manager signing key, Threads now shows your Instagram account as a tile on its login screen, and tapping it signs you in without a password. Restore screens on re-signed builds checks the exact package, that it's a separate app and its installed certificate first, so apps signed with other keys still get Threads' usual answer. Checked on Android 17 with Threads 449 and HushGram 0.0.4.
+
+## 0.0.7 (2026-10-03)
+
+* **Threads:** The bug report form includes Shizuku installs. The sign-in guide corrects the Android 17 report's install method and records successful settings-only and full-bundle password checks with Shizuku's installer identity and session options.
+
+## 0.0.6 (2026-10-03)
+
+* **Tooling:** The build's source guard parses Kotlin and Java import declarations to catch direct Guava imports with legal whitespace, comments, aliases or static imports. Examples in strings and comments, similar package names and an infix function named import remain allowed. The parsers are test dependencies and aren't included in the patch bundle.
+
+## 0.0.5 (2026-10-02)
+
+* **Threads:** Hide ads and Hide suggested users diagnostics count successfully checked feed pages and items, even when Threads sends nothing to remove. Disabled, paused and failed checks don't count. Removal counts still record only items taken out of a completed page.
 
 ## 0.0.4 (2026-10-02)
 

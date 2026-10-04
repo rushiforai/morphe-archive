@@ -1,0 +1,38 @@
+YouTube Thread Ripper experiment, 2026.
+
+This project directly vendors and reuses the BTR settings panel, notification view,
+storage shim/loader, bridge, byte-range core, CDN measurement policy, IDM downloader
+and the generic fetch/XHR portion of the native range transport from:
+Bilibili-thread-ripper, https://github.com/MrTangLuyao/Bilibili-thread-ripper
+Reference commit: e64553b1ea911946387a1cf14992ac3fc008e07d
+
+MIT License
+Copyright (c) 2026 Bilibili-thread-ripper contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+SABR wire-field definitions consulted (not bundled as a dependency):
+https://github.com/LuanRT/googlevideo
+Reference commit: 44e360aa1be47298d51535454f899501cf29ce0c
+protos/video_streaming/video_playback_abr_request.proto:
+  client_abr_state = field 1, length-delimited
+protos/video_streaming/client_abr_state.proto:
+  player_time_ms = field 28, varint; playback_rate = field 35, float32
+
+No ReVanced/Morphe source code is included in this package.

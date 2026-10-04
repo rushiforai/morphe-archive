@@ -1,11 +1,12 @@
 package app.spicetify.extension.spotify.ads;
 
+import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Switch;
 import app.spicetify.extension.spotify.settings.InstalledPatches;
 import app.spicetify.extension.spotify.settings.PatchSettings;
-import app.spicetify.extension.spotify.settings.SpicetifySettingsActivity;
+import app.spicetify.extension.spotify.settings.SpicetifySettingsScreen;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +16,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.shadows.ShadowDialog;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
@@ -48,27 +50,29 @@ public class PlayerAdCardsTest {
     @Test
     @Config(shadows = Capabilities.class)
     public void controlPersistsAcrossActivityRecreation() {
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_ADS)).setup()) {
-            Switch toggle = toggle(controller.get().getWindow().getDecorView());
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Switch toggle = toggle(adsPage(controller.get()));
             assertNotNull(toggle);
             assertTrue(toggle.isChecked());
             toggle.performClick();
             assertFalse(PatchSettings.hidePlayerAdCardsEnabled());
         }
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_ADS)).setup()) {
-            Switch toggle = toggle(controller.get().getWindow().getDecorView());
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Switch toggle = toggle(adsPage(controller.get()));
             assertNotNull(toggle);
             assertFalse(toggle.isChecked());
         }
     }
 
     @Test public void uninstalledPatchHasNoControl() {
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_ADS)).setup()) {
-            assertNull(toggle(controller.get().getWindow().getDecorView()));
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertNull(toggle(adsPage(controller.get())));
         }
+    }
+
+    private View adsPage(Activity activity) {
+        SpicetifySettingsScreen.open(activity, SpicetifySettingsScreen.PAGE_ADS);
+        return ShadowDialog.getLatestDialog().getWindow().getDecorView();
     }
 
     private Switch toggle(View view) {

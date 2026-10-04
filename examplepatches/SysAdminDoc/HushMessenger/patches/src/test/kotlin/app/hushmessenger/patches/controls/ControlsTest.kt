@@ -95,9 +95,9 @@ class ControlsTest {
     }
 
     @Test fun notificationsSuggestionsJoinTheStockPreferenceAndSkipTheServerOverride() {
-        // The server branch sits at 20, or at 19 in 346013423 where the list reset is one call.
-        for ((inlined, serverBranch) in listOf(false to 20, true to 19)) {
-            val reader = peopleJewelMethod(inlinedReset = inlined)
+        // The server branch sits at 20, or at 19 in 346013423 where the list reset is one call. 581 loads its own flag ID.
+        for (serverFlag in listOf("72344235860374863L", "72344231565407716L")) for ((inlined, serverBranch) in listOf(false to 20, true to 19)) {
+            val reader = peopleJewelMethod(serverFlag = serverFlag, inlinedReset = inlined)
             val original = reader.implementation!!.instructions.toList()
             assertEquals(Opcode.IF_NEZ, original[serverBranch].opcode)
             reader.injectPeopleSection()
@@ -130,6 +130,8 @@ class ControlsTest {
             // A second load of the flag makes the server branch ambiguous.
             peopleJewelMethod(extraFlag = true),
             peopleJewelMethod(inlinedReset = true, extraFlag = true),
+            // So does loading both releases' flag IDs.
+            peopleJewelMethod(extraFlag = true, extraFlagValue = "72344231565407716L"),
         )) {
             val before = changed.implementation!!.instructions.toList()
             assertFailsWith<PatchException> { changed.injectPeopleSection() }

@@ -19,6 +19,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import java.io.File
 import java.io.InputStream
 import java.nio.ByteBuffer
+import java.security.MessageDigest
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 
@@ -26,10 +27,28 @@ import java.util.zip.ZipInputStream
  * Reads the classes a fixture test needs out of a Telegram build, one dex at a time, so no APK lands
  * on disk and no more than one dex is held at once. A build is an .apkm or .xapk, whose base APK is
  * read from inside it, or a merged .apk. What it hands back are immutable copies, which keep none
- * of the dex they came from.
+ * of the dex they came from. Repeated fixed queries retain only class positions for exact input
+ * hashes; each read still creates new immutable copies for independent mutable patch contexts.
  */
 internal object FixtureDex {
     private val DEX = Regex("""classes\d*\.dex""")
+
+    /** One fixed structural query. Only positions are retained, never classes or DEX buffers. */
+    class ClassCensus {
+        private val retained = LinkedHashMap<String, List<Pair<Int, Int>>>(2, 0.75f, true)
+
+        @Synchronized
+        internal fun locations(identity: String) = retained[identity]
+
+        @Synchronized
+        internal fun remember(identity: String, locations: List<Pair<Int, Int>>) {
+            // Large queries keep the streaming reader's memory bound. Two content identities
+            // cover the declared fixture pair without growing with changed or copied APKs.
+            if (locations.size > 128) return
+            retained[identity] = locations.toList()
+            while (retained.size > 2) retained.remove(retained.keys.first())
+        }
+    }
 
     /** The base APK's entry in a bundle: base.apk in an .apkm, the package's name in an .xapk. */
     private val BASE_NAMES = listOf("base.apk", "com.instagram.barcelona.apk")
@@ -41,7 +60,14 @@ internal object FixtureDex {
                 if (DEX.matches(entry.name)) visit(DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(entries.readBytes())))
             }
         }
-        if (build.extension == "apk") return build.inputStream().use(::read)
+        if (build.extension == "apk") return ZipFile(build).use { zip ->
+            // Reading the DEX entries directly avoids inflating unrelated libraries/resources
+            // while ZipInputStream advances to the next entry.
+            for (entry in zip.entries()) if (DEX.matches(entry.name)) {
+                val bytes = zip.getInputStream(entry).use { it.readBytes() }
+                visit(DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(bytes)))
+            }
+        }
         ZipFile(build).use { zip ->
             val base = BASE_NAMES.firstNotNullOfOrNull { zip.getEntry(it) }
                 ?: error("${build.name} holds none of ${BASE_NAMES.joinToString()}")
@@ -81,6 +107,44 @@ internal object FixtureDex {
             }
         }
         return found
+    }
+
+    /** Reuses the whole-APK census of one fixed query, with fresh immutable results each time. */
+    fun classesWhere(build: File, census: ClassCensus, dexFilter: (DexBackedDexFile) -> Boolean,
+                     wanted: (Method) -> Boolean): List<ClassDef> {
+        val identity = inputIdentity(build)
+        val retained = census.locations(identity)
+        val byDex = retained?.groupBy({ it.first }, { it.second }).orEmpty()
+        val locations = mutableListOf<Pair<Int, Int>>()
+        val found = mutableListOf<ClassDef>()
+        var nextDex = 0
+        forEachDex(build) { dex ->
+            val dexIndex = nextDex++
+            if (retained != null) {
+                for (index in byDex[dexIndex].orEmpty()) found += ImmutableClassDef.of(dex.classSection[index])
+            } else if (dexFilter(dex)) {
+                for ((index, classDef) in dex.classSection.withIndex()) if (classDef.methods.any(wanted)) {
+                    locations += dexIndex to index
+                    found += ImmutableClassDef.of(classDef)
+                }
+            }
+        }
+        check(inputIdentity(build) == identity) { "${build.name} changed during its DEX census" }
+        if (retained == null) census.remember(identity, locations)
+        return found
+    }
+
+    private fun inputIdentity(build: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        build.inputStream().use { input ->
+            val buffer = ByteArray(256 * 1024)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        return build.extension + ":" + digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     /** Every method that [wanted] picks, in the dex files [dexFilter] lets through. */

@@ -221,4 +221,32 @@ public class SettingsTranslationTest {
         // "zxx" is the tag for no linguistic content, so no table will ever be added for it.
         assertEquals("3 of 20 installed controls", new SettingsText(Locale.forLanguageTag("zxx")).get("results_many", 3, 20));
     }
+
+    @Test public void setupScopesUseEnglishFallbackForEsUs() {
+        SettingsTranslations.LOCALES.remove("es");
+        assertSetupScopes(false);
+    }
+
+    @Test public void setupScopesReuseSyntheticRegionalTranslations() {
+        SettingsTranslations.add("es", marked(englishIds()));
+        assertSetupScopes(true);
+    }
+
+    private void assertSetupScopes(boolean translated) {
+        RuntimeEnvironment.setQualifiers("es-rUS-w400dp-h800dp-mdpi");
+        Map<String, ?> before = Settings.preferences.getAll();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            root.findViewWithTag("tab_app").performClick();
+            root.findViewWithTag("copy_setup").performClick();
+            String report = screen.get().getSystemService(android.content.ClipboardManager.class)
+                .getPrimaryClip().getItemAt(0).getText().toString();
+            String prefix = translated ? "ES " : "";
+            assertTrue(report.contains(prefix + "Activity records show a control ran. They don't verify its visible effect or privacy protection.\n"));
+            for (String[] control : SettingsActivity.CONTROLS)
+                assertTrue(control[0], report.contains(", scope=" + prefix + control[2] + "\n"));
+            assertEquals(before, Settings.preferences.getAll());
+            assertNull(org.robolectric.Shadows.shadowOf(screen.get()).getNextStartedActivity());
+        }
+    }
 }

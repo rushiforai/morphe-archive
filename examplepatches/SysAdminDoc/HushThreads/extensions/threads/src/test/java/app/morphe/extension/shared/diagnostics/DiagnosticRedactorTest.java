@@ -586,6 +586,59 @@ public class DiagnosticRedactorTest {
         for (String line : lines) assertEquals(line, DiagnosticRedactor.redact(line));
     }
 
+    @Test public void filesystemPathsAreRemovedWholeWithSpacesAndEscapedQuotes() {
+        String[] paths = {
+                "/storage/emulated/0/Download/personal report.txt",
+                "/home/example/Private folder/personal report.txt",
+                "file:///storage/emulated/0/Download/personal report.txt",
+                "C:\\Users\\Example Name\\Downloads\\personal report.txt",
+                "C:/Users/Example Name/Downloads/personal report.txt",
+                "\\Users\\Example Name\\Downloads\\personal report.txt",
+                "\\\\server\\Shared Files\\personal report.txt",
+                "../Downloads/personal report.txt",
+                "~/Private folder/personal report.txt",
+                "/storage/emulated/0/Download/personal \"quoted\" report.txt",
+        };
+        String unicodeQuote = "\\" + "u0022";
+        for (String path : paths) {
+            String escaped = path.replace("\\", "\\\\").replace("\"", "\\\"").replace("/", "\\/");
+            for (String line : new String[]{"failed to open " + path,
+                    "path=\"" + escaped + "\"", "path='" + path + "'",
+                    "{\\\"path\\\":\\\"" + escaped.replace("\\", "\\\\").replace("\"", "\\\"") + "\\\"}",
+                    "path=" + unicodeQuote + path + unicodeQuote}) {
+                String result = DiagnosticRedactor.redact(line + "\n"
+                        + "\tat app.morphe.extension.hushthreads.settings.ReleaseTransport.get(ReleaseTransport.java:120)");
+                assertTrue(line + " -> " + result, result.contains("[path omitted]"));
+                assertFalse(line + " -> " + result, result.contains("personal"));
+                assertFalse(line + " -> " + result, result.contains("Example Name"));
+                assertTrue(result, result.contains("ReleaseTransport.get(ReleaseTransport.java:120)"));
+            }
+        }
+    }
+
+    @Test public void encodedPathRootsAreRemovedWithoutChangingDiagnosticFacts() {
+        String slash = "\\" + "u002f";
+        String backslash = "\\" + "u005c";
+        for (String path : new String[]{slash + "storage" + slash + "private report.txt",
+                "C:" + backslash + "Users" + backslash + "private report.txt",
+                backslash + backslash + "server" + backslash + "private report.txt",
+                "%2fstorage%2fprivate%20report.txt", "C%3a%5cUsers%5cprivate%20report.txt"}) {
+            assertEquals("open [path omitted]", DiagnosticRedactor.redact("open " + path));
+        }
+        String facts = "app: com.instagram.barcelona 449.0.0.54.82 (511908382)\n"
+                + "current_signer_sha256: ae0764ea958661d4e07afbf01c4d44eb6f65e29c2df613910e5ee640ac3f7b16\n"
+                + "ratio: 1/2, API28/36, read/write\n"
+                + "\tat com.example.auth.login.AuthStateMachine.run(AuthStateMachine.java:44)";
+        assertEquals(facts, DiagnosticRedactor.redact(facts));
+    }
+
+    @Test public void aLongQuotedPathIsRemovedWithoutOverflowingTheStack() {
+        char[] directory = new char[30000];
+        Arrays.fill(directory, 'a');
+        String path = "/storage/emulated/0/Download/" + new String(directory) + "/private report.txt";
+        assertEquals("open [path omitted]", DiagnosticRedactor.redact("open \"" + path + "\""));
+    }
+
     /**
      * sid, uid, iid, guid and auth are short enough to sit inside ordinary words, and the value
      * after such a word is often the fact a report is read for. Only the corpus rows above, where

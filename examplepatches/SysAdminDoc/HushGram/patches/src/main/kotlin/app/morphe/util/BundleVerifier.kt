@@ -19,7 +19,7 @@ import java.security.MessageDigest
 object BundleVerifier {
     @JvmStatic
     fun main(args: Array<String>) {
-        require(args.size == 4) { "Expected bundle, patch list, version and build checksum" }
+        require(args.size == 5) { "Expected bundle, patch list, version, build checksum and canonical inputs" }
         val bundle = File(args[0])
         require(bundle.isFile) { "Bundle not found: $bundle" }
         JarFile(bundle).use { jar ->
@@ -40,6 +40,11 @@ object BundleVerifier {
             }
             require(jar.manifest.mainAttributes.getValue("Version") == args[2]) {
                 "Bundle version does not match ${args[2]}"
+            }
+            val canonical = File(args[4]).reader().use { JsonParser.parseReader(it).asJsonObject }
+            val identity = BuildIdentityMetadata.requireInputs(canonical)
+            require(jar.manifest.mainAttributes.getValue("HushGram-Build-Identity") == identity) {
+                "Bundle identity differs from the canonical production inputs."
             }
         }
         val expectedDigest = File(args[3]).readText().trim()

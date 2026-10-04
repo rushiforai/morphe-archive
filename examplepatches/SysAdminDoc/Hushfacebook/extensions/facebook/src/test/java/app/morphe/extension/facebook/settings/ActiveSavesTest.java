@@ -5,6 +5,7 @@
 package app.morphe.extension.facebook.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -197,6 +198,14 @@ public class ActiveSavesTest {
         ShadowLooper.idleMainLooper();
         assertEquals("Copying to the gallery", summaryOf(row));
 
+        assertTrue(SavesForTests.publishing(id));
+        ShadowLooper.idleMainLooper();
+        assertSame("the publishing row was rebuilt", cancel, cancelOf(row(id)));
+        assertFalse("publishing still offers Cancel", cancel.isEnabled());
+        assertEquals("Copying to the gallery", summaryOf(row));
+        assertFalse(app.morphe.extension.facebook.download.SaveControl.cancel(id));
+        assertNotNull("a rejected cancel removed the row", row(id));
+
         SavesForTests.end(id);
         layout();
         assertNull("a finished save is still listed", row(id));
@@ -245,6 +254,7 @@ public class ActiveSavesTest {
         SavesForTests.transferred(video, (long) (38.4 * MIB), 112 * MIB);
         int photo = SavesForTests.begin(RuntimeEnvironment.getApplication(), false);
         SavesForTests.saving(photo);
+        assertTrue(SavesForTests.publishing(photo));
         show();
         File folder = new File("build/reports/settings-design");
         assertTrue(folder.isDirectory() || folder.mkdirs());

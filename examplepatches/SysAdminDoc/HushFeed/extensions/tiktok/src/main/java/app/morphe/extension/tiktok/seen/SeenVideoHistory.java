@@ -50,6 +50,8 @@ public final class SeenVideoHistory {
         NOT_READY,
         EMPTY,
         RESTORED,
+        PARTIAL,
+        NONE_RETAINED,
         FAILED,
         /** A newer clear took over while this undo was queued, so it no longer applies. */
         SUPERSEDED
@@ -59,9 +61,53 @@ public final class SeenVideoHistory {
         void onComplete(UndoResult result);
     }
 
+    public interface UndoDetailsCallback {
+        /** Counts describe cleared records retained by the committed merge. */
+        void onComplete(UndoResult result, int retained, int requested);
+    }
+
     public interface AdoptCallback {
         /** How many older records were added; a negative count means the write failed. */
         void onComplete(int added);
+    }
+
+    public enum ImportStatus { IMPORTED, ACCOUNT_CHANGED, SUPERSEDED, FAILED }
+
+    /** The account and history generation that opened the picker, never the account at write time. */
+    public static final class ImportTarget {
+        private final String account;
+        private final int generation;
+
+        private ImportTarget(String account, int generation) {
+            this.account = account;
+            this.generation = generation;
+        }
+
+        public String accountKey() { return account; }
+        public boolean isCurrentAccount() { return account.equals(SignedInUser.id()); }
+    }
+
+    public static final class ImportResult {
+        public final ImportStatus status;
+        public final int imported;
+        public final int skipped;
+        /** A successful import replaces the history, so a previous clear's Undo is retired. */
+        public final boolean undoRetired;
+
+        private ImportResult(ImportStatus status, int imported, int skipped) {
+            this(status, imported, skipped, false);
+        }
+
+        private ImportResult(ImportStatus status, int imported, int skipped, boolean undoRetired) {
+            this.status = status;
+            this.imported = imported;
+            this.skipped = skipped;
+            this.undoRetired = undoRetired;
+        }
+    }
+
+    public interface ImportCallback {
+        void onComplete(ImportResult result);
     }
 
     interface DatabaseFactory {
@@ -129,6 +175,7 @@ public final class SeenVideoHistory {
      */
     private static volatile boolean undoOffered;
     private static volatile boolean clearPending;
+    private static volatile boolean undoPending;
     private static volatile String callbackAid;
     private static volatile boolean callbackAidMarked;
     /**
@@ -176,6 +223,7 @@ public final class SeenVideoHistory {
                 undoAccount = null;
                 undoOffered = false;
                 clearPending = false;
+                undoPending = false;
             }
         }
         return account;
@@ -267,6 +315,7 @@ public final class SeenVideoHistory {
             undoAccount = account;
             undoOffered = true;
             clearPending = true;
+            undoPending = false;
             IO.execute(() -> {
                 Map<String, Long> copy = null;
                 Throwable failure = null;
@@ -295,7 +344,7 @@ public final class SeenVideoHistory {
                             for (Map.Entry<String, Long> row : retained.entrySet()) {
                                 mergeSeen(row.getKey(), row.getValue());
                             }
-                            trimMemory();
+                            trimMemory(SEEN);
                             LOAD_STARTED.set(false);
                             undo = previousUndo;
                             undoAccount = previousUndoAccount;
@@ -368,24 +417,29 @@ public final class SeenVideoHistory {
      * on its own would be worse than no undo at all.
      */
     public static boolean undoClear() {
-        return undoClear(null);
+        return undoClear((UndoCallback) null);
     }
 
     /**
-     * Starts putting the history back and reports the durable result asynchronously. The
-     * callback runs on the main thread. A true return value means that the write was queued;
-     * only {@link UndoResult#RESTORED} means that SQLite committed it.
+     * Keeps the original callback available for callers that need only the outcome.
+     * Restoring a nonempty subset is PARTIAL; a committed merge retaining none is NONE_RETAINED.
      */
     public static boolean undoClear(UndoCallback callback) {
+        return undoClear((result, retained, requested) -> {
+            if (callback != null) callback.onComplete(result);
+        });
+    }
+
+    /** Queues a capped merge on the history worker and reports its committed counts on main. */
+    public static boolean undoClear(UndoDetailsCallback callback) {
         account();
         UndoResult immediate = null;
+        int requestGeneration;
         synchronized (HISTORY_LOCK) {
             Map<String, Long> copy = undo;
             String account = undoAccount;
-            // Null means the copy is still being read off the database, which is not the same
-            // as there being nothing to put back. Spending the offer here would delete the
-            // history for good, so the offer stands and the next tap can take it.
-            if (copy == null || account == null) {
+            requestGeneration = generation;
+            if (copy == null || account == null || undoPending) {
                 immediate = UndoResult.NOT_READY;
             } else if (copy.isEmpty()) {
                 undo = null;
@@ -393,91 +447,255 @@ public final class SeenVideoHistory {
                 immediate = UndoResult.EMPTY;
             } else {
                 final int undoGeneration = ++generation;
-                for (Map.Entry<String, Long> row : copy.entrySet()) {
-                    mergeSeen(row.getKey(), row.getValue());
-                }
-                trimMemory();
-
+                undoPending = true;
                 IO.execute(() -> {
                     UndoResult result = UndoResult.FAILED;
-                    boolean current = false;
+                    int retained = 0;
                     try {
-                        // Read the current in-memory timestamps at execution time. A video
-                        // watched again while this job waited keeps its newer sighting.
-                        Map<String, Long> rows = new HashMap<>();
-                        boolean superseded;
+                        Map<String, Long> before = readAll(account);
+                        Map<String, Long> rows = new HashMap<>(before);
                         synchronized (HISTORY_LOCK) {
-                            superseded = generation != undoGeneration || undo != copy;
-                            if (!superseded) {
-                                for (String aid : copy.keySet()) {
-                                    Long merged = SEEN.get(aid);
-                                    if (merged != null) rows.put(aid, merged);
+                            account();
+                            if (generation != undoGeneration || undo != copy) {
+                                notifyUndo(callback, UndoResult.SUPERSEDED, 0, copy.size(), undoGeneration);
+                                return;
+                            }
+                            // Include sightings queued after Undo without moving the merge onto main.
+                            for (Map.Entry<String, Long> row : SEEN.entrySet()) {
+                                Long existing = rows.get(row.getKey());
+                                if (existing == null || row.getValue() > existing) {
+                                    rows.put(row.getKey(), row.getValue());
                                 }
                             }
                         }
-                        if (superseded) {
-                            // Returning here left the caller waiting for a callback that was
-                            // never going to come, with its row stuck offering an undo.
-                            notifyUndo(callback, UndoResult.SUPERSEDED);
-                            return;
+                        for (Map.Entry<String, Long> row : copy.entrySet()) {
+                            Long existing = rows.get(row.getKey());
+                            if (existing == null || row.getValue() > existing) {
+                                rows.put(row.getKey(), row.getValue());
+                            }
                         }
-
+                        long cutoff = retentionCutoff(System.currentTimeMillis());
+                        java.util.Iterator<Map.Entry<String, Long>> iterator = rows.entrySet().iterator();
+                        while (iterator.hasNext()) {
+                            if (iterator.next().getValue() < cutoff) iterator.remove();
+                        }
+                        trimMemory(rows);
                         SQLiteDatabase writable = getDatabase().getWritableDatabase();
                         writable.beginTransaction();
+                        boolean committed = false;
                         try {
                             for (Map.Entry<String, Long> row : rows.entrySet()) {
+                                if (row.getValue().equals(before.get(row.getKey()))) continue;
                                 ContentValues values = new ContentValues();
                                 values.put(COLUMN_ACCOUNT, account);
                                 values.put(COLUMN_AID, row.getKey());
                                 values.put(COLUMN_LAST_SEEN, row.getValue());
-                                long inserted = rowWriter.insert(writable, values);
-                                if (inserted == -1L) {
-                                    throw new IllegalStateException(
-                                            "SQLite rejected seen-history row " + row.getKey());
+                                if (rowWriter.insert(writable, values) == -1L) {
+                                    throw new IllegalStateException("SQLite rejected seen-history Undo");
                                 }
                             }
-                            writable.setTransactionSuccessful();
+                            if (cutoff != Long.MIN_VALUE) {
+                                writable.delete(TABLE, COLUMN_ACCOUNT + " = ? AND " + COLUMN_LAST_SEEN + " < ?",
+                                        new String[]{account, String.valueOf(cutoff)});
+                            }
+                            writable.execSQL("DELETE FROM " + TABLE + " WHERE " + COLUMN_ACCOUNT + " = ? AND "
+                                    + COLUMN_AID + " NOT IN (SELECT " + COLUMN_AID + " FROM " + TABLE + " WHERE "
+                                    + COLUMN_ACCOUNT + " = ? ORDER BY " + COLUMN_LAST_SEEN + " DESC, "
+                                    + COLUMN_AID + " ASC LIMIT " + MAX_RECORDS + ")",
+                                    new Object[]{account, account});
+                            synchronized (HISTORY_LOCK) {
+                                account();
+                                if (generation == undoGeneration && undo == copy) {
+                                    writable.setTransactionSuccessful();
+                                    committed = true;
+                                }
+                            }
                         } finally {
                             writable.endTransaction();
                         }
-
                         synchronized (HISTORY_LOCK) {
-                            current = generation == undoGeneration && undo == copy;
-                            if (current) {
+                            account();
+                            if (committed && generation == undoGeneration && undo == copy) {
+                                for (Map.Entry<String, Long> row : before.entrySet()) {
+                                    if (!rows.containsKey(row.getKey())) SEEN.remove(row.getKey(), row.getValue());
+                                }
+                                for (Map.Entry<String, Long> row : rows.entrySet()) {
+                                    mergeSeen(row.getKey(), row.getValue());
+                                }
+                                trimMemory(SEEN);
+                                // Sightings arriving during SQLite's write can evict restored rows.
+                                for (String id : copy.keySet()) if (SEEN.containsKey(id)) retained++;
                                 undo = null;
                                 undoOffered = false;
-                                result = UndoResult.RESTORED;
+                                LOAD_STARTED.set(true);
+                                result = retained == 0 ? UndoResult.NONE_RETAINED
+                                        : retained == copy.size() ? UndoResult.RESTORED : UndoResult.PARTIAL;
+                            } else {
+                                result = UndoResult.SUPERSEDED;
                             }
                         }
                     } catch (Throwable throwable) {
-                        synchronized (HISTORY_LOCK) {
-                            current = generation == undoGeneration && undo == copy;
-                            // Keep the copy and the offer. A failed transaction is retryable,
-                            // including the -1 return SQLite uses for a rejected insert.
-                            if (current) undoOffered = true;
-                        }
                         Logger.printException(() -> "Seen video history undo failed", throwable);
+                    } finally {
+                        synchronized (HISTORY_LOCK) {
+                            if (generation == undoGeneration) undoPending = false;
+                        }
                     }
-                    // A newer clear can also arrive while the transaction is in flight, and that
-                    // left both paths below reporting nothing at all. Every exit answers now.
-                    notifyUndo(callback, current ? result : UndoResult.SUPERSEDED);
+                    notifyUndo(callback, result, retained, copy.size(), undoGeneration);
                 });
             }
         }
-        if (immediate != null) notifyUndo(callback, immediate);
+        if (immediate != null) notifyUndo(callback, immediate, 0, 0, requestGeneration);
         return immediate == null;
     }
 
-    private static void notifyUndo(UndoCallback callback, UndoResult result) {
-        if (callback != null) {
-            Utils.runOnMainThread(() -> callback.onComplete(result));
-        }
+    public static boolean isRestoring() {
+        account();
+        return undoPending;
+    }
+
+    private static void notifyUndo(UndoDetailsCallback callback, UndoResult result,
+                                   int retained, int requested, int undoGeneration) {
+        if (callback == null) return;
+        Utils.runOnMainThread(() -> {
+            account();
+            boolean current;
+            synchronized (HISTORY_LOCK) { current = generation == undoGeneration; }
+            callback.onComplete(current ? result : UndoResult.SUPERSEDED,
+                    current ? retained : 0, requested);
+        });
     }
 
     public static int size() {
         account();
         ensureLoaded();
         return SEEN.size();
+    }
+
+    /** Null while signed out. Capture this before the file picker can change the foreground account. */
+    public static ImportTarget captureImportTarget() {
+        String current = account();
+        synchronized (HISTORY_LOCK) {
+            return SIGNED_OUT.equals(current) ? null : new ImportTarget(current, generation);
+        }
+    }
+
+    /** Commits a bounded batch before publishing anything to the feed's memory cache. */
+    public static void importHistory(ImportTarget target, WatchHistoryImport.Records records,
+                                     ImportCallback callback) {
+        try {
+            IO.execute(() -> importOnWorker(target, records, callback));
+        } catch (java.util.concurrent.RejectedExecutionException failure) {
+            Logger.printException(() -> "Seen video history could not queue the import", failure);
+            notifyImport(callback, new ImportResult(ImportStatus.FAILED, 0, 0));
+        }
+    }
+
+    private static ImportStatus importTargetStatus(ImportTarget target) {
+        String current = account();
+        synchronized (HISTORY_LOCK) {
+            if (target == null || !target.account.equals(current)) return ImportStatus.ACCOUNT_CHANGED;
+            return target.generation == generation ? ImportStatus.IMPORTED : ImportStatus.SUPERSEDED;
+        }
+    }
+
+    private static final class ImportStopped extends Exception {
+        final ImportStatus status;
+        ImportStopped(ImportStatus status) { this.status = status; }
+    }
+
+    private static void requireImportTarget(ImportTarget target) throws ImportStopped {
+        ImportStatus status = importTargetStatus(target);
+        if (status != ImportStatus.IMPORTED) throw new ImportStopped(status);
+    }
+
+    private static void importOnWorker(ImportTarget target, WatchHistoryImport.Records records,
+                                       ImportCallback callback) {
+        try {
+            requireImportTarget(target);
+            if (records == null || records.videos.size() > MAX_RECORDS) {
+                throw new IllegalArgumentException("Invalid seen-history import batch");
+            }
+            long now = System.currentTimeMillis();
+            long cutoff = retentionCutoff(now);
+            Map<String, Long> before;
+            Map<String, Long> after;
+            int unownedCount;
+            Map<String, Long> changed = new HashMap<>();
+            SQLiteDatabase writable = getDatabase().getWritableDatabase();
+            writable.beginTransaction();
+            try {
+                before = readAll(target.account);
+                for (Map.Entry<String, Long> row : records.videos.entrySet()) {
+                    long imported = row.getValue();
+                    Long existing = before.get(row.getKey());
+                    if (imported < cutoff || imported > now
+                            || (existing != null && existing >= imported)) continue;
+                    ContentValues values = new ContentValues();
+                    values.put(COLUMN_ACCOUNT, target.account);
+                    values.put(COLUMN_AID, row.getKey());
+                    values.put(COLUMN_LAST_SEEN, imported);
+                    if (rowWriter.insert(writable, values) == -1L) {
+                        throw new IllegalStateException("SQLite rejected a watch-history import row");
+                    }
+                    changed.put(row.getKey(), imported);
+                }
+                // Pruning is part of this transaction. Its failure must roll back the entire import.
+                if (cutoff != Long.MIN_VALUE) {
+                    writable.delete(TABLE, COLUMN_ACCOUNT + " = ? AND " + COLUMN_LAST_SEEN + " < ?",
+                            new String[]{target.account, String.valueOf(cutoff)});
+                }
+                writable.execSQL("DELETE FROM " + TABLE + " WHERE " + COLUMN_ACCOUNT + " = ? AND "
+                        + COLUMN_AID + " NOT IN (SELECT " + COLUMN_AID + " FROM " + TABLE + " WHERE "
+                        + COLUMN_ACCOUNT + " = ? ORDER BY " + COLUMN_LAST_SEEN + " DESC, "
+                        + COLUMN_AID + " ASC LIMIT " + MAX_RECORDS + ")",
+                        new Object[]{target.account, target.account});
+                after = readAll(target.account);
+                try (Cursor count = writable.rawQuery("SELECT COUNT(*) FROM " + TABLE + " WHERE "
+                        + COLUMN_ACCOUNT + " = ?", new String[]{UNOWNED})) {
+                    unownedCount = count.moveToFirst() ? count.getInt(0) : 0;
+                }
+                requireImportTarget(target);
+                writable.setTransactionSuccessful();
+            } finally {
+                writable.endTransaction();
+            }
+            int imported = 0;
+            for (String id : changed.keySet()) if (after.containsKey(id)) imported++;
+            boolean undoRetired = false;
+            synchronized (HISTORY_LOCK) {
+                if (importTargetStatus(target) == ImportStatus.IMPORTED) {
+                    // A sighting queued during this transaction keeps its newer memory timestamp.
+                    // Remove pruned old entries only if memory still holds exactly their old value.
+                    for (Map.Entry<String, Long> row : before.entrySet()) {
+                        if (!after.containsKey(row.getKey())) SEEN.remove(row.getKey(), row.getValue());
+                    }
+                    for (Map.Entry<String, Long> row : after.entrySet()) mergeSeen(row.getKey(), row.getValue());
+                    trimMemory(SEEN);
+                    unowned = unownedCount;
+                    LOAD_STARTED.set(true);
+                    // Restoring an older clear on top of a full imported history can prune every
+                    // restored ID. Retire that offer only after a committed, mutating import.
+                    if (imported > 0 && undoOffered && target.account.equals(undoAccount)) {
+                        undo = null;
+                        undoAccount = null;
+                        undoOffered = false;
+                        undoRetired = true;
+                    }
+                }
+            }
+            notifyImport(callback, new ImportResult(ImportStatus.IMPORTED, imported,
+                    records.skipped + records.videos.size() - imported, undoRetired));
+        } catch (ImportStopped stopped) {
+            notifyImport(callback, new ImportResult(stopped.status, 0, 0));
+        } catch (Exception failure) {
+            Logger.printException(() -> "Seen video history import failed", failure);
+            notifyImport(callback, new ImportResult(ImportStatus.FAILED, 0, 0));
+        }
+    }
+
+    private static void notifyImport(ImportCallback callback, ImportResult result) {
+        if (callback != null) Utils.runOnMainThread(() -> callback.onComplete(result));
     }
 
     /**
@@ -531,7 +749,7 @@ public final class SeenVideoHistory {
                     // Memory takes them only while it still holds the account that asked.
                     if (generation == adoptGeneration && account.equals(partition)) {
                         for (Map.Entry<String, Long> row : rows.entrySet()) mergeSeen(row.getKey(), row.getValue());
-                        trimMemory();
+                        trimMemory(SEEN);
                     }
                 }
                 pruneDatabase(account, System.currentTimeMillis());
@@ -560,7 +778,7 @@ public final class SeenVideoHistory {
         synchronized (HISTORY_LOCK) {
             ensureLoaded();
             SEEN.put(aid, nowMs);
-            trimMemory();
+            trimMemory(SEEN);
             IO.execute(() -> {
                 try {
                     ContentValues values = new ContentValues();
@@ -608,7 +826,7 @@ public final class SeenVideoHistory {
                             selectionArgs,
                             null,
                             null,
-                            COLUMN_LAST_SEEN + " DESC",
+                            COLUMN_LAST_SEEN + " DESC, " + COLUMN_AID + " ASC",
                             String.valueOf(MAX_RECORDS)
                     )) {
                         int aidColumn = cursor.getColumnIndexOrThrow(COLUMN_AID);
@@ -622,7 +840,7 @@ public final class SeenVideoHistory {
                             synchronized (HISTORY_LOCK) {
                                 if (generation != loadGeneration) break;
                                 mergeSeen(aid, persisted);
-                                trimMemory();
+                                trimMemory(SEEN);
                             }
                         }
                     }
@@ -662,7 +880,7 @@ public final class SeenVideoHistory {
             getDatabase().getWritableDatabase().execSQL(
                     "DELETE FROM " + TABLE + " WHERE " + COLUMN_ACCOUNT + " = ? AND " + COLUMN_AID
                             + " NOT IN (SELECT " + COLUMN_AID + " FROM " + TABLE + " WHERE "
-                            + COLUMN_ACCOUNT + " = ? ORDER BY " + COLUMN_LAST_SEEN + " DESC LIMIT "
+                            + COLUMN_ACCOUNT + " = ? ORDER BY " + COLUMN_LAST_SEEN + " DESC, " + COLUMN_AID + " ASC LIMIT "
                             + MAX_RECORDS + ")", new Object[]{account, account});
         } catch (Throwable throwable) {
             Logger.printException(() -> "Seen video history prune failed", throwable);
@@ -677,15 +895,27 @@ public final class SeenVideoHistory {
         }
     }
 
-    private static void trimMemory() {
-        // Called under HISTORY_LOCK. Scanning happens only when a new id reaches the cap.
-        while (SEEN.size() > MAX_RECORDS) {
+    private static void trimMemory(Map<String, Long> rows) {
+        int excess = rows.size() - MAX_RECORDS;
+        if (excess <= 0) return;
+        // One ordinary sighting needs one scan. Bulk merges sort once, not once per eviction.
+        java.util.Comparator<Map.Entry<String, Long>> oldestFirst = (left, right) -> {
+            int byTime = Long.compare(left.getValue(), right.getValue());
+            return byTime != 0 ? byTime : right.getKey().compareTo(left.getKey());
+        };
+        if (excess == 1) {
             Map.Entry<String, Long> oldest = null;
-            for (Map.Entry<String, Long> entry : SEEN.entrySet()) {
-                if (oldest == null || entry.getValue() < oldest.getValue()) oldest = entry;
+            for (Map.Entry<String, Long> row : rows.entrySet()) {
+                if (oldest == null || oldestFirst.compare(row, oldest) < 0) oldest = row;
             }
-            if (oldest == null) return;
-            SEEN.remove(oldest.getKey(), oldest.getValue());
+            if (oldest != null) rows.remove(oldest.getKey());
+            return;
+        }
+        java.util.List<Map.Entry<String, Long>> ordered = new java.util.ArrayList<>(rows.entrySet());
+        java.util.Collections.sort(ordered, oldestFirst);
+        for (int index = 0; index < excess; index++) {
+            Map.Entry<String, Long> row = ordered.get(index);
+            rows.remove(row.getKey());
         }
     }
 

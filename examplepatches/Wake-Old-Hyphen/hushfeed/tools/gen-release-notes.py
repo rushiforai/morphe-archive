@@ -34,8 +34,19 @@ def published(text: str) -> str:
 
 def main() -> None:
     notes = published(CHANGELOG.read_text(encoding="utf-8"))
-    if len(notes.encode("utf-8")) >= 60_000:
-        raise ValueError("Release notes exceed one Java constant; split the generated payload")
+    # CONSTANT_Utf8 counts NUL twice and supplementary characters as two surrogates.
+    parts = []
+    start = 0
+    size = 0
+    for index, character in enumerate(notes):
+        code = ord(character)
+        width = 1 if 0 < code < 128 else 2 if code < 2048 else 3 if code <= 65535 else 6
+        if size + width > 30_000:
+            parts.append(notes[start:index])
+            start = index
+            size = 0
+        size += width
+    parts.append(notes[start:])
     lines = [
         "/*",
         " * Copyright 2026 Hushfeed contributors",
@@ -48,15 +59,19 @@ def main() -> None:
         "/** Published CHANGELOG entries carried inside the patched app. Run tools/gen-release-notes.py after release edits. */",
         "public final class ReleaseNotesData {",
         "    private ReleaseNotesData() {}",
-        "    public static final String TEXT =",
+        "    public static final String TEXT = new StringBuilder()",
     ]
-    parts = notes.splitlines(keepends=True)
-    for index, part in enumerate(parts):
-        escaped = part.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-        lines.append(f'            "{escaped}"' + (";" if index == len(parts) - 1 else " +"))
+    for part in parts:
+        escaped = "".join(
+            "\\\\" if character == "\\" else '\\"' if character == '"'
+            else f"\\{ord(character):03o}" if ord(character) < 32 or ord(character) == 127
+            else character for character in part
+        )
+        lines.append(f'            .append("{escaped}")')
+    lines.append("            .toString();")
     lines.append("}")
     OUTPUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    print(f"embedded {len(parts)} published changelog lines")
+    print(f"embedded {len(notes.splitlines())} published changelog lines in {len(parts)} chunks")
 
 
 if __name__ == "__main__":

@@ -100,6 +100,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     static final String STAYS_WHILE_PAUSED = "Stays in while paused";
     /** The Before you sign in notice's key, which finds it on the screen. */
     static final String SIGN_IN_NOTICE_KEY = "hushgram_sign_in_notice";
+    private static final String SCREEN_KEY = "hushgram_settings_root";
 
     /** The first row, which says whether HushGram runs now and whether the next start changes that. */
     @Nullable
@@ -216,6 +217,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         ScreenColors.shown = null;
         Context context = themed(getContext());
         PreferenceScreen screen = getPreferenceManager().createPreferenceScreen(context);
+        screen.setKey(SCREEN_KEY);
         setPreferenceScreen(screen);
         searchableRows.clear();
         searchAliases.clear();
@@ -261,6 +263,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "refuses them, instead of to Instagram and Facebook. Restart Instagram after "
                             + "changing it.")));
         }
+        if (build.contains(PatchFamily.DM_MEDIA_SEEN)) {
+            privacy.add(toggle(context, Settings.VIEW_DM_MEDIA_ANONYMOUSLY,
+                    L10n.t("View DM photos and videos anonymously"),
+                    L10n.t("Holds back seen receipts for view-once photos and videos. Media still expires. "
+                            + "This is a test feature, off to start.")));
+        }
         if (!privacy.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Ads and privacy"));
             for (Preference row : privacy) section.addPreference(row);
@@ -296,8 +304,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (build.contains(PatchFamily.META_AI)) {
             PreferenceCategory metaAi = category(screen, L10n.t("Meta AI"));
             metaAi.addPreference(toggle(context, Settings.HIDE_META_AI_SEARCH, L10n.t("Hide Meta AI in search and Home's bar"),
-                    L10n.t("The Search tab and the top of your messages get a plain search bar, without Meta AI, "
-                            + "search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. "
+                    L10n.t("The Search tab and the top of your messages get a plain search bar. "
+                            + "Search results lose their Ask a follow-up bar. "
+                            + "Meta AI's buttons disappear from Home and the message composer, "
+                            + "and its optional inbox row is hidden. "
                             + "Restart Instagram after changing it.")));
             metaAi.addPreference(toggle(context, Settings.HIDE_META_AI_POSTS, L10n.t("Hide Meta AI posts"),
                     L10n.t("Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.")));
@@ -308,6 +318,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             explore.addPreference(toggle(context, Settings.HIDE_EXPLORE_GRID, L10n.t("Hide the Explore grid"),
                     L10n.t("The posts and reels under the Search tab's bar. Search, your recent searches and "
                             + "search results stay.")));
+        }
+
+        if (build.contains(PatchFamily.NOTES_ROW)) {
+            PreferenceCategory messages = category(screen, L10n.t("Messages"));
+            messages.addPreference(toggle(context, Settings.HIDE_NOTES_ROW, L10n.t("Hide the notes row"),
+                    L10n.t("Takes the row of notes off the top of your messages, the Map bubble in it too. "
+                            + "Your chats, search and requests stay.")));
         }
 
         List<Preference> reels = new ArrayList<>();
@@ -692,7 +709,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
         PreferenceCategory about = category(screen, L10n.t("About"));
         about.addPreference(mark(info(context, L10n.t("Version"), L10n.f("HushGram %1$s on Instagram %2$s",
-                L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()))), SettingsIcons.ABOUT));
+                L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()))
+                + "\n" + L10n.isolate(Utils.getSourceBuildIdentity())), SettingsIcons.ABOUT));
 
         Preference source = new Row(context);
         source.setTitle(L10n.t("Source code and issues"));
@@ -1002,11 +1020,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 overrideFeedback(request, L10n.t("Couldn't restore overrides. The saved copy doesn't fit this session and "
                         + "Instagram build. Use Discard saved overrides if you don't need it. Nothing changed."));
             } catch (Exception failure) {
-                Logger.printInfo(() -> "Override document operation failed without native writes");
+                Logger.printInfo(() -> "Override document operation failed before native mutation");
                 overrideFeedback(request, request == RESTORE_OVERRIDES
                         ? L10n.t("Couldn't restore overrides. Open settings from Home while signed in. Nothing changed.")
                         : request == DISCARD_OVERRIDES
-                        ? L10n.t("Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.")
+                        ? L10n.t("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.")
                         : request == IMPORT_OVERRIDES
                         ? L10n.t("Couldn't import overrides. Check the file and open settings from Home while signed in. Nothing changed.")
                         : validating
@@ -1021,14 +1039,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     private static String overrideOutcome(OverrideImport.Result result, boolean restoring) {
+        String message;
         switch (result.outcome) {
-            case UNCHANGED: return restoring
+            case UNCHANGED: message = restoring
                     ? L10n.t("The current overrides already match the saved copy. Nothing changed.")
-                    : L10n.t("This file matches the current overrides. Nothing changed.");
-            case APPLIED: return restoring
+                    : L10n.t("This file matches the current overrides. Nothing changed."); break;
+            case APPLIED: message = restoring
                     ? L10n.t("Previous overrides restored. Restart Instagram to apply them.")
-                    : L10n.f("Imported %1$d override changes. Restart Instagram to apply them.", result.changes);
-            case ROLLED_BACK: return L10n.t("Instagram didn't keep the change, so the overrides were put back as they were.");
+                    : L10n.f("Imported %1$d override changes. Restart Instagram to apply them.", result.changes); break;
+            case ROLLED_BACK: message = L10n.t("Instagram didn't keep the change, so the overrides were put back as they were."); break;
             case PARTIAL: return result.blocked
                     ? L10n.f("Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't "
                     + "be put back this way. Imports stay blocked until you use Discard saved overrides. Restart Instagram "
@@ -1038,6 +1057,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             default: return L10n.t("Instagram didn't keep the change and the overrides couldn't be confirmed. "
                     + "Use Restore previous overrides, then restart Instagram.");
         }
+        return result.blocked ? message + " " + L10n.t("Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.") : message;
     }
 
     private void overrideFeedback(int request, String message) {
@@ -1268,6 +1288,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             field.setContentDescription(L10n.t("Search settings"));
             field.setMinimumHeight(touch);
             field.setText(searchQuery);
+            SearchFocus focus = new SearchFocus(this, row);
+            field.setAccessibilityDelegate(focus);
+            row.addOnAttachStateChangeListener(focus);
             row.addView(field, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
             Button clear = new Button(context);
             clear.setText("×");
@@ -1281,19 +1304,89 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             clear.setMinimumHeight(touch);
             clear.setEnabled(!searchQuery.isEmpty());
             clear.setVisibility(searchQuery.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-            clear.setOnClickListener(view -> field.setText(""));
+            clear.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    if (!SearchFocus.canAct(SearchRow.this, row, host)) {
+                        info.setEnabled(false);
+                        info.setClickable(false);
+                        info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                    }
+                }
+
+                @Override public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
+                    if (action == AccessibilityNodeInfo.ACTION_CLICK
+                            && !SearchFocus.canAct(SearchRow.this, row, host)) return false;
+                    return super.performAccessibilityAction(host, action, arguments);
+                }
+            });
+            clear.setOnClickListener(view -> {
+                if (SearchFocus.canAct(this, row, view)) field.setText("");
+            });
             row.addView(clear, new LinearLayout.LayoutParams(touch, LinearLayout.LayoutParams.WRAP_CONTENT));
             field.addTextChangedListener(new TextWatcher() {
                 @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
                 @Override public void onTextChanged(CharSequence text, int start, int before, int count) { }
                 @Override public void afterTextChanged(Editable text) {
-                    searchSettings(text.toString());
+                    if (SearchFocus.canAct(SearchRow.this, row, field)) searchSettings(text.toString());
                     clear.setEnabled(text.length() > 0);
                     clear.setVisibility(text.length() == 0 ? View.INVISIBLE : View.VISIBLE);
                 }
             });
             return row;
         }
+    }
+
+    /** Keep ListView's stable row while its search input owns accessibility focus. */
+    static final class SearchFocus extends View.AccessibilityDelegate implements View.OnAttachStateChangeListener {
+        private final Preference preference;
+        private final View row;
+        private boolean held;
+
+        SearchFocus(Preference preference, View row) { this.preference = preference; this.row = row; }
+
+        private static boolean canAct(Preference preference, View row, View host) {
+            return host.isAttachedToWindow() && host.isShown() && RowSemantics.enabledViewTree(host)
+                    && preference.isEnabled()
+                    && RowSemantics.positionOf(preference, row, RowSemantics.listOf(row))
+                    != AdapterView.INVALID_POSITION;
+        }
+
+        @Override public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+            super.onInitializeAccessibilityNodeInfo(host, info);
+            if (!canAct(preference, row, host)) {
+                info.setEnabled(false);
+                info.setClickable(false);
+                for (AccessibilityNodeInfo.AccessibilityAction action : new ArrayList<>(info.getActionList())) {
+                    if (action.getId() != AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS) info.removeAction(action);
+                }
+            }
+        }
+
+        @Override public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
+            if (action == AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS) {
+                boolean performed = super.performAccessibilityAction(host, action, arguments);
+                // Android omits the cleared event when accessibility is disabled.
+                hold(false);
+                return performed;
+            }
+            return canAct(preference, row, host) && super.performAccessibilityAction(host, action, arguments);
+        }
+
+        @Override public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+            super.onInitializeAccessibilityEvent(host, event);
+            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED) hold(true);
+            else if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED) hold(false);
+        }
+
+        private void hold(boolean value) {
+            if (value == held) return;
+            row.setHasTransientState(value);
+            held = value;
+        }
+
+        @Override public void onViewAttachedToWindow(View view) { }
+        @Override public void onViewDetachedFromWindow(View view) { hold(false); }
     }
 
     /**
@@ -2296,7 +2389,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
             super.onInitializeAccessibilityNodeInfo(host, info);
             AbsListView list = listOf(host);
-            int position = list == null ? AdapterView.INVALID_POSITION : list.getPositionForView(host);
+            int position = positionOf(preference, host, list);
             if (position != AdapterView.INVALID_POSITION) {
                 list.onInitializeAccessibilityNodeInfoForItem(host, position, info);
             }
@@ -2305,8 +2398,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 info.setCheckable(true);
                 info.setChecked(((TwoStatePreference) preference).isChecked());
             }
-            if (preference.isEnabled() && !info.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK)) {
-                info.setClickable(true);
+            boolean enabled = position != AdapterView.INVALID_POSITION
+                    && enabledViewTree(host) && preference.isEnabled();
+            boolean clickable = enabled && preference.isSelectable();
+            info.setEnabled(enabled);
+            info.setClickable(clickable);
+            // AbsListView may have added a click for a disabled or no longer bound item.
+            info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+            if (clickable) {
                 info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
             }
         }
@@ -2322,14 +2421,41 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
         @Override
         public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
-            AbsListView list = listOf(host);
-            if (action == AccessibilityNodeInfo.ACTION_CLICK && list != null && preference.isEnabled()) {
-                int position = list.getPositionForView(host);
-                if (position != AdapterView.INVALID_POSITION) {
-                    return list.performItemClick(host, position, list.getItemIdAtPosition(position));
-                }
+            if (action == AccessibilityNodeInfo.ACTION_CLICK) {
+                AbsListView list = listOf(host);
+                int position = positionOf(preference, host, list);
+                if (position == AdapterView.INVALID_POSITION || !enabledViewTree(host)
+                        || !preference.isEnabled() || !preference.isSelectable()) return false;
+                return list.performItemClick(host, position, list.getItemIdAtPosition(position));
             }
             return super.performAccessibilityAction(host, action, arguments);
+        }
+
+        /** A delayed service action must not target the replacement at this row's old position. */
+        private static int positionOf(Preference preference, View host, @Nullable AbsListView list) {
+            if (list == null || preference.getParent() == null
+                    || !host.isAttachedToWindow() || !host.isShown()) {
+                return AdapterView.INVALID_POSITION;
+            }
+            Preference root = preference;
+            while (root.getParent() != null) root = root.getParent();
+            if (!(root instanceof PreferenceScreen) || root.getPreferenceManager() == null
+                    || root.getPreferenceManager().findPreference(SCREEN_KEY) != root
+                    || ((PreferenceScreen) root).getRootAdapter() != list.getAdapter()) {
+                return AdapterView.INVALID_POSITION;
+            }
+            int position = list.getPositionForView(host);
+            return position >= 0 && position < list.getCount()
+                    && list.getItemAtPosition(position) == preference
+                    ? position : AdapterView.INVALID_POSITION;
+        }
+
+        private static boolean enabledViewTree(View host) {
+            for (View view = host; view != null;
+                    view = view.getParent() instanceof View ? (View) view.getParent() : null) {
+                if (!view.isEnabled()) return false;
+            }
+            return true;
         }
 
         @Nullable

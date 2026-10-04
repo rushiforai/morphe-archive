@@ -11,12 +11,15 @@ import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /*
@@ -171,3 +174,40 @@ internal fun isTreeEnumReader(method: Method, field: String): Boolean {
 internal fun isLabelHelper(method: Method, buckets: Set<String>, label: String): Boolean =
     method.isStatic() && method.implementation != null && method.returnType == label &&
         method.parameters().size == 1 && method.parameters().single() in buckets
+
+/*
+ * The cards beside Create story (2026-10-04, issue #21). Facebook calls them the swipe right top
+ * tray, SRTT: the "Share music you love" card (its tap is TAP_SRTT_CTA_OPEN_MUSIC_PICKER), a text
+ * story, ready-made stories and the camera. They aren't buckets. The server sends them in a list of
+ * their own, and the tray's two GraphQL query builders (581 LX/24x;->A03 and A07, 580 LX/1y6;->A03
+ * and A07, 577 LX/1sa;->A03 and A08) each set the query variable [SKIP_PROMPT_CARDS] to leave it
+ * out. Facebook sets it true for the Video tab's tray, and from a MobileConfig flag for the others:
+ * a const-string of the name, then straight away the builder's (String, boolean) setter.
+ */
+
+/** The query variable that asks the server to leave the tray's creation cards out. */
+internal const val SKIP_PROMPT_CARDS = "skip_srtt_item_list"
+
+/**
+ * Each place [method] sets [SKIP_PROMPT_CARDS]: the index of the setter call and the register of
+ * the boolean it passes. Null when a const-string of the name isn't followed straight away by an
+ * invoke-virtual of a (String, boolean) void method taking that string, so a build that moved the
+ * value elsewhere refuses instead of setting something else.
+ */
+internal fun promptCardSkips(method: Method): List<Pair<Int, Int>>? {
+    val body = method.body()
+    val sites = mutableListOf<Pair<Int, Int>>()
+    for ((index, instruction) in body.withIndex()) {
+        if (instruction.opcode != Opcode.CONST_STRING && instruction.opcode != Opcode.CONST_STRING_JUMBO) continue
+        if (((instruction as ReferenceInstruction).reference as? StringReference)?.string != SKIP_PROMPT_CARDS) continue
+        val call = body.getOrNull(index + 1) as? FiveRegisterInstruction ?: return null
+        val target = call.methodReference() ?: return null
+        val name = (instruction as OneRegisterInstruction).registerA
+        val setter = call.opcode == Opcode.INVOKE_VIRTUAL && call.registerCount == 3 && call.registerD == name &&
+            call.registerE != name && target.returnType == "V" &&
+            target.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;", "Z")
+        if (!setter) return null
+        sites += (index + 1) to call.registerE
+    }
+    return sites
+}

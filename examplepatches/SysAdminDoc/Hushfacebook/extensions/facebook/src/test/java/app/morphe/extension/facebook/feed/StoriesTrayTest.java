@@ -38,7 +38,10 @@ public class StoriesTrayTest {
     @After
     public void restore() {
         PauseForTests.resume();
-        Settings.HIDE_STORIES_TRAY.resetToDefault();
+        Settings.HIDE_TOP_STORIES_TRAY.resetToDefault();
+        Settings.HIDE_STORIES_BETWEEN_POSTS.resetToDefault();
+        Settings.HIDE_STORIES_YOU_MIGHT_LIKE.resetToDefault();
+        FeedFilter.storiesTrayInBuildForTests = null;
         FeedFilterCounters.clear();
         HookStatus.clear();
     }
@@ -53,7 +56,7 @@ public class StoriesTrayTest {
     /** Picking the patch is the choice to hide the tray, so its switch starts on. */
     @Test
     public void theSwitchStartsOnOnceThePatchIsPicked() {
-        assertTrue(Settings.HIDE_STORIES_TRAY.defaultValue);
+        assertTrue(Settings.HIDE_TOP_STORIES_TRAY.defaultValue);
     }
 
     @Test
@@ -70,7 +73,7 @@ public class StoriesTrayTest {
     /** The mutation control: off, both adapters are built and only the asking is counted. */
     @Test
     public void switchedOffBothAdaptersAreBuilt() {
-        Settings.HIDE_STORIES_TRAY.save(false);
+        Settings.HIDE_TOP_STORIES_TRAY.save(false);
         assertFalse(FeedFilter.hideStoriesTray(FeedFilter.LEGACY_TRAY));
         assertFalse(FeedFilter.hideStoriesTray(FeedFilter.UNIFIED_TRAY));
         assertEquals(FeedFilter.TRAY_ROUTE + ": 2 lists, 2 items, 0 removed. Kinds: legacy 1, unified 1", line());
@@ -98,7 +101,7 @@ public class StoriesTrayTest {
             BaseSettings.DEBUG.save(true);
             for (int i = 0; i < 3; i++) FeedFilter.hideStoriesTray(FeedFilter.LEGACY_TRAY);
             FeedFilter.hideStoriesTray(FeedFilter.UNIFIED_TRAY);
-            Settings.HIDE_STORIES_TRAY.save(false);
+            Settings.HIDE_TOP_STORIES_TRAY.save(false);
             FeedFilter.hideStoriesTray(FeedFilter.LEGACY_TRAY);
             FeedFilter.hideStoriesTray(FeedFilter.LEGACY_TRAY);
 
@@ -125,5 +128,48 @@ public class StoriesTrayTest {
         }
         PauseForTests.resume();
         assertTrue("the tray hook didn't come back after the pause", FeedFilter.hideStoriesTray(FeedFilter.UNIFIED_TRAY));
+    }
+
+    private enum Category { ORGANIC }
+
+    @Test
+    public void allFourChoicesKeepTopAdaptersAndBetweenPostRowsIndependent() {
+        FeedFilter.storiesTrayInBuildForTests = true;
+        Object[] rows = {FeedGuardForTests.storiesRow(false), TypedFeedUnit.storiesTray(),
+                new TypedFeedUnit("StoriesOneColumnOneRowLargeTileFeedUnit"),
+                new TypedFeedUnit("StoriesSingleBucketInlineViewerFeedUnit")};
+        for (boolean top : new boolean[]{false, true}) {
+            for (boolean between : new boolean[]{false, true}) {
+                Settings.HIDE_TOP_STORIES_TRAY.save(top);
+                Settings.HIDE_STORIES_BETWEEN_POSTS.save(between);
+                assertEquals(top, FeedFilter.hideStoriesTray(FeedFilter.LEGACY_TRAY));
+                assertEquals(top, FeedFilter.hideStoriesTray(FeedFilter.UNIFIED_TRAY));
+                for (Object row : rows) assertEquals(between, FeedFilter.hideEdge(Category.ORGANIC, row, false, false));
+                assertFalse(FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit("Story"), false, false));
+                assertFalse(FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit.Unreadable(), false, false));
+
+                PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+                assertFalse(FeedFilter.hideStoriesTray(FeedFilter.LEGACY_TRAY));
+                assertFalse(FeedFilter.hideStoriesTray(FeedFilter.UNIFIED_TRAY));
+                for (Object row : rows) assertFalse(FeedFilter.hideEdge(Category.ORGANIC, row, false, false));
+                assertEquals(top, Settings.HIDE_TOP_STORIES_TRAY.savedValue());
+                assertEquals(between, Settings.HIDE_STORIES_BETWEEN_POSTS.savedValue());
+                PauseForTests.resume();
+            }
+        }
+    }
+
+    @Test
+    public void storiesYouMightLikeStaysIndependentOfBothNewChoices() {
+        FeedFilter.storiesTrayInBuildForTests = true;
+        for (boolean top : new boolean[]{false, true}) {
+            Settings.HIDE_TOP_STORIES_TRAY.save(top);
+            Settings.HIDE_STORIES_BETWEEN_POSTS.save(false);
+            Settings.HIDE_STORIES_YOU_MIGHT_LIKE.save(true);
+            assertTrue(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(true), false, true));
+            assertFalse(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(false), false, true));
+            Settings.HIDE_STORIES_YOU_MIGHT_LIKE.save(false);
+            assertFalse(FeedFilter.hideEdge(Category.ORGANIC, FeedGuardForTests.storiesRow(true), false, true));
+        }
     }
 }

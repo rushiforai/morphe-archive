@@ -53,6 +53,11 @@ public final class ModernEnhancements {
     public static void settings(PreferenceActivity activity) {
         UiStrings.selectLanguage(prefs(activity).getString("app_lang", "0"));
         PlaybackSession.settings(activity);
+        ListPreference cache = (ListPreference) activity.findPreference("cache_dir");
+        if (cache != null) cache.setEntries(new CharSequence[]{
+            UiStrings.translate("本体ストレージ（アプリ専用フォルダー）"),
+            UiStrings.translate("SDカード（アプリ専用フォルダー）"),
+            UiStrings.translate("内部ストレージ（アプリ非公開領域）")});
         ListPreference quality = (ListPreference) activity.findPreference("quality_mode");
         if (quality != null) {
             CharSequence[] labels = new CharSequence[]{"最大画質（最大解像度・動画により変動）",
@@ -257,4 +262,3 @@ public final class ModernEnhancements {
         Toast.makeText(c, "操作に失敗しました。ログを確認してください", Toast.LENGTH_SHORT).show();
     }
 }
-

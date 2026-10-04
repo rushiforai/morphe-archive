@@ -222,10 +222,19 @@ public class SettingsSearchTest {
         assertNotNull(visible(Settings.DISABLE_ANALYTICS.key));
     }
 
-    @Test public void typingAndClearUseTheInlineAccessibleControls() throws Exception {
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void typingAndClearUseTheInlineAccessibleControls() throws Exception {
         open(PatchFamily.DISABLE_ANALYTICS, PatchFamily.FOLLOWING_FEED);
-        View row = render(visible("hushgram_settings_search"));
-        EditText input = row.findViewWithTag("hushgram-settings-search");
+        controller.visible();
+        View root = page.getView();
+        float density = root.getResources().getDisplayMetrics().density;
+        root.measure(View.MeasureSpec.makeMeasureSpec(Math.round(320 * density), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(Math.round(640 * density), View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, root.getMeasuredWidth(), root.getMeasuredHeight());
+        EditText input = root.findViewWithTag("hushgram-settings-search");
+        assertNotNull(input);
+        View row = (View) input.getParent();
+        assertTrue("typing must use the current, attached native row", row.isAttachedToWindow());
         assertEquals(L10n.t("Search settings"), input.getContentDescription());
         input.setText("contacts");
         assertNotNull(visible(Settings.DISABLE_ANALYTICS.key));

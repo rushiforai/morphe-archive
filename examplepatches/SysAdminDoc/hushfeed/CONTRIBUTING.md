@@ -53,6 +53,24 @@ only during that first step. During the index push, it checks the artifact times
 published version tag, not the later index commit. It won't compare a new artifact with an old
 release.
 
+Immutable publications must pass both `gh release verify` and `gh release verify-asset`.
+Add `-RequireImmutableRelease` to the published-asset check when preparing that publication.
+Prepare a draft with every final asset attached before publishing, since an immutable release
+locks the tag and files. Release attestations identify the tag, commit and uploaded bytes.
+The existing reproducible-build checks still establish what the source produces.
+
+For a signed publication, keep the private key outside the repository and commit only the
+reviewed `cosign.pub`. Attach the Sigstore bundle and the matching `.sig` before publishing,
+then update `signature_download_url` to the Sigstore bundle. Use stable Cosign 3.1.3 or newer
+and add `-RequireBundleSignature` to the published-asset check. Normal transparency
+verification stays enabled. Existing unsigned releases print a skip unless signatures are required.
+
+Run `scripts/test-release-attestation.ps1` and `scripts/test-release-signature.ps1` after
+changing these helpers. The pre-push gate selects their focused contracts when their inputs
+change. Attestation tests include native command boundaries. Signature policy fixtures check
+the version floor, pinned-key arguments and rejection paths. A real production signature still
+needs verification against the held signing key and final artifact.
+
 When the TikTok target moves, record the content-marker corpus again on the new build.
 `ContentMarkerCorpusTest` replays shapes recorded from real videos through the AI label, paid
 partnership, series and playlist filters, because hand-built test objects never carried the

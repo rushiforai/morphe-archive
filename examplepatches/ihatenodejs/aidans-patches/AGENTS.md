@@ -4,13 +4,15 @@
 
 This repository develops binary bytecode, resource, and asset patches for Android applications using the **Morphe Patching Framework** (`app.morphe.patches` Gradle plugin v1.3.4, Morphe Patcher v1.14.0).
 
-The project patches six Android applications:
+The project patches eight Android applications:
 1. **Sezzle: Buy Now, Pay Later** (`com.sezzle.sezzlemobile`, target `5.3.9`): Hybrid React Native Fabric application compiled to **Hermes Bytecode v98**. Patches eliminate ads and tracking SDKs, suppress CodePush OTA updates and root/tamper checks, sanitize authentication (Google SSO only, native `ConsentGate` modal), restructure navigation (replace Shop with Home, remove Rewards, customize shortcuts, replace AI Discover), unblock features (receipt scanner, custom launcher icons), expose internal developer settings, and ensure 16 KB page size compatibility on Android 15+.
 2. **SidelineSwap: Buy & Sell Gear** (`com.sidelineswap.android`, target `1.52.0`): Native Android (Kotlin/Java) marketplace app. Patches eliminate first-party and third-party tracking/analytics (Amplitude, Firebase Analytics, Crashlytics, Facebook App Events, Iterable, Braintree FPTI) and customize the primary brand accent color via Android XML resource modification.
 3. **AfterShip: Package Tracker** (`com.aftership.AfterShip`, target `5.25.8`): Native Android (Kotlin/Java) tracking app with native C++ libraries (`libandroidsig-lib.so`). Patches neutralize native APK signature verification (`checkApkSha`), remove login barriers (forcing permanent guest mode), strip promotional feedback and shipment sync entry points, zero AAID and ad/tracking SDKs, provide an OpenStreetMap/Leaflet map engine replacement, add multi-shipment copy tracking, and apply a pure AMOLED black theme.
 4. **Canvas Student** (`com.instructure.candroid`, target `8.10.0`): Native Android (Kotlin/Java) learning-management client. Patches repair 16 KB page size compatibility across three prebuilt ARM64 shared libraries (`libandroidx.graphics.path.so`, `libdatastore_shared_counter.so`, `libpspdfkit.so`) and remove Pendo behavioral tracking, Instructure Pandata pageview surveillance, first-party analytics, Firebase Crashlytics reporting, and Play Store rating redirects.
 5. **Navigate360 Student** (`com.eab.se`, target `26.19.22`): Cordova hybrid Android application hosted in an Ionic WebView. Patches neutralize native Gainsight PX telemetry and Cordova bridge methods, remove Sentry Browser/CSP web reporting, and inert embedded Gainsight web engines.
-6. **Blackjack** (`com.tripledot.blackjack`, target `2.22.08`): Unity IL2CPP game compiled to native ARM64 (`libil2cpp.so`). Patches eliminate ads and six telemetry SDKs (Tripledot Analytics, Firebase, Crashlytics, Adjust, AppsFlyer, Unity Analytics), rewire defunct store buttons to a custom Android chip balance dialog (`ChipBalanceDialog`), install an in-game level skip touch interceptor (`SkipLevelDialog`), and enforce 16 KB page size alignment.
+6. **Blackjack** (`com.tripledot.blackjack`, target `2.22.08`): Unity IL2CPP game compiled to native ARM64 (`libil2cpp.so`). Patches eliminate ads, six telemetry SDKs (Tripledot Analytics, Firebase, Crashlytics, Adjust, AppsFlyer, Unity Analytics), and notification permission requests; rewire defunct store buttons to a custom Android chip balance dialog (`ChipBalanceDialog`); install an in-game level skip touch interceptor (`SkipLevelDialog`); and enforce 16 KB page size alignment.
+7. **Adobe Scan: PDF Scanner, OCR** (`com.adobe.scan.android`, target `26.09.25`): Native Android (Kotlin/Java + Compose) scanning app. Patches bypass the mandatory Adobe ID / social sign-in gate on cold start, neutralize in-scanner save prompts and banners, preserve local scans without an account, replace Adobe Clean typography with the device system font, and remove Adobe, Branch, Facebook, Creative SDK, and Crashlytics telemetry, in-app ads, AAID and install-referrer collection, rating prompts, and dead telemetry settings.
+8. **Fizz** (`com.ashtoncofer.Buzz`, target `1.53.0`): Native Android (Kotlin/Java + Compose) social application. Patches bypass PairIP Play Integrity licensing verification, neutralize first-party event tracking and batch uploads (`ra.da`, `jc.i0`), disable Mixpanel analytics, Airbridge and Adjust attribution SDKs, zero the Google Play Advertising ID (AAID), and provide options for silent DM screenshots and Sentry telemetry removal.
 
 ---
 
@@ -97,14 +99,20 @@ Patches operate across six distinct architectural layers depending on target app
 │       │   │   ├── feedback/              # RemoveFeedbackPatch
 │       │   │   ├── shared/                # AfterShip constants & compatibility
 │       │   │   └── sync/                  # RemoveShipmentSyncPatch
-│       │   ├── blackjack/                 # Blackjack patch implementations (5 patches)
+│       │   ├── blackjack/                 # Blackjack patch implementations (6 patches)
 │       │   │   ├── ads/                   # RemoveAdsPatch
 │       │   │   ├── customization/         # Custom chip store, skip to next level
+│       │   │   ├── notifications/         # RemoveNotificationsPatch
 │       │   │   ├── shared/                # Blackjack constants & compatibility
 │       │   │   └── tracking/              # RemoveTrackingAndAnalyticsPatch
 │       │   ├── canvas/                    # Canvas Student patch implementations (1 patch)
 │       │   │   ├── shared/                # Canvas constants & compatibility
 │       │   │   └── tracking/              # RemoveTrackingAndAnalyticsPatch, Fix16KbPageCompatibilityPatch
+│       │   ├── fizz/                      # Fizz patch implementations (3 patches)
+│       │   │   ├── customization/         # ReplaceEmojiFontWithIosPatch
+│       │   │   ├── dev/                   # EnableDeveloperSettingsPatch
+│       │   │   ├── shared/                # Fizz constants & compatibility
+│       │   │   └── tracking/              # RemoveTrackingAndAnalyticsPatch
 │       │   ├── navigate360/               # Navigate360 Student patch implementations (2 patches)
 │       │   │   ├── shared/                # Navigate360 constants & compatibility
 │       │   │   └── tracking/              # RemoveTrackingAndTelemetryPatch, RemoveWebTrackingAndTelemetryPatch
@@ -135,6 +143,7 @@ Patches operate across six distinct architectural layers depending on target app
 │   ├── aftership/                         # architecture.md, patches.md
 │   ├── blackjack/                         # architecture.md, patches.md
 │   ├── canvas/                            # architecture.md, patches.md
+│   ├── fizz/                              # architecture.md, patches.md
 │   ├── navigate360/                       # architecture.md, patches.md
 │   ├── sezzle/                            # architecture.md, patches.md, hidden_feature_flags.md
 │   └── sidelineswap/                      # architecture.md, patches.md
@@ -295,12 +304,20 @@ Keep bytecode injection logic reusable and safe:
 | `patches/src/main/kotlin/app/aidan/patches/blackjack/customization/SkipToNextLevelPatch.kt` | Dalvik patch intercepting level HUD touches in `UnityPlayerActivity` to advance player levels. |
 | `patches/src/main/kotlin/app/aidan/patches/blackjack/ads/RemoveAdsPatch.kt` | Raw resource patch disabling interstitial ads, banners, and rewarded video containers in `libil2cpp.so`. |
 | `patches/src/main/kotlin/app/aidan/patches/blackjack/tracking/RemoveTrackingAndAnalyticsPatch.kt` | Raw resource patch neutralizing Tripledot Analytics, Firebase, Crashlytics, Adjust, AppsFlyer, and Unity Analytics. |
+| `patches/src/main/kotlin/app/aidan/patches/blackjack/notifications/RemoveNotificationsPatch.kt` | XML resource patch removing the Android notification permission from `AndroidManifest.xml`. |
+| `patches/src/main/kotlin/app/aidan/patches/adobescan/shared/Constants.kt` | Adobe Scan package name (`com.adobe.scan.android`), signature, APKM type, and Morphe `Compatibility` object. |
+| `patches/src/main/kotlin/app/aidan/patches/adobescan/auth/RemoveLoginPatch.kt` | Dalvik patch bypassing cold-start sign-in tour, neutralizing in-scanner save prompts, and preserving local scans without an account. |
+| `patches/src/main/kotlin/app/aidan/patches/adobescan/ads/RemoveAdsAndTrackingPatch.kt` | Dalvik patch removing in-app ads, telemetry, attribution, advertising identifiers, install-referrer collection, Crashlytics reporting, review prompts, and optional dead telemetry settings. |
+| `patches/src/main/kotlin/app/aidan/patches/adobescan/customization/UseSystemFontPatch.kt` | Dalvik patch replacing Adobe Clean resource, Compose, and Creative SDK font paths with the device system font. |
+| `patches/src/main/kotlin/app/aidan/patches/adobescan/customization/PremiumPatch.kt` | Dalvik patch enabling locally executable premium OCR, editing, compression, and page organization, with an option to remove broken cloud actions like Generative summary. |
+| `patches/src/main/kotlin/app/aidan/patches/adobescan/customization/RemoveUselessPromotionalItemsPatch.kt` | Dalvik patch removing promotional, feedback, and support items from Settings and stripping Fill & Sign Play Store redirection from File Options. |
 | `extensions/extension/src/main/java/app/aidan/extension/sezzle/ConsentGate.java` | Native Android Java component rendering the Sezzle user consent modal dialog. |
 | `extensions/extension/src/main/java/app/aidan/extension/aftership/CopyTrackingBridge.java` | Native Android Java bridge extracting and copying tracking numbers to clipboard. |
 | `extensions/extension/src/main/java/app/aidan/extension/aftership/OsmMapBridge.java` | Native Android Java bridge binding ViewModel coordinates to `OsmMapView`. |
 | `extensions/extension/src/main/java/app/aidan/extension/aftership/OsmMapView.java` | Native Android Java WebView rendering Leaflet 1.9.4 and OpenStreetMap raster tiles. |
 | `extensions/extension/src/main/java/app/aidan/extension/blackjack/ChipBalanceDialog.java` | Native Android Java component rendering custom chip balance input dialog. |
 | `extensions/extension/src/main/java/app/aidan/extension/blackjack/SkipLevelDialog.java` | Native Android Java touch interceptor and confirmation dialog for level skipping. |
+| `extensions/extension/src/main/java/app/aidan/extension/adobescan/SystemFontBridge.java` | Native Java bridge resolving Adobe font-resource weights and styles to the device system typeface. |
 | `patches/src/main/kotlin/util/PatchListGenerator.kt` | JavaExec reflection utility generating `patches-list.json` from `.mpp` archives. |
 | `settings.gradle.kts` | Multi-project setup, plugin management, and GitHub Packages repository declarations. |
 | `patches/build.gradle.kts` | Patch metadata, gson classpath setup, and `generatePatchesList` task definition. |
@@ -320,6 +337,17 @@ Keep bytecode injection logic reusable and safe:
 | `docs/navigate360/patches.md` | Patch specification for Navigate360 Student native and web telemetry removal. |
 | `docs/blackjack/architecture.md` | Reverse engineering specification for Blackjack Unity IL2CPP runtime and extensions. |
 | `docs/blackjack/patches.md` | Patch specification for Blackjack custom store, level skip, ad removal, and tracking block. |
+| `docs/adobe-scan/architecture.md` | Reverse engineering specification for Adobe Scan navigation, local PDF pipeline, telemetry, and advertising surfaces. |
+| `docs/adobe-scan/patches.md` | Patch specifications for Adobe Scan login removal, local-only persistence, and ads/tracking removal. |
+| `patches/src/main/kotlin/app/aidan/patches/fizz/shared/Constants.kt` | Fizz package name (`com.ashtoncofer.Buzz`), signature, APKM type, and Morphe `Compatibility` object. |
+| `patches/src/main/kotlin/app/aidan/patches/fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` | Dalvik patch neutralizing first-party tracking, Mixpanel, Airbridge, Adjust, AAID, PairIP check, Sentry, and screenshot alerts in Fizz. |
+| `patches/src/main/kotlin/app/aidan/patches/fizz/customization/ReplaceEmojiFontWithIosPatch.kt` | Dalvik & asset patch bundling Apple Color Emoji and configuring native fallback chain. |
+| `extensions/extension/src/main/java/app/aidan/extension/emoji/EmojiFontBridge.java` | Native Android extension creating and caching `CustomFallbackBuilder` typefaces with Apple Color Emoji. |
+| `docs/fizz/architecture.md` | Reverse engineering specification for Fizz social architecture, PairIP protection, and telemetry pipelines. |
+| `docs/fizz/patches.md` | Patch specifications for Fizz tracking removal, PairIP bypass, and silent screenshots. |
+| `patches/src/main/kotlin/app/aidan/patches/fizz/dev/EnableDeveloperSettingsPatch.kt` | Dalvik patch injecting top-bar developer mod menu icon with Mobile Studio trigger. |
+| `extensions/extension/src/main/java/app/aidan/extension/fizz/DeveloperMenuBridge.java` | Native Android bridge handling menu invocation, Mobile Studio flow trigger, and app restart. |
+| `extensions/extension/src/main/java/app/aidan/extension/fizz/DeveloperMenuDialog.java` | Native Android modal dialog presenting developer mod menu with Mobile Studio launcher. |
 ---
 
 ## Runtime/Tooling Preferences

@@ -585,10 +585,71 @@ object Constants {
         targets = listOf(AppTarget("2.7.2"))
     )
 
+    val COMPATIBILITY_YOUTUBE = Compatibility(
+        packageName = "com.google.android.youtube",
+        name = "YouTube",
+        description = "YouTube: Watch, Stream & Discover Videos by Google LLC",
+        appIconColor = 0xFF0000
+    )
+
+    val COMPATIBILITY_REDDIT = Compatibility(
+        packageName = "com.reddit.frontpage",
+        name = "Reddit",
+        description = "Reddit: The front page of the internet by reddit Inc.",
+        appIconColor = 0xFF4500
+    )
+
+    val COMPATIBILITY_INSTAGRAM = Compatibility(
+        packageName = "com.instagram.android",
+        name = "Instagram",
+        description = "Instagram by Meta Platforms Inc.",
+        appIconColor = 0xE1306C
+    )
+
+    val COMPATIBILITY_PLAGUE_INC = Compatibility(
+        packageName = "com.miniclip.plagueinc",
+        name = "Plague Inc.",
+        description = "Plague Inc. by Ndemic Creations / Miniclip",
+        appIconColor = 0x8B0000
+    )
+
+    val COMPATIBILITY_PLAGUE_INC_ALT = Compatibility(
+        packageName = "com.ndemiccreations.plagueinc",
+        name = "Plague Inc. (Ndemic)",
+        description = "Plague Inc. by Ndemic Creations",
+        appIconColor = 0x8B0000
+    )
+
+    val COMPATIBILITY_UNDERCOVER = Compatibility(
+        packageName = "com.yanstarstudio.joss.undercover",
+        name = "Undercover",
+        description = "Undercover®: Word Party Game by Yanstar Studio OU",
+        appIconColor = 0x2A2E3D
+    )
+
+    val COMPATIBILITY_FREE_FIRE_MAX = Compatibility(
+        packageName = "com.dts.freefiremax",
+        name = "Free Fire MAX",
+        description = "Free Fire MAX by Garena International I Private Limited",
+        appIconColor = 0xFF5722
+    )
+
+    val COMPATIBILITY_FREE_FIRE = Compatibility(
+        packageName = "com.dts.freefireth",
+        name = "Free Fire",
+        description = "Free Fire by Garena International I Private Limited",
+        appIconColor = 0xFF5722
+    )
+
     // Aliases
     val COMPATIBILITY_ANGRY_BIRDS_CLASSIC = COMPATIBILITY_ANGRY_BIRDS
     val COMPATIBILITY_HIDE_ME = COMPATIBILITY_HIDEME
     val COMPATIBILITY_PICTURE_THIS = COMPATIBILITY_PICTURETHIS
+    val COMPATIBILITY_PLAGUEINC = COMPATIBILITY_PLAGUE_INC
+    val COMPATIBILITY_UNDERCOVER_GAME = COMPATIBILITY_UNDERCOVER
+    val COMPATIBILITY_FREEFIRE_MAX = COMPATIBILITY_FREE_FIRE_MAX
+    val COMPATIBILITY_FREEFIRE = COMPATIBILITY_FREE_FIRE
 }
+
 
 

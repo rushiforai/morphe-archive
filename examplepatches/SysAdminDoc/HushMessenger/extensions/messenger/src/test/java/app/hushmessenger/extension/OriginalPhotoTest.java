@@ -70,6 +70,7 @@ public class OriginalPhotoTest {
         Settings.hookErrors.clear();
         completion = OriginalPhoto.completion;
         OriginalPhoto.completion = Runnable::run;
+        OriginalPhoto.inputOpener = java.io.FileInputStream::new;
         OriginalPhoto.tempDir = folder.getRoot().toPath().resolve("copies").toFile();
         assertTrue(OriginalPhoto.tempDir.mkdirs());
         ShadowLog.clear();
@@ -78,6 +79,7 @@ public class OriginalPhotoTest {
     @After public void restore() {
         OriginalPhoto.completion = completion;
         OriginalPhoto.tempDir = null;
+        OriginalPhoto.inputOpener = java.io.FileInputStream::new;
     }
 
     private static byte[] encode(int width, int height, ColorSpace space) {
@@ -422,6 +424,149 @@ public class OriginalPhotoTest {
         }
         assertNull(OriginalPhoto.sync(huge.getPath(), 4096, 4096, null, hd()));
         assertEquals(List.of("Original photo skipped: not a JPEG", "Original photo skipped: over 20 MB"), logs());
+    }
+
+    private File paddedJpeg(int size) throws IOException {
+        byte[] image = encode(32, 24, null);
+        File file = write(image);
+        try (RandomAccessFile output = new RandomAccessFile(file, "rw")) {
+            output.setLength(size);
+            output.seek(image.length - 2);
+            output.writeShort(0);
+            output.seek(size - 2);
+            output.writeShort(0xffd9);
+        }
+        return file;
+    }
+
+    @Test public void overLimitCopyIsRejectedDuringParsing() throws Exception {
+        File source = paddedJpeg((int) OriginalPhoto.MAX_BYTES + 1);
+        File target = folder.newFile();
+        try {
+            OriginalPhoto.copyImageData(source, target, 0);
+            fail("Copying must enforce the ceiling independently of prepare's earlier length check");
+        } catch (IOException expected) {
+            assertTrue(expected.getMessage().contains("over 20 MB"));
+        }
+        assertEquals(OriginalPhoto.MAX_BYTES + 1, source.length());
+    }
+
+    @Test public void aQueuedOversizedCopyFailsOnceAndKeepsUnrelatedFiles() throws Exception {
+        File source = jpeg(32, 24);
+        byte[] sourceBytes = Files.readAllBytes(source.toPath());
+        File previous = new File(OriginalPhoto.tempDir, "previous.jpg");
+        Files.write(previous.toPath(), new byte[] {1, 2, 3});
+        List<Runnable> scheduled = new ArrayList<>();
+        OriginalPhoto.completion = scheduled::add;
+        Callback callback = new Callback();
+        switchOn();
+        assertTrue("The async route owns the send once queued", OriginalPhoto.async(source.getPath(), 4096, 4096, null, hd(), callback));
+        assertEquals(1, scheduled.size());
+        File[] copies = OriginalPhoto.tempDir.listFiles(file -> file.getName().startsWith("hush-photo"));
+        assertEquals(1, copies.length);
+        try (RandomAccessFile copy = new RandomAccessFile(copies[0], "rw")) { copy.setLength(OriginalPhoto.MAX_BYTES + 1); }
+        scheduled.get(0).run();
+        assertTrue(callback.successes.isEmpty());
+        assertEquals(1, callback.failures.size());
+        assertFalse(copies[0].exists());
+        assertArrayEquals(new byte[] {1, 2, 3}, Files.readAllBytes(previous.toPath()));
+        assertArrayEquals(sourceBytes, Files.readAllBytes(source.toPath()));
+    }
+
+    private static java.io.FileInputStream growOnFirstRead(File file, boolean moveEndMarker,
+            java.util.concurrent.atomic.AtomicLong readBytes) throws IOException {
+        return new java.io.FileInputStream(file) {
+            boolean changed;
+            @Override public int read(byte[] bytes, int offset, int length) throws IOException {
+                if (!changed) {
+                    changed = true;
+                    try (RandomAccessFile output = new RandomAccessFile(file, "rw")) {
+                        if (moveEndMarker) { output.seek(output.length() - 2); output.writeShort(0); }
+                        output.setLength(OriginalPhoto.MAX_BYTES + 1);
+                        if (moveEndMarker) { output.seek(output.length() - 2); output.writeShort(0xffd9); }
+                    }
+                }
+                int size = super.read(bytes, offset, length);
+                if (size > 0) readBytes.addAndGet(size);
+                return size;
+            }
+        };
+    }
+
+    @Test public void sourceGrowthAndReplacementAfterValidationFallBackBeforeDelivery() throws Exception {
+        switchOn();
+        File previous = new File(OriginalPhoto.tempDir, "previous.jpg");
+        Files.write(previous.toPath(), new byte[] {1, 2, 3});
+        for (boolean replaced : new boolean[] {false, true}) for (boolean asynchronous : new boolean[] {false, true}) {
+            File source = jpeg(32, 24);
+            int[] opens = {0};
+            OriginalPhoto.inputOpener = file -> {
+                if (file.equals(source) && ++opens[0] == 4) {
+                    if (!replaced) return growOnFirstRead(file, false, new java.util.concurrent.atomic.AtomicLong());
+                    File replacement = paddedJpeg((int) OriginalPhoto.MAX_BYTES + 1);
+                    Files.move(replacement.toPath(), source.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+                return new java.io.FileInputStream(file);
+            };
+            Callback callback = new Callback();
+            if (asynchronous) assertFalse(OriginalPhoto.async(source.getPath(), 4096, 4096, null, hd(), callback));
+            else assertNull(OriginalPhoto.sync(source.getPath(), 4096, 4096, null, hd()));
+            assertEquals("The source changed at the actual copying open", 4, opens[0]);
+            assertEquals(OriginalPhoto.MAX_BYTES + 1, source.length());
+            assertTrue(callback.successes.isEmpty());
+            assertTrue(callback.failures.isEmpty());
+            assertArrayEquals(new byte[] {1, 2, 3}, Files.readAllBytes(previous.toPath()));
+            assertEquals("Only the new rejected copy is removed", 1, OriginalPhoto.tempDir.listFiles().length);
+        }
+    }
+
+    @Test public void growthInsideTheScanCannotReadBeyondTheCeiling() throws Exception {
+        File source = jpeg(32, 24);
+        switchOn();
+        int[] opens = {0};
+        var readBytes = new java.util.concurrent.atomic.AtomicLong();
+        OriginalPhoto.inputOpener = file -> file.equals(source) && ++opens[0] == 4 ?
+            growOnFirstRead(file, true, readBytes) : new java.io.FileInputStream(file);
+        assertNull(OriginalPhoto.sync(source.getPath(), 4096, 4096, null, hd()));
+        assertEquals(OriginalPhoto.MAX_BYTES + 1, readBytes.get());
+        assertEquals(0, OriginalPhoto.tempDir.listFiles().length);
+        assertTrue(source.isFile());
+    }
+
+    @Test public void growthDuringTheFinalPreparedReadDeletesOnlyThatCopy() throws Exception {
+        File source = jpeg(32, 24);
+        byte[] sourceBytes = Files.readAllBytes(source.toPath());
+        File previous = new File(OriginalPhoto.tempDir, "previous.jpg");
+        Files.write(previous.toPath(), new byte[] {1, 2, 3});
+        int[] opens = {0};
+        var readBytes = new java.util.concurrent.atomic.AtomicLong();
+        OriginalPhoto.inputOpener = file -> file.getName().startsWith("hush-photo") && ++opens[0] == 3 ?
+            growOnFirstRead(file, false, readBytes) : new java.io.FileInputStream(file);
+        switchOn();
+        assertNull(OriginalPhoto.sync(source.getPath(), 4096, 4096, null, hd()));
+        assertEquals(3, opens[0]);
+        assertEquals(OriginalPhoto.MAX_BYTES + 1, readBytes.get());
+        assertEquals(1, OriginalPhoto.tempDir.listFiles().length);
+        assertArrayEquals(new byte[] {1, 2, 3}, Files.readAllBytes(previous.toPath()));
+        assertArrayEquals(sourceBytes, Files.readAllBytes(source.toPath()));
+    }
+
+    @Test public void aValidJpegAtTheCeilingPreservesItsScanAndOutputSize() throws Exception {
+        File source = paddedJpeg((int) OriginalPhoto.MAX_BYTES);
+        byte[] original = Files.readAllBytes(source.toPath());
+        switchOn();
+        byte[] sent = OriginalPhoto.sync(source.getPath(), 4096, 4096, null, hd());
+        assertNotNull(sent);
+        assertEquals(OriginalPhoto.MAX_BYTES, sent.length);
+        assertArrayEquals(Arrays.copyOfRange(original, scanStart(original), original.length),
+            Arrays.copyOfRange(sent, scanStart(sent), sent.length));
+        assertEquals(0, OriginalPhoto.tempDir.listFiles().length);
+        File extraOrientation = folder.newFile();
+        try {
+            OriginalPhoto.copyImageData(source, extraOrientation, ExifInterface.ORIENTATION_ROTATE_180);
+            fail("Keeping orientation can't produce an oversized result");
+        } catch (IOException expected) { assertTrue(expected.getMessage().contains("over 20 MB")); }
+        assertTrue(source.isFile());
     }
 
     @Test public void aSidewaysPhotoReportsItsUprightSizeTheWayMessengersTranscoderDoes() throws Exception {

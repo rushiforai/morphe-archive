@@ -40,6 +40,54 @@ fun BytecodePatchContext.executeMoisesExportSettingsLogic(logger: Logger) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
+        // Specific hooks for Moises v2.7.2 audio tools & upload pipeline:
+        // 1. UploadTrackViewModel.e() -> checks if duration exceeds limit
+        if (type == "Lai/moises/ui/uploadtrack/UploadTrackViewModel;") {
+            for (method in classDef.methods.toList()) {
+                if (method.name == "e" && method.returnType == "Z") {
+                    try {
+                        val mutableMethod = mutableClass.findMutableMethodOf(method)
+                        mutableMethod.addInstructions(
+                            0,
+                            """
+                            const/4 v0, 0x0
+                            return v0
+                            """.trimIndent()
+                        )
+                        hookedPoints++
+                        logger.info("[Moises Audio Tools] Hooked UploadTrackViewModel.e() -> false (bypass duration check)")
+                    } catch (e: Exception) {
+                        logger.fine("[Moises Audio Tools] Failed to hook UploadTrackViewModel.e: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        // 2. UserFeatureFlags:
+        //    a() -> mobileAdaptPremiumToFree (Z -> false)
+        //    b() -> slowerProcessingTime (Z -> false)
+        if (type == "Lai/moises/data/model/UserFeatureFlags;") {
+            for (method in classDef.methods.toList()) {
+                val mName = method.name
+                if ((mName == "a" || mName == "b") && method.returnType == "Z") {
+                    try {
+                        val mutableMethod = mutableClass.findMutableMethodOf(method)
+                        mutableMethod.addInstructions(
+                            0,
+                            """
+                            const/4 v0, 0x0
+                            return v0
+                            """.trimIndent()
+                        )
+                        hookedPoints++
+                        logger.info("[Moises Audio Tools] Hooked UserFeatureFlags.${method.name} -> false")
+                    } catch (e: Exception) {
+                        logger.fine("[Moises Audio Tools] Failed to hook UserFeatureFlags.${method.name}: ${e.message}")
+                    }
+                }
+            }
+        }
+
         for (method in classDef.methods.toList()) {
             if (method.implementation == null) continue
             val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)

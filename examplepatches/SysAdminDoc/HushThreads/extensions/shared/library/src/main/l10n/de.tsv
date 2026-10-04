@@ -1,5 +1,6 @@
 # German for HushThreads: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	Build %1$s
 %1$d item in that file isn't a setting this version of HushThreads knows, so it'll be left out.	%1$d Eintrag in dieser Datei ist keine Einstellung, die diese Version von HushThreads kennt, und wird deshalb ausgelassen.
 %1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.	%1$d Einträge in dieser Datei sind keine Einstellungen, die diese Version von HushThreads kennt, und werden deshalb ausgelassen.
 %1$d switch will change.	%1$d Schalter wird geändert.
@@ -185,3 +186,10 @@ Web links you tap open in your default browser, or the app for that site, withou
 Tap to play videos	Videos per Tippen abspielen
 Videos in your feed wait for a tap instead of playing as you scroll.	Videos in deinem Feed warten auf ein Tippen, statt beim Scrollen abzuspielen.
 Videos in your feed	Videos in deinem Feed
+
+# context: overview disclosure for default patches omitted from this build (Hushfacebook 814acd23)
+Tap to see which.	Tippe, um sie zu sehen.
+%1$d default patch isn't in this build	%1$d Standard-Patch ist nicht in diesem Build
+%1$d default patches aren't in this build	%1$d Standard-Patches sind nicht in diesem Build
+Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Nicht in diesem Build: %1$s. Morphe Manager wählt diesen Patch standardmäßig aus. Wähle ihn aus und patche erneut, um zu bekommen, was er tut.
+Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Nicht in diesem Build: %1$s. Morphe Manager wählt diese Patches standardmäßig aus. Wähle sie aus und patche erneut, um zu bekommen, was sie tun.

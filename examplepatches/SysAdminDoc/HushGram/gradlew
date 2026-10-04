@@ -245,4 +245,7 @@ eval "set -- $(
         tr '\n' ' '
     )" '"$@"'
 
+# Verify the version-bound publisher checksums before the wrapper JAR can execute.
+"$JAVACMD" --source 17 "$APP_HOME/scripts/VerifyGradleWrapper.java" "$APP_HOME" || exit 1
+
 exec "$JAVACMD" "$@"

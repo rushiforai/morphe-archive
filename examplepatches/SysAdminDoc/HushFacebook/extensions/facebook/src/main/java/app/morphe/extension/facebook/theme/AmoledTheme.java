@@ -109,6 +109,21 @@ public final class AmoledTheme {
             new HashSet<>(Arrays.asList("PRIMARY_UI", "BACKGROUND_PRIMARY_UI")));
 
     /**
+     * FDS's token for the row of an unread notification. Facebook's dark theme gives it a 10% blue,
+     * {@code #192D88FF}, which reads as a blue row over Facebook's grey page and as almost black over
+     * AMOLED's black one ({@code #050E1A}), issue #72. The Notifications tab's row asks for it
+     * ({@code NotificationsTetraComponent}, 581 {@code LX/9BT;->A1A}).
+     */
+    private static final String NEW_NOTIFICATION = "NEW_NOTIFICATION_BACKGROUND";
+
+    /**
+     * The alpha an unread notification's tint gets in dark mode: 25% where Facebook gives 10%. Over
+     * black, Facebook's blue then shows as {@code #0B2240}, a row that stands out the way it does
+     * on Facebook's grey page, with its text and blue dot still above 4:1.
+     */
+    static final int NEW_NOTIFICATION_ALPHA = 0x40;
+
+    /**
      * The largest difference between the channels of a background. A grey has almost none. A dark
      * green or dark brown banner has much more, and it keeps its colour.
      */
@@ -196,11 +211,16 @@ public final class AmoledTheme {
      * the near black of {@link #RAISED_SHIFT} for one up to {@link #MAX_RAISED_CHANNEL},
      * {@link #FILL_SHIFT} for an input or a pill's fill ({@link #FILL_TOKENS}), each that far above
      * the background colour, in Facebook's dark mode, or {@code color} unchanged. The background
-     * colour itself comes back as it is, from route two's resources.
+     * colour itself comes back as it is, from route two's resources. An unread notification's tint
+     * comes back stronger ({@link #unreadRow}).
      */
     public static int apply(int color, Object token) {
         HookStatus.invoked(FamilyNames.AMOLED_THEME);
-        if (!isDarkNeutral(color, MAX_RAISED_CHANNEL)) return color;
+        if (!isDarkNeutral(color, MAX_RAISED_CHANNEL)) {
+            return (color >>> 24) < NEW_NOTIFICATION_ALPHA && token instanceof Enum && DarkMode.on()
+                    ? unreadRow(color, ((Enum<?>) token).name())
+                    : color;
+        }
         if (!(token instanceof Enum) || !DarkMode.on()) return color;
         String name = ((Enum<?>) token).name();
         if (!BACKGROUND_TOKENS.contains(name)) return color;
@@ -211,6 +231,19 @@ public final class AmoledTheme {
         // above either shift, so no channel borrows from the next.
         int shift = FILL_TOKENS.contains(name) ? FILL_SHIFT : RAISED_SHIFT;
         return raise(background, color - shift * 0x010101);
+    }
+
+    /**
+     * The colour route one gives an unread notification's row in dark mode, issue #72: a
+     * translucent tint for {@link #NEW_NOTIFICATION} keeps its colour at
+     * {@link #NEW_NOTIFICATION_ALPHA}. A clear colour, one already that strong, and any other token's
+     * colour come back as they are. Material You asks the same, to know AMOLED's tint as
+     * Facebook's.
+     */
+    static int unreadRow(int color, String token) {
+        int alpha = color >>> 24;
+        if (alpha == 0 || alpha >= NEW_NOTIFICATION_ALPHA || !NEW_NOTIFICATION.equals(token)) return color;
+        return (NEW_NOTIFICATION_ALPHA << 24) | (color & 0x00FFFFFF);
     }
 
     /**

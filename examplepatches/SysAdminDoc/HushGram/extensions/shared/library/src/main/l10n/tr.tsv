@@ -195,12 +195,15 @@ Stop swipe to create	Oluşturmak için kaydırmayı durdur
 A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Ana sayfada yana kaydırmak artık kamerayı açmaz. + düğmesi ve kameraya giden diğer yollar çalışmaya devam eder.
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	Aramada ve Ana Sayfa çubuğunda Meta AI'ı gizle
-The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.	Ara sekmesi ve mesajlarının üstü, Meta AI olmadan sade bir arama çubuğu alır, arama sonuçları takip sorusu çubuğunu kaybeder ve Ana Sayfa'nın üst çubuğu Meta AI düğmelerini kaybeder. Değiştirdikten sonra Instagram'ı yeniden başlat.
+The Search tab and the top of your messages get a plain search bar. Search results lose their Ask a follow-up bar. Meta AI's buttons disappear from Home and the message composer, and its optional inbox row is hidden. Restart Instagram after changing it.	Ara sekmesi ve mesajlarınızın üst kısmı normal bir arama çubuğu kullanır. Arama sonuçlarındaki takip sorusu çubuğu kaldırılır. Meta AI düğmeleri Ana Sayfa ve mesaj oluşturucudan kaldırılır, gelen kutusundaki isteğe bağlı Meta AI satırı da gizlenir. Bu ayarı değiştirdikten sonra Instagram’ı yeniden başlatın.
 Hide Meta AI posts	Meta AI gönderilerini gizle
 Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.	Instagram'ın ana akışına koyduğu Meta AI videoları, sohbetleri ve senin görsellerin.
 Explore	Keşfet
 Hide the Explore grid	Keşfet ızgarasını gizle
 The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.	Ara sekmesinin çubuğu altındaki gönderiler ve reels videoları. Arama, son aramaların ve arama sonuçları kalır.
+Messages	Mesajlar
+Hide the notes row	Notlar satırını gizle
+Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.	Mesajlarının üst kısmındaki notlar satırını, içindeki Harita balonuyla birlikte kaldırır. Sohbetlerin, arama ve istekler kalır.
 Start Home on Following	Ana Sayfa'yı Takip Edilenler ile aç
 Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.	Ana Sayfa, takip ettiğin hesapların gönderileriyle açılır. Senin için'e geçmek için üstteki Takip Edilenler'e dokun, Ana Sayfa seçimini hatırlar. Değiştirdikten sonra Instagram'ı yeniden başlat.
 Hide suggested stories	Önerilen hikayeleri gizle
@@ -337,7 +340,6 @@ Discard saved overrides	Kayıtlı geçersiz kılmaları at
 Forget the copy saved for Restore so imports can run again. Instagram's overrides don't change.	İçe aktarmalar yeniden çalışabilsin diye Geri yükleme için kaydedilen kopyayı unutur. Instagram'ın geçersiz kılmaları değişmez.
 Discarded the saved copy. Imports can run again, and Instagram's overrides haven't changed.	Kayıtlı kopya atıldı. İçe aktarmalar yeniden çalışabilir ve Instagram'ın geçersiz kılmaları değişmedi.
 There's no saved copy to discard. Nothing changed.	Atılacak kayıtlı kopya yok. Hiçbir şey değişmedi.
-Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.	Kayıtlı kopya atılamadı. Oturum açıkken Ana Sayfa'dan ayarları açın. Hiçbir şey değişmedi.
 Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Imports stay blocked until you use Discard saved overrides. Restart Instagram to apply the rest.	Geri yükleme yapabildiği her şeyi geri koydu. Instagram'ın boş değerini tutan %1$d geçersiz kılma bu yolla geri konamaz. Kayıtlı geçersiz kılmaları at seçeneğini kullanana kadar içe aktarmalar engelli kalır. Kalanını uygulamak için Instagram'ı yeniden başlatın.
 Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Restart Instagram to apply the rest.	Geri yükleme yapabildiği her şeyi geri koydu. Instagram'ın boş değerini tutan %1$d geçersiz kılma bu yolla geri konamaz. Kalanını uygulamak için Instagram'ı yeniden başlatın.
 Couldn't restore overrides. The saved copy doesn't fit this session and Instagram build. Use Discard saved overrides if you don't need it. Nothing changed.	Geçersiz kılmalar geri yüklenemedi. Kayıtlı kopya bu oturuma ve Instagram sürümüne uymuyor. Gerekmiyorsa Kayıtlı geçersiz kılmaları at seçeneğini kullanın. Hiçbir şey değişmedi.
@@ -351,3 +353,7 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	Görüldü olarak işaretle
 Marked as seen. Tap again to undo.	Görüldü olarak işaretlendi. Geri almak için tekrar dokun.
 Marked as seen and sent	Görüldü olarak işaretlendi ve gönderildi
+View DM photos and videos anonymously	Mesajlardaki fotoğraf ve videoları anonim görüntüle
+Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.	Tek görüntülemelik fotoğraf ve videoların görüldü bilgisini göndermeyi engeller. Medyanın süresi yine dolar. Bu deneme özelliği başlangıçta kapalıdır.
+Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	Kayıtlı kopyalar tamamen atılamadı. Kayıtlı geçersiz kılmaları at seçeneğini tekrar deneyin. Instagram'ın geçersiz kılmaları değişmedi.
+Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	Kurtarma temizliği tamamlanmadı. Önceki geçersiz kılmaları geri yükle veya Kayıtlı geçersiz kılmaları at seçeneğini kullanın.

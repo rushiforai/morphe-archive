@@ -1,5 +1,5 @@
 /*
- * Forked from https://github.com/SysAdminDoc/Hushfacebook at c15d4f79 (GPL-3.0),
+ * Forked from https://github.com/SysAdminDoc/Hushfacebook at a788c516 (GPL-3.0),
  * modified for HushThreads (Threads), 2026.
  *
  * Copyright 2026 Hushfacebook contributors
@@ -286,6 +286,9 @@ final class SettingsNavigation extends BaseAdapter {
             for (Section section : sections) if (!section.primary) visible.add(section.link);
         } else {
             visible.add(screen.getPreference(0));
+            // Hushfacebook 814acd23: show the missing-default row under the overview card.
+            Preference missing = screen.findPreference(HushThreadsPreferenceFragment.MISSING_DEFAULTS);
+            if (missing != null) visible.add(missing);
             visible.add(browse);
             for (Section section : sections) if (section.primary) visible.add(section.link);
             visible.add(more);
@@ -398,12 +401,13 @@ final class SettingsNavigation extends BaseAdapter {
         boolean nextPaused = HushThreadsPause.pausesNextStart(screen.getContext());
         boolean paused = HushThreadsPause.isPaused();
         TextView summary = row.findViewById(android.R.id.summary);
+        String build = "\n" + L10n.f("Build %1$s", L10n.isolate(HushThreadsPreferenceFragment.buildIdentitySummary()));
         if (!paused && !nextPaused && ReleaseCheck.statusLine() == null) {
-            summary.setText(L10n.t("Your controls are active."));
+            summary.setText(L10n.t("Your controls are active.") + build);
         } else if (paused && nextPaused && HushThreadsPause.reason() == HushThreadsPause.Reason.SWITCH
                 && !markerLeft()) {
             // A marker Resume couldn't remove keeps the card's own line, which says what to do.
-            summary.setText(L10n.t("Your choices are saved. Tap Resume, then restart Threads."));
+            summary.setText(L10n.t("Your choices are saved. Tap Resume, then restart Threads.") + build);
         }
         bindAction(row, paused, nextPaused);
     }
@@ -442,20 +446,25 @@ final class SettingsNavigation extends BaseAdapter {
             }
             rebuild();
         });
-        // From one and a half times the text size, a button beside the text leaves the name too
-        // little room and it breaks inside the word, so the button goes under the text there.
+        // Large text needs the full column. Keep recovery above the summary, which can include
+        // a long build identity or an error, so the action stays in view before scrolling.
         TextView summary = row.findViewById(android.R.id.summary);
         if (screen.getContext().getResources().getConfiguration().fontScale >= 1.5f
                 && summary != null && summary.getParent() instanceof android.widget.RelativeLayout) {
             android.widget.RelativeLayout.LayoutParams place = new android.widget.RelativeLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            place.addRule(android.widget.RelativeLayout.BELOW, android.R.id.summary);
+            action.setId(View.generateViewId());
+            place.addRule(android.widget.RelativeLayout.BELOW, android.R.id.title);
             place.addRule(android.widget.RelativeLayout.ALIGN_PARENT_START);
             ViewGroup column = (ViewGroup) summary.getParent();
             View earlier = column.findViewWithTag(STATUS_ACTION);
             if (earlier != null) column.removeView(earlier);
             action.setTag(STATUS_ACTION);
             column.addView(action, place);
+            android.widget.RelativeLayout.LayoutParams summaryPlace =
+                    (android.widget.RelativeLayout.LayoutParams) summary.getLayoutParams();
+            summaryPlace.addRule(android.widget.RelativeLayout.BELOW, action.getId());
+            summary.setLayoutParams(summaryPlace);
             frame.setVisibility(View.GONE);
             return;
         }

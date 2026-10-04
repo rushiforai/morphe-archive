@@ -39,6 +39,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 private const val PATCH = "Stop swipe to create"
 internal const val SWIPE_TO_CREATE = "$EXTENSION_PACKAGE/feed/SwipeToCreate;"
 internal const val HOLD = "$SWIPE_TO_CREATE->hold(FFLjava/lang/String;)I"
+internal const val ENABLED = "$SWIPE_TO_CREATE->enabled()I"
 
 /**
  * The view that slides Home aside for the camera, and the description of each move it makes.
@@ -66,15 +67,15 @@ private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
 private const val STRING = "Ljava/lang/String;"
 
 /**
- * Stops a sideways swipe on Home from opening the camera. Off in the default selection: the swipe
- * is one of Instagram's features, so turning it off is the user's pick. The + button and every
+ * Stops a sideways swipe on Home from opening the camera. Included in the default selection with
+ * its switch initially off, so turning the swipe off is the user's pick. The + button and every
  * other way into the camera still open it.
  */
 @Suppress("unused")
 val stopSwipeToCreatePatch = bytecodePatch(
     name = "Stop swipe to create",
     description = "Keeps a sideways swipe on Home from opening the camera. The + button and every other way into the camera still work.",
-    default = false,
+    default = true,
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)
@@ -235,7 +236,8 @@ private fun reasonField(container: ClassDef, config: ClassDef): String {
 
 /**
  * In front of the animate flag's read, the hook gets the clamped target, where the panels are now
- * and the move's reason, read into the flag's register. On a 0 the flag is read as before. On a 1
+ * and the move's reason, read into the flag's register. Disabled, paused or unready skips those
+ * added native reads entirely. On a 0 the flag is read as before. On a 1
  * the target becomes 0, Home, and the flag false in place of its read, so the move lands at rest
  * without the spring carrying it toward the camera.
  */
@@ -249,6 +251,9 @@ internal fun BytecodePatchContext.stopSwipeToCreate(site: SwipeToCreateSite) {
     setter.addInstructionsWithLabels(
         site.at,
         """
+            invoke-static { }, $ENABLED
+            move-result v${site.current}
+            if-eqz v${site.current}, :read
             $clamp, ${site.clamped}
             move-result v${site.current}
             move-object/from16 v${site.flag}, v${site.config}

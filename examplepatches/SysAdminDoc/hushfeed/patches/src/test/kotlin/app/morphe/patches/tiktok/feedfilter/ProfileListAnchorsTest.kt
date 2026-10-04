@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.feedfilter
 
 import app.morphe.Fixtures
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Field
@@ -30,7 +29,7 @@ class ProfileListAnchorsTest {
     @Test
     fun `a FeedItemList carries the profile uid a profile model stamps on it`() {
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             var field: Field? = null
             var stamps = 0
             for (entry in container.dexEntryNames) {
@@ -67,7 +66,7 @@ class ProfileListAnchorsTest {
     fun `profile lists are parsed through the one method the Feed filter marks them in`() {
         val impl = "Lcom/ss/android/ugc/aweme/services/ProfileDependentComponentImpl;"
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             var parse: com.android.tools.smali.dexlib2.iface.Method? = null
             var overridesIdentity = false
             val feedListCallers = mutableSetOf<String>()

@@ -215,7 +215,7 @@ class LinkRoutingFixtureTest {
     }
 
     private fun hostClasses(build: File): List<ClassDef> {
-        val sinks = FixtureDex.classesWhere(build, { true }) { method ->
+        val sinks = FixtureDex.classesWhere(build, HOST_CENSUS, { true }) { method ->
             (method.returnType == "V" && method.parameterTypes.size == 10 &&
                 method.parameterTypes.take(2) == listOf("Landroid/content/Context;", "Landroid/net/Uri;") &&
                 method.instructions().any { it.ref() == "autologin_token" }) ||
@@ -292,6 +292,7 @@ class LinkRoutingFixtureTest {
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
     private fun Instruction.ref() = (this as? ReferenceInstruction)?.reference?.toString()
     private companion object {
+        val HOST_CENSUS = FixtureDex.ClassCensus()
         const val MC = "Lorg/telegram/messenger/MessagesController;"
         const val UC = "Lorg/telegram/messenger/UserConfig;"
         val RUNTIME_WORDS = mapOf("tryOpenExternal" to 5, "cleanOpenedUri" to 3, "cleanShareIntent" to 1)

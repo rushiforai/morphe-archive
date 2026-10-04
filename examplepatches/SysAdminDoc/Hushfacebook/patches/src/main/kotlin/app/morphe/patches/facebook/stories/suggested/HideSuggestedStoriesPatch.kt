@@ -36,6 +36,9 @@ internal const val LABEL_STUB = "label"
 internal const val TYPE_STUB = "bucketType"
 internal const val COPY_STUB = "immutableCopy"
 
+/** The extension method each tray fetch asks before it sets [SKIP_PROMPT_CARDS]. */
+internal const val SKIP_PROMPT_CARDS_HOOK = "$SUGGESTED_STORIES->skipPromptCards(Z)Z"
+
 /** What the patch found. See SuggestedStoryAnchors.kt for what each is on 577 and 580. */
 internal class TrayBuckets(
     /** The tray data class's one constructor, and which of its parameters is the bucket list. */
@@ -59,8 +62,11 @@ internal class TrayBuckets(
  * buckets Facebook marks as suggested, the way the tray's own card decides to say "Suggested":
  * the bucket's is_story_bucket_suggested flag, or SUGGESTED as its first label. The tray's cards go
  * by their bucket type, each behind its own switch: the People you may know cards and the Find
- * friends from contacts card. Everything else in the list stays, and so does everything else the
- * tray draws.
+ * friends from contacts card. Everything else in the list stays.
+ *
+ * The cards beside Create story, such as "Share music you love", come in a list of their own that
+ * the tray's fetch can ask the server to leave out. Each fetch's answer to that goes through the
+ * extension first, which asks for it when Hide story prompts is on (issue #21).
  */
 @Suppress("unused")
 val hideSuggestedStoriesPatch = bytecodePatch(
@@ -82,6 +88,7 @@ val hideSuggestedStoriesPatch = bytecodePatch(
         mutableClassDefBy(tray.constructor.definingClass).methods
             .single { it.name == "<init>" }
             .keepOnlyUnsuggestedBuckets(tray.list)
+        hookPromptCardSkips()
         enableStatus("suggestedStories")
     }
 }
@@ -239,6 +246,41 @@ internal fun BytecodePatchContext.fillBucketStubs(tray: TrayBuckets) {
             return-object p0
         """,
     )
+}
+
+/**
+ * Before each tray fetch sets [SKIP_PROMPT_CARDS], its boolean goes through the extension and the
+ * answer takes its place. Two query builders set it on every declared build, each once. Answers how
+ * many places were hooked.
+ */
+internal fun BytecodePatchContext.hookPromptCardSkips(): Int {
+    val methods = classDefByStrings(SKIP_PROMPT_CARDS, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { classDef -> classDef.methods.filter { holdsString(it, SKIP_PROMPT_CARDS) }.map { classDef.type to it } }
+    if (methods.isEmpty()) throw PatchException("$PATCH: no tray fetch sets \"$SKIP_PROMPT_CARDS\"")
+
+    var hooked = 0
+    for ((type, found) in methods) {
+        val sites = promptCardSkips(found) ?: throw PatchException(
+            "$PATCH: $type->${found.name} doesn't pass \"$SKIP_PROMPT_CARDS\" straight to a (String, boolean) setter",
+        )
+        val parameters = found.parameterTypes.map { it.toString() }
+        val method = mutableClassDefBy(type).methods.single {
+            it.name == found.name && it.returnType == found.returnType && it.parameterTypes.map { p -> p.toString() } == parameters
+        }
+        // Last first, so each index still points at its setter.
+        for ((index, register) in sites.asReversed()) {
+            method.addInstructions(
+                index,
+                """
+                    invoke-static/range { v$register .. v$register }, $SKIP_PROMPT_CARDS_HOOK
+                    move-result v$register
+                """,
+            )
+        }
+        hooked += sites.size
+    }
+    return hooked
 }
 
 /**

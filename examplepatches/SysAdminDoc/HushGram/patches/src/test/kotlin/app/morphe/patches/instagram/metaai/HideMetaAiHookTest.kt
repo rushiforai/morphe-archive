@@ -46,7 +46,7 @@ class HideMetaAiHookTest {
     /** Both hooks the patch writes are in the MetaAi the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(SEARCH_FLAG, META_AI_FILTER, FOLLOW_UP_BAR, HOME_BUTTON)) {
+        for (hook in listOf(SEARCH_FLAG, META_AI_FILTER, FOLLOW_UP_BAR, HOME_BUTTON, COMPOSER_BUTTON, INBOX_ROW)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }

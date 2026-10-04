@@ -81,6 +81,10 @@ public class SettingsScreenStatesTest {
         return String.valueOf(row.getSummary());
     }
 
+    private static String withBuild(String message) {
+        return L10n.t(message) + "\n" + L10n.f("Build %1$s", L10n.isolate("unknown"));
+    }
+
     /** A phone whose only browser is off: Android throws where the page asks for one. */
     public static final class NoBrowserAround extends Activity {
         @Override
@@ -116,7 +120,7 @@ public class SettingsScreenStatesTest {
 
             pause.setChecked(true);
             ShadowLooper.idleMainLooper();
-            assertTrue(summary(card), summary(card).endsWith(L10n.t("HushThreads pauses when Threads restarts.")));
+            assertTrue(summary(card), summary(card).endsWith(withBuild("HushThreads pauses when Threads restarts.")));
 
             pause.setChecked(false);
             ShadowLooper.idleMainLooper();
@@ -133,15 +137,15 @@ public class SettingsScreenStatesTest {
             HushThreadsPreferenceFragment page = open(controller.get());
             Preference card = titled(page.getPreferenceScreen(), L10n.t("HushThreads is paused"));
             assertNotNull(card);
-            assertTrue(summary(card), summary(card).endsWith(L10n.t("Tap to turn it back on.")));
+            assertTrue(summary(card), summary(card).endsWith(withBuild("Tap to turn it back on.")));
 
             card.getOnPreferenceClickListener().onPreferenceClick(card);
             ShadowLooper.idleMainLooper();
-            assertEquals(L10n.t("HushThreads turns back on when Threads restarts."), summary(card));
+            assertEquals(withBuild("HushThreads turns back on when Threads restarts."), summary(card));
 
             ((SwitchPreference) page.findPreference(BaseSettings.PAUSED.key)).setChecked(true);
             ShadowLooper.idleMainLooper();
-            assertTrue(summary(card), summary(card).endsWith(L10n.t("Tap to turn it back on.")));
+            assertTrue(summary(card), summary(card).endsWith(withBuild("Tap to turn it back on.")));
         }
     }
 

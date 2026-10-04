@@ -70,6 +70,7 @@ internal val settingsResources = resourcePatch(description = "Install HushMessen
 internal var discoveredControls: Map<String, List<Method>> = emptyMap()
 internal var nativeBubbleActivityVerified = false
 internal var nativeBubbleRoutesVerified = false
+internal var communityInboxContract: CommunityInboxContract? = null
 
 internal val settingsExtension = bytecodePatch(description = "Load HushMessenger runtime controls") {
     dependsOn(settingsResources)
@@ -79,6 +80,7 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         val classes = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
         classDefForEach { classes.add(it) }
         discoveredControls = findControls(classes)
+        communityInboxContract = findCommunityInbox(classes)
         val nativeGate = discoveredControls["bubble_mode"].orEmpty().singleOrNull()
         nativeBubbleRoutesVerified = nativeBubbleActivityVerified && nativeGate != null &&
             findNativeBubbleRoutes(classes, nativeGate.hookId()) == activeProfile.nativeBubbleRoutes
@@ -91,6 +93,7 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         activeProfile = BASE_PROFILE
         nativeBubbleActivityVerified = false
         nativeBubbleRoutesVerified = false
+        communityInboxContract = null
     }
 }
 
@@ -207,7 +210,22 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                     mutableClassDefBy(original.definingClass).methods.single { it.hookId() == original.hookId() }
                 }
             }
-            if (key == "bubbles") {
+            if (key == COMMUNITY_INBOX) {
+                val contract = communityInboxContract ?: throw PatchException("Messenger controls: the native community inbox route is missing")
+                val host = mutableClassDefBy(HOST_SCREENS)
+                val helpers = host.methods
+                val joined = helpers.singleOrNull { it.hookId() == JOINED_COMMUNITY_ROW }
+                    ?: throw PatchException("Messenger controls: the joined-community helper is missing")
+                val scope = helpers.singleOrNull { it.hookId() == MAIN_INBOX_SCOPE }
+                    ?: throw PatchException("Messenger controls: the Main inbox helper is missing")
+                val replacements = injectCommunityInbox(contract, methods.getValue(COMMUNITY_INBOX).single(), joined, scope)
+                // MutableMethod.implementation has no setter. Keep both method indexes in sync when replacing it.
+                val direct = host.directMethods
+                helpers.removeAll(listOf(joined, scope))
+                direct.removeAll(listOf(joined, scope))
+                helpers.addAll(replacements)
+                direct.addAll(replacements)
+            } else if (key == "bubbles") {
                 val capability = mutableClassDefBy(HOST_SCREENS).methods.singleOrNull { it.hookId() == NATIVE_BUBBLE_ROUTES }
                     ?: throw PatchException("Messenger controls: the extension has no native bubble capability")
                 injectNativeBubbles(methods.getValue("bubbles").single(), methods.getValue("bubble_mode").single(),
@@ -226,6 +244,9 @@ val hideInboxAdsPatch = controlPatch("ads", "Hide inbox ads", "Filters typed inb
 val hidePeoplePatch = controlPatch("people", "Hide People You May Know", "Hides suggested people in chats, search and stories, and on the People and Notifications tabs.", "Inbox", "people", "people_list_end", "people_jewel", "people_tab", "people_search", "people_story")
 @Suppress("unused")
 val hideFriendRequestsPatch = controlPatch("friend_requests", "Hide friend request cards", "Hides friend request cards inside the inbox.", "Inbox")
+@Suppress("unused")
+val hideJoinedCommunityChatsPatch = controlPatch("community_inbox", "Hide joined community chats",
+    "Hides joined community-chat rows from the main inbox on its next render. Keeps Search, community folders, delivery and unread counts unchanged.", "Inbox")
 @Suppress("unused")
 val hideGrowthPatch = controlPatch("growth", "Hide growth prompts", "Hides the inbox's add-more-people promotion unit. " +
     "Also hides the tip sheets in notes, like Make my notes public, and the Share your own story card after someone else's stories.",
@@ -267,9 +288,9 @@ val useSystemEmojiPatch = controlPatch("use_system_emoji", "Use system emoji", "
 @Suppress("unused")
 val originalPhotoPatch = controlPatch("original_photo", "Send photos at original quality", "With HD on, sends a JPEG photo's own image data instead of a re-encoded copy, without its metadata except the rotation tag. Videos and photos over 20 MB are still compressed.", "Conversations")
 @Suppress("unused")
-val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, including view-once media and Quicksnap, and stops screenshot notices.", "Privacy", "allow_screenshot", "screenshot_viewers")
+val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, including view-once media and Quicksnap, and stops screenshot notices. This doesn't add replay or saving.", "Privacy", "allow_screenshot", "screenshot_viewers")
 @Suppress("unused")
-val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Suppresses your outgoing read receipt. In end-to-end encrypted chats, chats you open stay unread until you reply.", "Privacy", "hide_read_receipts", "read_mailbox")
+val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Stops sending read receipts. Opened encrypted chats can stay unread on this phone. Replying or switching this off may notify the sender. Group coverage isn't verified.", "Privacy", "hide_read_receipts", "read_mailbox")
 @Suppress("unused")
 val keepUnsentPatch = controlPatch("keep_unsent", "Keep unsent messages", "Preserves messages on verified legacy unsend routes. End-to-end encrypted chats are unsupported, and group coverage is unverified. Activity records intercepted legacy unsends, not chat support. Your own unsend may be limited.", "Privacy", "keep_unsent", "unsent_indicator", "delta_unsent")
 private var anonymousStoriesApplied = false

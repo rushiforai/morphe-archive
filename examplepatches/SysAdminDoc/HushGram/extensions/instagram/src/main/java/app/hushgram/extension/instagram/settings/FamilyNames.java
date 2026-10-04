@@ -28,6 +28,7 @@ public final class FamilyNames {
     public static final String STORY_TIME = "Show a story's exact time";
     public static final String STORY_LOOP = "Loop a story";
     public static final String STORY_SEEN = "View stories anonymously";
+    public static final String DM_MEDIA_SEEN = "View DM photos and videos anonymously";
     public static final String STORIES_TRAY = "Hide suggested stories";
     public static final String STORY_RING = "Story ring size";
     public static final String FEED_REELS = "Hide Reels in the feed";
@@ -36,6 +37,7 @@ public final class FamilyNames {
     public static final String SWIPE_TO_CREATE = "Stop swipe to create";
     public static final String META_AI = "Hide Meta AI";
     public static final String EXPLORE_GRID = "Hide the Explore grid";
+    public static final String NOTES_ROW = "Hide the notes row";
     public static final String SHARE_SHEET = "Hide group buttons on the share sheet";
     public static final String REPOST_BUTTON = "Hide the Repost button";
     public static final String BOTTOM_SPACE = "Remove the empty space at the bottom";

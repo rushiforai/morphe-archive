@@ -76,6 +76,10 @@ public final class HostScreens {
     /** Rewritten only when the native notification, shortcut and activity routes have been validated together. */
     static boolean nativeBubbleRoutes() { return false; }
 
+    /** Rewritten together after the Main inbox, native folder and subscribed-channel routes are proved. */
+    static boolean isJoinedCommunityRow(Object row) { return false; }
+    static boolean isMainInboxScope(Object callback, Object filter) { return false; }
+
     /**
      * Starts settings when SettingsProvider never ran, as on a Root Mount install. Only in Messenger's main process,
      * the one SettingsProvider runs in, so the other processes stay stock the way they are on a normal install.

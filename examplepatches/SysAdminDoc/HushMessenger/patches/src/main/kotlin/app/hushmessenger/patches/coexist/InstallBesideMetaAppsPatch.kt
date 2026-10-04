@@ -137,6 +137,16 @@ internal val expectedDexSites346013374 = mapOf(
     "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@821" to APP_COMMUNICATION_FORMAT,
 )
 
+/** The same six loads in all 16 builds of 581.0.0.49.91. Generated from 346213494's record. */
+internal val expectedDexSites346213494 = mapOf(
+    "LX/0S7;->A03()V@25" to APP_COMMUNICATION,
+    "LX/0iw;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/1ev;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1ev;Ljava/lang/String;Ljava/lang/String;)V@38" to APP_COMMUNICATION,
+    "LX/2Fd;->A01(Landroid/content/Intent;LX/2Fd;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/33E;->A04(ILX/5ac;Ljava/lang/Object;)Ljava/lang/Object;@135" to APP_COMMUNICATION_FORMAT,
+    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0a(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@507" to APP_COMMUNICATION_FORMAT,
+)
+
 /** Each supported build's permission loads, by version code, as scripts/profiles records them. */
 internal val expectedDexSitesByBuild: Map<Int, Map<String, String>> = mapOf(
     346013387 to expectedDexSites,
@@ -160,6 +170,22 @@ internal val expectedDexSitesByBuild: Map<Int, Map<String, String>> = mapOf(
     346013443 to expectedDexSites346013357,
     346013444 to expectedDexSites346013357,
     346013445 to expectedDexSites346013357,
+    346213494 to expectedDexSites346213494,
+    346213498 to expectedDexSites346213494,
+    346213510 to expectedDexSites346213494,
+    346213514 to expectedDexSites346213494,
+    346213528 to expectedDexSites346213494,
+    346213531 to expectedDexSites346213494,
+    346213532 to expectedDexSites346213494,
+    346213564 to expectedDexSites346213494,
+    346213567 to expectedDexSites346213494,
+    346213568 to expectedDexSites346213494,
+    346213580 to expectedDexSites346213494,
+    346213581 to expectedDexSites346213494,
+    346213582 to expectedDexSites346213494,
+    346213583 to expectedDexSites346213494,
+    346213584 to expectedDexSites346213494,
+    346213585 to expectedDexSites346213494,
 )
 
 internal fun expectedDexSitesFor(

@@ -1,3 +1,93 @@
+# [1.8.5](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.4...v1.8.5) (2026-10-04)
+
+### Fixes
+
+* anchor zero-width emote images to the preceding emote's trailing edge
+
+# [1.8.4](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.3...v1.8.4) (2026-10-03)
+
+### Fixes
+
+* correct 7TV zero-width flag handling
+* remove separator spacing before zero-width overlay emotes
+* restore FFZ global and channel emote loading
+* support FFZ animated and zero-width emotes
+
+# [1.8.1.13](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.12...v1.8.1.13) (2026-10-03)
+
+### Features
+
+* add a General setting for Following, Live or Clips as the default Home tab
+
+# [1.8.1.12](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.11...v1.8.1.12) (2026-10-03)
+
+### Fixes
+
+* target Twitch's native Home tab strip for a reliable Following default
+
+# [1.8.1.10](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.9...v1.8.1.10) (2026-10-03)
+
+### Fixes
+
+* use Morphe's supported MutableMethod.addInstruction API instead of mutating the exposed list
+
+# [1.8.1.9](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.8...v1.8.1.9) (2026-10-03)
+
+### Fixes
+
+* correct the Opcode enum references in the direct Twitch bytecode injection
+
+# [1.8.1.8](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.7...v1.8.1.8) (2026-10-03)
+
+### Fixes
+
+* use the actual Morphe/dexlib instruction list API and Opcode enum
+
+# [1.8.1.7](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.6...v1.8.1.7) (2026-10-03)
+
+### Fixes
+
+* remove all inline smali compilation from the actual Twitch patch source used by the build
+
+# [1.8.1.6](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.5...v1.8.1.6) (2026-10-03)
+
+### Fixes
+
+* rebuild Twitch 31.3.1 chat binder injection from the direct dexlib implementation
+
+# [1.8.1.5](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.4...v1.8.1.5) (2026-10-03)
+
+### Fixes
+
+* republish the Twitch 31.3.1 patch bundle as 1.8.1.5
+
+# [1.8.1.4](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.3...v1.8.1.4) (2026-10-03)
+
+### Fixes
+
+* remove the remaining InlineSmaliCompiler dependency from Twitch chat/emote injection
+* preserve chat timestamp message-model binding while using direct dexlib instructions
+
+# [1.8.1.3](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1.2...v1.8.1.3) (2026-10-03)
+
+### Fixes
+
+* fix Twitch 31.3.1 chat binder injection with Morphe Patcher 1.15.0
+* align the patch build dependency with Morphe Patcher 1.15.0
+
+\n# [1.8.1.2](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.1...v1.8.1.2) (2026-10-03)
+
+### Features
+
+* default Twitch navigation to Following on app open
+* render chat timestamps from the bound Twitch chat message model
+
+# [1.8.1](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.8.0...v1.8.1) (2026-10-03)
+
+### Features
+
+* consolidate 7TV, BTTV and FFZ controls into one `3rd party emotes` setting, enabled by default
+
 # [1.7.6](https://github.com/K8R8TO/kizu-morphe-patches/compare/v1.7.5...v1.7.6) (2026-10-03)
 
 ### Features

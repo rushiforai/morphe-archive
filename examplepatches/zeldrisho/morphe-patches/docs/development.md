@@ -78,7 +78,7 @@ build output, and local APK analysis are not formatting targets.
 | Android Lint | Extension production and test sources |
 | Ruff check + format | Pinned isolated hooks in `.pre-commit-config.yaml`; `scripts/*.py` |
 | actionlint | Pinned isolated hook in `.pre-commit-config.yaml`; workflows; ShellCheck when available |
-| Conflict markers + mixed line endings | `.pre-commit-config.yaml`; tracked text files |
+| Conflict markers, mixed line endings, and YAML/JSON syntax | `.pre-commit-config.yaml`; tracked text/config files |
 
 `qualityCheck` aggregates Spotless, detekt, and Android Lint. Reports live in
 `patches/build/reports/detekt/` and `extensions/*/build/reports/`.
@@ -86,7 +86,10 @@ Gradle dependencies and CI action revisions are pinned for reproducible builds.
 CI runs the pinned `pre-commit/action` GitHub Action; Ruff and actionlint are
 provided by pinned, isolated hook environments, keeping their versions consistent
 locally and in CI. Other hook repositories and revisions remain pinned in
-`.pre-commit-config.yaml`.
+`.pre-commit-config.yaml`; update them with `pre-commit autoupdate --freeze`,
+review the resolved commits, then run verification. A bare `pre-commit install`
+installs both configured hook types. Commits do not run Gradle or SDK builds;
+pushes with files matching the hook's pattern run `gradle-quality`.
 Detekt **2.0.0-alpha.6**
 remains intentional: its compiler matches Morphe's Kotlin **2.4.10**; stable Detekt
 1.23.8 targets Kotlin 2.0.21 and is not a compatible drop-in. Recheck the
@@ -95,13 +98,14 @@ changing either. Use documented rule exceptions, not a baseline of ignored findi
 
 ### Optional commit hooks
 
+Install the configured commit hook with:
+
 ```bash
 pre-commit install
-pre-commit uninstall # removes only the pre-commit-managed hook
 ```
 
-The first run needs network access to fetch the configured isolated hook
-environments. Commits do not run Gradle or SDK builds.
+Remove it with `pre-commit uninstall`. The first run needs network access to
+fetch the configured isolated hook environments.
 
 ### Apply formatting explicitly
 

@@ -5,7 +5,6 @@
 package app.morphe.patches.tiktok.interaction.videooverlays
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,7 +20,7 @@ class LiveRoomAnchorsTest {
     @Test
     fun `each declared build has the LIVE room activity the status bar switch looks for`() {
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val found = container.dexEntryNames.any { entry ->
                 container.getEntry(entry)!!.dexFile.classes.any { it.type == liveRoom }
             }

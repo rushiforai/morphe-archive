@@ -289,6 +289,96 @@ public class LogBufferManagerExportTest {
         }
     }
 
+    @Test public void everyApiIdentityFormReachesEachExportSourceWithoutItsCanary() throws Exception {
+        Context context = RuntimeEnvironment.getApplication();
+        app.hushtelegram.extension.shared.Utils.setContext(context);
+        app.hushtelegram.extension.shared.settings.BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        app.hushtelegram.extension.shared.diagnostics.HookStatus.clear();
+        LogBufferManager.clearLogBuffer();
+        String[][] corpus = app.hushtelegram.extension.shared.diagnostics.DiagnosticRedactorTest.API_IDENTITY_CORPUS;
+        String[][] boundaries = app.hushtelegram.extension.shared.diagnostics.DiagnosticRedactorTest.JSON_PAIR_BOUNDARY_CORPUS;
+        String controls = app.hushtelegram.extension.shared.diagnostics.DiagnosticRedactorTest.API_IDENTITY_CONTROLS;
+        // Keep every source below the clipboard cap so each row is exercised, rather than evicted.
+        for (int first = 0; first < corpus.length + boundaries.length; first += 20) {
+            int apiFrom = Math.min(first, corpus.length);
+            int apiTo = Math.min(first + 20, corpus.length);
+            int boundaryFrom = Math.max(0, first - corpus.length);
+            int boundaryTo = Math.max(0, Math.min(boundaries.length, first + 20 - corpus.length));
+            LogBufferManager.clearLogBuffer();
+            java.util.List<String> section = new java.util.ArrayList<>();
+            StringBuilder crash = new StringBuilder("complete: true\njava.io.IOException: 401\n");
+            for (int i = apiFrom; i < apiTo; i++) {
+                String message = corpus[i][0] + " api_end_" + i + " " + controls;
+                LogBufferManager.appendEvent(app.hushtelegram.extension.shared.diagnostics.DiagnosticCategory.FEED,
+                        "ApiIdentity" + i, "INFO", message);
+                crash.append("crash_api_").append(i).append(' ').append(message).append('\n');
+                section.add("section_api_" + i + " " + message);
+            }
+            for (int i = boundaryFrom; i < boundaryTo; i++) {
+                String message = "pair_begin_" + i + " " + boundaries[i][0] + " pair_end_" + i + " " + controls;
+                LogBufferManager.appendEvent(app.hushtelegram.extension.shared.diagnostics.DiagnosticCategory.FEED,
+                        "JsonPair" + i, "INFO", message);
+                crash.append("crash_pair_").append(i).append(' ').append(message).append('\n');
+                section.add("section_pair_" + i + " " + message);
+            }
+            LogBufferManager.persistCrashReport(context, crash.toString());
+            LogBufferManager.registerReportSection(new LogBufferManager.ReportSection() {
+                @Override public String title() { return "API IDENTITY PROBE"; }
+                @Override public java.util.List<String> lines() { return section; }
+            });
+            try {
+                String report = LogBufferManager.buildExportText();
+                LogBufferManager.exportToClipboard();
+                app.hushtelegram.extension.shared.Utils.awaitBackgroundTasksForTests();
+                org.robolectric.shadows.ShadowLooper.idleMainLooper();
+                android.content.ClipboardManager clipboard = context.getSystemService(android.content.ClipboardManager.class);
+                String copied = String.valueOf(clipboard.getPrimaryClip().getItemAt(0).getText());
+                Downloads downloads = Robolectric.setupContentProvider(Downloads.class, MediaStore.AUTHORITY);
+                ByteArrayOutputStream body = new ByteArrayOutputStream();
+                Shadows.shadowOf(context.getContentResolver()).registerOutputStream(downloads.uriFor(1), body);
+                LogBufferManager.exportToFile();
+                app.hushtelegram.extension.shared.Utils.awaitBackgroundTasksForTests();
+                org.robolectric.shadows.ShadowLooper.idleMainLooper();
+                String[][] exports = {{"report", report}, {"clipboard", copied},
+                        {"file", body.toString(StandardCharsets.UTF_8.name())}};
+                for (String[] export : exports) {
+                    for (int i = apiFrom; i < apiTo; i++) {
+                        String end = "api_end_" + i + " " + controls;
+                        String[] sources = {" | ApiIdentity" + i + " | INFO | ",
+                                "crash_api_" + i + " ", "section_api_" + i + " "};
+                        for (String source : sources) {
+                            int from = export[1].indexOf(source);
+                            int to = from < 0 ? -1 : export[1].indexOf(end, from);
+                            assertTrue(export[0] + " lost source " + source, from >= 0 && to > from);
+                            String text = export[1].substring(from, to + end.length());
+                            assertTrue(export[0] + " carried a synthetic canary in " + source,
+                                    !text.contains(corpus[i][1]));
+                            int counter = corpus[i][0].indexOf("counter");
+                            String counterField = corpus[i][0].substring(counter, corpus[i][0].indexOf('8', counter) + 1);
+                            assertTrue(export[0] + " changed the counter in " + source, text.contains(counterField));
+                        }
+                    }
+                    for (int i = boundaryFrom; i < boundaryTo; i++) {
+                        String end = "pair_end_" + i + " " + controls;
+                        String expected = "pair_begin_" + i + " " + boundaries[i][1] + " " + end;
+                        String[] sources = {" | JsonPair" + i + " | INFO | ",
+                                "crash_pair_" + i + " ", "section_pair_" + i + " "};
+                        for (String source : sources) {
+                            int from = export[1].indexOf(source);
+                            int to = from < 0 ? -1 : export[1].indexOf(end, from);
+                            assertTrue(export[0] + " lost JSON pair source " + source, from >= 0 && to > from);
+                            assertEquals(export[0] + " changed JSON pair boundaries in " + source, expected,
+                                    export[1].substring(from + source.length(), to + end.length()));
+                        }
+                    }
+                }
+            } finally {
+                LogBufferManager.clearReportSectionsForTests();
+                LogBufferManager.clearLogBuffer();
+            }
+        }
+    }
+
     /** MediaStore's Downloads table, as much of it as an export touches. */
     public static final class Downloads extends ContentProvider {
         private final Map<Long, ContentValues> rows = new HashMap<>();

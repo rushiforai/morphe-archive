@@ -12,9 +12,13 @@ import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.requireLocals
+import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.getFreeRegisterProvider
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -24,12 +28,17 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val PATCH = "Hide the Repost button"
 internal const val HIDE_REPOSTS = "$EXTENSION_PACKAGE/share/RepostButton;->hide()Z"
 internal const val REPOSTS_ELIGIBLE = "$EXTENSION_PACKAGE/share/RepostButton;->eligible(Ljava/lang/Boolean;)Ljava/lang/Boolean;"
+internal const val REPOSTS_FEED_UFI = "$EXTENSION_PACKAGE/share/RepostButton;->feedUfi(Landroid/view/View;Landroid/view/View;)V"
+internal const val REPOSTS_FEED_COMPONENT = "$EXTENSION_PACKAGE/share/RepostButton;->feedComponent()Z"
+internal const val REPOSTS_FEED_RESTORE = "$EXTENSION_PACKAGE/share/RepostButton;->restoreFeedUfi(Landroid/view/View;Landroid/view/View;)V"
 
 /** The post model, a kept name. */
 internal const val MEDIA = "Lcom/instagram/feed/media/Media;"
@@ -43,6 +52,13 @@ internal const val REPOSTS_FIELD = "enable_media_notes_production"
 internal val REPOSTS_HASH = REPOSTS_FIELD.hashCode()
 
 private const val BOOLEAN = "Ljava/lang/Boolean;"
+private const val BOUNCY_UFI_BUTTON = "Lcom/instagram/ui/widget/bouncyufibutton/IgBouncyUfiButtonImageView;"
+private const val UFI_COUNT = "Lcom/instagram/common/ui/base/IgTextView;"
+
+/** Feed's inflated repost icon and count in Instagram 449. */
+internal const val REPOSTS_UFI_ICON_ID = 0x7f0b35bc
+internal const val REPOSTS_UFI_COUNT_ID = 0x7f0b35bb
+internal const val REPOSTS_LABEL_ID = 0x7f136d26
 
 /** How far before a tree read its hash may be loaded, for a branch or two in between. */
 private const val HASH_REACH = 4
@@ -67,6 +83,8 @@ val hideRepostButtonPatch = bytecodePatch(
         val sites = findRepostSites()
         guardRepostGetter(sites.getter)
         sites.reads.groupBy { Triple(it.type, it.name, it.parameters) }.values.forEach(::filterRepostReads)
+        hideFeedUfi(findFeedUfiSite())
+        hideFeedComponent(findFeedRepostComponent())
         enableStatus("repostButton")
     }
 }
@@ -78,6 +96,17 @@ internal class RepostRead(val type: String, val name: String, val parameters: Li
 
 /** The post model's getter of the field, and every tree read of it outside the model. */
 internal class RepostSites(val getter: String, val reads: List<RepostRead>)
+
+/** Feed's already-inflated UFI repost views and the point before the Share button is bound. */
+internal class FeedUfiSite(
+    val type: String,
+    val name: String,
+    val parameters: List<String>,
+    val insert: Int,
+    val holder: Int,
+    val icon: FieldReference,
+    val count: FieldReference,
+)
 
 /**
  * Finds [MEDIA]'s one getter of [REPOSTS_FIELD]: an instance method taking nothing, answering a
@@ -107,6 +136,79 @@ internal fun BytecodePatchContext.findRepostSites(): RepostSites {
     return RepostSites(getter.name, reads)
 }
 
+/**
+ * Finds the Feed UFI binder that inflates `reposts_ufi_icon` and `reposts_ufi_count`, then inserts
+ * before the next bouncy UFI button field. On 449 that next button is Share, so every native repost
+ * icon/count update has already run and Share remains untouched.
+ */
+internal fun BytecodePatchContext.findFeedUfiSite(): FeedUfiSite {
+    val sites = mutableListOf<FeedUfiSite>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.forEach { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@forEach
+            val iconId = code.indexOfLiteral(REPOSTS_UFI_ICON_ID)
+            val countId = code.indexOfLiteral(REPOSTS_UFI_COUNT_ID)
+            if (iconId < 0 || countId < 0) return@forEach
+            val icon = code.fieldStoreAfter(iconId, BOUNCY_UFI_BUTTON) ?: return@forEach
+            val count = code.fieldStoreAfter(countId, UFI_COUNT) ?: return@forEach
+            if (icon.holder != count.holder) {
+                refuse("${classDef.type}->${method.name} stores Feed UFI icon and count on different holders")
+            }
+            val insert = code.indexOfFirstBouncyReadAfter(maxOf(icon.at, count.at), icon.field)
+            if (insert < 0) refuse("${classDef.type}->${method.name} has Feed UFI views but no following Share button read")
+            sites += FeedUfiSite(
+                classDef.type,
+                method.name,
+                method.parameterTypes.map(CharSequence::toString),
+                insert,
+                icon.holder,
+                icon.field,
+                count.field,
+            )
+        }
+    }
+    return sites.singleOrNull()
+        ?: refuse("expected one Feed UFI repost binder, found ${sites.size}")
+}
+
+/** The component-backed Feed row has its own Repost renderer, separate from the view binder. */
+internal fun BytecodePatchContext.findFeedRepostComponent(): Method {
+    val renders = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.forEach { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@forEach
+            if (!AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.size == 1 &&
+                method.parameterTypes.single().startsWith("L") && method.returnType.startsWith("L") &&
+                method.holdsString("android.widget.Button") && code.indexOfLiteral(REPOSTS_UFI_ICON_ID) >= 0 &&
+                code.indexOfLiteral(REPOSTS_LABEL_ID) >= 0) renders += method
+        }
+    }
+    return renders.singleOrNull() ?: refuse("expected one Feed Repost component renderer, found ${renders.size}")
+}
+
+/** Native component rendering accepts null for an empty component; neither icon nor count mounts. */
+internal fun BytecodePatchContext.hideFeedComponent(found: Method) {
+    val method = mutableClassDefBy(found.definingClass).methods.single {
+        it.name == found.name && it.parameterTypes.map(CharSequence::toString) == found.parameterTypes.map(CharSequence::toString) &&
+            it.returnType == found.returnType
+    }
+    method.requireLocals(PATCH, 1)
+    method.addInstructions(
+        0,
+        """
+            invoke-static { }, $REPOSTS_FEED_COMPONENT
+            move-result v0
+            if-eqz v0, :draw
+            const/4 v0, 0x0
+            return-object v0
+            :draw
+            nop
+        """,
+    )
+}
+
 private fun Method.holdsString(value: String) = implementation?.instructions?.any {
     ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == value
 } == true
@@ -114,6 +216,32 @@ private fun Method.holdsString(value: String) = implementation?.instructions?.an
 private fun Method.holdsHash() = implementation?.instructions?.any {
     it is NarrowLiteralInstruction && it.opcode == Opcode.CONST && it.narrowLiteral == REPOSTS_HASH
 } == true
+
+private fun List<Instruction>.indexOfLiteral(value: Int) = indexOfFirst {
+    it is NarrowLiteralInstruction && it.opcode == Opcode.CONST && it.narrowLiteral == value
+}
+
+private class FieldStore(val at: Int, val holder: Int, val field: FieldReference)
+
+private fun List<Instruction>.fieldStoreAfter(start: Int, fieldType: String): FieldStore? {
+    for (at in start + 1 until minOf(size, start + 12)) {
+        val instruction = this[at]
+        if (instruction.opcode != Opcode.IPUT_OBJECT || instruction !is TwoRegisterInstruction) continue
+        val field = ((instruction as? ReferenceInstruction)?.reference as? FieldReference) ?: continue
+        if (field.type == fieldType) return FieldStore(at, instruction.registerB, field)
+    }
+    return null
+}
+
+private fun List<Instruction>.indexOfFirstBouncyReadAfter(start: Int, skipped: FieldReference): Int {
+    for (at in start + 1 until size) {
+        val instruction = this[at]
+        if (instruction.opcode != Opcode.IGET_OBJECT) continue
+        val field = ((instruction as? ReferenceInstruction)?.reference as? FieldReference) ?: continue
+        if (field.type == BOUNCY_UFI_BUTTON && field.toString() != skipped.toString()) return at
+    }
+    return -1
+}
 
 private fun Method.repostReads(type: String): List<RepostRead> {
     val code = implementation?.instructions?.toList() ?: return emptyList()
@@ -188,4 +316,37 @@ internal fun BytecodePatchContext.filterRepostReads(reads: List<RepostRead>) {
             """,
         )
     }
+}
+
+/** Hide the Feed UFI repost views after Instagram has rebound them for this row. */
+internal fun BytecodePatchContext.hideFeedUfi(site: FeedUfiSite) {
+    val method = mutableClassDefBy(site.type).methods.single {
+        it.name == site.name && it.parameterTypes.map(CharSequence::toString) == site.parameters
+    }
+    val registers = method.getFreeRegisterProvider(site.insert, 2, site.holder)
+    val icon = registers.getFreeRegister()
+    val count = registers.getFreeRegister()
+    method.addInstructionsAtControlFlowLabel(
+        site.insert,
+        """
+            iget-object v$icon, v${site.holder}, ${site.icon}
+            iget-object v$count, v${site.holder}, ${site.count}
+            invoke-static { v$icon, v$count }, $REPOSTS_FEED_UFI
+        """,
+    )
+    // Native rebinding resets listeners/text, but not every icon's visibility. Remove only
+    // our previous hide before it reads the holder, so native state always wins afterwards.
+    val holderParameter = method.parameterTypes.indices.singleOrNull { method.parameterTypes[it] == site.icon.definingClass }
+        ?: refuse("${site.type}->${site.name} has no unique Feed UFI holder parameter")
+    method.requireLocals(PATCH, 3)
+    val holder = method.parameterRegisterNumber(holderParameter)
+    method.addInstructions(
+        0,
+        """
+            move-object/from16 v0, v$holder
+            iget-object v1, v0, ${site.icon}
+            iget-object v2, v0, ${site.count}
+            invoke-static { v1, v2 }, $REPOSTS_FEED_RESTORE
+        """,
+    )
 }

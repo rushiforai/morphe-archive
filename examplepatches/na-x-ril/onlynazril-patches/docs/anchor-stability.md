@@ -6,7 +6,11 @@ a non-zero exit means an anchor is missing. `app` defaults to `tiktok`, and each
 of checks inside the probe.
 
 The full dump of the comment component — class, views, layout, ids — is in
-[comment-cell-47.0.3.md](./comment-cell-47.0.3.md).
+[comment-cell-47.0.3.md](./comment-cell-47.0.3.md). The share sheet's download row, why the app
+offers it for a photo post only, and how the download patch takes it over, is in
+[download-47.1.4.md](./download-47.1.4.md). The profile background's AB gate, and the
+per-version check that chose a shape over a name, is in
+[profilebg-47.1.4.md](./profilebg-47.1.4.md).
 
 ## The rules behind the choices
 
@@ -53,6 +57,9 @@ The full dump of the comment component — class, views, layout, ids — is in
 | the pager's item model, and the storage behind its list contract | the feed filter's fourth hook, where the items the feed renders are kept | structural: the class carrying `getItems`/`getListCount`/`insertItemList`/`setItems` that no other such class sits above, then the contract its `getItems` calls, then that contract's implementations — no obfuscated name is written down | the patch fails, naming the candidates it found |
 | `Aweme#isAd`, `#isSoftAd`, `#isWithPromotionalMusic`, `#getAwemeRawAd` | what the ad filter drops | real-named flags and payload read by the extension through reflection, so checked here | that signal stops matching (the item is kept) |
 | `Aweme#getStatistics` → `AwemeStatistics#getPlayCount` / `#getDiggCount` | the view and like ranges | real-named getters, same reading | that count stops filtering (the item is kept, never dropped wrongly) |
+| `ACLCommonShare#getCode()` / `#getShowType()` / `#getTranscode()` | the app's download restriction and the watermark | real-named getters on the real-named model, two instructions each; the values are adapted from ReVanced's TikTok download patch (see [download-47.1.4.md](./download-47.1.4.md)) | the download stays restricted and the file keeps its watermark |
+| `Video#getDownloadAddr()` | the address the app saves, redirected to the highest quality playback variant | real-named getter on the real-named model | the file is fetched from the watermarked address |
+| the profile-background gate holder, and its `(boolean) -> boolean` gate | the profile-background patch's hook, answered `true` | structural: the one class reading `profile_bg_in_allow_list` / `profile_bg_enable_consumption_group` that also carries a `(Z)→Z` method next to a `(Z)→V` setter. Class and method names are obfuscated and rename every build (`X.0iZu`/`LIZIZ` on 46.2.3, `X.0OSK`/`LIZJ` on 47.1.4), so the shape is the anchor (see [profilebg-47.1.4.md](./profilebg-47.1.4.md)) | the patch fails (`expected one gate holder …`), or `VerifyAnchors` reports the shape missing |
 
 ## Surfaces (where the stamp appears)
 

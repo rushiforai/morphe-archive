@@ -169,6 +169,7 @@ public final class MarketplaceAdFilter {
             HookStatus.bound(FamilyNames.SPONSORED_MARKETPLACE, "Marketplace request");
             FeedFilterCounters.sawList(ROUTE, 1);
             FeedFilterCounters.sawKind(ROUTE, query);
+            MarketplaceResponseDiagnostics.request(query, body);
             boolean on = switchedOn();
             if (isAdsOnly(query)) {
                 if (!on) {
@@ -201,6 +202,7 @@ public final class MarketplaceAdFilter {
         MarketplaceSearchAds.Answer answer = null;
         try {
             if (piece == null || request == null || !inBuild()) return piece;
+            MarketplaceResponseDiagnostics.piece(piece, trackingName, request);
             String query = searchQuery(trackingName);
             if (query == null) return piece;
             synchronized (answers) {
@@ -225,6 +227,7 @@ public final class MarketplaceAdFilter {
     public static String responseWhole(@Nullable String text, @Nullable String trackingName) {
         try {
             if (text == null || !inBuild()) return text;
+            MarketplaceResponseDiagnostics.whole(text, trackingName);
             String query = searchQuery(trackingName);
             if (query == null) return text;
             MarketplaceSearchAds.Answer answer = newAnswer(query);
@@ -247,6 +250,7 @@ public final class MarketplaceAdFilter {
     public static String responseEnd(@Nullable Object request) {
         try {
             if (request == null) return null;
+            MarketplaceResponseDiagnostics.end(request);
             MarketplaceSearchAds.Answer answer;
             synchronized (answers) {
                 answer = answers.remove(request);
@@ -597,6 +601,7 @@ public final class MarketplaceAdFilter {
     static void forget() {
         lines.set(0);
         MarketplaceSearchAds.forget();
+        MarketplaceResponseDiagnostics.forget();
         synchronized (answers) {
             answers.clear();
         }

@@ -10,6 +10,9 @@ public final class UiStrings {
     // 0 = Japanese, 1 = English, 2 = Traditional Chinese; -1 follows the device locale.
     private static volatile int selectedLanguage = -1;
     static {
+        TEXT.put("本体ストレージ（アプリ専用フォルダー）", new String[]{"Device storage (app-specific folder)", "裝置儲存空間（應用程式專用資料夾）"});
+        TEXT.put("SDカード（アプリ専用フォルダー）", new String[]{"SD card (app-specific folder)", "SD 卡（應用程式專用資料夾）"});
+        TEXT.put("内部ストレージ（アプリ非公開領域）", new String[]{"Internal storage (private app data)", "內部儲存空間（應用程式私人資料）"});
         TEXT.put("ショート", new String[]{"Shorts", "短片"});
         TEXT.put("ショート動画の視聴", new String[]{"Watch short videos", "觀看短片"});
         TEXT.put("アプリを再起動", new String[]{"Restart app", "重新啟動應用程式"});
@@ -110,6 +113,14 @@ public final class UiStrings {
         TEXT.put("件", new String[]{" items", " 筆"});
         TEXT.put("ログイン画面の表示が停止しました。アプリを再起動して再試行してください。", new String[]{"The sign-in screen stopped responding. Restart the app and try again.", "登入畫面沒有回應。請重新啟動應用程式後重試。"});
         TEXT.put("ログイン画面を開けませんでした。\n", new String[]{"Could not open the sign-in screen.\n", "無法開啟登入畫面。\n"});
+        TEXT.put("保存", new String[]{"Save", "儲存"});
+        TEXT.put("ログイン方法", new String[]{"Sign-in method", "登入方式"});
+        TEXT.put("通常ログイン", new String[]{"Standard sign-in", "一般登入"});
+        TEXT.put("Cookie手動入力", new String[]{"Enter session cookie", "手動輸入 Cookie"});
+        TEXT.put("別の端末・PCでニコニコにログインし、ブラウザのCookieからuser_sessionの値を貼り付けてください。user_session=… の形式でも入力できます。Cookieは他の人に渡さないでください。", new String[]{"Sign in to Niconico on another device or PC and paste the user_session cookie value from your browser. You can also enter user_session=… . Do not share your cookie with others.", "請在其他裝置或電腦登入 Niconico，再貼上瀏覽器 Cookie 中的 user_session 值。也可輸入 user_session=… 。請勿將 Cookie 提供給他人。"});
+        TEXT.put("user_sessionの値、またはuser_session=… の形式で入力してください。", new String[]{"Enter the user_session value or use the user_session=… format.", "請輸入 user_session 值，或使用 user_session=… 格式。"});
+        TEXT.put("Cookieを保存しました。認証が通らない場合は、ログインし直してCookieを再取得してください。", new String[]{"Cookie saved. If authentication fails, sign in again and obtain a new cookie.", "已儲存 Cookie。若驗證失敗，請重新登入並取得新的 Cookie。"});
+        TEXT.put("Cookieを保存できませんでした。再試行してください。", new String[]{"Could not save the cookie. Please try again.", "無法儲存 Cookie，請重試。"});
         TEXT.put("ログインしました", new String[]{"Signed in", "已登入"});
         TEXT.put("ニコレポはサービスが終了しました。フォロー新着はニコニコ公式サイトで確認できます。", new String[]{"Nico Reports has been discontinued. Visit the official NicoNico website for new videos from followed users.", "Nico Reports 已停止服務。請前往 Niconico 官方網站查看追蹤對象的新影片。"});
         TEXT.put("保存先: ", new String[]{"Save location: ", "儲存位置： "});
@@ -122,6 +133,9 @@ public final class UiStrings {
         TEXT.put("この動画に対応する再生形式がありません", new String[]{"No supported playback format is available for this video", "這部影片沒有可支援的播放格式"});
         TEXT.put("再生情報の取得に失敗しました。通信状態や視聴権限を確認してください", new String[]{"Could not retrieve playback information. Check your connection and viewing permissions.", "無法取得播放資訊。請確認網路連線與觀看權限。"});
         TEXT.put("再生:%,d  コメント:%,d  マイリス:%,d  いいね:%,d", new String[]{"Views: %,d  Comments: %,d  Mylists: %,d  Likes: %,d", "觀看：%,d  留言：%,d  播放清單：%,d  按讚：%,d"});
+        TEXT.put("再生数", new String[]{"Views", "觀看"});
+        TEXT.put("いいね", new String[]{"Likes", "按讚"});
+        TEXT.put("マイリス", new String[]{"Mylists", "播放清單"});
         TEXT.put("動画再生", new String[]{"Play video", "播放影片"});
         TEXT.put("キャッシュ取得", new String[]{"Download cache", "下載快取"});
         TEXT.put("キャッシュの取得", new String[]{"Download cache", "下載快取"});

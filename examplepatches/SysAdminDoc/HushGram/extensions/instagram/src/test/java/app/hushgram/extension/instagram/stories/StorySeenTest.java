@@ -58,12 +58,16 @@ public class StorySeenTest {
     public void offPausedOrNotReadyTheBatchGoesOut() {
         Settings.VIEW_STORIES_ANONYMOUSLY.save(false);
         assertSame("off", batch, StorySeen.toSend(null, batch));
+        assertSame("retry off", batch, StorySeen.toRetry(null, batch));
         Settings.VIEW_STORIES_ANONYMOUSLY.save(true);
         PauseForTests.pause(HushgramPause.Reason.SWITCH);
         assertSame("paused", batch, StorySeen.toSend(null, batch));
+        assertSame("retry paused", batch, StorySeen.toRetry(null, batch));
         PauseForTests.resume();
         SettingsContextRule.withoutContext(() -> assertSame("settings not ready", batch, StorySeen.toSend(null, batch)));
+        SettingsContextRule.withoutContext(() -> assertSame("retry settings not ready", batch, StorySeen.toRetry(null, batch)));
         assertNull("the control: on, the same batch is held back", StorySeen.toSend(null, batch));
+        assertNull("retry on", StorySeen.toRetry(null, batch));
     }
 
     /** The button's switch on with nothing marked holds the batch back just as the switch alone does. */

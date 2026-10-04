@@ -15,7 +15,7 @@ If you have requests feel free to message me via hevalomevalo@gmail.com
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/heval99/Heval-Morphe-Patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v1.7.0](https://github.com/heval99/Heval-Morphe-Patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;42 patches total
 
 **📦 Sofascore** (5)
 - Block marketing notifications
@@ -55,7 +55,21 @@ If you have requests feel free to message me via hevalomevalo@gmail.com
 **📦 Pocket Color Wheel** (1)
 - Disable ads
 
+**📦 Pi Music Player** (2)
+- Disable ads
+- Enable Premium
+
 **📦 365Scores** (1)
+- Disable ads
+
+**📦 Simple Radio** (2)
+- Disable ads
+- Enable Premium
+
+**📦 WiFi Analyzer** (1)
+- Disable ads
+
+**📦 Zedge** (1)
 - Disable ads
 
 **📦 Saphe Link** (2)
@@ -67,9 +81,6 @@ If you have requests feel free to message me via hevalomevalo@gmail.com
 
 **📦 Tasker** (1)
 - Enable Full Version
-
-**📦 AnyDesk** (1)
-- Enable Premium
 
 **📦 Aqua Mail** (1)
 - Enable Premium
@@ -102,6 +113,9 @@ If you have requests feel free to message me via hevalomevalo@gmail.com
 - Enable Pro
 
 **📦 Unified Remote** (1)
+- Enable Pro
+
+**📦 YouCut** (1)
 - Enable Pro
 
 **📦 Weather Underground** (1)

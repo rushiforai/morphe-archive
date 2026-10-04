@@ -114,6 +114,8 @@ public final class OverrideImport {
 
     interface DirectorySync {
         void sync(File directory) throws IOException;
+        /** Test fault boundary; the production implementation has no observer. */
+        default void reached(String boundary, File file) throws IOException {}
     }
 
     private OverrideImport() {}
@@ -138,7 +140,9 @@ public final class OverrideImport {
     public static boolean discard(Activity activity) throws IOException {
         synchronized (LOCK) {
             allowed();
-            return new Store(activity, OverrideExchange.capture(activity)).discard();
+            OverrideExchange.Snapshot snapshot = OverrideExchange.capture(activity);
+            allowed();
+            return new Store(activity, snapshot).discard();
         }
     }
 
@@ -168,6 +172,7 @@ public final class OverrideImport {
             try { OverrideExchange.validated(document, first, target); }
             catch (IOException failure) { throw restoring ? new SavedCopyDoesntFit() : failure; }
             OverrideExchange.Snapshot before = settled(activity, first);
+            allowed();
             Map<Long, String> current = OverrideExchange.values(bytes(before.raw), before);
             Plan plan = plan(before, current, target);
             if (!restoring) {
@@ -190,19 +195,31 @@ public final class OverrideImport {
             // The commit boundary: the same session manager, store, schema and bytes as planned.
             OverrideExchange.Snapshot now = OverrideExchange.capture(activity);
             unchanged(before, now);
+            allowed();
             Object table;
             try { table = DeveloperOptions.getOverrideTableNative(now.manager); }
             catch (Throwable failure) { throw invalid(); }
             if (table == null) throw invalid();
+            allowed();
             try {
                 if (restoring) store.saveReplaced(OverrideExchange.export(before));
                 else store.savePending(OverrideExchange.export(before));
                 store.arm(before);
             } catch (IOException failure) {
                 // Nothing was written, so the store keeps its restore point and its marker state.
-                if (!restoring) store.dropPending();
-                if (!wasArmed) store.settle();
+                if (!restoring) store.abandon();
+                else if (!wasArmed) store.settle();
                 throw failure;
+            }
+
+            // Saving the journal can wait on storage. Recheck before the first typed write, and
+            // undo only this operation's staging if permission changed while it waited.
+            try { allowed(); }
+            catch (NotAllowed refused) {
+                if (!restoring) store.abandon();
+                else if (wasArmed) store.dropReplaced();
+                else store.settle();
+                throw refused;
             }
 
             int reached = 0;
@@ -213,11 +230,12 @@ public final class OverrideImport {
             }
             if (written && holds(now, expected(current, plan.changes))) {
                 if (restoring) return restored(store, wasArmed, plan, Outcome.APPLIED);
-                store.promote();
-                store.settle();
-                return new Result(Outcome.APPLIED, plan.changes.size(), 0, false);
+                boolean complete = store.promote() && store.settle();
+                return new Result(Outcome.APPLIED, plan.changes.size(), 0, !complete);
             }
             // Put back everything that may have reached the table, the failed write included.
+            // Journal that this copy is undoing a failed import before touching the table again.
+            if (!restoring && !store.beginRollback()) return new Result(Outcome.UNRECOVERED, 0, 0, true);
             boolean undone = true;
             for (int i = reached - 1; i >= 0; i--) {
                 Change change = plan.changes.get(i);
@@ -225,9 +243,9 @@ public final class OverrideImport {
             }
             if (undone && holds(now, current)) {
                 // The store is as it was, and so is its restore point and whether it was armed.
-                if (!restoring) store.dropPending();
-                if (!restoring || !wasArmed) store.settle();
-                return new Result(Outcome.ROLLED_BACK, 0, 0, wasArmed && restoring);
+                boolean complete = !restoring ? store.abandon()
+                        : wasArmed ? store.dropReplaced() : store.settle();
+                return new Result(Outcome.ROLLED_BACK, 0, 0, (wasArmed && restoring) || !complete);
             }
             // This import's copy is now the only way back.
             if (!restoring) store.promote();
@@ -242,11 +260,10 @@ public final class OverrideImport {
      */
     private static Result restored(Store store, boolean wasArmed, Plan plan, Outcome held) {
         if (plan.skipped == 0) {
-            store.restoredFully();
-            return new Result(held, plan.changes.size(), 0, false);
+            return new Result(held, plan.changes.size(), 0, !store.restoredFully());
         }
-        if (!wasArmed) store.settle();
-        return new Result(Outcome.PARTIAL, plan.changes.size(), plan.skipped, wasArmed);
+        boolean complete = wasArmed ? store.dropReplaced() : store.settle();
+        return new Result(Outcome.PARTIAL, plan.changes.size(), plan.skipped, wasArmed || !complete);
     }
 
     /** Off or paused, nothing here reads or writes the native store. */
@@ -382,121 +399,269 @@ public final class OverrideImport {
     }
 
     /**
-     * The files kept for one native store, named by a hash of its path so an account's copy never
-     * applies to another, in Instagram's private files outside the native store. The restore point
-     * is NAME.json. An import saves the previous overrides as NAME.pending.json and promotes it once
-     * it applied or couldn't be put back. A restore saves what it's about to replace as
-     * NAME.replaced.json. NAME.armed blocks imports until Restore or Discard. Every write is a
-     * synced temporary file moved into place, and the directory is synced after the move.
+     * One store's private recovery files. The durable marker names and hashes the selected copy;
+     * file presence alone never overrides that selection. A rollback journal preserves the older
+     * restore point while its pending copy repairs an interrupted native rollback.
      */
     private static final class Store {
-        final File directory, backup, pending, replaced, armed;
-        /** Set when Restore read the pending copy an interrupted or unpromoted import left. */
-        boolean restoringPending;
+        final File directory, backup, pending, replaced, armed, completed;
+        final List<File> copies;
+        final long hostCode;
+        String selected = "backup", digest, previous = "-", phase = "import";
 
         Store(Activity activity, OverrideExchange.Snapshot snapshot) throws IOException {
             directory = new File(activity.getFilesDir(), DIRECTORY);
-            String name = sha256(snapshot.file.getPath());
+            String name = sha256(snapshot.file.getPath().getBytes(StandardCharsets.UTF_8));
             backup = new File(directory, name + ".json");
             pending = new File(directory, name + ".pending.json");
             replaced = new File(directory, name + ".replaced.json");
             armed = new File(directory, name + ".armed");
+            completed = new File(directory, name + ".settled");
+            copies = Arrays.asList(backup, pending, replaced,
+                    new File(directory, backup.getName() + ".tmp"),
+                    new File(directory, pending.getName() + ".tmp"),
+                    new File(directory, replaced.getName() + ".tmp"),
+                    new File(directory, armed.getName() + ".tmp"));
+            hostCode = OverrideExchange.hostCode(snapshot);
         }
 
-        boolean isArmed() { return armed.exists(); }
+        boolean isArmed() throws IOException {
+            if (armed.exists()) return true;
+            for (File file : copies) if (!file.equals(backup) && file.exists()) return true;
+            if (completed.exists()) {
+                // The last journal is moved, never unlinked. If its directory sync fails, it
+                // remains a witness across a new Store/process even when no write can succeed.
+                try {
+                    if (!completed.isFile() || completed.length() > 512) return true;
+                    String[] record = new String(read(completed), StandardCharsets.UTF_8).split("\n", -1);
+                    if (record.length != 6 || !"1".equals(record[0]) || !Long.toString(hostCode).equals(record[1])
+                            || !Arrays.asList("import", "rollback", "complete").contains(record[4])
+                            || !("-".equals(record[5]) || record[5].matches("[0-9a-f]{64}"))) return true;
+                    if ("backup".equals(record[2])) {
+                        if (!backup.isFile() || !record[3].equals(sha256(read(backup)))) return true;
+                    } else if (!"none".equals(record[2]) || !"-".equals(record[3]) || backup.exists()) return true;
+                    sync(directory);
+                } catch (IOException | RuntimeException failure) {
+                    RestoreFirst blocked = new RestoreFirst();
+                    blocked.initCause(failure);
+                    throw blocked;
+                }
+            }
+            return false;
+        }
 
-        /**
-         * The copy Restore puts back. An armed store whose import never promoted its copy (it
-         * stopped partway, or the promotion failed) restores that pending copy, which holds the
-         * overrides from just before it.
-         */
         byte[] restorePoint(boolean wasArmed) throws IOException {
-            restoringPending = wasArmed && pending.isFile();
-            File source = restoringPending ? pending : backup;
+            File source = backup;
+            File journal = armed.exists() ? armed : wasArmed && completed.exists() ? completed : null;
+            if (journal != null) {
+                String[] record = new String(read(journal), StandardCharsets.UTF_8).split("\n", -1);
+                if (record.length == 1 && record[0].matches("[0-9]+")) {
+                    // Numeric markers never recorded which of two different copies was authoritative.
+                    if (pending.isFile() && backup.isFile() && !Arrays.equals(read(pending), read(backup))) {
+                        throw new SavedCopyDoesntFit();
+                    }
+                    source = pending.isFile() && !backup.isFile() ? pending : backup;
+                    selected = source.equals(pending) ? "pending" : "backup";
+                } else {
+                    if ((record.length != 4 && record.length != 6) || !"1".equals(record[0])
+                            || !Long.toString(hostCode).equals(record[1])
+                            || !Arrays.asList("pending", "backup", "none").contains(record[2])) throw new SavedCopyDoesntFit();
+                    selected = record[2];
+                    digest = record[3];
+                    if (record.length == 6) {
+                        phase = record[4];
+                        previous = record[5];
+                        if (!Arrays.asList("import", "rollback", "complete").contains(phase)
+                                || !("-".equals(previous) || previous.matches("[0-9a-f]{64}"))) throw new SavedCopyDoesntFit();
+                    }
+                    if ("none".equals(selected)) throw new NothingSaved();
+                    if (!digest.matches("[0-9a-f]{64}")) throw new SavedCopyDoesntFit();
+                    source = "pending".equals(selected) ? pending : backup;
+                    // A durable pending selection follows its own digest across an interrupted move.
+                    if (source.equals(pending) && !source.exists()) source = backup;
+                }
+            }
             if (!source.isFile()) throw new NothingSaved();
-            try (InputStream input = new FileInputStream(source)) { return OverrideExchange.read(input); }
+            byte[] document = read(source);
+            String found = sha256(document);
+            if (digest != null && !digest.equals(found)) throw new SavedCopyDoesntFit();
+            digest = found;
+            return document;
         }
 
-        void savePending(byte[] document) throws IOException { replace(pending, document); }
+        void savePending(byte[] document) throws IOException {
+            previous = backup.isFile() ? sha256(read(backup)) : "-";
+            replace(pending, document);
+            selected = "pending";
+            digest = sha256(document);
+            phase = "import";
+        }
+
         void saveReplaced(byte[] document) throws IOException { replace(replaced, document); }
-        void arm(OverrideExchange.Snapshot snapshot) throws IOException {
-            replace(armed, String.valueOf(OverrideExchange.hostCode(snapshot)).getBytes(StandardCharsets.UTF_8));
+
+        void arm(OverrideExchange.Snapshot snapshot) throws IOException { mark(); }
+
+        private byte[] marker() {
+            return ("1\n" + hostCode + "\n" + selected + "\n" + digest + "\n" + phase + "\n" + previous)
+                    .getBytes(StandardCharsets.UTF_8);
         }
 
-        /**
-         * Makes the pending copy the restore point, after the outcome is already known. If the move
-         * fails, the older restore point is removed so Restore can't put back the wrong overrides,
-         * and an armed store still restores from the pending copy. A sync failure after the move
-         * leaves nothing to undo: the writes are done and the copy is in place.
-         */
-        void promote() {
+        private void mark() throws IOException {
+            byte[] record = marker();
+            if (armed.isFile() && armed.length() == record.length && Arrays.equals(read(armed), record)) sync(directory);
+            else replace(armed, record);
+        }
+
+        boolean beginRollback() {
             try {
-                Files.move(pending.toPath(), backup.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException | RuntimeException failure) {
-                //noinspection ResultOfMethodCallIgnored
-                backup.delete();
-                return;
-            }
-            try { directorySync.sync(directory); }
-            catch (IOException | RuntimeException failure) { /* See above: the outcome already stands. */ }
+                phase = "rollback";
+                mark();
+                return true;
+            } catch (IOException | RuntimeException failure) { return false; }
         }
 
-        /** Best effort: a leftover pending copy is never read unless the store is armed. */
-        void dropPending() {
-            //noinspection ResultOfMethodCallIgnored
-            pending.delete();
+        /** Never deletes the older backup on failure; the selected digest still names pending. */
+        boolean promote() {
+            try {
+                if (!"pending".equals(selected)) return false;
+                if (!digest.equals(sha256(read(pending.exists() ? pending : backup)))) throw invalid();
+                if (!"import".equals(phase)) {
+                    phase = "import";
+                    mark();
+                }
+                if (pending.exists()) {
+                    directorySync.reached("beforeMove", backup);
+                    Files.move(pending.toPath(), backup.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                    directorySync.reached("moved", backup);
+                }
+                sync(directory);
+                selected = "backup";
+                mark();
+                return true;
+            } catch (IOException | RuntimeException failure) { return false; }
         }
 
-        /**
-         * Best effort, after the outcome is already known. A marker that won't go away only keeps
-         * imports waiting for Restore or Discard, which is the safe side.
-         */
-        void settle() {
-            //noinspection ResultOfMethodCallIgnored
-            armed.delete();
+        /** Select the older restore point durably before deleting a failed import's pending copy. */
+        boolean abandon() {
+            try {
+                if (!isArmed()) return true;
+                if ("-".equals(previous)) {
+                    selected = "none";
+                    digest = "-";
+                } else {
+                    if (!backup.isFile() || !previous.equals(sha256(read(backup)))) throw invalid();
+                    selected = "backup";
+                    digest = previous;
+                }
+                phase = "complete";
+                mark();
+                return settle();
+            } catch (IOException | RuntimeException failure) { return false; }
         }
 
-        /** The store matches its restore point again: a pending copy Restore read becomes it. */
-        void restoredFully() {
-            if (restoringPending) promote();
-            settle();
+        boolean dropReplaced() {
+            try { delete(replaced); return true; }
+            catch (IOException | RuntimeException failure) { return false; }
         }
 
-        /** Removes the restore point, any pending copy and the marker, the marker last. */
+        /** Cleanup is checked and synced. Its marker remains until every auxiliary copy is gone. */
+        boolean settle() {
+            try {
+                if ("pending".equals(selected)) return false;
+                if (!isArmed()) return true;
+                mark();
+                for (File file : copies) if (!file.equals(backup)) delete(file);
+                finish();
+                return true;
+            } catch (IOException | RuntimeException failure) { return false; }
+        }
+
+        boolean restoredFully() {
+            if ("rollback".equals(phase)) return abandon();
+            return (!"pending".equals(selected) || promote()) && settle();
+        }
+
+        /** Discard commits its no-restore selection first; retry can safely remove remaining files. */
         boolean discard() throws IOException {
-            boolean found = false;
-            for (File file : new File[]{backup, pending, armed}) {
-                if (!file.exists()) continue;
-                found = true;
-                if (!file.delete() && file.exists()) throw invalid();
+            boolean found = armed.exists();
+            for (File file : copies) found |= file.exists();
+            if (!found && completed.exists()) {
+                try { found = isArmed(); }
+                catch (RestoreFirst damagedTerminal) {
+                    // A completed journal that can't be inspected is eligible for explicit Discard.
+                    found = true;
+                }
             }
-            return found;
+            if (!found) return false;
+            selected = "none";
+            digest = previous = "-";
+            phase = "complete";
+            // Replace the old journal even if the optional terminal inspection couldn't read it.
+            replace(armed, marker());
+            for (File file : copies) delete(file);
+            try { finish(); }
+            catch (IOException | RuntimeException failure) {
+                throw invalid();
+            }
+            return true;
+        }
+
+        /** Keep a small terminal witness so failed final durability never depends on a rescue write. */
+        private void finish() throws IOException {
+            directorySync.reached("beforeMove", completed);
+            Files.move(armed.toPath(), completed.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            directorySync.reached("moved", completed);
+            sync(directory);
+        }
+
+        private static byte[] read(File file) throws IOException {
+            try (InputStream input = new FileInputStream(file)) { return OverrideExchange.read(input); }
+        }
+
+        private static void sync(File directory) throws IOException {
+            directorySync.reached("beforeDirectorySync", directory);
+            directorySync.sync(directory);
+            directorySync.reached("directorySynced", directory);
+        }
+
+        private static void delete(File file) throws IOException {
+            if (!file.exists()) return;
+            directorySync.reached("beforeDelete", file);
+            if (!file.delete() && file.exists()) throw invalid();
+            directorySync.reached("deleted", file);
+            sync(Objects.requireNonNull(file.getParentFile()));
         }
 
         private static void replace(File target, byte[] bytes) throws IOException {
             File directory = Objects.requireNonNull(target.getParentFile());
-            if (!directory.isDirectory() && !directory.mkdirs() && !directory.isDirectory()) throw invalid();
+            directorySync.reached("beforeDirectory", directory);
+            if (!directory.isDirectory() && !directory.mkdir() && !directory.isDirectory()) throw invalid();
+            directorySync.reached("directoryCreated", directory);
+            // Also finish an earlier first-use creation whose parent sync failed.
+            sync(Objects.requireNonNull(directory.getParentFile()));
             File temporary = new File(directory, target.getName() + ".tmp");
             try {
+                directorySync.reached("beforeWrite", target);
                 try (FileOutputStream output = new FileOutputStream(temporary)) {
                     output.write(bytes);
+                    directorySync.reached("written", target);
                     output.getFD().sync();
+                    directorySync.reached("fileSynced", target);
                 }
+                directorySync.reached("beforeMove", target);
                 Files.move(temporary.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                directorySync.reached("moved", target);
             } catch (IOException | RuntimeException failure) {
-                //noinspection ResultOfMethodCallIgnored
-                temporary.delete();
+                try { delete(temporary); } catch (IOException | RuntimeException stillFailing) { /* The original failure is reported. */ }
                 throw invalid();
             }
-            directorySync.sync(directory);
+            sync(directory);
         }
 
-        private static String sha256(String text) throws IOException {
+        private static String sha256(byte[] bytes) throws IOException {
             try {
                 StringBuilder name = new StringBuilder();
-                for (byte value : MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8))) {
-                    name.append(String.format(Locale.ROOT, "%02x", value & 255));
-                }
+                for (byte value : MessageDigest.getInstance("SHA-256").digest(bytes)) name.append(String.format(Locale.ROOT, "%02x", value & 255));
                 return name.toString();
             } catch (Exception failure) { throw invalid(); }
         }

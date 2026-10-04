@@ -25,6 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.settings.SettingsEntry;
@@ -36,7 +37,8 @@ import app.morphe.extension.shared.L10n;
  *
  * <p>A save used to say "Saving..." when it started and nothing more until it ended, so a large
  * video looked stuck and nothing could stop one. The notification goes when the save ends, and the
- * toast that says how it ended stays as it was. A video WhatsApp may refuse leaves one note of its
+ * toast that says how it ended stays as it was. Successful publication leaves generic file actions.
+ * A video WhatsApp may refuse leaves one note of its
  * own behind, with a button to the switch that avoids it ({@link #showRefused}).
  *
  * <p>Cancel is a broadcast to a receiver registered in Facebook's process, not a component added to
@@ -78,7 +80,9 @@ public final class SaveControl {
     private static final Set<Watcher> WATCHERS = new CopyOnWriteArraySet<>();
 
     /** What a running save is doing. */
-    public enum Phase { DOWNLOADING, JOINING, SAVING }
+    public enum Phase { DOWNLOADING, JOINING, SAVING, PUBLISHING }
+
+    enum State { ACTIVE, PUBLISHING, SUCCEEDED, FAILED, CANCELLED }
 
     /**
      * Told when a save starts, moves on to its next phase or ends, and at most twice a second while
@@ -113,6 +117,7 @@ public final class SaveControl {
         public final Phase phase;
         public final long done;
         public final long total;
+        public final boolean canCancel;
 
         Running(Save save) {
             id = save.id;
@@ -120,6 +125,7 @@ public final class SaveControl {
             phase = save.phase;
             done = save.done;
             total = save.total;
+            canCancel = save.state() == State.ACTIVE;
         }
     }
 
@@ -139,6 +145,7 @@ public final class SaveControl {
                 phase = L10n.t("Joining the picture and sound");
                 break;
             case SAVING:
+            case PUBLISHING:
                 phase = L10n.t("Copying to the gallery");
                 break;
             default:
@@ -184,12 +191,11 @@ public final class SaveControl {
         }
     }
 
-    /** Cancels the save numbered [id], from its notification or the settings. Answers whether one was running. */
+    /** Answers whether cancellation won before this save claimed publication. */
     public static boolean cancel(int id) {
         Save save = RUNNING.get(id);
         if (save == null) return false;
-        save.cancel();
-        return true;
+        return save.cancel();
     }
 
     /** The Cancel broadcast for save [id], as the notification's button sends it. For tests. */
@@ -229,6 +235,34 @@ public final class SaveControl {
         } catch (Throwable t) {
             MediaDownload.failure(() -> "could not show the note about the saved format", t);
             return false;
+        }
+    }
+
+    /** Finished file actions require both the atomic success state and the writer's committed row. */
+    static void showCompleted(Save save, MediaStoreWriter writer) {
+        if (save.state() != State.SUCCEEDED || writer.publishedUri() == null || writer.publishedMime() == null) return;
+        NotificationManager manager = notifications(save.application);
+        if (manager == null) return;
+        try {
+            PendingIntent open = SavedFileActions.button(save.application, writer.publishedUri(), writer.publishedMime(), false);
+            PendingIntent share = SavedFileActions.button(save.application, writer.publishedUri(), writer.publishedMime(), true);
+            Notification note = new Notification.Builder(save.application, CHANNEL)
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setContentTitle(save.video ? L10n.t(save.application, "Video saved") : L10n.t(save.application, "Photo saved"))
+                .setCategory(Notification.CATEGORY_STATUS)
+                .setShowWhen(false)
+                .setOnlyAlertOnce(true)
+                .setAutoCancel(true)
+                .setContentIntent(open)
+                .addAction(new Notification.Action.Builder((Icon) null, L10n.t(save.application, "Open"), open).build())
+                .addAction(new Notification.Action.Builder((Icon) null, L10n.t(save.application, "Share"), share).build())
+                .build();
+            // URI identity also survives a process restarting its numeric running-save counter.
+            manager.notify(SavedFileActions.TAG + writer.publishedUri(), 0, note);
+        } catch (Throwable failure) {
+            // An exception's message may contain the local URI. Report only its class.
+            String kind = failure.getClass().getSimpleName();
+            MediaDownload.failure(() -> "could not show completed save actions (" + kind + ")", null);
         }
     }
 
@@ -314,7 +348,7 @@ public final class SaveControl {
         private final boolean video;
         private final PendingIntent cancel;
 
-        private volatile boolean cancelled;
+        private final AtomicReference<State> state = new AtomicReference<>(State.ACTIVE);
         private volatile Phase phase = Phase.DOWNLOADING;
         private volatile long done;
         private volatile long total = -1;
@@ -367,12 +401,16 @@ public final class SaveControl {
         public void reading(Runnable close) {
             closeReading = close;
             // A cancel that came before this connection existed ends it now.
-            if (cancelled) close(close);
+            if (cancelled()) close(close);
         }
 
         @Override
         public boolean cancelled() {
-            return cancelled;
+            return state() == State.CANCELLED;
+        }
+
+        State state() {
+            return state.get();
         }
 
         @Override
@@ -387,6 +425,21 @@ public final class SaveControl {
             tell();
         }
 
+        @Override
+        public boolean publishing() {
+            if (!state.compareAndSet(State.ACTIVE, State.PUBLISHING)) return false;
+            phase = Phase.PUBLISHING;
+            tell();
+            show(-1, 0, -1);
+            return true;
+        }
+
+        @Override
+        public void published(boolean success) {
+            state.compareAndSet(State.PUBLISHING, success ? State.SUCCEEDED : State.FAILED);
+            if (!success) state.compareAndSet(State.ACTIVE, State.FAILED);
+        }
+
         /**
          * Stops the save. On Android, closing its connection ends a read that's waiting at once.
          * Checked with app_process on the API 36 emulator, 2026-09-25, against a server that sent
@@ -398,15 +451,17 @@ public final class SaveControl {
          * closer is disconnect() (see Downloader). The notification goes straight away either
          * way, so the person sees the cancel take.
          */
-        void cancel() {
-            cancelled = true;
+        boolean cancel() {
+            if (!state.compareAndSet(State.ACTIVE, State.CANCELLED)) return false;
             Runnable close = closeReading;
             if (close != null) close(close);
             end();
+            return true;
         }
 
         /** The save is over, however it ended, and its notification goes. */
         void end() {
+            state.compareAndSet(State.ACTIVE, State.FAILED);
             synchronized (this) {
                 ended = true;
             }
@@ -433,11 +488,13 @@ public final class SaveControl {
                     .setOnlyAlertOnce(true)
                     .setShowWhen(false)
                     .setCategory(Notification.CATEGORY_PROGRESS)
-                    .setProgress(100, Math.max(0, percent), percent < 0)
-                    // The catalog's Cancel, in the language of the title above it.
-                    .addAction(new Notification.Action.Builder((Icon) null,
+                    .setProgress(100, Math.max(0, percent), percent < 0);
+                if (state() == State.ACTIVE) {
+                    builder.addAction(new Notification.Action.Builder((Icon) null,
                         L10n.t(application, "Cancel"), cancel).build());
-                String text = progressText(done, total);
+                }
+                String text = phase == Phase.PUBLISHING ? L10n.t(application, "Copying to the gallery")
+                    : progressText(done, total);
                 if (text != null) builder.setContentText(text);
                 manager.notify(TAG, id, builder.build());
             } catch (Throwable t) {

@@ -240,6 +240,125 @@ public class PostWordsTest {
         return PostWords.rules(hide, keep).judge(Arrays.asList(texts));
     }
 
+    private static PostWords.Verdict whole(String hide, String keep, String... texts) {
+        return PostWords.rules(hide, keep, true).judge(Arrays.asList(texts));
+    }
+
+    @Test
+    public void wholeWordsAreOptionalAndNeverCutAWordRun() {
+        for (String text : Arrays.asList("what", "that", "hats")) {
+            assertEquals(text, PostWords.Verdict.HIDE, judge("hat", "", text));
+            assertEquals(text, PostWords.Verdict.NO_MATCH, whole("hat", "", text));
+        }
+        assertEquals(PostWords.Verdict.HIDE, whole("hat", "", "hat!"));
+        assertEquals(PostWords.Verdict.HIDE, whole("hat", "", "a hat, please"));
+        assertEquals(PostWords.Verdict.HIDE,
+                PostWords.rules("hat", "", false).judge(Collections.singletonList("what")));
+    }
+
+    @Test
+    public void wholeWordsUseTheSameUnicodeNormalization() {
+        assertEquals(PostWords.Verdict.HIDE, whole("café", "", "CAFÉ!"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("café", "", "décaféiné"));
+        assertEquals(PostWords.Verdict.HIDE, whole("hat", "", "ＳＯＭＥ ＨＡＴ!"));
+        assertEquals(PostWords.Verdict.HIDE, whole("straße", "", "STRASSE!"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("straße", "", "Straßen"));
+    }
+
+    @Test
+    public void lettersMarksNumbersAndConnectorsStayInOneRun() {
+        for (String text : Arrays.asList("1hat", "hat1", "hat١", "_hat", "hat_", "hat‿",
+                "hat́", "hat⃝", "𐐨hat", "hat𐐨", "hat𐀀")) {
+            assertEquals(text, PostWords.Verdict.NO_MATCH, whole("hat", "", text));
+        }
+        assertEquals(PostWords.Verdict.HIDE, whole("hat", "", "hat-box"));
+        assertEquals(PostWords.Verdict.HIDE, whole("hat", "", "hat.box"));
+    }
+
+    @Test
+    public void internalApostrophesJoinLettersButQuotesDoNot() {
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("can", "", "can't"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("can", "", "can’t"));
+        assertEquals(PostWords.Verdict.HIDE, whole("can't", "", "can't!"));
+        assertEquals(PostWords.Verdict.HIDE, whole("can’t", "", "can’t!"));
+        assertEquals(PostWords.Verdict.HIDE, whole("can", "", "'can'"));
+        assertEquals(PostWords.Verdict.HIDE, whole("can", "", "‘can’"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("can̸", "", "can̸’t"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("can", "", "can'̸t"));
+    }
+
+    @Test
+    public void symbolsAndPunctuationHaveTheirOwnEndpoints() {
+        assertEquals(PostWords.Verdict.HIDE, whole("😀", "", "a😀b"));
+        assertEquals(PostWords.Verdict.HIDE, whole("👍🏽", "", "a👍🏽b"));
+        assertEquals(PostWords.Verdict.HIDE, whole("hat!", "", "hat!box"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("hat!", "", "what!box"));
+        assertEquals(PostWords.Verdict.HIDE, whole("@cat", "", "box@cat!"));
+        assertEquals(PostWords.Verdict.HIDE, whole(".*", "", "a.*b"));
+        assertEquals(PostWords.Verdict.HIDE, whole("😀hat", "", "a😀hat!"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("😀hat", "", "a😀hats"));
+    }
+
+    @Test
+    public void cjkIsOneRunWithoutGuessingWordBreaks() {
+        assertEquals(PostWords.Verdict.HIDE, whole("猫", "", "猫!"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("猫", "", "うちの猫です"));
+        assertEquals(PostWords.Verdict.HIDE, whole("猫犬", "", "猫犬!"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("猫犬", "", "猫犬鳥"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("한", "", "한국"));
+    }
+
+    @Test
+    public void everySuffixKeepsItsOwnBoundariesAndValidKeepsWin() {
+        assertEquals(PostWords.Verdict.HIDE, whole("copycat", "cat", "copycat"));
+        assertEquals(PostWords.Verdict.HIDE, whole("copycat!", "cat!", "copycat!"));
+        assertEquals(PostWords.Verdict.HIDE, whole("hat!", "at!", "hat!box"));
+        assertEquals(PostWords.Verdict.KEEP, whole("cat", "copycat", "copycat"));
+        assertEquals(PostWords.Verdict.KEEP, whole("copycat", "cat", "copycat cat"));
+        assertEquals(PostWords.Verdict.KEEP, whole("copycat", "cat", "copycat", "cat!"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("copycat", "cat", "copycats"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole("", "cat", "cat"));
+    }
+
+    @Test
+    public void changingOnlyTheModeRebuildsTheRules() {
+        PostWords.Rules substrings = PostWords.rules("hat", "cat", false);
+        assertSame(substrings, PostWords.rules("hat", "cat", false));
+        PostWords.Rules wholeWords = PostWords.rules("hat", "cat", true);
+        assertFalse(substrings == wholeWords);
+        assertSame(wholeWords, PostWords.rules("hat", "cat", true));
+        assertEquals(PostWords.Verdict.NO_MATCH, wholeWords.judge(Collections.singletonList("what")));
+        assertEquals(PostWords.Verdict.HIDE, PostWords.rules("hat", "cat", false)
+                .judge(Collections.singletonList("what")));
+    }
+
+    /** Nested suffixes must not turn each character into a walk of every matching phrase. */
+    @Test
+    public void wholeWordSuffixesAndAThousandPhrasesStayBounded() {
+        List<String> nested = new ArrayList<>();
+        for (int size = 2; size <= PostWords.MAX_LENGTH; size++) nested.add(repeat("a", size));
+        assertEquals(PostWords.Verdict.NO_MATCH,
+                whole(String.join("\n", nested), "aa", repeat("a", 10 * 1024)));
+        assertEquals(PostWords.Verdict.HIDE,
+                whole(String.join("\n", nested), "aa", repeat("a", PostWords.MAX_LENGTH)));
+        assertEquals(PostWords.Verdict.HIDE, whole(lines(1001, "p", "x"), "", "p999x!"));
+        assertEquals(PostWords.Verdict.NO_MATCH, whole(lines(1001, "p", "x"), "", "p1000x!"));
+
+        PostWords.Rules rules = PostWords.rules(WordsCorpus.hide(), WordsCorpus.keep(), true);
+        List<String> post = Collections.singletonList(WordsCorpus.post());
+        assertEquals(PostWords.Verdict.NO_MATCH, rules.judge(post));
+        long[] took = new long[200];
+        for (int warm = 0; warm < 50; warm++) rules.judge(post);
+        for (int run = 0; run < took.length; run++) {
+            long start = System.nanoTime();
+            rules.judge(post);
+            took[run] = System.nanoTime() - start;
+        }
+        Arrays.sort(took);
+        long p95 = took[(int) Math.ceil(took.length * 0.95) - 1];
+        assertTrue("whole words p95 " + p95 / 1000 + " us", p95 < 16_700_000L);
+    }
+
     @Test
     public void aHidePhraseAnywhereInThePostsWordsHidesIt() {
         assertEquals(PostWords.Verdict.HIDE, judge("spoiler", "", "Huge SPOILER for the finale"));

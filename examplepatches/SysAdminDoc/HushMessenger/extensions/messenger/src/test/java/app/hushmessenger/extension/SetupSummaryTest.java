@@ -69,7 +69,7 @@ public class SetupSummaryTest {
             assertTrue(text.contains("people: installed=true, selected=true, active=true,"));
             assertTrue(text.contains("stories: installed=false, selected=true, active=false,"));
             assertTrue(text.matches("(?s).*\nFacebook caller checks: trusted=\\d+, signer_differs=\\d+, meta_signed_build=\\d+, not_family=\\d+, error=\\d+\n"));
-            assertEquals(38, text.split("\n").length);
+            assertEquals(40, text.split("\n").length);
             assertFalse(text.contains("private-"));
             assertFalse(text.contains("account-secret"));
             assertFalse(text.contains("account_id"));
@@ -140,6 +140,62 @@ public class SetupSummaryTest {
         return RuntimeEnvironment.getApplication().getSystemService(ClipboardManager.class).getPrimaryClip().getItemAt(0).getText().toString();
     }
 
+    @Test public void setupReusesControlScopesWithoutTreatingActivityAsVisibleProof() throws Exception {
+        installedFeatures("hide_read_receipts", "keep_unsent", "allow_screenshot", "bubbles", "community_inbox");
+        Settings.preferences.edit().putBoolean("hide_read_receipts", true).commit();
+        Settings.activeAt.put("hide_read_receipts", System.currentTimeMillis());
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            String report = copiedSetup(screen.get().getWindow().getDecorView());
+            assertTrue(report.contains("Activity records show a control ran. They don't verify its visible effect or privacy protection.\n"));
+            for (String[] control : SettingsActivity.CONTROLS)
+                assertTrue(control[0], report.contains(", scope=" + control[2] + "\n"));
+            assertTrue(report.matches("(?s).*hide_read_receipts: installed=true, selected=true, active=true, last_active=\\d+s ago, scope=.*"));
+            assertTrue(report.contains("Replying or switching this off may notify the sender."));
+            assertTrue(report.contains("Activity records intercepted legacy unsends, not whether a chat is supported."));
+            assertTrue(report.contains("This doesn't add replay or saving."));
+            assertTrue(report.contains("Native Bubbles needs Android 11, account support and notification permissions."));
+            assertTrue(report.contains("Search and community folders keep them. Delivery and unread counts stay unchanged."));
+        }
+    }
+
+    @Test @Config(sdk = 36, qualifiers = "w411dp-h914dp-mdpi")
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void screenshotScopeRemainsVisibleAtLargeTextInBothThemes() throws Exception {
+        installedFeatures("allow_screenshot");
+        try {
+            for (boolean light : new boolean[] {false, true}) for (float scale : new float[] {1f, 2f}) {
+                RuntimeEnvironment.setFontScale(scale);
+                Settings.preferences.edit().clear().putBoolean("light", light).commit();
+                try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                    View root = screen.get().getWindow().getDecorView();
+                    ((android.widget.EditText) root.findViewWithTag("find_control")).setText("Allow screenshots");
+                    View target = (View) root.findViewWithTag("allow_screenshot").getParent();
+                    for (int pass = 0; pass < 3; pass++) {
+                        root.measure(View.MeasureSpec.makeMeasureSpec(411, View.MeasureSpec.EXACTLY),
+                            View.MeasureSpec.makeMeasureSpec(914, View.MeasureSpec.EXACTLY));
+                        root.layout(0, 0, 411, 914);
+                        if (pass == 1) target.requestRectangleOnScreen(new android.graphics.Rect(0, 0, target.getWidth(), target.getHeight()), true);
+                        Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+                    }
+                    android.graphics.Rect visible = new android.graphics.Rect();
+                    assertTrue(target.getGlobalVisibleRect(visible));
+                    assertEquals(target.getHeight(), visible.height());
+                    assertTrue(root.findViewWithTag("allow_screenshot").getContentDescription().toString().contains("This doesn't add replay or saving."));
+                    String output = System.getenv("HUSH_SETTINGS_CAPTURES");
+                    if (output != null) {
+                        var directory = java.nio.file.Path.of(output);
+                        java.nio.file.Files.createDirectories(directory);
+                        var pixels = android.graphics.Bitmap.createBitmap(411, 914, android.graphics.Bitmap.Config.ARGB_8888);
+                        root.draw(new android.graphics.Canvas(pixels));
+                        try (var stream = java.nio.file.Files.newOutputStream(directory.resolve("scope-" + (light ? "light" : "dark") + "-" + (int) scale + ".png"))) {
+                            assertTrue(pixels.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream));
+                        } finally { pixels.recycle(); }
+                    }
+                }
+            }
+        } finally { RuntimeEnvironment.setFontScale(1f); }
+    }
+
     @Test public void aFailedHookShowsInCopySetupAndOnItsSwitchWithoutTheExceptionMessage() throws Exception {
         installedFeatures("avatar_stickers", "people");
         Settings.preferences.edit().putBoolean("avatar_stickers", true).putBoolean("people", true).commit();
@@ -156,7 +212,7 @@ public class SetupSummaryTest {
             assertTrue(text, text.matches("(?s).*\nFacebook caller checks: [^\n]*\nHook errors:\n"
                 + "avatar_stickers: java\\.lang\\.UnsupportedOperationException at Settings\\.removeAvatarTabs:\\d+" + time
                 + "menu_row: java\\.lang\\.IllegalStateException at SetupSummaryTest\\.aFailedHookShowsInCopySetupAndOnItsSwitchWithoutTheExceptionMessage:\\d+" + time));
-            assertEquals(41, text.split("\n").length);
+            assertEquals(43, text.split("\n").length);
             assertFalse(text.contains("private-"));
             assertFalse(Settings.preferences.getAll().toString().contains("private-"));
         }

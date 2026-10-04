@@ -445,7 +445,8 @@ public final class LogBufferManager {
                 .append(" (").append(Utils.getAppVersionCode()).append(")\n")
                 .append("android: ").append(androidLine()).append('\n')
                 .append("abi: ").append(abiLine()).append('\n')
-                .append("morphe: ").append(Utils.getPatchesReleaseVersion()).append('\n');
+                .append("morphe: ").append(Utils.getPatchesReleaseVersion()).append('\n')
+                .append("patch_build: ").append(Utils.getPatchesBuildIdentity()).append('\n');
         if (paused) {
             report.append("hushfacebook: paused (")
                     .append(HushfacebookPause.reason().name().toLowerCase(java.util.Locale.ROOT))

@@ -27,7 +27,7 @@ import org.w3c.dom.Element
 import javax.xml.parsers.DocumentBuilderFactory
 
 class PureBlackTest {
-    private val palette = "Lfixture/Palette;"
+    private val bottomTabTint = "Lfixture/BottomTabTint;"
     private val extension = "Lapp/hushgram/extension/instagram/settings/Colors;"
 
     /**
@@ -80,11 +80,15 @@ class PureBlackTest {
     @Test
     fun theLiteralsGetPureBlack() {
         val patch = PatchContexts.of(listOf(
-            classDef(palette, """
+            classDef(COMPOSE_PALETTE, """
                 const v0, 0xff0c1014
                 const-wide v2, 0xff0c1014L
                 const v4, 0xff25292e
                 const-wide v2, 0xff25292eL
+                return-void
+            """),
+            classDef(bottomTabTint, """
+                const v0, 0xff0c1014
                 return-void
             """),
             classDef(extension, """
@@ -93,9 +97,9 @@ class PureBlackTest {
             """),
         ))
 
-        assertEquals(listOf("$palette->colors"), patch.blackenLiterals())
+        assertEquals(listOf("$COMPOSE_PALETTE->colors"), patch.blackenLiterals())
 
-        val code = patch.code(palette)
+        val code = patch.code(COMPOSE_PALETTE)
         assertEquals(Opcode.CONST, code[0].opcode)
         assertEquals(0, (code[0] as OneRegisterInstruction).registerA)
         assertEquals(PURE_BLACK.toInt(), (code[0] as WideLiteralInstruction).wideLiteral.toInt())
@@ -104,12 +108,13 @@ class PureBlackTest {
         assertEquals(PURE_BLACK, (code[1] as WideLiteralInstruction).wideLiteral)
         assertEquals(0xff25292e.toInt(), (code[2] as WideLiteralInstruction).wideLiteral.toInt())
         assertEquals(0xff25292eL, (code[3] as WideLiteralInstruction).wideLiteral)
+        assertTrue("bottom tab tint must keep Prism black", patch.code(bottomTabTint).any(::isPrismBlack))
         assertTrue("the extension's own color", patch.code(extension).any(::isPrismBlack))
     }
 
-    /** In each declared build, no Instagram method loads Prism's black any more, and the Compose palette was among them. */
+    /** In each declared build, the Compose palette loses Prism's black without touching unrelated owners. */
     @Test
-    fun eachDeclaredBuildLosesPrismBlack() {
+    fun eachDeclaredBuildChangesOnlyTheComposePalette() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()
         for (version in versions) {
@@ -126,11 +131,16 @@ class PureBlackTest {
 
                 val changed = patch.blackenLiterals()
 
-                assertTrue("${bundle.name}: the Compose palette", changed.any { it.startsWith("$COMPOSE_PALETTE->") })
-                for (classDef in classes) {
-                    assertTrue("${bundle.name}: ${classDef.type}", patch.classDefBy(classDef.type).methods.none { method ->
+                assertTrue("${bundle.name}: the Compose palette", changed.isNotEmpty() && changed.all { it.startsWith("$COMPOSE_PALETTE->") })
+                assertTrue("${bundle.name}: the Compose palette keeps no Prism black",
+                    patch.classDefBy(COMPOSE_PALETTE).methods.none { method ->
                         method.implementation?.instructions?.any(::isPrismBlack) == true
                     })
+                classes.filterNot { it.type == COMPOSE_PALETTE }.forEach { classDef ->
+                    assertTrue("${bundle.name}: ${classDef.type} keeps Prism black",
+                        patch.classDefBy(classDef.type).methods.any { method ->
+                            method.implementation?.instructions?.any(::isPrismBlack) == true
+                        })
                 }
                 checked += version
             }

@@ -6,6 +6,7 @@ import java.security.MessageDigest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -376,6 +377,36 @@ class VerifiedResourceStripperTest {
         assertTrue(message, message.contains("found 2 language directories, but the reviewed set has 3."))
         assertTrue(message, message.endsWith(UNREVIEWED_BUILD_HINT))
         assertArrayEquals("spanish".toByteArray(), root.resolve("assets/strings#lang_es/es.xrsc").readBytes())
+    }
+
+    @Test
+    fun `keeping every language passes an unreviewed bundle untouched instead of failing the run`() {
+        // Issue #96: a bundle merged with one language failed the default keep-all choice, and
+        // Morphe Manager stops the whole patch run on that.
+        val root = temporary.newFolder("single-language")
+        val french = root.write("assets/strings#lang_fr/fr.xrsc", "french")
+        val contract = languageContract(temporary.newFolder("reviewed").apply {
+            write("assets/strings#lang_en/en.xrsc", "english")
+            write("assets/strings#lang_fr/fr.xrsc", "french")
+        }, setOf("en", "fr"))
+
+        listOf(null, "", " , ", "all", "ALL, all").forEach { selection ->
+            val result = stripVerifiedLanguagePacks(root, selection, listOf(contract))
+            assertEquals("'$selection' removes nothing", 0, result.files)
+            assertNull(result.retainedLocales)
+            assertArrayEquals("french".toByteArray(), french.readBytes())
+        }
+        assertEquals(0, stripVerifiedLanguagePacks(temporary.newFolder("no-languages").apply {
+            resolve("assets").mkdirs()
+        }, "all", listOf(contract)).files)
+
+        // Asking for a removal still needs a reviewed inventory, and so does an unknown code.
+        listOf("en", "fr", "all, xx").forEach { selection ->
+            val error = assertThrows(PatchException::class.java) { stripVerifiedLanguagePacks(root, selection, listOf(contract)) }
+            assertTrue(error.message, error.message.orEmpty().endsWith(UNREVIEWED_BUILD_HINT))
+        }
+        french.writeBytes(byteArrayOf())
+        assertThrows(PatchException::class.java) { stripVerifiedLanguagePacks(root, "all", listOf(contract)) }
     }
 
     @Test

@@ -35,9 +35,9 @@ private val INSTALLER_SOURCE_CALLS = arrayOf(
 @Suppress("unused")
 val changeInstallerSourcePatch = bytecodePatch(
     name = "Change installer source",
-    description = "Spoofs the installer source so the app appears to be installed from an app store. " +
-        "Required for the patched app to pass the startup license check, " +
-        "otherwise it redirects to Google Play and closes.",
+    description = "Passes the startup license check by making the app appear installed from " +
+        "an app store. Only works on Android 10 and newer. " +
+        "On Android 9 and older use 'Remove license check' instead.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_OPL_MONITOR)

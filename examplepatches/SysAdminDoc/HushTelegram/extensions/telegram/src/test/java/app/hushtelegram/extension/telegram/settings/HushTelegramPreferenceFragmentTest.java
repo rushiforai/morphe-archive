@@ -90,6 +90,7 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_SPONSORED_PROXY, "Hide sponsored proxy channel");
         ROW_TITLES.put(PatchFamily.HIDE_POPULAR_APPS, "Hide popular apps");
         ROW_TITLES.put(PatchFamily.DISABLE_CHAT_SWIPE, "No swipe actions on chats");
+        ROW_TITLES.put(PatchFamily.DISABLE_CHANNEL_PULL, "Stop pull to next channel");
         ROW_TITLES.put(PatchFamily.QUIET_CONTACTS_NAG, "Quiet contacts prompts");
         ROW_TITLES.put(PatchFamily.HOLIDAY_LOOK, "New Year look all year");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop usage reports");
@@ -99,6 +100,7 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.OPEN_EXTERNAL_LINKS, "Open links externally");
         ROW_TITLES.put(PatchFamily.STRIP_LINK_TRACKING, "Strip link tracking");
         ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_CHECKS, "Turn off Telegram's update checks");
+        ROW_TITLES.put(PatchFamily.REPAIR_FIREBASE_PUSH, "Repair Firebase push registration");
     }
 
     /** The sections every build has, in the order they're drawn. */
@@ -208,9 +210,11 @@ public class HushTelegramPreferenceFragmentTest {
                         || build.contains(PatchFamily.HIDE_RECOMMENDATIONS) || build.contains(PatchFamily.HIDE_COMMERCE)
                         || build.contains(PatchFamily.HIDE_PROMOTIONAL_BANNERS) || build.contains(PatchFamily.HIDE_SPONSORED_PROXY)
                         || build.contains(PatchFamily.HIDE_POPULAR_APPS) || build.contains(PatchFamily.DISABLE_CHAT_SWIPE)
+                        || build.contains(PatchFamily.DISABLE_CHANNEL_PULL)
                         || build.contains(PatchFamily.QUIET_CONTACTS_NAG) || build.contains(PatchFamily.HOLIDAY_LOOK)) expected.add("Chats");
                 if (build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.DISABLE_CALL_DEBUG)
                         || build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS) || build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP)) expected.add("Privacy");
+                if (build.contains(PatchFamily.REPAIR_FIREBASE_PUSH)) expected.add("Notifications");
                 expected.addAll(EVERY_BUILD);
                 if (!expected.equals(sections)) wrong.add(build + ": sections " + sections);
             }
@@ -250,6 +254,13 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Telegram stops offering updates from telegram.org. Those can't install over this patched "
                     + "build, so patch each new version in Morphe Manager instead.",
                     String.valueOf(page.findPreference(Settings.DISABLE_UPDATE_CHECKS.key).getSummary()));
+            assertEquals("Stop pull to next channel", String.valueOf(page.findPreference(Settings.DISABLE_CHANNEL_PULL.key).getTitle()));
+            assertEquals("Pulling up at the bottom of a channel only scrolls. Open the next channel from your chat list.",
+                    String.valueOf(page.findPreference(Settings.DISABLE_CHANNEL_PULL.key).getSummary()));
+            assertEquals("Repair Firebase push registration", String.valueOf(page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key).getTitle()));
+            assertEquals("Uses Telegram's official certificate for Firebase push registration. "
+                            + "Notification permission and battery settings still apply.",
+                    String.valueOf(page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key).getSummary()));
             assertEquals("Open links externally", String.valueOf(page.findPreference(Settings.OPEN_EXTERNAL_LINKS.key).getTitle()));
             assertEquals("Opens ordinary HTTP(S) links in your browser. "
                             + "Telegram links, login, payment and authenticated routes keep their existing behavior.",
@@ -262,7 +273,8 @@ public class HushTelegramPreferenceFragmentTest {
             // Browser routing is on as shipped; optional tracking cleaning has its own off default.
             for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.DISABLE_ANALYTICS,
                     Settings.DISABLE_UPDATE_CHECKS, Settings.HIDE_PROMOTIONAL_BANNERS, Settings.HIDE_SPONSORED_PROXY,
-                    Settings.HIDE_POPULAR_APPS, Settings.OPEN_EXTERNAL_LINKS)) {
+                    Settings.HIDE_POPULAR_APPS, Settings.OPEN_EXTERNAL_LINKS, Settings.DISABLE_CHANNEL_PULL,
+                    Settings.REPAIR_FIREBASE_PUSH)) {
                 assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             assertFalse(Settings.STRIP_LINK_TRACKING.key,
@@ -314,6 +326,38 @@ public class HushTelegramPreferenceFragmentTest {
                 assertFalse("\"" + text + "\" names Facebook, Meta, Instagram or Threads",
                         text.contains("Facebook") || text.contains("Meta") || text.contains("Instagram") || text.contains("Threads"));
             }
+        }
+    }
+
+    @Test
+    public void localNotificationFactsStayReadableWhenTheRepairIsOffOrPaused() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REPAIR_FIREBASE_PUSH);
+        Settings.REPAIR_FIREBASE_PUSH.save(false);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            PauseForTests.pause(reason);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                Preference status = pageOf(controller).findPreference("local_notification_status");
+                assertNotNull("local facts must remain visible with repair off and Pause " + reason, status);
+                assertEquals("Local notification status", status.getTitle());
+                assertFalse("reading local status must not be an action", status.isSelectable());
+                assertFalse("local facts must not become a saved preference", status.isPersistent());
+                assertTrue(String.valueOf(status.getSummary()), String.valueOf(status.getSummary()).contains("Push token saved: Unknown"));
+                assertTrue(String.valueOf(status.getSummary()), String.valueOf(status.getSummary()).contains("Signed-in accounts: Unknown"));
+                assertTrue(String.valueOf(status.getSummary()), String.valueOf(status.getSummary()).contains("Accounts confirmed for push: Unknown"));
+            }
+            PauseForTests.resume();
+        }
+        Settings.REPAIR_FIREBASE_PUSH.resetToDefault();
+    }
+
+    @Test
+    public void omittedRepairHasNoLocalNotificationRowOrUnrelatedNotificationControls() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertEquals(null, page.findPreference("local_notification_status"));
+            assertEquals(null, page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key));
+            assertFalse(sections(page).contains("Notifications"));
         }
     }
 

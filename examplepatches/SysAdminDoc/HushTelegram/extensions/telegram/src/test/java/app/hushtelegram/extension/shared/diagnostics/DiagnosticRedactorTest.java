@@ -288,16 +288,30 @@ public class DiagnosticRedactorTest {
     /** An account id in Arabic-Indic digits, the way some languages print a number. */
     private static final String ARABIC_INDIC_ID = inDigitsFrom(0x660, "100012345678901");
 
+    /** Exact preservation controls carried through the JVM and ART export probe. */
+    public static final String API_IDENTITY_CONTROLS =
+            "apiHashCount=4 api_hash_count=5 APP_ID_count=6 APP_HASH_length=32 api_id_version=12.10.6"
+                    + " sha256=abcdef0123456789abcdef0123456789"
+                    + " build_hash=fedcba9876543210fedcba9876543210 ordinary_number=82539999";
+
     /** Short numeric values prove these names are hidden without relying on the bare 15-digit rule. */
     public static final String TELEGRAM_EXPORT_PROBE =
             "Telegram probe chat_id=81027031 dialogId=-81027032 peer_id=81027033 channel_id=-10081027034"
                     + " access_hash=7810234567890 phone=+1 (602) 555-0173"
                     + " link=tg:resolve?domain=telegramProbePrivate"
-                    + " app_version=12.10.6 version_code=71129 timestamp=1790000000000 retries=3 counter=8";
+                    + " apiHash=ea54fc5dbbce42aa93adf4bca4530678 api_hash=ae4ffc5dbbce42aa93adf4bca4530679"
+                    + " APP_HASH=be54fc5dbbce42aa93adf4bca453067a api_id=82531234 APP_ID=82531235"
+                    + " app_version=12.10.6 version_code=71129 timestamp=1790000000000 retries=3 counter=8 "
+                    + API_IDENTITY_CONTROLS;
     public static final String TELEGRAM_EXPORT_REDACTED =
             "Telegram probe chat_id=[omitted] dialogId=[omitted] peer_id=[omitted] channel_id=[omitted]"
                     + " access_hash=[omitted] phone=[omitted] link=[url omitted]"
-                    + " app_version=12.10.6 version_code=71129 timestamp=1790000000000 retries=3 counter=8";
+                    + " apiHash=[omitted] api_hash=[omitted] APP_HASH=[omitted] api_id=[omitted] APP_ID=[omitted]"
+                    + " app_version=12.10.6 version_code=71129 timestamp=1790000000000 retries=3 counter=8 "
+                    + API_IDENTITY_CONTROLS;
+
+    public static final String[][] API_IDENTITY_CORPUS = apiIdentityCorpus();
+    public static final String[][] JSON_PAIR_BOUNDARY_CORPUS = jsonPairBoundaryCorpus();
 
     public static final String[][] CREDENTIAL_CORPUS = inEveryForm(NAMES_IN_EVERY_FORM, new String[][]{
             {"{\"access_token\":\"EAABjsonKeyA1\",\"locale\":\"en_US\"}", "EAABjsonKeyA1"},
@@ -367,7 +381,8 @@ public class DiagnosticRedactorTest {
             // Telegram identifiers are often shorter than a timestamp, and dialog/channel ids
             // can carry a minus sign. The field name, rather than a number's length, hides them.
             {TELEGRAM_EXPORT_PROBE, "81027031", "81027032", "81027033", "10081027034",
-                    "7810234567890", "555-0173", "telegramProbePrivate"},
+                    "7810234567890", "555-0173", "telegramProbePrivate", "ea54fc5dbbce42aa93adf4bca4530678",
+                    "ae4ffc5dbbce42aa93adf4bca4530679", "be54fc5dbbce42aa93adf4bca453067a", "82531234", "82531235"},
             {"chatId: 81027035", "81027035"},
             {"dialog_id=-10081027036", "10081027036"},
             {"peerId => '81027037'", "81027037"},
@@ -505,6 +520,157 @@ public class DiagnosticRedactorTest {
         assertEquals(ordinary, DiagnosticRedactor.redact(ordinary));
     }
 
+    @Test public void apiIdentityNamesDoNotHideVersionsCountersOrUnrelatedDigests() {
+        String ordinary = API_IDENTITY_CONTROLS
+                + " apiHashDigest=abcdef0123456789abcdef0123456789 other_api_id=82539998"
+                + " APP_IDENTITY=82539997 app_identifier=82539996";
+        assertEquals(ordinary, DiagnosticRedactor.redact(ordinary));
+    }
+
+    @Test public void everyApiIdentityFormKeepsItsUnrelatedFieldsExactly() {
+        for (String[] row : API_IDENTITY_CORPUS) {
+            String text = row[0] + " " + API_IDENTITY_CONTROLS;
+            String redacted = DiagnosticRedactor.redact(text);
+            assertFalse("synthetic API identity survived: " + redacted, redacted.contains(row[1]));
+            assertTrue("unrelated controls changed: " + redacted, redacted.endsWith(API_IDENTITY_CONTROLS));
+            int counter = row[0].indexOf("counter");
+            String counterField = row[0].substring(counter, row[0].indexOf('8', counter) + 1);
+            assertTrue("the next counter was changed: " + redacted, redacted.contains(counterField));
+        }
+    }
+
+    @Test public void jsonIdentityPairsPreserveEveryNeighborExactly() {
+        for (String[] row : JSON_PAIR_BOUNDARY_CORPUS) {
+            assertEquals("Separate or nested fields changed: " + row[0], row[1], DiagnosticRedactor.redact(row[0]));
+        }
+    }
+
+    /** Exact object boundaries and neighboring fields, also replayed by the ART harness. */
+    private static String[][] jsonPairBoundaryCorpus() {
+        String ordinary = "82539999";
+        String digest = "abcdef0123456789abcdef0123456789";
+        String[] unchanged = {
+                "{\"name\":\"api_id\",\"counter\":8} {\"value\":" + ordinary + "}",
+                "{\"value\":" + ordinary + "} {\"name\":\"api_id\",\"counter\":8}",
+                "{\"name\":\"ordinary\",\"nested\":{\"name\":\"api_id\"},\"value\":" + ordinary + ",\"counter\":8}",
+                "{\"name\":\"api_id\",\"nested\":{\"value\":" + ordinary + "},\"counter\":8}",
+                "{\"value\":\"" + digest + "\",\"nested\":{\"name\":\"apiHash\"},\"name\":\"ordinary\",\"counter\":8}"
+        };
+        String input = "{\n\"value\":82531234,\n\"nested\":{\"value\":" + ordinary
+                + ",\"sha256\":\"" + digest + "\",\"note\":\"} \\\"quoted\\\" {\"},\n\"counter\":8,\n\"name\":\"aPi_Id\"\n}";
+        String expected = input.replace("82531234", "[omitted]");
+        List<String[]> rows = new ArrayList<>();
+        for (int encoding = 0; encoding < 5; encoding++) {
+            rows.add(new String[]{encodeJsonPair(input, encoding), encodeJsonPair(expected, encoding)});
+            for (String text : unchanged) {
+                String encoded = encodeJsonPair(text, encoding);
+                rows.add(new String[]{encoded, encoded});
+            }
+        }
+        String trailing = "{\"name\":\"api_id\",\"note\":\"\\\\\",\"value\":82531234,\"counter\":8,\"sha256\":\"" + digest + "\"}";
+        String trailingExpected = trailing.replace("82531234", "[omitted]");
+        rows.add(new String[]{encodeJsonPair(trailing, 3), encodeJsonPair(trailingExpected, 3)});
+        for (int level = 0; level < 3; level++) {
+            rows.add(new String[]{trailing, trailingExpected});
+            trailing = embeddedJson(trailing);
+            trailingExpected = embeddedJson(trailingExpected);
+        }
+        char[] braces = new char[4000];
+        Arrays.fill(braces, '{');
+        String quotedBraces = "{\"ordinary\":\"" + new String(braces) + "\"}";
+        rows.add(new String[]{quotedBraces, quotedBraces});
+        return rows.toArray(new String[0][]);
+    }
+
+    private static String embeddedJson(String text) {
+        return "{\"ordinary\":\"" + text.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}";
+    }
+
+    @Test public void directJsonIdentityValuesMayStartOnTheNextLine() {
+        String input = "{\"api_id\":\n82531234,\"counter\":8}";
+        assertFalse(DiagnosticRedactor.redact(input).contains("82531234"));
+        assertTrue(DiagnosticRedactor.redact(input).contains("\"counter\":8"));
+    }
+
+    @Test(timeout = 2000) public void deepOrdinaryJsonCompletesWithoutRepeatedSubtreeScans() {
+        StringBuilder json = new StringBuilder();
+        for (int i = 0; i < 8000; i++) json.append("{\"ordinary\":");
+        json.append('0');
+        for (int i = 0; i < 8000; i++) json.append('}');
+        String input = json.toString();
+        assertEquals(input, DiagnosticRedactor.redact(input));
+    }
+
+    @Test public void quotedOrdinaryBracesDoNotUseRecursiveMatching() {
+        String[] row = JSON_PAIR_BOUNDARY_CORPUS[JSON_PAIR_BOUNDARY_CORPUS.length - 1];
+        assertEquals(row[1], DiagnosticRedactor.redact(row[0]));
+    }
+
+    @Test(timeout = 2000) public void ordinaryStringsWithInvalidJsonFragmentsCompleteWithoutRescanning() {
+        String input = "{\"ordinary\":\"" + "{\\\"ordinary\\\":x".repeat(10000) + "\"}";
+        assertEquals(input, DiagnosticRedactor.redact(input));
+    }
+
+    /** Quotation levels used by reports that embed a JSON body in another string. */
+    private static String encodeJsonPair(String text, int encoding) {
+        switch (encoding) {
+            case 1: return text.replace("\"", "\\\"");
+            case 2: return text.replace("\"", "\\\\\\\"");
+            case 3: return text.replace("\"", U);
+            case 4: return text.replace("\"", "\\\"").replace("\n", "\\n");
+            default: return text;
+        }
+    }
+
+    /** Named API identities, with short numeric ids and hash canaries that have no bare-id shape. */
+    private static String[][] apiIdentityCorpus() {
+        String[] names = {"apiHash", "api_hash", "APP_HASH", "api_id", "APP_ID"};
+        String[] mixed = {"aPiHaSh", "ApI_HaSh", "ApP_HaSh", "aPi_Id", "aPp_Id"};
+        List<String[]> rows = new ArrayList<>();
+        for (int at = 0; at < names.length; at++) {
+            for (int form = 0; form < 9; form++) {
+                String secret = at < 3 ? "aef0dcba9876543210abcdef" + Integer.toHexString(0x10000000 + at * 16 + form)
+                        : Integer.toString(82531000 + at * 16 + form);
+                String json = "{\"" + names[at] + "\":\"" + secret + "\",\"counter\":8}";
+                String pair = "{\"name\":\"" + names[at] + "\",\"value\":\"" + secret + "\",\"counter\":8}";
+                String escaped = json.replace("\"", "\\\"");
+                String text;
+                switch (form) {
+                    case 0: text = mixed[at] + "=" + secret + " counter=8"; break;
+                    case 1: text = names[at] + ": '" + secret + "' counter=8"; break;
+                    case 2: text = json; break;
+                    case 3: text = "body=\"" + escaped + "\""; break;
+                    case 4: text = "body=" + escaped.replace("\\", "\\\\\\"); break;
+                    case 5: text = pair; break;
+                    case 6: text = "body=\"" + pair.replace("\"", "\\\"") + "\""; break;
+                    case 7: text = U + names[at] + U + ":" + U + secret + U + " counter=8"; break;
+                    default: text = "{\"" + names[at] + "\":{\"value\":\"" + secret + "\"},\"counter\":8}";
+                }
+                rows.add(new String[]{text, secret});
+            }
+            if (at >= 3) {
+                String number = Integer.toString(82531100 + at);
+                rows.add(new String[]{"{\"" + names[at] + "\":" + number + ",\"counter\":8}", number});
+                rows.add(new String[]{"{\"name\":\"" + mixed[at] + "\",\"value\":" + number + ",\"counter\":8}", number});
+            }
+            String secret = at < 3 ? "aef0dcba9876543210abcdef" + Integer.toHexString(0x20000000 + at)
+                    : Integer.toString(82531200 + at);
+            String value = at < 3 ? "\"" + secret + "\"" : secret;
+            String[] pairs = {
+                    "{\"name\":\"" + mixed[at] + "\",\n\"value\":\n" + value + ",\"counter\":8}",
+                    "{\"value\":" + value + ",\"name\":\"" + mixed[at] + "\",\"counter\":8}",
+                    "{\"value\":" + value + ",\n\"nested\":{\"value\":82539999,\"note\":\"} \\\"quoted\\\" {\"},\n\"name\":\""
+                            + mixed[at] + "\",\n\"counter\":8}"
+            };
+            for (String pair : pairs) {
+                for (int encoding = 0; encoding < 5; encoding++) {
+                    rows.add(new String[]{encodeJsonPair(pair, encoding), secret});
+                }
+            }
+        }
+        return rows.toArray(new String[0][]);
+    }
+
     /** The digits of [ascii] written from the zero at [zero] on, as another script writes them. */
     private static String inDigitsFrom(int zero, String ascii) {
         StringBuilder digits = new StringBuilder(ascii.length());
@@ -518,6 +684,7 @@ public class DiagnosticRedactorTest {
      */
     private static String[][] inEveryForm(String[] names, String[][] rows) {
         List<String[]> all = new ArrayList<>(Arrays.asList(rows));
+        all.addAll(Arrays.asList(API_IDENTITY_CORPUS));
         for (int at = 0; at < names.length; at++) {
             String name = names[at];
             String secret = "runTogether" + at + "Form";

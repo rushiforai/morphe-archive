@@ -51,6 +51,10 @@ public final class MetaAi {
     /** The name Home's top bar list gives Meta AI's button on 449. */
     static final String HOME_BUTTON = "meta_ai";
 
+    /** The three Meta AI buttons in Instagram's native message composer button enum. */
+    static final Set<String> COMPOSER_BUTTONS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "META_AI_DISCOVERY", "META_AI_INVOCATION", "META_AI_VOICE")));
+
     /** The diagnostic counter route for the feed units. */
     static final String ROUTE = "Meta AI in the feed";
 
@@ -114,6 +118,39 @@ public final class MetaAi {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.META_AI, "home button", failure);
             return name;
+        }
+    }
+
+    /**
+     * Passed the native composer's button and show flag before its view lookup. Only Meta AI's
+     * buttons answer false with the search switch on. Instagram then uses its own hide path,
+     * including its layout callback, and never inflates a missing button just to hide it.
+     */
+    public static boolean composerButton(Object button, int visible) {
+        if (visible == 0) return false;
+        try {
+            if (!(button instanceof Enum<?>) || !COMPOSER_BUTTONS.contains(((Enum<?>) button).name())) return true;
+            HookStatus.invoked(FamilyNames.META_AI);
+            if (!Utils.settingsReady() || !Settings.HIDE_META_AI_SEARCH.get()) return true;
+            Logger.printDebug(() -> "Meta AI: left out a message composer button");
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.META_AI, "composer button", failure);
+            return true;
+        }
+    }
+
+    /** Passed only the optional Hatch inbox row, before Instagram's own null and eligibility checks. */
+    public static Object inboxRow(Object row) {
+        if (row == null) return null;
+        try {
+            HookStatus.invoked(FamilyNames.META_AI);
+            if (!Utils.settingsReady() || !Settings.HIDE_META_AI_SEARCH.get()) return row;
+            Logger.printDebug(() -> "Meta AI: left out the optional inbox row");
+            return null;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.META_AI, "inbox row", failure);
+            return row;
         }
     }
 

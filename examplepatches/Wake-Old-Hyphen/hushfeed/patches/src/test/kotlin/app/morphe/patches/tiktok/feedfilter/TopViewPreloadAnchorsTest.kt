@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok.feedfilter
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -58,7 +57,7 @@ class TopViewPreloadAnchorsTest {
     }
 
     private fun load(apk: File): Map<String, ClassDef> {
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         val classes = HashMap<String, ClassDef>()
         container.dexEntryNames.forEach { entry ->
             container.getEntry(entry)!!.dexFile.classes.forEach { classes.putIfAbsent(it.type, it) }

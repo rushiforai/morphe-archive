@@ -1,5 +1,6 @@
 # Turkish for Hushfacebook: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	Derleme %1$s
 "Pages you may like" cards and the cards Facebook uses to push its own features. In-feed surveys go too.	“Beğenebileceğin Sayfalar” kartları ve Facebook'un kendi özelliklerini öne çıkardığı kartlar. Akıştaki anketler de kalkar.
 %1$d item in that file isn't a setting this version of Hushfacebook knows, so it'll be left out.	O dosyadaki %1$d öğe, Hushfacebook'un bu sürümünün tanıdığı ayarlardan değil, bu yüzden atlanacak.
 %1$d items in that file aren't settings this version of Hushfacebook knows, so they'll be left out.	O dosyadaki %1$d öğe, Hushfacebook'un bu sürümünün tanıdığı ayarlardan değil, bu yüzden atlanacak.
@@ -35,6 +36,7 @@ Copy quick report	Hızlı raporu kopyala
 Copying to the gallery	Galeriye kopyalanıyor
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Ayarlar içe aktarılamadı ve önceki ayarların geri yüklenemedi. Bu ekrandaki anahtarları kontrol et.
 Couldn't import the settings. Nothing was changed.	Ayarlar içe aktarılamadı. Hiçbir şey değiştirilmedi.
+Couldn't open or share that saved file. Try again.	Kaydedilen dosya açılamadı veya paylaşılamadı. Tekrar deneyin.
 Couldn't open that file. Nothing was changed.	Bu dosya açılamadı. Hiçbir şey değiştirilmedi.
 Couldn't open the file picker. Try again.	Dosya seçici açılamadı. Tekrar dene.
 Couldn't put back the diagnostic data. Try again.	Tanılama verileri geri getirilemedi. Tekrar dene.
@@ -64,14 +66,21 @@ Facebook crashed or froze within a minute of starting three times in a row, so H
 Facebook doesn't download ads or its ad model in the background.	Facebook reklamları veya reklam modelini arka planda indirmez.
 Facebook doesn't serve ads to other apps on this phone.	Facebook bu telefondaki diğer uygulamalara reklam sunmaz.
 Facebook dark mode and this screen use your wallpaper colours. Android 11 uses blue instead. Turn on Facebook dark mode to see it.	Facebook karanlık modu ve bu ekran duvar kâğıdının renklerini kullanır. Android 11 bunun yerine mavi kullanır. Görmek için Facebook karanlık modunu aç.
+Hide Stories between posts	Gönderiler arasındaki Hikayeleri gizle
 Joining the picture and sound	Görüntü ve ses birleştiriliyor
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Sonraki açılıştan itibaren Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır ve tercihlerin kayıtlı kalır.
+Rows, large tiles and viewers of Stories between posts, starting with the next feed Facebook loads. The top Stories tray has its own switch.	Gönderiler arasındaki Hikaye sıraları, büyük kutucuklar ve görüntüleyiciler. Facebook'un yükleyeceği sonraki akıştan itibaren geçerlidir. Üstteki Hikaye tepsisinin ayrı bir anahtarı vardır.
+Open	Aç
+Photo saved	Fotoğraf kaydedildi
 Settings exported. The app holding the file wouldn't let Hushfacebook read it back, so it wasn't checked.	Ayarlar dışa aktarıldı. Dosyayı tutan uygulama Hushfacebook'un onu geri okumasına izin vermedi, bu yüzden kontrol edilmedi.
+Share	Paylaş
+That saved file is no longer available.	Kaydedilen dosya artık kullanılamıyor.
 The app holding that file is taking too long, so Hushfacebook stopped waiting. Nothing was changed.	O dosyayı tutan uygulama çok uzun sürüyor, bu yüzden Hushfacebook beklemeyi bıraktı. Hiçbir şey değiştirilmedi.
 The app holding the last settings file still hasn't answered. Try again later.	Son ayar dosyasını tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
 The app holding the settings file is taking too long, so Hushfacebook stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Ayar dosyasını tutan uygulama çok uzun sürüyor, bu yüzden Hushfacebook beklemeyi bıraktı. O uygulama kaydetmeyi yine de bitirebilir, bu yüzden dosyaya güvenmeden önce onu kontrol et.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	%1$s dosyası kaldırılamadı. Onu %2$s içinden sil, sonra yeniden Devam et'e dokun.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Ayar dosyası kaydedildi, ancak geri okunduğunda yazılanla aynı değil. Yeni bir dosya olarak tekrar kaydet.
+There's no app here that can open or share this saved file.	Bu kaydedilen dosyayı açabilecek veya paylaşabilecek bir uygulama yok.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Devam ettirene kadar Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır.
 Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.	Telefonunuzun emojilerini kullanır. İfadeler ve çıkartmalar aynı kalır. Değiştirdikten sonra Facebook'u yeniden başlatın.
 # context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
@@ -138,6 +147,8 @@ Posts Facebook files as promotions rather than as ads.	Facebook'un reklam yerine
 Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.	Takip etmediğin kişi ve sayfalardan ve katılmadığın gruplardan Facebook'un akışına kattığı gönderiler.
 Posts that Facebook's own detection marks as made with AI. A post that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real feed yet.	Facebook'un kendi tespitinin yapay zekâ ile üretildiğini işaretlediği gönderiler. Yalnızca oluşturan kişinin yapay zekâ olarak etiketlediği bir gönderi kalır. Bu anahtar henüz gerçek bir akışta test edilmediği için varsayılan olarak kapalıdır.
 Profiles and some Settings pages open again on this re-signed build.	Profiller ve bazı Ayarlar sayfaları bu yeniden imzalanmış sürümde tekrar açılır.
+Profiles and some Settings pages won't open	Profiller ve bazı Ayarlar sayfaları açılmayacak
+Patch again with %1$s selected. Re-signed builds need it for profiles and some Facebook Settings pages.	%1$s seçiliyken yeniden yamala. Yeniden imzalanmış sürümler profiller ve bazı Facebook Ayarları sayfaları için buna ihtiyaç duyar.
 Re-signed build fix	Yeniden imzalanmış sürüm düzeltmesi
 Reading the settings file	Ayar dosyası okunuyor
 Reels and Watch	Reels ve Watch
@@ -183,6 +194,7 @@ Checking GitHub now.	GitHub şu anda denetleniyor.
 Hushfacebook %1$s is out. Update it in Morphe Manager.	Hushfacebook %1$s çıktı. Morphe Manager'da güncelle.
 It targets Facebook %1$s.	Facebook %1$s için hazırlandı.
 Hushfacebook %1$s targets Facebook %2$s.	Hushfacebook %1$s, Facebook %2$s için hazırlandı.
+Video saved	Video kaydedildi
 You have the newest Hushfacebook release.	En yeni Hushfacebook sürümünü kullanıyorsun.
 The newest Hushfacebook release is %1$s.	En yeni Hushfacebook sürümü %1$s.
 Couldn't reach GitHub. Try again later.	GitHub'a ulaşılamadı. Daha sonra tekrar dene.
@@ -226,7 +238,7 @@ the re-signed build fix	yeniden imzalanmış sürüm düzeltmesi
 the start-up fix for x86 devices	x86 cihazlar için açılış düzeltmesi
 the recoloured dark mode	yeniden renklendirilmiş karanlık mod
 The row of friend suggestions between posts, and the one on your own profile.	Gönderilerin arasındaki arkadaş önerileri satırı ve kendi profilindeki satır.
-The row of stories at the top of the feed, Create story included, and the rows of stories between posts.	Akışın en üstündeki hikaye şeridi, “Hikaye oluştur” da dahil, ve gönderilerin arasındaki hikaye sıraları.
+The row of stories at the top of the feed, Create story included.	Akışın üstündeki hikaye sırası, Hikaye oluştur dahil.
 The rows of reels between posts, and the reels Facebook adds where your feed ends.	Gönderilerin arasındaki Reels sıraları ve Facebook'un akışının bittiği yere eklediği Reels videoları.
 The setting couldn't finish updating. Its saved value is shown.	Ayarın güncellenmesi tamamlanamadı. Kayıtlı değeri gösteriliyor.
 There's no diagnostic data to clear.	Temizlenecek tanılama verisi yok.
@@ -557,6 +569,22 @@ Facebook's web addresses open here now.	Facebook'un web adresleri artık burada 
 Meta App Manager can keep Facebook's web addresses for itself, so their links skip this app. Tap and turn off Open supported links there, then check Supported links above.	Meta App Manager, Facebook'un web adreslerini kendine alabilir ve bu durumda bağlantılar bu uygulamayı atlar. Dokunup oradaki “Desteklenen bağlantıları aç” seçeneğini kapatın, ardından yukarıdaki Desteklenen bağlantılar'ı kontrol edin.
 # context: message when Android's page for Meta App Manager doesn't open; "Open by default" is Android's page name
 Meta App Manager's settings didn't open. Find it in Android's app list with system apps shown, then Open by default.	Meta App Manager ayarları açılamadı. Sistem uygulamaları gösterilirken Android'in uygulama listesinde bulun, ardından Varsayılan olarak aç'ı açın.
+# context: title of a row under Links; Messenger is the name of Meta's app, keep it as is
+Messenger	Messenger
+# context: title of a row under Links; Instagram is the name of Meta's app, keep it as is
+Instagram	Instagram
+# context: the Messenger row's description; "Open supported links" is Android's own switch, "Supported links" is the row above
+Messenger can keep facebook.com and m.me links for itself, so their switches for this app turn themselves back off. Tap and turn off Open supported links there, then check Supported links above.	Messenger, facebook.com ve m.me bağlantılarını kendine alabilir ve bu durumda bu uygulama için anahtarları kendiliğinden yeniden kapanır. Dokunup oradaki “Desteklenen bağlantıları aç” seçeneğini kapatın, ardından yukarıdaki Desteklenen bağlantılar'ı kontrol edin.
+# context: the Instagram row's description; "Open supported links" is Android's own switch, "Supported links" is the row above
+Instagram can keep facebook.com links for itself, so their switches for this app turn themselves back off. Tap and turn off Open supported links there, then check Supported links above.	Instagram, facebook.com bağlantılarını kendine alabilir ve bu durumda bu uygulama için anahtarları kendiliğinden yeniden kapanır. Dokunup oradaki “Desteklenen bağlantıları aç” seçeneğini kapatın, ardından yukarıdaki Desteklenen bağlantılar'ı kontrol edin.
+# context: message when Android's page for Messenger doesn't open; "App info" and "Open by default" are Android's page names
+Messenger's settings didn't open. Open App info from Messenger's icon, then Open by default.	Messenger ayarları açılamadı. Messenger simgesinden Uygulama bilgileri'ni, ardından Varsayılan olarak aç'ı açın.
+# context: message when Android's page for Instagram doesn't open; "App info" and "Open by default" are Android's page names
+Instagram's settings didn't open. Open App info from Instagram's icon, then Open by default.	Instagram ayarları açılamadı. Instagram simgesinden Uygulama bilgileri'ni, ardından Varsayılan olarak aç'ı açın.
+# context: the Messenger row's description once both addresses open in this app; keep facebook.com and m.me as is
+facebook.com and m.me links open here now.	facebook.com ve m.me bağlantıları artık burada açılıyor.
+# context: the Instagram row's description once its addresses open in this app; keep facebook.com as is
+facebook.com links open here now.	facebook.com bağlantıları artık burada açılıyor.
 # context: message when a save starts and its notification can't show (Facebook's notifications or the saves channel are off); Downloads is the settings section that lists running saves, each with its own Cancel
 Saving... Cancel: Downloads in Hushfacebook.	Kaydediliyor... İptal: Hushfacebook'ta İndirmeler.
 # context: switch title under Reels and Watch; on, a double tap on a reel or a video doesn't like it
@@ -701,6 +729,10 @@ Links go to %1$s. When it isn't installed, Android asks which app.	Bağlantılar
 Hide "Find friends from contacts"	“Kişilerinden arkadaş bul” kartını gizle
 # context: summary of that switch
 The Stories tray card asking to upload your contacts. Applies when Facebook next loads the tray.	Hikaye tepsisinde kişilerini yüklemeni isteyen kart. Facebook tepsiyi yeniden yüklediğinde uygulanır.
+# context: switch title under Stories; the prompts are the cards beside Create story that suggest a kind of story to make. Keep it distinct from Hide suggested stories
+Hide story prompts	Hikaye fikirlerini gizle
+# context: summary of that switch; Share music you love is the name of one such card
+The cards beside Create story that suggest a story to make, like Share music you love. Applies when Facebook next loads the tray.	Hikaye oluştur'un yanında sana bir hikaye öneren kartlar, örneğin sevdiğin müziği paylaşma kartı. Facebook tepsiyi yeniden yüklediğinde uygulanır.
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 The row of friend suggestions between posts, the one on your own profile, and the cards with an Add button in the Stories tray.	Gönderilerin arasındaki arkadaş önerileri satırı, kendi profilindeki satır ve hikaye tepsisindeki Ekle düğmeli kartlar.
 Feeds opens on	Akışlar şurada açılır
@@ -712,3 +744,14 @@ When Facebook opens on Feeds, the Feeds tab opens on the filter Facebook picks.	
 When Facebook opens on Feeds, the Feeds tab opens on %1$s. If your Feeds tab doesn't have it, it opens as usual.	Facebook Akışlar sekmesinde açıldığında Akışlar %1$s filtresinde açılır. Akışlar sekmende bu filtre yoksa her zamanki gibi açılır.
 The Feeds tab will open on the filter Facebook picks.	Akışlar sekmesi Facebook'un seçtiği filtrede açılacak.
 The Feeds tab will open on %1$s.	Akışlar sekmesi %1$s filtresinde açılacak.
+Saved	Kaydedilenler
+Saved shortcut	Kaydedilenler kısayolu
+Adds Saved to Facebook's icon menu when there's room. Existing shortcuts stay.	Yer varsa Kaydedilenler seçeneğini Facebook simge menüsüne ekler. Mevcut kısayollar kalır.
+Your launcher has no room for another shortcut.	Başlatıcınızda başka bir kısayol için yer yok.
+Saved isn't available in this build.	Kaydedilenler bu sürümde kullanılamıyor.
+# context: The optional matching mode for both post word lists.
+Match whole words	Tam sözcükleri eşleştir
+Apply whole-word matching to both lists. For example, hat matches hat! but not what or hats.	Her iki listede de tam sözcükleri eşleştirir. Örneğin, hat sözcüğü hat! ile eşleşir, what veya hats ile eşleşmez.
+Off	Kapalı
+On	Açık
+Saved now %1$s. After import %2$s.	Şu an kayıtlı %1$s. İçe aktarma sonrası %2$s.

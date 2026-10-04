@@ -89,7 +89,7 @@ public class SettingsNavigationTest {
         assertNotNull(page.navigation);
         // The status card, Browse settings, Chats, Privacy and More settings.
         assertEquals(5, list().getCount());
-        assertEquals(6, page.sections().size());
+        assertEquals(7, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
             assertTrue(page.navigation.open(section));
@@ -414,6 +414,9 @@ public class SettingsNavigationTest {
         layout(dialog.getView());
         line = (Preference) list().getItemAtPosition(0);
         assertEquals("A change here applies after Telegram restarts.", String.valueOf(line.getTitle()));
+        assertEquals(String.valueOf(line.getTitle()),
+                String.valueOf(((android.widget.TextView) list().getChildAt(0)
+                        .findViewById(android.R.id.title)).getText()));
         android.view.ViewGroup frame = list().getChildAt(0).findViewById(android.R.id.widget_frame);
         assertTrue("a restart line offered an action", frame == null || frame.getChildCount() == 0);
         page.navigation.back();
@@ -649,7 +652,7 @@ public class SettingsNavigationTest {
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
         // More settings: Links, Updates, Pause, backup and diagnostics, and About.
-        assertEquals(4, list().getCount());
+        assertEquals(5, list().getCount());
         dialog.getDialog().onBackPressed();
         assertEquals(5, list().getCount());
         dialog.getDialog().onBackPressed();

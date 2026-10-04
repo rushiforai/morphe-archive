@@ -38,6 +38,7 @@ final class EmoteCatalog {
             new LinkedHashMap<>(16, 0.75f, true);
     private final ProviderState globalSevenTv = new ProviderState();
     private final ProviderState globalBetterTtv = new ProviderState();
+    private final ProviderState globalFfz = new ProviderState();
     private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
             2,
             2,
@@ -57,6 +58,7 @@ final class EmoteCatalog {
         long now = System.currentTimeMillis();
         schedule(globalSevenTv, now, () -> loadGlobalSevenTv(applicationContext));
         schedule(globalBetterTtv, now, () -> loadGlobalBetterTtv(applicationContext));
+        schedule(globalFfz, now, () -> loadGlobalFfz(applicationContext));
 
         if (channelId == null) {
             return;
@@ -65,6 +67,8 @@ final class EmoteCatalog {
         schedule(channel.sevenTv, now, () -> loadChannelSevenTv(applicationContext, channelId, channel));
         schedule(channel.betterTtv, now,
                 () -> loadChannelBetterTtv(applicationContext, channelId, channel));
+        schedule(channel.ffz, now,
+                () -> loadChannelFfz(applicationContext, channelId, channel));
     }
 
     Emote find(String channelId, String name) {
@@ -79,10 +83,17 @@ final class EmoteCatalog {
                 if (emote != null) {
                     return emote;
                 }
+                emote = channel.ffz.emotes.get(name);
+                if (emote != null) {
+                    return emote;
+                }
             }
         }
         Emote emote = globalSevenTv.emotes.get(name);
-        return emote == null ? globalBetterTtv.emotes.get(name) : emote;
+        if (emote != null) return emote;
+        emote = globalBetterTtv.emotes.get(name);
+        if (emote != null) return emote;
+        return globalFfz.emotes.get(name);
     }
 
     java.util.List<Emote> getAllForChannel(String channelId) {
@@ -92,10 +103,12 @@ final class EmoteCatalog {
             if (channel != null) {
                 for (Emote e : channel.sevenTv.emotes.values()) unique.putIfAbsent(e.name, e);
                 for (Emote e : channel.betterTtv.emotes.values()) unique.putIfAbsent(e.name, e);
+                for (Emote e : channel.ffz.emotes.values()) unique.putIfAbsent(e.name, e);
             }
         }
         for (Emote e : globalSevenTv.emotes.values()) unique.putIfAbsent(e.name, e);
         for (Emote e : globalBetterTtv.emotes.values()) unique.putIfAbsent(e.name, e);
+        for (Emote e : globalFfz.emotes.values()) unique.putIfAbsent(e.name, e);
         return new java.util.ArrayList<>(unique.values());
     }
 
@@ -203,6 +216,122 @@ final class EmoteCatalog {
         }
     }
 
+    private void loadGlobalFfz(Context context) {
+        boolean updated = false;
+        try {
+            LoadedValue<JSONObject> response = loadJson(
+                    context,
+                    "ffz-global",
+                    "https://api.frankerfacez.com/v1/set/global"
+            );
+            Map<String, Emote> loaded = new LinkedHashMap<>();
+            parseFfzSets(response.value.optJSONObject("sets"), loaded);
+            globalFfz.publish(loaded, response.fresh);
+            updated = true;
+        } catch (Exception ignored) {
+            globalFfz.failed();
+        } finally {
+            globalFfz.loading.set(false);
+        }
+        if (updated) {
+            onUpdated.accept(null);
+        }
+    }
+
+    private void loadChannelFfz(Context context, String channelId, ChannelState channel) {
+        boolean updated = false;
+        try {
+            LoadedValue<JSONObject> response = loadOptionalJson(
+                    context,
+                    "ffz-channel-" + channelId,
+                    "https://api.frankerfacez.com/v1/room/id/" + channelId
+            );
+            Map<String, Emote> loaded = new LinkedHashMap<>();
+            parseFfzSets(response.value.optJSONObject("sets"), loaded);
+            channel.ffz.publish(loaded, response.fresh);
+            updated = true;
+        } catch (Exception ignored) {
+            channel.ffz.failed();
+        } finally {
+            channel.ffz.loading.set(false);
+        }
+        if (updated) {
+            onUpdated.accept(channelId);
+        }
+    }
+
+    private static void parseFfzSets(JSONObject sets, Map<String, Emote> target) throws JSONException {
+        if (sets == null) {
+            return;
+        }
+        java.util.Iterator<String> setKeys = sets.keys();
+        while (setKeys.hasNext()) {
+            JSONObject set = sets.optJSONObject(setKeys.next());
+            if (set == null) continue;
+            JSONArray emoticons = set.optJSONArray("emoticons");
+            if (emoticons == null) continue;
+            for (int index = 0; index < emoticons.length(); index++) {
+                JSONObject item = emoticons.optJSONObject(index);
+                if (item == null) continue;
+
+                String id = item.optString("id", "");
+                String name = item.optString("name", "");
+                if (id.isEmpty() || name.isEmpty()) continue;
+                if (item.optBoolean("hidden", false) || item.optBoolean("modifier", false)
+                        && (item.optInt("modifier_flags", 0) & 1) != 0) {
+                    continue;
+                }
+
+                JSONObject animated = item.optJSONObject("animated");
+                JSONObject urls = item.optJSONObject("urls");
+                JSONObject source = animated != null && animated.length() > 0 ? animated : urls;
+                String imageUrl = chooseFfzUrl(source);
+                if (imageUrl == null) continue;
+
+                boolean isAnimated = animated != null && animated.length() > 0;
+                boolean zeroWidth = item.optBoolean("modifier", false)
+                        && item.optInt("modifier_flags", 0) == 0;
+                target.put(name, new Emote(name, imageUrl, isAnimated, zeroWidth));
+            }
+        }
+    }
+
+    private static String chooseFfzUrl(JSONObject urls) {
+        if (urls == null) return null;
+        String[] preferred = {"2", "4", "1"};
+        for (String key : preferred) {
+            String value = urls.optString(key, "");
+            if (!value.isEmpty()) return normalizeUrl(value);
+        }
+        java.util.Iterator<String> keys = urls.keys();
+        String best = null;
+        int bestScale = -1;
+        while (keys.hasNext()) {
+            String key = keys.next();
+            String value = urls.optString(key, "");
+            if (value.isEmpty()) continue;
+            try {
+                int scale = Integer.parseInt(key);
+                if (scale > bestScale) {
+                    bestScale = scale;
+                    best = value;
+                }
+            } catch (NumberFormatException ignored) {
+                if (best == null) best = value;
+            }
+        }
+        return best == null ? null : normalizeUrl(best);
+    }
+
+    private static String normalizeUrl(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) return null;
+        if (trimmed.startsWith("//")) return "https:" + trimmed;
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+        return "https://" + trimmed;
+    }
+
     private ChannelState getChannel(String channelId, boolean create) {
         synchronized (channelCacheLock) {
             ChannelState channel = channels.get(channelId);
@@ -226,7 +355,7 @@ final class EmoteCatalog {
         }
         for (int index = 0; index < emotes.length(); index++) {
             JSONObject item = emotes.optJSONObject(index);
-            if (item == null || (item.optInt("flags", 0) & 1) != 0) {
+            if (item == null) {
                 continue;
             }
             String name = item.optString("name", "");
@@ -235,16 +364,20 @@ final class EmoteCatalog {
             String hostUrl = host == null ? "" : host.optString("url", "");
             JSONArray files = host == null ? null : host.optJSONArray("files");
             String fileName = chooseSevenTvFile(files, data != null && data.optBoolean("animated", false));
+            boolean zeroWidth = (item.optInt("flags", 0) & 1) != 0
+                    || (data != null && (data.optInt("flags", 0) & 256) != 0);
             if (name.isEmpty() || hostUrl.isEmpty() || fileName == null) {
                 continue;
             }
-            if (hostUrl.startsWith("//")) {
-                hostUrl = "https:" + hostUrl;
-            } else if (!hostUrl.startsWith("http://") && !hostUrl.startsWith("https://")) {
-                hostUrl = "https://" + hostUrl;
-            }
+            hostUrl = normalizeUrl(hostUrl);
             String url = hostUrl.endsWith("/") ? hostUrl + fileName : hostUrl + "/" + fileName;
-            target.put(name, new Emote(name, url, (data != null && data.optBoolean("animated", false)) || fileName.toLowerCase().endsWith(".gif")));
+            target.put(name, new Emote(
+                    name,
+                    url,
+                    (data != null && data.optBoolean("animated", false))
+                            || fileName.toLowerCase().endsWith(".gif"),
+                    zeroWidth
+            ));
         }
     }
 
@@ -450,6 +583,7 @@ final class EmoteCatalog {
     private static final class ChannelState {
         final ProviderState sevenTv = new ProviderState();
         final ProviderState betterTtv = new ProviderState();
+        final ProviderState ffz = new ProviderState();
     }
 
     private static final class LoadedValue<T> {

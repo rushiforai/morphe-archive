@@ -508,4 +508,110 @@ public class FamilySignatureTrustTest {
         assertNotNull("the hook reports under the coexistence patch", line);
         assertTrue(line, line.contains("Counted: ") && line.contains("shared sign-in 1"));
     }
+
+    private PackageInfo localProvider(String certificate) {
+        PackageInfo info = caller(INSTAGRAM, certificate);
+        packages.setPackagesForUid(Process.myUid(), context.getPackageName());
+        ShadowBinder.setCallingUid(Process.myUid());
+        return info;
+    }
+
+    @Test
+    public void localSameKeyProviderGetsInstagramsCertificateWithoutAnIncomingCaller() throws Exception {
+        PackageInfo info = localProvider(OUR_KEY);
+        assertFalse("a local lookup is not an incoming caller", callerCheck(info));
+        List<Signature> signers = ThreadsSignature.originalSigners(info);
+        assertNotNull("the outbound consumer must recognize its same-key Instagram", signers);
+        assertEquals(INSTAGRAM_SHA256, sha256(signers.get(0)));
+        assertTrue(familyLine(), familyLine().contains("shared sign-in provider 1"));
+    }
+
+    @Test
+    public void localProviderWithAnotherInstalledKeyKeepsItsCertificate() {
+        PackageInfo info = localProvider(OTHER_KEY);
+        assertNull(ThreadsSignature.originalSigners(info));
+        info.signingInfo = packageInfo(INSTAGRAM, CALLER_UID, new Signature(OUR_KEY)).signingInfo;
+        assertNull("supplied signers cannot override the installed package", ThreadsSignature.originalSigners(info));
+    }
+
+    @Test
+    public void localProviderRequiresCompleteAndConsistentPackageOwnership() {
+        PackageInfo info = localProvider(OUR_KEY);
+        info.applicationInfo = null;
+        assertNull(ThreadsSignature.originalSigners(info));
+        info = packageInfo(INSTAGRAM, CALLER_UID, new Signature(OUR_KEY));
+        info.applicationInfo.packageName = "com.example.stranger";
+        assertNull(ThreadsSignature.originalSigners(info));
+        info = packageInfo(INSTAGRAM, STRANGER_UID, new Signature(OUR_KEY));
+        assertNull(ThreadsSignature.originalSigners(info));
+        info = packageInfo(INSTAGRAM, CALLER_UID, new Signature(OUR_KEY));
+        packages.setPackagesForUid(CALLER_UID, INSTAGRAM, "com.example.tagalong");
+        assertNull(ThreadsSignature.originalSigners(info));
+    }
+
+    @Test
+    public void localProviderCannotRunOnBehalfOfAnUnrelatedBinderCaller() {
+        PackageInfo info = localProvider(OUR_KEY);
+        packages.setPackagesForUid(STRANGER_UID, "com.example.stranger");
+        ShadowBinder.setCallingUid(STRANGER_UID);
+        assertNull(ThreadsSignature.originalSigners(info));
+    }
+
+    @Test
+    public void localProviderUsesInstalledCurrentSignersWhenTheReadOmitsThem() throws Exception {
+        PackageInfo info = localProvider(OUR_KEY);
+        info.signingInfo = null;
+        assertEquals(INSTAGRAM_SHA256, sha256(ThreadsSignature.originalSigners(info).get(0)));
+    }
+
+    @Test
+    public void localProviderRequiresReadableCurrentCertificates() {
+        PackageInfo info = localProvider(OUR_KEY);
+        install(INSTAGRAM, CALLER_UID, (Signature) null);
+        assertNull(ThreadsSignature.originalSigners(info));
+        install(INSTAGRAM, CALLER_UID, OUR_KEY);
+        // A running app's own key cannot change. Start a fresh cache for the missing-own-key case.
+        FamilySignatureTrust.ownSigners = null;
+        install(context.getPackageName(), Process.myUid(), (Signature) null);
+        assertNull(ThreadsSignature.originalSigners(info));
+        assertNull(FamilySignatureTrust.ownSigners);
+    }
+
+    @Test
+    public void localProviderDoesNotExtendAMetaSignedOrSharedUidBuild() {
+        PackageInfo info = localProvider(OUR_KEY);
+        FamilySignatureTrust.ownSigners = Collections.singleton(THREADS_SHA256);
+        assertNull(ThreadsSignature.originalSigners(info));
+        FamilySignatureTrust.ownSigners = Collections.singleton(THREADS_ROTATED_SHA256);
+        assertNull(ThreadsSignature.originalSigners(info));
+        FamilySignatureTrust.ownSigners = null;
+        packages.setPackagesForUid(Process.myUid(), context.getPackageName(), "com.example.tagalong");
+        assertNull(ThreadsSignature.originalSigners(info));
+    }
+
+    @Test
+    @Config(shadows = FailingUidPackages.class)
+    public void localProviderLookupFailureKeepsTheFrameworkCertificate() {
+        assertNull(ThreadsSignature.originalSigners(localProvider(OUR_KEY)));
+    }
+
+    @Test
+    public void localProviderKeepsItsDecisionWhilePaused() {
+        PackageInfo info = localProvider(OUR_KEY);
+        PauseForTests.pause(HushThreadsPause.Reason.CRASH_LOOP);
+        assertNotNull(ThreadsSignature.originalSigners(info));
+    }
+
+    @Test
+    public void localProviderRequiresContextAndADistinctUidAndExactName() {
+        PackageInfo info = localProvider(OUR_KEY);
+        SettingsContextRule.withoutContext(() -> assertNull(ThreadsSignature.originalSigners(info)));
+        PackageInfo shared = packageInfo(INSTAGRAM, Process.myUid(), new Signature(OUR_KEY));
+        assertFalse(FamilySignatureTrust.isSameKeyFamilyProvider(shared));
+        for (String name : new String[]{"com.instagram.android.evil", "com.instagram.lite", "com.facebook.katana"}) {
+            PackageInfo other = caller(name, OUR_KEY);
+            ShadowBinder.setCallingUid(Process.myUid());
+            assertNull(ThreadsSignature.originalSigners(other));
+        }
+    }
 }

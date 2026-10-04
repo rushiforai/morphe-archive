@@ -105,6 +105,23 @@ public class CommentCopyTest {
         assertEquals(0, nativeRows.created);
     }
 
+    @Test public void initialOffAndSafetyGatesNeverInspectNativeCommentRows() {
+        Settings.COPY_COMMENTS.resetToDefault();
+        assertSame(stock, CommentCopy.rows(stock, new String[]{"original"}, context, nativeRows));
+        assertSame(null, CommentCopy.rows(null, new String[]{"original"}, context, nativeRows));
+        Settings.COPY_COMMENTS.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertSame(stock, CommentCopy.rows(stock, new String[]{"original"}, context, nativeRows));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertSame(stock, CommentCopy.rows(stock, new String[]{"original"}, context, nativeRows)));
+        SettingsContextRule.beforeThePauseIsDecided(() ->
+                assertSame(stock, CommentCopy.rows(stock, new String[]{"original"}, context, nativeRows)));
+        assertEquals("no original-text getter or native row callback", 0, nativeRows.inspected);
+        assertEquals(0, nativeRows.created);
+        assertFalse(clipboard().hasPrimaryClip());
+    }
+
     @Test public void emptyTextGetsNoRowAndWhitespaceIsNeverTrimmed() {
         assertSame(stock, CommentCopy.rows(stock, new String[]{null}, context, nativeRows));
         assertSame(stock, CommentCopy.rows(stock, new String[]{""}, context, nativeRows));
@@ -168,12 +185,14 @@ public class CommentCopyTest {
     }
     static final class FakeNative implements CommentCopy.NativeRows {
         int created;
+        int inspected;
         boolean fail;
         public String text(Object comment) {
+            inspected++;
             if (fail) throw new IllegalStateException("native read failed");
             return comment instanceof String[] ? ((String[]) comment)[0] : null;
         }
         public Object row(Object callback) { created++; return new Row(callback); }
-        public Object callback(Object row) { return row instanceof Row ? ((Row) row).callback : null; }
+        public Object callback(Object row) { inspected++; return row instanceof Row ? ((Row) row).callback : null; }
     }
 }

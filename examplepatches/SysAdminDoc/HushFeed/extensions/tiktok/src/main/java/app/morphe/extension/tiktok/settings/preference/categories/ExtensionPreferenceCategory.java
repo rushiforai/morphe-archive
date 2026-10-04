@@ -17,9 +17,9 @@ import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
 /**
- * The app around the feed: its layout, the player, search, the profile and the system it
- * runs on. The feed's own buttons and gestures moved to Feed filter and Feed screen, where
- * the rows they belong beside are.
+ * The app around the feed: its layout, search, the profile and the system it runs on. The
+ * feed's own buttons and gestures are on Feed screen, the player's rows on Playback and Duet
+ * and Stitch on Share sheet, beside the rows they belong with.
  */
 @SuppressWarnings("deprecation")
 public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
@@ -41,11 +41,6 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
     public static boolean isAvailable() {
         return SettingsStatus.foldableSplitViewEnabled
                 || SettingsStatus.systemFontEnabled
-                || SettingsStatus.showSeekbarEnabled
-                || SettingsStatus.seekbarThumbnailEnabled
-                || SettingsStatus.stopVideoLoopingEnabled
-                || SettingsStatus.resumeVideoAfterScrollEnabled
-                || SettingsStatus.duetStitchEnabled
                 || SettingsStatus.nonPersonalizedSearchEnabled
                 || SettingsStatus.liveSearchEnabled
                 || SettingsStatus.hideSearchSuggestionsEnabled
@@ -53,7 +48,10 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.profileShortcutsEnabled
                 || SettingsStatus.refreshRateEnabled
-                || SettingsStatus.launcherShortcutsEnabled;
+                || SettingsStatus.launcherShortcutsEnabled
+                || SettingsStatus.screenCaptureEnabled
+                || SettingsStatus.videoOverlaysEnabled
+                || SettingsStatus.storeIdentityEnabled;
     }
 
     @Override
@@ -79,54 +77,6 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift "
                             + "animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.",
                     Settings.SYSTEM_FONT
-            ));
-        }
-        boolean hasPlayer = SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
-                || SettingsStatus.stopVideoLoopingEnabled || SettingsStatus.resumeVideoAfterScrollEnabled
-                || SettingsStatus.duetStitchEnabled;
-        if (hasPlayer) {
-            addPreference(new SectionHeadingPreference(context, "Player"));
-        }
-        if (SettingsStatus.showSeekbarEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Show the progress bar",
-                    "Show TikTok's own progress bar on videos where it's normally hidden.",
-                    Settings.SHOW_SEEKBAR
-            ));
-        }
-        if (SettingsStatus.seekbarThumbnailEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Show the progress bar thumbnail",
-                    "Show a video preview thumbnail while dragging the progress bar.",
-                    Settings.SHOW_SEEKBAR_THUMBNAIL
-            ));
-        }
-        if (SettingsStatus.stopVideoLoopingEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Stop video looping",
-                    "Stop videos at the end instead of replaying them.",
-                    Settings.STOP_VIDEO_LOOPING
-            ));
-        }
-        if (SettingsStatus.resumeVideoAfterScrollEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Resume videos after scrolling",
-                    "Continue supported videos from where you stopped when you scroll back to them.",
-                    Settings.RESUME_VIDEO_AFTER_SCROLL
-            ));
-        }
-        if (SettingsStatus.duetStitchEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Allow Duet and Stitch anyway",
-                    "Ignore the creator's choice so the Duet and Stitch entries appear. "
-                            + "Everything else the app checks still applies, and whether the "
-                            + "upload is accepted is the server's decision.",
-                    Settings.ALLOW_DUET_AND_STITCH
             ));
         }
         boolean hasSearch = SettingsStatus.nonPersonalizedSearchEnabled || SettingsStatus.liveSearchEnabled
@@ -194,8 +144,32 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.HIDDEN_PROFILE_SHORTCUTS
             ));
         }
-        if (SettingsStatus.refreshRateEnabled || SettingsStatus.launcherShortcutsEnabled) {
+        // The whole app, not the feed: screenshots and the status bar used to be on Feed screen and
+        // the store check on Privacy, under a heading of its own.
+        if (SettingsStatus.screenCaptureEnabled || SettingsStatus.videoOverlaysEnabled
+                || SettingsStatus.refreshRateEnabled || SettingsStatus.launcherShortcutsEnabled
+                || SettingsStatus.storeIdentityEnabled) {
             addPreference(new SectionHeadingPreference(context, "System"));
+        }
+        if (SettingsStatus.screenCaptureEnabled) {
+            addPreference(new TogglePreference(context, "Allow screenshots and Circle to Search",
+                    "Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this.", Settings.ALLOW_SCREEN_CAPTURE));
+        }
+        if (SettingsStatus.videoOverlaysEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the status bar",
+                    "Keep the clock and status icons off the screen while TikTok is open. "
+                            + "Swipe down from the top to peek at them.",
+                    Settings.HIDE_STATUS_BAR
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the status bar in LIVE rooms",
+                    "Let a LIVE fill the screen up to the top edge. The status bar comes back when "
+                            + "you leave the LIVE. Swipe down from the top to peek at it.",
+                    Settings.HIDE_STATUS_BAR_IN_LIVE
+            ));
         }
         if (SettingsStatus.refreshRateEnabled) {
             addPreference(new TogglePreference(
@@ -216,6 +190,16 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "the icon still opens the app, and a shortcut you pinned yourself "
                             + "stays where you put it.",
                     Settings.HIDE_LAUNCHER_SHORTCUTS
+            ));
+        }
+        if (SettingsStatus.storeIdentityEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Look like the store app to TikTok's checks",
+                    "Answer TikTok's own checks of how it was signed and installed the way the Play "
+                            + "Store app would. For follows or likes that undo themselves on a refresh. "
+                            + "TikTok can also check from native code this doesn't reach, so it may not help.",
+                    Settings.STORE_IDENTITY
             ));
         }
     }

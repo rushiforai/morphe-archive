@@ -11,6 +11,9 @@ This document details the binary bytecode and native asset patches available for
 | [Skip to Next Level](#patch-skip-to-next-level) | `bytecodePatch` | `true` | Allows players to skip to the next level by tapping the level progress indicator in the main menu. |
 | [Remove Ads](#patch-remove-ads) | `rawResourcePatch` | `true` | Removes banner, interstitial, and rewarded advertising and removes ad-based chip offers. |
 | [Remove Tracking and Analytics](#patch-remove-tracking-and-analytics) | `rawResourcePatch` | `true` | Neutralizes active advertising telemetry, analytics, attribution, and crash reporting. |
+| [Remove Internet Permissions](#patch-remove-internet-permissions) | `resourcePatch` | `true` | Removes Internet permissions from AndroidManifest.xml to prevent network access. |
+| [Remove Notifications](#patch-remove-notifications) | `resourcePatch` | `true` | Removes notification permissions from AndroidManifest.xml to eliminate push notifications entirely. |
+
 
 ---
 
@@ -209,11 +212,53 @@ Every target is patched with the ARM64 return opcode `c0 03 5f d6` (`ret`):
 6. **Unity Engine Analytics:**
    - `UnityEngine.Analytics.Initialize` (`0x4103644`)
 
+
 ---
+
+## Patch: Remove Internet Permissions
+
+- **Name:** Remove Internet Permissions
+- **Target Package:** `com.tripledot.blackjack`
+- **Supported Versions:** `2.22.08`
+- **Default State:** `true` (Enabled by default)
+- **Type:** XML Resource Patch (`resourcePatch`)
+- **Dependencies:** None
+
+### 1. Motivation & Purpose
+
+The app's Internet permission permits all outbound and inbound network communication. The **Remove Internet Permissions** patch removes the request so Android denies the app network access. Its **Remove Broken Screens** option is enabled by default and removes the Settings and Daily Challenge Help Center buttons, whose Zendesk content cannot load without Internet access.
+
+### 2. Technical Implementation
+
+The patch edits `AndroidManifest.xml` through the XML DOM and removes every `uses-permission` or `uses-permission-sdk-23` declaration whose `android:name` is `android.permission.INTERNET`. It reads the Android namespace attribute with a prefix-preserving fallback and fails fast when no matching declaration exists, preventing a version mismatch from silently producing an incomplete patch.
+
+When **Remove Broken Screens** is enabled, the patch changes the serialized `m_IsActive` flag from `true` to `false` for both `Button_HelpCenter` Unity `GameObject` instances in `assets/bin/Data/sharedassets0.assets.split71`. It accepts an already-disabled button and fails if the expected active-state byte differs.
+
+---
+
+## Patch: Remove Notifications
+
+- **Name:** Remove Notifications
+- **Target Package:** `com.tripledot.blackjack`
+- **Supported Versions:** `2.22.08`
+- **Default State:** `true` (Enabled by default)
+- **Type:** XML Resource Patch (`resourcePatch`)
+- **Dependencies:** None
+
+### 1. Motivation & Purpose
+
+Tripledot Blackjack requests Android notification access for promotional push alerts, chip reminders, and re-engagement messaging. The **Remove Notifications** patch removes the request so the operating system cannot grant or post those notifications.
+
+### 2. Technical Implementation
+
+The patch edits `AndroidManifest.xml` through the XML DOM and removes every `uses-permission` or `uses-permission-sdk-23` declaration whose `android:name` is `android.permission.POST_NOTIFICATIONS`. It reads the Android namespace attribute with a prefix-preserving fallback and fails fast when no matching declaration exists, preventing a version mismatch from silently producing an incomplete patch.
+
+---
+
 
 ## Verification & Preconditions
 
 1. Target application must be **Blackjack** (`com.tripledot.blackjack`), version `2.22.08`, signed by SHA-256 certificate `32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205`.
 2. Target binary `lib/arm64-v8a/libil2cpp.so` must exist and match expected prologue byte sequences at all declared offsets.
 3. Build verification: `./gradlew :patches:buildAndroid clean --no-daemon`.
-4. Metadata verification: `./gradlew generatePatchesList` confirms all 5 patches serialize correctly.
+4. Metadata verification: `./gradlew generatePatchesList` confirms all 7 patches serialize correctly.

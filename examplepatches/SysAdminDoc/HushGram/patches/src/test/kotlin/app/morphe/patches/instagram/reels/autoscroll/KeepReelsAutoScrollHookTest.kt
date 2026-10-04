@@ -58,6 +58,14 @@ class KeepReelsAutoScrollHookTest {
     private val lifecycle = "Lfixture/ManagerLifecycle;"
     private val trace = "Lfixture/Trace;->begin(Ljava/lang/String;)V"
     private val session = "Lcom/instagram/common/session/UserSession;"
+    private val timer = "Lfixture/AutoscrollTimer;"
+    private val duration = "Lfixture/DurationChoice;"
+    private val deadlineDescriptor = "Lfixture/LongPreference;"
+    private val property = "Lfixture/Property;"
+    private val expirationKey = "preference_clips_auto_scroll_expiration_timestamp"
+    private val durationMarker = "ClipsOptInAutoscrollPluginImpl_logDurationTap"
+    private val timerHook = "$REEL_AUTO_SCROLL->timerSet(J)V"
+    private val timerSetter = "$timer->expires($prefs" + "J)V"
     private val clickParameters = listOf(
         "Landroidx/fragment/app/FragmentActivity;", session, "Lfixture/Logger;", "Lkotlin/jvm/functions/Function0;", "I", "J", "Z",
     )
@@ -75,7 +83,7 @@ class KeepReelsAutoScrollHookTest {
         "overwrittenOnABranch" to listOf("move/from16 v1, p8", "if-nez v0, :keep", "const/4 v1, 0x1", ":keep"),
         "parameterOverwritten" to listOf("const/16 p8, 0x1", "move/from16 v1, p8"),
     )
-    private val hooks = setOf(AUTO_SCROLL_ANSWER, AUTO_SCROLL_SAVED, AUTO_SCROLL_CHOSEN, AUTO_SCROLL_STORED)
+    private val hooks = setOf(AUTO_SCROLL_ANSWER, AUTO_SCROLL_SAVED, AUTO_SCROLL_CHOSEN, AUTO_SCROLL_STORED, timerHook)
 
     /** How the stand-in handler keeps its choice in memory: as it is, not at all, twice, or a constant in its place. */
     private val choiceToKeep = mapOf(
@@ -146,6 +154,54 @@ class KeepReelsAutoScrollHookTest {
         keepReelsAutoScrollPatch.execute(context)
 
         assertChoiceFirst("copied twice", context.method(plugin, "handle"))
+    }
+
+    /** The completed duration choices pass the exact native timestamp after the native save. */
+    @Test
+    fun everyDurationChoiceIsRememberedAfterItIsSaved() {
+        val context = PatchContexts.of(classes() + ExtensionDex.classDef(SETTINGS_STATUS))
+        keepReelsAutoScrollPatch.execute(context)
+        assertTimerChoices(context.method(duration, "invoke"))
+        assertEquals("the expiration setter itself is unchanged", 7, context.method(timer, "expires").code().size)
+        assertEquals("the handler's zero reset is not hooked", 0, context.method(plugin, "handle").code().count { it.referenceText() == timerHook })
+        assertEquals("the handler still performs its native zero reset", 1, context.method(plugin, "handle").code().count { it.referenceText() == timerSetter })
+        assertEquals("the cancellation callback remains stock", 0, context.method("Lfixture/DurationCancel;", "invoke").code().count { it.referenceText() in hooks })
+    }
+
+    /** A timer role or timestamp with no proof must fail before any of the other hooks are written. */
+    @Test
+    fun anUnprovedTimerFailsBeforeAnythingChanges() {
+        val fixtures = listOf(
+            classes(timerKey = "unrelated_expiration_timestamp"),
+            classes(durationMillis = -1),
+            classes(jumpIntoDurationSave = true),
+            classes(durationCapturedPrefs = false),
+            classes(durationConstructed = false),
+            classes(timerKeepsDeadline = false),
+            classes(durationOverwritesPrefs = true),
+            classes(durationOverwritesReceiver = true),
+        )
+        for (classes in fixtures) {
+            val context = PatchContexts.of(classes + ExtensionDex.classDef(SETTINGS_STATUS))
+            assertThrows(PatchException::class.java) { keepReelsAutoScrollPatch.execute(context) }
+            for (type in classes) for (method in type.methods) {
+                val after = context.method(method)
+                assertEquals("${method.text()} registers changed", method.implementation!!.registerCount, after.implementation!!.registerCount)
+                assertEquals("${method.text()} changed", method.code().map { Triple(it.opcode, it.referenceText(), it.arguments()) },
+                    after.code().map { Triple(it.opcode, it.referenceText(), it.arguments()) })
+            }
+        }
+    }
+
+    private fun assertTimerChoices(method: Method, setter: String = timerSetter) {
+        val code = method.code()
+        val saves = code.indices.filter { code[it].referenceText() == setter }
+        assertEquals("the three duration choices save a timestamp", 3, saves.size)
+        assertEquals("one hook per completed duration choice", 3, code.count { it.referenceText() == timerHook })
+        for (at in saves) {
+            assertEquals("remember after the native save at $at", timerHook, code[at + 1].referenceText())
+            assertEquals("remember exactly the saved timestamp at $at", code[at].arguments().drop(1), code[at + 1].arguments())
+        }
     }
 
     /** A build the patch can't read fails at patch time, saying what it found, before anything is written. */
@@ -220,13 +276,14 @@ class KeepReelsAutoScrollHookTest {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
                 val found = mutableMapOf<String, ClassDef>()
                 FixtureDex.forEach(bundle) { dex ->
-                    if (dex.stringSection.none { it == AUTOSCROLL_PREFERENCE || it.endsWith("_$IS_AUTOSCROLL_ACTIVE") || it.endsWith("_$AUTOSCROLL_MODE_CLICK") }) {
+                    if (dex.stringSection.none { it == AUTOSCROLL_PREFERENCE || it == AUTOSCROLL_EXPIRATION ||
+                        it.endsWith("_$IS_AUTOSCROLL_ACTIVE") || it.endsWith("_$AUTOSCROLL_MODE_CLICK") || it.endsWith("_$AUTOSCROLL_DURATION_TAP") }) {
                         return@forEach
                     }
                     for (classDef in dex.classes) {
                         val wanted = classDef.methods.any { method ->
-                            method.markers().any { it == IS_AUTOSCROLL_ACTIVE || it == AUTOSCROLL_MODE_CLICK } ||
-                                (method.name == "<clinit>" && method.code().any { it.string() == AUTOSCROLL_PREFERENCE })
+                            method.markers().any { it == IS_AUTOSCROLL_ACTIVE || it == AUTOSCROLL_MODE_CLICK || it == AUTOSCROLL_DURATION_TAP } ||
+                                (method.name == "<clinit>" && method.code().any { it.string() in listOf(AUTOSCROLL_PREFERENCE, AUTOSCROLL_EXPIRATION) })
                         }
                         if (wanted) found[classDef.type] = ImmutableClassDef.of(classDef)
                     }
@@ -241,6 +298,10 @@ class KeepReelsAutoScrollHookTest {
                 val checkMethod = plugin.methods.single { IS_AUTOSCROLL_ACTIVE in it.markers() }
                 val memory = checkMethod.code().single { it.opcode == Opcode.IGET_BOOLEAN }.reference() as FieldReference
                 val memoryText = memory.toString()
+                val timerClass = found.values.single { type -> type.methods.any { m -> m.name == "<clinit>" && m.code().any { it.string() == AUTOSCROLL_EXPIRATION } } }
+                val expirationSetter = timerClass.methods.single { it.name != "<clinit>" }
+                val boxingHelper = expirationSetter.code().mapNotNull { it.reference() as? MethodReference }.last()
+                found.putAll(FixtureDex.classes(bundle, setOf(boxingHelper.definingClass)))
                 // The timer's and the preference's state: the static fields the preference class
                 // keeps, and those of the same types the check reads from the timer's class.
                 val descriptorTypes = preferenceClass.staticFields.map { it.type }.toSet()
@@ -280,6 +341,13 @@ class KeepReelsAutoScrollHookTest {
                 val click = context.mutableClassDefBy(plugin.type).methods.single { AUTOSCROLL_MODE_CLICK in it.markers() }
                 assertChoiceFirst(bundle.name, click)
                 assertChoiceKept(bundle.name, click, setter.text(), memoryText)
+                val callback = found.values.flatMap { it.methods.toList() }.single { AUTOSCROLL_DURATION_TAP in it.markers() && it.code().any { code -> code.calls(expirationSetter) } }
+                assertTimerChoices(context.method(callback), expirationSetter.text())
+                assertEquals("${bundle.name}: native expiration setter is unchanged", expirationSetter.code().map { Triple(it.opcode, it.referenceText(), it.arguments()) },
+                    context.method(expirationSetter).code().map { Triple(it.opcode, it.referenceText(), it.arguments()) })
+                val cancellation = found.values.flatMap { it.methods.toList() }.single { AUTOSCROLL_DURATION_TAP in it.markers() && it.text() != callback.text() }
+                assertEquals("${bundle.name}: cancellation is unchanged", cancellation.code().map { Triple(it.opcode, it.referenceText(), it.arguments()) },
+                    context.method(cancellation).code().map { Triple(it.opcode, it.referenceText(), it.arguments()) })
 
                 val readers = found.values.flatMap { type -> type.methods.filter { m -> m.code().any { it.referenceText() == memoryText && it.opcode.setsRegister() } } }
                 assertTrue("${bundle.name}: the check reads the memory", readers.any { it.text() == checkMethod.text() })
@@ -431,6 +499,14 @@ class KeepReelsAutoScrollHookTest {
         clickKeeps: String = "choice",
         clickReads: Boolean = false,
         readerOpcode: String = "iget-boolean",
+        timerKey: String = expirationKey,
+        durationMillis: Long = 3600000,
+        jumpIntoDurationSave: Boolean = false,
+        durationCapturedPrefs: Boolean = true,
+        durationConstructed: Boolean = true,
+        timerKeepsDeadline: Boolean = true,
+        durationOverwritesPrefs: Boolean = false,
+        durationOverwritesReceiver: Boolean = false,
     ): List<ClassDef> {
         val setter = "$preference->setEnabled($prefs" + "Z)V"
         val read = if (checkReads) "invoke-static { v0 }, $preference->enabled($prefs)Z" else "invoke-static { v0 }, Lfixture/Other;->enabled($prefs)Z"
@@ -451,6 +527,8 @@ class KeepReelsAutoScrollHookTest {
                 const/4 v0, 0x0
                 $read
                 move-result v1
+                sget-object v0, $timer->deadline:$deadlineDescriptor
+                sget-object v3, $timer->names:[$property
                 return v1
                 :off
                 return v1
@@ -477,6 +555,11 @@ class KeepReelsAutoScrollHookTest {
                 ${if (clickReads) "iget-boolean v4, v2, $memory" else ""}
                 :kept
                 ${if (clickLoops) "if-eqz v1, :top" else ""}
+                const-wide/16 v8, 0x0
+                invoke-static { v0, v8, v9 }, $timerSetter
+                ${if (durationConstructed) (0..2).joinToString("\n") {
+                    "new-instance v6, $duration\nconst/4 v7, $it\ninvoke-direct { v6, v0, v7 }, $duration-><init>($prefs" + "I)V"
+                } else ""}
                 return-void
             """)
         }
@@ -579,7 +662,80 @@ class KeepReelsAutoScrollHookTest {
                 return-void
             """))),
         )
-        return pluginClass + preferenceClasses + viewerClasses + otherClasses + toggleClasses + memoryClasses + readerClasses
+        val timerClasses = listOf(
+            classDef("Lfixture/DurationCancel;", listOf(method("Lfixture/DurationCancel;", "invoke", emptyList(), "Ljava/lang/Object;", 1, body = """
+                const-string v0, "android_purge_26_q3_$durationMarker"
+                invoke-static { v0 }, $trace
+                const/4 v0, 0x0
+                return-object v0
+            """)), interfaces = listOf("Lkotlin/jvm/functions/Function0;")),
+            classDef("Lfixture/Save;", listOf(method("Lfixture/Save;", "longValue", listOf("Ljava/lang/Object;", deadlineDescriptor, property, "J"), "V", 1, static = true, body = """
+                invoke-static { p3, p4 }, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+                move-result-object v0
+                invoke-interface { p1, p0, v0, p2 }, $deadlineDescriptor->setValue(Ljava/lang/Object;Ljava/lang/Object;$property)V
+                return-void
+            """))),
+            classDef(timer, listOf(
+                method(timer, "<clinit>", emptyList(), "V", 1, static = true, body = """
+                    const-string v0, "$timerKey"
+                    const-string v0, "getClipsAutoscrollExpirationTimestampMs(Lcom/instagram/preferences/user/UserPreferences;)J"
+                    return-void
+                """),
+                method(timer, "expires", listOf(prefs, "J"), "V", 3, static = true, body = """
+                    const/4 v2, 0x0
+                    invoke-static { p0, v2 }, Lfixture/Checks;->notNull(Ljava/lang/Object;I)V
+                    sget-object v1, $timer->deadline:$deadlineDescriptor
+                    sget-object v0, $timer->names:[$property
+                    aget-object v0, v0, v2
+                    invoke-static { p0, v1, v0, ${if (timerKeepsDeadline) "p1, p2" else "v4, v3"} }, Lfixture/Save;->longValue(Ljava/lang/Object;$deadlineDescriptor$property""" + "J)V\nreturn-void"),
+            ), staticFields = listOf("deadline" to deadlineDescriptor, "names" to "[$property")),
+            classDef(duration, listOf(
+                method(duration, "<init>", listOf(prefs, "I"), "V", 0, body = """
+                    ${if (durationOverwritesPrefs) "const/4 p1, 0x0" else ""}
+                    ${if (durationOverwritesReceiver) "const/4 p0, 0x0" else ""}
+                    iput-object ${if (durationCapturedPrefs) "p1" else "p0"}, p0, $duration->preferences:Ljava/lang/Object;
+                    iput p2, p0, $duration->which:I
+                    invoke-direct { p0 }, Ljava/lang/Object;-><init>()V
+                    return-void
+                """),
+                method(duration, "invoke", emptyList(), "Ljava/lang/Object;", 8, body = """
+                    iget v1, p0, $duration->which:I
+                    if-eqz v1, :hour
+                    const/4 v0, 0x1
+                    if-eq v1, v0, :day
+                    iget-object v2, p0, $duration->preferences:Ljava/lang/Object;
+                    check-cast v2, $prefs
+                    const-wide v0, 0x7fffffffffffffffL
+                    invoke-static { v2, v0, v1 }, $timerSetter
+                    goto :logged
+                    :hour
+                    iget-object v4, p0, $duration->preferences:Ljava/lang/Object;
+                    check-cast v4, $prefs
+                    ${if (jumpIntoDurationSave) "if-eqz v4, :hourSave" else ""}
+                    invoke-static { }, Ljava/lang/System;->currentTimeMillis()J
+                    move-result-wide v2
+                    const-wide/32 v0, $durationMillis
+                    add-long/2addr v2, v0
+                    :hourSave
+                    invoke-static { v4, v2, v3 }, $timerSetter
+                    goto :logged
+                    :day
+                    iget-object v4, p0, $duration->preferences:Ljava/lang/Object;
+                    check-cast v4, $prefs
+                    invoke-static { }, Ljava/lang/System;->currentTimeMillis()J
+                    move-result-wide v2
+                    const-wide/32 v0, 86400000
+                    add-long/2addr v2, v0
+                    invoke-static { v4, v2, v3 }, $timerSetter
+                    :logged
+                    const-string v2, "android_purge_26_q3_$durationMarker"
+                    invoke-static { v2 }, $trace
+                    const/4 v0, 0x0
+                    return-object v0
+                """),
+            ), fields = listOf("preferences" to "Ljava/lang/Object;", "which" to "I"), interfaces = listOf("Lkotlin/jvm/functions/Function0;"), finalFields = true),
+        )
+        return pluginClass + preferenceClasses + viewerClasses + otherClasses + toggleClasses + memoryClasses + readerClasses + timerClasses
     }
 
     private fun method(
@@ -593,7 +749,7 @@ class KeepReelsAutoScrollHookTest {
     ): Method {
         var flags = AccessFlags.PUBLIC.value
         if (static) flags = flags or AccessFlags.STATIC.value
-        if (name == "<clinit>") flags = flags or AccessFlags.CONSTRUCTOR.value
+        if (name == "<clinit>" || name == "<init>") flags = flags or AccessFlags.CONSTRUCTOR.value
         val total = registers + (if (static) 0 else 1) + parameters.sumOf { if (it == "J" || it == "D") 2L else 1L }.toInt()
         val mutable = MutableMethod(
             ImmutableMethod(
@@ -609,10 +765,12 @@ class KeepReelsAutoScrollHookTest {
         owner, name, parameters, returnType, accessFlags, annotations, hiddenApiRestrictions, implementation,
     )
 
-    private fun classDef(type: String, methods: List<Method>, fields: List<Pair<String, String>> = emptyList()): ClassDef =
+    private fun classDef(type: String, methods: List<Method>, fields: List<Pair<String, String>> = emptyList(),
+        staticFields: List<Pair<String, String>> = emptyList(), interfaces: List<String> = emptyList(), finalFields: Boolean = false): ClassDef =
         ImmutableClassDef(
-            type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null,
-            fields.map { (name, fieldType) -> ImmutableField(type, name, fieldType, AccessFlags.PUBLIC.value, null, null, null) },
+            type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", interfaces, null, null,
+            fields.map { (name, fieldType) -> ImmutableField(type, name, fieldType, AccessFlags.PUBLIC.value or (if (finalFields) AccessFlags.FINAL.value else 0), null, null, null) } +
+                staticFields.map { (name, fieldType) -> ImmutableField(type, name, fieldType, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value, null, null, null) },
             methods,
         )
 

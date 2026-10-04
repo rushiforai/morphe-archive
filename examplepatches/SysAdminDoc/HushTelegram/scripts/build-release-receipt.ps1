@@ -95,7 +95,7 @@ $catalog = Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json
 $patchNames = @($catalog.patches | ForEach-Object { $_.name })
 if ($patchNames.Count -eq 0) { throw "No patches listed in $PatchList." }
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $patchNames)
-$expectedTarget = Get-PatchTarget -PatchList $catalog
+$expectedTargets = @(Get-PatchTargets -PatchList $catalog)
 
 $catalogText = Get-Content -LiteralPath (Join-Path $Root 'gradle/libs.versions.toml') -Raw
 $patcherMatch = [regex]::Match($catalogText, '(?m)^\s*morphe-patcher\s*=\s*"([^"]+)"')
@@ -259,6 +259,7 @@ $targets = New-Object System.Collections.Generic.List[object]
 # before anything is patched: a run given only the newest build patched it and then refused the
 # receipt it had produced.
 $stockFacts = @{}
+$stockSigners = @{}
 foreach ($apk in $Fixture) {
     if (-not (Test-Path -LiteralPath $apk -PathType Leaf)) { throw "Fixture not found: $apk" }
     $label = Split-Path -Leaf $apk
@@ -267,27 +268,39 @@ foreach ($apk in $Fixture) {
         # Telegram ships as a split bundle, which aapt2 can't read; its manifest is the base APK's.
         $stockApk = Get-BaseApk -Apk $apk -Destination (Join-Path $readDir 'stock-base.apk')
         $stock = Get-ApkManifestFacts -Apk $stockApk -Aapt2 $Aapt2
+        $expectedTarget = Get-PatchTarget -PatchList $catalog -PackageName ([string]$stock.package)
+        $signers = @(Get-VendorSignerDigests -Apk $stockApk -Aapt2 $Aapt2)
+        if (@($expectedTarget.PackageSignatures).Count -eq 0 -or
+                @($signers | Where-Object { $expectedTarget.PackageSignatures -cnotcontains $_ }).Count -gt 0) {
+            throw "$label is not signed by the declared vendor certificate for $($stock.package). Nothing was patched."
+        }
+        $stockSigners[$apk] = $signers
     } finally {
         Remove-GeneratedPath -Path $readDir -Root $workRoot
-    }
-    if ($stock.package -ne $expectedTarget.PackageName) {
-        throw "$label is $($stock.package), not the catalog's target $($expectedTarget.PackageName)."
     }
     $stockFacts[$apk] = $stock
 }
 # A fixture is the run of a declared build only when it's that build, version code and all: in the
 # Facebook sibling, another arm64 build of 580 was taken for the declared one by its name, patched
 # without -f and recorded as proof of a build nobody ran.
-$fixtureVersions = @($Fixture | Where-Object {
-        Test-DeclaredBuild -Target $expectedTarget -VersionName ([string]$stockFacts[$_].versionName) `
-            -VersionCode ([string]$stockFacts[$_].versionCode) } |
-    ForEach-Object { [string]$stockFacts[$_].versionName })
-$unfixed = @($expectedTarget.PackageVersions | Where-Object { $fixtureVersions -notcontains $_ })
+$unfixed = @(foreach ($expectedTarget in $expectedTargets) {
+    foreach ($version in @($expectedTarget.PackageVersions)) {
+        $codes = @($expectedTarget.PackageVersionCodes[$version] | Where-Object { $_ })
+        if ($codes.Count -eq 0) { throw "The receipt requires exact version codes for $($expectedTarget.PackageName) $version." }
+        foreach ($code in $codes) {
+            $matching = @($Fixture | Where-Object { $facts = $stockFacts[$_]
+                $facts.package -ceq $expectedTarget.PackageName -and $facts.versionName -ceq $version -and
+                [string]$facts.versionCode -ceq [string]$code })
+            if ($matching.Count -eq 0) { "$($expectedTarget.PackageName) $version ($code)" }
+        }
+    }
+})
 if ($unfixed.Count -gt 0) {
-    $given = @($Fixture | ForEach-Object { "$($stockFacts[$_].versionName) ($($stockFacts[$_].versionCode))" })
-    throw ("No fixture is the declared $($expectedTarget.PackageName) $($unfixed -join ', '), and the " +
+    $given = @($Fixture | ForEach-Object { "$($stockFacts[$_].package) $($stockFacts[$_].versionName) ($($stockFacts[$_].versionCode))" })
+    throw ("No fixture is the declared $($unfixed -join ', '), and the " +
         "receipt needs a run of every declared build without -f. The catalog declares " +
-        "$(Format-DeclaredBuilds -Target $expectedTarget), and the fixtures given are $($given -join ', '). " +
+        "$(@($expectedTargets | ForEach-Object { "$($_.PackageName) $(Format-DeclaredBuilds -Target $_)" }) -join '; '), " +
+        "and the fixtures given are $($given -join ', '). " +
         'Nothing was patched.')
 }
 
@@ -300,6 +313,7 @@ foreach ($apk in $Fixture) {
     New-Item -ItemType Directory -Force -Path $runDir | Out-Null
     try {
         $stock = $stockFacts[$apk]
+        $expectedTarget = Get-PatchTarget -PatchList $catalog -PackageName ([string]$stock.package)
 
         $out = Resolve-WithinRoot -Path (Join-Path $runDir 'patched.apk') -Root $workRoot
         $temp = Resolve-WithinRoot -Path (Join-Path $runDir 'tmp') -Root $workRoot
@@ -347,6 +361,9 @@ foreach ($apk in $Fixture) {
         if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode on $label." }
 
         $patched = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
+        $nativeReportPath = Resolve-WithinRoot -Root $workRoot -Path (Join-Path $runDir 'native-libraries.json')
+        $packaging = Get-NativePackagingEvidence -StockApk $patchInput -PatchedApk $out -Java $Java `
+            -Aapt2 $Aapt2 -ReportPath $nativeReportPath -SourceApk $apk
         # The manifest the patches started from is the APK the CLI patched, the merge for a split
         # bundle, not the base APK's: the merge rewrites the manifest itself, and a delta against
         # the base would record its changes as the patches' own.
@@ -367,10 +384,13 @@ foreach ($apk in $Fixture) {
                 versionName = $stock.versionName
                 versionCode = $stock.versionCode
                 sha256      = Get-Sha256Hex -Path $apk
+                signerSha256 = $stockSigners[$apk]
                 forced      = $forced
             }
             patches       = $verdicts
             sdk           = [ordered]@{ stockMinSdk = $baseline.minSdk; patchedMinSdk = $patched.minSdk }
+            nativeLibraries = $packaging.NativeLibraries
+            zipAlignment  = $packaging.ZipAlignment
             manifestDelta = [ordered]@{
                 permissionsAdded          = @($delta.permissionsAdded)
                 permissionsRemoved        = @($delta.permissionsRemoved)
@@ -379,10 +399,7 @@ foreach ($apk in $Fixture) {
             }
         })
     } finally {
-        if ($runDir.StartsWith($workRoot, [System.StringComparison]::OrdinalIgnoreCase) -and
-            (Test-Path -LiteralPath $runDir)) {
-            Remove-Item -LiteralPath $runDir -Recurse -Force -ErrorAction SilentlyContinue
-        }
+        Remove-GeneratedPath -Root $workRoot -Path $runDir
     }
 }
 
@@ -422,8 +439,7 @@ $check = Test-ReleaseReceipt -Receipt ($receipt | ConvertTo-Json -Depth 12 | Con
     -ExpectedVersion $releaseVersion -ExpectedPatchNames $patchNames `
     -ExpectedPatcherVersion $patcherMatch.Groups[1].Value `
     -ExpectedManagerFloor $floorMatch.Groups[1].Value `
-    -ExpectedPackageName $expectedTarget.PackageName `
-    -ExpectedPackageVersions $expectedTarget.PackageVersions -ExpectedPackageVersionCodes $expectedTarget.PackageVersionCodes `
+    -ExpectedPackageTargets $expectedTargets `
     -BundlePath $Bundle `
     -ApprovedManifestDelta $approved -SbomPath $Sbom
 if (-not $check.Valid) { throw "The receipt this run produced does not pass validation: $($check.Reason)" }

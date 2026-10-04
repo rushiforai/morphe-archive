@@ -34,11 +34,7 @@ import org.robolectric.shadows.ShadowToast;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.HttpCookie;
 import java.net.SocketTimeoutException;
-import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -609,7 +605,8 @@ public class ReleaseCheckTest {
             Preference card = rows(page).get(0);
             Preference checkNow = page.findPreference(HushThreadsPreferenceFragment.CHECK_NOW);
             String before = String.valueOf(card.getSummary());
-            assertFalse(before, before.contains("\n"));
+            assertEquals(2, before.split("\n", -1).length);
+            assertTrue(before, before.endsWith("\n" + L10n.f("Build %1$s", L10n.isolate("unknown"))));
 
             try {
                 checkNow.getOnPreferenceClickListener().onPreferenceClick(checkNow);
@@ -821,63 +818,6 @@ public class ReleaseCheckTest {
         assertNull(ReleaseCheck.versionOfTag("latest"));
         assertNull(ReleaseCheck.versionOfTag("v0.2.0 is out"));
         assertNull(ReleaseCheck.versionOfTag("v"));
-    }
-
-    // ---- Cookies -------------------------------------------------------------------------------
-
-    /**
-     * Meta's apps can make a java.net.CookieManager the process's default, and HttpURLConnection
-     * puts what the default offers on every request, so the transport asks it first.
-     */
-    @Test
-    public void aRequestCarriesNoCookieWhateverThePhoneKeeps() throws Exception {
-        URI api = URI.create(ReleaseCheck.LATEST_RELEASE);
-        assertNull(ReleaseTransport.cookieRefusal(null, api));
-
-        // A cookie an answer from GitHub left behind is dropped, and the request carries none.
-        CookieManager manager = new CookieManager();
-        HttpCookie left = new HttpCookie("_gh_sess", "x");
-        left.setDomain("api.github.com");
-        left.setPath("/");
-        left.setVersion(0);
-        manager.getCookieStore().add(api, left);
-        assertEquals("the control: the manager would have added it", Collections.singletonList("_gh_sess=x"),
-                manager.get(api, Collections.<String, List<String>>emptyMap()).get("Cookie"));
-        assertNull(ReleaseTransport.cookieRefusal(manager, api));
-        assertTrue(manager.getCookieStore().get(api).isEmpty());
-        assertTrue(manager.get(api, Collections.<String, List<String>>emptyMap()).get("Cookie").isEmpty());
-
-        // Threads' own cookies stay where they are.
-        URI threads = URI.create("https://www.threads.com/");
-        HttpCookie session = new HttpCookie("ds_user_id", "1");
-        session.setDomain(".threads.com");
-        session.setPath("/");
-        session.setVersion(0);
-        manager.getCookieStore().add(threads, session);
-        assertNull(ReleaseTransport.cookieRefusal(manager, api));
-        assertEquals(1, manager.getCookieStore().get(threads).size());
-
-        // A handler that would still add one stops the request, and one that adds none doesn't.
-        assertNotNull(ReleaseTransport.cookieRefusal(handler(Collections.singletonMap("Cookie",
-                Collections.singletonList("a=b"))), api));
-        assertNotNull(ReleaseTransport.cookieRefusal(handler(Collections.singletonMap("cookie2",
-                Collections.singletonList("$Version=1"))), api));
-        assertNull(ReleaseTransport.cookieRefusal(handler(Collections.singletonMap("Cookie",
-                Collections.<String>emptyList())), api));
-        assertNull(ReleaseTransport.cookieRefusal(handler(Collections.<String, List<String>>emptyMap()), api));
-    }
-
-    private static CookieHandler handler(Map<String, List<String>> adds) {
-        return new CookieHandler() {
-            @Override
-            public Map<String, List<String>> get(URI uri, Map<String, List<String>> headers) {
-                return adds;
-            }
-
-            @Override
-            public void put(URI uri, Map<String, List<String>> headers) {
-            }
-        };
     }
 
     // ---- Helpers -------------------------------------------------------------------------------

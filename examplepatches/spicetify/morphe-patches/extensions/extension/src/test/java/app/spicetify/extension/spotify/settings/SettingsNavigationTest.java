@@ -1,6 +1,7 @@
 package app.spicetify.extension.spotify.settings;
 
-import android.content.Intent;
+import android.app.Activity;
+import android.app.Dialog;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -14,6 +15,7 @@ import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.shadows.ShadowDialog;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
@@ -28,17 +30,16 @@ public class SettingsNavigationTest {
     @Test
     @Config(shadows = AdsAndSharing.class)
     public void rootGroupsOnlyInstalledPatchesAndOpensTheirPage() {
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class).setup()) {
-            View root = controller.get().getWindow().getDecorView();
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            View root = page(controller.get(), null).getWindow().getDecorView();
             View ads = row(root, "Ads, Now Playing");
             assertNotNull(ads);
             assertNotNull(row(root, "Sharing, Clean sharing links"));
             assertNull(row(root, "Home and navigation, Premium tab"));
             assertNull(row(root, "Server files, WebDAV • Jellyfin"));
             ads.performClick();
-            Intent next = Shadows.shadowOf(controller.get()).getNextStartedActivity();
-            assertEquals(SpicetifySettingsActivity.class.getName(), next.getComponent().getClassName());
-            assertEquals(SpicetifySettingsActivity.PAGE_ADS, next.getStringExtra(SpicetifySettingsActivity.EXTRA_PAGE));
+            assertEquals("Ads", title(ShadowDialog.getLatestDialog()));
+            assertNull(Shadows.shadowOf(controller.get()).getNextStartedActivity());
         }
     }
 
@@ -53,30 +54,35 @@ public class SettingsNavigationTest {
     public void appearanceAndServerPagesRenderTheirContent() {
         var application = RuntimeEnvironment.getApplication();
         ServerConfig.initialize(application);
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(application, SpicetifySettingsActivity.PAGE_APPEARANCE)).setup()) {
-            assertTrue(hasText(controller.get().getWindow().getDecorView(), "OLED"));
-        }
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(application, SpicetifySettingsActivity.PAGE_SERVER)).setup()) {
-            assertNotNull(first(controller.get().getWindow().getDecorView(), ServerFilesSettings.class));
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertTrue(hasText(page(controller.get(), SpicetifySettingsScreen.PAGE_APPEARANCE).getWindow().getDecorView(), "OLED"));
+            assertNotNull(first(page(controller.get(), SpicetifySettingsScreen.PAGE_SERVER).getWindow().getDecorView(), ServerFilesSettings.class));
         }
     }
 
     @Test
     public void unknownPageFallsBackToTheRoot() {
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), "missing")).setup()) {
-            assertTrue(hasText(controller.get().getWindow().getDecorView(), "No configurable Spicetify patches are installed."));
-            assertEquals("Spicetify", controller.get().getTitle().toString());
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Dialog page = page(controller.get(), "missing");
+            assertTrue(hasText(page.getWindow().getDecorView(), "No configurable Spicetify patches are installed."));
+            assertEquals("Spicetify", title(page));
         }
     }
 
     @Test
     public void rootExplainsWhenNothingIsInstalled() {
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class).setup()) {
-            assertTrue(hasText(controller.get().getWindow().getDecorView(), "No configurable Spicetify patches are installed."));
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertTrue(hasText(page(controller.get(), null).getWindow().getDecorView(), "No configurable Spicetify patches are installed."));
         }
+    }
+
+    private Dialog page(Activity activity, String page) {
+        SpicetifySettingsScreen.open(activity, page);
+        return ShadowDialog.getLatestDialog();
+    }
+
+    private String title(Dialog page) {
+        return page.getWindow().getAttributes().getTitle().toString();
     }
 
     private View row(View view, String description) {

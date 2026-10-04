@@ -182,9 +182,11 @@ try {
     # A stand-in bundle, so the size, hash and manifest checks compare against real bytes.
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $commitSeconds = 1700000000L
+    $testBuildIdentity = [pscustomobject]@{ schemaVersion = 1; sourceSha256 = ('0' * 64); catalogSha256 = ('1' * 64)
+        toolchainSha256 = ('2' * 64); id = 'hg1:cd44116f6ee1923f60ea7b97e6f131740dd97f13e5e65330ba3242d39f94039b' }
     function New-TestBundle {
         param([string]$Path, [string]$Version = '9.9.9', [long]$Timestamp = 1700000000000L,
-            [string]$Patcher = '1.12.0', [hashtable]$Entries = @{})
+            [string]$Patcher = '1.12.0', [hashtable]$Entries = @{}, [string]$BuildIdentity = $testBuildIdentity.id)
         if (Test-Path -LiteralPath $Path) { Remove-Item -LiteralPath $Path -Force }
         $archive = [System.IO.Compression.ZipFile]::Open(
             $Path, [System.IO.Compression.ZipArchiveMode]::Create)
@@ -193,7 +195,8 @@ try {
             $writer = New-Object System.IO.StreamWriter($entry.Open())
             try {
                 $writer.Write("Manifest-Version: 1.0`nVersion: $Version`n" +
-                    "Timestamp: $Timestamp`nPatcher-Version: $Patcher`n`n")
+                    "Timestamp: $Timestamp`nPatcher-Version: $Patcher`n" +
+                    $(if ($BuildIdentity) { "HushGram-Build-Identity: $BuildIdentity`n" }) + "`n")
             } finally { $writer.Dispose() }
             foreach ($name in @($Entries.Keys | Sort-Object)) {
                 $writer = New-Object System.IO.StreamWriter($archive.CreateEntry($name).Open())
@@ -208,15 +211,31 @@ try {
     # the document before it's written.
     function New-TestSbom {
         param([string]$Path, [string]$Bundle,
-            [string[]]$Libraries = @('pkg:maven/com.google.code.gson/gson@2.14.0'), [scriptblock]$Mutate)
+            [string[]]$Libraries = @('pkg:maven/com.google.code.gson/gson@2.14.0'), [scriptblock]$Mutate,
+            [string]$InputRoot, [string]$LicenseLedger, [object[]]$ReviewedLicenseRecords)
         $bundleName = Split-Path -Leaf $Bundle
         $facts = Get-BundleManifestFacts -BundlePath $Bundle
         $components = New-Object System.Collections.Generic.List[object]
+        $selectedLicenses = New-Object System.Collections.Generic.List[object]
+        $licenseRecords = if ($LicenseLedger) {
+            if ($ReviewedLicenseRecords) { @($ReviewedLicenseRecords) }
+            else { @((Get-Content -LiteralPath $LicenseLedger -Raw | ConvertFrom-Json).artifacts) }
+        } else { @() }
         foreach ($purl in @($Libraries | Where-Object { $_ })) {
             $parts = [regex]::Match($purl, '^pkg:maven/([^/]+)/([^@]+)@(.+)$')
             $components.Add([ordered]@{ type = 'library'; 'bom-ref' = $purl; group = $parts.Groups[1].Value
                 name = $parts.Groups[2].Value; version = $parts.Groups[3].Value; scope = 'required'; purl = $purl
                 properties = @([ordered]@{ name = 'hushgram:carried-by'; value = $bundleName }) })
+            if ($LicenseLedger) {
+                $record = $licenseRecords | Where-Object { $_.purl -ceq $purl }
+                if (@($record).Count -ne 1) { throw "No unique reviewed license fixture for $purl." }
+                $selectedLicenses.Add($record)
+                $component = $components[$components.Count - 1]
+                $component.hashes = @(@{ alg = 'SHA-256'; content = $record.sha256 })
+                $component.licenses = @(@{ license = $record.license })
+                $component.properties += @(@{ name = 'hushgram:artifact'; value = "$($record.file) sha256:$($record.sha256)" },
+                    @{ name = 'hushgram:license-evidence'; value = ($record | ConvertTo-Json -Depth 8 -Compress) })
+            }
         }
         $components.Add([ordered]@{ type = 'library'; 'bom-ref' = 'project:patches'; name = ':patches'
             version = $facts.version; scope = 'required'
@@ -231,6 +250,13 @@ try {
                     version = $facts.version; scope = 'required'; hashes = @([ordered]@{ alg = 'SHA-256'; content = $digest }) })
             }
         } finally { $archive.Dispose() }
+        if ($LicenseLedger) {
+            # Each stand-in build uses the exact reviewed inventory that its SBOM declares.
+            # Keep the full test evidence catalog separate from this current builder input.
+            $selectedLedger = [ordered]@{ schemaVersion = 1; artifacts = $selectedLicenses.ToArray() }
+            [IO.File]::WriteAllText($LicenseLedger, ($selectedLedger | ConvertTo-Json -Depth 12),
+                [Text.UTF8Encoding]::new($false))
+        }
         $document = [ordered]@{
             bomFormat = 'CycloneDX'; specVersion = '1.6'; serialNumber = "urn:uuid:$([guid]::NewGuid())"; version = 1
             metadata = [ordered]@{
@@ -241,6 +267,19 @@ try {
             }
             components = $components.ToArray()
             dependencies = @()
+        }
+        $identityForSbom = if ($InputRoot -and (Test-Path -LiteralPath (Join-Path $InputRoot 'scripts/canonical-build-inputs.txt'))) {
+            Get-CanonicalBuildIdentity -Root $InputRoot
+        } else { $testBuildIdentity }
+        $document.metadata['properties'] = @([ordered]@{ name = 'hushgram:canonical-build-identity'
+            value = ($identityForSbom | ConvertTo-Json -Compress) })
+        if ($InputRoot) {
+            $document.metadata['properties'] += [ordered]@{ name = 'hushgram:build-inputs'
+                value = (Get-DependencyAuditInputs -Root $InputRoot | ConvertTo-Json -Compress) }
+        }
+        if ($LicenseLedger) {
+            $document.metadata.properties = @($document.metadata.properties) + @(@{ name = 'hushgram:license-policy'; value = 'reviewed-artifacts-v1' },
+                @{ name = 'hushgram:license-ledger'; value = (Get-FileHash -LiteralPath $LicenseLedger).Hash.ToLowerInvariant() })
         }
         if ($Mutate) { & $Mutate $document }
         Set-Content -LiteralPath $Path -Encoding UTF8 -Value ($document | ConvertTo-Json -Depth 12)
@@ -253,6 +292,20 @@ try {
     $sbomFile = Join-Path $allowlistRoot 'patches-9.9.9.cdx.json'
     New-TestSbom -Path $sbomFile -Bundle $bundle
 
+    $goodSbom = [IO.File]::ReadAllBytes($sbomFile)
+    try {
+        foreach ($change in @(
+                { param($d) $d.metadata.properties = @() },
+                { param($d) $d.metadata.properties += $d.metadata.properties[0] },
+                { param($d) $d.metadata.properties[0].value = 1 },
+                { param($d) $i = $d.metadata.properties[0].value | ConvertFrom-Json
+                    $i.toolchainSha256 = 'f' * 64; $d.metadata.properties[0].value = $i | ConvertTo-Json -Compress })) {
+            New-TestSbom -Path $sbomFile -Bundle $bundle -Mutate $change
+            Assert-Throws { Read-SbomCanonicalBuildIdentity -Path $sbomFile } '*identity*' `
+                'An absent, duplicated, coerced or substituted SBOM production identity was accepted.'
+        }
+    } finally { [IO.File]::WriteAllBytes($sbomFile, $goodSbom) }
+
     $manifestFacts = Get-BundleManifestFacts -BundlePath $bundle
     Assert-True ($manifestFacts.version -eq '9.9.9') 'The bundle manifest version was not read.'
     Assert-True ($manifestFacts.timestamp -eq 1700000000000L) 'The bundle timestamp was not read.'
@@ -264,6 +317,7 @@ try {
     $declaredCodes = @{ '46.7.3' = [string[]]@('2024607030'); '46.6.1' = [string[]]@('2024606010') }
     $template = [ordered]@{
         schemaVersion = Get-ReleaseReceiptSchemaVersion
+        buildIdentity = $testBuildIdentity
         release   = [ordered]@{ version = '9.9.9'; tag = 'v9.9.9'
             commit = '0123456789abcdef0123456789abcdef01234567'
             commitTimestamp = $commitSeconds; patchCount = 2 }
@@ -271,8 +325,7 @@ try {
             sha256 = $bundleHash; timestamp = 1700000000000L }
         sbom      = [ordered]@{ file = 'patches-9.9.9.cdx.json'; sha256 = (Get-Sha256Hex -Path $sbomFile); components = 3 }
         toolchain = [ordered]@{ patcherVersion = '1.12.0'; managerFloor = '1.29.0' }
-        extension = [ordered]@{ dexPayloads = @([ordered]@{
-            name = 'extensions/instagram.mpe'; sizeBytes = 10; sha256 = ('A' * 64) }) }
+        extension = [ordered]@{ dexPayloads = @(Get-ExtensionPayloads -BundlePath $bundle) }
         targets   = @([ordered]@{
             source = [ordered]@{ file = 'stock.apkm'; package = 'com.example.host'
                 versionName = '46.7.3'; versionCode = '2024607030'; sha256 = ('B' * 64)
@@ -312,11 +365,46 @@ try {
 
     $valid = Test-TestReceipt -Receipt (New-TestReceipt)
     Assert-True $valid.Valid "A complete receipt was refused: $($valid.Reason)"
+    foreach ($identity in @('', ('hg1:' + ('f' * 64)))) {
+        $oddBundle = Join-Path $allowlistRoot 'identity-substitution.mpp'
+        New-TestBundle -Path $oddBundle -BuildIdentity $identity -Entries @{ 'extensions/instagram.mpe' = "dex`n035 payload" }
+        $oddReceipt = New-TestReceipt -Mutate {
+            param($r)
+            $r.bundle.sha256 = Get-Sha256Hex -Path $oddBundle
+            $r.bundle.sizeBytes = (Get-Item -LiteralPath $oddBundle).Length
+        }
+        $result = Test-ReleaseReceipt -Receipt $oddReceipt -ExpectedVersion '9.9.9' `
+            -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
+            -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
+            -ExpectedPackageVersions $declaredBuilds -ExpectedPackageVersionCodes $declaredCodes -BundlePath $oddBundle
+        Assert-True (-not $result.Valid -and $result.Reason -like '*identity*') `
+            "A missing or different bundle identity was not specifically refused: $($result.Reason)"
+    }
+    foreach ($historical in @(1, 2, 3)) {
+        $old = New-TestReceipt
+        $old.schemaVersion = $historical
+        $old.PSObject.Properties.Remove('buildIdentity')
+        if ($historical -lt 2) { $old.PSObject.Properties.Remove('sbom') }
+        $legacy = Test-ReleaseReceipt -Receipt $old -ExpectedVersion '9.9.9' -ExpectedPatchNames @('Alpha', 'Beta') `
+            -ExpectedPatcherVersion '1.12.0' -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
+            -ExpectedPackageVersions $declaredBuilds -ExpectedPackageVersionCodes $declaredCodes -BundlePath $bundle `
+            -ExpectedSchemaVersion $historical
+        Assert-True $legacy.Valid "Historical schema $historical was forced to supply a new identity: $($legacy.Reason)"
+    }
 
     # Every fact the receipt exists to pin, put in front of the check one at a time. A gate that
     # has never been shown to fail is a gate nobody has tested.
     $mutations = [ordered]@{
         'a receipt from a different schema'     = { param($r) $r.schemaVersion = 99 }
+        'no production identity'                = { param($r) $r.PSObject.Properties.Remove('buildIdentity') }
+        'another production identity'          = { param($r) $r.buildIdentity.id = 'hg1:' + ('f' * 64) }
+        'a changed code digest'                 = { param($r) $r.buildIdentity.sourceSha256 = 'f' * 64 }
+        'a changed catalog digest'              = { param($r) $r.buildIdentity.catalogSha256 = 'f' * 64 }
+        'a changed toolchain digest'            = { param($r) $r.buildIdentity.toolchainSha256 = 'f' * 64 }
+        'a substituted payload hash'            = { param($r) $r.extension.dexPayloads[0].sha256 = 'C' * 64 }
+        'a substituted payload name'            = { param($r) $r.extension.dexPayloads[0].name = 'extensions/foreign.mpe' }
+        'a substituted payload size'            = { param($r) $r.extension.dexPayloads[0].sizeBytes += 1 }
+        'a duplicate payload record'            = { param($r) $r.extension.dexPayloads += $r.extension.dexPayloads[0] }
         'a receipt for a different version'     = { param($r) $r.release.version = '9.9.8' }
         'a tag that does not match the version' = { param($r) $r.release.tag = 'v9.9.8' }
         'a short commit'                        = { param($r) $r.release.commit = '0123456' }
@@ -758,7 +846,8 @@ function Invoke-FixtureGit {
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Root,
-        [Parameter(Mandatory = $true)][string[]]$Arguments
+        [Parameter(Mandatory = $true)][string[]]$Arguments,
+        [long]$CommitEpoch
     )
 
     $saved = @{}
@@ -767,8 +856,15 @@ function Invoke-FixtureGit {
         Remove-Item -LiteralPath ('Env:\' + $variable.Name) -ErrorAction SilentlyContinue
     }
     try {
+        if ($PSBoundParameters.ContainsKey('CommitEpoch')) {
+            $env:GIT_AUTHOR_DATE = "@$CommitEpoch +0000"
+            $env:GIT_COMMITTER_DATE = "@$CommitEpoch +0000"
+        }
         return & git -C $Root @Arguments 2>&1
     } finally {
+        if ($PSBoundParameters.ContainsKey('CommitEpoch')) {
+            Remove-Item Env:GIT_AUTHOR_DATE, Env:GIT_COMMITTER_DATE -ErrorAction SilentlyContinue
+        }
         foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }
     }
 }
@@ -1223,6 +1319,140 @@ try {
             "$($rated.Name) was rated $($severity.Level), serious $($severity.Serious), because $($severity.Why)."
     }
 
+    # Labels alone used to hide unread vectors and affected-package severity. Exercise the
+    # actual SBOM query path so the package/version context cannot be lost by the caller.
+    $lowVector = @{ type = 'CVSS_V3'; score = 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N' }
+    $criticalVector = @{ type = 'CVSS_V3'; score = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H' }
+    $v4Vector = @{ type = 'CVSS_V4'; score = 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N' }
+    function New-AffectedRating([string]$Name, [string]$Version, [object[]]$Severity, [string]$Ecosystem = 'Maven') {
+        return @{ package = @{ ecosystem = $Ecosystem; name = $Name }; versions = @($Version); severity = $Severity }
+    }
+    foreach ($case in @(
+            @{ Name = 'low label and v4'; Fields = @{ severity = @($v4Vector) }; Level = 'UNRATED' },
+            @{ Name = 'critical label and v4'; Fields = @{ database_specific = @{ severity = 'CRITICAL' }; severity = @($v4Vector) }; Level = 'CRITICAL' },
+            @{ Name = 'high label and malformed vector'; Fields = @{ database_specific = @{ severity = 'HIGH' };
+                severity = @(@{ type = 'CVSS_V3'; score = 'broken' }) }; Level = 'HIGH' },
+            @{ Name = 'critical vector and v4'; Fields = @{ severity = @($criticalVector, $v4Vector) }; Level = 'CRITICAL' },
+            @{ Name = 'optional metric trailing newline'; Fields = @{ severity = @(@{ type = 'CVSS_V3';
+                score = $lowVector.score + "/E:X`n" }) }; Level = 'UNRATED' },
+            @{ Name = 'low label and malformed v3'; Fields = @{ severity = @(@{ type = 'CVSS_V3'; score = 'CVSS:3.1/AV:N' }) }; Level = 'UNRATED' },
+            @{ Name = 'low label and malformed v4'; Fields = @{ severity = @(@{ type = 'CVSS_V4'; score = 'broken' }) }; Level = 'UNRATED' },
+            @{ Name = 'null severity'; Fields = @{ severity = @($null) }; Level = 'UNRATED' },
+            @{ Name = 'non-array severity'; Fields = @{ severity = $lowVector }; Level = 'UNRATED' },
+            @{ Name = 'numeric score'; Fields = @{ severity = @(@{ type = 'CVSS_V3'; score = 3.3 }) }; Level = 'UNRATED' },
+            @{ Name = 'unsupported severity'; Fields = @{ severity = @(@{ type = 'CVSS_FUTURE'; score = 'low' }) }; Level = 'UNRATED' },
+            @{ Name = 'duplicate metrics lower the score'; Fields = @{ severity = @(@{ type = 'CVSS_V3';
+                score = $criticalVector.score + '/C:N/I:N/A:N' }) }; Level = 'UNRATED' },
+            @{ Name = 'valid v3 and unread v4'; Fields = @{ severity = @($lowVector, $v4Vector) }; Level = 'UNRATED' },
+            @{ Name = 'conflicting minor ratings'; Fields = @{ severity = @($lowVector, ($guavaModerate | ConvertFrom-Json).severity[0]) }; Level = 'UNRATED' },
+            @{ Name = 'package critical'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($criticalVector))) }; Level = 'CRITICAL' },
+            @{ Name = 'another package cannot supply the score'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($lowVector)),
+                (New-AffectedRating 'com.google.code.gson:gson-extras' '2.8.8' @($criticalVector))) }; Level = 'LOW' },
+            @{ Name = 'another ecosystem cannot supply the score'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($lowVector)),
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($criticalVector) 'NuGet')) }; Level = 'LOW' },
+            @{ Name = 'another version cannot supply the score'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($lowVector)),
+                (New-AffectedRating 'com.google.code.gson:gson' '2.7' @($criticalVector))) }; Level = 'LOW' },
+            @{ Name = 'no applicable package'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson-extras' '2.8.8' @($lowVector))) }; Level = 'UNRATED' },
+            @{ Name = 'no applicable version'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.7' @($lowVector))) }; Level = 'UNRATED' },
+            @{ Name = 'package v4'; Fields = @{ affected = @(
+                (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($v4Vector))) }; Level = 'UNRATED' },
+            @{ Name = 'ambiguous package ranges'; Fields = @{ affected = @(
+                @{ package = @{ ecosystem = 'Maven'; name = 'com.google.code.gson:gson' };
+                    ranges = @(@{ type = 'ECOSYSTEM'; events = @(@{ introduced = '0'; fixed = '2.8' }) }); severity = @($lowVector) },
+                @{ package = @{ ecosystem = 'Maven'; name = 'com.google.code.gson:gson' };
+                    ranges = @(@{ type = 'ECOSYSTEM'; events = @(@{ introduced = '2.8' }) }); severity = @($criticalVector) }) }; Level = 'UNRATED' })) {
+        $record = @{ id = 'GHSA-fixture-severity'; database_specific = @{ severity = 'LOW' } }
+        foreach ($key in $case.Fields.Keys) { $record[$key] = $case.Fields[$key] }
+        $osvAnswers = @{ $gsonPurl = (@{ vulns = @($record) } | ConvertTo-Json -Depth 12 -Compress) }
+        . $osvStandIn
+        $actual = @(Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl)))
+        Assert-True ($actual.Count -eq 1 -and $actual[0].Severity.Level -ceq $case.Level) `
+            "$($case.Name) was classified $($actual[0].Severity.Level), not $($case.Level)."
+        $verdict = Test-AdvisoryFindings -Findings $actual
+        Assert-True ($verdict.Valid -eq ($case.Level -ceq 'LOW')) "$($case.Name) received the wrong release verdict."
+    }
+    $osvAnswers = $osvRecorded
+
+    foreach ($conflict in @('package name', 'package version')) {
+        $scoped = New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($criticalVector)
+        $scoped.package.purl = if ($conflict -eq 'package name') {
+            'pkg:maven/com.google.code.gson/gson-extras@2.8.8'
+        } else { 'pkg:maven/com.google.code.gson/gson@2.7' }
+        $record = @{ id = 'GHSA-fixture-scope'; database_specific = @{ severity = 'LOW' }; affected = @(
+            $scoped, (New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @($lowVector))) }
+        $osvAnswers = @{ $gsonPurl = (@{ vulns = @($record) } | ConvertTo-Json -Depth 10 -Compress) }
+        $actual = @(Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl)))
+        Assert-True ($actual[0].Severity.Level -ceq 'UNRATED') "A contradictory $conflict hid an affected rating."
+    }
+    $packageLabel = New-AffectedRating 'com.google.code.gson:gson' '2.8.8' @()
+    $packageLabel.database_specific = @{ severity = 'HIGH' }
+    $osvAnswers = @{ $gsonPurl = (@{ vulns = @(@{ id = 'GHSA-fixture-label';
+        database_specific = @{ severity = 'LOW' }; affected = @($packageLabel) }) } | ConvertTo-Json -Depth 10 -Compress) }
+    Assert-True ((Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl))).Severity.Level -ceq 'HIGH') `
+        'The applicable package label was ignored.'
+
+    # A bridge joins aliases transitively. Every identity remains available for a scoped
+    # exception, but neither a lower alias nor input order may downgrade the finding.
+    $aliasRecords = @(
+        @{ id = 'GHSA-fixture-first'; aliases = @('CVE-fixture-first'); database_specific = @{ severity = 'LOW' } },
+        @{ id = 'GHSA-fixture-last'; aliases = @('CVE-fixture-last'); database_specific = @{ severity = 'CRITICAL' } },
+        @{ id = 'GHSA-fixture-bridge'; aliases = @('CVE-fixture-first', 'CVE-fixture-last'); database_specific = @{ severity = 'LOW' } })
+    foreach ($reverse in @($false, $true)) {
+        $ordered = @($aliasRecords)
+        if ($reverse) { [array]::Reverse($ordered) }
+        $osvAnswers = @{ $gsonPurl = (@{ vulns = $ordered } | ConvertTo-Json -Depth 8 -Compress) }
+        $actual = @(Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl)))
+        Assert-True ($actual.Count -eq 1 -and $actual[0].Severity.Level -ceq 'CRITICAL' -and $actual[0].Aliases.Count -eq 4) `
+            'Alias merging lost the strongest rating or an identity.'
+        Assert-True (-not (Test-AdvisoryFindings -Findings $actual).Valid) 'A lower alias allowed a critical finding.'
+        $review = [pscustomobject]@{ Advisory = 'GHSA-fixture-first'; Package = 'com.google.code.gson:gson';
+            Scope = 'shipped'; Expired = $false; Until = $today.AddDays(1); Reason = 'Reviewed controlled fixture only'; Line = 1 }
+        Assert-True ((Test-AdvisoryFindings -Findings $actual -Exceptions @($review)).Valid -and
+            -not (Test-AdvisoryFindings -Findings $actual -Exceptions @($review) -Scope test).Valid) `
+            'An alias exception was lost or escaped its reviewed dependency scope.'
+    }
+    foreach ($known in @('HIGH', 'CRITICAL')) {
+        foreach ($reverse in @($false, $true)) {
+            $mixed = @(
+                @{ id = 'GHSA-fixture-rated'; aliases = @('CVE-fixture-mixed'); database_specific = @{ severity = $known } },
+                @{ id = 'GHSA-fixture-unread'; aliases = @('CVE-fixture-mixed'); severity = @($v4Vector) })
+            if ($reverse) { [array]::Reverse($mixed) }
+            $osvAnswers = @{ $gsonPurl = (@{ vulns = $mixed } | ConvertTo-Json -Depth 8 -Compress) }
+            $actual = @(Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl)))
+            Assert-True ($actual.Count -eq 1 -and $actual[0].Severity.Level -ceq $known -and
+                $actual[0].Severity.Why -match 'needs review' -and $actual[0].Aliases.Count -eq 2 -and
+                -not (Test-AdvisoryFindings -Findings $actual).Valid) `
+                'Unread alias evidence erased a known serious rating or its review requirement.'
+        }
+    }
+    $aliasRecords[1].database_specific.severity = 'MODERATE'
+    $osvAnswers = @{ $gsonPurl = (@{ vulns = $aliasRecords } | ConvertTo-Json -Depth 8 -Compress) }
+    Assert-True ((Get-SbomAdvisories -Sbom (New-GateSbom @($gsonPurl))).Severity.Level -ceq 'UNRATED') `
+        'Conflicting minor alias ratings were certified without review.'
+    $osvAnswers = $osvRecorded
+
+    foreach ($invalid in @(
+            ($criticalVector.score + '/AV:P'),
+            ($criticalVector.score + '/E:H/E:U'),
+            ($criticalVector.score + '/UNKNOWN:H'),
+            ($criticalVector.score + '/E:Z'),
+            ($criticalVector.score + "/E:X`n"),
+            ($criticalVector.score + "/E:X`r`n"),
+            ($criticalVector.score + "/E:X`t"),
+            ($criticalVector.score + '/'),
+            $criticalVector.score.Replace('/AV:N', '/av:N'),
+            $criticalVector.score.Replace('CVSS:', 'cvss:'))) {
+        Assert-True ($null -eq (Get-Cvss3BaseScore $invalid)) "Malformed CVSS vector received a score: $invalid"
+    }
+    Assert-True ((Get-Cvss3BaseScore 'CVSS:3.1/S:U/AV:N/AC:L/PR:N/UI:N/C:H/I:H/A:H/E:F/RL:X/RC:C/CR:X/MAV:X') -eq 9.8) `
+        'Valid reordered base metrics and optional metrics changed the base score.'
+
     # The exception list. Each broken line stops the read and names itself.
     $exceptionList = Join-Path $advisoryRoot 'read.txt'
     Set-Content -LiteralPath $exceptionList -Encoding ASCII -Value @('# accepted', '',
@@ -1347,10 +1577,14 @@ try {
     # These scopes used to be absent from the advisory gate altogether. Keep the actual
     # resolved versions separate from the shipped payload and from an installed host.
     $graphFile = Join-Path $advisoryRoot 'graphs.json'
-    $graphDocument = [ordered]@{ schemaVersion = 1; graphs = @(
+    $fixtureInputs = [ordered]@{ schemaVersion = 1; version = '9.9.9'; sourceSha256 = ('a' * 64)
+        catalogSha256 = ('b' * 64); toolchainSha256 = ('c' * 64); inputSha256 = ('d' * 64) }
+    $graphDocument = [ordered]@{ schemaVersion = 2; inputs = $fixtureInputs; graphs = @(
         foreach ($scope in @('settings-plugin', 'project-plugin', 'build', 'test', 'host-contract')) {
             [ordered]@{ scope = $scope; owner = ':fixture'; configuration = 'runtimeClasspath'
-                libraries = @((New-GateSbom @($cleanPurl)).Libraries) }
+                root = 'root'; libraries = @((New-GateSbom @($cleanPurl)).Libraries)
+                dependencies = @([ordered]@{ ref = 'root'; dependsOn = @($cleanPurl) }
+                    [ordered]@{ ref = $cleanPurl; dependsOn = @() }) }
         }
     ) }
     $graphJson = $graphDocument | ConvertTo-Json -Depth 8
@@ -1367,13 +1601,26 @@ try {
     $graphs = Read-DependencyGraphs -Path $graphFile
     Assert-True ($graphs.Graphs.Count -eq 5 -and $graphs.Libraries.Count -eq 1) `
         'Resolved scopes were lost, or a package shared by graphs was queried repeatedly.'
+    $emptyGraph = $graphJson | ConvertFrom-Json
+    $emptyGraph.graphs[0].libraries = @()
+    $emptyGraph.graphs[0].dependencies = @([ordered]@{ ref = 'root'; dependsOn = @() })
+    $emptyGraph | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $graphFile -Encoding UTF8
+    Assert-True ((Read-DependencyGraphs -Path $graphFile).Graphs.Count -eq 5) `
+        'A genuinely empty resolved configuration was read as an unreachable null library.'
+    Set-Content -LiteralPath $graphFile -Encoding UTF8 -Value $graphJson
     foreach ($broken in @(
-        @{ Name = 'an unknown schema'; Change = { param($d) $d.schemaVersion = 2 } },
+        @{ Name = 'an unknown schema'; Change = { param($d) $d.schemaVersion = 1 } },
         @{ Name = 'an omitted settings scope'; Change = { param($d) $d.graphs = @($d.graphs | Where-Object scope -ne 'settings-plugin') } },
         @{ Name = 'an unrecognized scope'; Change = { param($d) $d.graphs[0].scope = 'clean' } },
         @{ Name = 'an unresolved library'; Change = { param($d) $d.graphs[0].libraries[0].version = '' } },
         @{ Name = 'a forged package URL'; Change = { param($d) $d.graphs[0].libraries[0].purl = 'pkg:maven/com.example/other@1.0' } },
-        @{ Name = 'a duplicate graph'; Change = { param($d) $d.graphs += $d.graphs[0] } })) {
+        @{ Name = 'a duplicate graph'; Change = { param($d) $d.graphs += $d.graphs[0] } },
+        @{ Name = 'an absent input identity'; Change = { param($d) $d.PSObject.Properties.Remove('inputs') } },
+        @{ Name = 'missing root edges'; Change = { param($d) $d.graphs[0].dependencies = @() } },
+        @{ Name = 'an unresolved edge'; Change = { param($d) $d.graphs[0].dependencies[0].dependsOn = @('absent') } },
+        @{ Name = 'a disconnected module'; Change = { param($d) $d.graphs[0].dependencies[0].dependsOn = @() } },
+        @{ Name = 'a duplicate node'; Change = { param($d) $d.graphs[0].dependencies += $d.graphs[0].dependencies[0] } },
+        @{ Name = 'a duplicate library'; Change = { param($d) $d.graphs[0].libraries += $d.graphs[0].libraries[0] } })) {
         $variant = $graphJson | ConvertFrom-Json
         & $broken.Change $variant
         Set-Content -LiteralPath $graphFile -Encoding UTF8 -Value ($variant | ConvertTo-Json -Depth 8)
@@ -1381,6 +1628,182 @@ try {
             "The dependency audit accepted $($broken.Name)."
     }
     Set-Content -LiteralPath $graphFile -Encoding UTF8 -Value $graphJson
+
+    # A current report is about exact working inputs and exact carrier bytes. Old published
+    # receipts keep their reader rules, but an unbound/stale SBOM can't certify today's build.
+    $inputRoot = Join-Path $advisoryRoot 'current-source'
+    New-Item -ItemType Directory -Path $inputRoot -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $inputRoot 'gradle.properties') -Encoding UTF8 -Value 'version=9.9.9'
+    Set-Content -LiteralPath (Join-Path $inputRoot 'patches-list.json') -Encoding UTF8 -Value '{}'
+    Set-Content -LiteralPath (Join-Path $inputRoot 'source.java') -Encoding UTF8 -Value 'class Source {}'
+    Set-Content -LiteralPath (Join-Path $inputRoot '.gitignore') -Encoding UTF8 -Value @('*.mpp', '*.cdx.json')
+    $boundLicenseLedger = Join-Path $inputRoot 'sources/carried-library-licenses.json'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $boundLicenseLedger) -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'sources/carried-library-licenses.json') -Destination $boundLicenseLedger
+    Invoke-FixtureGit -Root $inputRoot -Arguments @('init', '--quiet') | Out-Null
+    Invoke-FixtureGit -Root $inputRoot -Arguments @('add', '-A') | Out-Null
+    $boundBundle = Join-Path $inputRoot 'patches-9.9.9.mpp'
+    New-TestBundle -Path $boundBundle -Entries @{ 'extensions/instagram.mpe' = "dex`n035 payload" }
+    $boundSbomPath = Join-Path $inputRoot 'patches-9.9.9.cdx.json'
+    New-TestSbom -Path $boundSbomPath -Bundle $boundBundle -InputRoot $inputRoot -LicenseLedger $boundLicenseLedger
+    $boundGraphPath = Join-Path $advisoryRoot 'current-graphs.json'
+    $boundGraph = $graphJson | ConvertFrom-Json
+    $boundGraph.inputs = Get-DependencyAuditInputs -Root $inputRoot
+    $boundGraph | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $boundGraphPath -Encoding UTF8
+    $boundGraphs = Read-DependencyGraphs -Path $boundGraphPath
+    $boundSbom = Read-ReleaseSbom -Path $boundSbomPath
+    $subject = Get-CurrentDependencyAuditSubject -Root $inputRoot -Graphs $boundGraphs -Sbom $boundSbom -BundlePath $boundBundle
+    Assert-True ($subject.sbom.sha256 -eq $boundSbom.Sha256 -and $subject.bundle.name -eq 'patches-9.9.9.mpp') `
+        'The current audit lost the artifact identity.'
+    $futureLedger = Join-Path $inputRoot 'future-inputs.json'
+    try {
+        Set-Content -LiteralPath $futureLedger -Encoding UTF8 -Value '{}'
+        Assert-Throws { Get-DependencyAuditInputs -Root $inputRoot } '*Stage new repository inputs*' `
+            'A new unstaged input disappeared from the audit identity.'
+        Invoke-FixtureGit -Root $inputRoot -Arguments @('add', 'future-inputs.json') | Out-Null
+        Assert-True ((Get-DependencyAuditInputs -Root $inputRoot).sourceSha256 -cne $subject.inputs.sourceSha256) `
+            'A newly tracked ledger disappeared from the source digest.'
+    } finally {
+        Invoke-FixtureGit -Root $inputRoot -Arguments @('rm', '--cached', '--quiet', 'future-inputs.json') | Out-Null
+        Remove-Item -LiteralPath $futureLedger -Force
+    }
+    foreach ($file in 'source.java', 'patches-list.json', 'gradle.properties') {
+        $path = Join-Path $inputRoot $file
+        $before = [IO.File]::ReadAllBytes($path)
+        try {
+            Add-Content -LiteralPath $path -Encoding UTF8 -Value '# changed'
+            Assert-Throws { Get-CurrentDependencyAuditSubject -Root $inputRoot -Graphs $boundGraphs -Sbom $boundSbom -BundlePath $boundBundle } `
+                '*stale or mismatched*build inputs*' "The current audit accepted changed $file inputs."
+        } finally { [IO.File]::WriteAllBytes($path, $before) }
+    }
+    $sbomBytes = [IO.File]::ReadAllBytes($boundSbomPath)
+    $bundleBytes = [IO.File]::ReadAllBytes($boundBundle)
+    foreach ($bad in @(
+        @{ Name = 'an absent producer identity'; Pattern = '*no unique build-input identity*'; Change = { param($d) $d.metadata.PSObject.Properties.Remove('properties') } },
+        @{ Name = 'a duplicate producer identity'; Pattern = '*no unique build-input identity*'; Change = { param($d) $d.metadata.properties += @($d.metadata.properties | Where-Object { $_.name -ceq 'hushgram:build-inputs' }) } },
+        @{ Name = 'a stale catalog identity'; Pattern = '*mismatched catalogSha256*'; Change = { param($d) $p = $d.metadata.properties | Where-Object { $_.name -ceq 'hushgram:build-inputs' }; $i = $p.value | ConvertFrom-Json; $i.catalogSha256 = '0' * 64; $p.value = $i | ConvertTo-Json -Compress } },
+        @{ Name = 'a stale source identity'; Pattern = '*mismatched sourceSha256*'; Change = { param($d) $p = $d.metadata.properties | Where-Object { $_.name -ceq 'hushgram:build-inputs' }; $i = $p.value | ConvertFrom-Json; $i.sourceSha256 = '0' * 64; $p.value = $i | ConvertTo-Json -Compress } },
+        @{ Name = 'a stale toolchain identity'; Pattern = '*mismatched toolchainSha256*'; Change = { param($d) $p = $d.metadata.properties | Where-Object { $_.name -ceq 'hushgram:build-inputs' }; $i = $p.value | ConvertFrom-Json; $i.toolchainSha256 = '0' * 64; $p.value = $i | ConvertTo-Json -Compress } },
+        @{ Name = 'another bundle version'; Pattern = '*mismatched name or version*'; Change = { param($d) $d.metadata.component.version = '0.0.2' } },
+        @{ Name = 'another bundle name'; Pattern = '*describes patches-0.0.2.mpp*'; Change = { param($d) $d.metadata.component.name = 'patches-0.0.2.mpp' } })) {
+        try {
+            $variant = [Text.Encoding]::UTF8.GetString($sbomBytes).TrimStart([char]0xfeff) | ConvertFrom-Json
+            & $bad.Change $variant
+            $variant | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $boundSbomPath -Encoding UTF8
+            $changedSbom = Read-ReleaseSbom -Path $boundSbomPath
+            Assert-Throws { Get-CurrentDependencyAuditSubject -Root $inputRoot -Graphs $boundGraphs -Sbom $changedSbom -BundlePath $boundBundle } `
+                $bad.Pattern "The current audit accepted $($bad.Name)."
+        } finally { [IO.File]::WriteAllBytes($boundSbomPath, $sbomBytes) }
+    }
+    try {
+        Add-Content -LiteralPath $boundBundle -Encoding ASCII -Value 'substitution'
+        Assert-Throws { Get-CurrentDependencyAuditSubject -Root $inputRoot -Graphs $boundGraphs -Sbom $boundSbom -BundlePath $boundBundle } `
+            '*bundle hashes to*another build*' 'The current audit accepted substituted bundle bytes.'
+    } finally { [IO.File]::WriteAllBytes($boundBundle, $bundleBytes) }
+    try {
+        Add-Content -LiteralPath $boundSbomPath -Encoding ASCII -Value ' '
+        Assert-Throws { Get-CurrentDependencyAuditSubject -Root $inputRoot -Graphs $boundGraphs -Sbom $boundSbom -BundlePath $boundBundle } `
+            '*SBOM bytes changed*' 'The current audit accepted an SBOM replaced after reading.'
+    } finally { [IO.File]::WriteAllBytes($boundSbomPath, $sbomBytes) }
+    foreach ($renamed in 'sbom', 'bundle') {
+        $copy = Join-Path $advisoryRoot $(if ($renamed -eq 'sbom') { 'renamed.cdx.json' } else { 'renamed.mpp' })
+        Copy-Item -LiteralPath $(if ($renamed -eq 'sbom') { $boundSbomPath } else { $boundBundle }) -Destination $copy
+        $s = if ($renamed -eq 'sbom') { Read-ReleaseSbom -Path $copy } else { $boundSbom }
+        $p = if ($renamed -eq 'bundle') { $copy } else { $boundBundle }
+        Assert-Throws { Get-CurrentDependencyAuditSubject -Root $inputRoot -Graphs $boundGraphs -Sbom $s -BundlePath $p } `
+            '*mismatched name or version*' "The current audit accepted a renamed $renamed."
+    }
+    . $osvStandIn
+    $osvAnswers = $osvRecorded
+    $boundReportPath = Join-Path $advisoryRoot 'current-advisories.json'
+    & (Join-Path $PSScriptRoot 'audit-dependencies.ps1') -Root $inputRoot -GraphPath $boundGraphPath `
+        -SbomPath $boundSbomPath -OutputPath $boundReportPath 6>$null
+    $reportJson = Get-Content -LiteralPath $boundReportPath -Raw
+    Assert-True ((Read-CurrentDependencyAdvisoryReport -Path $boundReportPath -Subject $subject).valid) `
+        'The actual audit did not produce a bound current report.'
+    $licensedSbomBytes = [IO.File]::ReadAllBytes($boundSbomPath)
+    $certifiedReportHash = Get-Sha256Hex -Path $boundReportPath
+    foreach ($case in @(
+        @{ Name = 'omitted carried component'; Change = { param($d)
+            $d.components = @($d.components | Where-Object { $_.purl -cne 'pkg:maven/com.google.code.gson/gson@2.14.0' })
+        } },
+        @{ Name = 'downgraded license policy'; Change = { param($d)
+            $d.metadata.properties = @($d.metadata.properties | Where-Object { $_.name -cnotlike 'hushgram:license-*' })
+            foreach ($component in @($d.components | Where-Object purl)) {
+                $component.PSObject.Properties.Remove('licenses')
+                $component.properties = @($component.properties | Where-Object { $_.name -cne 'hushgram:license-evidence' })
+            }
+        } },
+        @{ Name = 'substituted publisher evidence'; Change = { param($d)
+            $component = @($d.components | Where-Object purl)[0]
+            $evidence = @($component.properties | Where-Object name -CEQ 'hushgram:license-evidence')[0]
+            $record = $evidence.value | ConvertFrom-Json
+            $record.evidence.sha256 = '0' * 64
+            $evidence.value = $record | ConvertTo-Json -Depth 12 -Compress
+        } })) {
+        try {
+            $variant = [Text.Encoding]::UTF8.GetString($licensedSbomBytes).TrimStart([char]0xfeff) | ConvertFrom-Json
+            & $case.Change $variant
+            $variant | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $boundSbomPath -Encoding utf8
+            Assert-Throws { & (Join-Path $PSScriptRoot 'audit-dependencies.ps1') -Root $inputRoot -GraphPath $boundGraphPath `
+                    -SbomPath $boundSbomPath -OutputPath $boundReportPath 6>$null } '*license*' `
+                "The actual current audit certified $($case.Name)."
+            Assert-True ((Get-Sha256Hex -Path $boundReportPath) -ceq $certifiedReportHash) `
+                'A refused license audit replaced the previous certified report.'
+        } finally { [IO.File]::WriteAllBytes($boundSbomPath, $licensedSbomBytes) }
+    }
+    $reportMutants = @(
+        @{ Name = 'an old schema'; Change = { param($d) $d.schemaVersion = 1 } },
+        @{ Name = 'an uncertified verdict'; Change = { param($d) $d.valid = $false } },
+        @{ Name = 'a text verdict'; Change = { param($d) $d.valid = 'true' } },
+        @{ Name = 'a text scope verdict'; Change = { param($d) $d.scopeVerdicts.shipped.Valid = 'true' } },
+        @{ Name = 'changed graph contents'; Change = { param($d) $d.graphs[0].libraries = @() } },
+        @{ Name = 'a stale date'; Change = { param($d) $d.checkedAt = [datetime]::UtcNow.AddDays(-2).ToString('o') } },
+        @{ Name = 'a future date'; Change = { param($d) $d.checkedAt = [datetime]::UtcNow.AddDays(1).ToString('o') } })
+    foreach ($part in 'bundle', 'sbom', 'graphReport') {
+        foreach ($field in @($subject[$part].Keys)) {
+            $reportMutants += @{ Name = "$part $field substitution"; Part = $part; Field = $field }
+        }
+    }
+    foreach ($field in 'version', 'sourceSha256', 'catalogSha256', 'toolchainSha256', 'inputSha256') {
+        $reportMutants += @{ Name = "$field input substitution"; Field = $field; Part = 'inputs' }
+    }
+    foreach ($scope in 'shipped', 'settings-plugin', 'project-plugin', 'build', 'test', 'host-contract') {
+        $reportMutants += @{ Name = "a missing $scope verdict"; Scope = $scope }
+        $reportMutants += @{ Name = "a refused $scope verdict"; Scope = $scope; Refused = $true }
+    }
+    foreach ($bad in $reportMutants) {
+        $variant = $reportJson | ConvertFrom-Json
+        if ($bad.Change) { & $bad.Change $variant }
+        elseif ($bad.Scope) {
+            if ($bad.Refused) { $variant.scopeVerdicts.($bad.Scope).Valid = $false }
+            else { $variant.scopeVerdicts.PSObject.Properties.Remove($bad.Scope) }
+        }
+        else { $variant.subject.($bad.Part).($bad.Field) = 'substitution' }
+        $variant | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $boundReportPath -Encoding UTF8
+        Assert-Throws { Read-CurrentDependencyAdvisoryReport -Path $boundReportPath -Subject $subject } '*' `
+            "The current advisory report accepted $($bad.Name)."
+    }
+    Set-Content -LiteralPath $boundReportPath -Encoding UTF8 -Value $reportJson
+    # Invoke the public entrypoint in a fresh PowerShell process. The suite's already-loaded
+    # helpers must not conceal a missing import. Refuse changed inputs before any network call.
+    $standaloneSource = Join-Path $inputRoot 'source.java'
+    $standaloneBytes = [IO.File]::ReadAllBytes($standaloneSource)
+    $standalonePreference = $ErrorActionPreference
+    try {
+        Add-Content -LiteralPath $standaloneSource -Encoding ASCII -Value 'changed'
+        $ErrorActionPreference = 'Continue'
+        $shell = (Get-Process -Id $PID).Path
+        $standaloneOutput = @(& $shell -NoProfile -NonInteractive -File (Join-Path $PSScriptRoot 'audit-dependencies.ps1') `
+            -Root $inputRoot -GraphPath $boundGraphPath -SbomPath $boundSbomPath -OutputPath $boundReportPath 2>&1) -join "`n"
+        $standaloneExit = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $standalonePreference
+        [IO.File]::WriteAllBytes($standaloneSource, $standaloneBytes)
+    }
+    Assert-True ($standaloneExit -ne 0 -and $standaloneOutput -like '*stale or mismatched sourceSha256*') `
+        "The standalone audit didn't refuse changed inputs through its own imports: $standaloneOutput"
+    Write-Host '[OK] Current advisory reports refuse stale inputs, edges, omitted scopes and artifact substitutions.'
 
     # The publisher's Guava advisory was absent from OSV on 2026-10-01. An empty database
     # result must not erase the known affected range, including both published editions.
@@ -1404,6 +1827,11 @@ try {
     $osvAnswers = @{ 'pkg:maven/com.google.guava/guava@33.7.1-jre' = "{`"vulns`":[$vendorJson]}" }
     Assert-True (@(Get-SbomAdvisories -Sbom (New-GateSbom @('pkg:maven/com.google.guava/guava@33.7.1-jre'))).Count -eq 1) `
         'The same publisher and OSV advisory was counted twice.'
+    $osvOnlyLow = @{ id = 'GHSA-xxph-c9ww-hj94'; database_specific = @{ severity = 'LOW' } }
+    $osvAnswers = @{ 'pkg:maven/com.google.guava/guava@33.7.1-jre' = (@{ vulns = @($osvOnlyLow) } | ConvertTo-Json -Depth 6 -Compress) }
+    $merged = @(Get-SbomAdvisories -Sbom (New-GateSbom @('pkg:maven/com.google.guava/guava@33.7.1-jre')))
+    Assert-True ($merged.Count -eq 1 -and $merged[0].Severity.Level -ceq 'UNRATED' -and $merged[0].Sources.Count -eq 2) `
+        'A publisher/OSV disagreement was certified as minor or lost its sources.'
 
     # Actual OSV controls read on 2026-10-01, reduced to the fields this gate uses.
     $osvAnswers = @{
@@ -2060,6 +2488,25 @@ param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$SkipTestResults
         $said = Invoke-Facts -Strict
         Assert-True ($said -like "*$runtimeQuoted runtime tests, $patchQuoted patch tests*") `
             "The strict check did not count the results the description quotes: $said"
+        # A second top-level test class in one Kotlin file gets a result of its own. It is one of
+        # the run's classes, neither left over from a deleted one nor optional. The nested class is
+        # part of PatchTest and needs no result.
+        $kotlinTests = Join-Path $factsRoot 'patches/src/test/kotlin/fixture'
+        New-Item -ItemType Directory -Path $kotlinTests -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $kotlinTests 'PatchTest.kt') -Encoding UTF8 -Value (
+            "package fixture`n`nclass PatchTest {`n    class NestedHelperTest`n}`n`n" +
+            "@RunWith(Parameterized::class)`nclass PatchRefusalTest(private val variant: String)`n")
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Set-Content -LiteralPath (Join-Path $factsRoot "$patchResults/TEST-fixture.PatchRefusalTest.xml") -Encoding UTF8 -Value (
+            '<?xml version="1.0" encoding="UTF-8"?><testsuite name="fixture.PatchRefusalTest" tests="1" ' +
+            'skipped="0" failures="0" errors="0"><testcase name="t1" classname="fixture.PatchRefusalTest"/></testsuite>')
+        $said = Invoke-Facts -Strict
+        Assert-True ($said -like "*$patchQuoted patch tests*") `
+            "A second test class in one Kotlin file was refused or left out of the count: $said"
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Assert-Throws { Invoke-Facts -Strict } '*missing 1 of 2 test classes*PatchRefusalTest*' `
+            'A run without the second test class a Kotlin file declares was accepted.'
+        Remove-Item -LiteralPath (Join-Path $factsRoot 'patches/src') -Recurse -Force
         Write-FactsResults $patchResults 'PatchTest' $patchQuoted -Skipped 1
         Assert-Throws { Invoke-Facts -Strict } '*skipped 1 test*' 'A strict check accepted a skipped fixture test.'
         Write-FactsResults $patchResults 'PatchTest' ($patchQuoted + 1)
@@ -2106,8 +2553,30 @@ try {
     # The source ledger and the two files its rules hold an adopted source to go in as well: a
     # release is held to the census, and .gitignore has to keep the receipt and the build out.
     $releaseFiles = @('patches-list.json', 'gradle.properties', 'README.md', 'CHANGELOG.md', 'gradle/libs.versions.toml',
-        $bugFormRelative, '.gitignore', 'sources/instagram-sources.json', 'NOTICE', 'provenance.json')
+        $bugFormRelative, '.gitignore', 'sources/instagram-sources.json', 'NOTICE', 'provenance.json',
+        'sources/carried-library-licenses.json', 'scripts/canonical-build-inputs.txt')
     foreach ($relative in $releaseFiles) { Copy-PreReleaseFile $relative $releaseRepo }
+    $releaseLicenseLedger = Join-Path $releaseRepo 'sources/carried-library-licenses.json'
+    $licenseFixtures = Get-Content -LiteralPath $releaseLicenseLedger -Raw | ConvertFrom-Json
+    # Stand-in artifact records let the advisory failure tests reach OSV. These hashes belong to
+    # test fixtures, not publisher binaries, and never enter the repository's reviewed ledger.
+    foreach ($fixture in @(@{ group = 'com.google.code.gson'; name = 'gson'; version = '2.8.8' },
+            @{ group = 'com.example'; name = 'unknown'; version = '1.0' })) {
+        $licenseFixtures.artifacts += [ordered]@{ purl = "pkg:maven/$($fixture.group)/$($fixture.name)@$($fixture.version)"
+            file = "$($fixture.name)-$($fixture.version).jar"; sha256 = ('2' * 64)
+            license = @{ id = 'Apache-2.0'; url = 'https://www.apache.org/licenses/LICENSE-2.0.txt' }
+            evidence = @{ url = ('https://repo.maven.apache.org/maven2/' + $fixture.group.Replace('.', '/') + '/' +
+                $fixture.name + '/' + $fixture.version + '/' + $fixture.name + '-' + $fixture.version + '.pom')
+                sha256 = ('3' * 64); declaredLicense = 'test publisher license fixture' } }
+    }
+    $baselineLicenses = @($licenseFixtures.artifacts | Where-Object purl -CEQ 'pkg:maven/com.google.code.gson/gson@2.14.0')
+    $baselineLicenseLedger = [ordered]@{schemaVersion = 1; artifacts = $baselineLicenses}
+    [IO.File]::WriteAllText($releaseLicenseLedger, ($baselineLicenseLedger | ConvertTo-Json -Depth 12),
+        [Text.UTF8Encoding]::new($false))
+    # These stand-ins have no compiler inputs. Their explicit boundary still includes every
+    # fixture production input and its own policy, separately from the all-tracked audit binding.
+    [IO.File]::WriteAllText((Join-Path $releaseRepo 'scripts/canonical-build-inputs.txt'),
+        "source file NOTICE`ncatalog file patches-list.json`ntoolchain file gradle.properties`ntoolchain tree gradle`ntoolchain file scripts/canonical-build-inputs.txt`n")
     # The ledger, dated today, so the census a release is held to passes and each case below is
     # refused for its own fact. The checked-in ledger's date moves with every audit.
     $releaseLedgerPath = Join-Path $releaseRepo 'sources/instagram-sources.json'
@@ -2194,6 +2663,7 @@ try {
         })
         $document = [ordered]@{
             schemaVersion = Get-ReleaseReceiptSchemaVersion
+            buildIdentity = (Get-CanonicalBuildIdentity -Root $releaseRepo)
             release   = [ordered]@{ version = $releaseVersionHere; tag = "v$releaseVersionHere"; commit = $Commit
                 commitTimestamp = $Seconds; patchCount = $releaseNames.Count }
             bundle    = [ordered]@{ file = "patches-$releaseVersionHere.mpp"; sizeBytes = 10; sha256 = ('E' * 64)
@@ -2400,14 +2870,18 @@ try {
         Remove-Item -LiteralPath $releaseBundle -Force -ErrorAction SilentlyContinue
         New-TestBundleArchive -Path $releaseBundle -Entries ([ordered]@{
             'META-INF/MANIFEST.MF' = ("Manifest-Version: 1.0`nVersion: $releaseVersionHere`nTimestamp: $Stamp`n" +
-                "Patcher-Version: $($releaseToolchain.PatcherVersion)`n`n")
+                "Patcher-Version: $($releaseToolchain.PatcherVersion)`nHushGram-Build-Identity: $((Get-CanonicalBuildIdentity -Root $releaseRepo).id)`n`n")
             'classes.dex' = "dex`n035" + ('patches' * 8)
             'extensions/instagram.mpe' = "dex`n035" + ('payload' * 8) })
     }
     New-ReleaseBundle
     # And the SBOM buildAndroid writes beside it, listing a library OSV has nothing against.
     $releaseSbom = [System.IO.Path]::ChangeExtension($releaseBundle, '.cdx.json')
-    New-TestSbom -Path $releaseSbom -Bundle $releaseBundle
+    New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -ReviewedLicenseRecords $licenseFixtures.artifacts -InputRoot $releaseRepo
+    $releaseGraph = Join-Path $releaseRoot 'current-graphs.json'
+    $currentGraphs = $graphJson | ConvertFrom-Json
+    $currentGraphs.inputs = Get-DependencyAuditInputs -Root $releaseRepo
+    $currentGraphs | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $releaseGraph -Encoding UTF8
     $releaseSums = Join-Path (Split-Path -Parent $releaseBundle) 'SHA256SUMS.txt'
 
     # The builder reads git with a plain `git -C`, which a GIT_DIR inherited from a hook would
@@ -2422,10 +2896,28 @@ try {
             $saved[$variable.Name] = $variable.Value
             Remove-Item -LiteralPath ('Env:\' + $variable.Name)
         }
+        $originalFixtureHead = $null
+        $originalFixtureGraph = $null
         try {
+            $ledgerChanges = @(Invoke-FixtureGit -Root $releaseRepo -Arguments @(
+                'diff', '--name-only', 'HEAD', '--', 'sources/carried-library-licenses.json'))
+            if ($ledgerChanges.Count -gt 0) {
+                # A different stand-in library inventory is a different reviewed source input.
+                # Commit only that inventory, leaving deliberately dirty production fixtures dirty.
+                $originalFixtureHead = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @(
+                    'rev-parse', 'HEAD') | Select-Object -First 1)".Trim()
+                Invoke-FixtureGit -Root $releaseRepo -CommitEpoch $releaseSeconds -Arguments @(
+                    'commit', '--amend', '--only', 'sources/carried-library-licenses.json',
+                    '--no-edit', '--quiet') | Out-Null
+                if ($LASTEXITCODE -ne 0) { throw 'Could not commit the exact fixture license inventory.' }
+                $originalFixtureGraph = [IO.File]::ReadAllBytes($releaseGraph)
+                $variantGraphs = Get-Content -LiteralPath $releaseGraph -Raw | ConvertFrom-Json
+                $variantGraphs.inputs = Get-DependencyAuditInputs -Root $releaseRepo
+                $variantGraphs | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $releaseGraph -Encoding UTF8
+            }
             . $osvStandIn
             $global:LASTEXITCODE = 0
-            $arguments = @{ Root = $releaseRepo; WorkDir = $WorkDir; DesktopJar = $DesktopJar; Java = $stubJava; Aapt2 = $stubAapt2 }
+            $arguments = @{ Root = $releaseRepo; WorkDir = $WorkDir; DesktopJar = $DesktopJar; Java = $stubJava; Aapt2 = $stubAapt2; DependencyGraph = $releaseGraph }
             if ($Fixtures) { $arguments['Fixture'] = $Fixtures }
             if ($Bundle) { $arguments['Bundle'] = $Bundle }
             if ($SkipAdvisoryCheck) { $arguments['SkipAdvisoryCheck'] = $true }
@@ -2433,7 +2925,18 @@ try {
                 ForEach-Object { "$_" }) -join "`n"
             if ($LASTEXITCODE -ne 0) { throw "build-release-receipt.ps1 exited $LASTEXITCODE." }
         } finally {
-            foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }
+            try {
+                if ($originalFixtureGraph) { [IO.File]::WriteAllBytes($releaseGraph, $originalFixtureGraph) }
+                if ($originalFixtureHead) {
+                    Invoke-FixtureGit -Root $releaseRepo -Arguments @('update-ref', 'HEAD', $originalFixtureHead) | Out-Null
+                    if ($LASTEXITCODE -ne 0) { throw 'Could not restore the fixture source revision.' }
+                    Invoke-FixtureGit -Root $releaseRepo -Arguments @(
+                        'reset', '--quiet', $originalFixtureHead, '--', 'sources/carried-library-licenses.json') | Out-Null
+                    if ($LASTEXITCODE -ne 0) { throw 'Could not restore the fixture license index.' }
+                }
+            } finally {
+                foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }
+            }
         }
     }
 
@@ -2479,8 +2982,13 @@ try {
     Assert-True ($built.sbom.file -eq "patches-$releaseVersionHere.cdx.json" -and
         $built.sbom.sha256 -ceq (Get-Sha256Hex -Path $releaseSbom) -and [int]$built.sbom.components -eq 3) `
         "The receipt does not record the SBOM beside the bundle: $($built.sbom | ConvertTo-Json -Compress)"
-    Assert-True ($builderSaid -like "*OSV has no advisory for the libraries patches-$releaseVersionHere.cdx.json lists: gson 2.14.0*") `
+    Assert-True ($cleanPurl -cin $osvAsked -and $builderSaid -like '*Checking 1 unique resolved packages against OSV*') `
         "The receipt builder did not put the SBOM's libraries to OSV: $builderSaid"
+    $builderReport = Read-CurrentDependencyAdvisoryReport -Path (Join-Path $releaseRepo 'build/reports/dependencies/advisories.json') `
+        -Subject (Get-CurrentDependencyAuditSubject -Root $releaseRepo -Graphs (Read-DependencyGraphs -Path $releaseGraph) `
+            -Sbom (Read-ReleaseSbom -Path $releaseSbom) -BundlePath $releaseBundle)
+    Assert-True ($builderReport.graphs.Count -eq 6 -and $builderReport.subject.sbom.sha256 -eq $built.sbom.sha256) `
+        'The receipt builder omitted a tooling scope or certified a different SBOM.'
     # SHA256SUMS.txt beside the bundle: the three files a release publishes with it, as sha256sum
     # writes them, and nothing else. The index push reads it back.
     $sumsBytes = [System.IO.File]::ReadAllBytes($releaseSums)
@@ -2578,8 +3086,9 @@ try {
     # Offline, -SkipAdvisoryCheck gets a receipt with a warning, and the index push asks OSV again.
     # An OSV out of reach stops the run, and so does an SBOM of another build or none at all.
     $cleanSbomBytes = [System.IO.File]::ReadAllBytes($releaseSbom)
+    $cleanLicenseLedgerBytes = [System.IO.File]::ReadAllBytes($releaseLicenseLedger)
     try {
-        New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -Libraries @($gsonPurl)
+        New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -ReviewedLicenseRecords $licenseFixtures.artifacts -Libraries @($gsonPurl) -InputRoot $releaseRepo
         Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } `
             '*high or critical*GHSA-4jrv-ppp4-jm57 (HIGH, CVE-2022-25647) in com.google.code.gson:gson 2.8.8*' `
             'build-release-receipt.ps1 wrote a receipt for a bundle carrying gson 2.8.8.'
@@ -2589,10 +3098,10 @@ try {
             (Get-Content -LiteralPath $releaseReceipt -Raw | ConvertFrom-Json).sbom.sha256 -ceq (Get-Sha256Hex -Path $releaseSbom)) `
             "An offline receipt run did not say the advisory check was skipped, or did not record the SBOM: $builderSaid"
         foreach ($refused in @(
-                @{ Name = 'an OSV out of reach'; Sbom = { New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -Libraries @('pkg:maven/com.example/unknown@1.0') }
+                @{ Name = 'an OSV out of reach'; Sbom = { New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -ReviewedLicenseRecords $licenseFixtures.artifacts -Libraries @('pkg:maven/com.example/unknown@1.0') -InputRoot $releaseRepo }
                     Pattern = '*could not be asked about pkg:maven/com.example/unknown@1.0*fails closed*' },
                 @{ Name = 'an SBOM of another build'; Pattern = '*The SBOM does not describe the bundle*written for another build*'
-                    Sbom = { New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -Mutate { param($d) $d.metadata.component.hashes[0].content = ('0' * 64) } } },
+                    Sbom = { New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -ReviewedLicenseRecords $licenseFixtures.artifacts -InputRoot $releaseRepo -Mutate { param($d) $d.metadata.component.hashes[0].content = ('0' * 64) } } },
                 @{ Name = 'no SBOM'; Sbom = { Remove-Item -LiteralPath $releaseSbom }; Pattern = "*No SBOM for the bundle: $releaseSbom*" })) {
             & $refused.Sbom
             Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } $refused.Pattern "build-release-receipt.ps1 went ahead with $($refused.Name)."
@@ -2602,18 +3111,19 @@ try {
         # during the patch runs, which take long enough for one, replaces it.
         [System.IO.File]::WriteAllBytes($releaseSbom, $cleanSbomBytes)
         $replacement = Join-Path $releaseRoot 'replacement.cdx.json'
-        New-TestSbom -Path $replacement -Bundle $releaseBundle
+        New-TestSbom -Path $replacement -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -ReviewedLicenseRecords $licenseFixtures.artifacts -InputRoot $releaseRepo
         $duringPatch = Join-Path $tools 'during-patch.cmd'
         [System.IO.File]::WriteAllText($duringPatch, "@copy /y `"$replacement`" `"$releaseSbom`" >nul`r`n", [System.Text.Encoding]::ASCII)
         try {
             Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } `
-                "*does not pass validation: The receipt says patches-$releaseVersionHere.cdx.json hashes to*" `
+                '*canonical inputs or final artifacts changed while the fixtures*' `
                 'build-release-receipt.ps1 wrote a receipt naming an SBOM that was replaced while it patched.'
         } finally {
             Remove-Item -LiteralPath $duringPatch -Force -ErrorAction SilentlyContinue
         }
     } finally {
         [System.IO.File]::WriteAllBytes($releaseSbom, $cleanSbomBytes)
+        [System.IO.File]::WriteAllBytes($releaseLicenseLedger, $cleanLicenseLedgerBytes)
         [System.IO.File]::WriteAllBytes($releaseReceipt, $builtReceiptBytes)
         [System.IO.File]::WriteAllBytes($releaseSums, $builtSumsBytes)
     }
@@ -2631,7 +3141,7 @@ try {
                 @{ Name = 'a bundle built from another commit'; Stamp = ($releaseSeconds - 60) * 1000
                     Pattern = "*stamped $(($releaseSeconds - 60) * 1000), but commit $releaseCommit was made at $($releaseSeconds * 1000)*Nothing was patched*" })) {
             New-ReleaseBundle -Stamp $stamped.Stamp
-            New-TestSbom -Path $releaseSbom -Bundle $releaseBundle
+            New-TestSbom -Path $releaseSbom -Bundle $releaseBundle -LicenseLedger $releaseLicenseLedger -ReviewedLicenseRecords $licenseFixtures.artifacts -InputRoot $releaseRepo
             Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } $stamped.Pattern `
                 "build-release-receipt.ps1 went ahead with $($stamped.Name)."
             Assert-True (-not (Test-Path -LiteralPath $javaLog)) "build-release-receipt.ps1 patched with $($stamped.Name)."
@@ -2760,7 +3270,9 @@ try {
             # Windows PowerShell 5.1 hands a reply without -UseBasicParsing to the IE parser, which
             # asks first, and a hook can't answer.
             if (-not $UseBasicParsing) { throw "Invoke-WebRequest $Uri without -UseBasicParsing" }
-            if ("$Uri" -ceq "https://morphe.software/add-source?github=$([Uri]::EscapeDataString($slugHere))") {
+            # Framework Uri.ToString() decodes the query slash on Windows PowerShell.
+            # Match the request address rather than that display representation.
+            if (([Uri]$Uri).AbsoluteUri -ceq "https://morphe.software/add-source?github=$([Uri]::EscapeDataString($slugHere))") {
                 return [pscustomobject]@{ StatusCode = 200; Content = [byte[]]@() }
             }
             if (([Uri]$Uri).Host -ne 'github.com') { throw (New-NotFoundAnswer) }
@@ -2941,6 +3453,10 @@ Write-Host '[release-tooling] release root and index push contracts passed'
 $prePush = Join-Path $PSScriptRoot 'pre-push.ps1'
 Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-release-tooling.ps1') `
     'pre-push.ps1 no longer runs scripts/test-release-tooling.ps1 when the release tooling changes.'
+Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-translations.ps1') `
+    'pre-push.ps1 no longer checks translation imports and hosted setup.'
+Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-build-identity.ps1') `
+    'pre-push.ps1 no longer checks the production build identity boundary.'
 $prePushAst = Get-ScriptAst $prePush
 $releaseCalls = @($prePushAst.FindAll({ param($node)
         $node -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
@@ -2998,9 +3514,13 @@ foreach ($published in @('patches-bundle.json', 'patches-list.json', 'gradle.pro
     Assert-True ($prePushText.Contains("'$published'")) "pre-push.ps1 doesn't run the release check when $published changes."
 }
 foreach ($tool in @('scripts/build-release-receipt.ps1', 'scripts/release-receipt.ps1', 'scripts/release-advisories.ps1',
-        'scripts/advisory-exceptions.txt', 'scripts/validate-release-facts.ps1', 'scripts/test-release-tooling.ps1')) {
+        'scripts/advisory-exceptions.txt', 'scripts/validate-release-facts.ps1', 'scripts/test-release-tooling.ps1',
+        'scripts/build-inputs.gradle', 'scripts/dependency-graphs.init.gradle', 'scripts/audit-dependencies.ps1')) {
     Assert-True ($prePushText.Contains("'$tool'")) "pre-push.ps1 doesn't run the release tooling suite when $tool changes."
 }
+$inputBuildPattern = [regex]::Match($prePushText, '(?ms)^\$buildPaths\s*=\s*(.*?)(?=^\$ledgerPaths)')
+Assert-True ($inputBuildPattern.Success -and $inputBuildPattern.Value.Contains('build-inputs\.gradle')) `
+    'Changing the build-input producer no longer triggers the full private-worktree build gate.'
 
 Write-Host '[release-tooling] pre-push wiring contracts passed'
 Write-Host '[release-tooling] all passed'

@@ -4,7 +4,13 @@
  */
 package app.hushgram.extension.instagram.share;
 
+import android.view.View;
+
 import androidx.annotation.Nullable;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -23,6 +29,7 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  */
 public final class RepostButton {
     private static volatile boolean logged;
+    private static final Map<View, HiddenView> hiddenViews = Collections.synchronizedMap(new WeakHashMap<>());
 
     private RepostButton() {
     }
@@ -46,6 +53,37 @@ public final class RepostButton {
         return hidden("data tree") ? Boolean.FALSE : eligible;
     }
 
+    /** The component-backed Feed renderer checks current settings before mounting either view. */
+    public static boolean feedComponent() {
+        return hidden("feed component");
+    }
+
+    /**
+     * Injected after Feed's UFI binder draws the repost icon and count. The upstream state can be
+     * built before settings are ready, so the rendered Feed row gets one final, switch-aware pass.
+     */
+    public static void feedUfi(@Nullable View icon, @Nullable View count) {
+        try {
+            if (!hidden("feed UFI")) return;
+            hide(icon);
+            hide(count);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REPOST_BUTTON, "feed UFI", failure);
+        }
+    }
+
+    /** Runs before native rebinding, even when paused or unready. Native writes then take precedence. */
+    public static void restoreFeedUfi(@Nullable View icon, @Nullable View count) {
+        try {
+            for (View view : new View[]{icon, count}) {
+                HiddenView saved = hiddenViews.remove(view);
+                if (saved != null) saved.restore(view);
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REPOST_BUTTON, "restore feed UFI", failure);
+        }
+    }
+
     private static boolean hidden(String where) {
         try {
             HookStatus.invoked(FamilyNames.REPOST_BUTTON);
@@ -58,6 +96,39 @@ public final class RepostButton {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.REPOST_BUTTON, where, failure);
             return false;
+        }
+    }
+
+    private static void hide(@Nullable View view) {
+        if (view == null) return;
+        hiddenViews.putIfAbsent(view, new HiddenView(view));
+        view.setVisibility(View.GONE);
+        view.setEnabled(false);
+        view.setClickable(false);
+        view.setLongClickable(false);
+        view.setContentDescription(null);
+    }
+
+    /** Keeps no reference to the weakly keyed view or its listeners. */
+    private static final class HiddenView {
+        final int visibility;
+        final boolean enabled, clickable, longClickable;
+        final CharSequence description;
+
+        HiddenView(View view) {
+            visibility = view.getVisibility();
+            enabled = view.isEnabled();
+            clickable = view.isClickable();
+            longClickable = view.isLongClickable();
+            description = view.getContentDescription();
+        }
+
+        void restore(View view) {
+            view.setVisibility(visibility);
+            view.setEnabled(enabled);
+            view.setClickable(clickable);
+            view.setLongClickable(longClickable);
+            view.setContentDescription(description);
         }
     }
 }

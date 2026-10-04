@@ -10,6 +10,7 @@ import app.morphe.PatchContexts
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.instagram.FixtureDex
 import app.morphe.patches.instagram.stories.loop.findStoryLoop
+import app.morphe.patches.instagram.stories.loop.STORY_LOOP_FLAG
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -29,6 +30,7 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction51l
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
@@ -137,6 +139,19 @@ class StoryAdvanceHookTest {
             assertTrue("$expected: ${failure.message}", failure.message!!.contains(expected))
             val written = context.mutableClassDefBy(STORY_VIEWER).methods.filter { m -> m.instructions().any { it.reference() == HOLD } }
             assertTrue("$expected: something was written to $written", written.isEmpty())
+        }
+    }
+
+    /** A private item predicate is not a loop check unless it reads Loop a story's actual flag. */
+    @Test
+    fun aDifferentPrivatePredicateIsRefusedBeforeTheGuardIsWritten() {
+        val original = viewer(loopFlag = STORY_LOOP_FLAG + 1)
+        val context = PatchContexts.of(listOf(original))
+        assertThrows(PatchException::class.java) { context.holdFinishedStories() }
+        for (method in original.methods) {
+            val after = context.mutableClassDefBy(STORY_VIEWER).methods.single { it.name == method.name }
+            assertEquals(method.implementation!!.registerCount, after.implementation!!.registerCount)
+            assertEquals(method.instructions().map { it.opcode to it.reference() }, after.instructions().map { it.opcode to it.reference() })
         }
     }
 
@@ -280,6 +295,7 @@ class StoryAdvanceHookTest {
         asks: Int = 1,
         checkFlags: Int = AccessFlags.PRIVATE.value or AccessFlags.FINAL.value,
         checkDeclared: Boolean = true,
+        loopFlag: Long = STORY_LOOP_FLAG,
     ): ClassDef {
         val flags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or AccessFlags.BRIDGE.value or AccessFlags.SYNTHETIC.value
         fun bridge(name: String, string: String, cast: String, asks: Int) = ImmutableMethod(
@@ -305,7 +321,13 @@ class StoryAdvanceHookTest {
             type, "plays", listOf(ImmutableMethodParameter(reelItem, null, null)), "Z", checkFlags, null, null,
             ImmutableMethodImplementation(
                 3,
-                listOf(ImmutableInstruction11n(Opcode.CONST_4, 0, 0), ImmutableInstruction11x(Opcode.RETURN, 0)),
+                listOf(
+                    ImmutableInstruction51l(Opcode.CONST_WIDE, 0, loopFlag),
+                    ImmutableInstruction35c(Opcode.INVOKE_STATIC, 2, 0, 1, 0, 0, 0,
+                        ImmutableMethodReference("Lfixture/Configs;", "read", listOf("J"), "Z")),
+                    ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                    ImmutableInstruction11x(Opcode.RETURN, 0),
+                ),
                 null, null,
             ),
         )

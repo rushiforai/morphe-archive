@@ -3,7 +3,7 @@ name: Check
 on:
   pull_request:
   push:
-    branches-ignore: [main, dev]
+    branches-ignore: [main]
   workflow_dispatch:
 
 permissions:
@@ -25,6 +25,8 @@ jobs:
         run: ./gradlew :extensions:extension:testDebugUnitTest :extensions:extension:lintDebug :patches:test buildAndroid --no-daemon
       - name: Test device check safeguards
         run: python3 scripts/test-device-check.py
+      - name: Test artifact checker manifest rule
+        run: python3 scripts/test-verify-artifact.py
       - name: Check standalone development app
         run: ./gradlew -p dev-app testDebugUnitTest lintDebug assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4

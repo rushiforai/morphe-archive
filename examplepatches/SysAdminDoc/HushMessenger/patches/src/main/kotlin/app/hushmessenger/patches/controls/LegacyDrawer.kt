@@ -24,6 +24,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 internal const val LEGACY_SECTION = "$SETTINGS->legacyDrawerSection(Landroid/content/Context;)Ljava/lang/Object;"
 internal const val LEGACY_KEY_CACHE = "$SETTINGS->cachedLegacyDrawerKey(Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val LEGACY_DRAWER_ADD = "$SETTINGS->addLegacyDrawerEntry(Ljava/lang/Object;Ljava/util/List;)Ljava/util/List;"
+internal const val DRAWER_MODEL = "Lcom/facebook/messaging/navigation/home/drawer/model/"
 internal const val DRAWER_KEY = "Lcom/facebook/messaging/navigation/home/drawer/model/DrawerFolderKey;"
 internal const val SETTINGS_KEY = "Lcom/facebook/messaging/navigation/home/drawer/model/SettingsFolderKey;"
 internal const val DRAWER_METADATA = "Lcom/facebook/xapp/messaging/map/HeterogeneousMap;"
@@ -58,6 +59,23 @@ private fun Method.drawerOrigin(before: Int, register: Int): Int {
         if (instruction.opcode in OBJECT_MOVES) wanted = (instruction as TwoRegisterInstruction).registerB else return i
     }
     drawerChanged("$name has an uninitialized model value")
+}
+
+/**
+ * The Settings row's constructor call: the only folder row built with SettingsFolderKey.A00 as its key.
+ * 581 also builds the QR code row in this method, with the same row class and its own key.
+ */
+internal fun Method.settingsRowCall(): Int {
+    val code = drawerCode()
+    val rows = code.indices.filter { i ->
+        val call = code[i].drawerRef() as? MethodReference
+        code[i].opcode == Opcode.INVOKE_DIRECT_RANGE && call?.name == "<init>" && call.drawerParams().getOrNull(3) == DRAWER_KEY
+    }
+    val settings = rows.filter { i ->
+        val key = drawerOrigin(i, code[i].drawerArgs().getOrNull(4) ?: drawerChanged("settings row key is missing"))
+        code[key].opcode == Opcode.SGET_OBJECT && code[key].drawerRef().toString() == "$SETTINGS_KEY->A00:$SETTINGS_KEY"
+    }
+    return settings.singleOrNull() ?: drawerChanged("builder makes ${settings.size} Settings rows, expected 1")
 }
 
 internal data class LegacyDrawerRefresh(val insertion: Int, val fragment: Int, val sections: Int)
@@ -230,10 +248,9 @@ internal fun prepareLegacyDrawer(
             drawerChanged("extension helper $id changed")
     }
     val row = add.menuFolderItemType()
-    val rowCallAt = add.drawerCode().indices.singleOrNull { i ->
-        val call = add.drawerCode()[i].drawerRef() as? MethodReference
-        add.drawerCode()[i].opcode == Opcode.INVOKE_DIRECT_RANGE && call?.definingClass == row && call.name == "<init>"
-    } ?: drawerChanged("settings row constructor call changed")
+    val rowCallAt = add.settingsRowCall()
+    if ((add.drawerCode()[rowCallAt].drawerRef() as MethodReference).definingClass != row)
+        drawerChanged("settings row constructor call changed")
     val rowCall = add.drawerCode()[rowCallAt].drawerRef() as MethodReference
     val rowParams = rowCall.drawerParams()
     if (rowParams.size != 8 || rowParams[0] != CONTEXT || rowParams[3] != DRAWER_KEY || rowParams[4] != DRAWER_METADATA ||

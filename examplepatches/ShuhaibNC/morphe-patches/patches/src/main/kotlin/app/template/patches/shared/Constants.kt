@@ -277,4 +277,17 @@ object Constants {
             )
         )
     )
+
+    val TREBEDIT_COMPATIBILITY = Compatibility(
+        name = "TrebEdit",
+        packageName = "com.teejay.trebedit",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x293F53,
+        targets = listOf(
+            AppTarget(
+                version = "3.5.5",
+                versionCode = 114
+            )
+        )
+    )
 }

@@ -1,7 +1,7 @@
 package app.spicetify.extension.spotify.settings;
 
-import android.app.Activity;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
@@ -12,10 +12,10 @@ final class SpotifyRestart {
     private SpotifyRestart() {}
 
     /** Asks before restarting; choosing Later leaves the restart bar on the settings screens. */
-    static void prompt(Activity activity, String title) {
-        new SpotifySheet(activity, title, "Playback stops for a moment while Spotify reopens.")
+    static void prompt(Context context, String title) {
+        new SpotifySheet(context, title, "Playback stops for a moment while Spotify reopens.")
                 .primary("Restart now", () -> {
-                    restart(activity);
+                    restart(context);
                     return true;
                 })
                 .secondary("Later")
@@ -23,14 +23,14 @@ final class SpotifyRestart {
     }
 
     /** Relaunches Spotify's main screen in a fresh process, then ends this one. */
-    static void restart(Activity activity) {
-        Intent launch = activity.getPackageManager().getLaunchIntentForPackage(activity.getPackageName());
+    static void restart(Context context) {
+        Intent launch = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
         if (launch == null || launch.getComponent() == null) {
             Log.e("SpicetifyRestart", "Spotify has no launch activity to restart into");
             return;
         }
         ComponentName main = launch.getComponent();
-        activity.startActivity(Intent.makeRestartActivityTask(main));
+        context.startActivity(Intent.makeRestartActivityTask(main));
         terminate.run();
     }
 }

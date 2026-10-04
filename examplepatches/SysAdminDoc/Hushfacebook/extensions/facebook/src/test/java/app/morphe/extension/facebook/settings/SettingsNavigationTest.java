@@ -5,11 +5,18 @@
 package app.morphe.extension.facebook.settings;
 
 import static org.junit.Assert.*;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.os.Process;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.SwitchPreference;
@@ -27,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import app.morphe.extension.facebook.misc.FacebookSignature;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -42,10 +50,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.android.controller.ActivityController;
+import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.shadows.ShadowPackageManager;
+import org.robolectric.shadows.ShadowSigningInfo;
 import org.robolectric.shadows.ShadowToast;
 
 /** Exercises the actual dialog host and its filtered view of the original preference model. */
@@ -164,8 +176,11 @@ public class SettingsNavigationTest {
             layout(dialog.getView());
             assertTrue(BaseSettings.PAUSED.savedValue());
             assertEquals("Resume", statusAction().getText().toString());
-            String line = String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary());
+            String[] lines = String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary()).split("\n", 2);
+            String line = lines[0];
             assertTrue(line, line.contains("couldn't be removed") && line.endsWith("then tap Resume again."));
+            assertEquals(app.morphe.extension.shared.L10n.f("Build %1$s",
+                    app.morphe.extension.shared.L10n.isolate(app.morphe.extension.shared.Utils.getPatchesBuildIdentity())), lines[1]);
         } finally {
             held.delete();
             marker.delete();
@@ -353,7 +368,10 @@ public class SettingsNavigationTest {
         recreate();
         layout(dialog.getView());
         TextView summary = list().getChildAt(0).findViewById(android.R.id.summary);
-        assertEquals("Your choices are saved. Tap Resume, then restart Facebook.", String.valueOf(summary.getText()));
+        String[] lines = summary.getText().toString().split("\n", 2);
+        assertEquals("Your choices are saved. Tap Resume, then restart Facebook.", lines[0]);
+        assertEquals(app.morphe.extension.shared.L10n.f("Build %1$s",
+                app.morphe.extension.shared.L10n.isolate(app.morphe.extension.shared.Utils.getPatchesBuildIdentity())), lines[1]);
     }
 
     /**
@@ -566,6 +584,7 @@ public class SettingsNavigationTest {
      */
     @Test public void theOverviewNamesTheDefaultPatchesABuildLacks() {
         assertFalse(contains(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
+        assertFalse(contains(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST));
         controller.close();
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         PatchFamily.inBuildForTests.remove(PatchFamily.MATERIAL_YOU_THEME);
@@ -598,6 +617,62 @@ public class SettingsNavigationTest {
         assertEquals("Not in this build: " + L10n.isolate("Hide sponsored posts") + " and "
                 + L10n.isolate("Hide sponsored reels") + ". Morphe Manager selects them by default. Patch again with "
                 + "them selected to get what they do.", String.valueOf(row.getSummary()));
+    }
+
+    @Test public void theOverviewExplainsMissingRestoreScreensOnReSignedBuilds() {
+        controller.close();
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        PatchFamily.inBuildForTests.remove(PatchFamily.MATERIAL_YOU_THEME);
+        PatchFamily.inBuildForTests.remove(PatchFamily.RESTORE_TRUST);
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = SettingsL10nTest.show(controller.get());
+        page = page(dialog);
+
+        assertEquals(10, list().getCount());
+        assertEquals(1, position(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST));
+        assertFalse(contains(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
+        Preference row = (Preference) list().getItemAtPosition(1);
+        assertEquals("Profiles and some Settings pages won't open", String.valueOf(row.getTitle()));
+        assertEquals("Patch again with " + L10n.isolate("Restore screens on re-signed builds")
+                + " selected. Re-signed builds need it for profiles and some Facebook Settings pages.",
+                String.valueOf(row.getSummary()));
+        assertFalse(list().getAdapter().isEnabled(1));
+    }
+
+    @Test public void missingRestoreScreensComesBeforeOtherMissingDefaults() {
+        controller.close();
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        PatchFamily.inBuildForTests.remove(PatchFamily.MATERIAL_YOU_THEME);
+        PatchFamily.inBuildForTests.remove(PatchFamily.RESTORE_TRUST);
+        PatchFamily.inBuildForTests.remove(PatchFamily.SPONSORED_REELS);
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = SettingsL10nTest.show(controller.get());
+        page = page(dialog);
+
+        assertEquals(11, list().getCount());
+        assertEquals(1, position(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST));
+        assertEquals(2, position(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
+        Preference defaults = (Preference) list().getItemAtPosition(2);
+        assertEquals("1 default patch isn't in this build", String.valueOf(defaults.getTitle()));
+        tap(HushfacebookPreferenceFragment.MISSING_DEFAULTS);
+        assertEquals("Not in this build: " + L10n.isolate("Hide sponsored reels")
+                + ". Morphe Manager selects it by default. Patch again with it selected to get what it does.",
+                String.valueOf(defaults.getSummary()));
+    }
+
+    @Test public void rootMountInstallDoesNotWarnAboutMissingRestoreScreens() {
+        controller.close();
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        PatchFamily.inBuildForTests.remove(PatchFamily.MATERIAL_YOU_THEME);
+        PatchFamily.inBuildForTests.remove(PatchFamily.RESTORE_TRUST);
+        installSelf(metaCertificate());
+        controller = Robolectric.buildActivity(Activity.class).setup().visible();
+        dialog = SettingsL10nTest.show(controller.get());
+        page = page(dialog);
+
+        assertEquals(9, list().getCount());
+        assertFalse(contains(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST));
+        assertFalse(contains(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
     }
 
     /** Without its patch a line names the patch to add, can't be tapped and says nothing is installed. */
@@ -961,6 +1036,32 @@ public class SettingsNavigationTest {
             return;
         }
         fail("No visible row " + key);
+    }
+
+    private static void installSelf(Signature certificate) {
+        Context context = RuntimeEnvironment.getApplication();
+        ShadowPackageManager packages = shadowOf(context.getPackageManager());
+        PackageInfo info = new PackageInfo();
+        info.packageName = context.getPackageName();
+        ApplicationInfo app = new ApplicationInfo();
+        app.packageName = info.packageName;
+        app.uid = Process.myUid();
+        info.applicationInfo = app;
+        SigningInfo signing = new SigningInfo();
+        ((ShadowSigningInfo) Shadow.extract(signing)).setSignatures(new Signature[]{certificate});
+        info.signingInfo = signing;
+        packages.installPackage(info);
+    }
+
+    private static Signature metaCertificate() {
+        Context context = RuntimeEnvironment.getApplication();
+        PackageInfo info = new PackageInfo();
+        info.packageName = context.getPackageName();
+        ApplicationInfo app = new ApplicationInfo();
+        app.packageName = info.packageName;
+        app.uid = Process.myUid();
+        info.applicationInfo = app;
+        return FacebookSignature.originalSigners(info).get(0);
     }
 
     private static EditText findSearch(View view) {

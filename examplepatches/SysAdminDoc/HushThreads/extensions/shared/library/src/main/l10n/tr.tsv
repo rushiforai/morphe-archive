@@ -1,5 +1,6 @@
 # Turkish for HushThreads: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	Derleme %1$s
 %1$d item in that file isn't a setting this version of HushThreads knows, so it'll be left out.	O dosyadaki %1$d öğe, HushThreads'un bu sürümünün tanıdığı ayarlardan değil, bu yüzden atlanacak.
 %1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.	O dosyadaki %1$d öğe, HushThreads'un bu sürümünün tanıdığı ayarlardan değil, bu yüzden atlanacak.
 %1$d switch will change.	%1$d anahtar değişecek.
@@ -101,7 +102,7 @@ Retry	Yeniden dene
 Save full report	Tam raporu kaydet
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
 Check for new HushThreads releases	Yeni HushThreads sürümlerini denetle
-Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.	Başlangıçta günde bir kez GitHub’ı kontrol eder ve yeni sürümleri genel bakışta gösterir. Varsayılan olarak kapalıdır. Hiçbir şey indirilmez.
+Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.	Başlangıçta günde bir kez GitHub'ı kontrol eder ve yeni sürümleri genel bakışta gösterir. Varsayılan olarak kapalıdır. Hiçbir şey indirilmez.
 Check now	Şimdi denetle
 Asks GitHub for the newest release right now, even with the switch above off.	Yukarıdaki anahtar kapalı olsa bile GitHub'a en yeni sürümü hemen sorar.
 Checking GitHub now.	GitHub şu anda denetleniyor.
@@ -185,3 +186,10 @@ Web links you tap open in your default browser, or the app for that site, withou
 Tap to play videos	Videoları dokunarak oynat
 Videos in your feed wait for a tap instead of playing as you scroll.	Akıştaki videolar, kaydırırken kendiliğinden oynamak yerine dokunmanı bekler.
 Videos in your feed	Akıştaki videolar
+
+# context: overview disclosure for default patches omitted from this build (Hushfacebook 814acd23)
+Tap to see which.	Hangileri olduğunu görmek için dokun.
+%1$d default patch isn't in this build	%1$d varsayılan yama bu sürümde yok
+%1$d default patches aren't in this build	%1$d varsayılan yama bu sürümde yok
+Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Bu sürümde yok: %1$s. Morphe Manager bunu varsayılan olarak seçer. Yaptığı işi almak için onu seçip yeniden yamala.
+Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Bu sürümde yok: %1$s. Morphe Manager bunları varsayılan olarak seçer. Yaptıkları işi almak için onları seçip yeniden yamala.

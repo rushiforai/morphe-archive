@@ -4,6 +4,7 @@
 
 # Log file
 *.log
+scratch/
 
 # BlueJ files
 *.ctxt
@@ -128,3 +129,5 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
+morphe-data/
+*.mpp

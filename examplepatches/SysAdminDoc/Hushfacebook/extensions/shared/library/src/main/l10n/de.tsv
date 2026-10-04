@@ -1,5 +1,6 @@
 # German for Hushfacebook: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	Build %1$s
 "Pages you may like" cards and the cards Facebook uses to push its own features. In-feed surveys go too.	„Seiten, die dir gefallen könnten“ und die Karten, mit denen Facebook für eigene Funktionen wirbt. Die Umfragen im Feed verschwinden auch.
 %1$d item in that file isn't a setting this version of Hushfacebook knows, so it'll be left out.	%1$d Eintrag in dieser Datei ist keine Einstellung, die diese Version von Hushfacebook kennt, und wird deshalb ausgelassen.
 %1$d items in that file aren't settings this version of Hushfacebook knows, so they'll be left out.	%1$d Einträge in dieser Datei sind keine Einstellungen, die diese Version von Hushfacebook kennt, und werden deshalb ausgelassen.
@@ -35,6 +36,7 @@ Copy quick report	Kurzbericht kopieren
 Copying to the gallery	Wird in die Galerie kopiert
 Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Die Einstellungen ließen sich nicht importieren, und deine vorherigen ließen sich nicht wiederherstellen. Prüfe die Schalter auf diesem Bildschirm.
 Couldn't import the settings. Nothing was changed.	Die Einstellungen ließen sich nicht importieren. Es wurde nichts geändert.
+Couldn't open or share that saved file. Try again.	Die gespeicherte Datei konnte nicht geöffnet oder geteilt werden. Versuch es noch einmal.
 Couldn't open that file. Nothing was changed.	Diese Datei ließ sich nicht öffnen. Es wurde nichts geändert.
 Couldn't open the file picker. Try again.	Die Dateiauswahl ließ sich nicht öffnen. Versuche es noch einmal.
 Couldn't put back the diagnostic data. Try again.	Die Diagnosedaten ließen sich nicht wiederherstellen. Versuche es noch einmal.
@@ -64,14 +66,21 @@ Facebook crashed or froze within a minute of starting three times in a row, so H
 Facebook doesn't download ads or its ad model in the background.	Facebook lädt im Hintergrund weder Werbung noch sein Werbemodell herunter.
 Facebook doesn't serve ads to other apps on this phone.	Facebook liefert keine Werbung an andere Apps auf diesem Handy aus.
 Facebook dark mode and this screen use your wallpaper colours. Android 11 uses blue instead. Turn on Facebook dark mode to see it.	Facebooks Dunkelmodus und diese Seite nutzen die Farben deines Hintergrundbilds. Android 11 nutzt stattdessen Blau. Aktiviere Facebooks Dunkelmodus, um es zu sehen.
+Hide Stories between posts	Stories zwischen Beiträgen ausblenden
 Joining the picture and sound	Bild und Ton werden zusammengefügt
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Ab dem nächsten Start verhält sich jeder Schalter außer der Debug-Protokollierung, als wäre er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.
+Rows, large tiles and viewers of Stories between posts, starting with the next feed Facebook loads. The top Stories tray has its own switch.	Story-Reihen, große Kacheln und Story-Viewer zwischen Beiträgen, ab dem nächsten von Facebook geladenen Feed. Die Story-Leiste oben hat einen eigenen Schalter.
+Open	Öffnen
+Photo saved	Foto gespeichert
 Settings exported. The app holding the file wouldn't let Hushfacebook read it back, so it wasn't checked.	Einstellungen exportiert. Die App, in der die Datei liegt, ließ Hushfacebook sie nicht zurücklesen, daher wurde sie nicht geprüft.
+Share	Teilen
+That saved file is no longer available.	Die gespeicherte Datei ist nicht mehr verfügbar.
 The app holding that file is taking too long, so Hushfacebook stopped waiting. Nothing was changed.	Die App, in der die Datei liegt, braucht zu lange, deshalb wartet Hushfacebook nicht mehr. Es wurde nichts geändert.
 The app holding the last settings file still hasn't answered. Try again later.	Die App mit der letzten Einstellungsdatei hat noch immer nicht geantwortet. Versuche es später noch einmal.
 The app holding the settings file is taking too long, so Hushfacebook stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Die App, in der die Einstellungsdatei liegt, braucht zu lange, deshalb wartet Hushfacebook nicht mehr. Sie kann das Speichern noch abschließen, also prüfe die Datei, bevor du dich darauf verlässt.
 The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	Die Datei %1$s ließ sich nicht entfernen. Lösche sie aus %2$s und tippe dann noch einmal auf Fortsetzen.
 The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Die Einstellungsdatei wurde gespeichert, liest sich aber nicht so zurück, wie sie geschrieben wurde. Speichere sie noch einmal als neue Datei.
+There's no app here that can open or share this saved file.	Keine App kann diese gespeicherte Datei öffnen oder teilen.
 Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Bis zum Fortsetzen verhält sich jeder Schalter außer der Debug-Protokollierung, als wäre er aus. Was beim Patchen festgelegt wurde, bleibt aktiv.
 Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.	Nutzt die Emoji deines Telefons. Reaktionen und Sticker bleiben gleich. Starte Facebook nach der Änderung neu.
 # context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
@@ -138,6 +147,8 @@ Posts Facebook files as promotions rather than as ads.	Beiträge, die Facebook a
 Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.	Beiträge von Personen und Seiten, denen du nicht folgst, und aus Gruppen, denen du nicht beigetreten bist, die Facebook in deinen Feed schiebt.
 Posts that Facebook's own detection marks as made with AI. A post that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real feed yet.	Beiträge, die Facebooks eigene Erkennung als mit KI erstellt markiert. Ein Beitrag, den nur die Person, die ihn erstellt hat, als KI gekennzeichnet hat, bleibt sichtbar. Der Schalter ist standardmäßig aus, weil er noch nicht in einem echten Feed getestet wurde.
 Profiles and some Settings pages open again on this re-signed build.	Profile und einige Einstellungsseiten öffnen sich in diesem neu signierten Build wieder.
+Profiles and some Settings pages won't open	Profile und einige Einstellungsseiten öffnen sich nicht
+Patch again with %1$s selected. Re-signed builds need it for profiles and some Facebook Settings pages.	Wähle %1$s aus und patche erneut. Neu signierte Builds brauchen diesen Patch für Profile und einige Facebook-Einstellungsseiten.
 Re-signed build fix	Fix für neu signierte Builds
 Reading the settings file	Einstellungsdatei wird gelesen
 Reels and Watch	Reels und Watch
@@ -183,6 +194,7 @@ Checking GitHub now.	GitHub wird gerade gefragt.
 Hushfacebook %1$s is out. Update it in Morphe Manager.	Hushfacebook %1$s ist erschienen. Aktualisiere es im Morphe Manager.
 It targets Facebook %1$s.	Es ist für Facebook %1$s gedacht.
 Hushfacebook %1$s targets Facebook %2$s.	Hushfacebook %1$s ist für Facebook %2$s gedacht.
+Video saved	Video gespeichert
 You have the newest Hushfacebook release.	Du hast die neueste Version von Hushfacebook.
 The newest Hushfacebook release is %1$s.	Die neueste Version von Hushfacebook ist %1$s.
 Couldn't reach GitHub. Try again later.	GitHub war nicht erreichbar. Versuche es später noch einmal.
@@ -226,7 +238,7 @@ the re-signed build fix	der Fix für neu signierte Builds
 the start-up fix for x86 devices	der Startfix für x86-Geräte
 the recoloured dark mode	die Umfärbung des Dunkelmodus
 The row of friend suggestions between posts, and the one on your own profile.	Die Reihe mit Freundschaftsvorschlägen zwischen den Beiträgen und die auf deinem eigenen Profil.
-The row of stories at the top of the feed, Create story included, and the rows of stories between posts.	Die Reihe mit Stories oben im Feed, „Story erstellen“ eingeschlossen, und die Reihen mit Stories zwischen den Beiträgen.
+The row of stories at the top of the feed, Create story included.	Die Story-Reihe oben im Feed, einschließlich „Story erstellen“.
 The rows of reels between posts, and the reels Facebook adds where your feed ends.	Die Reihen mit Reels zwischen den Beiträgen und die Reels, die Facebook dort anhängt, wo dein Feed endet.
 The setting couldn't finish updating. Its saved value is shown.	Die Einstellung ließ sich nicht vollständig aktualisieren. Der gespeicherte Wert wird angezeigt.
 There's no diagnostic data to clear.	Es gibt keine Diagnosedaten zum Löschen.
@@ -557,6 +569,22 @@ Facebook's web addresses open here now.	Die Webadressen von Facebook öffnen sic
 Meta App Manager can keep Facebook's web addresses for itself, so their links skip this app. Tap and turn off Open supported links there, then check Supported links above.	Meta App Manager kann die Webadressen von Facebook für sich behalten, dann überspringen ihre Links diese App. Tippe und schalte dort „Unterstützte Links öffnen“ aus, dann prüfe „Unterstützte Links“ oben.
 # context: message when Android's page for Meta App Manager doesn't open; "Open by default" is Android's page name
 Meta App Manager's settings didn't open. Find it in Android's app list with system apps shown, then Open by default.	Die Einstellungen von Meta App Manager ließen sich nicht öffnen. Suche die App in der App-Liste von Android mit eingeblendeten System-Apps, dann „Standardmäßig öffnen“.
+# context: title of a row under Links; Messenger is the name of Meta's app, keep it as is
+Messenger	Messenger
+# context: title of a row under Links; Instagram is the name of Meta's app, keep it as is
+Instagram	Instagram
+# context: the Messenger row's description; "Open supported links" is Android's own switch, "Supported links" is the row above
+Messenger can keep facebook.com and m.me links for itself, so their switches for this app turn themselves back off. Tap and turn off Open supported links there, then check Supported links above.	Messenger kann facebook.com- und m.me-Links für sich behalten, dann schalten sich ihre Schalter für diese App wieder aus. Tippe und schalte dort „Unterstützte Links öffnen“ aus, dann prüfe „Unterstützte Links“ oben.
+# context: the Instagram row's description; "Open supported links" is Android's own switch, "Supported links" is the row above
+Instagram can keep facebook.com links for itself, so their switches for this app turn themselves back off. Tap and turn off Open supported links there, then check Supported links above.	Instagram kann facebook.com-Links für sich behalten, dann schalten sich ihre Schalter für diese App wieder aus. Tippe und schalte dort „Unterstützte Links öffnen“ aus, dann prüfe „Unterstützte Links“ oben.
+# context: message when Android's page for Messenger doesn't open; "App info" and "Open by default" are Android's page names
+Messenger's settings didn't open. Open App info from Messenger's icon, then Open by default.	Die Einstellungen von Messenger ließen sich nicht öffnen. Öffne die App-Info über das Messenger-Symbol, dann „Standardmäßig öffnen“.
+# context: message when Android's page for Instagram doesn't open; "App info" and "Open by default" are Android's page names
+Instagram's settings didn't open. Open App info from Instagram's icon, then Open by default.	Die Einstellungen von Instagram ließen sich nicht öffnen. Öffne die App-Info über das Instagram-Symbol, dann „Standardmäßig öffnen“.
+# context: the Messenger row's description once both addresses open in this app; keep facebook.com and m.me as is
+facebook.com and m.me links open here now.	facebook.com- und m.me-Links öffnen sich jetzt hier.
+# context: the Instagram row's description once its addresses open in this app; keep facebook.com as is
+facebook.com links open here now.	facebook.com-Links öffnen sich jetzt hier.
 # context: message when a save starts and its notification can't show (Facebook's notifications or the saves channel are off); Downloads is the settings section that lists running saves, each with its own Cancel
 Saving... Cancel: Downloads in Hushfacebook.	Wird gespeichert … Abbrechen: Downloads in Hushfacebook.
 # context: switch title under Reels and Watch; on, a double tap on a reel or a video doesn't like it
@@ -701,6 +729,10 @@ Links go to %1$s. When it isn't installed, Android asks which app.	Links gehen a
 Hide "Find friends from contacts"	„Freunde aus Kontakten finden“ ausblenden
 # context: summary of that switch
 The Stories tray card asking to upload your contacts. Applies when Facebook next loads the tray.	Die Karte in der Story-Leiste, die dich bittet, deine Kontakte hochzuladen. Gilt beim nächsten Laden der Leiste.
+# context: switch title under Stories; the prompts are the cards beside Create story that suggest a kind of story to make. Keep it distinct from Hide suggested stories
+Hide story prompts	Story-Anregungen ausblenden
+# context: summary of that switch; Share music you love is the name of one such card
+The cards beside Create story that suggest a story to make, like Share music you love. Applies when Facebook next loads the tray.	Die Karten neben „Story erstellen“, die dir eine Story zum Erstellen vorschlagen, etwa Musik zu teilen, die du magst. Gilt beim nächsten Laden der Leiste.
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 The row of friend suggestions between posts, the one on your own profile, and the cards with an Add button in the Stories tray.	Die Reihe mit Freundschaftsvorschlägen zwischen den Beiträgen, die auf deinem eigenen Profil und die Karten mit der Schaltfläche „Hinzufügen“ in der Story-Leiste.
 Feeds opens on	Feeds startet mit
@@ -712,3 +744,14 @@ When Facebook opens on Feeds, the Feeds tab opens on the filter Facebook picks.	
 When Facebook opens on Feeds, the Feeds tab opens on %1$s. If your Feeds tab doesn't have it, it opens as usual.	Wenn Facebook mit Feeds startet, zeigt der Feeds-Tab %1$s. Hat dein Feeds-Tab diesen Filter nicht, öffnet er sich wie gewohnt.
 The Feeds tab will open on the filter Facebook picks.	Der Feeds-Tab zeigt dann den Filter, den Facebook auswählt.
 The Feeds tab will open on %1$s.	Der Feeds-Tab zeigt dann %1$s.
+Saved	Gespeichert
+Saved shortcut	Verknüpfung zu Gespeichert
+Adds Saved to Facebook's icon menu when there's room. Existing shortcuts stay.	Fügt Gespeichert zum Symbolmenü von Facebook hinzu, wenn Platz ist. Vorhandene Verknüpfungen bleiben.
+Your launcher has no room for another shortcut.	Dein Launcher hat keinen Platz für eine weitere Verknüpfung.
+Saved isn't available in this build.	Gespeichert ist in dieser Version nicht verfügbar.
+# context: The optional matching mode for both post word lists.
+Match whole words	Ganze Wörter abgleichen
+Apply whole-word matching to both lists. For example, hat matches hat! but not what or hats.	Die Ganzwortsuche gilt für beide Listen. Zum Beispiel findet hat auch hat!, aber nicht what oder hats.
+Off	Aus
+On	Ein
+Saved now %1$s. After import %2$s.	Aktuell gespeichert %1$s. Nach dem Import %2$s.

@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.interaction.quickactions
 
 import app.morphe.Fixtures
 import app.morphe.ResourceIds
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
@@ -14,7 +13,7 @@ class CommentTypingStickerSuggestionsFixturesTest {
     @Test
     fun `typing recommendation component has one boolean visibility boundary on each declared build`() {
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val components = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.filter {
                     it.type == COMMENT_TYPING_STICKER_RECOMMEND_ASSEM

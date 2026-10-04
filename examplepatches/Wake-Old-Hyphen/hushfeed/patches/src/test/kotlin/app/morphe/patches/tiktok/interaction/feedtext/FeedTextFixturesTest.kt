@@ -11,7 +11,6 @@ import app.morphe.util.addInstruction
 import app.morphe.util.cloneMutable
 import app.morphe.util.getReference
 import app.morphe.util.namedRegisters
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -38,7 +37,7 @@ class FeedTextFixturesTest {
         assertEquals(Fixtures.declaredVersions().toSet(), expected.keys)
         Fixtures.forEachDeclared { apk ->
             val version = Fixtures.versionOf(apk)
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val classes = container.dexEntryNames.flatMap { container.getEntry(it)!!.dexFile.classes }
             val byType = classes.associateBy { it.type }
             val native = resolveFeedText { byType[it] }

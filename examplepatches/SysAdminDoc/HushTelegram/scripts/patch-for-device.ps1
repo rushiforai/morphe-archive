@@ -5,9 +5,9 @@
 .DESCRIPTION
     verify-all-patches.ps1 answers whether the patches apply and throws its APK away. This
     keeps one, signed with the sideload keystore so it installs on a phone, and installs it
-    over adb when a serial is given. The stock Telegram on the phone has a different signer, so
-    it has to be uninstalled first; that is what -Replace does, and it wipes Telegram's data on
-    that phone.
+    over adb when a serial is given. Installation requires an owned whole-device lease and
+    an exact model/profile. Existing apps must have the same signer and no newer version.
+    The script never uninstalls an app or grants runtime permissions.
 
     The signing password comes from HUSHTELEGRAM_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
     local test keystore's documented password, sideload, is used. The Morphe arguments travel
@@ -22,12 +22,17 @@
     -Aapt2, HUSHTELEGRAM_AAPT2 or the SDK. None of them has a machine-specific default.
 
 .EXAMPLE
-    scripts/patch-for-device.ps1 -Serial $env:HUSHTELEGRAM_DEVICE_SERIAL -Replace
+    scripts/patch-for-device.ps1 -Serial $env:HUSHTELEGRAM_DEVICE_SERIAL -ExpectedModel $env:HUSHTELEGRAM_DEVICE_MODEL
 #>
 [CmdletBinding()]
 param(
     [string]$Serial,
     [switch]$Replace,
+    [string]$LeaseDirectory = $env:HUSHTELEGRAM_DEVICE_LEASE_DIR,
+    [string]$LeaseToken = $env:HUSHTELEGRAM_DEVICE_LEASE_TOKEN,
+    [string]$ChatIdentity = $env:HUSHTELEGRAM_DEVICE_CHAT,
+    [string]$ExpectedModel,
+    [string]$ExpectedAvd,
     # Print every line the desktop CLI writes, not only errors.
     [switch]$ShowPatchLog,
     # Patch names to leave out of this build. The catalog applies everything, including any patch
@@ -38,6 +43,8 @@ param(
     # an earlier build on purpose. Without it a stale bundle stops the run.
     [switch]$AllowStaleBundle,
     [string]$Apk,
+    # Used only to choose a default fixture. An explicit APK selects its declared native package.
+    [string]$PackageName,
     [string]$DesktopJar,
     [string]$Java,
     [string]$Aapt2,
@@ -50,6 +57,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if ($Replace) { throw '-Replace is no longer supported. Keep app data and use the retained signing key for updates.' }
+if ($Serial -and (-not $LeaseDirectory -or -not $LeaseToken -or -not $ChatIdentity -or -not $ExpectedModel)) {
+    throw 'Installation requires the shared lease directory, owned token, chat identity and expected device model.'
+}
 # Not a parameter default: Windows PowerShell leaves $PSScriptRoot empty while it evaluates the
 # defaults of an advanced script started with -File. $root below is this same variable.
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
@@ -61,17 +72,22 @@ $OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPat
 . (Join-Path $PSScriptRoot 'common.ps1')
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
+. (Join-Path $PSScriptRoot 'device-install.ps1')
 $Java = Resolve-Java -Explicit $Java
 $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $root -Required
 $catalogPath = Join-Path $root 'patches-list.json'
 if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) { throw "No patch list found: $catalogPath" }
 try { $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json }
 catch { throw "Could not read patch list ${catalogPath}: $($_.Exception.Message)" }
-$target = Get-PatchTarget -PatchList $catalog
+$target = Get-PatchTarget -PatchList $catalog -PackageName $PackageName
 if (-not $Apk -and $env:HUSHTELEGRAM_FIXTURE_DIR -and (Test-Path -LiteralPath $env:HUSHTELEGRAM_FIXTURE_DIR -PathType Container)) {
-    $Apk = (Get-ChildItem -LiteralPath $env:HUSHTELEGRAM_FIXTURE_DIR `
-        -File | Where-Object { $_.Name -like "*$($target.PackageVersion)*" -and $_.Extension -in '.apk', '.apkm', '.xapk' } |
-        Select-Object -First 1).FullName
+    $fixtureNames = @(foreach ($code in @($target.PackageVersionCodes[$target.PackageVersion])) {
+        Get-VendorFixtureName -Target $target -VersionName $target.PackageVersion -VersionCode $code
+    })
+    $matching = @(Get-ChildItem -LiteralPath $env:HUSHTELEGRAM_FIXTURE_DIR -File |
+        Where-Object { $fixtureNames -ccontains $_.Name })
+    if ($matching.Count -gt 1) { throw 'More than one declared default fixture is present. Pass an exact -Apk.' }
+    if ($matching.Count -eq 1) { $Apk = $matching[0].FullName }
 }
 if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
     throw ("No vendor APK. Pass -Apk with the $($target.PackageVersion) build, or set " +
@@ -84,16 +100,17 @@ if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
 # refused here: without -f the CLI refuses it too, but only after unpacking it, and this is the
 # APK that goes on a phone.
 $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
-$stockBase = Join-Path $OutDir 'stock-base.apk'
+$stockBase = Resolve-WithinRoot -Root $OutDir -Path (Join-Path $OutDir 'stock-base.apk')
 try {
     $stock = Get-ApkManifestFacts -Apk (Get-BaseApk -Apk $Apk -Destination $stockBase) -Aapt2 $Aapt2
 } finally {
     # Only the copy taken out of a bundle. A plain APK is read where it is and stays there.
-    Remove-Item -LiteralPath $stockBase -Force -ErrorAction SilentlyContinue
+    Remove-GeneratedPath -Root $OutDir -Path $stockBase -NoRecurse
 }
-if ($stock.package -ne $target.PackageName) {
+if ($PackageName -and $stock.package -cne $PackageName) {
     throw "$(Split-Path -Leaf $Apk) is $($stock.package), not the catalog's target $($target.PackageName)."
 }
+$target = Get-PatchTarget -PatchList $catalog -PackageName ([string]$stock.package)
 # Its version code as well: another arm64 build of a declared version has its own dex, and nothing
 # proved the patches on it.
 if (-not (Test-DeclaredBuild -Target $target -VersionName ([string]$stock.versionName) -VersionCode ([string]$stock.versionCode))) {
@@ -129,9 +146,10 @@ if ($Exclude.Count -gt 0) { Write-Host "[device] leaving out: $($Exclude -join '
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $names)
 
 New-Item -ItemType Directory -Force $OutDir | Out-Null
-$out = Join-Path $OutDir "hushtelegram-$version-signed.apk"
-$temp = Join-Path $OutDir 'tmp'
-$result = Join-Path $OutDir 'result.json'
+$out = Resolve-WithinRoot -Root $OutDir -Path (Join-Path $OutDir "hushtelegram-$version-signed.apk")
+$temp = Resolve-WithinRoot -Root $OutDir -Path (Join-Path $OutDir 'tmp')
+$result = Resolve-WithinRoot -Root $OutDir -Path (Join-Path $OutDir 'result.json')
+$summaryPath = Resolve-WithinRoot -Root $OutDir -Path (Join-Path $OutDir 'public-summary.json')
 if (Test-Path $out) { Remove-Item $out -Force }
 
 Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
@@ -140,7 +158,7 @@ foreach ($name in $names) { $enable += '-e'; $enable += $name }
 $arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result,
     '--keystore', $Keystore, '--keystore-password', $keystorePassword,
     '--keystore-entry-alias', $KeyAlias, '--keystore-entry-password', $keystorePassword) + $enable + @($Apk)
-$argumentFile = Join-Path $OutDir 'morphe-patch.args'
+$argumentFile = Resolve-WithinRoot -Root $OutDir -Path (Join-Path $OutDir 'morphe-patch.args')
 $argumentFileLines = @($arguments | ForEach-Object {
     $value = [string]$_
     if ($value.IndexOfAny([char[]]"`r`n") -ge 0) {
@@ -161,26 +179,33 @@ try {
         $global:LASTEXITCODE = -1
         & $Java -jar $DesktopJar "@$argumentFile" 2>&1 | ForEach-Object {
             $line = [string]$_
-            if ($ShowPatchLog -or $line -match 'SEVERE|ERROR|WARNING|Exception|Saved to') { Write-Host "[device] $line" }
+            if ($ShowPatchLog) { Write-Host "[device] $line" }
         }
         $cliExitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $preference
     }
-    if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode" }
+    $public = Export-PublicPatchSummary -ReportPath $result -SummaryPath $summaryPath -PatchList $catalog `
+        -RequestedNames $names -BundleVersion $version -OutputPath $out -CliExitCode $cliExitCode `
+        -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName
+    if (-not $public.Written) { throw $public.FailureCode }
+    Write-Host '[device] public-summary.json contains the shareable patch summary'
+    if ($cliExitCode -ne 0) { throw ('Patching failed: ' + ($public.Summary.failureCodes -join ', ')) }
 } finally {
-    Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
+    Remove-GeneratedPath -Root $OutDir -Path $argumentFile -NoRecurse
     # The CLI unpacks the whole APK here and a run against Telegram leaves gigabytes behind.
-    if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }
+    Remove-GeneratedPath -Root $OutDir -Path $temp
 }
 # The same report check the throwaway verification applies: every requested patch, every
 # step, the target, and a real APK. The build that goes onto a phone deserves no less.
 $report = $null
-if (Test-Path -LiteralPath $result -PathType Leaf) { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json }
+if (Test-Path -LiteralPath $result -PathType Leaf) {
+    try { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json } catch { throw 'REPORT_INVALID' }
+}
 $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
     -AllowedDependencyNames $dependencyNames -OutputPath $out `
     -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName
-if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
+if (-not $validation.Valid) { throw ('Patching failed: ' + ($public.Summary.failureCodes -join ', ')) }
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
 Write-Host "[device] $out"
 
@@ -188,13 +213,6 @@ if (-not $Serial) { return }
 $adb = (Get-Command adb -ErrorAction SilentlyContinue).Source
 if (-not $adb) { $adb = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter adb.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName }
 if (-not $adb) { throw 'No adb found. Put it on the PATH or install the platform tools.' }
-if ($Replace) {
-    . (Join-Path $PSScriptRoot 'device-install.ps1')
-    [void](Remove-AndroidPackageIfInstalled -Adb $adb -Serial $Serial -PackageName $target.PackageName)
-}
-Write-Host "[device] installing on $Serial"
-# adb prints Failure [...] and exits non-zero on a refused install; without this the script
-# went on to print the version of whatever was already on the phone, as if it were this build.
-& $adb -s $Serial install -r -g $out | Out-Host
-if ($LASTEXITCODE -ne 0) { throw "adb install failed on $Serial. The output above says why." }
-& $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
+Install-AndroidPackage -Adb $adb -Serial $Serial -PackageName $target.PackageName -Apk $out `
+    -Aapt2 $Aapt2 -LeaseDirectory $LeaseDirectory -LeaseToken $LeaseToken -ChatIdentity $ChatIdentity -ExpectedModel $ExpectedModel `
+    -ExpectedAvd $ExpectedAvd -WorkDirectory $OutDir

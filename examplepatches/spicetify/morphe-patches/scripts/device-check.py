@@ -123,7 +123,7 @@ def main():
     parser.add_argument("--apksigner", required=True)
     parser.add_argument("--aapt2", required=True)
     parser.add_argument("--adb", default="adb")
-    parser.add_argument("--version", default="9.1.88.2204")
+    parser.add_argument("--version", default="9.1.80.2221")
     parser.add_argument("--report", required=True, type=Path)
     parser.add_argument("--install", action="store_true", help="Update with install -r, preserving data")
     parser.add_argument("--album-id", help="Open a public album and report its visible error state")

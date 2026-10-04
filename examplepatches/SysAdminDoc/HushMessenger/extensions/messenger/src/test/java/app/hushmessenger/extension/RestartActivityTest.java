@@ -1,8 +1,10 @@
 package app.hushmessenger.extension;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.widget.TextView;
 import java.lang.reflect.Proxy;
@@ -57,11 +59,31 @@ public class RestartActivityTest {
     @Test public void disabledLauncherCannotBeSelectedForRestart() {
         var app = RuntimeEnvironment.getApplication();
         Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage(app.getPackageName());
-        ResolveInfo disabled = entry("com.facebook.orca.DisabledIcon", "com.facebook.messenger.neue.MainActivity");
-        disabled.activityInfo.enabled = false;
-        Shadows.shadowOf(app.getPackageManager()).addResolveInfoForIntent(query, List.of(disabled,
+        // Picking an alternate icon disables the default launcher at runtime; its manifest flag stays true.
+        ResolveInfo stock = entry("com.facebook.orca.auth.StartScreenActivity", null);
+        ResolveInfo manifestOff = entry("com.facebook.orca.DisabledIcon", "com.facebook.messenger.neue.MainActivity");
+        manifestOff.activityInfo.enabled = false;
+        Shadows.shadowOf(app.getPackageManager()).addResolveInfoForIntent(query, List.of(stock, manifestOff,
             entry("com.facebook.orca.ActiveIcon", "com.facebook.messenger.neue.MainActivity")));
-        assertEquals("com.facebook.orca.ActiveIcon", RestartActivity.launcherIntent(app).getComponent().getClassName());
+        for (int state : new int[] {PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED}) {
+            app.getPackageManager().setComponentEnabledSetting(new ComponentName(app, stock.activityInfo.name), state, PackageManager.DONT_KILL_APP);
+            assertEquals("com.facebook.orca.ActiveIcon", RestartActivity.launcherIntent(app).getComponent().getClassName());
+        }
+    }
+
+    @Test public void alternateIconEnabledAtRuntimeIsSelectedForRestart() {
+        var app = RuntimeEnvironment.getApplication();
+        Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage(app.getPackageName());
+        // Stock Messenger declares LauncherAlias* icons with android:enabled="false" and enables the chosen one at runtime.
+        ResolveInfo alias = entry("com.facebook.orca.auth.LauncherAliasVaporwave", "com.facebook.messenger.neue.MainActivity");
+        alias.activityInfo.enabled = false;
+        Shadows.shadowOf(app.getPackageManager()).addResolveInfoForIntent(query, List.of(alias));
+        app.getPackageManager().setComponentEnabledSetting(new ComponentName(app, alias.activityInfo.name),
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+        Intent launch = RestartActivity.launcherIntent(app);
+        assertNotNull(launch);
+        assertEquals(alias.activityInfo.name, launch.getComponent().getClassName());
     }
 
     @Test public void restartScreenFollowsTheSavedTheme() {

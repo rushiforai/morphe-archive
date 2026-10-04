@@ -102,6 +102,22 @@ class MarketplaceRequestFixtureTest {
                 for (variable in skipVariables) {
                     assertTrue("$name: the feed query doesn't declare $variable", config.contains("\"$variable\""))
                 }
+                for (variable in listOf("localOnly", "shippedOnly")) {
+                    assertTrue("$name: the request diagnostics name an undeclared selection field $variable",
+                        config.contains("\"$variable\""))
+                }
+                for ((query, variables) in mapOf(
+                    "MarketplaceHomeQuery" to listOf("localOnly"),
+                    "MarketplacePlainHomeAppQuery" to listOf("location", "localOnly", "radius", "shippedOnly"),
+                )) {
+                    val localConfig = asset(bundle, "assets/${query}Configs.json")
+                        ?: throw AssertionError("$name: no config for the observed $query")
+                    assertTrue("$name: $query config names another query", localConfig.contains("\"$query\""))
+                    for (variable in variables) {
+                        assertTrue("$name: $query doesn't declare the observed $variable field",
+                            localConfig.contains("\"$variable\""))
+                    }
+                }
 
                 // The patch follows the answers too, so it gets the Tigon callbacks and what they use.
                 val callbacks = FixtureDex.classes(bundle, setOf(CALLBACKS)).values

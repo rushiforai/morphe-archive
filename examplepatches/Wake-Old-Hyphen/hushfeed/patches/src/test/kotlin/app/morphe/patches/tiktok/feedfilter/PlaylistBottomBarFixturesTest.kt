@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.feedfilter
 
 import app.morphe.Fixtures
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -13,7 +12,7 @@ class PlaylistBottomBarFixturesTest {
     @Test
     fun `playlist bar availability remains unique and guardable on every retained fixture`() {
         for (apk in Fixtures.apks()) {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val modelClasses = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.filter { classDef ->
                     classDef.type == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;" ||

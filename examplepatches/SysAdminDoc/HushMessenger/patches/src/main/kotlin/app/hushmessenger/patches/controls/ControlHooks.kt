@@ -96,6 +96,7 @@ internal var messageIdGetterName: String = ""
 internal var messageIsUnsentGetterName: String = ""
 
 internal val expectedHooks = mapOf(
+    COMMUNITY_INBOX to setOf("LX/2GW;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
     "stories" to setOf("LX/1mi;->A00()Z"),
     "facebook" to setOf(
         "LX/Sc2;->A06()Z", "LX/YFi;->A04()Z", "LX/2aP;->A0C()Z", "LX/3Ec;->A00()Z",
@@ -160,6 +161,7 @@ internal fun Method.hookId() = "$definingClass->$name(${parameterTypes.joinToStr
 /** Match semantics first, then require the complete set from both tested APKs. */
 internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>> {
     val found = expectedHooks.keys.associateWith { mutableListOf<Method>() }
+    findCommunityInbox(classes)?.let { found.getValue(COMMUNITY_INBOX).add(it.render) }
     found.getValue("ai_sticker_cell").addAll(findAiStickerCells(classes))
     val adContract = classes.any { it.type == AD_ITEM } && classes.any { cls ->
         cls.type == IMMUTABLE_LIST && cls.methods.any {
@@ -243,7 +245,7 @@ internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>
             val strings = refs.filterIsInstance<StringReference>().map { it.string }.toSet()
             val gate = method.returnType == "Z" && method.parameterTypes.isEmpty()
             fun add(key: String) { found.getValue(key).add(method) }
-            if ((cls.type == EPHEMERAL_VIEWER && method.name in setOf("A1A", "A1C", "onResume")) ||
+            if ((cls.type == EPHEMERAL_VIEWER && (method.name in EPHEMERAL_DIALOGS || method.name == "onResume")) ||
                 (cls.type == QUICKSNAP_VIEWER && method.name == "onCreateView")) {
                 method.screenshotViewerSites()
                 add("screenshot_viewers")
@@ -274,7 +276,7 @@ internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>
                 refs.any { it.toString() == "Landroid/app/ActivityManager;->isLowRamDevice()Z" }) add("bubbles")
             if (!AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
                 method.parameterTypes == listOf(BUBBLE_SESSION) && instructions.any {
-                    it.opcode == Opcode.CONST_WIDE && (it as? WideLiteralInstruction)?.wideLiteral == BUBBLE_ROLLOUT
+                    it.opcode == Opcode.CONST_WIDE && (it as? WideLiteralInstruction)?.wideLiteral?.let { flag -> flag in BUBBLE_ROLLOUTS } == true
                 }) add("bubble_mode")
             if (method.returnType == "Z" && strings.containsAll(setOf("iab_skipped_reason", "user_prefers_external"))) add("browser")
             if (method.returnType == "Z" && AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes == listOf(cls.type) &&
@@ -492,12 +494,15 @@ internal fun MutableMethod.validatePluginGate() {
     }
 }
 
-/** Wrap both exits, including direct branches to a return. v5 stays intact on the inactive path. */
+/** The registers each release returns from its two exits, in order: v5 from both in 580, v7 then v2 in 581. */
+private val AD_FILTER_RESULTS = setOf(listOf(5, 5), listOf(7, 2))
+
+/** Wrap both exits, including direct branches to a return. The returned list stays intact on the inactive path. */
 internal fun MutableMethod.validateAdFilter(): List<Int> {
     val code = implementation!!.instructions
     val exits = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
     if (implementation!!.registerCount != 24 || code.size != activeProfile.adFilterSize || exits != activeProfile.adFilterExits ||
-        exits.any { (code[it] as? OneRegisterInstruction)?.registerA != 5 }) {
+        exits.map { (code[it] as? OneRegisterInstruction)?.registerA ?: -1 } !in AD_FILTER_RESULTS) {
         throw PatchException("Messenger controls: the inbox ad filter exits differ from the tested build")
     }
     return exits
@@ -506,14 +511,15 @@ internal fun MutableMethod.validateAdFilter(): List<Int> {
 internal fun MutableMethod.injectAdFilter() {
     val exits = validateAdFilter()
     for (index in exits.reversed()) {
-        replaceInstruction(index, "invoke-static {v5}, $SETTINGS->filterInboxAds(Ljava/util/List;)Ljava/util/List;")
+        val result = (implementation!!.instructions[index] as OneRegisterInstruction).registerA
+        replaceInstruction(index, "invoke-static {v$result}, $SETTINGS->filterInboxAds(Ljava/util/List;)Ljava/util/List;")
         addInstructionsWithLabels(index + 1, """
             move-result-object v0
             if-eqz v0, :original_list
             invoke-static {v0}, $IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMMUTABLE_LIST
-            move-result-object v5
+            move-result-object v$result
             :original_list
-            return-object v5
+            return-object v$result
         """.trimIndent())
     }
 }
@@ -672,14 +678,15 @@ internal fun Method.jumpTargets(): Set<Int> {
     return targets
 }
 
-private const val PEOPLE_SERVER_FLAG = 72344235860374863L
+/** The Notifications tab's server flag ID, renumbered by each release: 580's, then 581's. */
+private val PEOPLE_SERVER_FLAGS = setOf(72344235860374863L, 72344231565407716L)
 
 /**
- * Where the Notifications tab loads its server flag: the method's only constant with that value, after the
+ * Where the Notifications tab loads its server flag: the method's only constant with one of those values, after the
  * preference branch at 12. It's at 17 in most builds and at 16 where Redex inlined the list reset into one call.
  */
 private fun List<Instruction>.peopleFlagIndex(): Int =
-    indices.filter { i -> this[i].opcode == Opcode.CONST_WIDE && (this[i] as? WideLiteralInstruction)?.wideLiteral == PEOPLE_SERVER_FLAG }
+    indices.filter { i -> this[i].opcode == Opcode.CONST_WIDE && (this[i] as? WideLiteralInstruction)?.wideLiteral in PEOPLE_SERVER_FLAGS }
         .singleOrNull()?.takeIf { it in 16..17 } ?: -1
 
 /**
@@ -978,12 +985,17 @@ internal fun MutableMethod.injectOutgoingTyping() {
     """.trimIndent())
 }
 
-/** The Settings folder builder creates exactly one class: the Menu tab's folder row. */
+/**
+ * The Menu tab's folder row class, which the Settings row is built from. The builder may also make other folder rows
+ * of that class (581 adds the QR code row) and their folder keys, but nothing else.
+ */
 internal fun Method.menuFolderItemType(): String {
     val types = implementation!!.instructions.filter { it.opcode == Opcode.NEW_INSTANCE }
         .map { ((it as ReferenceInstruction).reference as TypeReference).type }.toSet()
-    return types.singleOrNull()
-        ?: throw PatchException("Messenger controls: menu settings item builder creates ${types.size} types, expected 1")
+    val row = ((implementation!!.instructions.elementAt(settingsRowCall()) as ReferenceInstruction).reference as DexMethodReference).definingClass
+    if (row !in types || types.any { it != row && !(it.startsWith(DRAWER_MODEL) && it.endsWith("FolderKey;")) })
+        throw PatchException("Messenger controls: menu settings item builder creates ${types.size} types, expected its row and folder keys")
+    return row
 }
 
 /** Messenger casts the tapped folder row just before its folder-selected trace section starts. */

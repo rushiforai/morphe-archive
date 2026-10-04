@@ -8,9 +8,14 @@ package app.morphe.extension.settings;
  * off so the visible settings surface only reflects the selected feature set.
  */
 public final class Settings {
+    // Home / navigation.
+    /** Default Twitch Home tab: "following", "live" or "clips". */
+    public static final StringSetting DEFAULT_HOME_TAB =
+            new StringSetting("default_home_tab", "following");
+
     // Original uyu compatibility settings.
     public static final BooleanSetting AUTO_CLAIM_CHANNEL_POINTS =
-            new BooleanSetting("auto_claim_channel_points", false);
+            new BooleanSetting("auto_claim_channel_points", true);
 
     public static final BooleanSetting HIDE_SUBSCRIBE_BUTTONS =
             new BooleanSetting("hide_subscribe_buttons", false);
@@ -61,6 +66,9 @@ public final class Settings {
             new StringSetting("ads_proxy_url", "");
 
     // Emotes.
+    /** Master switch for all third-party emote providers (7TV, BTTV and FFZ). */
+    public static final BooleanSetting EMOTES_THIRD_PARTY =
+            new BooleanSetting("emotes_third_party", true);
     public static final BooleanSetting EMOTES_7TV =
             new BooleanSetting("emotes_7tv", true);
     public static final BooleanSetting EMOTES_BTTV =
@@ -83,6 +91,14 @@ public final class Settings {
             new StringSetting("chat_deleted_messages_style", "strikethrough");
     public static final BooleanSetting CHAT_TIMESTAMPS =
             new BooleanSetting("chat_timestamps", true);
+    public static final BooleanSetting CHAT_MENTION_HIGHLIGHT =
+            new BooleanSetting("chat_mention_highlight", true);
+    public static final IntSetting CHAT_MENTION_HIGHLIGHT_COLOR =
+            new IntSetting("chat_mention_highlight_color", 0x4D9146FF);
+    public static final BooleanSetting CHAT_MENTION_SOUND =
+            new BooleanSetting("chat_mention_sound", true);
+    public static final IntSetting CHAT_MENTION_SOUND_COOLDOWN_MS =
+            new IntSetting("chat_mention_sound_cooldown_ms", 5000, 0, 60000);
     public static final StringSetting CHAT_TIMESTAMP_FORMAT =
             new StringSetting("chat_timestamp_format", "h24");
     public static final BooleanSetting LANDSCAPE_CHAT_SIZE_ENABLED =

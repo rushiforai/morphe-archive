@@ -9,12 +9,44 @@ import subprocess
 import zipfile
 from pathlib import Path
 
+ROLE_MAP = Path(__file__).resolve().parent.parent / "patches/src/main/resources/theme/9.1.80.2221.properties"
+
+
+def role_map_colors(path=ROLE_MAP):
+    """The color resources the theme's roles map, in role order."""
+    names = []
+    for line in path.read_text().splitlines():
+        key, _, value = line.partition("=")
+        if value and not key.startswith(("#", "compose.", "primitive.")):
+            names += [name.strip() for name in value.split(",") if name.strip()]
+    return names
+
+
+def verify_overlayable(aapt2, apk, theme):
+    """With Theme colors, the SpicetifyTheme overlayable declares exactly the role map's colors; otherwise it's absent."""
+    output = subprocess.check_output([aapt2, "dump", "overlayable", str(apk)], text=True)
+    block = next((block for block in re.split(r'^name="', output, flags=re.MULTILINE)
+                  if block.startswith('SpicetifyTheme"')), None)
+    if not theme:
+        if block is not None:
+            raise AssertionError("SpicetifyTheme overlayable without Theme colors")
+        return 0
+    if block is None or 'policies="public"' not in block:
+        raise AssertionError("Missing the public SpicetifyTheme overlayable")
+    declared = re.findall(r"^\s+color/(\S+)$", block, re.MULTILINE)
+    expected = role_map_colors()
+    if sorted(declared) != sorted(expected):
+        raise AssertionError(f"SpicetifyTheme overlayable differs from the role map: missing "
+                             f"{sorted(set(expected) - set(declared))}, extra {sorted(set(declared) - set(expected))}")
+    return len(declared)
+
 
 def colors(aapt2, apk):
     output = subprocess.check_output([aapt2, "dump", "resources", str(apk)], text=True)
     values = {}
     for match in re.finditer(
-        r"^    resource (0x[0-9a-f]+) color/(\S+)\n(.*?)(?=^    resource |\Z)",
+        # A resource aapt2 also lists as overlayable carries a trailing " OVERLAYABLE" tag.
+        r"^    resource (0x[0-9a-f]+) color/(\S+)[^\n]*\n(.*?)(?=^    resource |\Z)",
         output, re.MULTILINE | re.DOTALL,
     ):
         default = re.search(r"^      \(\) (.+)$", match[3], re.MULTILINE)
@@ -63,18 +95,17 @@ def manifest_blocks(aapt2, apk):
     return blocks
 
 
-def verify_manifest(aapt2, stock, patched, server_files=False, remove_analytics=False):
+def verify_manifest(aapt2, stock, patched, server_files=False):
     before, after = (manifest_blocks(aapt2, apk) for apk in (stock, patched))
-    activity_name = "app.spicetify.extension.spotify.settings.SpicetifySettingsActivity"
-    activities = [body for kind, body in after if kind == "activity"
-                  and f'="{activity_name}"' in body]
-    if len(activities) != 1:
-        raise AssertionError("Expected exactly one Spicetify settings activity")
-    activity = activities[0]
-    if not re.search(r":exported\(0x[0-9a-f]+\)=false", activity):
-        raise AssertionError("Spicetify settings activity must be non-exported")
-    if "E: intent-filter" in activity:
-        raise AssertionError("Spicetify settings activity must have no public intent filter")
+    browsers = [body for kind, body in after if kind == "activity"
+                and '="app.spicetify.extension.spotify.settings.ServerMusicActivity"' in body]
+    if len(browsers) != int(server_files):
+        raise AssertionError("Server browser does not match the selected patches")
+    for browser in browsers:
+        if not re.search(r":exported\(0x[0-9a-f]+\)=false", browser):
+            raise AssertionError("Server browser activity must be non-exported")
+        if "E: intent-filter" in browser:
+            raise AssertionError("Server browser activity must have no public intent filter")
     providers = [body for kind, body in after if kind == "provider"
                  and '="app.spicetify.extension.spotify.localserver.ServerFileProvider"' in body]
     if len(providers) != int(server_files):
@@ -88,58 +119,17 @@ def verify_manifest(aapt2, stock, patched, server_files=False, remove_analytics=
             raise AssertionError("Server provider authority changed")
         if "E: grant-uri-permission" in provider or "E: intent-filter" in provider:
             raise AssertionError("Server provider must not expose URI grants or intent filters")
+    # A root mount install keeps the stock manifest, so it never registers a component a patch adds.
+    # Server files, which mount installs can't select, add only the browser and provider above.
+    for kind in ("activity", "activity-alias", "service", "receiver", "provider"):
+        added = sum(k == kind for k, _ in after) - sum(k == kind for k, _ in before)
+        if added != (int(server_files) if kind in ("activity", "provider") else 0):
+            raise AssertionError(f"Patches must not add a manifest {kind}")
     def permissions(blocks):
         return sorted(re.sub(r" \(line=\d+\)", "", body)
                       for kind, body in blocks if kind.startswith("uses-permission"))
-    before_permissions = permissions(before)
-    after_permissions = permissions(after)
-    if remove_analytics:
-        removed = ["com.google.android.gms.permission.AD_ID",
-                   "android.permission.ACCESS_ADSERVICES_AD_ID",
-                   "android.permission.ACCESS_ADSERVICES_ATTRIBUTION"]
-        for permission in removed:
-            if any(permission in body for body in after_permissions):
-                raise AssertionError(f"Analytics patch did not remove {permission}")
-        after_permissions = sorted(body for body in after_permissions
-                                    if not any(permission in body for permission in removed))
-        before_permissions = sorted(body for body in before_permissions
-                                     if not any(permission in body for permission in removed))
-    if before_permissions != after_permissions:
-        raise AssertionError("Unexpected permission changes")
-
-
-def verify_analytics_manifest(aapt2, stock, patched, remove_analytics):
-    before, after = (manifest_blocks(aapt2, apk) for apk in (stock, patched))
-
-    def meta_data(blocks):
-        values = {}
-        for kind, body in blocks:
-            if kind != "meta-data":
-                continue
-            name = re.search(r":name\(0x[0-9a-f]+\)=\"([^\"]+)\"", body)
-            value = re.search(r":value\(0x[0-9a-f]+\)=\s*(.+)$", body, re.MULTILINE)
-            if name and value:
-                values[name.group(1)] = value.group(1).strip().strip('"')
-        return values
-
-    before_flags, after_flags = meta_data(before), meta_data(after)
-    # The patcher sanitizes Play-distribution stamp metadata out of every build.
-    sanitised = {"com.android.stamp.source", "com.android.stamp.type",
-                 "com.android.vending.derived.apk.id", "com.android.vending.splits.required"}
-    before_flags = {k: v for k, v in before_flags.items() if k not in sanitised}
-    after_flags = {k: v for k, v in after_flags.items() if k not in sanitised}
-    if not remove_analytics:
-        if before_flags != after_flags:
-            raise AssertionError("Analytics flags changed without the analytics patch")
-        return
-    expected = {
-        "firebase_crashlytics_collection_enabled": "false",
-        "firebase_analytics_collection_enabled": "false",
-        "firebase_analytics_collection_deactivated": "true",
-    }
-    for flag, wanted in expected.items():
-        if after_flags.get(flag) != wanted:
-            raise AssertionError(f"{flag} must be {wanted}, got {after_flags.get(flag)!r}")
+    if permissions(before) != permissions(after):
+        raise AssertionError("Settings patch changed app permissions")
 
 
 def main():
@@ -158,7 +148,6 @@ def main():
     parser.add_argument("--hide-brand-ads", action="store_true")
     parser.add_argument("--hide-player-ad-cards", action="store_true")
     parser.add_argument("--theme", action="store_true")
-    parser.add_argument("--remove-analytics", action="store_true")
     args = parser.parse_args()
     with zipfile.ZipFile(args.bundle) as bundle:
         try:
@@ -183,6 +172,7 @@ def main():
                 raise AssertionError(f"Color {name}: expected {wanted}, got {actual}")
     if missing := expected.keys() - before.keys():
         raise AssertionError(f"Stock fixture lacks colors: {sorted(missing)}")
+    overlayable = verify_overlayable(args.aapt2, args.patched, args.theme)
     subprocess.run([
         args.java, "-Xmx2g", "-cp", str(args.desktop),
         str(Path(__file__).with_name("VerifySharingDex.java")),
@@ -190,7 +180,7 @@ def main():
         "1" if args.sharing or args.theme or args.home_pins or args.server_files or args.hide_premium_tab or args.hide_brand_ads or args.hide_player_ad_cards else "0",
     ], check=True)
     if args.sharing or args.theme or args.home_pins or args.server_files or args.hide_premium_tab or args.hide_brand_ads or args.hide_player_ad_cards:
-        verify_manifest(args.aapt2, args.stock, args.patched, args.server_files, args.remove_analytics)
+        verify_manifest(args.aapt2, args.stock, args.patched, args.server_files)
         subprocess.run([
             args.java, "-Xmx2g", "-cp", str(args.desktop),
             str(Path(__file__).with_name("VerifySettingsDex.java")),
@@ -207,7 +197,6 @@ def main():
         args.java, "-Xmx2g", "-cp", str(args.desktop),
         str(Path(__file__).with_name("VerifyThemeDex.java")),
         str(args.patched), "1" if args.theme else "0",
-        str(Path(__file__).resolve().parent.parent / "patches/src/main/resources/theme/palette-9.1.88.2204.properties"),
     ], check=True)
     subprocess.run([
         args.java, "-Xmx2g", "-cp", str(args.desktop),
@@ -220,21 +209,15 @@ def main():
         str(args.stock), str(args.patched), str(args.bundle), "1" if args.hide_brand_ads else "0",
         "1" if args.hide_player_ad_cards else "0",
     ], check=True)
-    verify_analytics_manifest(args.aapt2, args.stock, args.patched, args.remove_analytics)
-    subprocess.run([
-        args.java, "-Xmx2g", "-cp", str(args.desktop),
-        str(Path(__file__).with_name("VerifyAnalyticsDex.java")),
-        str(args.patched), "1" if args.remove_analytics else "0",
-    ], check=True)
     subprocess.run([args.apksigner, "verify", str(args.patched)], check=True)
     print(json.dumps({
         "stockSha256": digest(args.stock), "patchedSha256": digest(args.patched),
         "bundleSha256": digest(args.bundle),
-        "defaultColorsChecked": len(before), "theme": args.theme,
+        "defaultColorsChecked": len(before), "theme": args.theme, "themeOverlayable": overlayable,
         "sharing": args.sharing, "signatureVerified": True,
         "homePins": args.home_pins, "serverFiles": args.server_files,
         "hidePremiumTab": args.hide_premium_tab, "hideBrandAds": args.hide_brand_ads,
-        "hidePlayerAdCards": args.hide_player_ad_cards, "removeAnalytics": args.remove_analytics,
+        "hidePlayerAdCards": args.hide_player_ad_cards,
     }, indent=2))
 
 

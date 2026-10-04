@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok.misc.telemetry
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -40,7 +39,7 @@ class TelemetrySendAnchorsTest {
 
     /** Runs [check] once per declared build with [container] loaded from that build's APK. */
     private fun onEachDeclared(check: () -> Unit) = Fixtures.forEachDeclared { apk ->
-        container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         try {
             check()
         } finally {

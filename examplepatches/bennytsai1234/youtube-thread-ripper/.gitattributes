@@ -1,0 +1,10 @@
+# Text files use LF in the repository and in the working tree.
+*               text=auto eol=lf
+
+# Windows script files use CRLF.
+*.bat           text eol=crlf
+
+*.jar           binary
+*.png           binary
+*.mpp           binary
+*.mpe           binary

@@ -1,6 +1,6 @@
 package app.spicetify.extension.spotify.settings;
 
-import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
@@ -17,6 +17,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -27,7 +28,7 @@ import android.widget.RadioButton;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
-import app.spicetify.extension.spotify.theme.ThemeOverlay;
+import app.spicetify.extension.spotify.theme.ThemeRuntime;
 
 /** Builds settings views that follow Spotify's native settings pages, using Spotify's fonts and icons when present. */
 final class SpotifyStyle {
@@ -39,19 +40,17 @@ final class SpotifyStyle {
 
     /** The in-app theme background, or Spotify's own when none is chosen. */
     static int background() {
-        Integer saved = PatchSettings.themeBackground();
-        return saved == null ? Color.rgb(18, 18, 18) : saved;
+        return ThemeRuntime.color("main", Color.rgb(18, 18, 18));
     }
 
     /** The in-app theme accent, or Spotify's green when none is chosen. */
     static int accent() {
-        Integer saved = PatchSettings.themeAccent();
-        return saved == null ? Color.rgb(30, 215, 96) : saved;
+        return ThemeRuntime.color("button", Color.rgb(30, 215, 96));
     }
 
-    /** Header bars and other top surfaces. */
+    /** Header bars and other top surfaces: the theme's card color, or Spotify's own. */
     static int surface() {
-        return ThemeOverlay.surface();
+        return ThemeRuntime.color("card", Color.rgb(40, 40, 40));
     }
 
     static int elevated() {
@@ -76,41 +75,53 @@ final class SpotifyStyle {
                 Math.min(255, Color.green(color) + amount), Math.min(255, Color.blue(color) + amount));
     }
 
-    static View screen(Activity activity, String title, View content, View footer) {
-        activity.getWindow().setStatusBarColor(surface());
-        activity.getWindow().setNavigationBarColor(background());
-        LinearLayout root = new LinearLayout(activity);
+    /**
+     * A full-screen page in the dialog's window; its back button closes the dialog like Back does.
+     * Content that scrolls on its own, such as a list, fills the page instead of scrolling in it.
+     */
+    static View screen(Dialog dialog, String title, View content, View footer, boolean scrolls) {
+        Context context = dialog.getContext();
+        Window window = dialog.getWindow();
+        window.setStatusBarColor(surface());
+        window.setNavigationBarColor(background());
+        LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(background());
 
-        FrameLayout header = new FrameLayout(activity);
+        FrameLayout header = new FrameLayout(context);
         header.setBackgroundColor(surface());
-        FrameLayout bar = new FrameLayout(activity);
-        header.addView(bar, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(activity, 56)));
-        View back = backButton(activity);
-        back.setOnClickListener(view -> activity.finish());
-        FrameLayout.LayoutParams backParams = new FrameLayout.LayoutParams(dp(activity, 48), dp(activity, 48),
+        FrameLayout bar = new FrameLayout(context);
+        header.addView(bar, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
+        View back = backButton(context);
+        back.setOnClickListener(view -> dialog.cancel());
+        FrameLayout.LayoutParams backParams = new FrameLayout.LayoutParams(dp(context, 48), dp(context, 48),
                 Gravity.START | Gravity.CENTER_VERTICAL);
-        backParams.setMarginStart(dp(activity, 4));
+        backParams.setMarginStart(dp(context, 4));
         bar.addView(back, backParams);
-        TextView heading = text(activity, title, 18, Color.WHITE, Font.TITLE);
+        TextView heading = text(context, title, 18, Color.WHITE, Font.TITLE);
         heading.setSingleLine(true);
         heading.setEllipsize(TextUtils.TruncateAt.END);
         heading(heading);
         FrameLayout.LayoutParams headingParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
-        headingParams.setMargins(dp(activity, 64), 0, dp(activity, 64), 0);
+        headingParams.setMargins(dp(context, 64), 0, dp(context, 64), 0);
         bar.addView(heading, headingParams);
         root.addView(header, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        ScrollView scroll = new ScrollView(activity);
-        scroll.setFillViewport(true);
-        scroll.setClipToPadding(false);
-        scroll.addView(content, new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        root.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+        final View page;
+        if (scrolls) {
+            ScrollView scroll = new ScrollView(context);
+            scroll.setFillViewport(true);
+            scroll.setClipToPadding(false);
+            scroll.addView(content, new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            page = scroll;
+        } else {
+            page = content;
+        }
+        root.addView(page, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
         root.addView(footer, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        int bottomPadding = dp(activity, 24);
+        int bottomPadding = scrolls ? dp(context, 24) : 0;
         root.setOnApplyWindowInsetsListener((view, insets) -> {
             int left = insets.getSystemWindowInsetLeft();
             int right = insets.getSystemWindowInsetRight();
@@ -119,12 +130,12 @@ final class SpotifyStyle {
                 right = Math.max(right, insets.getDisplayCutout().getSafeInsetRight());
             }
             header.setPadding(left, insets.getSystemWindowInsetTop(), right, 0);
-            scroll.setPadding(left, 0, right, bottomPadding);
+            page.setPadding(left, 0, right, bottomPadding);
             footer.setPadding(left, 0, right, 0);
             root.setPadding(0, 0, 0, insets.getSystemWindowInsetBottom());
             return insets.consumeSystemWindowInsets();
         });
-        scroll.setPadding(0, 0, 0, bottomPadding);
+        page.setPadding(0, 0, 0, bottomPadding);
         return root;
     }
 

@@ -95,6 +95,8 @@ final class SettingsRows {
         final int id;
         private final boolean video;
         private String status;
+        private boolean canCancel;
+        private Button cancelButton;
         @Nullable
         private View bound;
 
@@ -103,6 +105,7 @@ final class SettingsRows {
             id = save.id;
             video = save.video;
             status = SaveControl.status(save);
+            canCancel = save.canCancel;
             setKey("running_save_" + save.id);
             setPersistent(false);
             setSelectable(false);
@@ -117,10 +120,16 @@ final class SettingsRows {
 
         void show(SaveControl.Running save) {
             String next = SaveControl.status(save);
-            if (next.equals(status)) return;
-            status = next;
-            TextView summary = bound == null ? null : bound.findViewById(android.R.id.summary);
-            if (summary != null) summary.setText(next);
+            canCancel = save.canCancel;
+            if (cancelButton != null) {
+                cancelButton.setEnabled(canCancel);
+                cancelButton.setAlpha(canCancel ? 1f : .38f);
+            }
+            if (!next.equals(status)) {
+                status = next;
+                TextView summary = bound == null ? null : bound.findViewById(android.R.id.summary);
+                if (summary != null) summary.setText(next);
+            }
         }
 
         @Override
@@ -133,6 +142,9 @@ final class SettingsRows {
             if (frame == null) return;
             frame.removeAllViews();
             Button cancel = new Button(getContext());
+            cancelButton = cancel;
+            cancel.setEnabled(canCancel);
+            cancel.setAlpha(canCancel ? 1f : .38f);
             cancel.setText(L10n.t("Cancel"));
             // Two saves can be listed at once, so the button says whose it is.
             cancel.setContentDescription(video ? L10n.t("Cancel saving this video") : L10n.t("Cancel saving this photo"));

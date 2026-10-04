@@ -8,6 +8,8 @@ package app.hushgram.extension.instagram.settings;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
@@ -24,6 +26,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import app.hushgram.extension.shared.L10n;
@@ -42,11 +45,17 @@ public final class SettingsDialog extends DialogFragment {
      * carries an id.
      */
     static final int CONTAINER_ID = 0x48474301;
+    private static final String PAGE_FAILED = "hushgram.page_failed";
+    private boolean failed;
+    private boolean loading;
+    private Button retry;
+    private TextView heading;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(STYLE_NO_TITLE, android.R.style.Theme_Material_NoActionBar);
+        failed = savedInstanceState != null && savedInstanceState.getBoolean(PAGE_FAILED);
     }
 
     @Override
@@ -103,6 +112,7 @@ public final class SettingsDialog extends DialogFragment {
         bar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(48)));
 
         TextView title = new TextView(getContext());
+        heading = title;
         title.setText("HushGram");
         title.setTextColor(palette.title);
         title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
@@ -145,15 +155,136 @@ public final class SettingsDialog extends DialogFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        if (failed) showFailure(view);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // At onViewCreated the child manager is only CREATED. Its view construction would
+        // happen later, outside our catch. At resume commitNow also constructs the child view.
+        if (failed) {
+            if (retry != null) retry.setEnabled(canOpenPage(getView()));
+        } else {
+            openPage(getView());
+        }
+    }
+
+    @Override
+    public void onPause() {
+        if (retry != null) retry.setEnabled(false);
+        super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(PAGE_FAILED, failed);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onDestroyView() {
+        retry = null;
+        heading = null;
+        super.onDestroyView();
+    }
+
+    private boolean canOpenPage(View owner) {
+        return owner != null && owner == getView() && isAdded() && isResumed()
+                && !isRemoving() && !isDetached() && getActivity() != null
+                && !getActivity().isFinishing() && !getActivity().isDestroyed()
+                && getDialog() != null && getDialog().isShowing()
+                && !getFragmentManager().isStateSaved()
+                && !getChildFragmentManager().isStateSaved()
+                && !getChildFragmentManager().isDestroyed();
+    }
+
+    private void openPage(View owner) {
+        if (loading || !canOpenPage(owner)) return;
+        loading = true;
+        boolean recovering = failed;
+        FrameLayout container = owner.findViewById(CONTAINER_ID);
+        FragmentManager manager = getChildFragmentManager();
         try {
-            if (getChildFragmentManager().findFragmentById(CONTAINER_ID) == null) {
-                getChildFragmentManager().beginTransaction()
+            Fragment child = manager.findFragmentById(CONTAINER_ID);
+            if (failed && child != null) {
+                manager.beginTransaction().remove(child).commitNow();
+                child = null;
+            }
+            if (child == null) {
+                container.removeAllViews();
+                manager.beginTransaction()
                         .replace(CONTAINER_ID, new HushgramPreferenceFragment())
                         .commitNow();
             }
+            failed = false;
+            retry = null;
+            if (recovering) {
+                View list = container.findViewById(android.R.id.list);
+                if (list != null) list.requestFocus();
+                TextView pageHeading = heading;
+                owner.post(() -> {
+                    if (canOpenPage(owner) && !failed && heading == pageHeading) {
+                        pageHeading.performAccessibilityAction(
+                                AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null);
+                    }
+                });
+            }
         } catch (Exception ex) {
+            failed = true;
             Logger.printException(() -> "Could not show the preference list", ex);
+            try {
+                Fragment partial = manager.findFragmentById(CONTAINER_ID);
+                if (partial != null) manager.beginTransaction().remove(partial).commitNow();
+            } catch (Exception cleanup) {
+                Logger.printException(() -> "Could not remove the failed preference list", cleanup);
+            }
+            // A throw from onViewCreated can leave a view attached before the fragment has
+            // reached ACTIVITY_CREATED, so removal alone doesn't necessarily remove that view.
+            container.removeAllViews();
+            showFailure(owner);
+        } finally {
+            loading = false;
         }
+    }
+
+    private void showFailure(View owner) {
+        ScreenColors palette = ScreenColors.DEFAULT;
+        ScrollView scroll = new ScrollView(getContext());
+        LinearLayout content = new LinearLayout(getContext());
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPaddingRelative(dp(24), dp(24), dp(24), dp(24));
+        TextView title = new TextView(getContext());
+        title.setText(L10n.t(getContext(), "Settings couldn't open"));
+        title.setTextColor(palette.title);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
+        title.setAccessibilityHeading(true);
+        content.addView(title);
+        TextView explanation = new TextView(getContext());
+        explanation.setText(L10n.t(getContext(), "Try again, or go back to Instagram."));
+        explanation.setTextColor(palette.summary);
+        explanation.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        explanation.setPaddingRelative(0, dp(16), 0, dp(16));
+        content.addView(explanation);
+        Button button = new Button(getContext());
+        button.setText(L10n.t(getContext(), "Retry"));
+        button.setAllCaps(false);
+        button.setTextColor(palette.onAccent);
+        button.setBackgroundTintList(android.content.res.ColorStateList.valueOf(palette.accent));
+        button.setMinHeight(dp(48));
+        button.setEnabled(canOpenPage(owner));
+        button.setOnClickListener(v -> {
+            if (retry == button && failed) openPage(owner);
+        });
+        retry = button;
+        content.addView(button, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        scroll.addView(content);
+        scroll.setAccessibilityPaneTitle(title.getText());
+        ((FrameLayout) owner.findViewById(CONTAINER_ID)).addView(scroll,
+                new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT));
+        button.requestFocus();
     }
 
     private int dp(int value) {

@@ -39,13 +39,20 @@ private const val FDS = "$MATERIAL_YOU->fds(ILjava/lang/Object;)I"
 private const val MIG = "$MATERIAL_YOU->mig(ILjava/lang/Object;)I"
 
 /**
+ * A colour resource read as a drawable. Litho resolves a token's theme attribute to its resource and
+ * asks for the drawable this way, so the feed's composer row draws SURFACE_BACKGROUND's #252728 from
+ * the resource table (issue #37). AMOLED has no stand-in for it: route two already wrote black there.
+ */
+internal const val CONTEXT_GET_DRAWABLE = "Landroid/content/Context;->getDrawable(I)Landroid/graphics/drawable/Drawable;"
+
+/**
  * Where Material You sends each framework colour call, route four's `Color.parseColor` and the reads
  * of a colour resource, and each of AMOLED's stand-ins for them when AMOLED went first.
  */
 internal val YOU_COLOUR_CALLS: Map<String, String> =
     listOf(PARSE_COLOR, CONTEXT_GET_COLOR, RESOURCES_GET_COLOR, RESOURCES_GET_THEMED_COLOR).flatMap { framework ->
         listOf(framework, AMOLED_COLOUR_CALLS.getValue(framework)).map { it to standIn(MATERIAL_YOU, framework) }
-    }.toMap()
+    }.toMap() + (CONTEXT_GET_DRAWABLE to standIn(MATERIAL_YOU, CONTEXT_GET_DRAWABLE))
 
 /** The status bar: the colour and FDS's dark check. Runs AMOLED's own first when AMOLED is in the build. */
 internal const val STATUS_BAR_YOU = "$MATERIAL_YOU->statusBar(IZ)I"
@@ -334,6 +341,9 @@ val materialYouThemePatch = bytecodePatch(
         }
         check(rerouted.getValue(CONTEXT_GET_COLOR) + rerouted.getValue(AMOLED_COLOUR_CALLS.getValue(CONTEXT_GET_COLOR)) > 0) {
             "No call to Context.getColor found, so the Video tab's bottom bar would stay grey"
+        }
+        check(rerouted.getValue(CONTEXT_GET_DRAWABLE) > 0) {
+            "No call to Context.getDrawable found, so the feed's composer row would stay grey"
         }
 
         // Route three. AMOLED, when it went first, has blackened all but one of these, which is why

@@ -466,7 +466,8 @@ public final class LogBufferManager {
                 .append(" (").append(Utils.getAppVersionCode()).append(")\n")
                 .append("android: ").append(androidLine()).append('\n')
                 .append("abi: ").append(abiLine()).append('\n')
-                .append("morphe: ").append(Utils.getPatchesReleaseVersion()).append('\n');
+                .append("morphe: ").append(Utils.getPatchesReleaseVersion()).append('\n')
+                .append("source_build: ").append(Utils.getSourceBuildIdentity()).append('\n');
         if (paused) {
             report.append("hushgram: paused (")
                     .append(HushgramPause.reason().name().toLowerCase(java.util.Locale.ROOT))

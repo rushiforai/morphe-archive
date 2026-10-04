@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok.interaction.systemfont
 
 import app.morphe.Fixtures
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -86,7 +85,7 @@ class SystemFontAnchorsTest {
         val OUTSIDE_FONTS = listOf("icon", "mention_and_hashtag", "gift_combo")
 
         fun classesOf(apk: File): List<ClassDef> {
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             return container.dexEntryNames.flatMap { entry -> container.getEntry(entry)!!.dexFile.classes }
         }
 

@@ -29,6 +29,9 @@ internal object AppCompatibilities {
     /** The build telegram.org hands out as a single APK, with its own updater. */
     const val TELEGRAM_WEB_PACKAGE = "org.telegram.messenger.web"
 
+    /** The separately installed universal beta APK Telegram distributes. */
+    const val TELEGRAM_BETA_PACKAGE = "org.telegram.messenger.beta"
+
     /**
      * SHA-256 of Telegram's signing certificate (CN=Nikolay Kudashov, OU=VK, O=VK): the
      * "certificate SHA-256 digest" that `apksigner verify --print-certs` prints for a genuine
@@ -37,7 +40,7 @@ internal object AppCompatibilities {
      */
     const val TELEGRAM_SIGNER_SHA256 = "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1"
 
-    /** The newest Telegram build every patch here was applied to and read against. */
+    /** The default web build every patch here was applied to and read against. */
     const val TELEGRAM_TARGET_VERSION = "12.10.6"
 
     /**
@@ -45,6 +48,9 @@ internal object AppCompatibilities {
      * the one code stands for arm64-v8a too.
      */
     const val TELEGRAM_TARGET_VERSION_CODE = 71129
+
+    const val TELEGRAM_BETA_TARGET_VERSION = "12.10.7"
+    const val TELEGRAM_BETA_TARGET_VERSION_CODE = 71159
 
     /**
      * HushTelegram's floor, Android 9. Telegram itself runs from Android 5, but the extension's
@@ -63,6 +69,20 @@ internal object AppCompatibilities {
                 AppTarget(
                     version = TELEGRAM_TARGET_VERSION,
                     versionCodes = mapOf(SupportedAbi.ARM64_V8A to TELEGRAM_TARGET_VERSION_CODE),
+                    minSdk = TELEGRAM_TARGET_MIN_SDK,
+                ),
+            ),
+        ),
+        Compatibility(
+            name = "Telegram Beta",
+            packageName = TELEGRAM_BETA_PACKAGE,
+            apkFileType = ApkFileType.APK,
+            appIconColor = TELEGRAM_COLOR,
+            signatures = setOf(TELEGRAM_SIGNER_SHA256),
+            targets = listOf(
+                AppTarget(
+                    version = TELEGRAM_BETA_TARGET_VERSION,
+                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to TELEGRAM_BETA_TARGET_VERSION_CODE),
                     minSdk = TELEGRAM_TARGET_MIN_SDK,
                 ),
             ),

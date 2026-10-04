@@ -6,6 +6,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
@@ -21,14 +22,43 @@ class BackupIntervalTransformationTest {
         key: String = "SERVER_CONFIG_SYNC_MESSAGE_INTERVAL_",
         keyRegister: Int = 3,
         keyOpcode: Opcode = Opcode.CONST_STRING,
+        appendRegister: Int = 5,
     ) = syntheticMutableMethod(
         registerCount = 6,
         instructions = listOf(
             if (keyOpcode == Opcode.CONST_STRING_JUMBO) {
-                ImmutableInstruction31c(keyOpcode, keyRegister, ImmutableStringReference(key))
+                ImmutableInstruction31c(keyOpcode, 5, ImmutableStringReference(key))
             } else {
-                ImmutableInstruction21c(keyOpcode, keyRegister, ImmutableStringReference(key))
+                ImmutableInstruction21c(keyOpcode, 5, ImmutableStringReference(key))
             },
+            ImmutableInstruction21c(Opcode.CONST_STRING, 4, ImmutableStringReference("UNRELATED_CONFIG_KEY")),
+            ImmutableInstruction35c(
+                Opcode.INVOKE_VIRTUAL,
+                2,
+                1,
+                appendRegister,
+                0,
+                0,
+                0,
+                ImmutableMethodReference(
+                    "Ljava/lang/StringBuilder;",
+                    "append",
+                    listOf("Ljava/lang/String;"),
+                    "Ljava/lang/StringBuilder;",
+                ),
+            ),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+            ImmutableInstruction35c(
+                Opcode.INVOKE_VIRTUAL,
+                1,
+                1,
+                0,
+                0,
+                0,
+                0,
+                ImmutableMethodReference("Ljava/lang/StringBuilder;", "toString", emptyList(), "Ljava/lang/String;"),
+            ),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, keyRegister),
             ImmutableInstruction3rc(
                 Opcode.INVOKE_STATIC_RANGE,
                 0,
@@ -49,7 +79,7 @@ class BackupIntervalTransformationTest {
     fun overridesOnlyIntervalResultWithSelectedMilliseconds() {
         val method = scheduler()
         overrideBackupInterval(method, "3")
-        val result = method.implementation!!.instructions[2]
+        val result = method.implementation!!.instructions.last()
         assertEquals(Opcode.CONST_WIDE_32, result.opcode)
         assertEquals(4, (result as OneRegisterInstruction).registerA)
         assertEquals(10_800_000, (result as NarrowLiteralInstruction).narrowLiteral)
@@ -60,7 +90,7 @@ class BackupIntervalTransformationTest {
     fun acceptsJumboStringLoadForIntervalKey() {
         val method = scheduler(keyOpcode = Opcode.CONST_STRING_JUMBO)
         overrideBackupInterval(method, "6")
-        assertEquals(21_600_000, (method.implementation!!.instructions[2] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(21_600_000, (method.implementation!!.instructions.last() as NarrowLiteralInstruction).narrowLiteral)
     }
 
     @Test
@@ -68,7 +98,7 @@ class BackupIntervalTransformationTest {
         mapOf("1" to 3_600_000, "3" to 10_800_000, "6" to 21_600_000, "12" to 43_200_000).forEach { (hours, millis) ->
             val method = scheduler()
             overrideBackupInterval(method, hours)
-            assertEquals(millis, (method.implementation!!.instructions[2] as NarrowLiteralInstruction).narrowLiteral)
+            assertEquals(millis, (method.implementation!!.instructions.last() as NarrowLiteralInstruction).narrowLiteral)
         }
     }
 
@@ -81,6 +111,9 @@ class BackupIntervalTransformationTest {
         }
         assertFailsWith<IllegalStateException> {
             overrideBackupInterval(scheduler(keyRegister = 5), "6")
+        }
+        assertFailsWith<IllegalStateException> {
+            overrideBackupInterval(scheduler(appendRegister = 4), "6")
         }
     }
 }

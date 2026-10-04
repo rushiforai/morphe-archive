@@ -74,6 +74,11 @@ buildscript {
             if (requested.group == "org.jdom" && requested.name == "jdom2") {
                 useVersion("2.0.6.1")
             }
+            // Settings plugins bring Commons Compress, which requested affected Lang 3.16.0.
+            // https://www.openwall.com/lists/oss-security/2025/07/11/1
+            if (requested.group == "org.apache.commons" && requested.name == "commons-lang3") {
+                useVersion("3.20.0")
+            }
         }
     }
 }

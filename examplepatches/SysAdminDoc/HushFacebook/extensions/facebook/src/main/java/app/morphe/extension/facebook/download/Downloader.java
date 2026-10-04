@@ -90,6 +90,15 @@ final class Downloader {
         /** The finished file is being copied into the gallery. */
         default void saving() {
         }
+
+        /** Claims the final publication. A successful claim makes later cancellation too late. */
+        default boolean publishing() {
+            return !cancelled();
+        }
+
+        /** The gallery commit finished, or the uncommitted row was abandoned. */
+        default void published(boolean success) {
+        }
     }
 
     /** No one is watching and nothing can cancel. */
@@ -139,6 +148,16 @@ final class Downloader {
             @Override
             public void saving() {
                 progress.saving();
+            }
+
+            @Override
+            public boolean publishing() {
+                return progress.publishing();
+            }
+
+            @Override
+            public void published(boolean success) {
+                progress.published(success);
             }
         };
     }
@@ -404,23 +423,31 @@ final class Downloader {
     static Result publish(File file, String mime, Sink sink, Progress progress) {
         boolean committed = false;
 
-        try (InputStream in = new FileInputStream(file)) {
-            if (progress.cancelled()) return cancelled();
-            progress.saving();
-            OutputStream out = sink.open(mime);
-
-            byte[] buffer = new byte[BUFFER];
-            int read;
-            while ((read = in.read(buffer)) > 0) {
-                out.write(buffer, 0, read);
+        try {
+            // Close the source before claiming publication, so no fallible copy work remains
+            // after the gallery commit. Only the sink owns its output stream's close.
+            try (InputStream in = new FileInputStream(file)) {
                 if (progress.cancelled()) return cancelled();
-            }
-            out.flush();
+                progress.saving();
+                OutputStream out = sink.open(mime);
 
+                byte[] buffer = new byte[BUFFER];
+                int read;
+                while ((read = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, read);
+                    if (progress.cancelled()) return cancelled();
+                }
+                out.flush();
+            }
+            if (!progress.publishing()) {
+                return progress.cancelled() ? cancelled()
+                    : Result.fail(Status.WRITE_ERROR, "publication was already claimed or finished");
+            }
             sink.commit();
             committed = true;
             return Result.ok(mime);
         } catch (Throwable t) {
+            if (progress.cancelled()) return cancelled();
             return Result.fail(Status.WRITE_ERROR, "the gallery refused the file: " + t.getClass().getSimpleName());
         } finally {
             // Anything not committed is abandoned, even when open() itself threw: the gallery's
@@ -435,6 +462,7 @@ final class Downloader {
                     // Cleaning up must never replace the real failure.
                 }
             }
+            progress.published(committed);
         }
     }
 

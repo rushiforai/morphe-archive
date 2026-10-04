@@ -61,6 +61,7 @@ public class SuggestedStoriesTest {
         Settings.HIDE_SUGGESTED_STORIES.resetToDefault();
         Settings.HIDE_PEOPLE_YOU_MAY_KNOW.resetToDefault();
         Settings.HIDE_CONTACT_IMPORT_CARD.resetToDefault();
+        Settings.HIDE_STORY_PROMPTS.resetToDefault();
         SuggestedStoriesForTests.peopleYouMayKnowInBuild(null);
         FeedFilterCounters.clear();
         HookStatus.clear();
@@ -372,6 +373,37 @@ public class SuggestedStoriesTest {
         SuggestedStoriesForTests.peopleYouMayKnowInBuild(null);
         List<Bucket> alone = Collections.singletonList(card);
         assertSame(alone, SuggestedStoriesForTests.keptBuckets(alone));
+    }
+
+    /**
+     * Issue #21: Hide story prompts starts off, and Facebook's own skip_srtt_item_list goes to the
+     * server as it was. On, every tray fetch asks the server to leave the cards beside Create story
+     * out. The Video tab's tray, which Facebook already asks it for, asks either way.
+     */
+    @Test
+    public void storyPromptsLeaveOnlyWithTheirSwitchOn() {
+        assertFalse("the switch starts off", Settings.HIDE_STORY_PROMPTS.get());
+        assertFalse(SuggestedStories.skipPromptCards(false));
+        assertTrue("the Video tab's tray", SuggestedStories.skipPromptCards(true));
+
+        Settings.HIDE_STORY_PROMPTS.save(true);
+        assertTrue(SuggestedStories.skipPromptCards(false));
+        assertTrue(SuggestedStories.skipPromptCards(true));
+        assertEquals(FamilyNames.SUGGESTED_STORIES + ": invoked 4, 0 found, 0 missing", statusLine());
+    }
+
+    /** The mutation controls for issue #21: a pause, or only the other switches on, leaves Facebook's answer. */
+    @Test
+    public void aPauseOrTheOtherSwitchesLeaveThePromptsAlone() {
+        assertTrue(Settings.HIDE_SUGGESTED_STORIES.get());
+        assertTrue(Settings.HIDE_CONTACT_IMPORT_CARD.get());
+        assertFalse("the other switches", SuggestedStories.skipPromptCards(false));
+
+        Settings.HIDE_STORY_PROMPTS.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("paused", SuggestedStories.skipPromptCards(false));
+        PauseForTests.resume();
+        assertTrue("resumed", SuggestedStories.skipPromptCards(false));
     }
 
     /** Each card kind answers to its own switch, and Hide suggested stories reaches neither. */

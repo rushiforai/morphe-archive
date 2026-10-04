@@ -46,6 +46,7 @@ public final class SettingsStatus {
     public static boolean cachedProxyFilters() { return false; }
     public static boolean hidePopularApps() { return false; }
     public static boolean disableChatSwipe() { return false; }
+    public static boolean disableChannelPull() { return false; }
     public static boolean quietContactsNag() { return false; }
     public static boolean holidayLook() { return false; }
     public static boolean storyRequests() { return false; }
@@ -81,6 +82,10 @@ public final class SettingsStatus {
     public static boolean disableUpdateChecks() {
         return false;
     }
+
+    public static boolean repairFirebasePush() { return false; }
+    public static boolean firebaseCertificateHeader() { return false; }
+    public static boolean firebaseLocalStatus() { return false; }
 
     public static boolean channelAds() {
         return false;

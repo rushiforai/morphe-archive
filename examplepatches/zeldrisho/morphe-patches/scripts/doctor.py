@@ -67,9 +67,9 @@ def main() -> int:
             check(tool, True)
     else:
         check("pre-commit", True)
-        check("android", mode == "device")
+        check("android", False)
         if mode == "device":
-            check("adb", False)
+            check("adb", True)
 
     cli = Path(os.environ.get("MORPHE_CLI", ROOT / "morphe-cli.jar")).expanduser()
     if cli.is_file():

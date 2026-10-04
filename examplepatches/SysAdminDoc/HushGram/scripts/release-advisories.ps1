@@ -19,10 +19,10 @@
     about every library the SBOM lists, one query per package URL, and refuses a release that
     carries a high or critical advisory.
 
-    High or critical means OSV's own label says so (the GitHub advisory database's, which every
-    Maven advisory there carries) or a CVSS 3 vector scores 7.0 or more, whichever is worse. An
-    advisory with neither is held as serious until somebody reads it: "OSV couldn't say" is not
-    "fine". Moderate and low advisories are printed and let through.
+    High or critical means an applicable label says so or a CVSS 3 vector scores 7.0 or more.
+    Unread, malformed or ambiguous severity is held for review even beside a lower label.
+    Package-specific ratings belong only to the queried package/version. CVSS 4 is not scored
+    here and needs review. Consistent moderate and low advisories are printed and let through.
 
     An advisory can be accepted in scripts/advisory-exceptions.txt for one package, until a date
     at most 90 days out, with the reason it doesn't apply to what the bundle does with that
@@ -120,16 +120,26 @@ function Get-Cvss3BaseScore {
     .DESCRIPTION
         The formula and the rounding the CVSS 3.1 specification gives, which 3.0 vectors score the
         same way to one decimal. Temporal and environmental metrics after the base ones are
-        ignored, as the base score ignores them. A vector missing a base metric, or with a value
-        the specification doesn't define, has no score here rather than a guessed one.
+        validated but don't change the base score. Missing, repeated or unknown metrics and
+        values the specification doesn't define have no score here rather than a guessed one.
     #>
     param([string]$Vector)
 
-    if ("$Vector" -notmatch '^CVSS:3\.[01]/') { return $null }
+    if ("$Vector" -cnotmatch '^CVSS:3\.[01]/') { return $null }
+    # FIRST's vector grammar allows any order, but each metric appears at most once.
+    # https://www.first.org/cvss/v3.1/specification-document#6-Vector-String
+    $allowed = @{
+        AV = 'NALP'; AC = 'LH'; PR = 'NLH'; UI = 'NR'; S = 'UC'; C = 'HLN'; I = 'HLN'; A = 'HLN'
+        E = 'XHFPU'; RL = 'XUWTO'; RC = 'XCRU'; CR = 'XHML'; IR = 'XHML'; AR = 'XHML'
+        MAV = 'XNALP'; MAC = 'XLH'; MPR = 'XNLH'; MUI = 'XNR'; MS = 'XUC'; MC = 'XNLH'; MI = 'XNLH'; MA = 'XNLH'
+    }
     $metrics = @{}
     foreach ($part in @($Vector -split '/' | Select-Object -Skip 1)) {
         $pair = $part -split ':', 2
-        if ($pair.Count -eq 2) { $metrics[$pair[0]] = $pair[1] }
+        if ($pair.Count -ne 2 -or $pair[0] -cnotmatch '^[A-Z]+\z' -or
+            -not $allowed.ContainsKey($pair[0]) -or $metrics.ContainsKey($pair[0]) -or
+            $pair[1] -cnotmatch "^[$($allowed[$pair[0]])]\z") { return $null }
+        $metrics[$pair[0]] = $pair[1]
     }
     # A metric the vector leaves out reads as '', which neither check below lets through.
     $scopeChanged = $metrics['S'] -ceq 'C'
@@ -147,7 +157,7 @@ function Get-Cvss3BaseScore {
     foreach ($name in $weights.Keys) {
         $letter = [string]$metrics[$name]
         # Case matters in a vector, and a hashtable's keys don't.
-        if ($letter -cnotmatch '^[A-Z]$' -or -not $weights[$name].ContainsKey($letter)) { return $null }
+        if ($letter -cnotmatch '^[A-Z]\z' -or -not $weights[$name].ContainsKey($letter)) { return $null }
         $value[$name] = [double]$weights[$name][$letter]
     }
 
@@ -173,37 +183,114 @@ function Get-AdvisorySeverity {
     .SYNOPSIS
         How serious an OSV advisory is: @{ Level; Serious; Why }.
     .DESCRIPTION
-        The worse of OSV's own label (database_specific.severity) and the level each CVSS 3 vector
-        scores to: CRITICAL from 9.0, HIGH from 7.0, MODERATE from 4.0, LOW above 0. Serious is
-        HIGH or CRITICAL, or UNRATED, for an advisory with neither a label nor a vector this can
-        score: a CVSS 4 vector alone, say.
+        Keep the highest applicable rating. Unread evidence and conflicting minor ratings need
+        review, even if a label is present. OSV queried the exact Library.Purl; package-level
+        severity must still be selected from that response, not borrowed from a different
+        package or version. Ambiguous per-version ranges need review rather than a guessed
+        ecosystem version ordering. https://ossf.github.io/osv-schema/#affectedseverity-field
     #>
-    param([Parameter(Mandatory = $true)]$Advisory)
+    param([Parameter(Mandatory = $true)]$Advisory, $Library)
 
     $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; HIGH = 3; CRITICAL = 4 }
     $level = $null
     $why = $null
-    $label = "$($Advisory.database_specific.severity)".Trim().ToUpperInvariant()
-    if ($label -eq 'MEDIUM') { $label = 'MODERATE' }
-    if ($label -and $rank.ContainsKey($label)) {
-        $level = $label
-        $who = if ($Advisory.source -eq 'publisher') { 'The publisher' } else { 'OSV' }
-        $why = "$who rates it $label"
+    $unread = $null
+    $levels = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $containers = @($Advisory)
+    $packageRecords = @()
+    $affectedRecords = @($Advisory.affected | Where-Object { $null -ne $_ })
+    foreach ($affected in $affectedRecords) {
+        if (-not $Library) { $unread = 'package severity has no queried library context'; break }
+        $namedPackage = $affected.package.ecosystem -ceq 'Maven' -and
+            $affected.package.name -ceq "$($Library.Group):$($Library.Name)"
+        $purl = [regex]::Match([string]$affected.package.purl, '^pkg:maven/([^/@?#]+)/([^/@?#]+)(?:@([^/@?#]+))?$')
+        $urlPackage = $purl.Success -and [Uri]::UnescapeDataString($purl.Groups[1].Value) -ceq $Library.Group -and
+            [Uri]::UnescapeDataString($purl.Groups[2].Value) -ceq $Library.Name
+        if (-not $namedPackage -and -not $urlPackage) { continue }
+        $versionKnown = $false
+        if ($affected.package.purl) {
+            if (-not $namedPackage -or -not $urlPackage) {
+                $unread = 'affected package names and package URL disagree'; continue
+            }
+            if ($purl.Groups[3].Success) {
+                if ([Uri]::UnescapeDataString($purl.Groups[3].Value) -cne $Library.Version) {
+                    if (@($affected.versions) -ccontains $Library.Version) {
+                        $unread = 'affected package URL and versions disagree'
+                    }
+                    continue
+                }
+                $versionKnown = $true
+            }
+        }
+        $versions = @($affected.versions | Where-Object { $null -ne $_ })
+        if (@($versions | Where-Object { $_ -isnot [string] }).Count) {
+            $unread = 'affected versions cannot be read'; continue
+        }
+        if ($versions -ccontains $Library.Version) { $versionKnown = $true }
+        elseif ($versions.Count -and -not @($affected.ranges | Where-Object { $null -ne $_ }).Count) {
+            if ($versionKnown) { $unread = 'affected package URL and versions disagree' }
+            continue
+        }
+        $packageRecords += [pscustomobject]@{ Affected = $affected; VersionKnown = $versionKnown }
     }
-    foreach ($entry in @($Advisory.severity | Where-Object { $null -ne $_ })) {
-        if ("$($entry.type)" -ne 'CVSS_V3') { continue }
-        $score = Get-Cvss3BaseScore -Vector ([string]$entry.score)
-        if ($null -eq $score) { continue }
-        $scored = if ($score -ge 9.0) { 'CRITICAL' } elseif ($score -ge 7.0) { 'HIGH' } elseif ($score -ge 4.0) {
-            'MODERATE' } elseif ($score -gt 0) { 'LOW' } else { 'NONE' }
-        if ($null -eq $level -or $rank[$scored] -gt $rank[$level]) {
-            $level = $scored
-            $why = "its CVSS 3 vector scores $score"
+    if ($affectedRecords.Count) {
+        if (-not $packageRecords.Count) { $unread = 'no affected record identifies the queried package/version' }
+        elseif ($packageRecords.Count -gt 1 -and @($packageRecords | Where-Object { -not $_.VersionKnown }).Count) {
+            $unread = 'multiple affected ranges do not identify a unique severity for this version'
+        } else {
+            # For a single matching block, the exact-version OSV query already established
+            # applicability. Multiple blocks need explicit version evidence for each selection.
+            $containers += @($packageRecords | ForEach-Object { $_.Affected })
         }
     }
-    if ($null -eq $level) {
+    foreach ($container in $containers) {
+        $labels = $container.database_specific
+        if ($labels -and ($labels.PSObject.Properties['severity'] -or
+                ($labels -is [System.Collections.IDictionary] -and $labels.Contains('severity')))) {
+            if ($labels.severity -isnot [string]) { $unread = 'a severity label is malformed' }
+            else {
+                $label = $labels.severity.Trim().ToUpperInvariant()
+                if ($label -eq 'MEDIUM') { $label = 'MODERATE' }
+                if (-not $rank.ContainsKey($label)) { $unread = 'a severity label is unknown' }
+                else {
+                    [void]$levels.Add($label)
+                    if ($null -eq $level -or $rank[$label] -gt $rank[$level]) {
+                        $level = $label
+                        $who = if ($Advisory.source -eq 'publisher') { 'The publisher' } else { 'OSV' }
+                        $why = "$who rates it $label"
+                    }
+                }
+            }
+        }
+        if ($container.PSObject.Properties['severity'] -or
+            ($container -is [System.Collections.IDictionary] -and $container.Contains('severity'))) {
+            if ($container.severity -isnot [array]) { $unread = 'severity is not an array'; continue }
+        } else { continue }
+        foreach ($entry in @($container.severity)) {
+            if ($null -eq $entry -or $entry.type -cne 'CVSS_V3' -or $entry.score -isnot [string]) {
+                $unread = 'a severity vector is unreadable or uses an unsupported scoring method'; continue
+            }
+            $score = Get-Cvss3BaseScore -Vector $entry.score
+            if ($null -eq $score) { $unread = 'a CVSS 3 vector is malformed'; continue }
+            $scored = if ($score -ge 9.0) { 'CRITICAL' } elseif ($score -ge 7.0) { 'HIGH' } elseif ($score -ge 4.0) {
+                'MODERATE' } elseif ($score -gt 0) { 'LOW' } else { 'NONE' }
+            [void]$levels.Add($scored)
+            if ($null -eq $level -or $rank[$scored] -gt $rank[$level]) {
+                $level = $scored
+                $why = "its CVSS 3 vector scores $score"
+            }
+        }
+    }
+    if ($levels.Count -gt 1 -and $null -ne $level -and $rank[$level] -lt 3) {
+        $unread = 'applicable minor severity assessments conflict'
+    }
+    if ($unread -and $level -in @('HIGH', 'CRITICAL')) {
+        return [pscustomobject]@{ Level = $level; Serious = $true
+            Why = "$why; additional severity needs review: $unread" }
+    }
+    if ($null -eq $level -or $unread) {
         return [pscustomobject]@{ Level = 'UNRATED'; Serious = $true
-            Why = 'OSV gives it no severity this check can read, so it counts as serious until somebody reads it' }
+            Why = "OSV gives it no severity this check can certify, so it needs review$(if ($unread) { ': ' + $unread })" }
     }
     return [pscustomobject]@{ Level = $level; Serious = $rank[$level] -ge 3; Why = $why }
 }
@@ -279,9 +366,10 @@ function Read-DependencyGraphs {
 
     try { $report = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -ErrorAction Stop }
     catch { throw "The dependency graph report cannot be read: $($_.Exception.Message)" }
-    if ($report.schemaVersion -ne 1 -or -not $report.graphs) {
-        throw 'The dependency graph report must use schema 1 and contain graphs.'
+    if ($report.schemaVersion -ne 2 -or -not $report.graphs) {
+        throw 'The dependency graph report must use schema 2 and contain bound graphs.'
     }
+    Assert-DependencyInputIdentity -Inputs $report.inputs -Label 'The dependency graph report'
     $scopes = @('settings-plugin', 'project-plugin', 'build', 'test', 'host-contract')
     $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     $libraries = @{}
@@ -293,6 +381,7 @@ function Read-DependencyGraphs {
         if (-not $seen.Add("$($graph.scope) $($graph.owner) $($graph.configuration)")) {
             throw 'The dependency graph report contains a duplicate graph.'
         }
+        $moduleRefs = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
         foreach ($library in @($graph.libraries)) {
             $purl = [regex]::Match([string]$library.purl, '^pkg:maven/([^/@?#]+)/([^/@?#]+)@([^/@?#]+)$')
             if (-not $library.group -or -not $library.name -or -not $library.version -or -not $purl.Success -or
@@ -301,7 +390,41 @@ function Read-DependencyGraphs {
                 [Uri]::UnescapeDataString($purl.Groups[3].Value) -cne $library.version) {
                 throw 'A dependency graph library is unresolved or its package URL names another coordinate.'
             }
+            if (-not $moduleRefs.Add([string]$library.purl)) { throw 'A dependency graph contains a duplicate library.' }
             $libraries[[string]$library.purl] = $library
+        }
+        $nodes = [System.Collections.Generic.Dictionary[string, object]]::new([System.StringComparer]::Ordinal)
+        foreach ($node in @($graph.dependencies)) {
+            $ref = [string]$node.ref
+            if (-not $ref -or -not $node.PSObject.Properties['dependsOn'] -or $nodes.ContainsKey($ref)) {
+                throw 'A dependency graph has a missing or duplicate edge node.'
+            }
+            $nodes.Add($ref, $node)
+        }
+        if ($graph.root -cne 'root' -or -not $nodes.ContainsKey('root')) {
+            throw 'A dependency graph omits its root-to-module edges.'
+        }
+        $expected = @('root') + @($graph.libraries | ForEach-Object { $_.purl })
+        foreach ($ref in $nodes.Keys) {
+            if ($ref -cnotin $expected -and -not $ref.StartsWith('project:')) {
+                throw 'A dependency graph edge names an unlisted library.'
+            }
+            $targets = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+            foreach ($target in @($nodes[$ref].dependsOn)) {
+                if (-not $nodes.ContainsKey([string]$target) -or -not $targets.Add([string]$target)) {
+                    throw 'A dependency graph has an unresolved or duplicate dependency edge.'
+                }
+            }
+        }
+        $reached = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+        $queue = [System.Collections.Generic.Queue[string]]::new()
+        $queue.Enqueue('root')
+        while ($queue.Count) {
+            $ref = $queue.Dequeue()
+            if ($reached.Add($ref)) { foreach ($target in @($nodes[$ref].dependsOn)) { $queue.Enqueue([string]$target) } }
+        }
+        if ($nodes.Count -ne $reached.Count -or @($expected | Where-Object { -not $reached.Contains($_) }).Count) {
+            throw 'A dependency graph has a library or node not reachable from its root.'
         }
     }
     foreach ($scope in $scopes) {
@@ -309,14 +432,141 @@ function Read-DependencyGraphs {
             throw "The dependency graph report omits the $scope scope."
         }
     }
-    return [pscustomobject]@{ Path = $Path; Graphs = @($report.graphs)
+    return [pscustomobject]@{ Path = $Path; Sha256 = Get-Sha256Hex -Path $Path; Inputs = $report.inputs; Graphs = @($report.graphs)
         Libraries = @($libraries.Values | Sort-Object purl) }
+}
+
+function Assert-DependencyInputIdentity {
+    param($Inputs, [string]$Label)
+    if (-not $Inputs -or $Inputs.schemaVersion -ne 1 -or -not $Inputs.version) {
+        throw "$Label has no current build-input identity. Rebuild and regenerate the dependency audit."
+    }
+    foreach ($field in 'sourceSha256', 'catalogSha256', 'toolchainSha256', 'inputSha256') {
+        if ([string]$Inputs.$field -cnotmatch '^[0-9a-f]{64}$') { throw "$Label has an invalid $field build-input digest." }
+    }
+}
+
+function Get-DependencyAuditInputs {
+    param([Parameter(Mandatory = $true)][string]$Root)
+    $names = @(Invoke-RepoGit -Root $Root -Arguments @('-c', 'core.quotepath=false', 'ls-files', '--cached'))
+    if ($LASTEXITCODE -ne 0 -or -not $names.Count) { throw 'Cannot enumerate tracked build inputs.' }
+    $added = @(Invoke-RepoGit -Root $Root -Arguments @('ls-files', '--others', '--exclude-standard'))
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot check untracked build inputs.' }
+    if ($added.Count) { throw 'Stage new repository inputs before building or certifying an input-bound artifact.' }
+    $sorted = [System.Collections.Generic.SortedSet[string]]::new([System.StringComparer]::Ordinal)
+    foreach ($name in $names) {
+        if (-not $name -or $name -match '[\r\n\t]' -or $name.StartsWith('"') -or -not $sorted.Add($name)) {
+            throw 'A tracked build input has an unsupported or duplicate filename.'
+        }
+    }
+    $groups = [ordered]@{ source = [Text.StringBuilder]::new(); catalog = [Text.StringBuilder]::new(); toolchain = [Text.StringBuilder]::new() }
+    foreach ($name in $sorted) {
+        $path = Join-Path $Root $name
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "A tracked build input is missing: $name" }
+        $group = if ($name -ceq 'patches-list.json') { 'catalog' } elseif (
+            $name.StartsWith('gradle/') -or $name -cin @('gradle.properties', 'settings.gradle.kts', 'build.gradle.kts', 'gradlew', 'gradlew.bat') -or
+            $name.EndsWith('.gradle') -or $name.EndsWith('.gradle.kts')) { 'toolchain' } else { 'source' }
+        [void]$groups[$group].Append("$name`t$((Get-Sha256Hex -Path $path).ToLowerInvariant())`n")
+    }
+    if (@($groups.Values | Where-Object { -not $_.Length }).Count) { throw 'Tracked inputs omit the source, catalog or toolchain.' }
+    $version = [regex]::Match((Get-Content -LiteralPath (Join-Path $Root 'gradle.properties') -Raw), '(?m)^version\s*=\s*(\S+)').Groups[1].Value
+    if (-not $version) { throw 'No current bundle version is pinned.' }
+    $inputs = [ordered]@{ schemaVersion = 1; version = $version }
+    $combined = [Text.StringBuilder]::new()
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        foreach ($group in $groups.Keys) {
+            $digest = ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($groups[$group].ToString())) | ForEach-Object { '{0:x2}' -f $_ }) -join ''
+            $inputs["${group}Sha256"] = $digest
+            [void]$combined.Append("${group}:$digest`n")
+        }
+        $inputs.inputSha256 = ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($combined.ToString())) | ForEach-Object { '{0:x2}' -f $_ }) -join ''
+    } finally { $sha.Dispose() }
+    return [pscustomobject]$inputs
+}
+
+function Assert-DependencyInputsMatch {
+    param($Expected, $Actual, [string]$Label)
+    Assert-DependencyInputIdentity -Inputs $Actual -Label $Label
+    foreach ($field in 'version', 'sourceSha256', 'catalogSha256', 'toolchainSha256', 'inputSha256') {
+        if ($Actual.$field -cne $Expected.$field) { throw "$Label has stale or mismatched $field build inputs. Rebuild and regenerate the dependency audit." }
+    }
+}
+
+function Get-CurrentDependencyAuditSubject {
+    param([Parameter(Mandatory = $true)][string]$Root, [Parameter(Mandatory = $true)]$Graphs,
+        [Parameter(Mandatory = $true)]$Sbom, [Parameter(Mandatory = $true)][string]$BundlePath)
+    Assert-NoIgnoredCanonicalProductionInputs -Root $Root
+    $inputs = Get-DependencyAuditInputs -Root $Root
+    if ((Get-Sha256Hex -Path $Graphs.Path) -cne $Graphs.Sha256) { throw 'The dependency graph bytes changed after they were read.' }
+    Assert-DependencyInputsMatch -Expected $inputs -Actual $Graphs.Inputs -Label 'The dependency graph report'
+    $document = Get-Content -LiteralPath $Sbom.Path -Raw | ConvertFrom-Json
+    $recorded = @($document.metadata.properties | Where-Object name -CEQ 'hushgram:build-inputs')
+    if ($recorded.Count -ne 1) { throw 'The current SBOM has no unique build-input identity. Rebuild it.' }
+    try { $sbomInputs = $recorded[0].value | ConvertFrom-Json -ErrorAction Stop }
+    catch { throw 'The current SBOM build-input identity cannot be read.' }
+    Assert-DependencyInputsMatch -Expected $inputs -Actual $sbomInputs -Label 'The current SBOM'
+    $bundleName = "patches-$($inputs.version).mpp"
+    $sbomName = "patches-$($inputs.version).cdx.json"
+    if ((Split-Path -Leaf $BundlePath) -cne $bundleName -or (Split-Path -Leaf $Sbom.Path) -cne $sbomName -or
+        $Sbom.BundleVersion -cne $inputs.version) { throw 'The current SBOM or bundle has a mismatched name or version.' }
+    if ((Get-Sha256Hex -Path $Sbom.Path) -cne $Sbom.Sha256) { throw 'The current SBOM bytes changed after they were read.' }
+    $bound = Test-ReleaseSbom -Sbom $Sbom -BundlePath $BundlePath -BundleName $bundleName
+    if (-not $bound.Valid) { throw "The current SBOM does not describe the bundle: $($bound.Reason)" }
+    return [ordered]@{ inputs = $inputs
+        bundle = [ordered]@{ name = $bundleName; version = $inputs.version; sha256 = Get-Sha256Hex -Path $BundlePath }
+        sbom = [ordered]@{ name = $sbomName; sha256 = $Sbom.Sha256 }
+        graphReport = [ordered]@{ name = Split-Path -Leaf $Graphs.Path; sha256 = $Graphs.Sha256
+            graphsSha256 = Get-DependencyGraphsDigest -Graphs (Get-DependencyAuditGraphs -Graphs $Graphs -Sbom $Sbom) } }
+}
+
+function Get-DependencyAuditGraphs {
+    param($Graphs, $Sbom)
+    return @($Graphs.Graphs) + @([pscustomobject]@{ scope = 'shipped'; owner = 'bundle'
+        configuration = Split-Path -Leaf $Sbom.Path; libraries = @($Sbom.Libraries)
+        dependencies = (Get-Content -LiteralPath $Sbom.Path -Raw | ConvertFrom-Json).dependencies })
+}
+
+function Get-DependencyGraphsDigest {
+    param([object[]]$Graphs)
+    $json = ConvertTo-Json -InputObject $Graphs -Depth 16 -Compress
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { return ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($json)) | ForEach-Object { '{0:x2}' -f $_ }) -join '' }
+    finally { $sha.Dispose() }
+}
+
+function Read-CurrentDependencyAdvisoryReport {
+    param([Parameter(Mandatory = $true)][string]$Path, [Parameter(Mandatory = $true)]$Subject,
+        [datetime]$Now = [datetime]::UtcNow)
+    try { $report = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -ErrorAction Stop }
+    catch { throw 'The current dependency advisory report cannot be read.' }
+    if ($report.schemaVersion -ne 2 -or $report.valid -isnot [bool] -or -not $report.valid) {
+        throw 'The current dependency advisory report is uncertified or uses an old schema.'
+    }
+    Assert-DependencyInputsMatch -Expected $Subject.inputs -Actual $report.subject.inputs -Label 'The advisory report'
+    foreach ($part in 'bundle', 'sbom', 'graphReport') {
+        foreach ($field in @($Subject[$part].Keys)) {
+            if ($report.subject.$part.$field -cne $Subject[$part][$field]) { throw "The advisory report names a different $part $field." }
+        }
+    }
+    if ((Get-DependencyGraphsDigest -Graphs $report.graphs) -cne $Subject.graphReport.graphsSha256) {
+        throw 'The advisory report contains substituted dependency graphs.'
+    }
+    try { $stamp = [DateTimeOffset]::Parse((ConvertTo-UtcStamp $report.checkedAt)).UtcDateTime }
+    catch { throw 'The advisory report has no valid check date.' }
+    if ($stamp -gt $Now.AddMinutes(5) -or $stamp -lt $Now.AddDays(-1)) { throw 'The advisory report is stale or dated in the future. Run the current audit again.' }
+    foreach ($scope in 'shipped', 'settings-plugin', 'project-plugin', 'build', 'test', 'host-contract') {
+        if (-not $report.scopeVerdicts.PSObject.Properties[$scope] -or $report.scopeVerdicts.$scope.Valid -isnot [bool] -or
+            -not $report.scopeVerdicts.$scope.Valid -or
+            -not @($report.graphs | Where-Object scope -CEQ $scope).Count) { throw "The advisory report omits or refuses the $scope scope." }
+    }
+    return $report
 }
 
 function Get-SbomAdvisories {
     <#
     .SYNOPSIS
-        One finding per advisory OSV has for a library the SBOM lists.
+        One finding per advisory identity OSV or the publisher has for an SBOM library.
     .DESCRIPTION
         Each: @{ Package; Version; Purl; Advisory; Aliases; Summary; Severity }. First-party
         components carry no package URL and have nothing to ask about.
@@ -326,18 +576,47 @@ function Get-SbomAdvisories {
     $findings = New-Object System.Collections.Generic.List[object]
     foreach ($library in @($Sbom.Libraries)) {
         $reported = @(@(Invoke-OsvQuery -Purl $library.Purl) + @(Get-VendorAdvisories -Library $library))
-        $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; HIGH = 3; CRITICAL = 4; UNRATED = 5 }
-        foreach ($group in @($reported | Group-Object id)) {
-            $advisory = @($group.Group | Sort-Object { $rank[(Get-AdvisorySeverity -Advisory $_).Level] } -Descending)[0]
+        $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; UNRATED = 2.5; HIGH = 3; CRITICAL = 4 }
+        # OSV aliases denote the same vulnerability. Join overlapping identities before
+        # choosing severity, including a record that bridges two earlier groups.
+        $groups = @()
+        foreach ($record in $reported) {
+            $names = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+            foreach ($name in @($record.id) + @($record.aliases)) { if ($name) { [void]$names.Add([string]$name) } }
+            $members = @($record)
+            $separate = @()
+            foreach ($existing in $groups) {
+                if (@($names | Where-Object { $existing.Names.Contains($_) }).Count) {
+                    $members += $existing.Records
+                    foreach ($name in $existing.Names) { [void]$names.Add($name) }
+                } else { $separate += $existing }
+            }
+            $groups = @($separate) + @([pscustomobject]@{ Names = $names; Records = $members })
+        }
+        foreach ($group in $groups) {
+            $rated = @($group.Records | ForEach-Object {
+                [pscustomobject]@{ Record = $_; Severity = Get-AdvisorySeverity -Advisory $_ -Library $library }
+            } | Sort-Object { $rank[$_.Severity.Level] } -Descending)
+            $advisory = $rated[0].Record
+            $severity = $rated[0].Severity
+            $unrated = @($rated.Severity | Where-Object { $_.Level -eq 'UNRATED' })
+            if ($severity.Level -in @('HIGH', 'CRITICAL') -and $unrated.Count) {
+                $severity = [pscustomobject]@{ Level = $severity.Level; Serious = $true
+                    Why = $severity.Why + '; ' + (($unrated.Why | Sort-Object -Unique) -join '; ') }
+            }
+            if (-not $severity.Serious -and @($rated.Severity.Level | Sort-Object -Unique).Count -gt 1) {
+                $severity = [pscustomobject]@{ Level = 'UNRATED'; Serious = $true
+                    Why = 'Publisher or alias severity assessments conflict, so this finding needs review' }
+            }
             $findings.Add([pscustomobject]@{
                 Package  = "$($library.Group):$($library.Name)"
                 Version  = $library.Version
                 Purl     = $library.Purl
                 Advisory = [string]$advisory.id
-                Aliases  = @($group.Group.aliases | Where-Object { $_ } | ForEach-Object { [string]$_ } | Sort-Object -Unique)
+                Aliases  = @($group.Names | Where-Object { $_ -cne $advisory.id } | Sort-Object)
                 Summary  = "$($advisory.summary)".Trim()
-                Severity = Get-AdvisorySeverity -Advisory $advisory
-                Sources  = @($group.Group | ForEach-Object { if ($_.source) { $_.source } else { 'OSV' } } | Sort-Object -Unique)
+                Severity = $severity
+                Sources  = @($group.Records | ForEach-Object { if ($_.source) { $_.source } else { 'OSV' } } | Sort-Object -Unique)
             })
         }
     }

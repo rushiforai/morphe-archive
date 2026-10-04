@@ -204,6 +204,12 @@ public class DexDiff {
      *       the strings and has the shape, as for start-call. That method calls the method reference
      *       once, anywhere in its body, and no other host method calls it. For a hook that has to
      *       read what the method made first, so it can't come first, and follows no one call.
+     *   <li>"retry-call &lt;method reference&gt;" with the same selection clauses: once-call's checks,
+     *       plus the exact typed null-selection backedge before the pending key is claimed. The
+     *       selected local reaches the native builder, and no branch bypasses selection.
+     *   <li>"story-loop-call &lt;native method reference&gt;" with the same selection clauses:
+     *       the finished-story guard invokes that exact method with invoke-direct/range on
+     *       p0 and p1. The original handler keeps its own call to the same method.
      *   <li>"shared-call &lt;method reference&gt; [in [static|instance] &lt;shape&gt;] holding &lt;string&gt;
      *       [&lt;string&gt; ...]": exactly one method outside the bundle's own code loads every one of
      *       the strings and has the shape, as for start-call. That method calls the method reference
@@ -307,7 +313,7 @@ public class DexDiff {
         /** Whether this rule picks its method by strings and a shape: start-call, next-call, sole-call, once-call and shared-call. */
         boolean picks() {
             return kind.equals("start-call") || kind.equals("next-call") || kind.equals("sole-call")
-                    || kind.equals("once-call") || kind.equals("shared-call");
+                    || kind.equals("once-call") || kind.equals("shared-call") || kind.equals("retry-call") || kind.equals("story-loop-call");
         }
 
         /** How a rule that picks its method reads in the contract file, from its kind on. */
@@ -413,6 +419,8 @@ public class DexDiff {
             "next-call", "next-call <method reference> after <method reference>",
             "sole-call", "sole-call <method reference> replacing <method reference>",
             "once-call", "once-call <method reference>",
+            "retry-call", "retry-call <method reference>",
+            "story-loop-call", "story-loop-call <native method reference>",
             "shared-call", "shared-call <method reference>");
 
     /**
@@ -1395,6 +1403,9 @@ public class DexDiff {
         Map<Contract, List<Holder>> holders = new LinkedHashMap<>();
         Set<String> pickStrings = new HashSet<>();
         boolean classPicks = false;
+        boolean retryPicks = false;
+        Set<String> storyStoreMarkers = Set.of("pending_reel_seen_states_", "PendingReelSeenStateStore.deserializeFromDisk");
+        Map<String, ClassDef> storyStores = new LinkedHashMap<>();
         // And every method outside the bundle's own code that calls such a rule's method, to say
         // where a hook went when it isn't in the method its rule picks, or went there as well.
         Map<String, List<String>> hookCallers = new HashMap<>();
@@ -1419,7 +1430,12 @@ public class DexDiff {
                 pickStrings.addAll(contract.strings);
                 hookCallers.put(contract.callee, new ArrayList<>());
                 classPicks |= contract.byClass;
+                retryPicks |= contract.kind.equals("retry-call");
             }
+        }
+        if (retryPicks) {
+            classPicks = true;
+            pickStrings.addAll(storyStoreMarkers);
         }
         MultiDexContainer<? extends DexFile> container =
                 DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
@@ -1459,12 +1475,17 @@ public class DexDiff {
                     }
                 }
                 if (classMethods != null) recordClassHolders(classMethods, pickRules, holders);
+                if (retryPicks && classMethods != null) {
+                    Set<String> loaded = new HashSet<>();
+                    for (ClassMethod method : classMethods) if (method.held != null) loaded.addAll(method.held);
+                    if (loaded.containsAll(storyStoreMarkers)) storyStores.put(cd.getType(), cd);
+                }
             }
         }
         List<String> contractFindings = new ArrayList<>();
         for (Contract contract : contracts) {
             if (contract.picks()) {
-                checkPicked(contract, holders.get(contract), hookCallers.get(contract.callee), clean, contractFindings);
+                checkPicked(contract, holders.get(contract), hookCallers.get(contract.callee), clean, storyStores, contractFindings);
                 continue;
             }
             if (contract.kind.equals("no-call")) {
@@ -1648,7 +1669,7 @@ public class DexDiff {
      * is asked the same once its method is picked.
      */
     private static void checkPicked(Contract contract, List<Holder> holders, List<String> callers, File clean,
-            List<String> findings) throws Exception {
+            Map<String, ClassDef> storyStores, List<String> findings) throws Exception {
         String rule = "contract " + contract.rule();
         String held = describePicked(contract, false);
         List<String> shaped = new ArrayList<>();
@@ -1667,6 +1688,16 @@ public class DexDiff {
             return;
         }
         List<Instruction> body = instructions(only.m);
+        if (contract.kind.equals("story-loop-call")) {
+            if (safeStoryLoopCall(only.m, contract.callee)) {
+                System.out.println("[diff] " + rule + ": guard invokes native loop check on {p0 .. p1} in " + only.method);
+            } else {
+                System.out.println("[diff] " + rule + ": unproved native loop call in " + only.method);
+                findings.add("contract: " + contract.callee + " in " + only.method
+                        + " must be the guard's invoke-direct/range {p0 .. p1}, with the stock call preserved");
+            }
+            return;
+        }
         List<Integer> sites = callSites(body, contract.callee);
         // Where else the hook went. A start-call or shared-call rule looks among the methods holding
         // its strings, since Hushfacebook's two tray rules sent the same call to two adapters and
@@ -1705,6 +1736,13 @@ public class DexDiff {
             System.out.println("[diff] " + rule + ": " + sites.size() + " call sites in " + only.method);
             findings.add("contract: " + contract.callee + " has " + sites.size() + " call sites in " + only.method
                     + ", and must have exactly one");
+        } else if (contract.kind.equals("retry-call")) {
+            if (safeRetrySelection(only.m, sites.get(0), storyStores)) {
+                System.out.println("[diff] " + rule + ": selects before claim with a null snapshot-loop backedge in " + only.method);
+            } else {
+                findings.add("contract: " + contract.callee + " in " + only.method
+                        + " must select its local batch before claim and take the typed null snapshot-loop backedge without mutation");
+            }
         } else if (contract.kind.equals("once-call") || contract.kind.equals("shared-call")) {
             System.out.println("[diff] " + rule + ": once in " + only.method);
         } else if (contract.kind.equals("next-call")) {
@@ -1745,6 +1783,101 @@ public class DexDiff {
                         + registerList(hook) + ", but the clean build calls " + contract.replaced + " there " + there);
             }
         }
+    }
+
+    /** The guard's exact native owner, opcode and two adjacent parameter words, plus the stock ask. */
+    private static boolean safeStoryLoopCall(Method method, String callee) {
+        List<Instruction> body = instructions(method);
+        Opcode[] prefix = { Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ,
+                Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CHECK_CAST,
+                Opcode.INVOKE_DIRECT_RANGE, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.RETURN_VOID, Opcode.CHECK_CAST };
+        if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !method.getParameterTypes().equals(List.of("Ljava/lang/Object;"))
+                || !method.getReturnType().equals("V") || body.size() < prefix.length) return false;
+        for (int i = 0; i < prefix.length; i++) if (body.get(i).getOpcode() != prefix[i]) return false;
+        MethodReference check = calledMethod(body.get(7));
+        int self = method.getImplementation().getRegisterCount() - 2;
+        if (check == null || !check.toString().equals(callee) || !check.getDefiningClass().equals(method.getDefiningClass())
+                || !check.getReturnType().equals("Z") || !check.getParameterTypes().equals(List.of("Lcom/instagram/model/reels/ReelItem;"))
+                || !Arrays.equals(invokeRegisters(body.get(7)), new int[] { self, self + 1 })
+                || retryRegister(body.get(6)) != self + 1 || !referenceAt(body.get(6)).equals(check.getParameterTypes().get(0))
+                || callSites(body, callee).size() != 2) return false;
+        return true;
+    }
+
+    /** Exactly the emitted six-instruction cancellation, before native ownership or request creation. */
+    private static boolean safeRetrySelection(Method method, int at, Map<String, ClassDef> storyStores) {
+        List<Instruction> body = instructions(method);
+        if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !method.getParameterTypes().isEmpty()
+                || !method.getReturnType().equals("V") || at < 5 || at + 8 >= body.size()) return false;
+        Opcode[] expected = { Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ,
+                Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
+                Opcode.IF_NEZ, Opcode.GOTO, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_EQZ,
+                Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT };
+        for (int i = 0; i < expected.length; i++) if (body.get(at - 5 + i).getOpcode() != expected[i]) return false;
+        int self = method.getImplementation().getRegisterCount() - 1;
+        int batch = retryRegister(body.get(at + 1));
+        int scratch = retryRegister(body.get(at - 2));
+        TwoRegisterInstruction type = (TwoRegisterInstruction) body.get(at - 2);
+        String store = ((ReferenceInstruction) type).getReference().toString();
+        List<String> eligibleStores = new ArrayList<>();
+        for (ClassDef candidate : storyStores.values()) {
+            if (method.getDefiningClass().equals(candidate.getSuperclass()) && AccessFlags.FINAL.isSet(candidate.getAccessFlags())
+                    && candidate.getInterfaces().isEmpty()) eligibleStores.add(candidate.getType());
+        }
+        if (!eligibleStores.equals(List.of(store))) return false;
+        if (type.getRegisterB() != self || scratch == self || scratch == batch || batch == self || store.equals(method.getDefiningClass()) || store.startsWith(OWN)
+                || !Arrays.equals(invokeRegisters(body.get(at)), new int[] { self, batch })
+                || retryRegister(body.get(at - 1)) != scratch || retryRegister(body.get(at + 2)) != batch
+                || retryRegister(body.get(at - 4)) != batch || retryRegister(body.get(at - 3)) != batch) return false;
+        MethodReference lookup = calledMethod(body.get(at - 5));
+        MethodReference claim = calledMethod(body.get(at + 4));
+        MethodReference builder = calledMethod(body.get(at + 7));
+        if (!nativeRetryCall(lookup, method, "Ljava/lang/Object;", "Ljava/lang/String;")
+                || !nativeRetryCall(claim, method, "Z", "Ljava/lang/String;")
+                || builder == null || !builder.getDefiningClass().equals(method.getDefiningClass())
+                || !builder.getParameterTypes().equals(List.of("Ljava/lang/Object;")) || !builder.getReturnType().startsWith("L")) return false;
+        int[] claimed = invokeRegisters(body.get(at + 4));
+        if (claimed.length != 2 || claimed[0] != self || !Arrays.equals(invokeRegisters(body.get(at - 5)), claimed)
+                || !Arrays.equals(invokeRegisters(body.get(at + 7)), new int[] { self, batch })
+                || retryRegister(body.get(at + 6)) != retryRegister(body.get(at + 5))) return false;
+        Layout layout = new Layout(method.getImplementation());
+        int loop = branchIndex(layout, at + 3);
+        if (loop < 0 || loop >= at - 5 || !"Ljava/util/Iterator;->hasNext()Z".equals(referenceAt(body.get(loop)))
+                || branchIndex(layout, at - 3) != loop || branchIndex(layout, at + 6) != loop
+                || branchIndex(layout, at - 1) != at + 4 || branchIndex(layout, at + 2) != at + 4
+                || callSites(body, "Ljava/util/Iterator;->hasNext()Z").size() != 1) return false;
+        int[] iterator = invokeRegisters(body.get(loop));
+        if (iterator.length != 1 || new HashSet<>(List.of(self, batch, scratch, claimed[1], iterator[0])).size() != 5
+                || List.of(self, batch, claimed[1], iterator[0]).contains(retryRegister(body.get(at + 5)))) return false;
+        for (int i = 0; i < body.size(); i++) {
+            int target = branchIndex(layout, i);
+            if (target >= at - 1 && target <= at + 7 && i != at - 1 && i != at + 2) return false;
+        }
+        return true;
+    }
+
+    private static int retryRegister(Instruction instruction) {
+        return instruction instanceof OneRegisterInstruction ? ((OneRegisterInstruction) instruction).getRegisterA() : -1;
+    }
+
+    private static String referenceAt(Instruction instruction) {
+        return instruction instanceof ReferenceInstruction ? ((ReferenceInstruction) instruction).getReference().toString() : null;
+    }
+
+    private static MethodReference calledMethod(Instruction instruction) {
+        return instruction instanceof ReferenceInstruction && ((ReferenceInstruction) instruction).getReference() instanceof MethodReference
+                ? (MethodReference) ((ReferenceInstruction) instruction).getReference() : null;
+    }
+
+    private static boolean nativeRetryCall(MethodReference call, Method method, String result, String parameter) {
+        return call != null && call.getDefiningClass().equals(method.getDefiningClass()) && call.getReturnType().equals(result)
+                && call.getParameterTypes().equals(List.of(parameter));
+    }
+
+    private static int branchIndex(Layout layout, int at) {
+        Instruction instruction = layout.instructions.get(at);
+        if (!(instruction instanceof OffsetInstruction)) return -1;
+        return layout.addresses.indexOf(layout.addresses.get(at) + ((OffsetInstruction) instruction).getCodeOffset());
     }
 
     /** [m]'s instructions, in order. */

@@ -106,15 +106,17 @@ public final class FeedAds {
                 }
                 index++;
             }
-            if (kept == null) return items;
             for (int r = 0; r < active.size(); r++) {
-                if (removed[r] == 0) continue;
                 Rule rule = active.get(r);
+                // Count only completed checks, including pages the server sent without matches.
+                HookStatus.counted(rule.family, "feed pages checked");
+                HookStatus.counted(rule.family, "feed items checked", index);
+                if (removed[r] == 0) continue;
                 int count = removed[r];
                 HookStatus.counted(rule.family, rule.outcome, count);
                 Logger.printDebug(() -> rule.family + ": took " + count + " of " + items.size() + " feed items out");
             }
-            return kept;
+            return kept == null ? items : kept;
         } catch (Throwable t) {
             // One bad item keeps the whole page as Threads sent it rather than dropping posts blind.
             if (checking != null) {

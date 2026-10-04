@@ -195,12 +195,15 @@ Stop swipe to create	Wischen zum Erstellen stoppen
 A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Ein seitliches Wischen auf der Startseite öffnet die Kamera nicht mehr. Die Schaltfläche + und alle anderen Wege zur Kamera funktionieren weiterhin.
 Meta AI	Meta AI
 Hide Meta AI in search and Home's bar	Meta AI in der Suche und oben auf der Startseite ausblenden
-The Search tab and the top of your messages get a plain search bar, without Meta AI, search results lose their Ask a follow-up bar, and Home's top bar loses Meta AI's buttons. Restart Instagram after changing it.	Der Tab Suche und der Bereich oben in deinen Nachrichten bekommen eine normale Suchleiste ohne Meta AI, Suchergebnisse verlieren ihre Leiste für Folgefragen, und die obere Leiste der Startseite verliert die Meta-AI-Schaltflächen. Starte Instagram nach einer Änderung neu.
+The Search tab and the top of your messages get a plain search bar. Search results lose their Ask a follow-up bar. Meta AI's buttons disappear from Home and the message composer, and its optional inbox row is hidden. Restart Instagram after changing it.	Der Tab „Suche“ und der obere Bereich deiner Nachrichten erhalten eine normale Suchleiste. Die Leiste „Nachfrage stellen“ verschwindet aus den Suchergebnissen. Die Meta-AI-Schaltflächen auf der Startseite und im Nachrichteneditor sowie die optionale Meta-AI-Zeile im Posteingang werden ausgeblendet. Starte Instagram nach einer Änderung neu.
 Hide Meta AI posts	Meta-AI-Beiträge ausblenden
 Meta AI's videos, chats and pictures of you that Instagram puts in your home feed.	Videos, Chats und Bilder von dir aus Meta AI, die Instagram in deinen Home-Feed setzt.
 Explore	Entdecken
 Hide the Explore grid	Entdecken-Raster ausblenden
 The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.	Die Beiträge und Reels unter der Suchleiste im Tab Suche. Die Suche, deine letzten Suchen und die Suchergebnisse bleiben.
+Messages	Nachrichten
+Hide the notes row	Notizen-Reihe ausblenden
+Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.	Entfernt die Reihe mit Notizen oben in deinen Nachrichten, auch die Karte darin. Deine Chats, die Suche und Anfragen bleiben.
 Start Home on Following	Startseite mit „Gefolgt“ öffnen
 Home opens on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. Restart Instagram after changing it.	Die Startseite öffnet sich mit Beiträgen von Konten, denen du folgst. Tippe oben auf „Gefolgt“, um zu „Für dich“ zu wechseln, und die Startseite merkt sich deine Wahl. Starte Instagram nach einer Änderung neu.
 Hide suggested stories	Vorgeschlagene Stories ausblenden
@@ -337,7 +340,6 @@ Discard saved overrides	Gespeicherte Überschreibungen verwerfen
 Forget the copy saved for Restore so imports can run again. Instagram's overrides don't change.	Vergisst die für die Wiederherstellung gespeicherte Kopie, damit Importe wieder möglich sind. Instagrams Überschreibungen bleiben unverändert.
 Discarded the saved copy. Imports can run again, and Instagram's overrides haven't changed.	Die gespeicherte Kopie wurde verworfen. Importe sind wieder möglich, und Instagrams Überschreibungen wurden nicht geändert.
 There's no saved copy to discard. Nothing changed.	Es gibt keine gespeicherte Kopie zum Verwerfen. Es wurde nichts geändert.
-Couldn't discard the saved copy. Open settings from Home while signed in. Nothing changed.	Die gespeicherte Kopie konnte nicht verworfen werden. Öffne die Einstellungen auf der Startseite, während du angemeldet bist. Es wurde nichts geändert.
 Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Imports stay blocked until you use Discard saved overrides. Restart Instagram to apply the rest.	Die Wiederherstellung hat zurückgesetzt, was ging, außer %1$d Überschreibungen mit Instagrams Nullwert, die sich so nicht zurücksetzen lassen. Importe bleiben gesperrt, bis du „Gespeicherte Überschreibungen verwerfen“ nutzt. Starte Instagram neu, um den Rest anzuwenden.
 Restore put back what it could, except %1$d overrides holding Instagram's null value, which can't be put back this way. Restart Instagram to apply the rest.	Die Wiederherstellung hat zurückgesetzt, was ging, außer %1$d Überschreibungen mit Instagrams Nullwert, die sich so nicht zurücksetzen lassen. Starte Instagram neu, um den Rest anzuwenden.
 Couldn't restore overrides. The saved copy doesn't fit this session and Instagram build. Use Discard saved overrides if you don't need it. Nothing changed.	Die Überschreibungen konnten nicht wiederhergestellt werden. Die gespeicherte Kopie passt nicht zu dieser Sitzung und Instagram-Version. Nutze „Gespeicherte Überschreibungen verwerfen“, wenn du sie nicht brauchst. Es wurde nichts geändert.
@@ -351,3 +353,7 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 Mark as seen	Als gesehen markieren
 Marked as seen. Tap again to undo.	Als gesehen markiert. Tippe erneut, um es rückgängig zu machen.
 Marked as seen and sent	Als gesehen markiert und gesendet
+View DM photos and videos anonymously	Fotos und Videos in Nachrichten anonym ansehen
+Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.	Hält Lesebestätigungen für Fotos und Videos zur einmaligen Ansicht zurück. Medien laufen weiterhin ab. Diese Testfunktion ist anfangs ausgeschaltet.
+Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	Die gespeicherten Kopien konnten nicht vollständig verworfen werden. Versuche Gespeicherte Überschreibungen verwerfen erneut. Die Überschreibungen von Instagram wurden nicht geändert.
+Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	Die Wiederherstellungsdateien konnten nicht vollständig bereinigt werden. Nutze Vorherige Überschreibungen wiederherstellen oder Gespeicherte Überschreibungen verwerfen.

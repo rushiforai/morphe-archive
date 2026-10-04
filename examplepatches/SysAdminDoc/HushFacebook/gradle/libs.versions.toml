@@ -36,6 +36,8 @@ guava = "33.7.2-jre"
 # (both fixed in 1.85). The patcher's own 1.77 is inside all six; the Android build tools'
 # 1.79 is outside CVE-2025-8916 but inside the other five.
 bouncycastle = "1.86"
+# Host-only codec-test process ownership. Core JNA bundles native dispatch; no Android payload uses it.
+jna = "5.19.1"
 
 [libraries]
 morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
@@ -43,6 +45,7 @@ annotation = { module = "androidx.annotation:annotation", version.ref = "annotat
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-stdlib" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 
 [plugins]
 android-library = { id = "com.android.library" }

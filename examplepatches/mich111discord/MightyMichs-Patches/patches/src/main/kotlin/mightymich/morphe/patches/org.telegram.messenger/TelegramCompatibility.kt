@@ -9,7 +9,7 @@ object TelegramCompatibility {
         name = "Telegram",
         packageName = "org.telegram.messenger",
         apkFileType = ApkFileType.APK,
-        appIconColor = 0xFF0088CC.toInt(),
+        appIconColor = 0x0088CC,
         targets = listOf(
             AppTarget(version = "12.10.1")
         )

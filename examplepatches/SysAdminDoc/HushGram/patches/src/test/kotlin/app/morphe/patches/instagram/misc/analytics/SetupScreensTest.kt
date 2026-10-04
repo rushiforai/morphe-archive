@@ -9,7 +9,6 @@ import app.morphe.PatchContexts
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patches.instagram.FixtureDex
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -65,6 +64,9 @@ class SetupScreensTest {
         for (name in listOf("helper", "screen")) {
             assertTrue(name, context.method(name).code().none { it.referenceText() == SETUP_SCREEN })
         }
+        val prefixes = listOf("open", "sheet").associate { context.method(it).toString() to 6 } +
+            (context.classDefBy(AlternateSetupFixture.PRESENTER).methods.single().toString() to 7)
+        AlternateSetupFixture.assertBodies(classes(), context, prefixes)
     }
 
     /** A build without exactly one opener, or whose opener keeps no app id it can read, says so and changes nothing. */
@@ -72,17 +74,18 @@ class SetupScreensTest {
     fun whatItCantPlaceItLeavesAlone() {
         val cases = mapOf(
             "no opener" to classes(fetch = false),
-            "two openers" to classes() + classes(owner = "Lfixture/OtherOpener;"),
+            "two openers" to classes() + classes(owner = "Lfixture/OtherOpener;", direct = false),
             "no constructor" to classes(constructor = false),
             "no app id field" to classes(keepsAppId = false),
         )
         for ((case, classes) in cases) {
             val context = PatchContexts.of(classes)
+            val before = AlternateSetupFixture.snapshot(classes)
 
             val reason = context.skipSetupScreens(SETUP_SCREEN)
 
             assertTrue(case, reason != null)
-            assertTrue(case, context.classDefBy(opener).methods.none { method -> method.code().any { it.referenceText() == SETUP_SCREEN } })
+            assertEquals(case, before, AlternateSetupFixture.snapshot(classes.map { context.classDefBy(it.type) }))
         }
     }
 
@@ -93,13 +96,7 @@ class SetupScreensTest {
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
-                val classes = mutableListOf<ClassDef>()
-                FixtureDex.forEach(bundle) { dex ->
-                    if (SCREEN_FETCH !in dex.stringSection) return@forEach
-                    for (classDef in dex.classes) {
-                        if (classDef.methods.any { SCREEN_FETCH in it.strings() }) classes += ImmutableClassDef.of(classDef)
-                    }
-                }
+                val classes = AlternateSetupFixture.nativeClasses(bundle)
                 val context = PatchContexts.of(classes)
 
                 assertNull(bundle.name, context.skipSetupScreens(SETUP_SCREEN))
@@ -117,6 +114,17 @@ class SetupScreensTest {
                     assertEquals("${bundle.name}: ${method.name} asks first", SETUP_SCREEN, code[2].referenceText())
                     assertEquals("${bundle.name}: ${method.name} returns on a yes", Opcode.RETURN_VOID, code[5].opcode)
                 }
+                val presenter = classes.flatMap { it.methods }.single { it.strings().containsAll(DIRECT_SCREEN_PRESENTER) }
+                val model = classes.single { it.type == presenter.parameterTypes[1].toString() }
+                val constructor = model.methods.single { it.name == "<init>" && it.parameterTypes.size == 19 }
+                val source = constructor.implementation!!.registerCount - 21 + 5
+                val stored = constructor.code().windowed(2).single { pair ->
+                    pair[0].opcode == Opcode.MOVE_OBJECT_FROM16 && (pair[0] as TwoRegisterInstruction).registerB == source &&
+                        pair[1].opcode == Opcode.IPUT_OBJECT && (pair[1] as TwoRegisterInstruction).registerA == (pair[0] as TwoRegisterInstruction).registerA
+                }[1].referenceText()!!
+                val changed = context.classDefBy(presenter.definingClass).methods.single { it.toString() == presenter.toString() }
+                AlternateSetupFixture.assertGuard(changed.code(), presenter.implementation!!.registerCount - 5, stored)
+                AlternateSetupFixture.assertBodies(classes, context, hooked.associate { it.toString() to 6 } + (presenter.toString() to 7))
                 checked += version
             }
         }
@@ -143,6 +151,7 @@ class SetupScreensTest {
         fetch: Boolean = true,
         constructor: Boolean = true,
         keepsAppId: Boolean = true,
+        direct: Boolean = true,
     ): List<ClassDef> {
         val methods = mutableListOf<Method>()
         if (constructor) {
@@ -174,7 +183,8 @@ class SetupScreensTest {
         val fields = listOf("appId" to "Ljava/lang/String;", "title" to "Ljava/lang/String;", "params" to "Ljava/util/Map;").map { (name, type) ->
             ImmutableField(owner, name, type, AccessFlags.PUBLIC.value, null, null, null)
         }
-        return listOf(ImmutableClassDef(owner, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, fields, methods))
+        return listOf(ImmutableClassDef(owner, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, fields, methods)) +
+            if (direct) AlternateSetupFixture.classes(opener = false) else emptyList()
     }
 
     private fun method(owner: String, name: String, parameters: List<String>, returnType: String, registers: Int, flags: Int, body: String): Method {

@@ -11,12 +11,12 @@ import java.util.List;
 /** Snapshot of the native constructors, renderers, navigation, and DI traced for this build. */
 public final class NativeSettingsAbi {
     public static final List<String> TYPES = Arrays.asList(
-        "Lp/qb61;", "Lp/y3v;", "Lp/jto;", "Lp/bec0;",
-        "Lp/wpo;", "Lp/xoo;", "Lp/cus;", "Lp/nz80;", "Lp/xqu0;", "Lp/ti0;",
-        "Lp/oqk0;", "Lp/lzm;", "Lp/kzm;", "Lp/izm;", "Lp/jzm;", "Lp/nm80;",
-        "Lkotlin/jvm/functions/Function1;", "Lp/qlj0;", "Lp/llv;", "Lp/j7d0;",
-        "Lp/yye1;", "Lp/z521;", "Lp/zx90;", "Lp/n8;", "Lp/nui1;", "Lp/yb21;",
-        "Lp/ib21;", "Lp/ov30;", "Lp/i7d0;", "Lp/aqb0;", "Lp/yti1;", "Lp/jri0;"
+        "Lcom/spotify/music/SpotifyApplication;", "Lp/xlt;", "Lp/ion;", "Lp/yv80;",
+        "Lp/tdn;", "Lp/tcn;", "Lp/afr;", "Lp/rp60;", "Lp/rfr0;", "Lp/xh0;",
+        "Lp/tyh0;", "Lp/gtl;", "Lp/ftl;", "Lp/dtl;", "Lp/etl;", "Lp/qf60;",
+        "Lkotlin/jvm/functions/Function1;", "Lp/gke;", "Lp/k2u;", "Lp/osa0;",
+        "Lp/hka1;", "Lp/wgy0;", "Lp/dm70;", "Lp/s8;", "Lp/qte;", "Lp/pmy0;",
+        "Lp/cmy0;", "Lp/rk50;", "Lp/nsa0;", "Lp/gv90;", "Lp/abe1;", "Lp/c3g0;"
     );
 
     public static String digest(ClassDef definition) throws Exception {

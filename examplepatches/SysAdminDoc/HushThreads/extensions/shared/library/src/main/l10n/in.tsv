@@ -1,5 +1,6 @@
 # Indonesian for HushThreads: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	Versi build %1$s
 %1$d item in that file isn't a setting this version of HushThreads knows, so it'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi HushThreads ini, jadi tidak akan disertakan.
 %1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi HushThreads ini, jadi tidak akan disertakan.
 %1$d switch will change.	%1$d sakelar akan berubah.
@@ -185,3 +186,10 @@ Web links you tap open in your default browser, or the app for that site, withou
 Tap to play videos	Ketuk untuk memutar video
 Videos in your feed wait for a tap instead of playing as you scroll.	Video di feed Anda menunggu diketuk, bukan diputar saat Anda menggulir.
 Videos in your feed	Video di feed Anda
+
+# context: overview disclosure for default patches omitted from this build (Hushfacebook 814acd23)
+Tap to see which.	Ketuk untuk melihat yang mana.
+%1$d default patch isn't in this build	%1$d tambalan default tidak ada di build ini
+%1$d default patches aren't in this build	%1$d tambalan default tidak ada di build ini
+Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Tidak ada di build ini: %1$s. Morphe Manager memilihnya secara default. Pilih tambalan itu lalu tambal ulang untuk mendapatkan fungsinya.
+Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Tidak ada di build ini: %1$s. Morphe Manager memilihnya secara default. Pilih tambalan itu lalu tambal ulang untuk mendapatkan fungsinya.

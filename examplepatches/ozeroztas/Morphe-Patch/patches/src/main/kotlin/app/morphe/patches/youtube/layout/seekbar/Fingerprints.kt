@@ -13,13 +13,11 @@ package app.morphe.patches.youtube.layout.seekbar
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
-import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
-import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -96,47 +94,15 @@ internal object PlayerLinearGradientFingerprint : Fingerprint(
     )
 )
 
-internal const val LOTTIE_ANIMATION_VIEW_CLASS_TYPE = "Lcom/airbnb/lottie/LottieAnimationView;"
-
-internal object LottieAnimationViewSetAnimationIntFingerprint : Fingerprint(
-    definingClass = LOTTIE_ANIMATION_VIEW_CLASS_TYPE,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf("I"),
-    returnType = "V",
-    filters = listOf(
-        methodCall(definingClass = "this", name = "isInEditMode")
-    )
-)
-
-private object LottieCompositionFactoryZipFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    parameters = listOf("Landroid/content/Context;", "Ljava/util/zip/ZipInputStream;", "Ljava/lang/String;"),
-    returnType = "L",
-    filters = listOf(
-        string("Unable to parse composition"),
-        string(" however it was not found in the animation.")
-    )
-)
-
-/**
- * [Original method](https://github.com/airbnb/lottie-android/blob/26ad8bab274eac3f93dccccfa0cafc39f7408d13/lottie/src/main/java/com/airbnb/lottie/LottieCompositionFactory.java#L386)
- */
-internal object LottieCompositionFactoryFromJsonInputStreamFingerprint : Fingerprint(
-    classFingerprint = LottieCompositionFactoryZipFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    parameters = listOf("Ljava/io/InputStream;", "Ljava/lang/String;"),
-    returnType = "L",
-    filters = listOf(
-        anyInstruction(literal(2), literal(3))
-    )
-)
-
 internal object LottieSplashScreenFeatureFlagFingerprint : Fingerprint(
     filters = listOf(
-        anyInstruction(
-            literal(268507948L), // 20.21.37
-            literal(1073814316L)
-        )
+        literal(1073814316L)
+    )
+)
+
+internal object LottieSplashScreenFeatureFlagLegacyFingerprint : Fingerprint(
+    filters = listOf(
+        literal(268507948L), // 20.21.37
     )
 )
 

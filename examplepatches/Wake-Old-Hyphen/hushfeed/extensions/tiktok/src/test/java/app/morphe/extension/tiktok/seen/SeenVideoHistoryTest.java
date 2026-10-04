@@ -12,9 +12,14 @@ import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -940,6 +945,296 @@ public class SeenVideoHistoryTest {
         assertFalse(SeenVideoHistory.canUndo());
         assertEquals("an overtaken undo offered another account's recovery",
                 "Clear seen videos", row.getTitle().toString());
+    }
+
+    @Test public void aThousandParsedWatchesFilterTheNextFeedAndKeepTheirOriginalDates() throws Exception {
+        long watched = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
+        SimpleDateFormat dates = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+        TimeZone zone = TimeZone.getTimeZone("America/New_York");
+        dates.setTimeZone(zone);
+        String date = dates.format(watched);
+        long expected = dates.parse(date).getTime();
+        org.json.JSONArray list = new org.json.JSONArray();
+        for (int index = 0; index < 1000; index++) {
+            list.put(new org.json.JSONObject().put("Date", date).put("Link",
+                    "https://www.tiktokv.com/share/video/" + (7000000000000000000L + index) + "/"));
+        }
+        String file = new org.json.JSONObject().put("Your Activity", new org.json.JSONObject()
+                .put("Watch History", new org.json.JSONObject().put("VideoList", list))).toString();
+        WatchHistoryImport.Records records = WatchHistoryImport.read(new ByteArrayInputStream(
+                file.getBytes(StandardCharsets.UTF_8)), zone, System.currentTimeMillis());
+        SeenVideoHistory.ImportResult result = importAndWait(SeenVideoHistory.captureImportTarget(), records);
+        assertEquals(SeenVideoHistory.ImportStatus.IMPORTED, result.status);
+        assertEquals(1000, result.imported);
+        assertEquals(0, result.skipped);
+        assertEquals(1000, persistedIds().size());
+        assertEquals(expected, lastSeen(ME, "7000000000000000000"));
+        assertEquals(expected, seenAt("7000000000000000000"));
+        SeenVideoFilter filter = new SeenVideoFilter();
+        assertTrue(filter.getFiltered(video("7000000000000000000")));
+        assertTrue(filter.getFiltered(video("7000000000000000999")));
+        assertFalse(filter.getFiltered(video("7000000000000001000")));
+        resetLoadedMemory();
+        SeenVideoHistory.size();
+        drain();
+        assertTrue(filter.getFiltered(video("7000000000000000000")));
+
+        SeenVideoHistory.ImportResult repeated = importAndWait(SeenVideoHistory.captureImportTarget(), records);
+        assertEquals(0, repeated.imported);
+        assertEquals(1000, repeated.skipped);
+        assertEquals(expected, lastSeen(ME, "7000000000000000000"));
+    }
+
+    @Test public void theRealReviewedExportImportsOnlyItsFifteenUniqueVideos() throws Exception {
+        Settings.SEEN_VIDEO_RETENTION_DAYS.save(0);
+        WatchHistoryImport.Records records = WatchHistoryImport.read(getClass()
+                .getResourceAsStream("/seen/reviewed-watch-history.json"),
+                TimeZone.getTimeZone("America/New_York"), System.currentTimeMillis());
+        SeenVideoHistory.ImportResult result = importAndWait(SeenVideoHistory.captureImportTarget(), records);
+        assertEquals(15, result.imported);
+        assertEquals(3, result.skipped);
+        assertTrue(new SeenVideoFilter().getFiltered(video("7420104946231577888")));
+        assertEquals(records.videos.get("7200255970008861998").longValue(),
+                lastSeen(ME, "7200255970008861998"));
+        result = importAndWait(SeenVideoHistory.captureImportTarget(), records);
+        assertEquals(0, result.imported);
+        assertEquals(18, result.skipped);
+    }
+
+    @Test public void retentionAndExistingNewerDatesAreAppliedWithoutTouchingAnotherAccount() throws Exception {
+        long now = System.currentTimeMillis();
+        Settings.SEEN_VIDEO_RETENTION_DAYS.save(1);
+        insert("newer", now - 1000);
+        insert("expired-on-disk", now - TimeUnit.DAYS.toMillis(2));
+        database().execSQL("INSERT INTO seen_videos VALUES (?, ?, ?)",
+                new Object[]{"other", "expired-on-disk", now - TimeUnit.DAYS.toMillis(2)});
+        SeenVideoHistory.ImportResult result = importAndWait(SeenVideoHistory.captureImportTarget(),
+                records(Map.of("newer", now - 2000, "valid", now - 3000,
+                        "expired-import", now - TimeUnit.DAYS.toMillis(2),
+                        "future-import", now + TimeUnit.DAYS.toMillis(1))));
+        assertEquals(SeenVideoHistory.ImportStatus.IMPORTED, result.status);
+        assertEquals(1, result.imported);
+        assertEquals(3, result.skipped);
+        assertEquals(Set.of(ME + "|newer", ME + "|valid", "other|expired-on-disk"), rows());
+        assertEquals(now - 1000, lastSeen(ME, "newer"));
+        assertEquals(now - 3000, lastSeen(ME, "valid"));
+        assertTrue(SeenVideoHistory.shouldHide("valid"));
+        assertFalse(SeenVideoHistory.shouldHide("expired-import"));
+    }
+
+    @Test public void aRejectedInsertRollsBackEarlierRowsAndPublishesNoPhantomVideos() throws Exception {
+        long now = System.currentTimeMillis();
+        insert("existing", now - 1000);
+        SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
+        AtomicInteger writes = new AtomicInteger();
+        SeenVideoHistory.rowWriter = (db, values) -> writes.incrementAndGet() == 2
+                ? -1 : original.insert(db, values);
+        SeenVideoHistory.ImportResult result;
+        try {
+            result = importAndWait(SeenVideoHistory.captureImportTarget(),
+                    records(Map.of("first", now - 2000, "second", now - 3000)));
+        } finally {
+            SeenVideoHistory.rowWriter = original;
+        }
+        assertEquals(SeenVideoHistory.ImportStatus.FAILED, result.status);
+        assertEquals(0, result.imported);
+        assertEquals(Set.of("existing"), persistedIds());
+        assertFalse(SeenVideoHistory.shouldHide("first"));
+        assertFalse(SeenVideoHistory.shouldHide("second"));
+        result = importAndWait(SeenVideoHistory.captureImportTarget(),
+                records(Map.of("first", now - 2000, "second", now - 3000)));
+        assertEquals(2, result.imported);
+    }
+
+    @Test public void failedPruningRollsBackImportedRowsAndKeepsThePreviousDatabase() throws Exception {
+        long now = System.currentTimeMillis();
+        Settings.SEEN_VIDEO_RETENTION_DAYS.save(1);
+        insert("expired", now - TimeUnit.DAYS.toMillis(2));
+        database().execSQL("CREATE TEMP TRIGGER reject_import_prune BEFORE DELETE ON seen_videos "
+                + "BEGIN SELECT RAISE(ABORT, 'injected import prune failure'); END");
+        SeenVideoHistory.ImportResult result;
+        try {
+            result = importAndWait(SeenVideoHistory.captureImportTarget(), records(Map.of("fresh", now - 1000)));
+        } finally {
+            database().execSQL("DROP TRIGGER reject_import_prune");
+        }
+        assertEquals(SeenVideoHistory.ImportStatus.FAILED, result.status);
+        assertEquals(Set.of("expired"), persistedIds());
+        assertFalse(SeenVideoHistory.shouldHide("fresh"));
+    }
+
+    @Test public void queuedImportCannotFollowAnAccountChangeOrANewerClear() throws Exception {
+        SeenVideoHistory.ImportTarget target = SeenVideoHistory.captureImportTarget();
+        SignedInUser.idForTests = "other";
+        SeenVideoHistory.ImportResult result = importAndWait(target,
+                records(Map.of("wrong-account", System.currentTimeMillis() - 1000)));
+        assertEquals(SeenVideoHistory.ImportStatus.ACCOUNT_CHANGED, result.status);
+        assertTrue(rows().isEmpty());
+        SignedInUser.idForTests = ME;
+        target = SeenVideoHistory.captureImportTarget();
+        SeenVideoHistory.clear();
+        result = importAndWait(target, records(Map.of("cleared", System.currentTimeMillis() - 1000)));
+        assertEquals(SeenVideoHistory.ImportStatus.SUPERSEDED, result.status);
+        assertTrue(rows().isEmpty());
+        SignedInUser.idForTests = null;
+        assertNull(SeenVideoHistory.captureImportTarget());
+    }
+
+    @Test public void anAccountSwitchDuringWritingRollsBackTheCapturedAccountsTransaction() throws Exception {
+        long now = System.currentTimeMillis();
+        insert("existing", now - 1000);
+        SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
+        SeenVideoHistory.rowWriter = (db, values) -> {
+            long inserted = original.insert(db, values);
+            SignedInUser.idForTests = "other";
+            return inserted;
+        };
+        SeenVideoHistory.ImportResult result;
+        try {
+            result = importAndWait(SeenVideoHistory.captureImportTarget(),
+                    records(Map.of("wrong-account", now - 2000)));
+        } finally {
+            SeenVideoHistory.rowWriter = original;
+        }
+        assertEquals(SeenVideoHistory.ImportStatus.ACCOUNT_CHANGED, result.status);
+        assertEquals(Set.of(ME + "|existing"), rows());
+        assertFalse(SeenVideoHistory.shouldHide("wrong-account"));
+        SignedInUser.idForTests = ME;
+        SeenVideoHistory.size();
+        drain();
+        assertTrue(SeenVideoHistory.shouldHide("existing"));
+        assertFalse(SeenVideoHistory.shouldHide("wrong-account"));
+    }
+
+    @Test public void aClearDuringImportKeepsOnlyThePreviousHistoryInItsUndoCopy() throws Exception {
+        long now = System.currentTimeMillis();
+        insert("existing", now - 1000);
+        SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
+        AtomicBoolean clearOnce = new AtomicBoolean(true);
+        SeenVideoHistory.rowWriter = (db, values) -> {
+            long inserted = original.insert(db, values);
+            if (clearOnce.getAndSet(false)) SeenVideoHistory.clear();
+            return inserted;
+        };
+        SeenVideoHistory.ImportResult result;
+        try {
+            result = importAndWait(SeenVideoHistory.captureImportTarget(),
+                    records(Map.of("must-roll-back", now - 2000)));
+            drain();
+        } finally {
+            SeenVideoHistory.rowWriter = original;
+        }
+        assertEquals(SeenVideoHistory.ImportStatus.SUPERSEDED, result.status);
+        assertTrue(rows().isEmpty());
+        assertEquals(1, SeenVideoHistory.undoSize());
+        assertTrue(SeenVideoHistory.undoClear());
+        drain();
+        assertEquals(Set.of("existing"), persistedIds());
+    }
+
+    @Test public void theAccountCapCountsOnlyImportedRowsThatSurviveAndLeavesOtherAccountsAlone() throws Exception {
+        long now = System.currentTimeMillis();
+        SQLiteDatabase db = database();
+        db.beginTransaction();
+        try {
+            for (int index = 0; index < SeenVideoHistory.MAX_RECORDS; index++) {
+                db.execSQL("INSERT INTO seen_videos VALUES (?, ?, ?)",
+                        new Object[]{ME, "old-" + index, now - 5000});
+            }
+            db.execSQL("INSERT INTO seen_videos VALUES (?, ?, ?)",
+                    new Object[]{"other", "private", now - 10000});
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        WatchHistoryImport.Records records = new WatchHistoryImport.Records(
+                Map.of("old-500", now - 1000, "fresh", now - 2000, "too-old", now - 10000), 2, 5);
+        SeenVideoHistory.ImportResult result = importAndWait(SeenVideoHistory.captureImportTarget(), records);
+        assertEquals(2, result.imported);
+        assertEquals(3, result.skipped);
+        assertEquals(SeenVideoHistory.MAX_RECORDS, persistedIds().size());
+        assertTrue(rows().contains("other|private"));
+        assertEquals(now - 1000, lastSeen(ME, "old-500"));
+        assertTrue(SeenVideoHistory.shouldHide("fresh"));
+        assertFalse(SeenVideoHistory.shouldHide("too-old"));
+        assertEquals(SeenVideoHistory.MAX_RECORDS, SeenVideoHistory.size());
+    }
+
+    private static WatchHistoryImport.Records records(Map<String, Long> values) {
+        return new WatchHistoryImport.Records(values, 0, values.size());
+    }
+
+    @Test public void importingAFullNewHistoryRetiresTheOldClearsUndoInsteadOfReportingZeroRestored() throws Exception {
+        long now = System.currentTimeMillis();
+        SQLiteDatabase db = database();
+        db.beginTransaction();
+        try {
+            for (int index = 0; index < SeenVideoHistory.MAX_RECORDS; index++) {
+                db.execSQL("INSERT INTO seen_videos VALUES (?, ?, ?)",
+                        new Object[]{ME, "old-" + index, now - 5000});
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        SeenVideoHistory.clear();
+        drain();
+        assertEquals(SeenVideoHistory.MAX_RECORDS, SeenVideoHistory.undoSize());
+        assertTrue(SeenVideoHistory.canUndo());
+        Map<String, Long> newer = new java.util.HashMap<>();
+        for (int index = 0; index < SeenVideoHistory.MAX_RECORDS; index++) {
+            newer.put("new-" + index, now - 1000);
+        }
+        SeenVideoHistory.ImportResult imported = importAndWait(SeenVideoHistory.captureImportTarget(), records(newer));
+        assertEquals(SeenVideoHistory.MAX_RECORDS, imported.imported);
+        assertTrue(imported.undoRetired);
+        assertFalse(SeenVideoHistory.canUndo());
+        assertEquals(0, SeenVideoHistory.undoSize());
+        AtomicReference<SeenVideoHistory.UndoResult> undo = new AtomicReference<>();
+        assertFalse(SeenVideoHistory.undoClear(undo::set));
+        drain();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(SeenVideoHistory.UndoResult.NOT_READY, undo.get());
+        assertEquals(newer.keySet(), persistedIds());
+        assertEquals(SeenVideoHistory.MAX_RECORDS, SeenVideoHistory.size());
+    }
+
+    @Test public void aFailedOrFullySkippedImportKeepsTheExistingClearRecovery() throws Exception {
+        long now = System.currentTimeMillis();
+        insert("cleared", now - 1000);
+        SeenVideoHistory.clear();
+        drain();
+        SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
+        SeenVideoHistory.rowWriter = (db, values) -> -1L;
+        SeenVideoHistory.ImportResult failed;
+        try {
+            failed = importAndWait(SeenVideoHistory.captureImportTarget(), records(Map.of("new", now - 500)));
+        } finally {
+            SeenVideoHistory.rowWriter = original;
+        }
+        assertEquals(SeenVideoHistory.ImportStatus.FAILED, failed.status);
+        assertFalse(failed.undoRetired);
+        assertTrue(SeenVideoHistory.canUndo());
+        assertEquals(1, SeenVideoHistory.undoSize());
+        SeenVideoHistory.ImportResult skipped = importAndWait(SeenVideoHistory.captureImportTarget(),
+                records(Map.of("future", now + TimeUnit.DAYS.toMillis(1))));
+        assertEquals(0, skipped.imported);
+        assertFalse(skipped.undoRetired);
+        assertTrue(SeenVideoHistory.canUndo());
+        assertEquals(1, SeenVideoHistory.undoSize());
+        assertTrue(SeenVideoHistory.undoClear());
+        drain();
+        assertEquals(Set.of("cleared"), persistedIds());
+    }
+
+    private static SeenVideoHistory.ImportResult importAndWait(SeenVideoHistory.ImportTarget target,
+                                                               WatchHistoryImport.Records records) throws Exception {
+        AtomicReference<SeenVideoHistory.ImportResult> result = new AtomicReference<>();
+        SeenVideoHistory.importHistory(target, records, result::set);
+        drain();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertNotNull("the import never answered", result.get());
+        return result.get();
     }
 
     private static app.morphe.extension.tiktok.settings.preference.ClearSeenVideoHistoryPreference

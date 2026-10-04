@@ -20,10 +20,18 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java
-        uses: actions/setup-java@v6.0.0
+        uses: actions/setup-java@v6.0.1
         with:
           distribution: 'temurin'
           java-version: '21'
+
+      - name: Cache font assets
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches/aidans-patches/fonts
+          key: emoji-font-${{ hashFiles('.github/scripts/prepare_emoji_font.py') }}
+          restore-keys: |
+            emoji-font-
 
       - name: Setup Node.js
         uses: actions/setup-node@v7

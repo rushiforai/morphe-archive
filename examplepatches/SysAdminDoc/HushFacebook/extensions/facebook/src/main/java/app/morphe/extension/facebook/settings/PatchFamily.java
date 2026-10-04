@@ -42,7 +42,7 @@ public enum PatchFamily {
             Settings.HIDE_SUGGESTED_POSTS, Settings.HIDE_SUGGESTED_FOR_YOU, Settings.HIDE_PEOPLE_YOU_MAY_KNOW,
             Settings.HIDE_SUGGESTED_GROUPS, Settings.HIDE_STORIES_YOU_MIGHT_LIKE),
     STORIES_TRAY(FamilyNames.STORIES_TRAY, "storiesTray", null,
-            Settings.HIDE_STORIES_TRAY),
+            Settings.HIDE_TOP_STORIES_TRAY, Settings.HIDE_STORIES_BETWEEN_POSTS),
     FEED_REELS(FamilyNames.FEED_REELS, "feedReels", null,
             Settings.HIDE_FEED_REELS),
     RETURN_REFRESH(FamilyNames.RETURN_REFRESH, "returnRefresh", null,
@@ -50,7 +50,7 @@ public enum PatchFamily {
     AI_DETECTED_POSTS(FamilyNames.AI_DETECTED_POSTS, "aiDetectedPosts", null,
             Settings.HIDE_AI_DETECTED_POSTS, Settings.HIDE_AI_LABELLED_POSTS, Settings.HIDE_AI_DETECTED_REELS),
     POST_WORDS(FamilyNames.POST_WORDS, "postWords", null,
-            Settings.HIDE_POSTS_WITH_WORDS),
+            Settings.HIDE_POSTS_WITH_WORDS, Settings.POST_WORDS_WHOLE_WORDS),
     POST_PROMPTS(FamilyNames.POST_PROMPTS, "postPrompts", null,
             Settings.HIDE_POST_PROMPTS),
     META_AI_QUESTIONS(FamilyNames.META_AI_QUESTIONS, "metaAiQuestions", null,
@@ -62,7 +62,7 @@ public enum PatchFamily {
     SPONSORED_STORIES(FamilyNames.SPONSORED_STORIES, "sponsoredStories", null,
             Settings.HIDE_SPONSORED_STORIES),
     SUGGESTED_STORIES(FamilyNames.SUGGESTED_STORIES, "suggestedStories", null,
-            Settings.HIDE_SUGGESTED_STORIES, Settings.HIDE_CONTACT_IMPORT_CARD),
+            Settings.HIDE_SUGGESTED_STORIES, Settings.HIDE_CONTACT_IMPORT_CARD, Settings.HIDE_STORY_PROMPTS),
     STORY_AUTO_ADVANCE(FamilyNames.STORY_AUTO_ADVANCE, "storyAutoAdvance", null,
             Settings.BLOCK_STORY_AUTO_ADVANCE),
     STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null,
@@ -179,10 +179,11 @@ public enum PatchFamily {
 
     /**
      * The switches of the settings entry itself, which no family owns: every build with this screen
-     * carries them. Today that's the release check. Pause turns them off like a family's switches,
+     * carries them. These are the release check and Saved shortcut. Pause turns them off like a family's switches,
      * so the screen draws them above the Pause row with the rest.
      */
-    static final List<BooleanSetting> ENTRY_SWITCHES = Collections.singletonList(Settings.CHECK_FOR_RELEASES);
+    static final List<BooleanSetting> ENTRY_SWITCHES = Collections.unmodifiableList(
+            java.util.Arrays.asList(Settings.CHECK_FOR_RELEASES, Settings.SAVED_SHORTCUT));
 
     /**
      * The switches the three download patches share and none of them owns: each shapes what every
@@ -318,7 +319,7 @@ public enum PatchFamily {
 
     /**
      * "on", "disabled by its switch" or "disabled while paused", then the saved switches. A
-     * family with two switches is on while either is: each hides its own kind of post.
+     * family with independent switches is on while either is. Options need their main switch.
      */
     private String reportLine(boolean paused) {
         StringBuilder line = new StringBuilder(patchName).append(": ");
@@ -327,8 +328,9 @@ public enum PatchFamily {
         }
         boolean anyOn = false;
         for (BooleanSetting setting : switches) anyOn |= setting.savedValue();
-        // Marketplace's extra switches need its main mode; they cannot enable the family alone.
+        // Options cannot enable these families without their main switch.
         if (this == MARKETPLACE_ONLY) anyOn = Settings.MARKETPLACE_ONLY.savedValue();
+        if (this == POST_WORDS) anyOn = Settings.HIDE_POSTS_WITH_WORDS.savedValue();
         line.append(paused ? "disabled while paused (saved " : anyOn ? "on (" : "disabled by its switch (");
         for (int i = 0; i < switches.size(); i++) {
             if (i > 0) line.append(", ");

@@ -18,7 +18,7 @@ body:
     attributes:
       label: HushGram and Instagram versions
       description: Long-press Instagram's icon and tap HushGram settings. Copy what the Version row under About says.
-      placeholder: HushGram 0.0.4 on Instagram 449.0.0.52.84
+      placeholder: HushGram 0.0.5 on Instagram 449.0.0.52.84
     validations:
       required: true
   - type: input
@@ -42,7 +42,7 @@ body:
     attributes:
       label: Its version
       description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
-      placeholder: Morphe Manager 1.32.0
+      placeholder: Morphe Manager 1.33.0
     validations:
       required: true
   - type: dropdown
@@ -64,6 +64,14 @@ body:
     validations:
       required: true
   - type: textarea
+    id: selected_sources
+    attributes:
+      label: Which patch sources were enabled for Instagram?
+      description: List every selected source and its bundle version, including HushGram. Morphe Manager shows them under Sources. On desktop, include each selected bundle's name and version. If you ran the local source preflight, attach its source-diagnostic.json too. Don't include account details or sign-in tokens.
+      placeholder: HushGram 0.0.5 only, or HushGram 0.0.5 with another named bundle and its version.
+    validations:
+      required: true
+  - type: textarea
     id: selected_patches
     attributes:
       label: Which patches did you select?
@@ -79,6 +87,9 @@ body:
         - Feed
         - Stories
         - Reels
+        - Direct messages
+        - Profiles
+        - Explore
         - Sharing and links
         - The "this version is too old" screen
         - HushGram settings
@@ -111,6 +122,7 @@ body:
       description: |
         This answers most of our questions, so please add it if you can. Long-press Instagram's icon, tap HushGram settings, turn on Debug logging, do the thing that goes wrong, then come back, tap Export diagnostic report and pick Save full report. That saves a text file in Download/Morphe on your phone (on Android 9, the message says which folder). Drag it into this box. If you can't get the file off your phone, pick Copy quick report instead and paste the shorter report here.
         The report leaves out links, IDs, cookies and sign-in tokens. It can't spot a name or message written anywhere else, so read it and remove anything private before you post it.
+        Source builds also show a production build identity in About and in the report. Include it when available. The [settings guide](https://github.com/SysAdminDoc/HushGram#settings) explains the local report and build details.
   - type: textarea
     id: additional_context
     attributes:

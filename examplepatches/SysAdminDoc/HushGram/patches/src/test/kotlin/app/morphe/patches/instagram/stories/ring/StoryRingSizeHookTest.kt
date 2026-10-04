@@ -9,6 +9,7 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.NeutralNativePath
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -102,6 +103,11 @@ class StoryRingSizeHookTest {
                 val context = PatchContexts.of(holders.distinctBy { it.type })
 
                 val sizings = context.findRingSizes()
+                val originals = sizings.map { sizing ->
+                    context.mutableClassDefBy(sizing.type).methods.single {
+                        it.name == sizing.name && it.parameterTypes.map(CharSequence::toString) == sizing.parameters
+                    }
+                }.associateWith(::NeutralNativePath)
                 assertEquals("${bundle.name}: sizing methods", 3, sizings.size)
                 context.scaleRingSizes(sizings)
                 for (sizing in sizings) {
@@ -109,6 +115,11 @@ class StoryRingSizeHookTest {
                         it.name == sizing.name && it.parameterTypes.map(CharSequence::toString) == sizing.parameters
                     }
                     assertScaled("${bundle.name} ${sizing.type}->${sizing.name}", method)
+                    val added = method.implementation!!.instructions.toList().withIndex().flatMap { (at, instruction) ->
+                        if ((instruction as? ReferenceInstruction)?.reference?.toString() == RING_SIZE) listOf(at, at + 1)
+                        else emptyList()
+                    }.toSet()
+                    originals.getValue(method).assertPreserved(bundle.name, method, added)
                 }
                 checked++
             }

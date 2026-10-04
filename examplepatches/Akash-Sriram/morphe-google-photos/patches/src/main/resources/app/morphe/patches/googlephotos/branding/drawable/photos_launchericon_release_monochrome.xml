@@ -3,7 +3,7 @@
   Morphe Photos – monochrome launcher icon
   Android 13+ themed/wallpaper-tinted icon.
   System applies its own tint; shape must be pure black filled paths.
-  Silhouette: 4-petal pinwheel, same geometry as Google Photos icon.
+  Silhouette: 4-petal pinwheel, aligned with official Google Photos 2025 geometry.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="90dp"
@@ -11,36 +11,8 @@
     android:viewportWidth="90"
     android:viewportHeight="90">
 
-    <!-- Upper-left petal (rotated -45°, pivot at center 45,45) -->
     <path
         android:fillColor="#000000"
-        android:pathData="M45,45
-            C45,45 22,44 22,22
-            C22,0 44,0 45,0
-            C46,0 45,45 45,45 Z" />
-
-    <!-- Upper-right petal -->
-    <path
-        android:fillColor="#000000"
-        android:pathData="M45,45
-            C45,45 46,22 68,22
-            C90,22 90,44 90,45
-            C90,46 45,45 45,45 Z" />
-
-    <!-- Lower-right petal -->
-    <path
-        android:fillColor="#000000"
-        android:pathData="M45,45
-            C45,45 68,46 68,68
-            C68,90 46,90 45,90
-            C44,90 45,45 45,45 Z" />
-
-    <!-- Lower-left petal -->
-    <path
-        android:fillColor="#000000"
-        android:pathData="M45,45
-            C45,45 44,68 22,68
-            C0,68 0,46 0,45
-            C0,44 45,45 45,45 Z" />
+        android:pathData="m59.325,43.5h-6.945c1.425,-1.59 2.31,-3.69 2.31,-6 0,-4.965 -4.035,-9 -9,-9 -1.215,0 -2.19,0.975 -2.19,2.175v6.945c-1.59,-1.425 -3.69,-2.295 -6,-2.295 -4.965,0 -9,4.035 -9,9 0,1.2 0.975,2.175 2.19,2.175h6.945c-1.425,1.59 -2.31,3.69 -2.31,6 0,4.965 4.035,9 9,9 1.2,0 2.175,-0.975 2.175,-2.175v-6.945c1.59,1.425 3.69,2.31 6,2.31 4.965,0 9,-4.035 9,-9 0,-1.215 -0.975,-2.19 -2.175,-2.19zM46.5,31.56c2.925,0.39 5.19,2.91 5.19,5.94s-2.265,5.55 -5.175,5.94v-11.88zM37.5,38.325c3.03,0 5.55,2.265 5.94,5.175h-11.88c0.39,-2.925 2.91,-5.175 5.94,-5.175zM43.5,58.44c-2.925,-0.39 -5.175,-2.91 -5.175,-5.94s2.265,-5.55 5.175,-5.94zM52.5,51.675c-3.03,0 -5.55,-2.265 -5.94,-5.175h11.895c-0.405,2.925 -2.925,5.175 -5.955,5.175z" />
 
 </vector>

@@ -25,3 +25,20 @@ allprojects {
         }
     }
 }
+
+// Used only by scripts/release-advisories.ps1. This configuration never joins a patch or
+// extension classpath, so the comparator is not bundled or listed as carried SBOM code.
+val advisoryTool = configurations.create("advisoryTool") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+}
+dependencies {
+    add(advisoryTool.name, libs.maven.artifact)
+}
+tasks.register<Sync>("prepareAdvisoryTool") {
+    description = "Prepares the verified Maven version comparator for release advisory checks"
+    from(advisoryTool)
+    into(layout.buildDirectory.dir("advisory-tool"))
+    rename { "maven-artifact.jar" }
+}

@@ -4,6 +4,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import app.onlynazril.extension.tiktok.internal.Debug;
+import app.onlynazril.extension.tiktok.internal.Reflect;
 import app.onlynazril.extension.tiktok.settings.HandleSettings;
 
 /**
@@ -36,6 +37,14 @@ public final class CommentDateBridge {
     /** Called right after the comment cell sets its time, with the comment it is showing. */
     public static void attach(Object comment, TextView timeView) {
         try {
+            // Collected before the switches are asked: what a comment knows about the person it
+            // replies to is what lets a reply name resolve to a handle later, and it has to be
+            // gathered whether or not a region is drawn here.
+            if (comment != null) {
+                UserIndex.learnReply(
+                        Reflect.string(comment, "getReplyToNickName", "replyToNickName"),
+                        Reflect.string(comment, "getReplyToUserId", "replyToUserId"));
+            }
             if (!HandleSettings.surfaceEnabled(Surfaces.COMMENTS)) {
                 report("comments surface off");
                 return;

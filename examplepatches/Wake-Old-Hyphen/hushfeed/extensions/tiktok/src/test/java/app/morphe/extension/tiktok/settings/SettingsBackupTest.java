@@ -1146,6 +1146,66 @@ public class SettingsBackupTest {
         SettingsBackup.restore(Utils.getContext(), root.toString(), true);
 
         assertEquals(81, (int) Settings.MAX_VIDEO_SECONDS.get());
+        assertEquals(1, SettingsBackup.settingsSkipped(root.toString()));
+        assertEquals(0, SettingsBackup.settingsNotInFile(root.toString()));
+        assertFalse(Setting.preferences.preferences.contains("comment_translation_excluded_languages"));
+    }
+
+    @Test public void skippedKeysAndMissingCurrentSettingsStaySeparateAcrossHostsAndUndo() throws Exception {
+        Settings.MAX_VIDEO_SECONDS.save(81);
+        JSONObject file = new JSONObject(withoutKeys(SettingsBackup.create(false), Settings.REGION_SPOOF.key))
+                .put("target", "40.0.0");
+        file.getJSONObject("settings").put("retired_or_future_option", new JSONObject().put("value", true))
+                .put(Settings.AUTO_STREAK_STATE.key, "state-from-another-phone");
+        file.getJSONArray("setting_keys").put("retired_or_future_option").put(Settings.AUTO_STREAK_STATE.key);
+        Settings.MAX_VIDEO_SECONDS.save(29);
+        Settings.REGION_SPOOF.save(true);
+        Settings.AUTO_STREAK_STATE.save("state-for-this-phone");
+        Setting.preferences.preferences.edit().putString("tiktok_native_state", "native-marker").commit();
+        FeatureGateLabStore.saveRule("abmock", "current_host_gate", "INT", "7", true);
+        FeatureGateLabStore.setMasterEnabled(true);
+        assertEquals(2, SettingsBackup.settingsSkipped(file.toString()));
+        assertEquals(1, SettingsBackup.settingsNotInFile(file.toString()));
+        SettingsBackup.restore(Utils.getContext(), file.toString(), true);
+        assertEquals(81, (int) Settings.MAX_VIDEO_SECONDS.get());
+        assertTrue(Settings.REGION_SPOOF.get());
+        assertEquals("state-for-this-phone", Settings.AUTO_STREAK_STATE.savedValue());
+        assertEquals("native-marker", Setting.preferences.preferences.getString("tiktok_native_state", null));
+        assertFalse(Setting.preferences.preferences.contains("retired_or_future_option"));
+        assertTrue(SettingsBackup.labRulesWereSkipped(file.toString()));
+        assertEquals("7", FeatureGateLabStore.rule("abmock", "current_host_gate", "INT").value);
+        assertTrue(FeatureGateLabStore.masterEnabled());
+
+        String undone = SettingsBackup.undo(Utils.getContext());
+        assertEquals(0, SettingsBackup.settingsSkipped(undone));
+        assertEquals(0, SettingsBackup.settingsNotInFile(undone));
+        assertEquals(29, (int) Settings.MAX_VIDEO_SECONDS.get());
+        assertTrue(Settings.REGION_SPOOF.get());
+        assertEquals("state-for-this-phone", Settings.AUTO_STREAK_STATE.savedValue());
+        assertEquals("native-marker", Setting.preferences.preferences.getString("tiktok_native_state", null));
+        assertEquals("7", FeatureGateLabStore.rule("abmock", "current_host_gate", "INT").value);
+    }
+
+    @Test public void unknownKeysDoNotPreventCompatibleLabRulesOrUndoFromRestoring() throws Exception {
+        Settings.MAX_VIDEO_SECONDS.save(72);
+        FeatureGateLabStore.saveRule("abmock", "from_backup", "BOOLEAN", "true", true);
+        JSONObject file = new JSONObject(SettingsBackup.create(false));
+        file.getJSONObject("settings").put("future_setting", new JSONArray().put("not applied"));
+        file.getJSONArray("setting_keys").put("future_setting");
+        Settings.MAX_VIDEO_SECONDS.save(9);
+        FeatureGateLabStore.resetAllLabData();
+        FeatureGateLabStore.saveRule("abmock", "before_restore", "INT", "4", true);
+        SettingsBackup.restore(Utils.getContext(), file.toString(), true);
+        assertEquals(1, SettingsBackup.settingsSkipped(file.toString()));
+        assertFalse(SettingsBackup.labRulesWereSkipped(file.toString()));
+        assertEquals(72, (int) Settings.MAX_VIDEO_SECONDS.get());
+        assertNotNull(FeatureGateLabStore.rule("abmock", "from_backup", "BOOLEAN"));
+        assertNull(FeatureGateLabStore.rule("abmock", "before_restore", "INT"));
+        assertFalse(Setting.preferences.preferences.contains("future_setting"));
+        SettingsBackup.undo(Utils.getContext());
+        assertEquals(9, (int) Settings.MAX_VIDEO_SECONDS.get());
+        assertNull(FeatureGateLabStore.rule("abmock", "from_backup", "BOOLEAN"));
+        assertNotNull(FeatureGateLabStore.rule("abmock", "before_restore", "INT"));
     }
 
     private static android.content.SharedPreferences failingCommits(android.content.SharedPreferences target,
@@ -1351,10 +1411,12 @@ public class SettingsBackupTest {
             activity.findViewById(android.R.id.content).setTag(app.morphe.extension.tiktok.settings.preference.SettingsActionBanner.CONTENT_ROOT_TAG);
             JSONObject backup = new JSONObject(SettingsBackup.create(false));
             backup.getJSONObject("settings").remove(Settings.MAX_VIDEO_SECONDS.key);
+            backup.getJSONObject("settings").put("removed_setting", true).put("future_setting", 2);
             // Movies holds videos, not stickers: the device's sticker folder stays and is named.
             String stickerBefore = Settings.DOWNLOAD_STICKER_PATH.get();
             backup.getJSONObject("settings").put(Settings.DOWNLOAD_STICKER_PATH.key, "Movies/Stick");
             JSONArray keys = backup.getJSONArray("setting_keys");
+            keys.put("removed_setting").put("future_setting");
             for (int index = keys.length() - 1; index >= 0; index--) {
                 if (Settings.MAX_VIDEO_SECONDS.key.equals(keys.getString(index))) keys.remove(index);
             }
@@ -1382,6 +1444,7 @@ public class SettingsBackupTest {
             assertNotNull("the outcome didn't reach the settings banner", banner);
             TextView message = banner.findViewWithTag("hushfeed_settings_action_message");
             assertEquals("1 setting wasn't in that file and was left as it is. "
+                    + "2 settings in that file can't be restored here and were skipped. "
                     + "Stickers can't be saved to the folder in that file, so your sticker folder was kept. "
                     + "Settings restored. Restart TikTok to apply all changes.", String.valueOf(message.getText()));
             assertEquals(stickerBefore, Settings.DOWNLOAD_STICKER_PATH.get());

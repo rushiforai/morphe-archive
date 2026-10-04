@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
@@ -48,6 +49,7 @@ public class HomeTabSettingsShortcutTest {
         owner = Robolectric.buildActivity(Activity.class).setup().visible();
         activity = owner.get();
         Utils.setContext(activity);
+        PausedProcess.set(false);
         FrameLayout content = new FrameLayout(activity);
         FrameLayout bar = new FrameLayout(activity);
         home = new View(activity);
@@ -60,6 +62,7 @@ public class HomeTabSettingsShortcutTest {
     }
 
     @After public void tearDown() {
+        PausedProcess.set(false);
         HomeTabSettingsShortcut.resetForTests();
         FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:omq", 0);
         ReflectionHelpers.setStaticField(SettingsStatus.class, "feedNavigationEnabled", false);
@@ -99,6 +102,58 @@ public class HomeTabSettingsShortcutTest {
         assertNull(nextStarted());
     }
 
+    @Test public void pausedHomeReopensSettingsAfterReturningToTheFeed() {
+        installAndResume();
+        assertTrue(home.performLongClick());
+        assertNotNull(nextStarted());
+
+        PausedProcess.set(true);
+        owner.pause().stop().start().resume();
+        layoutPass();
+
+        assertTrue("pausing removed the guest's recovery entry", home.performLongClick());
+        assertNotNull(nextStarted());
+        assertTrue(home.performClick());
+        assertEquals(1, taps.get());
+        assertNull("an ordinary tap opened settings", nextStarted());
+    }
+
+    @Test public void aPausedColdStartKeepsTheSavedShortcutChoice() {
+        PausedProcess.set(true);
+        installAndResume();
+        assertTrue("a paused launch lost the guest's recovery entry", home.performLongClick());
+        assertNotNull(nextStarted());
+
+        Settings.HOME_TAB_OPENS_SETTINGS.save(false);
+        layoutPass();
+        assertFalse("an explicitly disabled shortcut remained attached", home.isLongClickable());
+        assertFalse(home.performLongClick());
+        assertNull(nextStarted());
+
+        Settings.HOME_TAB_OPENS_SETTINGS.save(true);
+        layoutPass();
+        assertTrue(home.performLongClick());
+        assertNotNull(nextStarted());
+    }
+
+    @Test public void aPausedRebuiltTabKeepsTheRecoveryEntry() {
+        installAndResume();
+        PausedProcess.set(true);
+        FrameLayout bar = (FrameLayout) home.getParent();
+        View rebuilt = new View(activity);
+        rebuilt.setId(HOME_ID);
+        rebuilt.setOnClickListener(view -> taps.incrementAndGet());
+        bar.removeView(home);
+        bar.addView(rebuilt, new FrameLayout.LayoutParams(216, 138));
+        layoutPass();
+
+        assertTrue(rebuilt.performLongClick());
+        assertNotNull(nextStarted());
+        assertFalse("the old tab kept the long press", home.isLongClickable());
+        assertTrue(rebuilt.performClick());
+        assertEquals(1, taps.get());
+    }
+
     @Test public void aHomeTabWithALongPressOfItsOwnKeepsIt() {
         AtomicInteger own = new AtomicInteger();
         home.setOnLongClickListener(view -> {
@@ -109,6 +164,12 @@ public class HomeTabSettingsShortcutTest {
 
         assertTrue(home.performLongClick());
         assertEquals("TikTok's own long press was replaced", 1, own.get());
+        assertNull(nextStarted());
+
+        PausedProcess.set(true);
+        layoutPass();
+        assertTrue(home.performLongClick());
+        assertEquals("pausing replaced TikTok's own long press", 2, own.get());
         assertNull(nextStarted());
     }
 

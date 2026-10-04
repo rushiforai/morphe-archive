@@ -27,17 +27,17 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * on null. Each caller has already cleared its own copy, so a batch held back is gone, and turning
  * the switch off lets the next batch through. A batch the store retries from what an earlier
  * session saved goes through {@link #toRetry} right before its request is built, and a batch held
- * back there goes out as an empty one.
+ * back there takes the native loop's next-item branch before any ownership change or request.
  *
  * <p>With the second switch on, the stories you tapped Mark as seen on ({@link StorySeenButton})
  * still go out: the answer is then a batch of the extension's own, started empty by Instagram's own
  * constructor, holding those stories and nothing else. Marks belong to the account they were made
  * on, read from the store that sends. See {@link StoryMarks}.
  *
- * <p>It fails open, like the other hooks: the switch off, a pause, settings that aren't ready yet,
- * or a failure reading them send the views as Instagram would. A failure picking out the marked
- * stories holds the whole batch back, as the switch on does without marks. The diagnostics it
- * keeps are only counted: a failure there never changes what goes out.
+ * <p>The switch off, a pause or settings that aren't ready send views as Instagram would. A fresh
+ * send also fails open if reading the switch fails. A retry that can't read the switch stays held.
+ * A failure picking out the marked stories holds the whole batch back, as the switch on does
+ * without marks. The diagnostics it keeps are only counted: a failure there never changes what goes out.
  */
 public final class StorySeen {
     /** The diagnostic counter route: each batch of views Instagram went to send, and the ones held back. */
@@ -48,7 +48,6 @@ public final class StorySeen {
 
     static final String SEND_HOOK = "story seen send";
     static final String MARKED_HOOK = "marked story send";
-    static final String RETRY_HOOK = "story seen retry";
 
     /** The stories marked as seen, shared with the button. */
     static final StoryMarks MARKS = new StoryMarks(SystemClock::elapsedRealtime);
@@ -127,6 +126,10 @@ public final class StorySeen {
     private StorySeen() {
     }
 
+    // Reuse the adapters: a held retry needs no new lambda or batch.
+    private static final BooleanSupplier ANONYMOUS = StorySeen::anonymous;
+    private static final BooleanSupplier MARKING = StorySeenButton::switchedOn;
+
     /**
      * Asked first thing in the send, with the store sending and the batch it was handed. Answers the
      * batch to send: the same one while the switch is off, HushGram is paused or the settings aren't
@@ -135,55 +138,55 @@ public final class StorySeen {
      */
     @Nullable
     public static Object toSend(Object store, Object batch) {
-        return toSend(store, batch, PATCHED, StorySeen::anonymous, StorySeenButton::switchedOn, MARKS, COUNTED);
+        return toSend(store, batch, PATCHED, ANONYMOUS, MARKING, MARKS, COUNTED);
     }
 
     @Nullable
     static Object toSend(@Nullable Object store, @Nullable Object batch, Batches batches, BooleanSupplier anonymous,
                          BooleanSupplier marking, StoryMarks marks, Diagnostics diagnostics) {
-        quietly(diagnostics::saw);
+        return choose(store, batch, batches, anonymous, marking, marks, diagnostics, false);
+    }
+
+    @Nullable
+    private static Object choose(@Nullable Object store, @Nullable Object batch, Batches batches, BooleanSupplier anonymous,
+                                 BooleanSupplier marking, StoryMarks marks, Diagnostics diagnostics, boolean retry) {
+        saw(diagnostics);
         boolean holdBack;
         try {
             holdBack = anonymous.getAsBoolean();
         } catch (Throwable failure) {
-            quietly(() -> diagnostics.threw(SEND_HOOK, failure));
-            return batch;
+            report(diagnostics, SEND_HOOK, failure);
+            if (retry) counted(diagnostics, false);
+            return retry ? null : batch;
         }
         if (!holdBack) return batch;
         Object marked = null;
         try {
             if (marking.getAsBoolean()) marked = marks.choose(batches.account(store), batch, batches);
         } catch (Throwable failure) {
-            quietly(() -> diagnostics.threw(MARKED_HOOK, failure));
+            report(diagnostics, MARKED_HOOK, failure);
             marked = null;
         }
-        quietly(marked == null ? diagnostics::heldBack : diagnostics::sentMarked);
+        counted(diagnostics, marked != null);
         return marked;
     }
 
     /**
-     * Asked right before the store builds the request for a batch it retries, one an earlier session
-     * saved to disk. Answers what {@link #toSend} does, but never null, since the retry can't stop
-     * there: a batch held back is answered by a new empty batch of Instagram's, which names no story.
-     * Only when no empty batch can be made does Instagram's own go, as every hook fails open. Never
-     * throws.
+     * Asked after the retry loop looks up a saved batch, before it claims the pending entry.
+     * Answers what {@link #toSend} does on a successful switch read, and null if that read fails.
+     * A null answer takes the native snapshot-loop backedge,
+     * leaving the pending batch for another check on every retry. There is no empty factory fallback:
+     * an active anonymity selection or allocation failure cannot forward the original. Never throws.
      */
+    @Nullable
     public static Object toRetry(Object store, Object batch) {
-        return toRetry(store, batch, PATCHED, StorySeen::anonymous, StorySeenButton::switchedOn, MARKS, COUNTED);
+        return toRetry(store, batch, PATCHED, ANONYMOUS, MARKING, MARKS, COUNTED);
     }
 
+    @Nullable
     static Object toRetry(@Nullable Object store, Object batch, Batches batches, BooleanSupplier anonymous,
                           BooleanSupplier marking, StoryMarks marks, Diagnostics diagnostics) {
-        Object answer = toSend(store, batch, batches, anonymous, marking, marks, diagnostics);
-        if (answer != null) return answer;
-        try {
-            Object empty = batches.empty();
-            Map<Object, Object> stories = empty == null ? null : batches.stories(empty);
-            if (stories != null && stories.isEmpty()) return empty;
-        } catch (Throwable failure) {
-            quietly(() -> diagnostics.threw(RETRY_HOOK, failure));
-        }
-        return batch;
+        return choose(store, batch, batches, anonymous, marking, marks, diagnostics, true);
     }
 
     /** Whether views are held back: the switch on, HushGram not paused and the settings read. */
@@ -200,16 +203,33 @@ public final class StorySeen {
             Object batch = emptyBatch();
             if (batch != null) send(session, batch);
         } catch (Throwable failure) {
-            quietly(() -> COUNTED.threw(MARKED_HOOK, failure));
+            report(COUNTED, MARKED_HOOK, failure);
         }
     }
 
-    /** Runs a diagnostic, which must never decide anything: a failure in it is dropped. */
-    private static void quietly(Runnable diagnostic) {
+    /** No per-call diagnostic adapter is allocated outside the protection. */
+    private static void saw(Diagnostics diagnostics) {
         try {
-            diagnostic.run();
+            diagnostics.saw();
         } catch (Throwable ignored) {
-            // The counters and the log are only what's reported; there's nowhere left to report this.
+            // Counters are optional, including under allocation failure.
+        }
+    }
+
+    private static void counted(Diagnostics diagnostics, boolean marked) {
+        try {
+            if (marked) diagnostics.sentMarked();
+            else diagnostics.heldBack();
+        } catch (Throwable ignored) {
+            // Counters are optional, including under allocation failure.
+        }
+    }
+
+    private static void report(Diagnostics diagnostics, String hook, Throwable failure) {
+        try {
+            diagnostics.threw(hook, failure);
+        } catch (Throwable ignored) {
+            // There is nowhere left to report a diagnostic failure.
         }
     }
 

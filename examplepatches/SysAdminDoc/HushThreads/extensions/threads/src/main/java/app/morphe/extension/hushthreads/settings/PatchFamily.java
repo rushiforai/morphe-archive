@@ -85,6 +85,11 @@ public enum PatchFamily {
     static final List<BooleanSetting> ENTRY_SWITCHES = Collections.singletonList(Settings.CHECK_FOR_RELEASES);
 
 
+    /** Manager's defaults, held to patches-list.json by PatchFamilyTest (Hushfacebook 814acd23). */
+    static final Set<PatchFamily> DEFAULT_SELECTION = Collections.unmodifiableSet(EnumSet.of(
+            HIDE_ADS, HIDE_SUGGESTED_USERS, SANITIZE_SHARING_LINKS, EXTERNAL_BROWSER,
+            DISABLE_ANALYTICS, REMOVE_AD_ID, RESTORE_TRUST));
+
     /** The families a test says this build carries, instead of asking {@link SettingsStatus}. */
     @Nullable
     static volatile Set<PatchFamily> inBuildForTests;
@@ -116,6 +121,15 @@ public enum PatchFamily {
             if (family.inBuild()) found.add(family);
         }
         return found;
+    }
+
+    /** Missing default patches in family declaration order (Hushfacebook 814acd23). */
+    static List<String> missingDefaults(Set<PatchFamily> inBuild) {
+        List<String> names = new ArrayList<>();
+        for (PatchFamily family : values()) {
+            if (DEFAULT_SELECTION.contains(family) && !inBuild.contains(family)) names.add(family.patchName);
+        }
+        return names;
     }
 
     /**
@@ -171,6 +185,8 @@ public enum PatchFamily {
             }
         }
         if (!absent.isEmpty()) lines.add("not in this build: " + String.join(", ", absent));
+        List<String> defaults = missingDefaults(inBuild);
+        if (!defaults.isEmpty()) lines.add("left out of Manager's default selection: " + String.join(", ", defaults));
         return lines;
     }
 
@@ -203,6 +219,7 @@ public enum PatchFamily {
      */
     public static void registerDiagnostics() {
         LogBufferManager.registerReportSection(REPORT);
+        LogBufferManager.registerReportSection(SupportedLinks.REPORT);
         for (PatchFamily family : values()) {
             if (family.switches.isEmpty()) HookStatus.runsWhilePaused(family.patchName);
         }

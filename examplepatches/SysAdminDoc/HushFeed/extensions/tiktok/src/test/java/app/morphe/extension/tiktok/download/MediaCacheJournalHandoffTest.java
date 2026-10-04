@@ -258,9 +258,12 @@ public class MediaCacheJournalHandoffTest {
             if (bytes == null) throw new IOException("Process fixture bytecode is unavailable");
             Files.copy(bytes, fixture.toPath());
         }
-        Process other = new ProcessBuilder(java.getPath(), "-Xmx32m", "-cp", classes.getPath(),
+        ProcessBuilder builder = new ProcessBuilder(java.getPath(), "-Xmx32m", "-cp", classes.getPath(),
                 MediaCacheJournalProcess.class.getName(), new File(directory, "pending-uris.lock").getPath(),
-                journal(durable).getPath(), uri(10).toString()).redirectErrorStream(true).start();
+                journal(durable).getPath(), uri(10).toString()).redirectErrorStream(true);
+        builder.environment().remove("JAVA_TOOL_OPTIONS");
+        builder.environment().remove("JDK_JAVA_OPTIONS");
+        Process other = builder.start();
         ExecutorService writer = Executors.newSingleThreadExecutor();
         Future<?> publication = null;
         try (BufferedReader output = new BufferedReader(new InputStreamReader(

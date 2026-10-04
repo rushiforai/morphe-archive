@@ -261,7 +261,9 @@ try {
     $built = Get-Content -LiteralPath $buildMarker -Raw | ConvertFrom-Json
     Assert-True (@($built.Tasks).Count -eq 1 -and $built.Tasks[0] -eq ':patches:buildDependencyReport') 'A policy-only push did not request exactly the dependency report.'
     Assert-True ($built.Required -eq 'prior-value' -and $env:HUSHTELEGRAM_REQUIRE_FIXTURES -eq 'prior-value') 'A policy-only push changed fixture enforcement.'
-    Assert-True ((Get-Content -LiteralPath $scanMarker -Raw).Trim() -eq $repo) 'The scanner was not given the tree that generated its report.'
+    Assert-True ((Get-Content -LiteralPath $scanMarker -Raw).Trim() -eq $built.ProjectDir -and $built.ProjectDir -ne $repo) 'The scanner was not given the isolated tree that generated its report.'
+    Assert-True (-not (Test-Path -LiteralPath $built.ProjectDir) -and
+        -not (Test-Path -LiteralPath (Split-Path -Parent $built.ProjectDir))) 'The policy gate left its owned scratch checkout or parent behind.'
     $cases++
     Set-Content -LiteralPath $wrapper -Value ($build[0..1] + 'exit 1') -Encoding ASCII
     Assert-Fails { Invoke-Hook } '*report could not be generated*'

@@ -8,12 +8,12 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import app.spicetify.extension.spotify.settings.PatchSettings;
-import app.spicetify.extension.spotify.settings.SpicetifySettingsActivity;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowMediaPlayer;
 import org.robolectric.shadows.util.DataSource;
 import org.robolectric.util.ReflectionHelpers;
@@ -31,9 +31,8 @@ public class DevelopmentActivityTest {
             Button settings = button(activity.getWindow().getDecorView(), "Open patch settings");
             assertNotNull("The launcher must expose production settings", settings);
             settings.performClick();
-            var intent = shadowOf(activity).getNextStartedActivity();
-            assertEquals("app.spicetify.development", intent.getComponent().getPackageName());
-            assertEquals(SpicetifySettingsActivity.class.getName(), intent.getComponent().getClassName());
+            assertNull(shadowOf(activity).getNextStartedActivity());
+            assertTrue(ShadowDialog.getLatestDialog().isShowing());
         }
     }
 

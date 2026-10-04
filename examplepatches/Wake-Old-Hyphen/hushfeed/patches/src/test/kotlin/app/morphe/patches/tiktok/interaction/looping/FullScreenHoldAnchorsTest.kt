@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.interaction.looping
 
 import app.morphe.Fixtures
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -22,7 +21,7 @@ class FullScreenHoldAnchorsTest {
     @Test
     fun `the full screen viewer asks one gate before it moves on`() {
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             var hint: ClassDef? = null
             for (entry in container.dexEntryNames) {
                 hint = hint ?: container.getEntry(entry)!!.dexFile.classes

@@ -61,6 +61,9 @@ public final class Settings {
             new StringSetting("ads_proxy_url", "");
 
     // Emotes.
+    /** Master switch for all third-party emote providers (7TV, BTTV and FFZ). */
+    public static final BooleanSetting EMOTES_THIRD_PARTY =
+            new BooleanSetting("emotes_third_party", true);
     public static final BooleanSetting EMOTES_7TV =
             new BooleanSetting("emotes_7tv", true);
     public static final BooleanSetting EMOTES_BTTV =

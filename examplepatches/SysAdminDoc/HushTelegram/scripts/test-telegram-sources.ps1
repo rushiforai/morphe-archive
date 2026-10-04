@@ -99,11 +99,17 @@ Assert-True ($nagram.reference.kind -eq 'historical' -and $nagram.reference.bran
 # Fixture sources for the rules the checked-in ledger has nothing to test with: it adopts nothing
 # and holds no unlicensed or contaminated source. The rule cases below add them to a copy, with the
 # NOTICE line and provenance rule the adopted one needs.
-$catalogBuilds = @((Get-PatchTarget -PatchList ([IO.File]::ReadAllText((Join-Path $Root 'patches-list.json')) | ConvertFrom-Json)).PackageVersions)
+$catalogTargets = @(Get-PatchTargets -PatchList (
+    [IO.File]::ReadAllText((Join-Path $Root 'patches-list.json')) | ConvertFrom-Json))
+$catalogWebVersion = ($catalogTargets | Where-Object { $_.PackageName -ceq 'org.telegram.messenger.web' }).PackageVersion
+$catalogBuilds = @(foreach ($target in $catalogTargets) {
+    foreach ($version in @($target.PackageVersions)) {
+        foreach ($code in @($target.PackageVersionCodes[$version])) { "$($target.PackageName) $version ($code)" }
+    }
+})
 Assert-True ($catalogBuilds.Count -ge 1) 'The catalog declares no Telegram build, so the two-fixture cases would prove nothing.'
-# Two-fixture evidence is two builds, every declared one among them. Telegram declares one, so the
-# fixture adds the build before it.
-$olderBuild = '12.10.5'
+# The stand-in also names an older build to exercise evidence beyond the declared distribution set.
+$olderBuild = 'org.telegram.messenger.web 12.10.5 (71077)'
 Assert-True ($catalogBuilds -notcontains $olderBuild) "The catalog declares $olderBuild, so the fixture's second build is no second build."
 $fixtureLicenseHash = 'a' * 64
 $fixtureAdoptedRepository = 'https://github.com/fixture-owner/adopted-patches'
@@ -112,7 +118,7 @@ $fixtureUnlicensedRepository = 'https://github.com/fixture-owner/unlicensed-modu
 function New-RuleFixtureEntry {
     param([string]$Id, [string]$Repository, [string]$Kind, $License, [string]$Disposition, $ContaminatedBy, [string[]]$Forks)
     return [pscustomobject][ordered]@{ id = $Id; repository = $Repository; lineage = $Id; upstream = $null; kind = $Kind
-        packages = @('org.telegram.messenger.web'); targetVersions = [pscustomobject]@{ 'org.telegram.messenger.web' = @($catalogBuilds[0]) }
+        packages = @('org.telegram.messenger.web'); targetVersions = [pscustomobject]@{ 'org.telegram.messenger.web' = @($catalogWebVersion) }
         features = @('Hide ads'); branches = @([pscustomobject]@{ name = 'main'; commit = ('0f' * 20) }); watchPaths = @()
         license = $License; contaminatedBy = $ContaminatedBy; disposition = $Disposition; reason = 'A fixture source.'; archived = $false
         forks = @($Forks); contentHashes = @(); mirrors = @(); lastChecked = '2026-09-01' }

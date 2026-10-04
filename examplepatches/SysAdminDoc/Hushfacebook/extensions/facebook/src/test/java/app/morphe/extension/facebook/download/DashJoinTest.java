@@ -287,6 +287,27 @@ public class DashJoinTest {
         assertTrue(report, report.contains("joining the tracks without MediaMuxer, which can't write VP9 into an MP4"));
     }
 
+    @Test
+    public void aFragmentReadingBoxHeadersNeverCreatesAGalleryRow() {
+        FragmentedMp4ForTests picture = FragmentedMp4ForTests.picture("vp09", 160, 90, 15_360);
+        FragmentedMp4ForTests.Fragment frames = picture.fragment(0L);
+        frames.add(20, 512, FragmentedMp4ForTests.SYNC, 0);
+        frames.firstDataOffset = 0;
+        byte[] bytes = picture.build();
+        server.serve("/bad-vp9.mp4", 200, "video/mp4", bytes, bytes.length);
+        DashManifest.Track bad = new DashManifest.Track("video/mp4", "vp09.00.40.08", 160, 90, 711_000,
+                server.origin() + "/bad-vp9.mp4");
+        MediaSaveTest.Gallery rows = Robolectric.setupContentProvider(MediaSaveTest.Gallery.class, MediaStore.AUTHORITY);
+
+        Downloader.Result result = DashSave.save(context, bad, null, new MediaStoreWriter(context, true),
+                policy, Downloader.MAX_BYTES, Downloader.SILENT);
+
+        assertEquals(result.toString(), Downloader.Status.WRITE_ERROR, result.status);
+        assertTrue("an invalid fragment reached MediaStore", rows.rows.isEmpty());
+        assertEquals("an invalid fragment left work files", 0, workFiles());
+        assertEquals("an invalid fragment reached the native muxer", 0, FaultyMuxer.writes.get());
+    }
+
     /** Only VP9, and AV1 before Android 14, skip the muxer. Every other picture keeps the join it always had. */
     @Test
     public void onlyVp9AndAv1BeforeAndroid14SkipTheMuxer() {

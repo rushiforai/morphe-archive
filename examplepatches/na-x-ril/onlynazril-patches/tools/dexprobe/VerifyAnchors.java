@@ -1,8 +1,10 @@
 import org.luckypray.dexkit.DexKitBridge;
 import org.luckypray.dexkit.query.FindClass;
 import org.luckypray.dexkit.query.FindField;
+import org.luckypray.dexkit.query.FindMethod;
 import org.luckypray.dexkit.query.matchers.ClassMatcher;
 import org.luckypray.dexkit.query.matchers.FieldMatcher;
+import org.luckypray.dexkit.query.matchers.MethodMatcher;
 import org.luckypray.dexkit.result.ClassData;
 import org.luckypray.dexkit.result.ClassDataList;
 import org.luckypray.dexkit.result.FieldData;
@@ -10,6 +12,8 @@ import org.luckypray.dexkit.result.FieldDataList;
 import org.luckypray.dexkit.result.MethodData;
 import org.luckypray.dexkit.result.MethodDataList;
 import org.luckypray.dexkit.result.UsingFieldData;
+
+import java.util.List;
 
 /**
  * Checks every anchor the patches depend on against one APK, so a new TikTok version can be
@@ -42,6 +46,8 @@ public class VerifyAnchors {
     private static final String AWEME = "com.ss.android.ugc.aweme.feed.model.Aweme";
     private static final String AWEME_STATISTICS =
             "com.ss.android.ugc.aweme.feed.model.AwemeStatistics";
+    private static final String DOWNLOAD_ACL =
+            "com.ss.android.ugc.aweme.feed.model.ACLCommonShare";
 
     private static int failures;
 
@@ -140,6 +146,94 @@ public class VerifyAnchors {
             requireMethod(bridge, AD_PERSONALIZATION, "onCreate", "void", 1);
             requireMethod(bridge, AD_PERSONALIZATION, "onBackPressed", "void", 0);
 
+            // Download: the photo-download handler's three shapes, and the watermarked address.
+            requireDownload(bridge);
+
+            // Profile background: the obfuscated AB gate, matched by the
+            // shape the patch discovers it by.
+            requireProfileBgGate(bridge);
+
+    }
+
+    /**
+     * The download patch's anchors: the three ACL getters the app decides download and watermark
+     * with, and the video's own download address, which is the one redirected.
+     */
+    private static void requireDownload(DexKitBridge bridge) {
+        requireMethod(bridge, DOWNLOAD_ACL, "getCode", "int", 0);
+        requireMethod(bridge, DOWNLOAD_ACL, "getShowType", "int", 0);
+        requireMethod(bridge, DOWNLOAD_ACL, "getTranscode", "int", 0);
+        requireMethod(bridge, "com.ss.android.ugc.aweme.feed.model.Video",
+                "getDownloadAddr", "com.ss.android.ugc.aweme.base.model.UrlModel", 0);
+    }
+
+    /**
+     * The profile-background gate, matched as the patch discovers it: the one
+     * class that reads the AB keys and carries a (boolean) -> boolean method
+     * next to a (boolean) -> void setter. The class is obfuscated and renames
+     * every build (`X.0iZu` on 46.2.3, `X.0kzw` on 47.0.3, `X.0OSK` on
+     * 47.1.4), so the shape is the anchor, not the name.
+     */
+    private static void requireProfileBgGate(DexKitBridge bridge) {
+        java.util.Set<String> candidates = new java.util.LinkedHashSet<>();
+        for (String key : new String[]{"profile_bg_in_allow_list",
+                "profile_bg_enable_consumption_group"}) {
+            MethodDataList methods = bridge.findMethod(FindMethod.create()
+                    .matcher(MethodMatcher.create().usingStrings(key)));
+            for (MethodData m : methods) {
+                candidates.add(m.getDeclaredClassName());
+            }
+        }
+        int matches = 0;
+        String found = null;
+        int snapshots = 0;
+        for (String className : candidates) {
+            ClassDataList classes = bridge.findClass(FindClass.create()
+                    .matcher(ClassMatcher.create().className(className)));
+            for (ClassData c : classes) {
+                boolean gate = false;
+                boolean setter = false;
+                for (MethodData m : c.getMethods()) {
+                    if (m.getName().startsWith("<")) continue;
+                    if ("boolean".equals(m.getReturnTypeName())
+                            && m.getParamTypeNames().equals(java.util.List.of("boolean"))) {
+                        gate = true;
+                    }
+                    if ("void".equals(m.getReturnTypeName())
+                            && m.getParamTypeNames().equals(java.util.List.of("boolean"))) {
+                        setter = true;
+                    }
+                }
+                if (gate && setter) {
+                    matches++;
+                    found = c.getName();
+                    // The allow-list snapshot the patch also hooks: the one no-arg method
+                    // returning a non-primitive. Without it the self-profile request keeps
+                    // sending the server's own value and the background never arrives on
+                    // the user's own page, so the shape is checked with the gate.
+                    for (MethodData m : c.getMethods()) {
+                        if (m.getName().startsWith("<")) continue;
+                        if (!m.getParamTypeNames().isEmpty()) continue;
+                        String returns = m.getReturnTypeName();
+                        if ("void".equals(returns) || "boolean".equals(returns)
+                                || "int".equals(returns) || "long".equals(returns)
+                                || "double".equals(returns) || "float".equals(returns)) {
+                            continue;
+                        }
+                        snapshots++;
+                    }
+                }
+            }
+        }
+        if (matches != 1) {
+            fail("profile background gate (matched " + matches + " classes)");
+        } else if (snapshots != 1) {
+            fail("profile background snapshot in " + found
+                    + " (found " + snapshots + " no-arg holders)");
+        } else {
+            pass("profile background gate " + found);
+            pass("profile background snapshot (1 no-arg holder)");
+        }
     }
 
     private static void requireMethod(

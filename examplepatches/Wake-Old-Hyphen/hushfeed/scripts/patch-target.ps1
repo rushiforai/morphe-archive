@@ -93,3 +93,43 @@ function Get-DeclaredReportVersion {
     if ($named -cin @($Target.PackageVersions)) { return $named }
     return [string]$Target.PackageVersion
 }
+
+function Resolve-PatchVerificationTarget {
+    <# An alternate package is an explicit forced qualification probe, never declared support. #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][object]$Stock,
+        [Parameter(Mandatory = $true)][object]$Target,
+        [switch]$Force,
+        [string]$ProbePackage
+    )
+
+    if ([string]::IsNullOrWhiteSpace([string]$Stock.versionName)) {
+        throw 'The stock APK carries no versionName.'
+    }
+    $probe = -not [string]::IsNullOrEmpty($ProbePackage)
+    if ($probe) {
+        if (-not $Force) { throw '-ProbePackage requires -Force for an undeclared-package qualification.' }
+        if ($ProbePackage -notmatch '^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$') {
+            throw '-ProbePackage is not an Android package name.'
+        }
+        if ([string]$Stock.package -cne $ProbePackage) {
+            throw "The stock APK is $($Stock.package), not the requested probe package $ProbePackage."
+        }
+        if ($ProbePackage -ceq [string]$Target.PackageName) {
+            throw '-ProbePackage must name an undeclared package. Use -Force alone for a version probe.'
+        }
+    } elseif ([string]$Stock.package -cne [string]$Target.PackageName) {
+        throw "The stock APK is $($Stock.package), not the catalog's target $($Target.PackageName)."
+    }
+    $forced = $probe -or [string]$Stock.versionName -cnotin @($Target.PackageVersions)
+    if ($forced -and -not $Force) {
+        throw "The stock APK version $($Stock.versionName) is not declared. Pass -Force to qualify it."
+    }
+    return [pscustomobject]@{
+        PackageName = [string]$Stock.package
+        PackageVersion = [string]$Stock.versionName
+        Forced = [bool]$forced
+        Probe = [bool]$probe
+    }
+}

@@ -70,7 +70,8 @@ param(
     [string]$ReportPath,
     [string]$Java,
     [string]$DesktopJar,
-    [string]$Aapt2
+    [string]$Aapt2,
+    [string]$PackageName
 )
 
 $ErrorActionPreference = 'Stop'
@@ -89,7 +90,8 @@ $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
 # The app every check below is about, and whose signer the clean side carries: the one package the
 # catalog declares, as the other scripts read it.
 $catalog = Get-Content -LiteralPath (Join-Path $root 'patches-list.json') -Raw | ConvertFrom-Json
-$package = (Get-PatchTarget -PatchList $catalog).PackageName
+$target = Get-PatchTarget -PatchList $catalog -PackageName $PackageName
+$package = $target.PackageName
 
 function Resolve-Adb {
     param([string]$Explicit)
@@ -167,14 +169,20 @@ if (-not $PatchedApk -or -not (Test-Path -LiteralPath $PatchedApk -PathType Leaf
     throw 'No patched APK. Pass -PatchedApk, or -FromDevice -Serial <serial>.'
 }
 $patched = Get-ApkManifestFacts -Apk $PatchedApk -Aapt2 $Aapt2
+if (-not $FromDevice -and -not $PackageName) {
+    $target = Get-PatchTarget -PatchList $catalog -PackageName ([string]$patched.package)
+    $package = $target.PackageName
+}
 if ($patched.package -ne $package -or [string]::IsNullOrWhiteSpace($patched.versionName)) {
     throw "$PatchedApk is $($patched.package) $($patched.versionName), not a Telegram build ($package)."
 }
 
 if (-not $CleanApk) {
     $fixtures = if ($env:HUSHTELEGRAM_FIXTURE_DIR) { $env:HUSHTELEGRAM_FIXTURE_DIR } else { Join-Path $root 'fixtures' }
+    $fixtureName = Get-VendorFixtureName -Target $target -VersionName ([string]$patched.versionName) `
+        -VersionCode ([string]$patched.versionCode)
     $matching = @(Get-ChildItem -LiteralPath $fixtures -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.Extension -in '.apk', '.apkm', '.xapk' -and $_.Name -like "*$($patched.versionName)*" })
+        Where-Object { $_.Name -ceq $fixtureName })
     if ($matching.Count -ne 1) {
         throw ("No single fixture for Telegram $($patched.versionName) in $fixtures (found $($matching.Count)). " +
             'Pass -CleanApk with telegram.org''s build of that version.')
@@ -200,7 +208,7 @@ $metaSigners = @($catalog.patches | ForEach-Object { $_.compatibility } |
     ForEach-Object { $_.signatures } | Sort-Object -Unique)
 if ($metaSigners.Count -eq 0) { throw "patches-list.json declares no signer for $package to hold the clean APK to." }
 $cleanSigners = @(Get-SignerDigests -Apk $cleanBase)
-if (@($cleanSigners | Where-Object { $_ -in $metaSigners }).Count -eq 0) {
+if ($cleanSigners.Count -eq 0 -or @($cleanSigners | Where-Object { $_ -cnotin $metaSigners }).Count -gt 0) {
     throw "The clean APK at $CleanApk is signed by $($cleanSigners -join ', '), not by telegram.org; it is not a vendor build."
 }
 # The dex comparison's clean side: the whole bundle, merged as the CLI merged it before patching,

@@ -36,6 +36,26 @@ public final class SwipeToCreate {
     private SwipeToCreate() {
     }
 
+    /** Before any added native getter or reason read, decide whether this hook can act. */
+    public static int enabled() {
+        try {
+            return enabled(SwipeToCreate::switchedOn);
+        } catch (Throwable failure) {
+            // Even constructing the stateless supplier must leave the native setter alone.
+            HookStatus.threw(FamilyNames.SWIPE_TO_CREATE, "swipe gate", failure);
+            return 0;
+        }
+    }
+
+    static int enabled(BooleanSupplier on) {
+        try {
+            return on.getAsBoolean() ? 1 : 0;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SWIPE_TO_CREATE, "swipe gate", failure);
+            return 0;
+        }
+    }
+
     /**
      * Injected in the container's move, after the target is clamped and before the panels slide.
      * Answers 1, hold at Home, for a finger's move toward the camera that starts at Home or past it

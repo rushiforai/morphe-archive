@@ -324,8 +324,7 @@ public class StoryMarksTest {
         assertSame("the switch unreadable: Instagram's batch as it is", handed, StorySeen.toSend(ME, handed, batches, THROWS, ON, marks, BROKEN));
 
         Object retried = StorySeen.toRetry(ME, batch(A, B), batches, ON, OFF, marks, BROKEN);
-        assertNotNull(retried);
-        assertTrue("a retry held back goes out empty", ((Batch) retried).stories.isEmpty());
+        assertNull("a retry held back is canceled even when diagnostics fail", retried);
     }
 
     /** A mark made on one account never sends in another's batch, and what one account held back stays its own. */
@@ -378,24 +377,23 @@ public class StoryMarksTest {
     }
 
     /**
-     * A batch the store retries goes through the same choice, but never as null: held back, a new
-     * empty batch goes in its place; with nothing anonymous, Instagram's own. Only when no empty
-     * batch can be made does Instagram's go, and a failure making one is reported.
+     * A batch the store retries goes through the same choice: held back, null skips the request
+     * before claiming its pending entry. With anonymity off Instagram's original goes through. No factory
+     * failure may send the original while anonymity is active.
      */
     @Test
-    public void aRetriedBatchHeldBackGoesOutEmpty() {
+    public void aRetriedBatchHeldBackIsCanceled() {
         Batch handed = batch(A, B);
         Object retried = StorySeen.toRetry(ME, handed, batches, ON, OFF, marks, StorySeen.COUNTED);
-        assertNotNull(retried);
-        assertFalse(retried == handed);
-        assertTrue(((Batch) retried).stories.isEmpty());
+        assertNull(retried);
+        assertEquals("cancellation doesn't need a new batch", 0, batches.started);
         assertSame("views not anonymous", handed, StorySeen.toRetry(ME, handed, batches, OFF, ON, marks, StorySeen.COUNTED));
 
         toggle("111");
         assertHolds(StorySeen.toRetry(ME, batch(A, B), batches, ON, ON, marks, StorySeen.COUNTED), A);
 
         batches.startFull = true;
-        assertSame("no empty batch to be had: Instagram's goes", handed, StorySeen.toRetry(ME, handed, batches, ON, OFF, marks, StorySeen.COUNTED));
+        assertNull("no empty batch is needed to cancel", StorySeen.toRetry(ME, handed, batches, ON, OFF, marks, StorySeen.COUNTED));
         batches.startFull = false;
         StorySeen.Batches throwing = new StorySeen.Batches() {
             @Override
@@ -414,8 +412,7 @@ public class StoryMarksTest {
             }
         };
         HookStatus.clear();
-        assertSame(handed, StorySeen.toRetry(ME, handed, throwing, ON, OFF, marks, StorySeen.COUNTED));
-        assertReported(StorySeen.RETRY_HOOK);
+        assertNull(StorySeen.toRetry(ME, handed, throwing, ON, OFF, marks, StorySeen.COUNTED));
     }
 
     /** The real switches: the button needs both on, and both read off while paused or before settings are read. */

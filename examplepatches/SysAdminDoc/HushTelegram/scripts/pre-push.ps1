@@ -22,9 +22,7 @@ param(
     [Parameter(Position = 1)][string]$RemoteUrl,
     [string]$Root,
     [string[]]$ChangedPaths,
-    [string]$PushedRefs,
-    # How long a push waits for another push from this checkout to finish with the gate worktree.
-    [int]$GateLockTimeoutSeconds = 3600
+    [string]$PushedRefs
 )
 
 $ErrorActionPreference = 'Stop'
@@ -44,11 +42,12 @@ if ($env:HUSHTELEGRAM_SKIP_PRE_PUSH -eq '1') {
     exit 0
 }
 . (Join-Path $PSScriptRoot 'common.ps1')
+$Root = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Root)
 
 # A hook runs with git's own environment. User environment variables set after the shell
 # launched, or set in the user scope only, may be absent. Import the four this script and
 # its suites need from the registry so a gate worktree can find the desktop CLI, the
-# fixture folder, the build governor and the device serial.
+# fixture folder, the build wrapper and the device serial.
 foreach ($envName in @('HUSHTELEGRAM_DESKTOP_JAR', 'HUSHTELEGRAM_FIXTURE_DIR',
         'HUSHTELEGRAM_BUILD_WRAPPER', 'HUSHTELEGRAM_DEVICE_SERIAL')) {
     if (-not (Test-Path "Env:\$envName")) {
@@ -65,6 +64,10 @@ $script:pushedCommits = New-Object System.Collections.Generic.List[string]
 $script:publishedCommits = New-Object System.Collections.Generic.List[string]
 # What the remote advertises, read once by Get-RemoteHeld.
 $script:remoteHeld = $null
+$script:gateWorktrees = @{}
+$script:gateOwner = [guid]::NewGuid().ToString('N')
+$script:gateScratch = $null
+$script:gateTemp = $null
 # Whether a ref to main or a tag changes patches-bundle.json, the index Manager reads: an index
 # push. Decided ref by ref in Get-PushedPaths, since a new branch's whole tree always holds the
 # file, and pooled with main's paths it made a push of both an index push. -ChangedPaths is used
@@ -100,13 +103,10 @@ function Assert-PatchFixtures {
         throw "Patch verification requires the pushed tree's scripts/patch-target.ps1 at $helper. Restore it, then push again."
     }
     . $helper
-    $target = Get-PatchTarget -PatchList (Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json)
-    if ($target.PackageName -cne 'org.telegram.messenger.web') {
-        throw ("Patch verification has no retained fixture naming rule for $($target.PackageName). " +
-            'Update the fixture tests and this gate together before declaring another package.')
-    }
+    $targets = @(Get-PatchTargets -PatchList (Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json))
     $missing = @()
     $count = 0
+    foreach ($target in $targets) {
     foreach ($version in @($target.PackageVersions)) {
         $codes = @($target.PackageVersionCodes[$version] | Where-Object { $_ })
         if ($codes.Count -eq 0) {
@@ -116,7 +116,7 @@ function Assert-PatchFixtures {
             if ($code -notmatch '^\d+$') {
                 throw "patches-list.json declares the invalid version code $code for $($target.PackageName) $version. Correct it, then push again."
             }
-            $name = "telegram-web-$version-$code.apk"
+            $name = Get-VendorFixtureName -Target $target -VersionName $version -VersionCode $code
             $file = Join-Path $directory $name
             if (-not (Test-Path -LiteralPath $file -PathType Leaf) -or (Get-Item -LiteralPath $file).Length -eq 0) {
                 $missing += $name
@@ -124,8 +124,9 @@ function Assert-PatchFixtures {
             $count++
         }
     }
+    }
     if ($missing.Count -gt 0) {
-        throw ("HUSHTELEGRAM_FIXTURE_DIR is missing retained $($target.PackageName) build(s): " +
+        throw ('HUSHTELEGRAM_FIXTURE_DIR is missing retained Telegram build(s): ' +
             ($missing -join ', ') + ". Restore those vendor APKs in $directory, then push again.")
     }
     Write-Step "$count declared Telegram fixture(s) found"
@@ -344,81 +345,198 @@ function Invoke-CommitScript {
         # under Stop, and a failing suite says why on it.
         $preference = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
+        Push-Location -LiteralPath $Arguments['Root']
         try {
             & $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $Script @argv 2>&1 |
                 ForEach-Object { Write-Host "$_" }
         } finally {
+            Pop-Location
             $ErrorActionPreference = $preference
         }
     }
 }
 
-function Get-GateKey {
-    # Names this checkout's gate worktree and lock, so two checkouts never share either.
-    $hasher = [System.Security.Cryptography.SHA256]::Create()
-    try {
-        $digest = $hasher.ComputeHash([Text.Encoding]::UTF8.GetBytes([IO.Path]::GetFullPath($Root).ToLowerInvariant()))
-    } finally {
-        $hasher.Dispose()
-    }
-    return -join ($digest[0..5] | ForEach-Object { $_.ToString('x2') })
+function Copy-GateFile {
+    param([string]$Tree, [string]$RelativePath)
+    $source = Join-Path $Root $RelativePath
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { return }
+    $destination = Resolve-WithinRoot -Path (Join-Path $Tree $RelativePath) -Root $Tree
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+    Copy-Item -LiteralPath $source -Destination $destination -Force
 }
 
-function Enter-GateLock {
-    <#
-        One push at a time through this checkout's gate worktree. Two pushes from one checkout,
-        two agents sharing a tree for instance, would otherwise share it, and the second one's
-        checkout could land while the first one's build was still reading the tree, so the first
-        verdict would describe the second commit. Returns the held mutex; release it when done.
-    #>
-    $mutex = New-Object System.Threading.Mutex($false, "Local\hushtelegram-pre-push-$(Get-GateKey)")
-    $owned = $false
-    try {
-        $owned = $mutex.WaitOne([TimeSpan]::FromSeconds($GateLockTimeoutSeconds))
-    } catch [System.Threading.AbandonedMutexException] {
-        # The last holder ended without letting go. The worktree is reset before every build.
-        $owned = $true
+function Assert-IndexSource {
+    param([string]$Commit)
+    if (-not $Commit) { return }
+    $at = ([string](Invoke-HookGit @('-C', $Root, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim()
+    $dirty = @(Invoke-HookGit @('-C', $Root, 'status', '--porcelain', '--untracked-files=all'))
+    if ($at -ne $Commit -or $dirty.Count -gt 0) {
+        throw ('An index push checks the bundle and test results this checkout built, so it ' +
+            'has to come from a clean checkout of the commit it pushes. Commit or stash the ' +
+            'rest, check out ' + $Commit + ' and push again.')
     }
-    if (-not $owned) {
-        $mutex.Dispose()
-        throw ("Another push from this checkout held the gate worktree for $GateLockTimeoutSeconds " +
-            'seconds. Let it finish and push again.')
+}
+
+function Copy-IndexEvidence {
+    # Preserve the source dates used to reject stale results. A new checkout's dates describe
+    # the checkout, not the source used by the original build. Check its identity on both sides
+    # of the copy, and compare copied evidence hashes so a concurrent writer cannot mix a run.
+    param([string]$Tree, [string]$Commit)
+    Assert-IndexSource $Commit
+    if ($Commit) {
+        $files = Invoke-HookGit @('-C', $Root, 'ls-tree', '-r', '--name-only', '-z', $Commit)
+        foreach ($name in ((@($files) -join "`n") -split "`0")) {
+            if (-not $name) { continue }
+            $source = Join-Path $Root $name
+            $destination = Join-Path $Tree $name
+            if ((Test-Path -LiteralPath $source -PathType Leaf) -and (Test-Path -LiteralPath $destination -PathType Leaf)) {
+                [IO.File]::SetLastWriteTimeUtc($destination, [IO.File]::GetLastWriteTimeUtc($source))
+            }
+        }
     }
-    return $mutex
+    # Receipts are deliberately ignored by git and published beside the release. They are
+    # still required evidence for the strict index check, including a run without a local bundle.
+    foreach ($receipt in @(Get-ChildItem -LiteralPath $Root -Filter 'release-receipt-*.json' -File)) {
+        $before = (Get-FileHash -LiteralPath $receipt.FullName -Algorithm SHA256).Hash
+        Copy-GateFile -Tree $Tree -RelativePath $receipt.Name
+        $copied = (Get-FileHash -LiteralPath (Join-Path $Tree $receipt.Name) -Algorithm SHA256).Hash
+        $after = (Get-FileHash -LiteralPath $receipt.FullName -Algorithm SHA256).Hash
+        if ($before -ne $copied -or $before -ne $after) { throw "Index build evidence changed while it was copied: $($receipt.Name)" }
+    }
+    foreach ($directory in @('patches/build/release', 'patches/build/test-results/test',
+            'extensions/telegram/build/test-results/testDebugUnitTest')) {
+        $path = Join-Path $Root $directory
+        if (-not (Test-Path -LiteralPath $path -PathType Container)) { continue }
+        $pattern = if ($directory -eq 'patches/build/release') { '*.mpp' } else { '*.xml' }
+        foreach ($file in @(Get-ChildItem -LiteralPath $path -Filter $pattern -File)) {
+            $relative = "$directory/$($file.Name)"
+            $before = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+            Copy-GateFile -Tree $Tree -RelativePath $relative
+            $copied = (Get-FileHash -LiteralPath (Join-Path $Tree $relative) -Algorithm SHA256).Hash
+            $after = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+            if ($before -ne $copied -or $before -ne $after) { throw "Index build evidence changed while it was copied: $relative" }
+        }
+    }
+    Assert-IndexSource $Commit
 }
 
 function Get-GateWorktree {
-    <#
-        A clean worktree of $Commit in the temp directory, reused between pushes so its build
-        folder stays warm. Hold Enter-GateLock while using it.
-    #>
-    param([Parameter(Mandatory = $true)][string]$Commit)
-    $tree = Join-Path ([IO.Path]::GetTempPath()) "hushtelegram-pre-push-$(Get-GateKey)"
-    if (Test-Path -LiteralPath (Join-Path $tree '.git')) {
-        Invoke-HookGit @('-C', $tree, 'checkout', '--detach', '--force', '--quiet', $Commit) | Out-Null
-        Invoke-HookGit @('-C', $tree, 'clean', '-fdxq', '-e', 'build', '-e', '.gradle', '-e', 'local.properties') | Out-Null
+    # Each invocation owns a fresh parent, and each pushed tip owns one checkout beneath it.
+    # No other invocation checks out or cleans these sources, or writes these build outputs.
+    param([string]$Commit)
+    $key = if ($Commit) { $Commit } else { 'working' }
+    if ($script:gateWorktrees.ContainsKey($key)) { return $script:gateWorktrees[$key] }
+    if (-not $script:gateScratch) {
+        $temp = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/')
+        $scratch = [IO.Path]::GetFullPath((Join-Path $temp "hushtelegram-pre-push-$($script:gateOwner)"))
+        if ([IO.Path]::GetDirectoryName($scratch) -ine $temp) { throw 'The gate scratch directory is outside the temporary directory.' }
+        New-Item -ItemType Directory -Path $scratch | Out-Null
+        [IO.File]::WriteAllText((Join-Path $scratch 'owner'), $script:gateOwner)
+        $script:gateScratch = $scratch
+        $script:gateTemp = $temp
+    }
+    $tree = Join-Path $script:gateScratch $key
+    $script:gateWorktrees[$key] = $tree
+    $base = $Commit
+    if (-not $base) {
+        $base = Invoke-WithoutGitEnvironment { Invoke-GitQuietly @('-C', $Root, 'rev-parse', '--verify', 'HEAD') }
+        if ($LASTEXITCODE -ne 0) { $base = $null }
+    }
+    if ($base) {
+        Invoke-HookGit @('-C', $Root, 'worktree', 'add', '--detach', '--quiet', $tree, ([string]$base).Trim()) | Out-Null
     } else {
-        if (Test-Path -LiteralPath $tree) { Remove-Item -LiteralPath $tree -Recurse -Force }
-        Invoke-HookGit @('-C', $Root, 'worktree', 'prune') | Out-Null
-        Invoke-HookGit @('-C', $Root, 'worktree', 'add', '--detach', '--quiet', $tree, $Commit) | Out-Null
+        New-Item -ItemType Directory -Path $tree | Out-Null
+    }
+    if (-not $Commit) {
+        # A run by hand checks current edits too. Overlay the tracked and ordinary untracked
+        # sources, omitting build folders, and retain deletions from the current working tree.
+        $files = Invoke-HookGit @('-C', $Root, 'ls-files', '--cached', '--others', '--exclude-standard', '-z')
+        $names = @(((@($files) -join "`n") -split "`0") | Where-Object {
+            $_ -and $_ -notmatch '(^|/)(\.git|\.gradle|build)(/|$)' })
+        if ($base) {
+            $baseline = Invoke-HookGit @('-C', $tree, 'ls-files', '-z')
+            foreach ($name in ((@($baseline) -join "`n") -split "`0")) {
+                if ($name -and -not (Test-Path -LiteralPath (Join-Path $Root $name) -PathType Leaf)) {
+                    Remove-Item -LiteralPath (Join-Path $tree $name) -Force -ErrorAction SilentlyContinue
+                }
+            }
+        }
+        foreach ($name in $names) { Copy-GateFile -Tree $tree -RelativePath $name }
     }
     $properties = Join-Path $Root 'local.properties'
     if (Test-Path -LiteralPath $properties -PathType Leaf) {
-        Copy-Item -LiteralPath $properties -Destination (Join-Path $tree 'local.properties') -Force
+        Copy-GateFile -Tree $tree -RelativePath 'local.properties'
     }
     # docs/sources.md is local and ignored, so a clean copy of the commit lacks it. The ledger's
     # suite holds the page to the ledger, so the gate checks the same page an in-place run would.
     $sourcesPage = Join-Path $Root 'docs/sources.md'
     if (Test-Path -LiteralPath $sourcesPage -PathType Leaf) {
-        $gateDocs = Join-Path $tree 'docs'
-        New-Item -ItemType Directory -Force -Path $gateDocs | Out-Null
-        Copy-Item -LiteralPath $sourcesPage -Destination (Join-Path $gateDocs 'sources.md') -Force
+        Copy-GateFile -Tree $tree -RelativePath 'docs/sources.md'
     }
-    $at = ([string](Invoke-HookGit @('-C', $tree, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim()
-    if ($at -ne $Commit) { throw "The gate worktree $tree is at $at, not $Commit." }
-    $left = @(Invoke-HookGit @('-C', $tree, 'status', '--porcelain'))
-    if ($left.Count -gt 0) { throw "The gate worktree $tree is not clean: $($left -join '; ')" }
+    Assert-GateUnchanged -Tree $tree -Commit $Commit -Step 'checkout'
+    if ($script:rewritesIndex) { Copy-IndexEvidence -Tree $tree -Commit $Commit }
     return $tree
+}
+
+function Assert-GateUnchanged {
+    param([string]$Tree, [string]$Commit, [string]$Step)
+    if (-not $Commit) { return }
+    $at = ([string](Invoke-HookGit @('-C', $Tree, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim()
+    $dirty = @(Invoke-HookGit @('-C', $Tree, 'status', '--porcelain', '--untracked-files=all'))
+    if ($at -ne $Commit -or $dirty.Count -gt 0) {
+        throw "The owned gate worktree changed during $Step, so its result no longer describes $Commit."
+    }
+}
+
+function Remove-GateReparsePoints {
+    # Git can leave an ignored NTFS junction behind while reporting worktree removal success.
+    # Unlink entries inside the owned checkout without ever enumerating their targets.
+    param([string]$Tree)
+    if (-not (Test-Path -LiteralPath $Tree -PathType Container)) { return }
+    $pending = New-Object 'System.Collections.Generic.Stack[string]'
+    $pending.Push($Tree)
+    while ($pending.Count -gt 0) {
+        foreach ($entry in [IO.Directory]::GetFileSystemEntries($pending.Pop())) {
+            $attributes = [IO.File]::GetAttributes($entry)
+            if ($attributes -band [IO.FileAttributes]::ReparsePoint) {
+                if ($attributes -band [IO.FileAttributes]::Directory) { [IO.Directory]::Delete($entry) }
+                else { [IO.File]::Delete($entry) }
+            } elseif ($attributes -band [IO.FileAttributes]::Directory) { $pending.Push($entry) }
+        }
+    }
+}
+
+function Remove-GateWorktrees {
+    if (-not $script:gateScratch) { return }
+    $scratch = [IO.Path]::GetFullPath($script:gateScratch)
+    if ([IO.Path]::GetDirectoryName($scratch) -ine $script:gateTemp -or
+            (Get-Item -LiteralPath $scratch -Force).Attributes -band [IO.FileAttributes]::ReparsePoint -or
+            [IO.File]::ReadAllText((Join-Path $scratch 'owner')) -ne $script:gateOwner) {
+        throw "Refusing to clean a gate scratch directory without this invocation's ownership: $scratch"
+    }
+    $registered = @(Invoke-HookGit @('-C', $Root, 'worktree', 'list', '--porcelain') |
+        Where-Object { $_ -like 'worktree *' } | ForEach-Object { [IO.Path]::GetFullPath($_.Substring(9)) })
+    foreach ($tree in $script:gateWorktrees.Values) {
+        $resolved = [IO.Path]::GetFullPath($tree)
+        if ([IO.Path]::GetDirectoryName($resolved) -ine $scratch) { throw "Refusing to clean unexpected gate checkout $resolved" }
+        if ((Test-Path -LiteralPath $resolved) -and
+                (Get-Item -LiteralPath $resolved -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            throw "Refusing to clean a redirected gate checkout $resolved"
+        }
+        Remove-GateReparsePoints -Tree $resolved
+        if ($registered -contains $resolved) {
+            Invoke-HookGit @('-C', $Root, 'worktree', 'remove', '--force', $resolved) | Out-Null
+        } elseif (Test-Path -LiteralPath $resolved) {
+            Remove-Item -LiteralPath $resolved -Recurse -Force
+        }
+    }
+    $owner = Join-Path $scratch 'owner'
+    if (@([IO.Directory]::GetFileSystemEntries($scratch) | Where-Object { $_ -ine $owner }).Count -gt 0) {
+        throw "Refusing to remove unexpected entries beside the owned gate checkouts in $scratch"
+    }
+    Remove-Item -LiteralPath $owner -Force
+    # No recursive parent delete. Any unexpected sibling is left alone and reported.
+    [IO.Directory]::Delete($scratch)
 }
 
 Push-Location $Root
@@ -647,46 +765,15 @@ try {
         }
     }
 
-    # Every gate below checks the tip of each pushed ref, and checks it in place only when it is HEAD
-    # and nothing in the working tree differs from it. Everything else goes to a clean worktree of the
-    # commit. Uncommitted work that isn't in the push can fail it (another agent's did, twice on
-    # 2026-09-21) or pass it, and a push of anything but HEAD would otherwise have HEAD checked in
-    # its place. The whole tree counts: the tests read README.md, patches-list.json, the artwork
-    # and NOTICE as well as the sources, the release facts are those same files, and the script
-    # contract tests copy them into their fixtures.
+    # Every gate checks each pushed tip in its own checkout, even clean HEAD. Independent pushes
+    # therefore share neither sources nor outputs. Runs by hand snapshot current edits instead.
     if ($PSBoundParameters.ContainsKey('ChangedPaths')) {
-        # A run by hand names its paths itself and checks this working tree as it stands.
-        $head = $null
-        $dirty = @()
         $gateCommits = @($null)
-    } elseif ($touchesBuildAdvisories -or $touchesRelease -or $touchesScripts -or $touchesContracts -or $touchesTelegramSources) {
-        $head = ([string](Invoke-HookGit @('-C', $Root, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim()
-        $dirty = @(Invoke-HookGit @('-C', $Root, 'status', '--porcelain', '--untracked-files=all'))
+    } else {
         $gateCommits = @($script:pushedCommits)
-        if ($gateCommits.Count -eq 0) { $gateCommits = @($head) }
-        if ($dirty.Count -gt 0) {
-            $shown = @($dirty | Select-Object -First 5 | ForEach-Object { $_.Trim() }) -join '; '
-            Write-Step ("uncommitted changes in the working tree ($shown), so each pushed ref's tip is " +
-                'checked in a clean worktree instead of this working tree')
+        if ($gateCommits.Count -eq 0) {
+            $gateCommits = @(([string](Invoke-HookGit @('-C', $Root, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim())
         }
-    }
-    # A commit is checked in place when it is HEAD of a clean tree, or when a run by hand names none.
-    function Test-InPlace([string]$Commit) { return -not $Commit -or ($dirty.Count -eq 0 -and $Commit -eq $head) }
-    # An in-place check reads this working tree, and another agent can change it during a build
-    # that takes minutes. The result then covers the commit plus that edit, so the tree is read
-    # again after each in-place step and the push stops if it moved. A run by hand checks the
-    # tree as it stands and has nothing to compare.
-    function Assert-TreeUnchanged([string]$Step) {
-        if (-not $head) { return }
-        $nowHead = ([string](Invoke-HookGit @('-C', $Root, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim()
-        $nowDirty = @(Invoke-HookGit @('-C', $Root, 'status', '--porcelain', '--untracked-files=all'))
-        if ($nowHead -eq $head -and $nowDirty.Count -eq 0) { return }
-        $moved = if ($nowHead -ne $head) { "HEAD moved from $head to $nowHead" } else {
-            @($nowDirty | Select-Object -First 5 | ForEach-Object { $_.Trim() }) -join '; '
-        }
-        throw ("The working tree changed while $Step ran in place ($moved), so the result covers " +
-            'more than the pushed commit. Push again: a tree with uncommitted changes is checked ' +
-            'in a clean worktree of the commit instead.')
     }
 
     # Script, notice, failure message. The contract tests run for every script change and for the
@@ -721,101 +808,52 @@ try {
         $suites += , @('scripts/test-telegram-sources.ps1', 'the Telegram source ledger or what it reads changed, running its rules',
             'The Telegram source ledger does not keep its rules.')
     }
-    if ($suites.Count -gt 0) {
-        $scriptsLock = $null
-        try {
-            foreach ($scriptsCommit in $gateCommits) {
-                if (Test-InPlace $scriptsCommit) {
-                    $scriptsRoot = $Root
-                } else {
-                    if (-not $scriptsLock) { $scriptsLock = Enter-GateLock }
-                    $scriptsRoot = Get-GateWorktree -Commit $scriptsCommit
-                }
-                try {
-                foreach ($suite in $suites) {
-                    $suiteScript = Join-Path $scriptsRoot $suite[0]
-                    if (-not (Test-Path -LiteralPath $suiteScript -PathType Leaf)) {
-                        if ($paths.Contains($suite[0])) {
-                            throw "$($suite[0]) was deleted in this push. The gate scripts must not lose their tests."
-                        }
-                        # Every suite listed here is one the gate expects. Skipping a missing one
-                        # with a note is how three of them were absent from the first commit on.
-                        $inCommit = if ($scriptsCommit) { $scriptsCommit } else { 'the working tree' }
-                        throw "$($suite[0]) is missing from $inCommit. The gate expects it, so the push stops."
-                    }
-                    $where = if ($scriptsRoot -eq $Root) { '' } else { " for $scriptsCommit in $scriptsRoot" }
-                    Write-Step ($suite[1] + $where)
-                    $global:LASTEXITCODE = 0
-                    # In place, the working tree is the commit, helpers and all. A gate worktree's
-                    # suite runs where nothing the working tree holds can reach it.
-                    if ($scriptsRoot -eq $Root) {
-                        Invoke-WithoutGitEnvironment { & $suiteScript -Root $scriptsRoot }
-                    } else {
-                        Invoke-CommitScript -Script $suiteScript -Arguments @{ Root = $scriptsRoot }
-                    }
-                    if ($LASTEXITCODE -ne 0) { throw $suite[2] }
-                }
-                } finally {
-                    if ($scriptsRoot -eq $Root) { Assert-TreeUnchanged 'the script tests' }
-                }
-            }
-        } finally {
-            if ($scriptsLock) {
-                $scriptsLock.ReleaseMutex()
-                $scriptsLock.Dispose()
-            }
-        }
+    $tasks = @(':patches:buildDependencyReport')
+    if ($touchesCode) { $tasks += @(
+        ':extensions:telegram:test',
+        ':patches:test',
+        ':extensions:shared:library:lint',
+        ':extensions:telegram:lint'
+    ) }
+    $wrapper = $env:HUSHTELEGRAM_BUILD_WRAPPER
+    if ($touchesBuildAdvisories -and $wrapper -and -not (Test-Path -LiteralPath $wrapper -PathType Leaf)) {
+        throw "HUSHTELEGRAM_BUILD_WRAPPER names $wrapper, which is not there."
     }
 
-    if ($touchesBuildAdvisories) {
-        if ($touchesCode) {
-            Write-Step 'extension or patch sources, or a root file their tests read, changed, running the runtime tests and the API level check'
-        }
-        Write-Step 'checking advisories for the resolved build, test and provided dependencies'
-
-        # The lint runs alongside the tests because the tests cannot see this class of defect at
-        # all: they run on a desktop JVM, where every java.util method exists whatever the
-        # payload's floor says. Only the API level check reads minSdk, and it reads the SDK_INT
-        # guards with it, so a call that is properly guarded stays quiet.
-        # The patch module has tests of its own, on the register helpers and the anchors, and
-        # nothing before a push ran them: they only ran on the way to generatePatchesList.
-        $tasks = @(':patches:buildDependencyReport')
-        if ($touchesCode) { $tasks += @(
-            ':extensions:telegram:test',
-            ':patches:test',
-            ':extensions:shared:library:lint',
-            ':extensions:telegram:lint'
-        ) }
-        # HUSHTELEGRAM_BUILD_WRAPPER names a PowerShell script that runs Gradle on this machine,
-        # called as <wrapper> -ProjectDir <repository> -Tasks <task>...: a machine that shares its
-        # CPU and memory between several builds points it at a governor. Unset, the Gradle
-        # wrapper in the repository runs the tasks directly.
-        $wrapper = $env:HUSHTELEGRAM_BUILD_WRAPPER
-        if ($wrapper -and -not (Test-Path -LiteralPath $wrapper -PathType Leaf)) {
-            throw "HUSHTELEGRAM_BUILD_WRAPPER names $wrapper, which is not there."
-        }
-
-        $gateLock = $null
-        try {
-            foreach ($gateCommit in $gateCommits) {
-                if (Test-InPlace $gateCommit) {
-                    $gateRoot = $Root
-                } else {
-                    if (-not $gateLock) { $gateLock = Enter-GateLock }
-                    $gateRoot = Get-GateWorktree -Commit $gateCommit
-                    Write-Step "building $gateCommit in $gateRoot"
+    if ($suites.Count -gt 0 -or $touchesBuildAdvisories -or $touchesRelease) {
+    foreach ($gateCommit in $gateCommits) {
+        $gateRoot = Get-GateWorktree -Commit $gateCommit
+        $where = if ($gateCommit) { " for $gateCommit in $gateRoot" } else { " in $gateRoot" }
+        foreach ($suite in $suites) {
+            $suiteScript = Join-Path $gateRoot $suite[0]
+            if (-not (Test-Path -LiteralPath $suiteScript -PathType Leaf)) {
+                if ($paths.Contains($suite[0])) {
+                    throw "$($suite[0]) was deleted in this push. The gate scripts must not lose their tests."
                 }
-                try {
-                $savedFixtureDir = $env:HUSHTELEGRAM_FIXTURE_DIR
-                $savedRequiredFixtures = $env:HUSHTELEGRAM_REQUIRE_FIXTURES
-                try {
+                $inCommit = if ($gateCommit) { $gateCommit } else { 'the working tree' }
+                throw "$($suite[0]) is missing from $inCommit. The gate expects it, so the push stops."
+            }
+            Write-Step ($suite[1] + $where)
+            $global:LASTEXITCODE = 0
+            Invoke-CommitScript -Script $suiteScript -Arguments @{ Root = $gateRoot }
+            if ($LASTEXITCODE -ne 0) { throw $suite[2] }
+            Assert-GateUnchanged -Tree $gateRoot -Commit $gateCommit -Step 'the script tests'
+        }
+
+        if ($touchesBuildAdvisories) {
+            if ($touchesCode) {
+                Write-Step ('extension or patch sources, or a root file their tests read, changed, ' +
+                    'running the runtime tests and the API level check' + $where)
+            }
+            Write-Step ('checking advisories for the resolved build, test and provided dependencies' + $where)
+            $savedFixtureDir = $env:HUSHTELEGRAM_FIXTURE_DIR
+            $savedRequiredFixtures = $env:HUSHTELEGRAM_REQUIRE_FIXTURES
+            try {
                 if ($touchesCode) {
                     $env:HUSHTELEGRAM_FIXTURE_DIR = Assert-PatchFixtures -ProjectRoot $gateRoot
                     $env:HUSHTELEGRAM_REQUIRE_FIXTURES = '1'
                 }
-
-                # The Morphe settings plugin resolves from GitHub Packages, which needs a reader
-                # token. Require the fixtures before authenticating or starting that build.
+                # Require the pushed catalog's fixtures before authenticating or starting Gradle.
                 if (-not $env:GITHUB_ACTOR -or -not $env:GITHUB_TOKEN) {
                     if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
                         throw ('Set GITHUB_ACTOR and GITHUB_TOKEN, or install the gh CLI: the patches ' +
@@ -831,11 +869,14 @@ try {
                 }
                 $global:LASTEXITCODE = 0
                 Invoke-WithoutGitEnvironment {
+                    Push-Location -LiteralPath $gateRoot
+                    try {
                     if ($wrapper) {
                         & $wrapper -ProjectDir $gateRoot -Tasks $tasks
                     } else {
                         & (Join-Path $gateRoot 'gradlew.bat') -p $gateRoot @tasks
                     }
+                    } finally { Pop-Location }
                 }
                 if ($LASTEXITCODE -ne 0) {
                     if (-not $touchesCode) {
@@ -845,137 +886,67 @@ try {
                         'test failed, an API level above the payload floor was reached, or the build could ' +
                         'not start. Push anyway with HUSHTELEGRAM_SKIP_PRE_PUSH=1.')
                 }
+                Assert-GateUnchanged -Tree $gateRoot -Commit $gateCommit -Step 'the runtime test build'
                 $buildAdvisories = Join-Path $gateRoot 'scripts/build-advisories.ps1'
                 if (-not (Test-Path -LiteralPath $buildAdvisories -PathType Leaf)) {
                     throw "The resolved build advisory checker is missing: $buildAdvisories"
                 }
                 $global:LASTEXITCODE = 0
-                if (Test-InPlace $gateCommit) {
-                    Invoke-WithoutGitEnvironment { & $buildAdvisories -Root $gateRoot }
-                } else {
-                    Invoke-CommitScript -Script $buildAdvisories -Arguments @{ Root = $gateRoot }
-                }
+                Invoke-CommitScript -Script $buildAdvisories -Arguments @{ Root = $gateRoot }
                 if ($LASTEXITCODE -ne 0) { throw 'The resolved build advisory scan did not pass.' }
-                } finally {
-                    $env:HUSHTELEGRAM_FIXTURE_DIR = $savedFixtureDir
-                    $env:HUSHTELEGRAM_REQUIRE_FIXTURES = $savedRequiredFixtures
+                Assert-GateUnchanged -Tree $gateRoot -Commit $gateCommit -Step 'the build advisory scan'
+            } finally {
+                $env:HUSHTELEGRAM_FIXTURE_DIR = $savedFixtureDir
+                $env:HUSHTELEGRAM_REQUIRE_FIXTURES = $savedRequiredFixtures
+            }
+        }
+
+        if ($touchesRelease) {
+            Write-Step ('a published file changed, checking the release facts' + $where)
+            $factsFailed = 'The release facts do not agree. Fix them or push with HUSHTELEGRAM_SKIP_PRE_PUSH=1.'
+            $validate = Join-Path $gateRoot 'scripts/validate-release-facts.ps1'
+            $arguments = @{ Root = $gateRoot }
+            if ($script:rewritesIndex) {
+                # The local evidence was copied from clean pushed HEAD before any gate ran.
+                # Validation reads only this invocation's copy, including the release bundle.
+                $arguments['VerifyPublishedAsset'] = $true
+                $artifacts = @(Get-ChildItem -LiteralPath (Join-Path $gateRoot 'patches/build/release') `
+                    -Filter '*.mpp' -File -ErrorAction SilentlyContinue)
+                $indexPath = Join-Path $gateRoot 'patches-bundle.json'
+                $indexVersion = $null
+                if (Test-Path -LiteralPath $indexPath -PathType Leaf) {
+                    try {
+                        $indexVersion = [string](Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json).version
+                    } catch {
+                        throw "patches-bundle.json is not JSON the release check can read: $($_.Exception.Message)"
+                    }
                 }
-                } finally {
-                    if ($gateRoot -eq $Root) { Assert-TreeUnchanged 'the runtime test build' }
+                $forIndex = @($artifacts | Where-Object { $_.Name -eq "patches-$indexVersion.mpp" })
+                $builtHere = if ($artifacts.Count -eq 1) { $artifacts[0] } elseif ($forIndex.Count -eq 1) { $forIndex[0] }
+                if ($builtHere) {
+                    $arguments['ArtifactPath'] = $builtHere.FullName
+                    $among = if ($artifacts.Count -gt 1) { "found $($artifacts.Count) bundles, so " } else { '' }
+                    Write-Step "${among}the hosted asset is compared with the owned copy of $($builtHere.Name)"
+                } else {
+                    $arguments['ArtifactIsHosted'] = $true
+                    $found = if ($artifacts.Count -gt 1) { "found $($artifacts.Count) bundles and none is patches-$indexVersion.mpp" } else { 'no local bundle here' }
+                    Write-Step "$found, so the hosted asset is downloaded and checked on its own"
+                }
+            } else {
+                $arguments['SkipDescriptionTestCount'] = $true
+                $arguments['AllowPublishedIndexLag'] = $true
+                # A source-changing gate just built this exact checkout. Any other gate has no
+                # test results belonging to its tip and must not import another run's results.
+                if (-not $touchesCode -and (Get-Command $validate).Parameters.ContainsKey('SkipTestResults')) {
+                    $arguments['SkipTestResults'] = $true
                 }
             }
-        } finally {
-            if ($gateLock) {
-                $gateLock.ReleaseMutex()
-                $gateLock.Dispose()
-            }
+            $global:LASTEXITCODE = 0
+            Invoke-CommitScript -Script $validate -Arguments $arguments
+            if ($LASTEXITCODE -ne 0) { throw $factsFailed }
+            Assert-GateUnchanged -Tree $gateRoot -Commit $gateCommit -Step 'the release facts check'
         }
     }
-
-    if ($touchesRelease) {
-        Write-Step 'a published file changed, checking the release facts'
-        # The description's test count belongs to the release it describes. Holding this tree to
-        # it only means something while the description is being rewritten, which is when
-        # patches-bundle.json is one of the files that moved, on main or a tag.
-        $describesThisTree = $script:rewritesIndex
-        $factsFailed = 'The release facts do not agree. Fix them or push with HUSHTELEGRAM_SKIP_PRE_PUSH=1.'
-        if ($describesThisTree) {
-            # The index push holds the bundle and the test results this checkout built to the new
-            # description, and those exist only here, so it has to be a clean checkout of the
-            # commit it pushes: anything else would check other files than the ones going out.
-            $elsewhere = @($gateCommits | Where-Object { -not (Test-InPlace $_) })
-            if ($elsewhere.Count -gt 0) {
-                throw ('An index push checks the bundle and test results this checkout built, so it ' +
-                    'has to come from a clean checkout of the commit it pushes. Commit or stash the ' +
-                    'rest, check out ' + ($elsewhere -join ', ') + ' and push again.')
-            }
-            $validate = Join-Path $Root 'scripts/validate-release-facts.ps1'
-            try {
-            $global:LASTEXITCODE = 0
-            # The release copy buildAndroid leaves in patches/build/release, which no other task
-            # writes. patches/build/libs was read here until 2026-09-21: the patch tests this hook
-            # runs rerun :patches:jar, which put the plain jar back over the bundle under the same
-            # name, and the sources and javadoc jars share the .mpp extension there as well.
-            $artifacts = @(Get-ChildItem -LiteralPath (Join-Path $Root 'patches/build/release') `
-                -Filter '*.mpp' -File -ErrorAction SilentlyContinue)
-            # The bundle this checkout built, so the indexed URL, its hash and the hosted checksum
-            # entry can all be compared against something real: the only one there, whatever its
-            # name, or among several the one named for the version the index publishes. With none
-            # of those the hosted asset is downloaded and held to every other check a local build
-            # gets. This push is the one that hands a release to Manager users, and it used to go
-            # out with the hosted bundle unread whenever build/release didn't hold exactly one.
-            $indexPath = Join-Path $Root 'patches-bundle.json'
-            $indexVersion = $null
-            if (Test-Path -LiteralPath $indexPath -PathType Leaf) {
-                try {
-                    $indexVersion = [string](Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json).version
-                } catch {
-                    throw "patches-bundle.json is not JSON the release check can read: $($_.Exception.Message)"
-                }
-            }
-            $forIndex = @($artifacts | Where-Object { $_.Name -eq "patches-$indexVersion.mpp" })
-            $builtHere = if ($artifacts.Count -eq 1) { $artifacts[0] } elseif ($forIndex.Count -eq 1) { $forIndex[0] }
-            if ($builtHere) {
-                $among = if ($artifacts.Count -gt 1) { "found $($artifacts.Count) bundles, so " } else { '' }
-                Write-Step "${among}the hosted asset is compared with $($builtHere.Name), built here"
-                & $validate -Root $Root -VerifyPublishedAsset -ArtifactPath $builtHere.FullName
-            } else {
-                $found = if ($artifacts.Count -gt 1) {
-                    "found $($artifacts.Count) bundles and none is patches-$indexVersion.mpp"
-                } else {
-                    'no local bundle here'
-                }
-                Write-Step "$found, so the hosted asset is downloaded and checked on its own"
-                & $validate -Root $Root -VerifyPublishedAsset -ArtifactIsHosted
-            }
-            if ($LASTEXITCODE -ne 0) { throw $factsFailed }
-            } finally {
-                Assert-TreeUnchanged 'the release facts check'
-            }
-        } else {
-            # Every other push checks the files it carries, against the published index it leaves
-            # alone. The indexed URL is still fetched; only the byte-for-byte hash comparison needs
-            # a local bundle, and at any time but an index push build/release holds a bundle built
-            # from whatever the tree was then. A release source commit reaches GitHub before its tag
-            # and bundle exist, so the unchanged index may keep naming the previous release.
-            $factsLock = $null
-            try {
-                foreach ($factsCommit in $gateCommits) {
-                    $arguments = @{ SkipDescriptionTestCount = $true; AllowPublishedIndexLag = $true }
-                    if (Test-InPlace $factsCommit) {
-                        $factsRoot = $Root
-                    } else {
-                        if (-not $factsLock) { $factsLock = Enter-GateLock }
-                        $factsRoot = Get-GateWorktree -Commit $factsCommit
-                        Write-Step "checking the release facts of $factsCommit in $factsRoot"
-                    }
-                    # The pushed commit's own check, which reads its own helpers. In the worktree its
-                    # build folders can hold another commit's test results, so they are left unread
-                    # there, by any check that knows how.
-                    $validate = Join-Path $factsRoot 'scripts/validate-release-facts.ps1'
-                    if ($factsRoot -ne $Root -and (Get-Command $validate).Parameters.ContainsKey('SkipTestResults')) {
-                        $arguments['SkipTestResults'] = $true
-                    }
-                    try {
-                    $global:LASTEXITCODE = 0
-                    if ($factsRoot -eq $Root) {
-                        & $validate -Root $factsRoot @arguments
-                    } else {
-                        $arguments['Root'] = $factsRoot
-                        Invoke-CommitScript -Script $validate -Arguments $arguments
-                    }
-                    if ($LASTEXITCODE -ne 0) { throw $factsFailed }
-                    } finally {
-                        if ($factsRoot -eq $Root) { Assert-TreeUnchanged 'the release facts check' }
-                    }
-                }
-            } finally {
-                if ($factsLock) {
-                    $factsLock.ReleaseMutex()
-                    $factsLock.Dispose()
-                }
-            }
-        }
     }
 
     if (-not $touchesScripts -and -not $touchesCode -and -not $touchesRelease -and -not $touchesContracts -and
@@ -985,5 +956,5 @@ try {
     Write-Step 'ok'
     exit 0
 } finally {
-    Pop-Location
+    try { Remove-GateWorktrees } finally { Pop-Location }
 }

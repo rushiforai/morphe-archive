@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.NeutralNativePath
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -143,6 +144,8 @@ class StopReelsScrollingHookTest {
                     val classes = classesOf(bundle, types).values
                     assertEquals("$what: the viewer, the pager, AndroidX's pager and the layout", types, classes.map { it.type }.toSet())
                     val context = PatchContexts.of(classes)
+                    val originals = classes.flatMap { context.mutableClassDefBy(it.type).methods }
+                        .filter { it.implementation != null }.associateWith(::NeutralNativePath)
 
                     context.stop()
 
@@ -163,6 +166,16 @@ class StopReelsScrollingHookTest {
                     for (name in PULL_TOUCHES) {
                         val touch = context.touch(name)
                         assertPullAsks(what, touch, free = (touch.code()[1] as OneRegisterInstruction).registerA)
+                    }
+                    for ((method, original) in originals) {
+                        val added = method.code().indices.flatMap { at ->
+                            when (method.code()[at].referenceText()) {
+                                PAGER_HOOK, PULL_HOOK -> (at until at + 5).toList()
+                                USER_INPUT_HOOK -> (at until at + 2).toList()
+                                else -> emptyList()
+                            }
+                        }.toSet()
+                        original.assertPreserved("$what ${method.name}", method, added)
                     }
                 }
                 checked += version

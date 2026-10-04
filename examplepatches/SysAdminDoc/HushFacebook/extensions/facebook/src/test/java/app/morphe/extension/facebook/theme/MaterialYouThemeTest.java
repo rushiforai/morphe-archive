@@ -10,6 +10,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 
 import org.junit.After;
 import org.junit.Before;
@@ -176,6 +179,26 @@ public class MaterialYouThemeTest {
             assertNotEquals(token + " kept Facebook's blue", tint, drawn);
             assertSameLightness(token.name(), tint | 0xFF000000, drawn | 0xFF000000);
         }
+    }
+
+    /**
+     * Issue #72: with AMOLED in the build its hook goes first, and an unread notification's row
+     * reaches this one at AMOLED's 25%. It takes the palette's accent at that alpha. The same blue
+     * at an alpha AMOLED doesn't give, or on another token, stays Facebook's.
+     */
+    @Test
+    public void amoledsStrongerUnreadTintTakesThePalette() {
+        DarkMode.answer(true);
+        Token row = Token.NEW_NOTIFICATION_BACKGROUND;
+        int amoled = AmoledTheme.apply(DARK[row.ordinal()], row);
+        int drawn = MaterialYouTheme.fds(amoled, row);
+        assertEquals("keeps AMOLED's alpha", AmoledTheme.NEW_NOTIFICATION_ALPHA, drawn >>> 24);
+        assertEquals("the palette's accent", palette.sameLightness(TonePalette.ACCENT, amoled), drawn);
+        assertNotEquals("kept Facebook's blue", amoled, drawn);
+
+        assertEquals("an alpha AMOLED doesn't give", 0x332D88FF, MaterialYouTheme.fds(0x332D88FF, row));
+        assertEquals("AMOLED's alpha on another token", 0x402D88FF,
+                MaterialYouTheme.fds(0x402D88FF, Token.ACCENT_DEEMPHASIZED));
     }
 
     /** Issue #37: the Like button's blue after you like, a dark-only colour, takes the palette. */
@@ -628,6 +651,33 @@ public class MaterialYouThemeTest {
 
         Context amoled = ColourResources.context(Collections.singletonMap(ColourResources.VIDEO_BAR, 0xFF000000));
         assertEquals("AMOLED's black", 0xFF000000, MaterialYouTheme.getColor(amoled, ColourResources.VIDEO_BAR, true));
+    }
+
+    /**
+     * The feed's composer row (issue #37): Litho reads SURFACE_BACKGROUND's #252728 as a drawable of
+     * the colour resource. In dark mode it takes the palette, on its own copy of the drawable's state,
+     * so another drawable of the same resource keeps Facebook's grey. Light mode, another colour and
+     * a drawable that is no plain colour come back as they were.
+     */
+    @Test
+    public void theComposerRowsDrawableTakesThePaletteInDarkMode() {
+        ColorDrawable composer = new ColorDrawable(0xFF252728);
+        Drawable sibling = composer.getConstantState().newDrawable();
+
+        DarkMode.answer(true);
+        Drawable themed = MaterialYouTheme.recolour(composer);
+        assertEquals("the composer row", palette.sameLightness(TonePalette.NEUTRAL, 0xFF252728),
+                ((ColorDrawable) themed).getColor());
+        assertEquals("the resource's other drawables", 0xFF252728, ((ColorDrawable) sibling).getColor());
+        ColorDrawable white = new ColorDrawable(0xFFFFFFFF);
+        assertEquals("a colour that is no dark surface", 0xFFFFFFFF, ((ColorDrawable) MaterialYouTheme.recolour(white)).getColor());
+        GradientDrawable shape = new GradientDrawable();
+        assertEquals("a drawable that is no plain colour", shape, MaterialYouTheme.recolour(shape));
+        assertEquals("nothing", null, MaterialYouTheme.recolour(null));
+
+        DarkMode.answer(false);
+        ColorDrawable light = new ColorDrawable(0xFF252728);
+        assertEquals("light mode", 0xFF252728, ((ColorDrawable) MaterialYouTheme.recolour(light)).getColor());
     }
 
     /** The tokens of the bars at the bottom of the screen. */

@@ -71,14 +71,17 @@ commit or download proprietary APKs in tests.
 ## Re-patch and install
 
 Use the original split `.apkm`, with the chosen bundle pinned through `MPP`.
-Release qualification requires SDK verification:
+Release qualification requires SDK verification. Set `SERIAL` to the device ID
+from `adb devices` and `PACKAGE_NAME` to the installed package ID (use the
+renamed ID if applicable):
 
 ```bash
 MPP="patches/build/libs/patches-<version>.mpp" VERIFY_SDK=1 \
   python3 scripts/repatch.py /path/to/input.apkm /tmp/verified.apk
-android install --apks=/tmp/verified.apk --device="$SERIAL"
-# Or install and launch:
-android run --apks=/tmp/verified.apk --device="$SERIAL"
+adb -s "$SERIAL" install -r /tmp/verified.apk
+# Cold-start the patched package:
+adb -s "$SERIAL" shell am force-stop "$PACKAGE_NAME"
+adb -s "$SERIAL" shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1
 ```
 
 Update only when signing certificates match; see [signing](cli.md#signing).
@@ -116,9 +119,16 @@ Morphe fixes the verifier. Other required checks still apply.
 
 ## Repeatable device journeys
 
-Run stock, minimally re-signed no-patch control, and selected-patch builds. Use
-`android layout --device="$SERIAL" --full` for primary UI inspection and
-`android screen capture --device="$SERIAL" --output=<path>` for visual evidence.
+Run stock, minimally re-signed no-patch control, and selected-patch builds.
+Use ADB for UI inspection and visual evidence:
+
+```bash
+adb -s "$SERIAL" shell uiautomator dump /sdcard/window.xml
+adb -s "$SERIAL" pull /sdcard/window.xml /private/window.xml
+adb -s "$SERIAL" exec-out screencap -p > /private/screenshot.png
+```
+
+Replace `/private/` with an existing local evidence directory outside Git.
 A successful tap is not proof of the expected state.
 
 Record stock, minimally re-signed control, and patched results separately for

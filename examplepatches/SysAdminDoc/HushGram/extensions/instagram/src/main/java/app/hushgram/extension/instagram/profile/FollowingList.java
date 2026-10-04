@@ -115,8 +115,7 @@ public final class FollowingList {
 
         @Override
         public Boolean followedBy(Object user) {
-            Boolean known = FriendshipStatus.friendshipFollowedBy(user);
-            return known != null ? known : FriendshipStatus.followedBy(user);
+            return FriendshipStatus.friendshipFollowedBy(user);
         }
 
         @Override

@@ -7,7 +7,7 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-desktop="${MORPHE_DESKTOP_JAR:-$HOME/Downloads/morphe-desktop-1.16.0-all.jar}"
+desktop="${MORPHE_DESKTOP_JAR:-$HOME/Downloads/morphe-desktop-1.18.0-all.jar}"
 out="$here/out"
 
 mpp="${1:?usage: run.sh <patches.mpp>}"

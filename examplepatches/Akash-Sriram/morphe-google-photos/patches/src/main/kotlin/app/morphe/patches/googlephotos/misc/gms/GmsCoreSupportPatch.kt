@@ -20,8 +20,11 @@ import app.morphe.util.asSequence
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getNode
 import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.returnEarly
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -193,7 +196,92 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
             "invoke-static {p0, p1}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->onCurrentLocationMixinTintUpdated(Ljava/lang/Object;Z)V",
         )
 
-        // 8) Discover and hook photos.killswitch_info_panel_map to prevent crash when MicroG lacks location.
+        // 8) Fix Places Map photo grid scroll jump and clipped top photo:
+        //    All programmatic scrolls to photos/dates in PhotosGridFragment go through Lahuf.h
+        //    (LayoutManager.scrollToPositionWithOffset dispatcher).
+        //    When scrolling to the top photo (pos <= 1), adjust position to 0 ("Today" header)
+        //    and offset to 0 so the date header and top photo are cleanly displayed without clipping.
+        classDefForEach { classDef ->
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            classDef.methods.forEach { method ->
+                if (AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.returnType == "V" && method.parameterTypes.size == 3 &&
+                    method.parameterTypes[1] == "I" && method.parameterTypes[2] == "I" &&
+                    !method.parameterTypes[0].contains("RecyclerView;")) {
+                    val impl = method.implementation ?: return@forEach
+                    val isLahufH = impl.instructions.any { instr ->
+                        val ref = (instr as? ReferenceInstruction)?.reference?.toString()
+                        ref?.contains("TwoWayLayoutManager") == true
+                    } && impl.instructions.any { instr ->
+                        val ref = (instr as? ReferenceInstruction)?.reference?.toString()
+                        ref?.contains("LinearLayoutManager") == true
+                    }
+                    if (isLahufH) {
+                        val mutableMethod = mutableClass.findMutableMethodOf(method)
+                        // In static method with 4 registers: v0 is local, v1 is lm, v2 is pos, v3 is offset
+                        mutableMethod.addInstruction(
+                            0,
+                            "invoke-static {v2}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->adjustScrollPosition(I)I",
+                        )
+                        mutableMethod.addInstruction(
+                            1,
+                            "move-result v2",
+                        )
+                        mutableMethod.addInstruction(
+                            2,
+                            "invoke-static {v2, v3}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->adjustScrollOffset(II)I",
+                        )
+                        mutableMethod.addInstruction(
+                            3,
+                            "move-result v3",
+                        )
+                        println(">>> GmsCoreSupportPatch: Injected adjustScrollPosition/Offset into ${classDef.type}->${method.name}")
+                    }
+                }
+            }
+        }
+
+        // 9) Ensure Map Explore bottom sheet header always displays the photo count:
+        //    When the camera moves (e.g. Current Location FAB, pan/zoom), CoreCollectionCountLoadTask
+        //    delivers the computed photo count to MapExploreBottomsheetController.h (Laita->h).
+        //    In Photos, if Laitt.aP is true, Photos jumps over Laita->g() to clear the count (l("")).
+        //    By NOPing the `if-nez` branch after `iget-boolean aP`, Laita->g() is always invoked,
+        //    formatting and displaying the localized photo count (e.g. "682 photos") in the
+        //    bottom sheet header, exactly matching official Google Photos behavior.
+        classDefForEach { classDef ->
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            classDef.methods.forEach { method ->
+                val impl = method.implementation ?: return@forEach
+                if (method.returnType == "V" && method.parameterTypes.size == 2 && method.parameterTypes[0] == "I") {
+                    val hasDateRangeTask = impl.instructions.any { instr ->
+                        (instr as? ReferenceInstruction)?.reference?.toString()?.contains("mapexplore.GetMediaCollectionDateRangeTask") == true
+                    }
+                    if (hasDateRangeTask) {
+                        var aPIndex = -1
+                        var ifNezIndex = -1
+                        impl.instructions.forEachIndexed { idx, instr ->
+                            if (aPIndex == -1) {
+                                if (instr is ReferenceInstruction && instr.opcode.name.lowercase().startsWith("iget-boolean")) {
+                                    val ref = instr.reference as? FieldReference
+                                    if (ref != null && ref.name == "aP") {
+                                        aPIndex = idx
+                                    }
+                                }
+                            } else if (ifNezIndex == -1 && idx == aPIndex + 1 && instr.opcode.name.lowercase().startsWith("if-nez")) {
+                                ifNezIndex = idx
+                            }
+                        }
+                        if (ifNezIndex != -1) {
+                            val mutableMethod = mutableClass.findMutableMethodOf(method)
+                            mutableMethod.replaceInstruction(ifNezIndex, "nop")
+                            println(">>> GmsCoreSupportPatch: Injected photo count fix (NOPed if-nez at index $ifNezIndex) in ${classDef.type}->${method.name}")
+                        }
+                    }
+                }
+            }
+        }
+
+        // 10) Discover and hook photos.killswitch_info_panel_map to prevent crash when MicroG lacks location.
         var killswitchFieldRef: FieldReference? = null
         classDefForEach { classDef ->
             if (killswitchFieldRef != null) return@classDefForEach

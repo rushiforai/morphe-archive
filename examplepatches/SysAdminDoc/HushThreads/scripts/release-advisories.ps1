@@ -16,8 +16,9 @@
 
     High or critical means OSV's own label says so (the GitHub advisory database's, which every
     Maven advisory there carries) or a CVSS 3 vector scores 7.0 or more, whichever is worse. An
-    advisory with neither is held as serious until somebody reads it: "OSV couldn't say" is not
-    "fine". Moderate and low advisories are printed and let through.
+    advisory with neither, or with any unsupported or malformed vector, is held until somebody
+    reads it. A lower label can't dismiss a CVSS 4 vector this gate doesn't score. Moderate and
+    low advisories with fully supported severity data are printed and let through.
 
     An advisory can be accepted in scripts/advisory-exceptions.txt for one package, until a date
     at most 90 days out, with the reason it doesn't apply to what the bundle does with that
@@ -112,8 +113,10 @@ function Get-Cvss3BaseScore {
     if ("$Vector" -notmatch '^CVSS:3\.[01]/') { return $null }
     $metrics = @{}
     foreach ($part in @($Vector -split '/' | Select-Object -Skip 1)) {
+        if ($part -cnotmatch '^[A-Z]{1,3}:[A-Z]$') { return $null }
         $pair = $part -split ':', 2
-        if ($pair.Count -eq 2) { $metrics[$pair[0]] = $pair[1] }
+        if ($metrics.ContainsKey($pair[0])) { return $null }
+        $metrics[$pair[0]] = $pair[1]
     }
     # A metric the vector leaves out reads as '', which neither check below lets through.
     $scopeChanged = $metrics['S'] -ceq 'C'
@@ -126,6 +129,19 @@ function Get-Cvss3BaseScore {
         C  = @{ H = 0.56; L = 0.22; N = 0.0 }
         I  = @{ H = 0.56; L = 0.22; N = 0.0 }
         A  = @{ H = 0.56; L = 0.22; N = 0.0 }
+    }
+    # Optional temporal/environmental metrics don't change the base score, but still have to
+    # be valid CVSS 3 metrics. Otherwise the gate would rate a malformed vector as trustworthy.
+    $optional = @{
+        E = 'XUPFH'; RL = 'XOTWU'; RC = 'XURC'; CR = 'XHML'; IR = 'XHML'; AR = 'XHML'
+        MAV = 'XNALP'; MAC = 'XLH'; MPR = 'XNLH'; MUI = 'XNR'; MS = 'XUC'
+        MC = 'XHLN'; MI = 'XHLN'; MA = 'XHLN'
+    }
+    foreach ($name in $metrics.Keys) {
+        if ($name -ceq 'S' -or $weights.ContainsKey($name)) { continue }
+        if (-not $optional.ContainsKey($name) -or $optional[$name].IndexOf([string]$metrics[$name]) -lt 0) {
+            return $null
+        }
     }
     $value = @{}
     foreach ($name in $weights.Keys) {
@@ -152,37 +168,159 @@ function Get-Cvss3BaseScore {
     return ([Math]::Floor($scaled / 10000) + 1) / 10.0
 }
 
+function Test-AdvisoryObject {
+    param($Value)
+    return ($Value -is [System.Collections.IDictionary] -or $Value -is [System.Management.Automation.PSCustomObject])
+}
+
+function Test-AdvisoryField {
+    param($Value, [string]$Name)
+    if ($Value -is [System.Collections.IDictionary]) { return $Value.Contains($Name) }
+    if ($Value -is [System.Management.Automation.PSCustomObject]) { return $null -ne $Value.PSObject.Properties[$Name] }
+    return $false
+}
+
 function Get-AdvisorySeverity {
     <#
     .SYNOPSIS
         How serious an OSV advisory is: @{ Level; Serious; Why }.
     .DESCRIPTION
-        The worse of OSV's own label (database_specific.severity) and the level each CVSS 3 vector
+        The worse of OSV's own label (database_specific.severity) and the level each applicable CVSS 3 vector
         scores to: CRITICAL from 9.0, HIGH from 7.0, MODERATE from 4.0, LOW above 0. Serious is
-        HIGH or CRITICAL, or UNRATED, for an advisory with neither a label nor a vector this can
-        score: a CVSS 4 vector alone, say.
+        HIGH or CRITICAL, or UNRATED for incomplete severity data. Any unsupported or malformed
+        vector requires review even beside a LOW/MODERATE label or a lower supported vector.
+        CVSS 4 isn't sent to the CVSS 3 calculator.
     #>
-    param([Parameter(Mandatory = $true)]$Advisory)
+    param([Parameter(Mandatory = $true)]$Advisory, $Library)
 
     $rank = @{ NONE = 0; LOW = 1; MODERATE = 2; HIGH = 3; CRITICAL = 4 }
     $level = $null
     $why = $null
-    $label = "$($Advisory.database_specific.severity)".Trim().ToUpperInvariant()
+    $review = $false
+    if (-not (Test-AdvisoryObject $Advisory)) { $review = $true }
+    $label = ''
+    if (Test-AdvisoryField $Advisory 'database_specific') {
+        $database = $Advisory.database_specific
+        if (-not (Test-AdvisoryObject $database)) { $review = $true }
+        elseif (Test-AdvisoryField $database 'severity') {
+            if ($database.severity -is [string]) { $label = $database.severity.Trim().ToUpperInvariant() }
+            if (-not $label) { $review = $true }
+        }
+    }
     if ($label -eq 'MEDIUM') { $label = 'MODERATE' }
     if ($label -and $rank.ContainsKey($label)) {
         $level = $label
         $why = "OSV rates it $label"
+    } elseif ($label) {
+        $review = $true
     }
-    foreach ($entry in @($Advisory.severity | Where-Object { $null -ne $_ })) {
-        if ("$($entry.type)" -ne 'CVSS_V3') { continue }
-        $score = Get-Cvss3BaseScore -Vector ([string]$entry.score)
-        if ($null -eq $score) { continue }
-        $scored = if ($score -ge 9.0) { 'CRITICAL' } elseif ($score -ge 7.0) { 'HIGH' } elseif ($score -ge 4.0) {
-            'MODERATE' } elseif ($score -gt 0) { 'LOW' } else { 'NONE' }
-        if ($null -eq $level -or $rank[$scored] -gt $rank[$level]) {
-            $level = $scored
-            $why = "its CVSS 3 vector scores $score"
+    $scopes = New-Object System.Collections.Generic.List[object]
+    $scopes.Add($Advisory)
+    $hasAffected = Test-AdvisoryField $Advisory 'affected'
+    if ($hasAffected -and $Advisory.affected -isnot [array]) { $review = $true }
+    foreach ($affected in $Advisory.affected) {
+        if (-not (Test-AdvisoryObject $affected)) { $review = $true; continue }
+        $hasSeverity = Test-AdvisoryField $affected 'severity'
+        if ($null -eq $Library -or -not (Test-AdvisoryObject $affected.package) -or
+                $affected.package.ecosystem -isnot [string] -or $affected.package.name -isnot [string] -or
+                [string]::IsNullOrWhiteSpace($affected.package.ecosystem) -or
+                [string]::IsNullOrWhiteSpace($affected.package.name)) { $review = $true; continue }
+        # OSV identifies Maven packages by their case-sensitive ecosystem and group:name.
+        if ($affected.package.name -cne "$($Library.Group):$($Library.Name)" -and $affected.package.name -cne '*') { continue }
+        if ($affected.package.ecosystem -cne 'Maven') {
+            # The SBOM has no repository identity to prove a Maven:<repository> scope unrelated.
+            if ($affected.package.ecosystem.StartsWith('Maven:', [StringComparison]::Ordinal)) { $review = $true }
+            continue
         }
+        $rangeApplies = $false
+        $rangeReview = $false
+        $hasVersions = Test-AdvisoryField $affected 'versions'
+        $hasRanges = Test-AdvisoryField $affected 'ranges'
+        if (-not $hasVersions -and -not $hasRanges) { $rangeReview = $true }
+        if ($hasVersions) {
+            if ($affected.versions -isnot [array]) { $rangeReview = $true }
+            else {
+                foreach ($listed in $affected.versions) {
+                    if ($listed -isnot [string] -or [string]::IsNullOrWhiteSpace($listed) -or $listed -match '\s|\p{Cc}') {
+                        $rangeReview = $true
+                    } elseif ($listed -ceq $Library.Version) { $rangeApplies = $true }
+                }
+            }
+        }
+        $protocol = New-Object System.Collections.Generic.List[string]
+        $protocol.Add([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($Library.Version)))
+        $ranges = @()
+        if ($hasRanges -and $affected.ranges -isnot [array]) { $rangeReview = $true }
+        elseif ($affected.ranges -is [array]) { $ranges = $affected.ranges }
+        foreach ($range in $ranges) {
+            if (-not (Test-AdvisoryObject $range) -or
+                    $range.type -isnot [string] -or $range.type -cne 'ECOSYSTEM' -or
+                    $range.events -isnot [array] -or $range.events.Count -eq 0) { $rangeReview = $true; continue }
+            $events = New-Object System.Collections.Generic.List[string]
+            $kinds = @()
+            $invalid = $false
+            foreach ($event in $range.events) {
+                if ($event -is [System.Collections.IDictionary]) { $names = @($event.Keys) }
+                elseif ($event -is [System.Management.Automation.PSCustomObject]) { $names = @($event.PSObject.Properties.Name) }
+                else { $invalid = $true; continue }
+                if ($names.Count -ne 1 -or $names[0] -cnotin @('introduced', 'fixed', 'last_affected', 'limit')) {
+                    $invalid = $true; continue
+                }
+                $kind = [string]$names[0]
+                $value = $event.$kind
+                if ($value -isnot [string] -or [string]::IsNullOrWhiteSpace($value) -or $value -match '\s|\p{Cc}' -or
+                        ($kind -cne 'limit' -and $value.Contains('*'))) { $invalid = $true; continue }
+                $kinds += $kind
+                $events.Add($kind + ' ' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($value)))
+            }
+            if ($invalid -or $kinds -cnotcontains 'introduced' -or
+                    ($kinds -ccontains 'fixed' -and $kinds -ccontains 'last_affected')) { $rangeReview = $true; continue }
+            $protocol.AddRange($events)
+            $protocol.Add('.')
+        }
+        if ($protocol.Count -gt 1) {
+            $jar = Join-Path $PSScriptRoot '../build/advisory-tool/maven-artifact.jar'
+            if (-not (Test-Path -LiteralPath $jar -PathType Leaf)) {
+                throw 'The Maven advisory comparator is missing. Run ./gradlew prepareAdvisoryTool before the release checks.'
+            }
+            . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
+            $java = Resolve-Java
+            $answer = @($protocol | & $java '--class-path' $jar (Join-Path $PSScriptRoot 'MavenAdvisoryRanges.java'))
+            if ($LASTEXITCODE -ne 0 -or $answer.Count -ne 1 -or $answer[0] -cnotin @('true', 'false')) {
+                throw 'The Maven advisory comparator did not return a readable range result.'
+            }
+            if ($answer[0] -ceq 'true') { $rangeApplies = $true }
+        }
+        if ($rangeReview) { $review = $true }
+        if (-not $rangeApplies) { continue }
+        if ($hasSeverity) { $scopes.Add($affected) }
+    }
+    foreach ($scope in $scopes) {
+        if (-not (Test-AdvisoryObject $scope)) { $review = $true; continue }
+        $hasSeverity = Test-AdvisoryField $scope 'severity'
+        if ($hasSeverity -and $scope.severity -isnot [array]) { $review = $true }
+        foreach ($entry in $scope.severity) {
+            if (-not (Test-AdvisoryObject $entry) -or
+                    $entry.type -isnot [string] -or $entry.score -isnot [string]) { $review = $true; continue }
+            $vector = $entry.score
+            if ("$($entry.type)" -cne 'CVSS_V3' -or $vector -cnotmatch '^CVSS:3\.[01]/') {
+                $review = $true
+                continue
+            }
+            $score = Get-Cvss3BaseScore -Vector $vector
+            if ($null -eq $score) { $review = $true; continue }
+            $scored = if ($score -ge 9.0) { 'CRITICAL' } elseif ($score -ge 7.0) { 'HIGH' } elseif ($score -ge 4.0) {
+                'MODERATE' } elseif ($score -gt 0) { 'LOW' } else { 'NONE' }
+            if ($null -eq $level -or $rank[$scored] -gt $rank[$level]) {
+                $level = $scored
+                $why = "its CVSS 3 vector scores $score"
+            }
+        }
+    }
+    if ($review) {
+        $held = if ($null -ne $level -and $rank[$level] -ge 3) { $level } else { 'UNRATED' }
+        return [pscustomobject]@{ Level = $held; Serious = $true
+            Why = 'OSV gives it no severity this check can fully read. An unsupported or malformed label/vector or version range requires review' }
     }
     if ($null -eq $level) {
         return [pscustomobject]@{ Level = 'UNRATED'; Serious = $true
@@ -206,30 +344,100 @@ function Invoke-OsvQuery {
     )
 
     $found = New-Object System.Collections.Generic.List[object]
+    # Preserve JSON strings before validating their types. Invoke-RestMethod converts date-like
+    # strings on PowerShell 7, including summaries and IDs as well as withdrawal timestamps.
+    $jsonArguments = @{ ErrorAction = 'Stop' }
+    if ((Get-Command ConvertFrom-Json).Parameters.ContainsKey('DateKind')) {
+        $jsonArguments['DateKind'] = 'String'
+    } elseif ($PSVersionTable.PSVersion.Major -ge 6) {
+        throw 'The advisory check needs PowerShell 7.5 or newer, or Windows PowerShell 5.1, to preserve JSON string types.'
+    }
     $token = $null
     for ($page = 0; $page -lt 20; $page++) {
         $query = [ordered]@{ package = [ordered]@{ purl = $Purl } }
         if ($token) { $query['page_token'] = $token }
         try {
-            $answer = Invoke-RestMethod -Uri $Endpoint -Method Post -ContentType 'application/json' `
-                -Body ($query | ConvertTo-Json -Compress -Depth 4) -TimeoutSec 60
+            $body = [Text.Encoding]::UTF8.GetBytes(($query | ConvertTo-Json -Compress -Depth 4))
+            $response = Invoke-WebRequest -UseBasicParsing -Uri $Endpoint -Method Post -ContentType 'application/json; charset=utf-8' `
+                -Body $body -TimeoutSec 60
         } catch {
             throw ("OSV could not be asked about ${Purl}: $($_.Exception.Message). The advisory check fails " +
                 'closed, so nothing goes out on a check that did not run. Check the connection to api.osv.dev ' +
                 'and run it again, or pass -SkipAdvisoryCheck to work offline: the index push asks OSV again.')
         }
+        try {
+            # Windows PowerShell otherwise assumes Latin-1 when application/json has no charset.
+            if ($response.RawContentStream -is [IO.Stream]) {
+                $bytes = [IO.MemoryStream]::new()
+                try {
+                    if ($response.RawContentStream.CanSeek) { [void]$response.RawContentStream.Seek(0, [IO.SeekOrigin]::Begin) }
+                    $response.RawContentStream.CopyTo($bytes)
+                    $content = [Text.UTF8Encoding]::new($false, $true).GetString($bytes.ToArray())
+                } finally {
+                    $bytes.Dispose()
+                    $response.RawContentStream.Dispose()
+                }
+            } elseif ($response.Content -is [byte[]]) {
+                $content = [Text.UTF8Encoding]::new($false, $true).GetString($response.Content)
+            } else { $content = $response.Content }
+            # ConvertFrom-Json may enumerate a root array into a single object on the pipeline.
+            if ($content -isnot [string] -or -not $content.TrimStart().StartsWith('{')) { throw 'Expected a JSON object.' }
+            $answer = $content | ConvertFrom-Json @jsonArguments
+        } catch {
+            throw "OSV answered the query about $Purl with something that isn't a query result: $($_.Exception.Message)"
+        }
         if ($answer -isnot [System.Management.Automation.PSCustomObject]) {
             throw "OSV answered the query about $Purl with something that isn't a query result: $answer"
         }
-        foreach ($advisory in @($answer.vulns | Where-Object { $null -ne $_ })) {
-            if ([string]::IsNullOrWhiteSpace([string]$advisory.id)) {
+        if ((Test-AdvisoryField $answer 'vulns') -and $answer.vulns -isnot [array]) {
+            throw "OSV answered the query about $Purl with a malformed vulnerability list."
+        }
+        foreach ($advisory in $answer.vulns) {
+            if (-not (Test-AdvisoryObject $advisory)) {
+                throw "OSV answered the query about $Purl with a malformed advisory object."
+            }
+            if ($advisory.id -isnot [string] -or [string]::IsNullOrWhiteSpace($advisory.id)) {
                 throw "OSV answered the query about $Purl with an advisory that has no id."
             }
+            if (Test-AdvisoryField $advisory 'aliases') {
+                if ($advisory.aliases -isnot [array]) {
+                    throw "OSV answered the query about $Purl with malformed advisory aliases."
+                }
+                foreach ($alias in $advisory.aliases) {
+                    if ($alias -isnot [string] -or [string]::IsNullOrWhiteSpace($alias)) {
+                        throw "OSV answered the query about $Purl with a malformed advisory alias."
+                    }
+                }
+            }
+            if ((Test-AdvisoryField $advisory 'summary') -and $advisory.summary -isnot [string]) {
+                throw "OSV answered the query about $Purl with a malformed advisory summary."
+            }
             # A withdrawn advisory is one its publisher took back.
-            if ($advisory.PSObject.Properties['withdrawn'] -and $advisory.withdrawn) { continue }
+            if (Test-AdvisoryField $advisory 'withdrawn') {
+                $withdrawn = $advisory.withdrawn
+                if ($withdrawn -isnot [string] -or $withdrawn -cnotmatch
+                        '\A[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])[Tt](?:[01][0-9]|2[0-3]):[0-5][0-9]:(?:[0-5][0-9]|60)(?:\.[0-9]+)?[Zz]\z') {
+                    throw "OSV answered the query about $Purl with a malformed withdrawn timestamp."
+                }
+                $year = [int]$withdrawn.Substring(0, 4)
+                $month = [int]$withdrawn.Substring(5, 2)
+                $day = [int]$withdrawn.Substring(8, 2)
+                # The proleptic Gregorian year 0000 is a leap year, while DateTime starts at 1.
+                $calendarYear = if ($year -eq 0) { 400 } else { $year }
+                if ($day -gt [datetime]::DaysInMonth($calendarYear, $month) -or
+                        ($withdrawn.Substring(17, 2) -eq '60' -and
+                        ($withdrawn.Substring(11, 5) -ne '23:59' -or
+                        -not (($month -eq 6 -and $day -eq 30) -or ($month -eq 12 -and $day -eq 31))))) {
+                    throw "OSV answered the query about $Purl with a malformed withdrawn timestamp."
+                }
+                continue
+            }
             $found.Add($advisory)
         }
-        $token = [string]$answer.next_page_token
+        if ((Test-AdvisoryField $answer 'next_page_token') -and $answer.next_page_token -isnot [string]) {
+            throw "OSV answered the query about $Purl with a malformed page token."
+        }
+        $token = $answer.next_page_token
         if (-not $token) { return $found.ToArray() }
     }
     throw "OSV was still paging its answer about $Purl after 20 pages."
@@ -255,7 +463,7 @@ function Get-SbomAdvisories {
                 Advisory = [string]$advisory.id
                 Aliases  = @($advisory.aliases | Where-Object { $_ } | ForEach-Object { [string]$_ })
                 Summary  = "$($advisory.summary)".Trim()
-                Severity = Get-AdvisorySeverity -Advisory $advisory
+                Severity = Get-AdvisorySeverity -Advisory $advisory -Library $library
             })
         }
     }

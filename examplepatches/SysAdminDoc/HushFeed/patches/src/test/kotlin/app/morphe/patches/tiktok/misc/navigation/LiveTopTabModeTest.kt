@@ -5,7 +5,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.takes
 import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
@@ -69,7 +68,7 @@ class LiveTopTabModeTest {
     }
 
     private fun modeMethod(apk: File): Method {
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         val button = container.dexEntryNames.asSequence().flatMap { entry ->
             container.getEntry(entry)!!.dexFile.classes.asSequence()
         }.firstOrNull { it.type == LIVE_ICON_GENERATOR } ?: error("${apk.name}: no LiveIconGenerator")

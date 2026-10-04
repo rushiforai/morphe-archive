@@ -1,5 +1,5 @@
 /*
- * Forked from https://github.com/SysAdminDoc/Hushfacebook at c15d4f79 (GPL-3.0),
+ * Forked from https://github.com/SysAdminDoc/Hushfacebook at a788c516 (GPL-3.0),
  * modified for HushThreads (Threads), 2026.
  *
  * Modified for Hushfacebook (Facebook), 2026.
@@ -119,6 +119,12 @@ public class Utils {
     @SuppressWarnings("SameReturnValue")
     public static String getPatchesReleaseVersion() {
         return ""; // Value is replaced during patching.
+    }
+
+    /** Identity verified against the loaded bundle at patch time, or unknown/unverified. */
+    @SuppressWarnings("SameReturnValue")
+    public static String getPatchesBuildIdentity() {
+        return "unknown"; // Value is replaced during patching.
     }
 
     public static boolean isPreReleasePatches() {

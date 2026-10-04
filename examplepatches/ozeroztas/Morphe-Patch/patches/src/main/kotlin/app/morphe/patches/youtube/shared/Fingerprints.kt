@@ -150,21 +150,6 @@ internal object YouTubeMainActivityConstructorFingerprint : Fingerprint(
     parameters = listOf()
 )
 
-internal object YouTubeMainActivityOnBackPressedFingerprint : Fingerprint(
-    definingClass = YOUTUBE_MAIN_ACTIVITY_CLASS_TYPE,
-    name = "onBackPressed",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf(),
-    filters = listOf(
-        methodCall(
-            opcode = Opcode.INVOKE_SUPER,
-            name = "onBackPressed"
-        ),
-        opcode(Opcode.RETURN_VOID)
-    )
-)
-
 internal object YouTubeActivityOnCreateFingerprint : Fingerprint(
     definingClass = YOUTUBE_MAIN_ACTIVITY_CLASS_TYPE,
     name = "onCreate",
@@ -356,5 +341,53 @@ internal object WatchNextResponseParserFingerprint : Fingerprint(
             location = MatchAfterImmediately()
         ),
         literal(46659098L)
+    )
+)
+
+internal val VideoPlaybackIntentFingerprint = Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("L", "Ljava/util/Map;"),
+    filters = listOf(
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, parameters = listOf(), returnType = "L"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        string("PLAYBACK_START_DESCRIPTOR_MUTATOR", MatchAfterImmediately()),
+        string("force_fullscreen"),
+        string("VideoPresenterConstants.VIDEO_THUMBNAIL_BITMAP_KEY")
+    )
+)
+
+internal object ShortsPlaybackIntentFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf(
+        "L",
+        "Ljava/util/Map;",
+        "J",
+        "Ljava/lang/String;"
+    ),
+    filters = listOf(
+        // None of these strings are unique.
+        string("PLAYBACK_START_DESCRIPTOR_MUTATOR"),
+        string("com.google.android.apps.youtube.app.endpoint.flags"),
+        string("com.google.android.libraries.youtube.rendering.elements.sender_view")
+    )
+)
+
+// 21.19 and lower
+internal object ShortsPlaybackIntentFingerprintLegacy : Fingerprint(
+    accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf(
+        "L",
+        "Ljava/util/Map;",
+        "J",
+        "Ljava/lang/String;"
+    ),
+    filters = listOf(
+        // None of these strings are unique.
+        string("com.google.android.apps.youtube.app.endpoint.flags"),
+        string("ReelWatchFragmentArgs"),
+        string("reels_fragment_descriptor")
     )
 )

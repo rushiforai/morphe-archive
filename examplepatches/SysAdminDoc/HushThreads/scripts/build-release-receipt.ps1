@@ -112,6 +112,11 @@ $commitTimestamp = [long](& git -C $Root log -1 --format=%ct).Trim()
 # would describe whatever the release path holds when the run finishes, which is not necessarily
 # what the patch runs used: a run takes long enough for another buildAndroid to replace it.
 $bundleManifest = Get-BundleManifestFacts -BundlePath $Bundle
+$bundleIdentity = Get-BundleIdentityFacts -BundlePath $Bundle
+if ($bundleIdentity.Present -and (-not $bundleIdentity.Valid -or $bundleIdentity.SourceState -cne 'clean' -or
+        $bundleIdentity.SourceCommit -cne $commit)) {
+    throw 'The bundle build identity does not bind to this clean source commit.'
+}
 $bundleSize = (Get-Item -LiteralPath $Bundle).Length
 $bundleHash = Get-Sha256Hex -Path $Bundle
 

@@ -5,7 +5,6 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patches.tiktok.interaction.blockauthor.PlayerPlayFingerprint
 import app.morphe.patches.tiktok.interaction.blockauthor.awemeParameterRegister
 import app.morphe.takes
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -26,7 +25,7 @@ class FeedMuteAnchorsTest {
     fun `the feed engine, its mute and the player session's focus resolve on each build`() {
         Fixtures.forEachDeclared { apk ->
             val classes = HashMap<String, ClassDef>()
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             for (entry in container.dexEntryNames) {
                 for (classDef in container.getEntry(entry)!!.dexFile.classes) classes.putIfAbsent(classDef.type, classDef)
             }

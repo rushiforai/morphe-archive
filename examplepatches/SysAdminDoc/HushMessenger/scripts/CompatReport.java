@@ -12,9 +12,9 @@
  * test checks each record against the Kotlin profiles, so the copies can't drift.
  *
  * Adding a build:
- *   CompatReport <apk> --save           records the build when every control resolves,
- *                                       and prints the Kotlin to paste. Otherwise it
- *                                       lists the controls that didn't resolve.
+ *   CompatReport <apk> --save <profiles dir> <desktop.jar> <bundle.mpp>
+ *                                     records the build only after Desktop applies
+ *                                     and rebuilds every patch, then prints Kotlin.
  *   CompatReport --kotlin <record.txt>  prints the Kotlin for a recorded build again.
  *
  * Compile:
@@ -34,6 +34,7 @@ import com.android.tools.smali.dexlib2.Opcode;
 import com.android.tools.smali.dexlib2.Opcodes;
 import com.android.tools.smali.dexlib2.iface.ClassDef;
 import com.android.tools.smali.dexlib2.iface.Method;
+import com.android.tools.smali.dexlib2.iface.Field;
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction;
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction;
@@ -42,6 +43,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction;
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload;
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
@@ -82,7 +84,10 @@ public class CompatReport {
         + "PeopleTabPYMKHandler$fetchPymkSuggestions$$inlined$CoroutineExceptionHandler$1;";
     static final String PEOPLE_JEWEL_KEY = "pymk_jewel_section_hidden";
     static final String STORY_CARD_DATE_KEY = "last_date_creation_card_shown";
-    static final long PEOPLE_SERVER_FLAG = 72344235860374863L;
+    // The Notifications tab's server flag ID, renumbered by each release: 580's, then 581's
+    static final Set<Long> PEOPLE_SERVER_FLAGS = Set.of(72344235860374863L, 72344231565407716L);
+    // The inbox ad filter's exit registers, in order: v5 from both in 580, v7 then v2 in 581
+    static final Set<List<Integer>> AD_FILTER_RESULTS = Set.of(List.of(5, 5), List.of(7, 2));
 
     // Material You theme finds its targets by shape when it patches (MaterialYouPatch.kt), so no profile records them
     static final String DARK_SCHEME = "Lcom/facebook/mig/scheme/schemes/DarkColorScheme;";
@@ -148,6 +153,7 @@ public class CompatReport {
         PATCHES.put("Hide inbox ads", List.of("ads"));
         PATCHES.put("Hide People You May Know", List.of("people", "people_list_end", "people_jewel", "people_tab", "people_search", "people_story"));
         PATCHES.put("Hide friend request cards", List.of("friend_requests"));
+        PATCHES.put("Hide joined community chats", List.of("community_inbox"));
         PATCHES.put("Hide growth prompts", List.of("growth", "growth_notes", "growth_story_card"));
         PATCHES.put("Hide inbox promotions", List.of("inbox_promotions"));
         PATCHES.put("Hide stories and notes", List.of("stories"));
@@ -204,6 +210,7 @@ public class CompatReport {
         FIELD_CONTROLS.put("bubbleCapabilityGetter", Set.of("bubble_mode"));
         FIELD_CONTROLS.put("bubbleRolloutGetter", Set.of("bubble_mode"));
         FIELD_CONTROLS.put("nativeBubbleRoutes", Set.of("bubbles", "bubble_mode"));
+        FIELD_CONTROLS.put("nativeCommunityInbox", Set.of("community_inbox"));
     }
     static final Set<String> NUMBER_FIELDS = Set.of("browserPreferenceIndex", "adFilterSize");
     static final String PERMISSION_LOADS = "Install beside Meta apps";
@@ -269,6 +276,18 @@ public class CompatReport {
     }
 
     static final Path PROFILES = scriptDir().resolve("profiles");
+
+    /** Discovery isn't patch application. Never publish a profile on discovery evidence alone. */
+    static boolean verifyPatch(File apk, String apkHash, Path desktop, Path bundle) throws IOException, InterruptedException {
+        var command = new ArrayList<>(List.of("python", scriptDir().resolve("verify_compat_patch.py").toString(),
+            "--apk", apk.getAbsolutePath(), "--apk-sha256", apkHash, "--desktop", desktop.toAbsolutePath().toString(),
+            "--bundle", bundle.toAbsolutePath().toString(), "--java",
+            Path.of(System.getProperty("java.home"), "bin", "java").toString()));
+        var names = new TreeSet<>(PATCHES.keySet());
+        names.addAll(List.of("Install beside Meta apps", "Restore screens on re-signed builds", "Material You theme"));
+        for (var name : names) { command.add("--enable"); command.add(name); }
+        return new ProcessBuilder(command).inheritIO().start().waitFor() == 0;
+    }
 
     /** Version code -> recorded build. */
     static Map<String, Profile> recorded(Path dir) throws IOException {
@@ -408,7 +427,7 @@ public class CompatReport {
         var flags = new ArrayList<Integer>();
         for (int i = 0; i < code.size(); i++) {
             if (code.get(i).getOpcode() == Opcode.CONST_WIDE && code.get(i) instanceof WideLiteralInstruction flag &&
-                flag.getWideLiteral() == PEOPLE_SERVER_FLAG) flags.add(i);
+                PEOPLE_SERVER_FLAGS.contains(flag.getWideLiteral())) flags.add(i);
         }
         if (flags.size() != 1 || flags.get(0) < 16 || flags.get(0) > 17) return null;
         int at = flags.get(0);
@@ -458,12 +477,20 @@ public class CompatReport {
             var routes = nativeBubbleRoutes(classes, hookId(modes.get(0)));
             if (routes != null) found.fields.put("nativeBubbleRoutes", routes);
         }
+        var community = communityInbox(classes);
+        if (community != null) found.fields.put("nativeCommunityInbox", community.identity());
         var ads = controls.get("ads");
         if (ads.size() == 1) {
             var code = instructions(ads.get(0));
             var exits = new ArrayList<String>();
-            for (int i = 0; i < code.size(); i++) if (code.get(i).getOpcode() == Opcode.RETURN_OBJECT) exits.add(String.valueOf(i));
-            if (!exits.isEmpty()) {
+            var results = new ArrayList<Integer>();
+            for (int i = 0; i < code.size(); i++) {
+                if (code.get(i).getOpcode() != Opcode.RETURN_OBJECT) continue;
+                exits.add(String.valueOf(i));
+                results.add(code.get(i) instanceof OneRegisterInstruction r ? r.getRegisterA() : -1);
+            }
+            // ControlHooks.kt wraps each exit's own result register, so only the release-pinned pairs record
+            if (!exits.isEmpty() && ads.get(0).getImplementation().getRegisterCount() == 24 && AD_FILTER_RESULTS.contains(results)) {
                 found.fields.put("adFilterSize", String.valueOf(code.size()));
                 found.fields.put("adFilterExits", String.join(" ", exits));
             }
@@ -474,6 +501,9 @@ public class CompatReport {
 
     static final String BUBBLE_SESSION = "Lcom/facebook/auth/usersession/FbUserSession;";
     static final long BUBBLE_ROLLOUT = 36312032932401152L;
+    /** 581 renumbered the specifier of the same rollout read. Exactly these two are accepted, as in NativeBubbles.kt. */
+    static final long BUBBLE_ROLLOUT_581 = 36312028637433857L;
+    static final Set<Long> BUBBLE_ROLLOUTS = Set.of(BUBBLE_ROLLOUT, BUBBLE_ROLLOUT_581);
     static final String BUBBLE_ACTIVITY = "com.facebook.messaging.msys.thread.bubbles.activity.StaxThreadViewBubblesActivity";
     static final String SHORTCUT_BUILDER = "Landroid/content/pm/ShortcutInfo$Builder;";
     static final String MESSAGING_STYLE = "Landroidx/core/app/NotificationCompat$MessagingStyle;";
@@ -528,7 +558,7 @@ public class CompatReport {
             register(c.get(10)) == 0 && ((NarrowLiteralInstruction)c.get(10)).getNarrowLiteral() == 28 &&
             capability.equals(ref(c.get(11))) && calls(c.get(11),1,4,0) && register(c.get(12)) == 0 &&
             register(c.get(13)) == 0 && jumpsTo(c,13,24) && register(c.get(18)) == 2 && register(c.get(19)) == 0 &&
-            ((WideLiteralInstruction)c.get(19)).getWideLiteral() == BUBBLE_ROLLOUT && register(c.get(20)) == 2 &&
+            BUBBLE_ROLLOUTS.contains(((WideLiteralInstruction)c.get(19)).getWideLiteral()) && register(c.get(20)) == 2 &&
             "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;".equals(ref(c.get(20))) &&
             rollout.equals(ref(c.get(21))) && calls(c.get(21),2,0,1) && register(c.get(22)) == 0 &&
             register(c.get(23)) == 0 && register(c.get(24)) == 2;
@@ -548,6 +578,24 @@ public class CompatReport {
                 reachesBubbleApi(byType,target,api,depth-1,seen)) return true;
         }
         return false;
+    }
+
+    /** NativeBubbles.kt's bubbleGateHelper: 581 reads the gate through a static (session, lazy holder) helper returning its answer. */
+    static boolean bubbleGateHelper(Method m, String gate) {
+        var c = instructions(m); var p = bubbleParameters(m);
+        var shape = List.of(Opcode.IGET_OBJECT, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST,
+            Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN);
+        if (!AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"Z".equals(m.getReturnType()) || p.size() != 2 ||
+            !BUBBLE_SESSION.equals(p.get(0)) || m.getImplementation() == null || m.getImplementation().getRegisterCount() != 3 ||
+            !m.getImplementation().getTryBlocks().isEmpty() || !c.stream().map(Instruction::getOpcode).toList().equals(shape) ||
+            !(((ReferenceInstruction)c.get(0)).getReference() instanceof FieldReference holder) ||
+            !(((ReferenceInstruction)c.get(1)).getReference() instanceof MethodReference fetch)) return false;
+        var read = (TwoRegisterInstruction)c.get(0);
+        return read.getRegisterA() == 0 && read.getRegisterB() == 2 && holder.getDefiningClass().equals(p.get(1)) &&
+            fetch.getDefiningClass().equals(holder.getType()) && fetch.getName().equals("get") && fetch.getParameterTypes().isEmpty() &&
+            fetch.getReturnType().equals("Ljava/lang/Object;") && calls(c.get(1),0) && register(c.get(2)) == 0 &&
+            register(c.get(3)) == 0 && gate.split("->")[0].equals(ref(c.get(3))) && gate.equals(ref(c.get(4))) &&
+            calls(c.get(4),0,1) && register(c.get(5)) == 0 && register(c.get(6)) == 0;
     }
 
     /** NativeBubbles.kt's immutable connected-route checks. */
@@ -571,7 +619,9 @@ public class CompatReport {
                     if(write>=0 && write<=2 && c.get(write).getOpcode()==Opcode.CONST_4 && ((NarrowLiteralInstruction)c.get(write)).getNarrowLiteral()==1) shortcuts.add(m);
                 }
             }
-            if (refs.contains("shouldAttachBubbleMetadataToNotification") && refs.contains("attach_bubble_metadata") && refs.contains(gate) &&
+            if (refs.contains("shouldAttachBubbleMetadataToNotification") && refs.contains("attach_bubble_metadata") &&
+                (refs.contains(gate) || c.stream().anyMatch(i -> i.getOpcode() == Opcode.INVOKE_STATIC && i instanceof ReferenceInstruction r &&
+                    r.getReference() instanceof MethodReference called && bubbleTarget(byType, called) instanceof Method helper && bubbleGateHelper(helper, gate))) &&
                 c.stream().anyMatch(i -> i.getOpcode()==Opcode.IPUT_OBJECT && i instanceof ReferenceInstruction r && r.getReference() instanceof FieldReference)) attachments.add(m);
             if (refs.contains(MESSAGING_STYLE) && refs.contains("Landroid/content/pm/ShortcutInfo;->getId()Ljava/lang/String;") &&
                 refs.contains("Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V")) conversations.add(m);
@@ -1234,7 +1284,8 @@ public class CompatReport {
     static final String QUICKSNAP_VIEWER = "Lcom/facebook/messaging/quicksnap/consumption/viewer/MsgrQuicksnapViewerFragment;";
     static final String WINDOW = "Landroid/view/Window;";
     static final String SET_FLAGS = WINDOW + "->setFlags(II)V", ADD_FLAGS = WINDOW + "->addFlags(I)V";
-    static final int GENERATE_AI_LABEL = 0x7f1404fe;
+    static final int GENERATE_AI_LABEL = 0x7f1404fe, GENERATE_AI_LABEL_581 = 0x7f140511;
+    static final Set<String> EPHEMERAL_DIALOGS = Set.of("A1A", "A1C", "A1E");
 
     static int mediaTarget(List<Instruction> code, int at) {
         if (!(code.get(at) instanceof OffsetInstruction jump)) return -1;
@@ -1289,43 +1340,47 @@ public class CompatReport {
         if (!Set.of(EPHEMERAL_VIEWER, QUICKSNAP_VIEWER).contains(method.getDefiningClass())) return List.of();
         var impl = method.getImplementation(); var c = instructions(method); var p = bubbleParameters(method);
         if (impl == null || AccessFlags.STATIC.isSet(method.getAccessFlags()) || !impl.getTryBlocks().isEmpty()) return List.of();
-        List<Integer> sites; boolean valid, resume = false;
-        if (method.getDefiningClass().equals(EPHEMERAL_VIEWER) && Set.of("A1A", "A1C").contains(method.getName()) &&
+        List<Integer> sites; boolean valid, resume = false; int d = 0;
+        if (method.getDefiningClass().equals(EPHEMERAL_VIEWER) && EPHEMERAL_DIALOGS.contains(method.getName()) &&
                 p.equals(List.of("Landroid/os/Bundle;")) && method.getReturnType().equals("Landroid/app/Dialog;")) {
             sites = List.of(9);
             valid = impl.getRegisterCount() == 5 && c.size() == 15 && mediaResult(c, 4, "Landroid/app/Dialog;", 2) &&
                 mediaWindow(c, 5, "Landroid/app/Dialog;", 2, 1, 10) && mediaLiteral(c, 8, 0) && mediaCall(c, 9, SET_FLAGS, 1, 0, 0);
         } else if (method.getDefiningClass().equals(EPHEMERAL_VIEWER) && method.getName().equals("onResume") && p.isEmpty() && method.getReturnType().equals("V")) {
-            sites = List.of(14, 21); resume = true;
-            valid = impl.getRegisterCount() == 5 && c.size() == 48 && mediaResult(c, 8, "Landroid/app/Activity;", 0) && mediaLiteral(c, 9, 1) &&
-                mediaNull(c, 10, 0, 15) && mediaWindow(c, 11, "Landroid/app/Activity;", 0, 0, 15) && mediaCall(c, 14, SET_FLAGS, 0, 1, 1) &&
-                mediaOp(c, 15, Opcode.INVOKE_VIRTUAL) && bubbleArgs(c.get(15)).equals(List.of(4)) &&
-                c.get(15) instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference mr && mr.getReturnType().equals("Landroid/app/Dialog;") &&
-                mediaOp(c, 16, Opcode.MOVE_RESULT_OBJECT) && register(c.get(16)) == 0 && mediaNull(c, 17, 0, 22) &&
-                mediaWindow(c, 18, "Landroid/app/Dialog;", 0, 0, 22) && mediaCall(c, 21, SET_FLAGS, 0, 1, 1);
-            if (valid) for (int i = 10; i <= 21; i++) if (mediaWrites(c.get(i), 1)) valid = false;
+            // 581 casts the provider's Object result in v0 before asking it for the Activity, one instruction later.
+            if (c.size() == 49 && mediaOp(c, 7, Opcode.CHECK_CAST) && register(c.get(7)) == 0) d = 1;
+            sites = List.of(14 + d, 21 + d); resume = true;
+            valid = impl.getRegisterCount() == 5 && c.size() == 48 + d && mediaResult(c, 8 + d, "Landroid/app/Activity;", 0) && mediaLiteral(c, 9 + d, 1) &&
+                mediaNull(c, 10 + d, 0, 15 + d) && mediaWindow(c, 11 + d, "Landroid/app/Activity;", 0, 0, 15 + d) && mediaCall(c, 14 + d, SET_FLAGS, 0, 1, 1) &&
+                mediaOp(c, 15 + d, Opcode.INVOKE_VIRTUAL) && bubbleArgs(c.get(15 + d)).equals(List.of(4)) &&
+                c.get(15 + d) instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference mr && mr.getReturnType().equals("Landroid/app/Dialog;") &&
+                mediaOp(c, 16 + d, Opcode.MOVE_RESULT_OBJECT) && register(c.get(16 + d)) == 0 && mediaNull(c, 17 + d, 0, 22 + d) &&
+                mediaWindow(c, 18 + d, "Landroid/app/Dialog;", 0, 0, 22 + d) && mediaCall(c, 21 + d, SET_FLAGS, 0, 1, 1);
+            if (valid) for (int i = 10 + d; i <= 21 + d; i++) if (mediaWrites(c.get(i), 1)) valid = false;
         } else if (method.getDefiningClass().equals(QUICKSNAP_VIEWER) && method.getName().equals("onCreateView") &&
                 p.equals(List.of("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;")) && method.getReturnType().equals("Landroid/view/View;")) {
             sites = List.of(32);
-            valid = impl.getRegisterCount() == 23 && Set.of(438, 439, 441, 442, 448).contains(c.size()) && mediaResult(c, 26, "Landroid/app/Dialog;", 0) &&
+            valid = impl.getRegisterCount() == 23 && Set.of(438, 439, 441, 442, 444, 448).contains(c.size()) && mediaResult(c, 26, "Landroid/app/Dialog;", 0) &&
                 mediaNull(c, 27, 0, 33) && mediaWindow(c, 28, "Landroid/app/Dialog;", 0, 1, 33) && mediaLiteral(c, 31, 0) && mediaCall(c, 32, ADD_FLAGS, 1, 0);
         } else return List.of();
         var setters = new ArrayList<Integer>();
         for (int i = 0; i < c.size(); i++) if (ref(c.get(i)) != null && Set.of(SET_FLAGS, ADD_FLAGS, WINDOW + "->clearFlags(I)V").contains(ref(c.get(i)))) setters.add(i);
         if (!valid || !setters.equals(sites)) return List.of();
         if (resume && c.stream().anyMatch(i -> i.getOpcode().name().contains("SWITCH") || i.getOpcode().name().contains("PAYLOAD"))) return List.of();
-        for (int t : mediaTargets(method)) if (t >= 1 && t <= sites.getLast() && (!resume || t != 15)) return List.of();
-        if (resume) for (int i = 0; i < c.size(); i++) if (i != 10 && i != 13 && c.get(i) instanceof OffsetInstruction && mediaTarget(c, i) == 15) return List.of();
+        for (int t : mediaTargets(method)) if (t >= 1 && t <= sites.getLast() && (!resume || t != 15 + d)) return List.of();
+        if (resume) for (int i = 0; i < c.size(); i++) if (i != 10 + d && i != 13 + d && c.get(i) instanceof OffsetInstruction && mediaTarget(c, i) == 15 + d) return List.of();
         return sites;
     }
 
-    record AiCell(String type, String superclass, String scope, String component, int size) {
+    record AiCell(String type, String superclass, String scope, String component, int size, int registers, int label, int sources) {
+        AiCell(String type, String superclass, String scope, String component, int size) { this(type, superclass, scope, component, size, 23, GENERATE_AI_LABEL, 4); }
         String render() { return type + "->render(" + scope + ")" + component; }
     }
     static List<Method> findAiStickerCells(List<ClassDef> classes) {
         var shapes = List.of(new AiCell("LX/FXP;", "LX/1Hx;", "LX/2MZ;", "LX/1GG;", 104),
             new AiCell("LX/FWm;", "LX/1Hx;", "LX/2MZ;", "LX/1GG;", 104), new AiCell("LX/FTy;", "LX/1Hw;", "LX/2MY;", "LX/1GF;", 104),
-            new AiCell("LX/FfQ;", "LX/1Hw;", "LX/2MY;", "LX/1GF;", 106), new AiCell("LX/FSU;", "LX/1IL;", "LX/2Nf;", "LX/1Gf;", 104));
+            new AiCell("LX/FfQ;", "LX/1Hw;", "LX/2MY;", "LX/1GF;", 106), new AiCell("LX/FSU;", "LX/1IL;", "LX/2Nf;", "LX/1Gf;", 104),
+            new AiCell("LX/Ez5;", "LX/1IO;", "LX/2AL;", "LX/1Gd;", 105, 24, GENERATE_AI_LABEL_581, 5));
         var result = new ArrayList<Method>();
         for (var shape : shapes) {
             var matching = classes.stream().filter(c -> c.getType().equals(shape.type())).toList();
@@ -1353,23 +1408,315 @@ public class CompatReport {
                     if (!Set.of(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE).contains(c.get(at).getOpcode()) || !Objects.equals(ref(c.get(at)), hookId(ctor))) continue;
                     var args = bubbleArgs(c.get(at)); if (args.isEmpty()) continue; int arg = args.getLast(), literal = -1;
                     for (int j = at - 1; j >= Math.max(0, at - 24); j--) if (mediaWrites(c.get(j), arg)) { literal = j; break; }
-                    if (literal < 0 || !(c.get(literal) instanceof NarrowLiteralInstruction n) || n.getNarrowLiteral() != GENERATE_AI_LABEL) continue;
+                    if (literal < 0 || !(c.get(literal) instanceof NarrowLiteralInstruction n) || n.getNarrowLiteral() != shape.label()) continue;
                     boolean straight = true; for (int j = literal + 1; j < at; j++) if (c.get(j) instanceof OffsetInstruction) straight = false;
                     for (int t : mediaTargets(source)) if (t > literal && t <= at) straight = false;
                     if (straight) sources++;
                 }
             }
-            if (sources != 4) continue;
+            if (sources != shape.sources()) continue;
             for (var m : cls.getMethods()) if (hookId(m).equals(shape.render()) && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null &&
-                    m.getImplementation().getRegisterCount() == 23 && instructions(m).size() == shape.size() && m.getImplementation().getTryBlocks().size() == 4) result.add(m);
+                    m.getImplementation().getRegisterCount() == shape.registers() && instructions(m).size() == shape.size() && m.getImplementation().getTryBlocks().size() == 4) result.add(m);
         }
         return result;
+    }
+
+    record CommunityInbox(Method render, String identity) {}
+    static CommunityInbox communityInbox(List<ClassDef> input) {
+        if (input.stream().noneMatch(c->new CommunityDiscovery(List.of(c)).original(c).equals("InboxFragment"))) return null;
+        try { return new CommunityDiscovery(input).prove(); } catch (RuntimeException changed) { return null; }
+    }
+    /** The same connected Main-only route and native subscribed predicate used by the injector. */
+    static final class CommunityDiscovery {
+        final Map<String,ClassDef> classes=new HashMap<>();
+        static final String ROOT="Lcom/facebook/messaging/msys/threadlist/plugins/core/itemsupplier/ThreadListItemSupplierImplementation;";
+        static final String SUMMARY="Lcom/facebook/messaging/model/threads/ThreadSummary;";
+        static final String KEY="Lcom/facebook/messaging/model/threadkey/ThreadKey;";
+        static final String LIST="Lcom/google/common/collect/ImmutableList;";
+        CommunityDiscovery(List<ClassDef> input) { input.forEach(c->classes.put(c.getType(),c)); }
+        boolean literal(Instruction i,int register,int value) { return i.getOpcode()==Opcode.CONST_4 && i instanceof OneRegisterInstruction r && r.getRegisterA()==register && i instanceof NarrowLiteralInstruction l && l.getNarrowLiteral()==value; }
+        List<Field> methodFields(ClassDef cls,String name) { var out=new ArrayList<Field>(); for(var f:cls.getFields()) if(f.getName().equals(name)) out.add(f); return out; }
+        int branch(Method m,int at) {
+            var c=instructions(m); int address=0;
+            for(int i=0;i<at;i++) address+=c.get(i).getCodeUnits();
+            int target=address+((OffsetInstruction)c.get(at)).getCodeOffset(); address=0;
+            for(int i=0;i<c.size();i++) { if(address==target) return i; address+=c.get(i).getCodeUnits(); }
+            throw new IllegalStateException("Disconnected community branch");
+        }
+    String id(MethodReference m) { return m.getDefiningClass() + "->" + m.getName() + "(" + String.join("", m.getParameterTypes()) + ")" + m.getReturnType(); }
+    void require(boolean condition, String reason) { if (!condition) throw new IllegalStateException(reason); }
+    <T> T single(List<T> values, String what) { require(values.size() == 1, what + " count=" + values.size()); return values.getFirst(); }
+    List<MethodReference> calls(Method method) {
+        var out = new ArrayList<MethodReference>();
+        for (var i : instructions(method)) if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference mr) out.add(mr);
+        return out;
+    }
+    boolean hasString(Method method, String value) {
+        return instructions(method).stream().anyMatch(i -> i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s && s.getString().equals(value));
+    }
+    Method definition(MethodReference ref) {
+        var out = new ArrayList<Method>();
+        for (var m : classes.get(ref.getDefiningClass()).getMethods()) if (id(m).equals(id(ref))) out.add(m);
+        return single(out, "definition " + id(ref));
+    }
+    Map<String, FieldReference> enumMembers(String type) {
+        var out = new LinkedHashMap<String, FieldReference>();
+        var cls = classes.get(type); if (cls == null) return out;
+        for (var m : cls.getMethods()) if (m.getName().equals("<clinit>")) {
+            var code = instructions(m);
+            for (int at = 0; at < code.size(); at++) {
+                var i = code.get(at);
+                if (!(i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s)) continue;
+                String name = s.getString();
+                if (!Set.of("INBOX", "PENDING", "COMMUNITY_FOLDER", "COMMUNITY_CHANNELS", "COMMUNITY_CHANNEL", "COMMUNITY_ANNOUNCEMENT_CHANNEL", "GROUP", "SOCIAL_CHANNEL", "BROADCAST_CHANNEL").contains(name)) continue;
+                for (int after = at + 1; after < Math.min(code.size(), at + 14); after++) {
+                    var next = code.get(after);
+                    if (next.getOpcode().name().startsWith("SPUT") && next instanceof ReferenceInstruction fr && fr.getReference() instanceof FieldReference f && f.getType().equals(type)) { out.put(name, f); break; }
+                }
+            }
+        }
+        return out;
+    }
+    List<Field> fieldsOf(String type, String fieldType) {
+        var out = new ArrayList<Field>();
+        var cls = classes.get(type);
+        if (cls != null) for (var f : cls.getInstanceFields()) if (f.getType().equals(fieldType)) out.add(f);
+        return out;
+    }
+    void publicStatic(FieldReference field) {
+        var cls=classes.get(field.getDefiningClass());
+        var nativeField=single(methodFields(cls,field.getName()).stream().filter(f->f.getType().equals(field.getType())).toList(),"native enum member");
+        require(AccessFlags.PUBLIC.isSet(cls.getAccessFlags()) && AccessFlags.PUBLIC.isSet(nativeField.getAccessFlags()) && AccessFlags.STATIC.isSet(nativeField.getAccessFlags()),"native enum member inaccessible");
+    }
+    Map<String, String> enumFieldNames(String type) {
+        var out = new LinkedHashMap<String, String>();
+        for (var m : classes.get(type).getMethods()) if (m.getName().equals("<clinit>")) {
+            String label = null;
+            for (var i : instructions(m)) {
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s) label = s.getString();
+                if (i.getOpcode().name().equals("SPUT_OBJECT") && i instanceof ReferenceInstruction ri && ri.getReference() instanceof FieldReference f && f.getType().equals(type)) {
+                    require(label != null, "missing enum label for " + f); out.put(f.getName(), label); label = null;
+                }
+            }
+        }
+        return out;
+    }
+    String original(ClassDef cls) {
+        for (var f : cls.getFields()) if (f.getName().equals("__redex_internal_original_name") && f.getInitialValue() instanceof StringEncodedValue s) return s.getValue();
+        return "";
+    }
+    Object ref(Instruction i) { return i instanceof ReferenceInstruction r ? r.getReference() : null; }
+    List<Integer> args(Instruction i) {
+        if (i instanceof FiveRegisterInstruction f) return List.of(f.getRegisterC(), f.getRegisterD(), f.getRegisterE(), f.getRegisterF(), f.getRegisterG()).subList(0, f.getRegisterCount());
+        if (i instanceof RegisterRangeInstruction r) { var out = new ArrayList<Integer>(); for(int at=0;at<r.getRegisterCount();at++) out.add(r.getStartRegister()+at); return out; }
+        return List.of();
+    }
+    List<Method> methods(ClassDef cls) { var out=new ArrayList<Method>(); cls.getMethods().forEach(out::add); return out; }
+    boolean reads(Instruction i, String field) { return i.getOpcode() == Opcode.IGET_OBJECT && Objects.toString(ref(i)).equals(field); }
+    boolean writes(Instruction i, int register) { return i.getOpcode().setsRegister() && i instanceof OneRegisterInstruction r && r.getRegisterA() == register; }
+    boolean source(Instruction i,int value,int register) {
+        String name=i.getOpcode().toString();
+        return value==register || ((name.contains("WIDE") || name.contains("LONG") || name.contains("DOUBLE")) && value+1==register);
+    }
+    boolean operandReads(Instruction i,int register) {
+        if(i instanceof FiveRegisterInstruction || i instanceof RegisterRangeInstruction) return args(i).stream().anyMatch(v->source(i,v,register));
+        if(i instanceof ThreeRegisterInstruction r) return source(i,r.getRegisterB(),register) || source(i,r.getRegisterC(),register) || (!i.getOpcode().setsRegister() && source(i,r.getRegisterA(),register));
+        if(i instanceof TwoRegisterInstruction r) return source(i,r.getRegisterB(),register) || ((!i.getOpcode().setsRegister() || i.getOpcode().toString().contains("2ADDR")) && source(i,r.getRegisterA(),register));
+        return i instanceof OneRegisterInstruction r && (!i.getOpcode().setsRegister() || i.getOpcode()==Opcode.CHECK_CAST) && source(i,r.getRegisterA(),register);
+    }
+    Set<Integer> targets(Method method) {
+        var code=instructions(method); var addresses=new HashMap<Integer,Integer>(); int address=0;
+        for(int at=0;at<code.size();at++) { addresses.put(address,at); address+=code.get(at).getCodeUnits(); }
+        var out=new HashSet<Integer>(); address=0;
+        for(var i:code) { if(i instanceof OffsetInstruction j) {
+            Integer target=addresses.get(address+j.getCodeOffset()); require(target!=null,"bad native branch"); out.add(target);
+            if(code.get(target) instanceof SwitchPayload s) for(var e:s.getSwitchElements()) { Integer t=addresses.get(address+e.getOffset()); require(t!=null,"bad switch branch"); out.add(t); }
+        } address+=i.getCodeUnits(); } return out;
+    }
+    Method singleMethod(String type, String name) { return single(methods(classes.get(type)).stream().filter(m->m.getName().equals(name)).toList(),type+"->"+name); }
+    boolean sessionFirst(List<Instruction> ctorCode) {
+        var store=ctorCode.get(2);
+        return store.getOpcode()==Opcode.IPUT_OBJECT && ref(store) instanceof FieldReference f && f.getName().equals("$fbUserSession") && f.getType().equals("Lcom/facebook/auth/usersession/FbUserSession;") &&
+            ((TwoRegisterInstruction)store).getRegisterA()==2 && ((TwoRegisterInstruction)store).getRegisterB()==1;
+    }
+        CommunityInbox prove() {
+        var immutable=classes.get(LIST);
+        var copy=single(methods(immutable).stream().filter(m->id(m).equals(LIST+"->copyOf(Ljava/util/Collection;)"+LIST)).toList(),"native immutable projection");
+        require(AccessFlags.PUBLIC.isSet(immutable.getAccessFlags()) && AccessFlags.PUBLIC.isSet(copy.getAccessFlags()) && AccessFlags.STATIC.isSet(copy.getAccessFlags()),"native immutable projection inaccessible");
+        ClassDef main=single(classes.values().stream().filter(c->original(c).equals("InboxFragment")).toList(),"main InboxFragment");
+        Method render=single(methods(main).stream().filter(m->hasString(m,"InboxFragment_updateSectionTree")).toList(),"main section tree render");
+        require(render.getReturnType().equals("V") && render.getParameterTypes().size()==4 && render.getParameterTypes().get(0).toString().equals(main.getType()),"main void renderer changed");
+        var renderCode=instructions(render);
+        var folderConfigs=new ArrayList<Method>();
+        for(var f:classes.get(ROOT).getInstanceFields()) if(classes.containsKey(f.getType())) for(var m:classes.get(f.getType()).getMethods()) if(hasString(m,"folderName") && enumMembers(m.getReturnType()).containsKey("INBOX")) folderConfigs.add(m);
+        var folderGetter=single(folderConfigs,"typed folder getter"); String folderType=folderGetter.getReturnType();
+        var mainLoaderCalls=new ArrayList<MethodReference>();
+        for(var m:main.getMethods()) for(var c:calls(m)) if(c.getName().equals("<init>") && c.getParameterTypes().size()==6 && c.getParameterTypes().get(0).toString().equals("Landroid/content/Context;") && c.getParameterTypes().get(1).toString().equals("Lcom/facebook/auth/usersession/FbUserSession;") && c.getParameterTypes().get(2).toString().equals(main.getSuperclass()) && c.getParameterTypes().get(5).toString().equals("Ljava/util/List;")) mainLoaderCalls.add(c);
+        var loaderCtor=definition(single(mainLoaderCalls,"main loader creation"));
+        var coordinatorCtors=calls(loaderCtor).stream().filter(c->c.getName().equals("<init>") && classes.containsKey(c.getDefiningClass()) && original(classes.get(c.getDefiningClass())).equals("InboxLoaderCoordinator")).toList();
+        var coordinatorCtor=definition(single(coordinatorCtors,"main inbox coordinator"));
+        var configCtor=definition(single(calls(coordinatorCtor).stream().filter(c->c.getName().equals("<init>") && c.getDefiningClass().equals(folderGetter.getDefiningClass())).toList(),"default main list config"));
+        String builder=configCtor.getParameterTypes().get(0).toString();
+        var defaultBuilder=single(methods(classes.get(builder)).stream().filter(m->m.getName().equals("<init>") && m.getParameterTypes().isEmpty()).toList(),"default inbox config builder");
+        require(instructions(defaultBuilder).size()==5 && calls(defaultBuilder).stream().anyMatch(c->c.getDefiningClass().equals("Ljava/util/HashSet;") && c.getParameterTypes().isEmpty()),"default config keys not empty");
+        require(hasString(coordinatorCtor,"threadTypeFilter") && !hasString(coordinatorCtor,"folderName"),"main initializer overrides folder");
+        var folders=enumMembers(folderType);
+        require(instructions(folderGetter).stream().anyMatch(i->i.getOpcode()==Opcode.SGET_OBJECT && Objects.toString(ref(i)).equals(folders.get("INBOX").toString())),"default folder is not INBOX");
+        var folderOverride=single(methods(main).stream().filter(m->hasString(m,"folderName")).toList(),"main typed folder override");
+        var overrideCode=instructions(folderOverride);
+        require(hasString(folderOverride,"InboxLoaderCoordinator.setFolderAndFilter") && overrideCode.size()==45 && folderOverride.getParameterTypes().size()==2,"main folder switch changed");
+        String scopeType=folderOverride.getParameterTypes().get(1).toString();
+        var scopeLabels=enumFieldNames(scopeType); var folderLabels=enumFieldNames(folderType);
+        var pending=(FieldReference)ref(overrideCode.get(4)); var requests=(FieldReference)ref(overrideCode.get(2));
+        require(scopeLabels.get(requests.getName()).equals("MESSAGE_REQUESTS") && folderLabels.get(pending.getName()).equals("PENDING"),"pending scope label changed");
+        require(overrideCode.get(3).getOpcode()==Opcode.IF_NE && branch(folderOverride,3)==13 && Objects.toString(ref(overrideCode.get(7))).equals(pending.toString()) && Objects.toString(ref(overrideCode.get(13))).equals(folders.get("INBOX").toString()),"main folder branches changed");
+        require(overrideCode.get(25).getOpcode()==Opcode.IPUT_OBJECT && ((TwoRegisterInstruction)overrideCode.get(25)).getRegisterA()==5 && overrideCode.get(28).getOpcode()==Opcode.IPUT_OBJECT && ((TwoRegisterInstruction)overrideCode.get(28)).getRegisterA()==4,"folder/filter config connection changed");
+        for(var m:main.getMethods()) {
+            require(m.equals(folderOverride) || !hasString(m,"folderName"),"other main config folder override");
+            require(calls(m).stream().noneMatch(c->c.getDefiningClass().equals(loaderCtor.getDefiningClass()) && c.getParameterTypes().contains(folderType)),"main renderer selects another folder");
+        }
+        var ctorCalls=calls(render).stream().filter(m->m.getName().equals("<init>") && m.getParameterTypes().contains(LIST)).toList();
+        Method ctor=definition(single(ctorCalls,"dedicated immutable-list closure ctor"));
+        var closure=classes.get(ctor.getDefiningClass());
+        require(ctor.getParameterTypes().size()==14 && ctor.getParameterTypes().get(11).toString().equals(LIST) && ctor.getReturnType().equals("V"),"captured list argument changed");
+        var ctorCode=instructions(ctor);
+        require(ctor.getImplementation().getRegisterCount()==16 && ctorCode.size()==17 && ctor.getImplementation().getTryBlocks().isEmpty(),"closure ctor shape changed");
+        require(ctorCode.get(0).getOpcode()==Opcode.IPUT_OBJECT && ctorCode.get(0) instanceof TwoRegisterInstruction && ref(ctorCode.get(0)) instanceof FieldReference,"captured presentation store absent");
+        var store=(TwoRegisterInstruction)ctorCode.get(0); var captured=(FieldReference)ref(ctorCode.get(0));
+        require(store.getRegisterA()==13 && store.getRegisterB()==1 && captured.getName().equals("$inboxUnitItems") && captured.getType().equals(LIST),"captured parameter disconnected");
+        // 581 moves the session capture from slot 8 to slot 2, so the captures in slots 2 to 7 move one slot later.
+        int scopeAt=sessionFirst(ctorCode)?5:4;
+        var scopeField=(FieldReference)ref(ctorCode.get(scopeAt));
+        require(ctorCode.get(scopeAt).getOpcode()==Opcode.IPUT_OBJECT && scopeField.getName().equals("$threadTypeFilter") && scopeField.getType().equals(scopeType) && ((TwoRegisterInstruction)ctorCode.get(scopeAt)).getRegisterA()==10,"captured native scope disconnected");
+        var ctorCallers=new ArrayList<String>(); var allocations=new ArrayList<String>(); var fieldWrites=new ArrayList<String>();
+        for(var cls:classes.values()) for(var method:cls.getMethods()) { var code=instructions(method); for(int at=0;at<code.size();at++) {
+            var i=code.get(at); Object r=ref(i);
+            if(r instanceof MethodReference m && id(m).equals(id(ctor))) ctorCallers.add(id(method)+" @"+at);
+            if(i.getOpcode()==Opcode.NEW_INSTANCE && Objects.toString(r).equals(closure.getType())) allocations.add(id(method)+" @"+at);
+            if(i.getOpcode().toString().startsWith("IPUT") && Objects.toString(r).equals(captured.toString())) fieldWrites.add(id(method)+" @"+at);
+        }}
+        require(ctorCallers.size()==1 && ctorCallers.get(0).startsWith(id(render)+" @"),"foreign constructor caller: "+ctorCallers);
+        require(allocations.size()==1 && allocations.get(0).startsWith(id(render)+" @"),"foreign closure allocation: "+allocations);
+        require(fieldWrites.size()==1 && fieldWrites.get(0).equals(id(ctor)+" @0"),"shared captured-list mutation");
+        int callAt=-1; for(int at=0;at<renderCode.size();at++) if(ref(renderCode.get(at)) instanceof MethodReference m && id(m).equals(id(ctor))) callAt=at;
+        int listArgument=args(renderCode.get(callAt)).get(12);
+        int scopeArgument=args(renderCode.get(callAt)).get(9);
+        int scopeResult=-1; for(int at=callAt-1;at>=0;at--) if(writes(renderCode.get(at),scopeArgument)) { scopeResult=at; break; }
+        require(scopeResult>=1 && renderCode.get(scopeResult).getOpcode()==Opcode.MOVE_RESULT_OBJECT && ref(renderCode.get(scopeResult-1)) instanceof MethodReference,"captured scope result disconnected");
+        var scopeGetter=definition((MethodReference)ref(renderCode.get(scopeResult-1)));
+        require(scopeGetter.getDefiningClass().equals(loaderCtor.getDefiningClass()) && scopeGetter.getReturnType().equals(scopeType) && instructions(scopeGetter).size()==13 && calls(scopeGetter).stream().anyMatch(m->m.getDefiningClass().equals(folderGetter.getDefiningClass()) && m.getReturnType().equals(scopeType)),"scope does not read current native config");
+        var prefix=(FieldReference)ref(ctorCode.get(scopeAt+3));
+        require(prefix.getName().equals("$prefixOffsetCallback") && ctorCode.get(scopeAt+3).getOpcode()==Opcode.IPUT_OBJECT && ((TwoRegisterInstruction)ctorCode.get(scopeAt+3)).getRegisterA()==8,"Main callback capture disconnected");
+        int prefixArg=args(renderCode.get(callAt)).get(7), prefixMove=-1;
+        for(int at=callAt-1;at>=0;at--) if(writes(renderCode.get(at),prefixArg)) { prefixMove=at; break; }
+        require(prefixMove>=0 && renderCode.get(prefixMove).getOpcode()==Opcode.MOVE_OBJECT_FROM16,"Main callback alias absent");
+        int prefixSource=((TwoRegisterInstruction)renderCode.get(prefixMove)).getRegisterB(), prefixRead=-1;
+        for(int at=prefixMove-1;at>=0;at--) if(writes(renderCode.get(at),prefixSource)) { prefixRead=at; break; }
+        require(prefixRead>=0 && renderCode.get(prefixRead).getOpcode()==Opcode.IGET_OBJECT,"Main callback source absent");
+        var mainPrefix=(FieldReference)ref(renderCode.get(prefixRead)); require(mainPrefix.getDefiningClass().equals(main.getType()) && mainPrefix.getType().equals(prefix.getType()),"foreign callback source");
+        var prefixStores=new ArrayList<Method>(); int prefixStore=-1;
+        for(var cls:classes.values()) for(var m:cls.getMethods()) { var body=instructions(m); for(int at=0;at<body.size();at++) if(body.get(at).getOpcode()==Opcode.IPUT_OBJECT && Objects.toString(ref(body.get(at))).equals(mainPrefix.toString())) { prefixStores.add(m); prefixStore=at; } }
+        var mainCtor=single(prefixStores,"unique Main callback owner"); var mainCtorCode=instructions(mainCtor);
+        require(mainCtor.getDefiningClass().equals(main.getType()) && mainCtor.getName().equals("<init>") && prefixStore>=2,"Main callback ownership changed");
+        var callbackCtor=definition((MethodReference)ref(mainCtorCode.get(prefixStore-1))); var callbackCode=instructions(callbackCtor);
+        require(callbackCtor.getParameterTypes().equals(List.of(main.getType())) && callbackCode.size()==3 && callbackCode.get(0).getOpcode()==Opcode.IPUT_OBJECT && ((TwoRegisterInstruction)callbackCode.get(0)).getRegisterA()==1 && ((TwoRegisterInstruction)callbackCode.get(0)).getRegisterB()==0,"callback Main pointer disconnected");
+        var callbackMain=(FieldReference)ref(callbackCode.get(0));
+        int getterReceiver=args(renderCode.get(scopeResult-1)).get(0), mainLoaderRead=-1;
+        for(int at=scopeResult-2;at>=0;at--) if(writes(renderCode.get(at),getterReceiver)) { mainLoaderRead=at; break; }
+        require(mainLoaderRead>=0 && renderCode.get(mainLoaderRead).getOpcode()==Opcode.IGET_OBJECT,"Main loader source absent");
+        var mainLoader=(FieldReference)ref(renderCode.get(mainLoaderRead)); var getterCode=instructions(scopeGetter);
+        var currentPath=List.of(callbackMain,mainLoader,(FieldReference)ref(getterCode.get(0)),(FieldReference)ref(getterCode.get(1)),(FieldReference)ref(getterCode.get(8)));
+        String owner=callbackCtor.getDefiningClass();
+        for(var f:currentPath) { require(f.getDefiningClass().equals(owner),"current folder path disconnected");
+            var nativeField=single(methodFields(classes.get(owner),f.getName()),"current folder field");
+            require(AccessFlags.PUBLIC.isSet(nativeField.getAccessFlags()) && !AccessFlags.STATIC.isSet(nativeField.getAccessFlags()) && AccessFlags.PUBLIC.isSet(classes.get(owner).getAccessFlags()),"current folder path inaccessible"); owner=f.getType(); }
+        require(owner.equals(folderGetter.getDefiningClass()) && AccessFlags.PUBLIC.isSet(classes.get(owner).getAccessFlags()) && AccessFlags.PUBLIC.isSet(folderGetter.getAccessFlags()) && !AccessFlags.STATIC.isSet(folderGetter.getAccessFlags()),"current native folder getter inaccessible");
+        var folderCode=instructions(folderGetter);
+        require(folderGetter.getParameterTypes().isEmpty() && folderGetter.getImplementation().getRegisterCount()==3 &&
+            folderCode.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.IGET_OBJECT,Opcode.CONST_STRING,Opcode.INVOKE_INTERFACE,Opcode.MOVE_RESULT,Opcode.IF_EQZ,
+                Opcode.IGET_OBJECT,Opcode.RETURN_OBJECT,Opcode.SGET_OBJECT,Opcode.IF_NEZ,Opcode.MONITOR_ENTER,Opcode.SGET_OBJECT,Opcode.IF_NEZ,Opcode.SGET_OBJECT,
+                Opcode.SPUT_OBJECT,Opcode.MONITOR_EXIT,Opcode.GOTO,Opcode.MOVE_EXCEPTION,Opcode.MONITOR_EXIT,Opcode.THROW,Opcode.SGET_OBJECT,Opcode.RETURN_OBJECT)) &&
+            calls(folderGetter).stream().map(this::id).toList().equals(List.of("Ljava/util/Set;->contains(Ljava/lang/Object;)Z")) &&
+            branch(folderGetter,4)==7 && branch(folderGetter,8)==19 && branch(folderGetter,11)==14 && branch(folderGetter,15)==19 &&
+            ref(folderCode.get(0)) instanceof FieldReference keys && keys.getDefiningClass().equals(owner) && keys.getType().equals("Ljava/util/Set;") &&
+            ref(folderCode.get(5)) instanceof FieldReference selected && selected.getDefiningClass().equals(owner) && selected.getType().equals(folderType) &&
+            ref(folderCode.get(7)) instanceof FieldReference cached && cached.getDefiningClass().equals(owner) && cached.getType().equals(folderType) &&
+            List.of(10,13,19).stream().allMatch(at->Objects.toString(ref(folderCode.get(at))).equals(Objects.toString(ref(folderCode.get(7))))) &&
+            Objects.toString(ref(folderCode.get(12))).equals(folders.get("INBOX").toString()) &&
+            ((TwoRegisterInstruction)folderCode.get(0)).getRegisterA()==1 && ((TwoRegisterInstruction)folderCode.get(0)).getRegisterB()==2 &&
+            ((TwoRegisterInstruction)folderCode.get(5)).getRegisterA()==0 && ((TwoRegisterInstruction)folderCode.get(5)).getRegisterB()==2 &&
+            ref(folderCode.get(1)) instanceof StringReference label && label.getString().equals("folderName") && args(folderCode.get(2)).equals(List.of(1,0)) &&
+            List.of(1,3,4,6,7,8,10,11,12,13,16,18,19,20).stream().allMatch(at->((OneRegisterInstruction)folderCode.get(at)).getRegisterA()==0) &&
+            List.of(9,14,17).stream().allMatch(at->((OneRegisterInstruction)folderCode.get(at)).getRegisterA()==2),"native folder getter changed");
+        publicStatic(requests); publicStatic(folders.get("INBOX"));
+        int listMove=-1; for(int at=callAt-1;at>=0;at--) if(writes(renderCode.get(at),listArgument)) { listMove=at; break; }
+        require(listMove>=1 && renderCode.get(listMove).getOpcode()==Opcode.MOVE_OBJECT_FROM16,"main list alias absent");
+        var move=(TwoRegisterInstruction)renderCode.get(listMove); var source=renderCode.get(listMove-1);
+        require(source.getOpcode()==Opcode.IGET_OBJECT && source instanceof TwoRegisterInstruction && ref(source) instanceof FieldReference,"snapshot source disconnected");
+        var modelRows=(FieldReference)ref(source); var sourceReg=(TwoRegisterInstruction)source;
+        require(sourceReg.getRegisterA()==move.getRegisterB() && modelRows.getDefiningClass().equals(render.getParameterTypes().get(1).toString()) && modelRows.getType().equals(LIST),"main snapshot does not reach ctor");
+        Method invoke=single(methods(closure).stream().filter(m->m.getName().equals("invoke") && m.getParameterTypes().equals(List.of("Ljava/lang/Object;"))).toList(),"section closure invoke");
+        var code=instructions(invoke);
+        var listReads=new ArrayList<Integer>(); for(int at=0;at<code.size();at++) if(reads(code.get(at),captured.toString())) listReads.add(at);
+        require(listReads.size()==2 && listReads.get(0)==5 && Set.of(55,56,66).contains(listReads.get(1)),"presentation read shape changed: "+listReads);
+        int secondRead=listReads.get(1), aliasAt=secondRead+10, sinkAt=secondRead+11;
+        require(code.size()==secondRead+19 && invoke.getImplementation().getRegisterCount()==20 && invoke.getImplementation().getTryBlocks().isEmpty(),"presentation body shape changed");
+        require(code.get(6).getOpcode()==Opcode.INVOKE_VIRTUAL && Objects.toString(ref(code.get(6))).equals("Ljava/util/AbstractCollection;->isEmpty()Z") && args(code.get(6)).equals(List.of(0)),"original empty/header gate changed");
+        require(hasString(invoke,"searchBarSection") && code.get(secondRead) instanceof TwoRegisterInstruction && ((TwoRegisterInstruction)code.get(secondRead)).getRegisterA()==0,"header or local presentation read changed");
+        require(code.get(aliasAt).getOpcode()==Opcode.MOVE_OBJECT_FROM16 && ((TwoRegisterInstruction)code.get(aliasAt)).getRegisterA()==17 && ((TwoRegisterInstruction)code.get(aliasAt)).getRegisterB()==0,"second list alias changed");
+        require(code.get(sinkAt).getOpcode()==Opcode.INVOKE_STATIC_RANGE && ref(code.get(sinkAt)) instanceof MethodReference,"list section sink changed");
+        var sink=(MethodReference)ref(code.get(sinkAt));
+        require(sink.getParameterTypes().size()==12 && sink.getParameterTypes().get(11).toString().equals("Ljava/util/List;") && args(code.get(sinkAt)).get(11)==17,"renderer list argument disconnected");
+        for(int at=secondRead+1;at<aliasAt;at++) require(!writes(code.get(at),0),"list overwritten before render");
+        require(targets(invoke).stream().noneMatch(t->t>secondRead && t<=sinkAt),"branch bypasses second-read hook");
+        require(code.subList(secondRead+1,code.size()).stream().noneMatch(i->operandReads(i,1) || operandReads(i,3)),"scope scratch register still live");
+        var search=classes.values().stream().filter(c->Set.of("MessagingTabbedSearchFragment","SearchListItemFragment","MsysMessageSearchThreadListFragment","FoldersFragment").contains(original(c))).toList();
+        require(search.stream().anyMatch(c->original(c).equals("MessagingTabbedSearchFragment")) && search.stream().anyMatch(c->original(c).equals("SearchListItemFragment")) && search.stream().anyMatch(c->original(c).equals("FoldersFragment")),"separate native Search/folder fragments absent");
+        require(search.stream().noneMatch(c->c.getType().equals(main.getType())),"Search shares main fragment");
+        var joined=new ArrayList<Method>();
+        for(var cls:classes.values()) for(var method:cls.getMethods()) if(method.getParameterTypes().equals(List.of(SUMMARY)) && method.getReturnType().equals("Z") && instructions(method).size()==9) {
+            var b=instructions(method);
+            if(b.get(0).getOpcode()==Opcode.IGET_OBJECT && ref(b.get(0)) instanceof FieldReference f && f.getDefiningClass().equals(SUMMARY) && f.getType().equals(KEY) && b.get(1).getOpcode()==Opcode.INVOKE_STATIC && ref(b.get(1)) instanceof MethodReference m && m.getDefiningClass().equals(KEY) && m.getParameterTypes().equals(List.of(KEY)) && m.getReturnType().equals("Z") && b.get(5).getOpcode()==Opcode.IGET_BOOLEAN) joined.add(method);
+        }
+        var predicate=single(joined,"native joined channel predicate"); var joinedCode=instructions(predicate);
+        require(joinedCode.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.IGET_OBJECT,Opcode.INVOKE_STATIC,Opcode.MOVE_RESULT,Opcode.CONST_4,Opcode.IF_EQZ,Opcode.IGET_BOOLEAN,Opcode.IF_EQZ,Opcode.CONST_4,Opcode.RETURN)),"native joined branch changed");
+        require(predicate.getImplementation().getRegisterCount()==3 && predicate.getImplementation().getTryBlocks().isEmpty() &&
+            ((TwoRegisterInstruction)joinedCode.get(0)).getRegisterA()==0 && ((TwoRegisterInstruction)joinedCode.get(0)).getRegisterB()==2 && args(joinedCode.get(1)).equals(List.of(0)) &&
+            ((OneRegisterInstruction)joinedCode.get(2)).getRegisterA()==0 && literal(joinedCode.get(3),1,0) && branch(predicate,4)==8 && branch(predicate,6)==8 &&
+            ((TwoRegisterInstruction)joinedCode.get(5)).getRegisterA()==0 && ((TwoRegisterInstruction)joinedCode.get(5)).getRegisterB()==2 &&
+            literal(joinedCode.get(7),1,1) && ((OneRegisterInstruction)joinedCode.get(8)).getRegisterA()==1,"native membership value flow changed");
+        var subscribed=(FieldReference)ref(joinedCode.get(5)); require(classes.values().stream().anyMatch(c->methods(c).stream().anyMatch(m->hasString(m,"thread.isSubscribed") && instructions(m).stream().anyMatch(i->Objects.toString(ref(i)).equals(subscribed.toString())))),"subscribed native label absent");
+        var keyPredicate=definition((MethodReference)ref(joinedCode.get(1)));
+        var keyAny=definition(single(calls(keyPredicate).stream().filter(m->m.getDefiningClass().equals(KEY) && m.getParameterTypes().isEmpty() && m.getReturnType().equals("Z")).toList(),"nullable key-to-community predicate"));
+        var keyChannel=definition(single(calls(keyAny).stream().filter(m->m.getDefiningClass().equals(KEY) && m.getParameterTypes().isEmpty() && m.getReturnType().equals("Z")).toList(),"community channel predicate"));
+        require(instructions(keyPredicate).size()==8 && calls(keyPredicate).stream().anyMatch(m->id(m).equals(id(keyAny))),"null-safe community wrapper changed");
+        require(instructions(keyAny).size()==10 && calls(keyAny).stream().anyMatch(m->id(m).equals(id(keyChannel))) && instructions(keyChannel).size()==7,"community OR predicate changed");
+        var n=instructions(keyPredicate); var a=instructions(keyAny); var h=instructions(keyChannel);
+        require(n.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.IF_EQZ,Opcode.INVOKE_VIRTUAL,Opcode.MOVE_RESULT,Opcode.IF_EQZ,Opcode.CONST_4,Opcode.RETURN,Opcode.CONST_4,Opcode.RETURN)) &&
+            keyPredicate.getImplementation().getRegisterCount()==1 && branch(keyPredicate,0)==6 && branch(keyPredicate,3)==6 && args(n.get(1)).equals(List.of(0)) && literal(n.get(4),0,1) && literal(n.get(6),0,0),"null/unknown key behavior changed");
+        require(a.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.INVOKE_VIRTUAL,Opcode.MOVE_RESULT,Opcode.IF_NEZ,Opcode.IGET_OBJECT,Opcode.SGET_OBJECT,Opcode.IF_EQ,Opcode.CONST_4,Opcode.RETURN,Opcode.CONST_4,Opcode.RETURN)) &&
+            branch(keyAny,2)==8 && branch(keyAny,5)==8 && args(a.get(0)).equals(List.of(2)) && literal(a.get(6),0,0) && literal(a.get(8),0,1),"community OR value flow changed");
+        require(h.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.IGET_OBJECT,Opcode.SGET_OBJECT,Opcode.IF_NE,Opcode.CONST_4,Opcode.RETURN,Opcode.CONST_4,Opcode.RETURN)) &&
+            branch(keyChannel,2)==5 && literal(h.get(3),0,1) && literal(h.get(5),0,0) && Objects.toString(ref(h.get(0))).equals(Objects.toString(ref(a.get(3)))),"ordinary key behavior changed");
+        var keyType=single(fieldsOf(KEY, ((FieldReference)ref(instructions(keyChannel).get(0))).getType()),"typed key enum"); var enums=enumMembers(keyType.getType());
+        require(Objects.toString(ref(instructions(keyChannel).get(1))).equals(enums.get("COMMUNITY_CHANNEL").toString()) && Objects.toString(ref(instructions(keyAny).get(4))).equals(enums.get("COMMUNITY_ANNOUNCEMENT_CHANNEL").toString()),"joined predicate accepts other types");
+        String rowType=single(renderCode.stream().filter(i->i.getOpcode()==Opcode.INSTANCE_OF).map(i->((TypeReference)ref(i)).getType()).distinct().filter(t->fieldsOf(t,SUMMARY).size()==1).toList(),"native row type");
+        var rowSummary=single(fieldsOf(rowType,SUMMARY),"native row summary");
+        require(AccessFlags.PUBLIC.isSet(classes.get(rowType).getAccessFlags()) && AccessFlags.PUBLIC.isSet(rowSummary.getAccessFlags()) && AccessFlags.FINAL.isSet(rowSummary.getAccessFlags()) &&
+            AccessFlags.PUBLIC.isSet(classes.get(predicate.getDefiningClass()).getAccessFlags()) && AccessFlags.PUBLIC.isSet(predicate.getAccessFlags()) && AccessFlags.STATIC.isSet(predicate.getAccessFlags()),"typed native contract inaccessible");
+        var identityParts=new ArrayList<>(List.of(id(render),id(ctor),id(scopeGetter),id(folderOverride),rowSummary.toString(),id(predicate),id(keyPredicate),id(keyAny),id(keyChannel),requests.toString(),prefix.toString()));
+        currentPath.forEach(f->identityParts.add(f.toString())); identityParts.add(id(folderGetter)); identityParts.add(folders.get("INBOX").toString());
+        String identity=String.join("|",identityParts);
+        return new CommunityInbox(invoke, identity);
+        }
     }
 
     static Map<String, List<Method>> findControls(List<ClassDef> classes) {
         var found = new LinkedHashMap<String, List<Method>>();
         for (var key : CONTROL_KEYS) found.put(key, new ArrayList<>());
         found.get("ai_sticker_cell").addAll(findAiStickerCells(classes));
+        var community = communityInbox(classes);
+        if (community != null) found.get("community_inbox").add(community.render());
         for (var cls : classes) for (var method : cls.getMethods())
             if (!screenshotViewerSites(method).isEmpty()) found.get("screenshot_viewers").add(method);
         var jewelCandidates = new ArrayList<Map.Entry<Method, Set<String>>>();
@@ -1601,7 +1948,7 @@ public class CompatReport {
                 if (!isStatic && "Z".equals(method.getReturnType()) &&
                     paramTypes.equals(List.of(BUBBLE_SESSION)) && instructions.stream().anyMatch(i ->
                         i.getOpcode() == Opcode.CONST_WIDE && i instanceof WideLiteralInstruction flag &&
-                        flag.getWideLiteral() == BUBBLE_ROLLOUT)) found.get("bubble_mode").add(method);
+                        BUBBLE_ROLLOUTS.contains(flag.getWideLiteral()))) found.get("bubble_mode").add(method);
 
                 // browser
                 if ("Z".equals(method.getReturnType()) &&
@@ -2304,8 +2651,8 @@ public class CompatReport {
         if (args.length == 2 && "--kotlin".equals(args[0])) {
             System.exit(printKotlin(Path.of(args[1])));
         }
-        if (args.length < 1 || args.length > 3 || (args.length > 1 && !"--save".equals(args[1]))) {
-            System.err.println("Usage: CompatReport <apk> [--save [<profiles dir>]]");
+        if (args.length < 1 || (args.length > 3 && args.length != 5) || (args.length > 1 && !"--save".equals(args[1]))) {
+            System.err.println("Usage: CompatReport <apk> [--save <profiles dir> <desktop.jar> <bundle.mpp>]");
             System.err.println("       CompatReport --kotlin <recorded build .txt>");
             System.exit(2);
         }
@@ -2477,16 +2824,25 @@ public class CompatReport {
             }
         }
 
+        // Even re-recording a known build requires current patch application evidence.
+        if (save && problems.isEmpty() && blockers.isEmpty()) {
+            if (args.length != 5 || !verifyPatch(apk, found.sha256, Path.of(args[3]), Path.of(args[4]))) {
+                System.out.println("PROFILE: not written. --save requires a successful Desktop run; supply <profiles dir> <desktop.jar> <bundle.mpp>.");
+                printKotlin(found, builds.values());
+                System.exit(1);
+            }
+        }
+
         // The build's profile: recorded already, written now, or the controls that keep it from being written
         System.out.println();
         if (!problems.isEmpty()) {
             System.out.println("PROFILE: not written. These controls did not resolve:");
             for (var problem : problems) System.out.println("       " + problem);
             anyFail = true;
-        } else if (expected != null && expected.sameControls(found) && expected.dexSites.equals(found.dexSites)) {
+        } else if (!save && expected != null && expected.sameControls(found) && expected.dexSites.equals(found.dexSites)) {
             System.out.println("PROFILE: matches scripts/profiles/" + found.code + ".txt" +
                 (expected.sha256.equals(found.sha256) ? "" : " (from a different APK file than the recorded one)"));
-        } else if (expected != null) {
+        } else if (expected != null && (!expected.sameControls(found) || !expected.dexSites.equals(found.dexSites))) {
             System.out.println("PROFILE: differs from scripts/profiles/" + found.code + ".txt; see the failures above.");
             anyFail = true;
         } else if (!blockers.isEmpty()) {
@@ -2515,11 +2871,11 @@ public class CompatReport {
 
         System.out.println();
         if (anyFail) {
-            System.out.println("RESULT: FAIL — one or more patches are incompatible with this APK.");
+            System.out.println("RESULT: FAIL - one or more patches are incompatible with this APK.");
             if (!builds.isEmpty()) System.out.println("Use an unmodified arm64 Messenger " + supported(builds) + ".");
             System.exit(1);
         } else {
-            System.out.println("RESULT: PASS — all " + (PATCHES.size() + 3) + " patches are compatible.");
+            System.out.println("RESULT: PASS - all " + (PATCHES.size() + 3) + " patches are compatible.");
             System.exit(0);
         }
     }

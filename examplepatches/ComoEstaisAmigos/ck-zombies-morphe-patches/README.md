@@ -18,8 +18,7 @@ You need three things:
 - **The game's OBB**, `main.310.com.glu.android.zombsniper.obb` (460 MB), in
   `Android/obb/com.glu.android.zombsniper/`. The APK does not contain it and the game does not
   start without it.
-- **Morphe Desktop 1.17.0 or Morphe Manager 1.32.0, or later.** Older versions fail on this
-  game.
+- **Morphe Desktop 1.17.0 or Morphe Manager 1.32.0, or later.**
 
 > [!WARNING]
 > The game is 32-bit only (`armeabi`, `armeabi-v7a`). It cannot run on a device without 32-bit
@@ -28,7 +27,7 @@ You need three things:
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.1](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/releases/tag/v1.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.2.2](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/releases/tag/v1.2.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 CK Zombies&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -40,7 +39,7 @@ You need three things:
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| Modern Android compatibility | Fixes the crash at launch on current Android and targets API 25 so that Android 14 and later install the game normally. If the OBB is missing, the game says why. The game is 32-bit only, so the device must still run 32-bit apps. |  |
+| Modern Android compatibility | Fixes the crash at launch on current Android and targets API 25 so that Android 14 and later install the game normally. The game is 32-bit only, so the device must still run 32-bit apps. |  |
 | Play intro once | Plays the intro video on the first launch after installing, and skips it after that. |  |
 | Remove unused permissions | Removes permissions the game no longer needs, such as phone and accounts, along with the dead services that needed them. |  |
 | Render at 720p | Makes the menus, text and pictures full size on screens above 720p, where they are otherwise small. The game is drawn at 720p and stretched to the screen, so it looks slightly blurry. *Off by default.* |  |

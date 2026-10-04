@@ -1,7 +1,8 @@
 package app.morphe.gatecatalog
 
+import app.morphe.Fixtures
+
 import com.android.apksig.internal.apk.AndroidBinXmlParser
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
@@ -169,7 +170,7 @@ object GateCatalogGenerator {
     fun generate(apk: File, curated: List<String>): Catalogs {
         val (version, versionCode) = manifestVersion(apk)
         val scan = Scan()
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         val classes = mutableListOf<Pair<String, ClassDef>>()
         for (entry in container.dexEntryNames) {
             for (classDef in container.getEntry(entry)!!.dexFile.classes) classes += entry to classDef

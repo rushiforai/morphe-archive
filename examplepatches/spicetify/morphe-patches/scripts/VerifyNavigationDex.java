@@ -11,8 +11,6 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 class VerifyNavigationDex {
     static final String SETTINGS = "Lapp/spicetify/extension/spotify/settings/PatchSettings;";
     static final String INSTALLED = "Lapp/spicetify/extension/spotify/settings/InstalledPatches;";
-    static final String CONSUMER = "Lp/uzf0;";
-    static final String FLAG_OWNER = "Lp/b7s0;";
 
     static void require(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
@@ -88,11 +86,11 @@ class VerifyNavigationDex {
                             || !(ref.getReference() instanceof MethodReference target)
                             || !target.getDefiningClass().equals(SETTINGS) || !target.getName().equals("showPremiumTab")) continue;
                     hooks++;
-                    require(cls.getType().equals(CONSUMER) && method.getName().equals("invoke")
+                    require(cls.getType().equals("Lp/tkd0;") && method.getName().equals("invoke")
                             && method.getParameterTypes().isEmpty() && method.getReturnType().equals("Ljava/lang/Object;"),
                             "Navigation hook is outside the verified flag consumer");
-                    require(index >= 2 && index + 2 < code.size(), "Incomplete navigation hook");
-                    require(methodRef(code.get(index - 2), FLAG_OWNER, "b", List.of(), "Z")
+                    require(index >= 2 && index + 3 < code.size(), "Incomplete navigation hook");
+                    require(methodRef(code.get(index - 2), "Lp/f4p0;", "b", List.of(), "Z")
                             && code.get(index - 2).getOpcode() == Opcode.INVOKE_VIRTUAL
                             && code.get(index - 1).getOpcode() == Opcode.MOVE_RESULT,
                             "Navigation hook must consume the original Premium tab flag");
@@ -103,8 +101,9 @@ class VerifyNavigationDex {
                             && target.getParameterTypes().equals(List.of("Z")) && target.getReturnType().equals("Z")
                             && code.get(index + 1).getOpcode() == Opcode.MOVE_RESULT
                             && ((OneRegisterInstruction) code.get(index + 1)).getRegisterA() == register
-                            && code.get(index + 2).getOpcode() == Opcode.IF_EQZ
-                            && ((OneRegisterInstruction) code.get(index + 2)).getRegisterA() == register,
+                            && code.get(index + 2).getOpcode() == Opcode.CONST_4
+                            && code.get(index + 3).getOpcode() == Opcode.IF_EQZ
+                            && ((OneRegisterInstruction) code.get(index + 3)).getRegisterA() == register,
                             "Navigation hook must preserve the flag register and branch");
                 }
             }

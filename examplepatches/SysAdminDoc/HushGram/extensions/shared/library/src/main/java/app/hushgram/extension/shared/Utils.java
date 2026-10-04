@@ -118,6 +118,12 @@ public class Utils {
         return ""; // Value is replaced during patching.
     }
 
+    /** Canonical production identity from the bundle used to patch this app. */
+    @SuppressWarnings("SameReturnValue")
+    public static String getSourceBuildIdentity() {
+        return "Unknown"; // Value is replaced during patching, independently of the version.
+    }
+
     public static boolean isPreReleasePatches() {
         return getPatchesReleaseVersion().contains("dev");
     }

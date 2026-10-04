@@ -2,7 +2,6 @@ package app.morphe.patches.tiktok.interaction.downloads
 
 import app.morphe.Fixtures
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -121,7 +120,7 @@ class StickerSourceFixturesTest {
 
     /** The APK's classes that [wanted] takes. Only those are kept: a whole 47.x build fills the test heap. */
     private fun classesOf(apk: File, wanted: (ClassDef) -> Boolean): List<ClassDef> {
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
         return container.dexEntryNames.asSequence()
             .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
             .filter(wanted)

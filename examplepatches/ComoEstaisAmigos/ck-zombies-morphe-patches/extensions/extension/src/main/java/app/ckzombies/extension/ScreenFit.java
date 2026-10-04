@@ -1,6 +1,5 @@
 package app.ckzombies.extension;
 
-import android.os.Build;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -34,15 +33,18 @@ public final class ScreenFit {
 
     /** Called with the game's SurfaceView right after it is built, before it is laid out. */
     public static void attach(final SurfaceView view) {
-        if (Build.VERSION.SDK_INT < 11) {
-            return; // No layout listener there, and no screen that needs this.
+        try {
+            view.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                           int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    fit(view.getHolder(), right - left, bottom - top);
+                }
+            });
+        } catch (Throwable ignored) {
+            // Older Android has no layout listener, and no screen that needs this. The extension is
+            // built for a newer minimum, so R8 drops an SDK_INT check here; the missing class is
+            // caught instead, and the game then runs at its own size.
         }
-        view.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            public void onLayoutChange(View v, int left, int top, int right, int bottom,
-                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                fit(view.getHolder(), right - left, bottom - top);
-            }
-        });
     }
 
     /**

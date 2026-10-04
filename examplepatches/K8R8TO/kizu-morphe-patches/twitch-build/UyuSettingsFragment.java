@@ -206,12 +206,8 @@ public class UyuSettingsFragment extends PreferenceFragment {
     }
 
     private void addEmoteSettings(PreferenceScreen screen) {
-        addSwitch(screen, Settings.EMOTES_7TV, "7TV emotes",
-                "Show global and channel 7TV emotes in live chat.");
-        addSwitch(screen, Settings.EMOTES_BTTV, "BTTV emotes",
-                "Show global and channel BetterTTV emotes in live chat.");
-        addSwitch(screen, Settings.EMOTES_FFZ, "FFZ emotes",
-                "Show global and channel FrankerFaceZ emotes in live chat.");
+        addSwitch(screen, Settings.EMOTES_THIRD_PARTY, "3rd party emotes",
+                "Show 7TV, BTTV and FFZ emotes in live chat.");
         addSwitch(screen, Settings.EMOTES_ANIMATED, "Animated emotes",
                 "Play animated third-party emotes. Turn this off to use static frames.");
         addSwitch(screen, Settings.EMOTES_PICKER, "Third-party emote picker",

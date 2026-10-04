@@ -1,5 +1,6 @@
 package app.spicetify.extension.spotify.settings;
 
+import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Switch;
@@ -11,6 +12,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.shadows.ShadowDialog;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
@@ -27,17 +29,15 @@ public class BrandAdsSettingsTest {
         var application = RuntimeEnvironment.getApplication();
         application.deleteSharedPreferences("spicetify_patch_settings");
         PatchSettings.initialize(application);
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_ADS)).setup()) {
-            Switch toggle = toggle(controller.get().getWindow().getDecorView());
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Switch toggle = toggle(adsPage(controller.get()));
             assertNotNull(toggle);
             assertTrue(toggle.isChecked());
             toggle.performClick();
             assertFalse(PatchSettings.hideBrandAdsEnabled());
         }
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_ADS)).setup()) {
-            Switch toggle = toggle(controller.get().getWindow().getDecorView());
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Switch toggle = toggle(adsPage(controller.get()));
             assertFalse(toggle.isChecked());
             toggle.performClick();
             assertTrue(PatchSettings.hideBrandAdsEnabled());
@@ -50,9 +50,8 @@ public class BrandAdsSettingsTest {
         var application = RuntimeEnvironment.getApplication();
         application.deleteSharedPreferences("spicetify_patch_settings");
         PatchSettings.initialize(application);
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(application, SpicetifySettingsActivity.PAGE_ADS)).setup()) {
-            Switch toggle = toggle(controller.get().getWindow().getDecorView());
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Switch toggle = toggle(adsPage(controller.get()));
             ((View) toggle.getParent()).performClick();
             assertFalse(toggle.isChecked());
             assertFalse(PatchSettings.hideBrandAdsEnabled());
@@ -61,10 +60,14 @@ public class BrandAdsSettingsTest {
 
     @Test
     public void uninstalledPatchHasNoControl() {
-        try (var controller = Robolectric.buildActivity(SpicetifySettingsActivity.class,
-                SpicetifySettingsActivity.page(RuntimeEnvironment.getApplication(), SpicetifySettingsActivity.PAGE_ADS)).setup()) {
-            assertNull(toggle(controller.get().getWindow().getDecorView()));
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertNull(toggle(adsPage(controller.get())));
         }
+    }
+
+    private View adsPage(Activity activity) {
+        SpicetifySettingsScreen.open(activity, SpicetifySettingsScreen.PAGE_ADS);
+        return ShadowDialog.getLatestDialog().getWindow().getDecorView();
     }
 
     private Switch toggle(View view) {

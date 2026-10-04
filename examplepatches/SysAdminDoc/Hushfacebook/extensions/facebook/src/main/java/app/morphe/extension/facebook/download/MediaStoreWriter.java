@@ -53,6 +53,8 @@ final class MediaStoreWriter implements Downloader.Sink {
     private Uri item;
     private OutputStream stream;
     private String location;
+    private String mediaMime;
+    private boolean committed;
 
     MediaStoreWriter(Context applicationContext, boolean video) {
         this(applicationContext, video, PostDetails.NONE);
@@ -77,9 +79,20 @@ final class MediaStoreWriter implements Downloader.Sink {
         return location;
     }
 
+    /** Only a successfully committed gallery row may be offered to another app. */
+    Uri publishedUri() {
+        return committed ? item : null;
+    }
+
+    String publishedMime() {
+        return committed ? mediaMime : null;
+    }
+
     @Override
     public OutputStream open(String mimeFromServer) throws IOException {
         String mime = mime(mimeFromServer);
+        mediaMime = mime;
+        committed = false;
         // Read here, per file, like the folder. The top folder decides the collection too: only
         // the Downloads one takes Download, and it takes both kinds.
         SaveTo to = SaveTo.current();
@@ -134,10 +147,12 @@ final class MediaStoreWriter implements Downloader.Sink {
             throw new IOException("the gallery did not publish the pending entry");
         }
         SaveLeftovers.settled(context, item);
+        committed = true;
     }
 
     @Override
     public void abandon() {
+        committed = false;
         try {
             close();
         } catch (Throwable ignored) {

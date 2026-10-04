@@ -17,31 +17,22 @@ def altered_apk(source, target, kind):
     with zipfile.ZipFile(source) as original, zipfile.ZipFile(target, "w") as altered:
         for entry in original.infolist():
             data = original.read(entry)
-            if kind in ("sharing", "sharing-response", "settings", "home", "server", "navigation", "ads", "player-ads", "analytics") and entry.filename.endswith(".dex"):
+            if kind in ("sharing", "sharing-response", "settings", "home", "server", "navigation", "ads", "player-ads") and entry.filename.endswith(".dex"):
                 old, new = {"sharing": (b"Invalid uri ", b"Invalid urj "),
                             "sharing-response": (b"fullUrl_", b"testUrl_"),
                             "settings": (b"aboutPage", b"aboutPagg"),
-                            "home": (b"Lp/te31;", b"Lp/te32;"),
+                            "home": (b"Lp/joz0;", b"Lp/jpz0;"),
                             "navigation": (b"premium_tab_enabled", b"premium_tab_enablex"),
                             "ads": (b"featureTypeCase_", b"featureTypeTest_"),
                             "player-ads": (b"sectionTypeCase_", b"sectionTypeTest_"),
                             "server": (b"Lcom/spotify/localfiles/mediastore/MediaStoreReader;",
-                                       b"Lcom/spotify/localfiles/mediastore/MediaStoreReades;"),
-                            "analytics": (b"Lp/t4y;", b"Lp/T4y;")}[kind]
+                                       b"Lcom/spotify/localfiles/mediastore/MediaStoreReades;")}[kind]
                 count = data.count(old)
                 if count:
                     data = bytearray(data.replace(old, new))
-                    # The DEX signature field is SHA-1 by Android specification; this is
-                    # file-format integrity, not a security-sensitive digest.
-                    data[12:32] = hashlib.sha1(data[32:]).digest()  # nosemgrep
+                    data[12:32] = hashlib.sha1(data[32:]).digest()
                     struct.pack_into("<I", data, 8, zlib.adler32(data[12:]))
                     changes += count
-            elif kind == "analytics-perm" and entry.filename == "AndroidManifest.xml":
-                for encoding in ("utf-8", "utf-16le"):
-                    old = "com.google.android.gms.permission.AD_ID".encode(encoding)
-                    new = "com.google.android.gms.permission.AD_IX".encode(encoding)
-                    changes += data.count(old)
-                    data = data.replace(old, new)
             elif kind == "theme" and entry.filename == "resources.arsc":
                 for encoding in ("utf-8", "utf-16le"):
                     old = "dark_base_background_base".encode(encoding)
@@ -66,9 +57,9 @@ def main():
                               (args.stock, args.bundle, args.desktop))
     cases = [
         ("changed-settings-menu", "settings", "Clean sharing links", None,
-         "Spotify settings ABI changed: Lp/y3v;"),
+         "Spotify settings ABI changed: Lp/xlt;"),
         ("missing-sharing-builder", "sharing", "Clean sharing links", None,
-         "Expected one Spotify share URL builder, found 0."),
+         "Spotify settings ABI changed: Lp/ion;"),
         ("changed-sharing-response", "sharing-response", "Clean sharing links", None,
          "Spotify sharing response getter for fullUrl_ changed."),
         ("missing-theme-resource", "theme", "Theme colors", None,
@@ -83,10 +74,6 @@ def main():
          "Spotify advertising ABI changed:"),
         ("changed-player-ad-model", "player-ads", "Hide player ad cards", None,
          "Spotify player advertising ABI changed:"),
-        ("changed-event-insert", "analytics", "Remove analytics and tracking", None,
-         "Spotify event insert p.t4y.a not found."),
-        ("missing-ad-permission", "analytics-perm", "Remove analytics and tracking", None,
-         "Missing ad identifier permission"),
     ]
 
     if args.case:
@@ -116,18 +103,12 @@ def main():
             print(f"Checking {name}...", flush=True)
             completed = subprocess.run(command, stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT, text=True, timeout=300)
-            try:
-                result = json.loads(report.read_text()) if report.exists() else {}
-            except json.JSONDecodeError as error:
-                raise AssertionError(f"{name} produced an invalid patching report: {error}") from None
+            result = json.loads(report.read_text()) if report.exists() else {}
             failures = result.get("failedPatches", [])
             matching = [failure for failure in failures
                         if failure.get("patch", {}).get("name") == patch
                         and reason in failure.get("reason", "")]
-            success = result.get("success")
-            # The report must declare literal JSON failure; absent or truthy success values fail.
-            failed = isinstance(success, bool) and not success
-            if (completed.returncode != 1 or not failed
+            if (completed.returncode != 1 or result.get("success") is not False
                     or len(failures) != 1 or len(matching) != 1
                     or result.get("appliedPatches") != [] or output.exists()):
                 raise AssertionError(f"{name} did not refuse as expected:\n{completed.stdout}")

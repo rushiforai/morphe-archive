@@ -1,5 +1,5 @@
 /*
- * Forked from https://github.com/SysAdminDoc/Hushfacebook at c15d4f79 (GPL-3.0),
+ * Forked from https://github.com/SysAdminDoc/Hushfacebook at a788c516 (GPL-3.0),
  * modified for HushThreads (Threads), 2026.
  *
  * Modified for Hushfacebook (Facebook), 2026.
@@ -43,6 +43,9 @@ object BundleVerifier {
             }
             require(jar.manifest.mainAttributes.getValue("Version") == args[2]) {
                 "Bundle version does not match ${args[2]}"
+            }
+            require(BundleIdentity.fromJar(jar) != "unverified") {
+                "Bundle identity is missing or does not match its packaged inputs"
             }
         }
         val expectedDigest = File(args[3]).readText().trim()

@@ -29,11 +29,10 @@ class VerifyNavigationDexTest {
     @Test void rejectsWrongHelperResult() { assertThrows(AssertionError.class, () -> check(Change.WRONG_TRUE_VALUE)); }
 
     void check(Change change) throws Exception {
-        String caller = change == Change.WRONG_CALLER ? "Ltest/Other;" : VerifyNavigationDex.CONSUMER;
+        String caller = change == Change.WRONG_CALLER ? "Ltest/Other;" : "Lp/tkd0;";
         List<Instruction> code = new ArrayList<>(List.of(
             new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 4, 0, 0, 0, 0,
-                new ImmutableMethodReference(VerifyNavigationDex.FLAG_OWNER,
-                    change == Change.WRONG_FLAG ? "a" : "b", List.of(), "Z")),
+                new ImmutableMethodReference("Lp/f4p0;", change == Change.WRONG_FLAG ? "a" : "b", List.of(), "Z")),
             new ImmutableInstruction11x(Opcode.MOVE_RESULT, 4)));
         if (change != Change.MISSING_HOOK) {
             code.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
@@ -41,6 +40,7 @@ class VerifyNavigationDexTest {
                 new ImmutableMethodReference(VerifyNavigationDex.SETTINGS, "showPremiumTab", List.of("Z"), "Z")));
             code.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT, change == Change.WRONG_RESULT ? 5 : 4));
         }
+        code.add(new ImmutableInstruction11n(Opcode.CONST_4, 5, 0));
         code.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 4, 2));
         code.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 5));
         var classes = List.of(

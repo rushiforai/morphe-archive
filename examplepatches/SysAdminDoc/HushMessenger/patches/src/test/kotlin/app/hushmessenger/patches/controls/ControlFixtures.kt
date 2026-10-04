@@ -201,6 +201,7 @@ internal fun peopleJewelMethod(
     flags: Int = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
     inlinedReset: Boolean = false,
     extraFlag: Boolean = false,
+    extraFlagValue: String = serverFlag,
 ) = fixtureMethod(PEOPLE_JEWEL_HOOK, """
     iget-object v0, p0, LX/HAR;->A07:LX/17Z;
     invoke-static {v0}, LX/17Z;->A0F(LX/17Z;)Ljava/lang/Object;
@@ -224,7 +225,7 @@ internal fun peopleJewelMethod(
     move-result v0
     if-nez v0, $serverTarget
     iget-object v3, p0, LX/HAR;->A0F:LX/WZw;
-    ${if (extraFlag) "const-wide v0, $serverFlag" else ""}
+    ${if (extraFlag) "const-wide v0, $extraFlagValue" else ""}
     :hidden
     const/4 v0, 0x1
     return v0

@@ -1,0 +1,165 @@
+/*
+ * Copyright 2026 HushGram contributors
+ * https://github.com/SysAdminDoc/HushGram
+ */
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import java.security.MessageDigest
+
+// Hash working bytes at the producer boundary, including future tracked ledgers. Git supplies
+// names only, never the index's older bytes. Ignored machine configuration and outputs stay out.
+def auditRoot = rootDir
+def auditOutput = layout.buildDirectory.file('reports/dependencies/build-inputs.json')
+tasks.register('writeDependencyAuditInputs') {
+    group = 'verification'
+    description = 'Records the repository inputs used by the current bundle and dependency audit.'
+    outputs.file(auditOutput)
+    outputs.upToDateWhen { false }
+    mustRunAfter(':patches:generatePatchesList')
+    doLast {
+        def process = new ProcessBuilder('git', '-C', auditRoot.absolutePath, 'ls-files', '-z', '--cached')
+        process.environment().keySet().removeIf { it.startsWith('GIT_') }
+        def child = process.start()
+        def names = new TreeSet<String>(child.inputStream.getText('UTF-8').split('\u0000').findAll { it })
+        def error = child.errorStream.getText('UTF-8')
+        if (child.waitFor() != 0 || names.empty) throw new GradleException('Cannot enumerate tracked build inputs: ' + error)
+        def untracked = new ProcessBuilder('git', '-C', auditRoot.absolutePath, 'ls-files', '-z', '--others', '--exclude-standard')
+        untracked.environment().keySet().removeIf { it.startsWith('GIT_') }
+        def untrackedChild = untracked.start()
+        def added = untrackedChild.inputStream.getText('UTF-8')
+        def addedError = untrackedChild.errorStream.getText('UTF-8')
+        if (untrackedChild.waitFor() != 0) throw new GradleException('Cannot check untracked build inputs: ' + addedError)
+        if (added) throw new GradleException('Stage new repository inputs before building an input-bound artifact.')
+        def hash = { byte[] bytes -> MessageDigest.getInstance('SHA-256').digest(bytes).encodeHex().toString() }
+        def groups = [source: [], catalog: [], toolchain: []]
+        names.each { name ->
+            if (name.contains('\n') || name.contains('\r') || name.contains('\t')) {
+                throw new GradleException('A tracked build input has an unsupported filename.')
+            }
+            def file = new File(auditRoot, name)
+            if (!file.isFile()) throw new GradleException('A tracked build input is missing: ' + name)
+            def group = name == 'patches-list.json' ? 'catalog' :
+                    (name.startsWith('gradle/') || name == 'gradle.properties' || name == 'settings.gradle.kts' ||
+                    name == 'build.gradle.kts' || name == 'gradlew' || name == 'gradlew.bat' ||
+                    name.endsWith('.gradle') || name.endsWith('.gradle.kts')) ? 'toolchain' : 'source'
+            groups[group].add(name + '\t' + hash(file.bytes) + '\n')
+        }
+        if (groups.catalog.size() != 1 || groups.toolchain.empty || groups.source.empty) {
+            throw new GradleException('Tracked inputs omit the source, catalog or toolchain.')
+        }
+        def version = new Properties()
+        new File(auditRoot, 'gradle.properties').withInputStream { version.load(it) }
+        if (!version.getProperty('version')) throw new GradleException('No current bundle version is pinned.')
+        def inputs = [schemaVersion: 1, version: version.getProperty('version')]
+        groups.each { name, entries -> inputs[name + 'Sha256'] = hash(entries.join('').getBytes('UTF-8')) }
+        inputs.inputSha256 = hash(groups.keySet().collect { it + ':' + inputs[it + 'Sha256'] + '\n' }.join('').getBytes('UTF-8'))
+        def output = auditOutput.get().asFile
+        output.parentFile.mkdirs()
+        output.setText(JsonOutput.prettyPrint(JsonOutput.toJson(inputs)) + '\n', 'UTF-8')
+    }
+}
+
+// This identity describes production inputs, separately from the stricter all-tracked audit
+// snapshot above. It is written after catalog generation and embedded only in the final bundle.
+def canonicalOutput = layout.buildDirectory.file('reports/build-identity/canonical-inputs.json')
+def calculateCanonicalIdentity = {
+        def process = new ProcessBuilder('git', '-C', auditRoot.absolutePath, 'ls-files', '-z', '--cached')
+        process.environment().keySet().removeIf { it.startsWith('GIT_') }
+        def child = process.start()
+        def names = new TreeSet<String>(child.inputStream.getText('UTF-8').split('\u0000').findAll { it })
+        def error = child.errorStream.getText('UTF-8')
+        if (child.waitFor() != 0 || names.empty) throw new GradleException('Cannot enumerate canonical tracked inputs: ' + error)
+        def policy = 'scripts/canonical-build-inputs.txt'
+        if (!names.contains(policy)) throw new GradleException('The canonical input boundary is not tracked.')
+        def ignored = new ProcessBuilder('git', '-C', auditRoot.absolutePath, 'ls-files', '-z', '--others',
+                '--ignored', '--exclude-standard', '--', ':(glob)**/src/main/**', ':(glob)**/src/release/**')
+        ignored.environment().keySet().removeIf { it.startsWith('GIT_') }
+        def ignoredChild = ignored.start()
+        def ignoredNames = ignoredChild.inputStream.getText('UTF-8').split('\u0000').findAll { name ->
+            def input = name =~ /^(?<module>(?:(?!src\/)[^\/]+\/)+)src\/(main|release)\/(AndroidManifest\.xml|(?:java|kotlin)\/.+\.(?:java|kt)|(?:res|resources|assets|aidl|rs|shaders|jni|jniLibs)\/.+|l10n\/.+\.tsv)$/
+            input.matches() && !(input.group('module') =~ /(^|\/)(build|\.gradle)(\/|$)/).find()
+        }
+        def ignoredError = ignoredChild.errorStream.getText('UTF-8')
+        if (ignoredChild.waitFor() != 0) throw new GradleException('Cannot check ignored production inputs: ' + ignoredError)
+        def groups = [source: [], catalog: [], toolchain: []]
+        def owners = [:]
+        new File(auditRoot, policy).readLines('UTF-8').findAll { !(it ==~ /\s*(#.*)?/) }.each { line ->
+            def match = line =~ /^(source|catalog|toolchain) (file|tree|production|module) ([A-Za-z0-9_.\/-]+)$/
+            if (!match.matches()) throw new GradleException('The canonical input boundary has a malformed rule.')
+            def category = match[0][1], kind = match[0][2], path = match[0][3]
+            if (path.startsWith('/') || path ==~ /.*(^|\/)\.\.(\/|$).*/ ||
+                    path ==~ /.*(^|\/)(build|\.gradle)(\/|$).*/) {
+                throw new GradleException('The canonical input boundary includes an output or escaping path.')
+            }
+            def includes = { String name ->
+                kind == 'file' ? name == path : kind == 'tree' ? name.startsWith(path + '/') :
+                    kind == 'production' ? name.startsWith(path + '/') &&
+                        (name.substring(path.length() + 1) ==~ '^(?:(?!src/)[^/]+/)+src/(main|release)/.+$') :
+                        name.startsWith(path + '/') && !name.contains('/src/') && name ==~ /.*\/build\.gradle(\.kts)?$/
+            }
+            if (category == 'source') {
+                def hidden = ignoredNames.find { includes(it) }
+                if (hidden) throw new GradleException('An ignored canonical production input must be tracked before building or auditing: ' + hidden)
+            }
+            def matched = names.findAll { includes(it) }
+            if (matched.empty) throw new GradleException('A required canonical input is missing: ' + line)
+            matched.each { name ->
+                if (owners[name] && owners[name] != category) throw new GradleException('A canonical input has two categories: ' + name)
+                owners[name] = category
+            }
+        }
+        groups.keySet().each { category ->
+            if (!owners.containsValue(category)) throw new GradleException('The canonical input boundary omits ' + category)
+        }
+        def hash = { byte[] bytes -> MessageDigest.getInstance('SHA-256').digest(bytes).encodeHex().toString() }
+        names.findAll { owners[it] }.each { name ->
+            if (name.find(/[\r\n\t]/) || name.find(/(^|\/)(build|\.gradle|src\/debug|src\/test|src\/androidTest)(\/|$)/)) {
+                throw new GradleException('A canonical input has an unsupported path: ' + name)
+            }
+            def file = new File(auditRoot, name)
+            if (!file.isFile() || java.nio.file.Files.isSymbolicLink(file.toPath())) {
+                throw new GradleException('A canonical build input is missing or linked: ' + name)
+            }
+            groups[owners[name]].add(name + '\t' + hash(file.bytes) + '\n')
+        }
+        def identity = [schemaVersion: 1]
+        def joined = 'hushgram-production-inputs-v1\n'
+        groups.each { category, entries ->
+            identity[category + 'Sha256'] = hash(entries.join('').getBytes('UTF-8'))
+            joined += category + ':' + identity[category + 'Sha256'] + '\n'
+        }
+        identity.id = 'hg1:' + hash(joined.getBytes('UTF-8'))
+        return identity
+}
+// Capture before any producer runs. The catalog can be regenerated, but compiled source or
+// toolchain bytes cannot change mid-build and be attributed to an earlier compiler output.
+def initialCanonicalInputs = null
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(':writeCanonicalBuildIdentity')) initialCanonicalInputs = calculateCanonicalIdentity()
+}
+// Consumers recheck after compilation too. A valid initial snapshot cannot label code that
+// changed after this task wrote it, and no final bundle hash participates in this comparison.
+ext.verifyCanonicalBuildIdentity = {
+    def recorded = new JsonSlurper().parse(canonicalOutput.get().asFile, 'UTF-8')
+    if (recorded != calculateCanonicalIdentity()) {
+        throw new GradleException('Canonical production inputs changed after the identity snapshot.')
+    }
+}
+tasks.register('writeCanonicalBuildIdentity') {
+    group = 'build'
+    description = 'Records the canonical production source, catalog and pinned toolchain identity.'
+    dependsOn('writeDependencyAuditInputs')
+    mustRunAfter(':patches:generatePatchesList')
+    outputs.file(canonicalOutput)
+    outputs.upToDateWhen { false }
+    doLast {
+        def identity = calculateCanonicalIdentity()
+        if (!initialCanonicalInputs || identity.sourceSha256 != initialCanonicalInputs.sourceSha256 ||
+                identity.toolchainSha256 != initialCanonicalInputs.toolchainSha256) {
+            throw new GradleException('Canonical production source or toolchain inputs changed during the build.')
+        }
+        def output = canonicalOutput.get().asFile
+        output.parentFile.mkdirs()
+        output.setText(JsonOutput.prettyPrint(JsonOutput.toJson(identity)) + '\n', 'UTF-8')
+    }
+}

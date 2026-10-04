@@ -196,11 +196,11 @@ class HolidayLookFixtureTest {
 
     /** The holiday check's class and every class reading its snow flag. */
     private fun owners(build: java.io.File): List<ClassDef> {
-        val check = FixtureDex.classesWhere(build, { true }) { method -> method.instructions().any { it.reference() == NEW_YEAR_HAT } }
+        val check = FixtureDex.classesWhere(build, HAT_CENSUS, { true }) { method -> method.instructions().any { it.reference() == NEW_YEAR_HAT } }
         assertEquals("${build.name}: the holiday check", 1, check.size)
         val loader = check.single().methods.single { method -> method.instructions().any { it.reference() == NEW_YEAR_HAT } }
         val snow = loader.instructions().first { it.opcode == Opcode.SPUT_BOOLEAN }.reference()
-        val readers = FixtureDex.classesWhere(build, { true }) { method -> method.instructions().any {
+        val readers = FixtureDex.classesWhere(build, SNOW_CENSUS, { true }) { method -> method.instructions().any {
             it.opcode == Opcode.SGET_BOOLEAN && it.reference() == snow } }
         return (check + readers).distinctBy { it.type }
     }
@@ -211,6 +211,8 @@ class HolidayLookFixtureTest {
     }
 
     private companion object {
+        val HAT_CENSUS = FixtureDex.ClassCensus()
+        val SNOW_CENSUS = FixtureDex.ClassCensus()
         val HOOK = listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.IF_NE, Opcode.SPUT_BOOLEAN,
             Opcode.SGET_OBJECT, Opcode.IF_NEZ, Opcode.GOTO, Opcode.CONST_4, Opcode.SPUT_OBJECT, Opcode.SPUT_BOOLEAN,
             Opcode.CONST_WIDE_16, Opcode.SPUT_WIDE, Opcode.NOP)

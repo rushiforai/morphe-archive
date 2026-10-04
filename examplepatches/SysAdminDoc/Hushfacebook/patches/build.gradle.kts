@@ -1,6 +1,8 @@
 import app.morphe.patches.gradle.ExtensionExtension
 import app.morphe.patches.gradle.ExtensionPlugin
 import app.morphe.patches.gradle.PatchesExtension
+import org.apache.tools.ant.DirectoryScanner
+import org.apache.tools.ant.types.selectors.SelectorUtils
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
@@ -9,9 +11,12 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.nio.ByteBuffer
+import java.nio.file.Files
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
+import java.util.jar.Manifest
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
@@ -69,6 +74,103 @@ val sourceDateEpoch: Long = run {
     }
 }
 
+/** Actual producer inputs, including new untracked source files, rather than HEAD alone. */
+val identityInputTrees = listOf(
+    Triple("patches/src/main", emptyList<String>(), emptyList<String>()),
+    Triple("patches/stub/src/main", emptyList<String>(), emptyList<String>()),
+    Triple("extensions", listOf("**/src/main/**", "**/build.gradle.kts", "**/*.pro"), listOf("**/build/**")),
+    Triple("patches", listOf("**/build.gradle.kts"), listOf("**/build/**")),
+    Triple("gradle", emptyList<String>(), emptyList<String>()),
+)
+val identityInputFiles = listOf("build.gradle.kts", "settings.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat", "NOTICE")
+val buildIdentityInputs = files(
+    identityInputTrees.map { (directory, includes, excludes) ->
+        rootProject.fileTree(directory) {
+            include(includes)
+            exclude(excludes)
+        }
+    },
+    rootProject.files(identityInputFiles),
+)
+
+// Match absent HEAD paths with the same patterns and Ant default exclusions as the file trees.
+// Ant's path matcher needs native separators to handle a leading ** consistently on Windows.
+fun isBuildIdentityInput(path: String): Boolean = path in identityInputFiles || identityInputTrees.any { (directory, includes, excludes) ->
+    if (!path.startsWith("$directory/")) return@any false
+    val relative = path.removePrefix("$directory/").replace('/', File.separatorChar)
+    fun matches(pattern: String) = SelectorUtils.matchPath(pattern.replace('/', File.separatorChar), relative, true)
+    (includes.isEmpty() || includes.any(::matches)) && excludes.none(::matches) &&
+        DirectoryScanner.getDefaultExcludes().none(::matches)
+}
+
+data class BuildSourceSnapshot(val commit: String, val tree: String, val state: String, val inputs: String)
+
+fun snapshotBuildIdentity(): BuildSourceSnapshot {
+    val inputFiles = buildIdentityInputs.files.filter { it.isFile }.sortedBy { it.relativeTo(rootDir).invariantSeparatorsPath }
+    val digest = MessageDigest.getInstance("SHA-256")
+    digest.update("hushfacebook-source-inputs-1\n".toByteArray(Charsets.US_ASCII))
+    for (file in inputFiles) {
+        val name = file.relativeTo(rootDir).invariantSeparatorsPath.toByteArray(Charsets.UTF_8)
+        val bytes = file.readBytes()
+        digest.update(ByteBuffer.allocate(4).putInt(name.size).array())
+        digest.update(name)
+        digest.update(ByteBuffer.allocate(8).putLong(bytes.size.toLong()).array())
+        digest.update(bytes)
+    }
+    val inputs = digest.digest().joinToString("") { "%02x".format(it) }
+    try {
+        val gitRoot = providers.exec {
+            commandLine("git", "--no-optional-locks", "rev-parse", "--show-toplevel")
+            workingDir = rootDir
+        }.standardOutput.asText.get().trim()
+        if (File(gitRoot).canonicalFile != rootDir.canonicalFile) {
+            return BuildSourceSnapshot("unknown", "unknown", "unknown", inputs)
+        }
+        val source = providers.exec {
+            commandLine("git", "--no-optional-locks", "rev-parse", "HEAD", "HEAD^{tree}")
+            workingDir = rootDir
+        }.standardOutput.asText.get().trim().lines()
+        val changes = providers.exec {
+            commandLine("git", "--no-optional-locks", "status", "--porcelain")
+            workingDir = rootDir
+        }.standardOutput.asText.get().trim()
+        val blobs = providers.exec {
+            commandLine("git", "--no-optional-locks", "ls-tree", "-rz", "HEAD")
+            workingDir = rootDir
+        }.standardOutput.asText.get().split('\u0000').filter { it.isNotEmpty() }.associate {
+            it.substringAfter('\t') to it.substringBefore('\t').substringAfterLast(' ')
+        }
+        // Index flags can hide modified or deleted files from status. Require the same eligible
+        // paths in both directions, then compare the bytes Git would store with immutable HEAD blobs.
+        val headPaths = blobs.keys.filter(::isBuildIdentityInput).toSet()
+        val paths = inputFiles.map { it.relativeTo(rootDir).invariantSeparatorsPath }
+        // Chunk the arguments for Windows' command-line bound. Provider exec deliberately does
+        // not accept a custom stdin stream, so --stdin-paths cannot be used here.
+        val actualBlobs = paths.chunked(100).flatMap { chunk ->
+            providers.exec {
+                commandLine(listOf("git", "--no-optional-locks", "hash-object", "--") + chunk)
+                workingDir = rootDir
+            }.standardOutput.asText.get().trim().lines()
+        }
+        if (source.size == 2 && source.all { it.matches(Regex("[0-9a-f]{40}")) }) {
+            val matchesHead = headPaths == paths.toSet() && actualBlobs.size == paths.size &&
+                paths.zip(actualBlobs).all { (path, hash) -> blobs[path] == hash }
+            return BuildSourceSnapshot(source[0], source[1], if (changes.isEmpty() && matchesHead) "clean" else "dirty", inputs)
+        }
+    } catch (_: Exception) {
+        // Archives and unavailable Git still identify input bytes, without inventing a commit.
+    }
+    return BuildSourceSnapshot("unknown", "unknown", "unknown", inputs)
+}
+
+// Captured before compilation and checked again at the producer boundary. A changed input cannot
+// stamp the outputs of an earlier compile as a clean build of its new bytes.
+val buildSourceSnapshot = snapshotBuildIdentity()
+fun snapshotInputTimes() = buildIdentityInputs.files.filter { it.isFile }.associate {
+    it.relativeTo(rootDir).invariantSeparatorsPath to Files.getLastModifiedTime(it.toPath())
+}
+val buildIdentityInputTimes = snapshotInputTimes()
+
 /**
  * Rewrites the bundle with the timestamp pinned, leaving everything else as it was.
  *
@@ -77,7 +179,7 @@ val sourceDateEpoch: Long = run {
  * what the plugin first wrote, which does not matter: what matters is that two runs of this
  * produce the same bytes, and they do, because nothing here reads a clock.
  */
-fun pinBundleTimestamp(bundle: File, epochSeconds: Long) {
+fun pinBundleTimestamp(bundle: File, epochSeconds: Long, source: BuildSourceSnapshot) {
     val stampMillis = epochSeconds * 1000L
     val names = mutableListOf<String>()
     val contents = mutableMapOf<String, ByteArray>()
@@ -86,6 +188,7 @@ fun pinBundleTimestamp(bundle: File, epochSeconds: Long) {
 
     ZipFile(bundle).use { zip ->
         for (entry in zip.entries()) {
+            if (entry.name in contents) throw GradleException("The bundle contains a duplicate entry.")
             val bytes = zip.getInputStream(entry).use { it.readBytes() }
             names += entry.name
             contents[entry.name] = bytes
@@ -102,7 +205,32 @@ fun pinBundleTimestamp(bundle: File, epochSeconds: Long) {
     if (!pinned.contains("Timestamp: $stampMillis")) {
         throw GradleException("The bundle manifest has no Timestamp line to pin: $bundle")
     }
-    contents[manifestName] = pinned.toByteArray(Charsets.UTF_8)
+    val metadata = Manifest(pinned.byteInputStream(Charsets.UTF_8))
+    metadata.mainAttributes.putValue("Hushfacebook-Source-State", source.state)
+    metadata.mainAttributes.putValue("Hushfacebook-Source-Commit", source.commit)
+    metadata.mainAttributes.putValue("Hushfacebook-Source-Tree", source.tree)
+    metadata.mainAttributes.putValue("Hushfacebook-Input-SHA256", source.inputs)
+    contents[manifestName] = ByteArrayOutputStream().also { metadata.write(it) }.toByteArray()
+
+    // Keep this framing in agreement with BundleIdentity.payloadSha256, which verifies the
+    // actual loaded bundle at patch time. Source fields are covered, only the digest is excluded.
+    val identityName = "META-INF/hushfacebook-build.identity"
+    val schema = "hushfacebook-bundle-1"
+    val payload = MessageDigest.getInstance("SHA-256")
+    payload.update((schema + "\n").toByteArray(Charsets.US_ASCII))
+    for (name in names.filterNot { it.endsWith('/') || it == identityName }.sorted()) {
+        val bytes = contents.getValue(name)
+        val path = name.toByteArray(Charsets.UTF_8)
+        payload.update(ByteBuffer.allocate(4).putInt(path.size).array())
+        payload.update(path)
+        payload.update(ByteBuffer.allocate(8).putLong(bytes.size.toLong()).array())
+        payload.update(bytes)
+    }
+    val payloadHash = payload.digest().joinToString("") { "%02x".format(it) }
+    if (identityName !in names) names += identityName
+    contents[identityName] = "$schema\n$payloadHash\n".toByteArray(Charsets.US_ASCII)
+    times[identityName] = 0L
+    methods[identityName] = ZipEntry.DEFLATED
 
     val rebuilt = ByteArrayOutputStream()
     ZipOutputStream(rebuilt).use { out ->
@@ -549,7 +677,7 @@ abstract class WriteReleaseSbom : DefaultTask() {
         // Written by the plugin itself: the manifest by the jar task, which leaves every library's
         // own out, and classes.dex by buildAndroid. Every library jar has a manifest too, so a
         // library would otherwise count as carried on the strength of a file that isn't its.
-        val generated = setOf("META-INF/MANIFEST.MF", "classes.dex")
+        val generated = setOf("META-INF/MANIFEST.MF", "META-INF/hushfacebook-build.identity", "classes.dex")
         val own = ownOutput.files.filter { it.isDirectory }.flatMap { root ->
             root.walkTopDown().filter { it.isFile }.map { it.relativeTo(root).invariantSeparatorsPath }.toList()
         }.toSet()
@@ -740,10 +868,7 @@ gradle.projectsEvaluated {
         }
         absent += parts[1] + "\tNo registered " + parts[2] + " task or resolvable configuration"
     }
-    val commit = providers.exec {
-        commandLine("git", "rev-parse", "HEAD")
-        workingDir = rootProject.projectDir
-    }.standardOutput.asText.map { it.trim() }
+    val commit = providers.provider { buildSourceSnapshot.commit }
     val report = tasks.register<WriteToolingReport>("releaseTooling") {
         group = "build"
         description = "Records resolved settings, project build and test graphs separately from payload provenance"
@@ -752,7 +877,7 @@ gradle.projectsEvaluated {
         bundleVersion.set(project.version.toString())
         scopeManifest.set(scopeFile)
         sourceCommit.set(commit)
-        sourceTree.set(if (uncommittedChanges?.isEmpty() == true) "clean" else "dirty")
+        sourceTree.set(buildSourceSnapshot.state)
         configuredScopes.set(configured.sorted())
         absentScopes.set(absent.sorted())
         graphs.from(producers.map { it.flatMap { task -> task.output } })
@@ -964,7 +1089,16 @@ tasks {
         // read only the folder's top level, and name only would call that move no change.
         // Blank counts as unset, as Fixtures.kt reads it; File("") would be the whole project.
         val fixtureDirectory = providers.environmentVariable("HUSHFACEBOOK_FIXTURE_DIR")
-        inputs.files(fixtureDirectory.map { if (it.isBlank()) emptyList() else listOf(File(it)) }.orElse(emptyList()))
+        // A configured empty folder must run and fail, never reuse an unset folder's skip.
+        inputs.property("fixturesConfigured", fixtureDirectory.map { it.isNotBlank() }.orElse(false))
+        inputs.files(fixtureDirectory.map { configured ->
+            if (configured.isBlank()) emptyList() else {
+                val directory = File(configured)
+                check(directory.isDirectory) { "HUSHFACEBOOK_FIXTURE_DIR names $directory, which is not a folder." }
+                checkNotNull(directory.listFiles()) { "HUSHFACEBOOK_FIXTURE_DIR names $directory, which cannot be read." }
+                    .filter { it.isFile }
+            }
+        }.orElse(emptyList()))
             .withPropertyName("fixtures")
             .withPathSensitivity(PathSensitivity.RELATIVE)
     }
@@ -1047,6 +1181,9 @@ tasks {
         output.set(layout.buildDirectory.file("release/$releaseSbomName"))
     }
     named("buildAndroid") {
+        inputs.files(buildIdentityInputs).withPropertyName("identityInputs").withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.property("identitySource", listOf(buildSourceSnapshot.commit, buildSourceSnapshot.tree,
+            buildSourceSnapshot.state, buildSourceSnapshot.inputs))
         // Resolved at configuration time. Reaching for project inside doLast is what the
         // configuration cache refuses, and Gradle 10 turns that refusal into an error.
         val bundleFile = layout.buildDirectory.file("libs/$releaseBundleName")
@@ -1056,6 +1193,9 @@ tasks {
         // release receipt refuses such a bundle, and only this build saw the tree it came from.
         val unheldChanges = if (sourceDateEpochFromEnvironment == null) uncommittedChanges else emptyList()
         doLast {
+            if (snapshotBuildIdentity() != buildSourceSnapshot || snapshotInputTimes() != buildIdentityInputTimes) {
+                throw GradleException("Build source inputs changed during compilation. Rebuild before using this bundle.")
+            }
             // Emptied first, so the directory never holds a bundle of another version or a
             // checksum of another build: the release scripts take the one file they find.
             val directory = releaseDirectory.get().asFile
@@ -1066,7 +1206,7 @@ tasks {
             val releaseBundle = directory.resolve(releaseBundleName)
             bundleFile.get().asFile.copyTo(releaseBundle)
             // Before the checksum, so what is recorded is what a rebuild will produce.
-            pinBundleTimestamp(releaseBundle, pinnedEpoch)
+            pinBundleTimestamp(releaseBundle, pinnedEpoch, buildSourceSnapshot)
             if (unheldChanges == null) {
                 logger.warn("git couldn't say whether the working tree matches HEAD, so $releaseBundleName is " +
                     "stamped 0 rather than a commit's time, and no release receipt will take it.")
@@ -1106,5 +1246,20 @@ tasks {
     // The patch list has to be regenerated before anything publishes the bundle.
     publish {
         dependsOn("generatePatchesList")
+    }
+}
+
+// Gradle's file snapshots can reuse a hash when size and mtime are unchanged. Bind the raw-byte
+// digest before producer tasks execute, so a changed clean checkout cannot reuse stale classes.
+gradle.taskGraph.whenReady {
+    val producer = tasks.named("buildAndroid").get()
+    if (hasTask(producer)) {
+        val visited = mutableSetOf<Task>()
+        fun bind(task: Task) {
+            if (!visited.add(task)) return
+            task.inputs.property("hushfacebookProducerInputsSha256", buildSourceSnapshot.inputs)
+            getDependencies(task).forEach(::bind)
+        }
+        bind(producer)
     }
 }

@@ -24,6 +24,8 @@
     bundle's, so neither can be swapped for another build's without the pair coming apart.
 #>
 
+. (Join-Path $PSScriptRoot 'native-packaging.ps1')
+
 function Get-ReleaseReceiptSchemaVersion {
     <#
     .SYNOPSIS
@@ -37,8 +39,9 @@ function Get-ReleaseReceiptSchemaVersion {
 
         2 added sbom: the file name, SHA-256 and component count of the release SBOM.
         3 added each target's stock and patched binary minSdk, held to max(stock, 28).
+        4 added native-library preservation, 64-bit ELF LOAD and APK zip alignment evidence.
     #>
-    return 3
+    return 4
 }
 
 function Resolve-ReceiptSchema {
@@ -47,7 +50,8 @@ function Resolve-ReceiptSchema {
         The schema a receipt should be held to: the one its own commit's builder wrote.
     .DESCRIPTION
         A receipt describes a release that has shipped. One cut before schema 2 has no SBOM,
-        and one cut before schema 3 has no binary SDK facts. Holding it to today's schema would
+        and one cut before schema 3 has no binary SDK facts. Schema 4 adds native packaging proof.
+        Holding an older receipt to today's schema would
         refuse every later push from the checkout that cut it, which is the trap
         Resolve-ReceiptToolchain describes for the patcher pin. So the
         number is read out of scripts/release-receipt.ps1 at the receipt's commit. On a release
@@ -657,6 +661,20 @@ function Resolve-ReceiptManifestAllowlist {
     return [pscustomobject]@{ Entries = $atCommit; Note = $note }
 }
 
+function Get-PreparedChangelog {
+    <# Validate a working entry with the release parser without changing the saved file.
+       Call only for source preparation or a synthetic release fixture. A real release
+       continues to require its dated heading. The validation date is synthetic. #>
+    param([string]$Current, [string]$ExpectedVersion)
+
+    $section = [regex]::Match($Current, '(?ms)^## Unreleased\s*\r?\n(.*?)(?=^## |\z)')
+    if (-not $section.Success) { return $Current }
+    $marker = [regex]::Match($section.Groups[1].Value, '(?m)^Working version (\d+\.\d+\.\d+)\.\s*$')
+    if (-not $marker.Success -or $marker.Groups[1].Value -cne $ExpectedVersion) { return $Current }
+    return $Current.Remove($section.Index, $section.Length).Insert($section.Index,
+        "## $ExpectedVersion (2000-01-01)`n" + $section.Groups[1].Value)
+}
+
 function Get-ChangelogVersions {
     <#
     .SYNOPSIS
@@ -1065,6 +1083,24 @@ function Resolve-ReceiptCatalog {
     }
 }
 
+function Get-VendorSignerDigests {
+    param(
+        [Parameter(Mandatory = $true)][string]$Apk,
+        [Parameter(Mandatory = $true)][string]$Aapt2
+    )
+    $apksigner = Join-Path (Split-Path -Parent $Aapt2) 'apksigner.bat'
+    if (-not (Test-Path -LiteralPath $apksigner -PathType Leaf)) { throw "No apksigner beside aapt2: $apksigner" }
+    $ErrorActionPreference = 'Continue'
+    $global:LASTEXITCODE = -1
+    $lines = @(& $apksigner verify --print-certs $Apk 2>&1 | ForEach-Object { [string]$_ })
+    if ($LASTEXITCODE -ne 0) { throw "apksigner could not verify $Apk." }
+    $digests = @($lines | Where-Object { $_ -match 'certificate SHA-256 digest: ([0-9a-fA-F]{64})' } |
+        ForEach-Object { ($_ -replace '^.*certificate SHA-256 digest: ', '').Trim().ToLowerInvariant() } |
+        Sort-Object -Unique)
+    if ($digests.Count -eq 0) { throw "apksigner returned no certificate for $Apk." }
+    return $digests
+}
+
 function Test-ReleaseReceipt {
     <#
     .SYNOPSIS
@@ -1084,12 +1120,14 @@ function Test-ReleaseReceipt {
         # from forced runs against newer builds reads as proof of the release, when nothing in it
         # was patched the way a user's Manager patches it. Each declared version needs its own
         # run: the README says the patches were checked on every one of them.
-        [Parameter(Mandatory = $true)][string]$ExpectedPackageName,
-        [Parameter(Mandatory = $true)][string[]]$ExpectedPackageVersions,
+        [string]$ExpectedPackageName,
+        [string[]]$ExpectedPackageVersions,
         # The version codes the catalog pins those versions to (Get-PatchTarget's PackageVersionCodes).
         # Another build of a declared version isn't the declared build, so a run of it proves nothing
         # without -f. A version pinned to no code is matched by its name.
         [System.Collections.IDictionary]$ExpectedPackageVersionCodes,
+        # Every distribution from Get-PatchTargets. The legacy fields above still read older callers.
+        [object[]]$ExpectedPackageTargets,
         [string]$BundlePath,
         [string[]]$ApprovedManifestDelta = @(),
         # When the commit the receipt names was made, read out of git by the caller. Without it
@@ -1257,23 +1295,37 @@ function Test-ReleaseReceipt {
     $expected = [System.Collections.Generic.HashSet[string]]::new(
         [string[]]$ExpectedPatchNames, [System.StringComparer]::Ordinal)
     $produced = New-Object System.Collections.Generic.List[string]
-    $provedVersions = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
-    # What Test-DeclaredBuild (patch-target.ps1) reads.
-    $declaredTarget = [pscustomobject]@{
-        PackageVersions = $ExpectedPackageVersions
-        PackageVersionCodes = if ($null -ne $ExpectedPackageVersionCodes) { $ExpectedPackageVersionCodes } else { @{} }
+    $provedBuilds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $declaredTargets = @($ExpectedPackageTargets | Where-Object { $null -ne $_ })
+    if ($declaredTargets.Count -eq 0 -and $ExpectedPackageName -and @($ExpectedPackageVersions).Count -gt 0) {
+        $declaredTargets = @([pscustomobject]@{
+            PackageName = $ExpectedPackageName
+            PackageVersions = $ExpectedPackageVersions
+            PackageVersionCodes = if ($null -ne $ExpectedPackageVersionCodes) { $ExpectedPackageVersionCodes } else { @{} }
+        })
     }
+    if ($declaredTargets.Count -eq 0) { return Fail 'No declared package builds were supplied to verify the receipt.' }
     foreach ($target in $targets) {
         $label = "$($target.source.package) $($target.source.versionName)"
         if ([string]$target.source.sha256 -notmatch '^[0-9A-F]{64}$') {
             return Fail "The receipt records no source APK hash for $label."
         }
-        if ([string]$target.source.package -ne $ExpectedPackageName) {
+        $matching = @($declaredTargets | Where-Object { $_.PackageName -ceq [string]$target.source.package })
+        if ($matching.Count -ne 1) {
             return Fail ("The receipt records a run against $($target.source.package); the " +
-                "catalog targets $ExpectedPackageName.")
+                "catalog targets $($declaredTargets.PackageName -join ', ').")
         }
+        $declaredTarget = $matching[0]
         if ([string]::IsNullOrWhiteSpace([string]$target.source.versionName)) {
-            return Fail "The receipt records a $ExpectedPackageName run with no version name."
+            return Fail "The receipt records a $($declaredTarget.PackageName) run with no version name."
+        }
+        if ($declaredTargets.Count -gt 1) {
+            $signers = @($target.source.signerSha256 | Where-Object { $_ })
+            if ($signers.Count -eq 0 -or @($signers | Where-Object {
+                    [string]$_ -cnotmatch '^[0-9a-f]{64}$' -or $declaredTarget.PackageSignatures -cnotcontains [string]$_
+                }).Count -gt 0) {
+                return Fail "The receipt records no verified declared vendor certificate for $label."
+            }
         }
         if ($ExpectedSchemaVersion -ge 3) {
             $sdk = $target.PSObject.Properties['sdk']
@@ -1282,6 +1334,11 @@ function Test-ReleaseReceipt {
             }
             $floor = Test-PatchedMinSdk -StockMinSdk $sdk.Value.stockMinSdk -PatchedMinSdk $sdk.Value.patchedMinSdk
             if (-not $floor.Valid) { return Fail "${label}: $($floor.Reason)" }
+        }
+        if ($ExpectedSchemaVersion -ge 4) {
+            $native = Test-NativePackagingEvidence -NativeLibraries $target.nativeLibraries `
+                -ZipAlignment $target.zipAlignment -ExpectedSourceSha256 ([string]$target.source.sha256)
+            if (-not $native.Valid) { return Fail "${label}: $($native.Reason)" }
         }
         # Whether the CLI was told to ignore the declared version. Recorded as a boolean by the
         # builder; a receipt that leaves it out cannot say which of its runs were the real one.
@@ -1296,7 +1353,12 @@ function Test-ReleaseReceipt {
                 $(if ($forcedProperty.Value) { 'forced past' } else { 'patched without -f at' }) +
                 " a declared build, but the catalog declares $(Format-DeclaredBuilds -Target $declaredTarget).")
         }
-        if ($atDeclaredVersion) { [void]$provedVersions.Add([string]$target.source.versionName) }
+        if ($atDeclaredVersion) {
+            $code = if (@($declaredTarget.PackageVersionCodes[[string]$target.source.versionName] | Where-Object { $_ }).Count -gt 0) {
+                [string]$target.source.versionCode
+            } else { '*' }
+            [void]$provedBuilds.Add("$($target.source.package)|$($target.source.versionName)|$code")
+        }
         $verdicts = @($target.patches)
         if ($verdicts.Count -ne $ExpectedPatchNames.Count) {
             return Fail ("The receipt records $($verdicts.Count) patch verdicts for $label; " +
@@ -1322,10 +1384,20 @@ function Test-ReleaseReceipt {
     # Every declared version, not just one of them. With two declared, a receipt that ran only
     # the newest still found one declared target, and the release would claim a build nothing
     # in it had patched.
-    $unproved = @($ExpectedPackageVersions | Where-Object { -not $provedVersions.Contains([string]$_) })
+    $unproved = @(foreach ($declaredTarget in $declaredTargets) {
+        foreach ($version in @($declaredTarget.PackageVersions)) {
+            $codes = @($declaredTarget.PackageVersionCodes[$version] | Where-Object { $_ })
+            if ($codes.Count -eq 0) { $codes = @('*') }
+            foreach ($code in $codes) {
+                if (-not $provedBuilds.Contains("$($declaredTarget.PackageName)|$version|$code")) {
+                    "$($declaredTarget.PackageName) $version" + $(if ($code -ne '*') { " ($code)" })
+                }
+            }
+        }
+    })
     if ($unproved.Count -gt 0) {
-        $ran = @($targets | ForEach-Object { [string]$_.source.versionName }) -join ', '
-        return Fail ("No target in the receipt is the declared $ExpectedPackageName " +
+        $ran = @($targets | ForEach-Object { "$($_.source.package) $($_.source.versionName) ($($_.source.versionCode))" }) -join ', '
+        return Fail ("No target in the receipt is the declared " +
             "$($unproved -join ', ') patched without -f; it only records $ran.")
     }
 

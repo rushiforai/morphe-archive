@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.util.Log;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.File;
@@ -16,7 +17,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -39,6 +39,61 @@ public final class OriginalPhoto {
     static Executor completion = Executors.newSingleThreadExecutor();
     /** Where the copies go; null is the app's cache, where Messenger's own transcoder writes its output too. */
     static File tempDir;
+    interface InputOpener { FileInputStream open(File file) throws IOException; }
+    static InputOpener inputOpener = FileInputStream::new;
+
+    /** Bounds each real opened file, including growth after the path's initial size check. */
+    static final class LimitedInput extends InputStream {
+        private final FileInputStream input;
+        private long consumed;
+        private boolean exceeded;
+
+        LimitedInput(File file) throws IOException {
+            input = inputOpener.open(file);
+            try { check(); }
+            catch (IOException | RuntimeException failure) { input.close(); throw failure; }
+        }
+
+        void check() throws IOException {
+            if (exceeded || input.getChannel().size() > MAX_BYTES) throw new NotPassable("over 20 MB");
+        }
+
+        private void count(long bytes) throws IOException {
+            if (bytes > 0) consumed += bytes;
+            if (consumed > MAX_BYTES) {
+                exceeded = true;
+                throw new NotPassable("over 20 MB");
+            }
+        }
+
+        @Override public int read() throws IOException {
+            count(0);
+            int value = input.read();
+            count(value < 0 ? 0 : 1);
+            return value;
+        }
+
+        @Override public int read(byte[] bytes, int offset, int length) throws IOException {
+            count(0);
+            int size = input.read(bytes, offset, (int) Math.min(length, MAX_BYTES - consumed + 1));
+            count(size);
+            return size;
+        }
+
+        @Override public long skip(long length) throws IOException {
+            count(0);
+            long skipped = input.skip(Math.max(0, Math.min(length, MAX_BYTES - consumed + 1)));
+            count(skipped);
+            return skipped;
+        }
+
+        @Override public int available() throws IOException {
+            count(0);
+            return (int) Math.min(input.available(), MAX_BYTES - consumed);
+        }
+
+        @Override public void close() throws IOException { input.close(); }
+    }
 
     /** A prepared send: the copy to upload, its stored size in pixels and the EXIF rotation tag it kept (0 for none). */
     static final class Prepared {
@@ -74,7 +129,17 @@ public final class OriginalPhoto {
             if (prepared == null) return null;
             try {
                 Log.i("HushMessenger", "Original photo: " + prepared.describe());
-                return Files.readAllBytes(prepared.copy.toPath());
+                try (LimitedInput in = new LimitedInput(prepared.copy);
+                     ByteArrayOutputStream bytes = new ByteArrayOutputStream((int) Math.min(prepared.copy.length(), MAX_BYTES))) {
+                    byte[] buffer = new byte[8192];
+                    int size;
+                    while ((size = in.read(buffer)) != -1) {
+                        if (size == 0) throw new IOException("No image data");
+                        bytes.write(buffer, 0, size);
+                    }
+                    in.check();
+                    return bytes.toByteArray();
+                }
             } finally {
                 prepared.copy.delete();
             }
@@ -108,6 +173,8 @@ public final class OriginalPhoto {
     static void report(Object callback, Method success, Method failure, Prepared sent) {
         double width = sent.width, height = sent.height;
         try {
+            // Once the asynchronous send is owned here, rejection uses its existing failure callback.
+            try (LimitedInput in = new LimitedInput(sent.copy)) { in.check(); }
             // Output URI, source size as stored, output size as shown, quality, PSNR (-1 is Messenger's "not measured"),
             // rotated, then fields its wrapper zeroes anyway. Messenger's own transcoder turns the pixels upright and
             // reports them that way; the copy's rotation tag makes any viewer show it the same way round.
@@ -115,7 +182,7 @@ public final class OriginalPhoto {
             success.invoke(callback, Uri.fromFile(sent.copy).toString(), width, height,
                 sent.quarterTurn() ? height : width, sent.quarterTurn() ? width : height, 100.0, -1.0,
                 rotated, 0, false, 0.0, 0.0, 0.0);
-        } catch (ReflectiveOperationException | RuntimeException error) {
+        } catch (IOException | ReflectiveOperationException | RuntimeException error) {
             sent.copy.delete();
             Settings.hookFailedPrivately(KEY, "Original photo couldn't hand over its copy", error);
             try {
@@ -152,7 +219,7 @@ public final class OriginalPhoto {
         if (size > MAX_BYTES) return skip("over " + MAX_BYTES / 1_000_000 + " MB");
         if (!startsLikeJpeg(file)) return skip("not a JPEG");
         // Phones often save a portrait photo sideways with a tag saying how to turn it. The copy keeps that one tag.
-        int orientation = new ExifInterface(path).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+        int orientation = orientation(file, ExifInterface.ORIENTATION_NORMAL);
         if (orientation < ExifInterface.ORIENTATION_UNDEFINED || orientation > ExifInterface.ORIENTATION_ROTATE_270) {
             return skip("unknown rotation tag " + orientation);
         }
@@ -168,7 +235,7 @@ public final class OriginalPhoto {
             copyImageData(file, copy, orientation);
             int[] copied = bounds(copy.getPath());
             if (copied == null || copied[0] != bounds[0] || copied[1] != bounds[1]) throw new NotPassable("copy decodes differently");
-            int kept = new ExifInterface(copy.getPath()).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+            int kept = orientation(copy, ExifInterface.ORIENTATION_UNDEFINED);
             if (kept != orientation) throw new NotPassable("rotation tag didn't carry over");
         } catch (NotPassable error) {
             copy.delete();
@@ -189,8 +256,11 @@ public final class OriginalPhoto {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         // Its own stream, closed here, so the copy can be deleted right after on any filesystem.
-        try (InputStream in = new BufferedInputStream(new FileInputStream(path))) {
+        try (LimitedInput source = new LimitedInput(new File(path));
+             InputStream in = new BufferedInputStream(source)) {
             BitmapFactory.decodeStream(in, null, options);
+            // Native decoders can swallow stream exceptions after reading a usable header.
+            source.check();
         }
         return options.outWidth > 0 && options.outHeight > 0 ? new int[] {options.outWidth, options.outHeight} : null;
     }
@@ -202,8 +272,18 @@ public final class OriginalPhoto {
     }
 
     static boolean startsLikeJpeg(File file) throws IOException {
-        try (InputStream in = new FileInputStream(file)) {
-            return in.read() == 0xFF && in.read() == 0xD8;
+        try (LimitedInput in = new LimitedInput(file)) {
+            boolean jpeg = in.read() == 0xFF && in.read() == 0xD8;
+            in.check();
+            return jpeg;
+        }
+    }
+
+    private static int orientation(File file, int fallback) throws IOException {
+        try (LimitedInput in = new LimitedInput(file)) {
+            int orientation = new ExifInterface(in).getAttributeInt(ExifInterface.TAG_ORIENTATION, fallback);
+            in.check();
+            return orientation;
         }
     }
 
@@ -215,7 +295,8 @@ public final class OriginalPhoto {
      * than 0 goes into a new EXIF segment of its own, after JFIF when there is one and first otherwise.
      */
     static void copyImageData(File source, File target, int orientation) throws IOException {
-        try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(source), 65536));
+        try (LimitedInput sourceInput = new LimitedInput(source);
+             DataInputStream in = new DataInputStream(new BufferedInputStream(sourceInput, 65536));
              OutputStream out = new BufferedOutputStream(new FileOutputStream(target), 65536)) {
             if (in.readUnsignedByte() != 0xFF || in.readUnsignedByte() != 0xD8) throw new NotPassable("not a JPEG");
             out.write(0xFF);
@@ -226,7 +307,7 @@ public final class OriginalPhoto {
                 if (marker == 0xD9) {
                     out.write(0xFF);
                     out.write(0xD9);
-                    return;
+                    break;
                 }
                 if (marker == 0x01 || (marker >= 0xD0 && marker <= 0xD7)) throw new NotPassable("stray marker");
                 int length = in.readUnsignedShort();
@@ -248,6 +329,9 @@ public final class OriginalPhoto {
                 }
                 marker = marker == 0xDA ? copyScan(in, out) : nextMarker(in);
             }
+            sourceInput.check();
+            out.flush();
+            if (target.length() > MAX_BYTES) throw new NotPassable("over 20 MB");
         } catch (EOFException truncated) {
             throw new NotPassable("ends early");
         }

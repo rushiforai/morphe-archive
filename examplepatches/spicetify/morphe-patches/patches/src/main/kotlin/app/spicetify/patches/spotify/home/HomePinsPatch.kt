@@ -21,28 +21,25 @@ val homePinsPatch = bytecodePatch(
 
     execute {
         val snapshot = Properties().apply {
-            NativeSettingsAbi::class.java.getResourceAsStream("/home/9.1.88.2204.properties")!!.use(::load)
+            NativeSettingsAbi::class.java.getResourceAsStream("/home/9.1.80.2221.properties")!!.use(::load)
         }
         for (type in snapshot.stringPropertyNames()) {
             val definition = classDefByOrNull(type)
                 ?: throw PatchException("Spotify Home ABI changed: missing $type")
             if (NativeSettingsAbi.digest(definition) != snapshot.getProperty(type)) {
-                throw PatchException("Spotify Home ABI changed: $type. Use the verified Spotify 9.1.88.2204 APK.")
+                throw PatchException("Spotify Home ABI changed: $type. Use the verified Spotify 9.1.80.2221 APK.")
             }
         }
 
-        // Replace the constructor argument before assignment. The native grid renderer
-        // consumes this model; its elements, click handlers, and server list remain intact.
-        mutableClassDefBy("Lp/te31;").methods.single {
+        // Replace the constructor argument before assignment. Both native grid renderers
+        // consume this model; its elements, click handlers, and server list remain intact.
+        mutableClassDefBy("Lp/joz0;").methods.single {
             it.name == "<init>" && it.parameterTypes ==
-                listOf("Ljava/lang/String;", "Ljava/util/ArrayList;", "Lp/bp30;")
-        }.addInstructions(
-            1,
-            """
+                listOf("Ljava/lang/String;", "Ljava/util/ArrayList;", "Lp/qt10;")
+        }.addInstructions(1, """
             invoke-static {p2}, Lapp/spicetify/extension/spotify/home/HomePins;->reorder(Ljava/util/ArrayList;)Ljava/util/ArrayList;
             move-result-object p2
-            """.trimIndent(),
-        )
+        """.trimIndent())
         enableSetting("homePins")
     }
 }

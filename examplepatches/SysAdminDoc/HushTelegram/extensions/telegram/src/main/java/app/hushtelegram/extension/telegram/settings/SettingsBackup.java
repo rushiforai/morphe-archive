@@ -84,6 +84,7 @@ public final class SettingsBackup {
             Settings.HIDE_SPONSORED_PROXY,
             Settings.HIDE_POPULAR_APPS,
             Settings.DISABLE_CHAT_SWIPE,
+            Settings.DISABLE_CHANNEL_PULL,
             Settings.QUIET_CONTACTS_NAG,
             Settings.HOLIDAY_LOOK,
             Settings.DISABLE_ANALYTICS,
@@ -92,7 +93,8 @@ public final class SettingsBackup {
             Settings.GALLERY_CAMERA_ON_TAP,
             Settings.OPEN_EXTERNAL_LINKS,
             Settings.STRIP_LINK_TRACKING,
-            Settings.DISABLE_UPDATE_CHECKS));
+            Settings.DISABLE_UPDATE_CHECKS,
+            Settings.REPAIR_FIREBASE_PUSH));
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be

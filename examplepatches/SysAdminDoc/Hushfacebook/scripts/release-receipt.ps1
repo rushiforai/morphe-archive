@@ -209,12 +209,14 @@ function Test-ReleaseSbom {
         bundle's manifest, and every extension payload the bundle carries with the SHA-256 of its
         bytes. An SBOM left beside a newer build fails on the hash, and one dated from the clock
         rather than from the pinned stamp fails on the timestamp. -BundleName is the name the
-        bundle is published under, since a downloaded copy has a temporary one.
+        bundle is published under, since a downloaded copy has a temporary one. -ExpectedCommit is
+        the clean commit a bundle carrying a build identity must name; a legacy bundle has none.
     #>
     param(
         [Parameter(Mandatory = $true)]$Sbom,
         [Parameter(Mandatory = $true)][string]$BundlePath,
-        [Parameter(Mandatory = $true)][string]$BundleName
+        [Parameter(Mandatory = $true)][string]$BundleName,
+        [string]$ExpectedCommit
     )
 
     function Fail { param([string]$Reason) return [pscustomobject]@{ Valid = $false; Reason = $Reason } }
@@ -228,6 +230,12 @@ function Test-ReleaseSbom {
             "hashes to $bundleHash. It was written for another build.")
     }
     $manifest = Get-BundleManifestFacts -BundlePath $BundlePath
+    $identity = Get-BundleIdentityFacts -BundlePath $BundlePath
+    if ($identity.Present -and -not $ExpectedCommit) {
+        return Fail "$BundleName carries a build identity, and no source commit was given to hold it to."
+    }
+    if ($identity.Present -and (-not $identity.Valid -or $identity.SourceState -cne 'clean' -or
+            $identity.SourceCommit -cne $ExpectedCommit)) { return Fail 'The bundle build identity does not bind to this clean source commit.' }
     if ($Sbom.BundleVersion -ne $manifest.version) {
         return Fail "$sbomName says $BundleName is version $($Sbom.BundleVersion); its manifest says $($manifest.version)."
     }
@@ -472,6 +480,91 @@ function Get-BundleManifestFacts {
         timestamp      = [long]$timestamp.Groups[1].Value
         patcherVersion = $patcher.Groups[1].Value
     }
+}
+
+function Get-BundlePayloadSha256 {
+    # Same framing as BundleIdentity.payloadSha256. Only the identity container is excluded.
+    param([Parameter(Mandatory = $true)][IO.Compression.ZipArchive]$Archive)
+    $entries = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
+    $names = [Collections.Generic.List[string]]::new()
+    foreach ($entry in $Archive.Entries) {
+        if ($entries.ContainsKey($entry.FullName)) { throw 'Duplicate bundle entry.' }
+        $entries.Add($entry.FullName, $entry)
+        if (-not $entry.FullName.EndsWith('/') -and $entry.FullName -cne 'META-INF/hushfacebook-build.identity') {
+            $names.Add($entry.FullName)
+        }
+    }
+    $names.Sort([StringComparer]::Ordinal)
+    $hash = [Security.Cryptography.SHA256]::Create()
+    try {
+        $prefix = [Text.Encoding]::ASCII.GetBytes("hushfacebook-bundle-1`n")
+        [void]$hash.TransformBlock($prefix, 0, $prefix.Length, $null, 0)
+        $buffer = [byte[]]::new(65536)
+        foreach ($name in $names) {
+            $entry = $entries[$name]
+            $path = [Text.Encoding]::UTF8.GetBytes($name)
+            $pathLength = [BitConverter]::GetBytes([int]$path.Length)
+            $contentLength = [BitConverter]::GetBytes([long]$entry.Length)
+            if ([BitConverter]::IsLittleEndian) { [Array]::Reverse($pathLength); [Array]::Reverse($contentLength) }
+            foreach ($bytes in @($pathLength, $path, $contentLength)) {
+                [void]$hash.TransformBlock($bytes, 0, $bytes.Length, $null, 0)
+            }
+            $input = $entry.Open()
+            try {
+                $count = 0L
+                while (($read = $input.Read($buffer, 0, $buffer.Length)) -gt 0) {
+                    $count += $read
+                    if ($count -gt $entry.Length) { throw 'Bundle entry grew while reading.' }
+                    [void]$hash.TransformBlock($buffer, 0, $read, $null, 0)
+                }
+                if ($count -ne $entry.Length) { throw 'Bundle entry is truncated.' }
+            } finally { $input.Dispose() }
+        }
+        [void]$hash.TransformFinalBlock([byte[]]::new(0), 0, 0)
+        return ([BitConverter]::ToString($hash.Hash) -replace '-', '').ToLowerInvariant()
+    } finally { $hash.Dispose() }
+}
+
+function Get-BundleIdentityFacts {
+    param([Parameter(Mandatory = $true)][string]$BundlePath)
+    $facts = [pscustomobject]@{ Present = $false; Valid = $false; SourceState = 'unknown'
+        SourceCommit = 'unknown'; SourceTree = 'unknown'; InputSha256 = $null; PayloadSha256 = $null }
+    $BundlePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($BundlePath)
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $zip = [IO.Compression.ZipFile]::OpenRead($BundlePath)
+    try {
+        $manifest = $zip.GetEntry('META-INF/MANIFEST.MF')
+        $reader = [IO.StreamReader]::new($manifest.Open())
+        try { $text = $reader.ReadToEnd() -replace "\r?\n ", '' } finally { $reader.Dispose() }
+        $entry = $zip.GetEntry('META-INF/hushfacebook-build.identity')
+        $facts.Present = $null -ne $entry -or $null -ne $zip.GetEntry('app/morphe/util/BundleIdentity.class') -or
+            $text -cmatch '(?m)^Hushfacebook-(Source-|Input-)'
+        if (-not $facts.Present -or $null -eq $entry -or $entry.Length -notin 1..128) { return $facts }
+        $reader = [IO.StreamReader]::new($entry.Open(), [Text.Encoding]::ASCII)
+        try { $record = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        if ($record -cnotmatch '\Ahushfacebook-bundle-1\n([0-9a-f]{64})\n\z') { return $facts }
+        $expected = $Matches[1]
+        if ((Get-BundlePayloadSha256 -Archive $zip) -cne $expected) { return $facts }
+        $fields = @{}
+        foreach ($field in @('Source-State', 'Source-Commit', 'Source-Tree', 'Input-SHA256')) {
+            $values = [regex]::Matches($text, "(?m)^Hushfacebook-${field}: ([^\r\n]+)\r?$")
+            if ($values.Count -ne 1) { return $facts }
+            $fields[$field] = $values[0].Groups[1].Value
+        }
+        if ($fields['Input-SHA256'] -cnotmatch '\A[0-9a-f]{64}\z') { return $facts }
+        if ($fields['Source-State'] -cin @('clean', 'dirty')) {
+            if ($fields['Source-Commit'] -cnotmatch '\A[0-9a-f]{40}\z' -or
+                $fields['Source-Tree'] -cnotmatch '\A[0-9a-f]{40}\z') { return $facts }
+        } elseif ($fields['Source-State'] -ceq 'unknown') {
+            if ($fields['Source-Commit'] -cne 'unknown' -or $fields['Source-Tree'] -cne 'unknown') { return $facts }
+        } else { return $facts }
+        $facts.SourceState = $fields['Source-State']; $facts.SourceCommit = $fields['Source-Commit']
+        $facts.SourceTree = $fields['Source-Tree']; $facts.InputSha256 = $fields['Input-SHA256']
+        $facts.PayloadSha256 = $expected; $facts.Valid = $true
+    } catch {
+        $facts.Present = $true
+    } finally { $zip.Dispose() }
+    return $facts
 }
 
 function Resolve-Aapt2 {
@@ -1312,6 +1405,11 @@ function Test-ReleaseReceipt {
         }
 
         $manifest = Get-BundleManifestFacts -BundlePath $BundlePath
+        $identity = Get-BundleIdentityFacts -BundlePath $BundlePath
+        if ($identity.Present -and (-not $identity.Valid -or $identity.SourceState -cne 'clean' -or
+                $identity.SourceCommit -cne [string]$Receipt.release.commit)) {
+            return Fail 'The bundle build identity does not bind to the clean source commit in the receipt.'
+        }
         if ($manifest.version -ne $ExpectedVersion) {
             return Fail "The bundle's manifest says version $($manifest.version), not $ExpectedVersion."
         }
@@ -1359,7 +1457,8 @@ function Test-ReleaseReceipt {
                 "it lists $($document.Components.Count).")
         }
         if ($BundlePath) {
-            $bound = Test-ReleaseSbom -Sbom $document -BundlePath $BundlePath -BundleName ([string]$Receipt.bundle.file)
+            $bound = Test-ReleaseSbom -Sbom $document -BundlePath $BundlePath -BundleName ([string]$Receipt.bundle.file) `
+                -ExpectedCommit ([string]$Receipt.release.commit)
             if (-not $bound.Valid) { return Fail $bound.Reason }
         }
     }

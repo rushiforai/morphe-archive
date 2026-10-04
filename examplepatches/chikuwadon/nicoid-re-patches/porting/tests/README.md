@@ -34,3 +34,12 @@ java -cp /tmp/nicoid-shorts-tests ShortsRulesTest
 ```
 
 短い移動、斜め移動、複数指、画面密度によるしきい値、通常動画とショートURLの認識を確認します。実機では上下スワイプ、ボタンとシークバーからの操作、一覧取得の失敗と再試行、連続切替時の音声重複、戻る操作、サイドバー表示設定、Material Youの明暗を確認してください。
+
+## Cookie手動入力
+
+```sh
+javac -d /tmp/nicoid-cookie-tests extensions/extension/src/main/java/e/e/a/ManualCookie.java porting/tests/ManualCookieTest.java
+java -cp /tmp/nicoid-cookie-tests e.e.a.ManualCookieTest
+```
+
+値のみ・Cookieヘッダー・末尾区切り、認証Cookieの限定、重複・改行・不正文字・過大入力の拒否を確認します。実機ではWebViewが使えない端末からの入力、保存後の再起動と認証、既存Cookieの置換、無効Cookieでのサイト側の認証失敗、キャンセル時の情報保持、通常ログイン、Material Youのオン・オフと明暗、英語・繁體中文を確認してください。

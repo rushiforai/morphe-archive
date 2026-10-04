@@ -147,6 +147,66 @@ public class OverrideImportPageTest {
         assertTrue(page.findPreference("hushgram_restore_overrides").isEnabled());
     }
 
+    @Test public void anAppliedImportWithFailedCleanupReportsBothTheChangeAndItsRecovery() throws Exception {
+        Settings.ALLOW_OVERRIDE_IMPORT.save(true);
+        openHost();
+        String backup = OverrideImportTest.saved(host.get(), ".json").getName();
+        boolean[] failed = {false};
+        OverrideImportTest.storageObserver = (boundary, file) -> {
+            if (!failed[0] && "moved".equals(boundary) && file.getName().equals(backup)) {
+                failed[0] = true;
+                throw new java.io.IOException("controlled promotion failure");
+            }
+        };
+        Shadows.shadowOf(host.get().getContentResolver()).registerInputStream(DOCUMENT, new ByteArrayInputStream(changed()));
+        click("hushgram_import_overrides");
+        result(Shadows.shadowOf(host.get()).getNextStartedActivityForResult(), Activity.RESULT_OK, DOCUMENT);
+        assertTrue(failed[0]);
+        assertEquals("Imported 1 override changes. Restart Instagram to apply them. "
+                + "Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.",
+                HushgramPreferenceFragment.overrideImportFeedback);
+        assertEquals(1, NativeTable.writes);
+        assertTrue(OverrideImportTest.saved(host.get(), ".armed").isFile());
+
+        OverrideImportTest.storageObserver = null;
+        click("hushgram_restore_overrides");
+        Utils.awaitBackgroundTasksForTests();
+        ShadowLooper.idleMainLooper();
+        assertEquals("Previous overrides restored. Restart Instagram to apply them.", HushgramPreferenceFragment.overrideRestoreFeedback);
+        assertEquals(OverrideImportTest.original(), OverrideImportTest.semantic(NativeTable.file));
+        assertFalse(OverrideImportTest.saved(host.get(), ".armed").exists());
+    }
+
+    @Test public void aFailedDiscardReportsIncompleteCleanupAndItsRowCanRetry() throws Exception {
+        Settings.ALLOW_OVERRIDE_IMPORT.save(true);
+        openHost();
+        java.io.File backup = OverrideImportTest.saved(host.get(), ".json");
+        Files.createDirectories(backup.getParentFile().toPath());
+        Files.write(backup.toPath(), changed());
+        OverrideImportTest.storageObserver = (boundary, file) -> {
+            if ("beforeDelete".equals(boundary) && file.equals(backup)) {
+                throw new java.io.IOException("controlled deletion failure");
+            }
+        };
+        click("hushgram_discard_overrides");
+        Utils.awaitBackgroundTasksForTests();
+        ShadowLooper.idleMainLooper();
+        assertEquals("Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.",
+                HushgramPreferenceFragment.overrideDiscardFeedback);
+        assertArrayEquals(OverrideImportTest.NATIVE, Files.readAllBytes(NativeTable.file.toPath()));
+        assertEquals(0, NativeTable.writes);
+        assertTrue(backup.isFile());
+
+        OverrideImportTest.storageObserver = null;
+        click("hushgram_discard_overrides");
+        Utils.awaitBackgroundTasksForTests();
+        ShadowLooper.idleMainLooper();
+        assertEquals("Discarded the saved copy. Imports can run again, and Instagram's overrides haven't changed.",
+                HushgramPreferenceFragment.overrideDiscardFeedback);
+        assertFalse(backup.exists());
+        assertFalse(OverrideImportTest.saved(host.get(), ".armed").exists());
+    }
+
     @Test public void cancelledMalformedAndUnsavedRequestsLeaveTheNativeStoreByteIdentical() throws Exception {
         Settings.ALLOW_OVERRIDE_IMPORT.save(true);
         openHost();

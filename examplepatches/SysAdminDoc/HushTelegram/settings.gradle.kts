@@ -54,6 +54,7 @@ pluginManagement {
 // build; the catalog pins the same value and says why it is that one. Move both together.
 buildscript {
     configurations.all {
+        val isSettingsClasspath = name == "classpath"
         resolutionStrategy.eachDependency {
             if (requested.group == "org.jetbrains.kotlin") {
                 useVersion("2.4.20")
@@ -71,6 +72,16 @@ buildscript {
             if (requested.group == "org.jdom" && requested.name == "jdom2") {
                 useVersion("2.0.6.1")
                 because("The settings plugin must use the JDOM release with the XXE fix.")
+            }
+            // Lang 3.16.0 has CVE-2025-48924. Keep these libraries on their existing API
+            // lines and scope their alignment to the plugin's host classpath.
+            if (isSettingsClasspath && requested.group == "org.apache.commons" && requested.name == "commons-lang3") {
+                useVersion("3.20.0")
+                because("The settings plugin must use the reviewed Commons Lang release.")
+            }
+            if (isSettingsClasspath && requested.group == "org.apache.httpcomponents" && requested.name == "httpclient") {
+                useVersion("4.5.14")
+                because("The settings plugin must use the reviewed HttpClient 4.5 release.")
             }
         }
     }

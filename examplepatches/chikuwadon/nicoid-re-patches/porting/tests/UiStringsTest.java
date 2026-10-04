@@ -27,6 +27,12 @@ public final class UiStringsTest {
         } finally { Locale.setDefault(previous); }
         String format = UiStrings.translate("再生:%,d  コメント:%,d  マイリス:%,d  いいね:%,d", Locale.US);
         check(String.format(Locale.US, format, 1, 2, 3, 4).contains("Likes: 4"), "Count format keeps all arguments");
+        for (String source : new String[]{"ログイン方法", "通常ログイン", "Cookie手動入力", "保存",
+                "user_sessionの値、またはuser_session=… の形式で入力してください。",
+                "Cookieを保存できませんでした。再試行してください。"}) {
+            check(!source.equals(UiStrings.translate(source, Locale.US)), "Manual sign-in English translation");
+            check(!source.equals(UiStrings.translate(source, Locale.TAIWAN)), "Manual sign-in Chinese translation");
+        }
         System.out.println("UI translation checks passed");
     }
 }

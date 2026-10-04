@@ -8,7 +8,6 @@ import app.morphe.Fixtures
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -35,7 +34,7 @@ class FoldableSplitViewConfigurationTest {
     @Test
     fun `each declared build's feed activity hands its configuration change to the split view`() {
         Fixtures.forEachDeclared { apk ->
-            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val classes = HashMap<String, ClassDef>()
             container.dexEntryNames.forEach { entry ->
                 container.getEntry(entry)!!.dexFile.classes.forEach { classes.putIfAbsent(it.type, it) }

@@ -1,0 +1,16 @@
+--- a/smali/com/sauzask/nicoid/NicoidSetting.smali
++++ b/smali/com/sauzask/nicoid/NicoidSetting.smali
+@@ -674,11 +674,8 @@
+ .end method
+ 
+ .method public final a()V
+-    .locals 2
+-    new-instance v0, Landroid/content/Intent;
+-    const-class v1, Lcom/sauzask/nicoid/ModernLoginActivity;
+-    invoke-direct {v0, p0, v1}, Landroid/content/Intent;-><init>(Landroid/content/Context;Ljava/lang/Class;)V
+-    invoke-virtual {p0, v0}, Landroid/app/Activity;->startActivity(Landroid/content/Intent;)V
++    .locals 0
++    invoke-static {p0}, Le/e/a/LoginSupport;->open(Landroid/app/Activity;)V
+     return-void
+ .end method
+ 

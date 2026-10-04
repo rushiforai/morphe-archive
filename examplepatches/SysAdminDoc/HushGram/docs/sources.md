@@ -4,7 +4,7 @@ Before writing HushGram's first patch, we went through every public patch source
 
 The short version: piko is the biggest Instagram source by a wide margin, but its current build doesn't apply to current Instagram. ReVanced's Instagram patches are the base most other bundles copy. Morphe's official bundle ships nothing for Instagram. HushGram 0.0.1 copies code from exactly two places, both of them Facebook bundles, and takes nothing but ideas from everything else.
 
-This page is the readable version. The one the scripts hold us to is [sources/instagram-sources.json](../sources/instagram-sources.json), which records every source with its branches and the commits we last read them at, its licence and a hash of the licence text, the Instagram builds it declares, its features, and what we're allowed to take from it. The census was last run on 2026-09-29.
+This page is the readable version. The one the scripts hold us to is [sources/instagram-sources.json](../sources/instagram-sources.json), which records every source with its branches and the commits we last read them at, its licence and a hash of the licence text, the Instagram builds it declares, its features, and what we're allowed to take from it. The census was last run on 2026-10-01.
 
 ## How a source gets in
 
@@ -98,7 +98,7 @@ Threads (`com.instagram.barcelona`) shares a lot of code with Instagram, and a f
 
 ## Where HushGram is listed
 
-Nowhere yet. On 2026-09-29, none of the [Morphe community directory](https://morphe-patches.software), [Awesome Morphe](https://github.com/nvbangg/awesome-morphe), the [Morphe Patch Tracker](https://drnx64.github.io/morphe-track-patches/), [Jman's ReVanced Patch Bundles](https://github.com/Jman-Github/ReVanced-Patch-Bundles) or the [Morphe Archive](https://rushiforai.github.io/morphe-archive/) listed it. The audit notices when that changes.
+The 2026-10-01 census recorded HushGram in the [Morphe community directory](https://morphe-patches.software/?github=SysAdminDoc/HushGram#bundles:new). It didn't find a listing in [Awesome Morphe](https://github.com/nvbangg/awesome-morphe), the [Morphe Patch Tracker](https://drnx64.github.io/morphe-track-patches/), [Jman's ReVanced Patch Bundles](https://github.com/Jman-Github/ReVanced-Patch-Bundles) or the [Morphe Archive](https://rushiforai.github.io/morphe-archive/). The ledger keeps each check's date and result.
 
 ## What we left out
 

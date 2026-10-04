@@ -4,6 +4,7 @@
         <meta-data android:name="hush.feature.ads" android:value="true" />
         <meta-data android:name="hush.feature.people" android:value="true" />
         <meta-data android:name="hush.feature.friend_requests" android:value="true" />
+        <meta-data android:name="hush.feature.community_inbox" android:value="true" />
         <meta-data android:name="hush.feature.growth" android:value="true" />
         <meta-data android:name="hush.feature.inbox_promotions" android:value="true" />
         <meta-data android:name="hush.feature.stories" android:value="true" />

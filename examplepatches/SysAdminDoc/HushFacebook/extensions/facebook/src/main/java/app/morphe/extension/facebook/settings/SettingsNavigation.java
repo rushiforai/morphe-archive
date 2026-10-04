@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 
 import app.morphe.extension.shared.L10n;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.Setting;
@@ -288,7 +289,10 @@ final class SettingsNavigation extends BaseAdapter {
             for (Section section : sections) if (!section.primary) visible.add(section.link);
         } else {
             visible.add(screen.getPreference(0));
-            // Only in a build that lacks a default patch: the card's own line under it.
+            // Only in a build that lacks Restore screens on a re-signed install: its own line under the card.
+            Preference restore = screen.findPreference(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST);
+            if (restore != null) visible.add(restore);
+            // Only in a build that lacks another default patch: the card's own line under it.
             Preference missing = screen.findPreference(HushfacebookPreferenceFragment.MISSING_DEFAULTS);
             if (missing != null) visible.add(missing);
             visible.add(browse);
@@ -403,12 +407,13 @@ final class SettingsNavigation extends BaseAdapter {
         boolean nextPaused = HushfacebookPause.pausesNextStart(screen.getContext());
         boolean paused = HushfacebookPause.isPaused();
         TextView summary = row.findViewById(android.R.id.summary);
+        String build = "\n" + L10n.f("Build %1$s", L10n.isolate(Utils.getPatchesBuildIdentity()));
         if (!paused && !nextPaused && ReleaseCheck.statusLine() == null) {
-            summary.setText(L10n.t("Your controls are active."));
+            summary.setText(L10n.t("Your controls are active.") + build);
         } else if (paused && nextPaused && HushfacebookPause.reason() == HushfacebookPause.Reason.SWITCH
                 && !markerLeft()) {
             // A marker Resume couldn't remove keeps the card's own line, which says what to do.
-            summary.setText(L10n.t("Your choices are saved. Tap Resume, then restart Facebook."));
+            summary.setText(L10n.t("Your choices are saved. Tap Resume, then restart Facebook.") + build);
         }
         bindAction(row, paused, nextPaused);
     }

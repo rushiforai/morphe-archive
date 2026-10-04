@@ -1,9 +1,12 @@
 package io.github.bakwudo.uyu.patches.twitch.emotes
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -13,6 +16,7 @@ import io.github.bakwudo.uyu.patches.twitch.shared.sharedExtensionPatch
 
 private const val EXTENSION = "Lapp/morphe/extension/twitch/emotes/EmoteSupport;"
 private const val PICKER_BRIDGE = "Lapp/morphe/extension/twitch/emotes/EmotePickerBridge;"
+private const val CHANNEL_POINTS = "Lapp/morphe/extension/channelpoints/ChannelPoints;"
 private const val CHANNEL_CLASS = "Ltv/twitch/android/shared/chat/pub/messages/data/ChannelChatConnectionKey;"
 private const val TEXT_VIEW = "Landroid/widget/TextView;"
 private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
@@ -41,12 +45,44 @@ internal val thirdPartyEmotesPatch = bytecodePatch {
             throw PatchException("Kizu emotes: channel connection constructor has no return-void.")
         }
 
-        channelConstructor.addInstructions(
+        channelConstructor.addInstruction(
             returnIndex,
-            """
-                invoke-static {p1, p2}, $EXTENSION->onChannelChanged(Ljava/lang/String;Ljava/lang/String;)V
-                invoke-static {}, $PICKER_BRIDGE->ensureComposerButton()V
-            """.trimIndent(),
+            BuilderInstruction35c(
+                Opcode.INVOKE_STATIC,
+                2, 1, 2, 0, 0, 0,
+                ImmutableMethodReference(
+                    EXTENSION,
+                    "onChannelChanged",
+                    listOf("Ljava/lang/String;", "Ljava/lang/String;"),
+                    "V",
+                ),
+            ),
+        )
+        channelConstructor.addInstruction(
+            returnIndex + 1,
+            BuilderInstruction35c(
+                Opcode.INVOKE_STATIC,
+                2, 1, 2, 0, 0, 0,
+                ImmutableMethodReference(
+                    CHANNEL_POINTS,
+                    "onChannelChanged",
+                    listOf("Ljava/lang/String;", "Ljava/lang/String;"),
+                    "V",
+                ),
+            ),
+        )
+        channelConstructor.addInstruction(
+            returnIndex + 2,
+            BuilderInstruction35c(
+                Opcode.INVOKE_STATIC,
+                0, 0, 0, 0, 0, 0,
+                ImmutableMethodReference(
+                    PICKER_BRIDGE,
+                    "ensureComposerButton",
+                    emptyList(),
+                    "V",
+                ),
+            ),
         )
 
         // Locate Twitch's chat-row binder structurally. R8 class/method names are
@@ -111,9 +147,18 @@ internal val thirdPartyEmotesPatch = bytecodePatch {
         }
 
         val textViewRegister = registers.registerC
-        bindMethod.addInstructions(
+        bindMethod.addInstruction(
             textCall.index + 1,
-            "invoke-static {v$textViewRegister}, $EXTENSION->bind(Landroid/widget/TextView;)V",
+            BuilderInstruction35c(
+                Opcode.INVOKE_STATIC,
+                2, 1, textViewRegister, 0, 0, 0,
+                ImmutableMethodReference(
+                    EXTENSION,
+                    "bind",
+                    listOf("Ljava/lang/Object;", TEXT_VIEW),
+                    "V",
+                ),
+            ),
         )
     }
 }

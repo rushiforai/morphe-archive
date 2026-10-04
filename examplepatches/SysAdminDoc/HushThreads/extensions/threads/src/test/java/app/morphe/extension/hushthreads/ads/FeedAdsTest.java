@@ -63,12 +63,43 @@ public class FeedAdsTest {
         assertSame(page, FeedAds.filter(page));
     }
 
+    @Test
+    public void pagesWithoutMatchesStillCountBothSuccessfulChecks() {
+        ShadowFeedAds.Status.suggestions = true;
+        List<Object> first = Arrays.asList("followed", "repost");
+        List<Object> second = Collections.singletonList("ordinary");
+        assertSame(first, FeedAds.filter(first));
+        assertSame(second, FeedAds.filter(second));
+        assertEquals(Arrays.asList(
+                "Hide ads: invoked 2, 0 found, 0 missing. Counted: feed pages checked 2, feed items checked 3",
+                "Hide suggested users: invoked 2, 0 found, 0 missing. Counted: feed pages checked 2, feed items checked 3"),
+                HookStatus.report());
+    }
+
+    @Test
+    public void emptyDisabledOmittedAndFailedChecksDoNotCountPages() {
+        ShadowFeedAds.Status.suggestions = true;
+        Settings.HIDE_ADS.save(false);
+        FeedAds.filter(null);
+        FeedAds.filter(Collections.emptyList());
+        FeedAds.filter(Collections.singletonList("post"));
+        Settings.HIDE_ADS.save(true);
+        Settings.HIDE_SUGGESTED_USERS.save(false);
+        FeedAds.filter(Arrays.asList(ShadowFeedAds.AD, ShadowFeedAds.BROKEN));
+        ShadowFeedAds.Status.ads = false;
+        FeedAds.filter(Collections.singletonList("post"));
+        List<String> report = HookStatus.report();
+        assertTrue(report.toString(), !report.get(0).contains("Counted:"));
+        assertTrue(report.toString(), report.get(1).endsWith("feed pages checked 1, feed items checked 1"));
+    }
+
     /** A resumed merge is called again with no page and reads the copy it saved the first time. */
     @Test
     public void noPageAndAnEmptyPageComeBackAsTheyAre() {
         assertNull(FeedAds.filter(null));
         List<Object> empty = Collections.emptyList();
         assertSame(empty, FeedAds.filter(empty));
+        assertTrue(HookStatus.report().toString(), !HookStatus.report().toString().contains("Counted:"));
     }
 
     @Test
@@ -101,7 +132,7 @@ public class FeedAdsTest {
         List<Object> page = Arrays.asList(ShadowFeedAds.AD, "first", ShadowFeedAds.AD, ShadowFeedAds.AD);
         assertEquals(Collections.singletonList("first"), FeedAds.filter(page));
         assertEquals(Collections.singletonList("Hide ads: invoked 1, 0 found, 0 missing. "
-                + "Counted: ad posts taken out 3"), HookStatus.report());
+                + "Counted: feed pages checked 1, feed items checked 4, ad posts taken out 3"), HookStatus.report());
     }
 
     @Test
@@ -138,8 +169,10 @@ public class FeedAdsTest {
         List<Object> page = Arrays.asList("followed", ShadowFeedAds.AD, ShadowFeedAds.SUGGESTED,
                 "repost", ShadowFeedAds.KICKSTART, "recommended", ShadowFeedAds.AD);
         assertEquals(Arrays.asList("followed", "repost", "recommended"), FeedAds.filter(page));
-        assertEquals(Arrays.asList("Hide ads: invoked 1, 0 found, 0 missing. Counted: ad posts taken out 2",
-                "Hide suggested users: invoked 1, 0 found, 0 missing. Counted: suggestion cards taken out 2"),
+        assertEquals(Arrays.asList("Hide ads: invoked 1, 0 found, 0 missing. "
+                        + "Counted: feed pages checked 1, feed items checked 7, ad posts taken out 2",
+                "Hide suggested users: invoked 1, 0 found, 0 missing. "
+                        + "Counted: feed pages checked 1, feed items checked 7, suggestion cards taken out 2"),
                 HookStatus.report());
     }
 
@@ -150,7 +183,7 @@ public class FeedAdsTest {
         assertEquals(Arrays.asList(ShadowFeedAds.AD, "post"),
                 FeedAds.filter(Arrays.asList(ShadowFeedAds.AD, ShadowFeedAds.SUGGESTED, "post")));
         assertEquals(Collections.singletonList("Hide suggested users: invoked 1, 0 found, 0 missing. "
-                + "Counted: suggestion cards taken out 1"), HookStatus.report());
+                + "Counted: feed pages checked 1, feed items checked 3, suggestion cards taken out 1"), HookStatus.report());
     }
 
     @Test
@@ -207,8 +240,10 @@ public class FeedAdsTest {
                 FeedAds.filter(Arrays.asList("a", ShadowFeedAds.SUGGESTED, "b")));
         assertEquals(Arrays.asList("c", "d"),
                 FeedAds.filter(Arrays.asList(ShadowFeedAds.KICKSTART, "c", ShadowFeedAds.AD, "d")));
-        assertEquals(Arrays.asList("Hide ads: invoked 2, 0 found, 0 missing. Counted: ad posts taken out 1",
-                "Hide suggested users: invoked 2, 0 found, 0 missing. Counted: suggestion cards taken out 2"),
+        assertEquals(Arrays.asList("Hide ads: invoked 2, 0 found, 0 missing. "
+                        + "Counted: feed pages checked 2, feed items checked 7, ad posts taken out 1",
+                "Hide suggested users: invoked 2, 0 found, 0 missing. "
+                        + "Counted: feed pages checked 2, feed items checked 7, suggestion cards taken out 2"),
                 HookStatus.report());
     }
 

@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import app.spicetify.extension.spotify.settings.SpicetifySettingsActivity;
+import app.spicetify.extension.spotify.settings.SpicetifySettingsScreen;
 import java.io.IOException;
 
 public final class DevelopmentActivity extends Activity {
@@ -44,7 +44,7 @@ public final class DevelopmentActivity extends Activity {
         scroll.addView(content);
         content.addView(label("Runs the production patch settings and server code in a separate app. "
                 + "Preferences and server credentials belong to this app. Spotify navigation, sharing, and Home hooks require testing in Spotify."));
-        content.addView(button("Open patch settings", () -> SpicetifySettingsActivity.open(this)));
+        content.addView(button("Open patch settings", () -> SpicetifySettingsScreen.open(this)));
         content.addView(button("Refresh tracks", this::refreshTracks));
         scanStatus = label("");
         content.addView(scanStatus);

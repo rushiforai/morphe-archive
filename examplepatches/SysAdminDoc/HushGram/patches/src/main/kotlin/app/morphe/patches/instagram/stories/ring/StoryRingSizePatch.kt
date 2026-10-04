@@ -36,8 +36,8 @@ internal val ITEMS_A_SCREEN = 3.75.toRawBits()
 internal const val SETTLED_PER_METHOD = 3
 
 /**
- * Draws the rings in the stories row at the top of Home at a share of their size. Off in the
- * default selection. Picked, its switch starts on and the size starts as Instagram's own, so
+ * Draws the rings in the stories row at the top of Home at a share of their size. Included in the
+ * default selection. Its switch starts on and the size starts as Instagram's own, so
  * nothing changes until a size is chosen.
  */
 @Suppress("unused")
@@ -45,7 +45,7 @@ val storyRingSizePatch = bytecodePatch(
     name = "Story ring size",
     description = "Draws the rings in the stories row at the top of Home smaller, so more fit on the screen, or " +
         "larger. Pick the size in HushGram's settings.",
-    default = false,
+    default = true,
 ) {
     category("Interface")
     dependsOn(settingsPatch, instagramExtensionPatch)

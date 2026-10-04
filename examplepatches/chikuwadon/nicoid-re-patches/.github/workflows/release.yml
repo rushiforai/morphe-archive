@@ -32,6 +32,16 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      - name: Check video count order and precision
+        run: |
+          javac -d /tmp/nicoid-count-tests extensions/extension/src/main/java/e/e/a/VideoCountRules.java porting/tests/VideoCountRulesTest.java
+          java -cp /tmp/nicoid-count-tests e.e.a.VideoCountRulesTest
+      - name: Check manual login cookie input
+        run: |
+          javac -d /tmp/nicoid-cookie-tests extensions/extension/src/main/java/e/e/a/ManualCookie.java porting/tests/ManualCookieTest.java
+          java -cp /tmp/nicoid-cookie-tests e.e.a.ManualCookieTest
+      - name: Validate bundled Android manifest
+        run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
       - name: Install dependencies
         run: npm install
 
@@ -57,5 +67,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid clean --no-daemon
-
 
