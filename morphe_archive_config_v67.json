@@ -2380,14 +2380,6 @@
             },
             {
                 "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/Satwik-Miyyapuram/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 319,
-                "createdAt": 1790828575971,
-                "updatedAt": 1790828575971
-            },
-            {
-                "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/spicetify/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
                 "sortOrder": 320,
@@ -2441,6 +2433,54 @@
                 "sortOrder": 327,
                 "createdAt": 1791088342515,
                 "updatedAt": 1791088342515
+            },
+            {
+                "name": "HushPinterest",
+                "source": "https://raw.githubusercontent.com/SysAdminDoc/HushPinterest/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 328,
+                "createdAt": 1791173851193,
+                "updatedAt": 1791173851193
+            },
+            {
+                "name": "piko-ig-lite",
+                "source": "https://raw.githubusercontent.com/crimera/piko-ig-lite/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 329,
+                "createdAt": 1791173855355,
+                "updatedAt": 1791173855355
+            },
+            {
+                "name": "hakim-morphe-patches",
+                "source": "https://raw.githubusercontent.com/kim20598/hakim-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 330,
+                "createdAt": 1791173857603,
+                "updatedAt": 1791173857603
+            },
+            {
+                "name": "twitch-patched",
+                "source": "https://raw.githubusercontent.com/ryykitty/twitch-patched/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 331,
+                "createdAt": 1791173859315,
+                "updatedAt": 1791173859315
+            },
+            {
+                "name": "reddit-nsfw-blocker",
+                "source": "https://raw.githubusercontent.com/warleysr/reddit-nsfw-blocker/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 332,
+                "createdAt": 1791173860408,
+                "updatedAt": 1791173860408
+            },
+            {
+                "name": "ysamjo-youtubetv-patches",
+                "source": "https://raw.githubusercontent.com/ysamjo/ysamjo-youtubetv-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 333,
+                "createdAt": 1791173860744,
+                "updatedAt": 1791173860744
             }
         ]
     }
