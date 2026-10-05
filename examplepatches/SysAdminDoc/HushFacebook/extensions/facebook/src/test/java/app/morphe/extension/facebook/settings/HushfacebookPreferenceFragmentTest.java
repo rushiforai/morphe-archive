@@ -244,7 +244,7 @@ public class HushfacebookPreferenceFragmentTest {
             Preference card = rowsOf(controller).get(0);
             assertEquals("Hushfacebook is paused", String.valueOf(card.getTitle()));
             assertEquals(HushfacebookPreferenceFragment.pausedSummary(HushfacebookPause.Reason.CRASH_LOOP, RuntimeEnvironment.getApplication().getPackageName())
-                    + " Tap to turn it back on.\n" + L10n.f("Build %1$s", L10n.isolate("unknown")), String.valueOf(card.getSummary()));
+                    + " Tap to turn it back on.\n" + HushfacebookPreferenceFragment.overviewBuildDetails(), String.valueOf(card.getSummary()));
         }
     }
 
@@ -264,7 +264,9 @@ public class HushfacebookPreferenceFragmentTest {
             List<Preference> rows = rowsOf(controller);
             Preference card = rows.get(0);
             assertEquals("Hushfacebook is on", String.valueOf(card.getTitle()));
-            assertTrue(String.valueOf(card.getSummary()), String.valueOf(card.getSummary()).contains(L10n.isolate(facebook)));
+            // The compact overview names this patch version; About retains Facebook's full version too.
+            assertTrue(String.valueOf(card.getSummary()), String.valueOf(card.getSummary()).contains(
+                    L10n.isolate(app.morphe.extension.shared.Utils.getPatchesReleaseVersion())));
             assertTrue(String.valueOf(card.getSummary()), String.valueOf(card.getSummary()).contains(L10n.isolate("unknown")));
             Preference version = null;
             for (Preference row : rows) {

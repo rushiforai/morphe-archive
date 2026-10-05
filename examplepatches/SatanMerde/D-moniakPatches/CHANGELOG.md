@@ -1,3 +1,50 @@
+## [1.48.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.47.2...v1.48.0) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** import java.util.logging.Logger in theme and accent patches ([746e797](https://github.com/SatanMerde/D-moniakPatches/commit/746e797b5304d74da6f8996c8e9fe20b03f1f406))
+
+### ✨ New Features
+
+* **spotify:** add XML resource patching for full AMOLED black and accent coverage ([e39fc1f](https://github.com/SatanMerde/D-moniakPatches/commit/e39fc1f16e978cd3889927fa55c48d44a2e7f49b))
+
+## [1.47.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.47.1...v1.47.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **freefire:** pass Int literal to BuilderInstruction21s to fix compilation ([d0816ec](https://github.com/SatanMerde/D-moniakPatches/commit/d0816ec32dae77a559ce5a49bcba0e3581772d97))
+* **freefire:** resolve crash on startup by removing unsafe method injections and switching to 100% in-place bytecode replacement ([2bdb379](https://github.com/SatanMerde/D-moniakPatches/commit/2bdb379c23043e7417d6759813b0ab654dced818))
+
+## [1.47.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.47.0...v1.47.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** resolve crash on launch by removing conflicting method hooks and maintaining bytecode-safe literal architecture ([5508ed1](https://github.com/SatanMerde/D-moniakPatches/commit/5508ed11d7dc7a9a716e7f9c0164822368664429))
+
+## [1.47.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.4...v1.47.0) (2026-10-04)
+
+### ✨ New Features
+
+* **spotify:** integrate ReVanced Compose ColorSpace utils and Lottie float rounding hooks ([4703e4c](https://github.com/SatanMerde/D-moniakPatches/commit/4703e4c69a89b16f53002ae2e1ca1b17be581bbe))
+
+## [1.46.4](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.3...v1.46.4) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** CardView black background, BottomSheet pitch black, and Lottie checkmark purple tint ([e4e23e3](https://github.com/SatanMerde/D-moniakPatches/commit/e4e23e3778529e5ffd70cd326f86a148de45cbfa))
+
+## [1.46.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.2...v1.46.3) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** expand Encore palette hooks for surface cards, search bar, pills, and checkmarks ([cf8f16c](https://github.com/SatanMerde/D-moniakPatches/commit/cf8f16cc8524cca8de790532c9980d1e7b2fe24c))
+
+## [1.46.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.1...v1.46.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** add 64-bit Jetpack Compose color hooks for AMOLED and accent color, fix register allocation ([4e22c35](https://github.com/SatanMerde/D-moniakPatches/commit/4e22c358c07807bb0ef0b3052eda667f3dfbef1d))
+
 ## [1.46.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.0...v1.46.1) (2026-10-03)
 
 ### 🐛 Bug Fixes

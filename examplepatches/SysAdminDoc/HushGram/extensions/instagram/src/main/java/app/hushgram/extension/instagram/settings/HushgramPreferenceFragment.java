@@ -18,6 +18,9 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -27,6 +30,7 @@ import android.preference.SwitchPreference;
 import android.preference.TwoStatePreference;
 import android.text.Layout;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.util.Linkify;
 import android.util.TypedValue;
@@ -51,7 +55,9 @@ import androidx.annotation.Nullable;
 
 import java.text.NumberFormat;
 import java.text.Normalizer;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -80,6 +86,7 @@ import app.hushgram.extension.shared.settings.Setting;
 import app.hushgram.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.hushgram.extension.shared.settings.preference.ClearLogBufferPreference;
 import app.hushgram.extension.shared.settings.preference.ExportDiagnosticReportPreference;
+import app.hushgram.extension.shared.settings.preference.ExportStatus;
 import app.hushgram.extension.shared.settings.preference.ImmediateAction;
 import app.hushgram.extension.shared.settings.preference.LogBufferManager;
 
@@ -109,7 +116,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     @Nullable private Row clearPositions;
     private boolean changingPositions;
-    private boolean positionsUndoShown;
+    private final Handler undoRefresh = new Handler(Looper.getMainLooper());
+    private final Runnable refreshUndo = () -> {
+        showClearPositions();
+        showConfiguration();
+    };
     private static final int EXPORT_CONFIGURATION = 0x4847;
     private static final int IMPORT_CONFIGURATION = 0x4848;
     private static final int EXPORT_OVERRIDES = 0x4849;
@@ -117,12 +128,18 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int IMPORT_OVERRIDES = 0x484b;
     /** Restore and Discard read HushGram's saved copy, so they never become a document request. */
     private static final int RESTORE_OVERRIDES = 0, DISCARD_OVERRIDES = -1;
+    /** Framework fragment callbacks run on the main thread. Never reuse a code across pages. */
+    private static int documentSequence = IMPORT_OVERRIDES;
     private int documentRequest;
+    private int documentCode;
+    @Nullable private String configurationExportToken;
     private boolean changingConfiguration;
     private boolean changingOverrides;
     /** Last operation's receipt lasts for this process, including closing/reopening settings. */
     @Nullable static volatile String importFeedback;
     @Nullable private Row exportConfiguration;
+    @Nullable private ExportRow exportDiagnostics;
+    private final Runnable exportChanges = this::showConfiguration;
     @Nullable private Row importConfiguration;
     @Nullable private Row undoConfiguration;
     @Nullable private Row exportOverrides;
@@ -158,7 +175,26 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     @Override
     public void onCreate(Bundle state) {
-        if (state != null) documentRequest = state.getInt("hushgram_document_request", 0);
+        if (state != null) {
+            documentRequest = state.getInt("hushgram_document_request", 0);
+            // Older saved pages used the operation itself as their Android request code.
+            documentCode = state.getInt("hushgram_document_code", documentRequest);
+            documentSequence = Math.max(documentSequence,
+                    Math.max(documentCode, state.getInt("hushgram_document_sequence", 0)));
+            configurationExportToken = state.getString("hushgram_configuration_export");
+            if (documentRequest == EXPORT_CONFIGURATION) {
+                ExportStatus.State current = ExportStatus.CONFIGURATION.state();
+                if (current == null) {
+                    // The process restarted with a still-pending Android picker, not export history.
+                    configurationExportToken = ExportStatus.CONFIGURATION.begin(
+                            L10n.t("Choose a file for the settings export."), true);
+                } else if (!current.active || !current.choosing || !current.token.equals(configurationExportToken)) {
+                    // This saved bundle predates a result already claimed by the original page.
+                    documentRequest = 0;
+                    documentCode = 0;
+                }
+            }
+        }
         super.onCreate(state);
     }
 
@@ -166,6 +202,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     public void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putInt("hushgram_document_request", documentRequest);
+        state.putInt("hushgram_document_code", documentCode);
+        state.putInt("hushgram_document_sequence", documentSequence);
+        state.putString("hushgram_configuration_export", configurationExportToken);
     }
 
     @Override
@@ -183,6 +222,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Override
     public void onResume() {
         super.onResume();
+        ExportStatus.CONFIGURATION.watch(exportChanges);
+        ExportStatus.DIAGNOSTICS.watch(exportChanges);
         SaveControl.watch(saves);
         SaveLeftovers.showInterrupted(getContext());
         showSaves();
@@ -192,19 +233,33 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     @Override
     public void onPause() {
+        ExportStatus.CONFIGURATION.unwatch(exportChanges);
+        ExportStatus.DIAGNOSTICS.unwatch(exportChanges);
         SaveControl.unwatch(saves);
+        undoRefresh.removeCallbacks(refreshUndo);
         super.onPause();
     }
 
     @Override
     public void onDestroyView() {
+        undoRefresh.removeCallbacks(refreshUndo);
         for (Dialog dialog : new ArrayList<>(shownDialogs)) dialog.dismiss();
         shownDialogs.clear();
         clearPositions = null;
+        exportDiagnostics = null;
         exportConfiguration = importConfiguration = undoConfiguration = null;
         recovery = null;
         interruptedSaves = null;
         super.onDestroyView();
+    }
+
+    @Override public void onDestroy() {
+        Activity activity = getActivity();
+        boolean removed = isRemoving() || (getParentFragment() != null && getParentFragment().isRemoving());
+        if (documentRequest == EXPORT_CONFIGURATION && (removed || (activity != null && activity.isFinishing()))) {
+            ExportStatus.CONFIGURATION.finish(configurationExportToken, L10n.t("Settings export cancelled."));
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -240,6 +295,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         // The export row below reads this; registering twice keeps one.
         PatchFamily.registerDiagnostics();
         Set<PatchFamily> build = PatchFamily.inThisBuild();
+        PreferenceCategory entry = category(screen, L10n.t("Settings entry"));
+        entry.addPreference(navigationRow(context));
 
         List<Preference> privacy = new ArrayList<>();
         if (build.contains(PatchFamily.HIDE_ADS)) {
@@ -382,6 +439,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             reels.add(toggle(context, Settings.REEL_SEEK_BAR, L10n.t("Keep a seek bar"),
                     L10n.t("Instagram's seek bar stays under every reel, short ones too, with the time played and "
                             + "the reel's length above it. Ads keep Instagram's own rules.")));
+            reels.add(toggle(context, Settings.REEL_SEEK_THUMB, L10n.t("Show a Reel seek thumb"),
+                    L10n.t("Adds a white circular handle to Instagram's Reel seek bar. Drag to seek. Ads keep their own bar.")));
         }
         if (build.contains(PatchFamily.REEL_AUTO_SCROLL)) {
             reels.add(toggle(context, Settings.KEEP_REEL_AUTO_SCROLL, L10n.t("Keep auto scroll on"),
@@ -461,10 +520,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 clearPositions.setKey("hushgram_clear_resume_points");
                 clearPositions.setPersistent(false);
                 clearPositions.actsAtOnce = true;
-                clearPositions.setOnPreferenceClickListener(p -> {
-                    changePositions();
-                    return true;
-                });
                 playback.addPreference(clearPositions);
                 showClearPositions();
             }
@@ -673,14 +728,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         importConfiguration.setKey("hushgram_import_configuration");
         importConfiguration.setPersistent(false);
         importConfiguration.setTitle(L10n.t("Import HushGram settings"));
-        importConfiguration.setSummary(L10n.t("Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds."));
+        importConfiguration.setSummary(L10n.t("Choose a settings file. Valid choices apply together. Unsupported keys are skipped. The Undo row shows its deadline."));
         importConfiguration.setOnPreferenceClickListener(p -> { pickConfiguration(true); return true; });
         backup.addPreference(mark(importConfiguration, SettingsIcons.EXPORT));
         undoConfiguration = new Row(context);
         undoConfiguration.setKey("hushgram_undo_configuration");
         undoConfiguration.setPersistent(false);
         undoConfiguration.setTitle(L10n.t("Undo settings import"));
-        undoConfiguration.setOnPreferenceClickListener(p -> { changeConfiguration(null, true); return true; });
         backup.addPreference(mark(undoConfiguration, SettingsIcons.DELETE));
         showConfiguration();
 
@@ -693,7 +747,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         // Debug logging also fills the exported report and turns on error toasts (Logger).
         hushgram.addPreference(mark(toggle(context, BaseSettings.DEBUG, L10n.t("Debug logging"),
                 L10n.t("Record patch activity and show errors for a bug report. Leave off during normal use.")), SettingsIcons.BUG));
-        ExportDiagnosticReportPreference export = new ExportRow(context);
+        ExportDiagnosticReportPreference export = exportDiagnostics = new ExportRow(context);
         export.setTitle(L10n.t("Export diagnostic report"));
         export.setSummary(L10n.f("Copy a quick report or save the full one to %1$s. Links, IDs, cookies "
                 + "and sign-in tokens are left out. Check it for other private text before you share it.",
@@ -749,7 +803,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 Preference row = group.getPreference(j);
                 rows.add(row);
                 String key = row.getKey();
-                StringBuilder aliases = new StringBuilder();
+                StringBuilder aliases = new StringBuilder(row == clearPositions
+                        ? L10n.t("Clear remembered positions")
+                        : row.getTitle() == null ? "" : row.getTitle().toString());
                 for (PatchFamily family : build) {
                     boolean belongs = family.switches.stream().anyMatch(setting -> setting.key.equals(key));
                     belongs |= family == PatchFamily.STORY_RING && Settings.STORY_RING_SCALE.key.equals(key);
@@ -867,17 +923,38 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     private void showConfiguration() {
-        boolean busy = changingConfiguration || changingOverrides || documentRequest != 0;
-        if (exportConfiguration != null) exportConfiguration.setEnabled(!busy);
+        boolean busy = changingConfiguration || changingOverrides || documentRequest != 0 || ExportStatus.CONFIGURATION.active();
+        if (exportConfiguration != null) {
+            exportConfiguration.setEnabled(!busy);
+            ExportStatus.State state = ExportStatus.CONFIGURATION.state();
+            if (state != null) exportConfiguration.setSummary(state.message);
+        }
+        if (exportDiagnostics != null) {
+            ExportStatus.State state = ExportStatus.DIAGNOSTICS.state();
+            exportDiagnostics.setEnabled(state == null || !state.active);
+            if (state != null) exportDiagnostics.setSummary(state.message);
+        }
         if (importConfiguration != null) importConfiguration.setEnabled(!busy);
         if (importConfiguration != null && importFeedback != null) importConfiguration.setSummary(importFeedback);
         if (undoConfiguration != null) {
-            boolean undo = ConfigurationBackup.canUndo();
-            undoConfiguration.setEnabled(!busy && undo);
-            undoConfiguration.setSummary(undo
-                    ? L10n.t("Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.")
+            Row row = undoConfiguration;
+            long token = ConfigurationBackup.undoToken();
+            long deadline = ConfigurationBackup.undoDeadline(token);
+            row.setEnabled(!busy && deadline != 0);
+            row.setSummary(deadline != 0
+                    ? L10n.f("Undo is available until %1$s. Restarting Instagram discards Undo.",
+                    DateFormat.getTimeInstance(DateFormat.MEDIUM, L10n.locale(row.getContext())).format(
+                            new Date(System.currentTimeMillis() + Math.max(0, deadline - SystemClock.elapsedRealtime()))))
                     : L10n.t("No settings import to undo."));
+            row.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override public boolean onPreferenceClick(Preference preference) {
+                    if (isResumed() && undoConfiguration == row && row.isEnabled()
+                            && row.getOnPreferenceClickListener() == this) changeConfiguration(null, token);
+                    return true;
+                }
+            });
         }
+        scheduleUndoExpiry();
         if (exportOverrides != null) {
             exportOverrides.setEnabled(!busy);
             if (overrideExportFeedback != null) exportOverrides.setSummary(overrideExportFeedback);
@@ -902,49 +979,86 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     private void pickConfiguration(boolean importing) {
-        if (documentRequest != 0 || changingConfiguration || changingOverrides) return;
+        if (documentRequest != 0 || changingConfiguration || changingOverrides || ExportStatus.CONFIGURATION.active()) return;
+        if (documentSequence == Integer.MAX_VALUE) {
+            Utils.showToastLong(L10n.t("Couldn't start the settings operation. Try again."));
+            return;
+        }
+        if (!importing) {
+            configurationExportToken = ExportStatus.CONFIGURATION.begin(L10n.t("Choose a file for the settings export."), true);
+            if (configurationExportToken == null) return;
+        }
         documentRequest = importing ? IMPORT_CONFIGURATION : EXPORT_CONFIGURATION;
+        documentCode = ++documentSequence;
         showConfiguration();
         Intent picker = new Intent(importing ? Intent.ACTION_OPEN_DOCUMENT : Intent.ACTION_CREATE_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE).setType("application/json");
         if (!importing) picker.putExtra(Intent.EXTRA_TITLE, "HushGram-settings.json");
         try {
-            startActivityForResult(picker, documentRequest);
+            startActivityForResult(picker, documentCode);
         } catch (ActivityNotFoundException | SecurityException failure) {
             documentRequest = 0;
+            documentCode = 0;
+            if (!importing) ExportStatus.CONFIGURATION.finish(configurationExportToken,
+                    L10n.t("No document picker is available. Your settings haven't changed."));
             showConfiguration();
             Utils.showToastLong(L10n.t("No document picker is available. Your settings haven't changed."));
         }
     }
 
     private void pickOverrides(int request) {
-        if (documentRequest != 0 || changingConfiguration || changingOverrides) return;
+        if (documentRequest != 0 || changingConfiguration || changingOverrides || ExportStatus.CONFIGURATION.active()) return;
+        if (documentSequence == Integer.MAX_VALUE) {
+            Utils.showToastLong(L10n.t("Couldn't start the settings operation. Try again."));
+            return;
+        }
         documentRequest = request;
+        documentCode = ++documentSequence;
         showConfiguration();
         boolean exporting = request == EXPORT_OVERRIDES;
         Intent picker = new Intent(exporting ? Intent.ACTION_CREATE_DOCUMENT : Intent.ACTION_OPEN_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE).setType("application/json");
         if (exporting) picker.putExtra(Intent.EXTRA_TITLE, "HushGram-overrides.json");
-        try { startActivityForResult(picker, documentRequest); }
+        try { startActivityForResult(picker, documentCode); }
         catch (ActivityNotFoundException | SecurityException failure) {
             documentRequest = 0;
+            documentCode = 0;
             overrideFeedback(request, L10n.t("No document picker is available. Overrides haven't changed."));
             showConfiguration();
         }
     }
 
     @Override
-    public void onActivityResult(int request, int result, Intent data) {
-        super.onActivityResult(request, result, data);
+    public void onActivityResult(int code, int result, Intent data) {
+        super.onActivityResult(code, result, data);
+        if (code != documentCode) return;
+        int request = documentRequest;
         boolean overrides = request == EXPORT_OVERRIDES || request == VALIDATE_OVERRIDES || request == IMPORT_OVERRIDES;
-        if (request != documentRequest || (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION && !overrides)) return;
+        if (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION && !overrides) return;
         documentRequest = 0;
-        if (result != Activity.RESULT_OK) { showConfiguration(); return; }
+        documentCode = 0;
+        if (request == EXPORT_CONFIGURATION) {
+            ExportStatus.State current = ExportStatus.CONFIGURATION.state();
+            if (current == null || !current.active || !current.choosing || !current.token.equals(configurationExportToken)) {
+                showConfiguration();
+                return;
+            }
+        }
+        if (result != Activity.RESULT_OK) {
+            if (request == EXPORT_CONFIGURATION) ExportStatus.CONFIGURATION.finish(
+                    configurationExportToken, L10n.t("Settings export cancelled."));
+            showConfiguration();
+            return;
+        }
         Uri uri = data == null ? null : data.getData();
         if (uri == null || !"content".equals(uri.getScheme())) {
             if (overrides) {
                 overrideFeedback(request, L10n.t("Couldn't use that overrides document. Native overrides haven't changed."));
-            } else Utils.showToastLong(L10n.t("Couldn't use that settings file. Your settings haven't changed."));
+            } else {
+                if (request == EXPORT_CONFIGURATION) ExportStatus.CONFIGURATION.finish(configurationExportToken,
+                        L10n.t("Couldn't use that settings file. Your settings haven't changed."));
+                Utils.showToastLong(L10n.t("Couldn't use that settings file. Your settings haven't changed."));
+            }
             showConfiguration();
             return;
         }
@@ -952,14 +1066,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             exchangeOverrides(uri, request);
             return;
         }
-        if (request == IMPORT_CONFIGURATION) changeConfiguration(uri, false);
+        if (request == IMPORT_CONFIGURATION) changeConfiguration(uri, 0);
         else exportConfiguration(uri);
     }
 
     /** Restore and Discard read HushGram's saved copy instead of a document. */
     private void exchangeOverrides(@Nullable Uri uri, int request) {
         boolean saved = request == RESTORE_OVERRIDES || request == DISCARD_OVERRIDES;
-        if (saved && (documentRequest != 0 || changingConfiguration || changingOverrides)) return;
+        if (saved && (documentRequest != 0 || changingConfiguration || changingOverrides || ExportStatus.CONFIGURATION.active())) return;
         boolean importing = saved || request == IMPORT_OVERRIDES;
         boolean validating = request == VALIDATE_OVERRIDES;
         Context context = getContext();
@@ -1071,28 +1185,40 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     private void exportConfiguration(Uri uri) {
+        String token = configurationExportToken;
+        if (!ExportStatus.CONFIGURATION.start(token, L10n.t("Exporting HushGram settings..."))) return;
         Context context = getContext();
-        if (context == null) return;
-        changingConfiguration = true;
+        if (context == null) {
+            ExportStatus.CONFIGURATION.finish(token, L10n.t("Couldn't export HushGram settings. Try another file."));
+            return;
+        }
+        Context application = context.getApplicationContext();
+        final Context app = application == null ? context : application;
         showConfiguration();
         if (!Utils.runOnBackgroundThread(() -> {
             try {
                 byte[] bytes = ConfigurationBackup.export();
-                try (java.io.OutputStream output = context.getContentResolver().openOutputStream(uri, "wt")) {
+                try (java.io.OutputStream output = app.getContentResolver().openOutputStream(uri, "wt")) {
                     if (output == null) throw new java.io.IOException();
                     output.write(bytes);
                 }
+                ExportStatus.CONFIGURATION.finish(token, L10n.t("HushGram settings exported."));
                 Utils.showToastLong(L10n.t("HushGram settings exported."));
             } catch (Exception failure) {
                 Logger.printInfo(() -> "Configuration export failed");
+                ExportStatus.CONFIGURATION.finish(token, L10n.t("Couldn't export HushGram settings. Try another file."));
                 Utils.showToastLong(L10n.t("Couldn't export HushGram settings. Try another file."));
-            } finally { configurationFinished(); }
-        })) configurationQueueFull();
+            }
+        })) {
+            ExportStatus.CONFIGURATION.finish(token, L10n.t("Couldn't start the settings operation. Try again."));
+            configurationQueueFull();
+        }
     }
 
     /** Undo always remains Undo, even if its expiration callback hasn't reached the screen yet. */
-    private void changeConfiguration(@Nullable Uri uri, boolean undo) {
-        if (changingConfiguration) return;
+    private void changeConfiguration(@Nullable Uri uri, long token) {
+        if (changingConfiguration || ExportStatus.CONFIGURATION.active()) return;
+        boolean undo = uri == null;
         Context context = getContext();
         if (context == null) return;
         changingConfiguration = true;
@@ -1100,7 +1226,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (!Utils.runOnBackgroundThread(() -> {
             try {
                 ConfigurationBackup.Result result;
-                if (undo) result = ConfigurationBackup.undo();
+                if (undo) result = ConfigurationBackup.undo(token);
                 else {
                     byte[] bytes;
                     try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
@@ -1112,7 +1238,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 }
                 if (result == null) showImportFeedback(L10n.t("Undo has expired."));
                 else {
-                    String message = undo ? L10n.t("Settings restored.")
+                    String message = undo ? result.skipped == 0 ? L10n.t("Settings restored.")
+                            : L10n.f("Restored %1$d settings. Kept %2$d newer choices.", result.applied, result.skipped)
                             : L10n.f("Imported %1$d settings. Skipped %2$d unsupported keys.", result.applied, result.skipped);
                     if (result.restart) message += " " + L10n.t("Restart Instagram to apply these choices.");
                     showImportFeedback(message);
@@ -1150,7 +1277,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             changingOverrides = false;
             if (isAdded() && getPreferenceScreen() != null) updateUIToSettingValues();
             showConfiguration();
-            Utils.runOnMainThreadDelayed(this::showConfiguration, ConfigurationBackup.UNDO_WINDOW_MS);
         });
     }
 
@@ -1158,29 +1284,50 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private void showClearPositions() {
         Row row = clearPositions;
         if (row == null) return;
-        boolean undo = ResumePlayback.canUndoHistory();
-        positionsUndoShown = undo;
+        long token = ResumePlayback.undoHistoryToken();
+        long deadline = ResumePlayback.undoHistoryDeadline(token);
+        boolean undo = deadline != 0;
         row.setEnabled(!changingPositions);
         row.setTitle(changingPositions ? L10n.t("Updating remembered positions...")
                 : undo ? L10n.t("Undo cleared positions") : L10n.t("Clear remembered positions"));
         row.setSummary(undo
-                ? L10n.t("You can restore the cleared positions once within 10 seconds.")
+                ? L10n.f("Undo is available until %1$s.",
+                DateFormat.getTimeInstance(DateFormat.MEDIUM, L10n.locale(row.getContext())).format(
+                        new Date(System.currentTimeMillis() + Math.max(0, deadline - SystemClock.elapsedRealtime()))))
                 : L10n.t("Up to 200 positions, kept for 30 days. Tap to clear them from this device."));
+        row.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override public boolean onPreferenceClick(Preference preference) {
+                if (isResumed() && clearPositions == row && row.isEnabled()
+                        && row.getOnPreferenceClickListener() == this) changePositions(token);
+                return true;
+            }
+        });
+        scheduleUndoExpiry();
         filterSettings();
     }
 
+    /** Reopening only schedules the remainder of the original monotonic deadline. */
+    private void scheduleUndoExpiry() {
+        undoRefresh.removeCallbacks(refreshUndo);
+        if (!isResumed()) return;
+        long configuration = ConfigurationBackup.undoDeadline(ConfigurationBackup.undoToken());
+        long positions = ResumePlayback.undoHistoryDeadline(ResumePlayback.undoHistoryToken());
+        long next = configuration == 0 ? positions : positions == 0 ? configuration : Math.min(configuration, positions);
+        if (next != 0) undoRefresh.postDelayed(refreshUndo, Math.max(0, next - SystemClock.elapsedRealtime()));
+    }
+
     /** Disk commits run on the existing worker, with immediate feedback and no confirmation. */
-    private void changePositions() {
+    private void changePositions(long token) {
         if (changingPositions) return;
         // Honor the action the row offered. An expired Undo must never become another clear
         // while its delayed refresh is still waiting on the main thread.
-        boolean undo = positionsUndoShown;
+        boolean undo = token != 0;
         changingPositions = true;
         showClearPositions();
         if (!Utils.runOnBackgroundThread(() -> {
             try {
                 if (undo) {
-                    boolean restored = ResumePlayback.undoHistory();
+                    boolean restored = ResumePlayback.undoHistory(token);
                     Utils.showToastShort(restored ? L10n.t("Remembered playback positions restored.")
                             : L10n.t("Undo has expired."));
                 } else {
@@ -1194,7 +1341,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 Utils.runOnMainThread(() -> {
                     changingPositions = false;
                     showClearPositions();
-                    Utils.runOnMainThreadDelayed(this::showClearPositions, ResumePlayback.UNDO_WINDOW_MS);
                 });
             }
         })) {
@@ -1594,6 +1740,42 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * The quality a video save asks for. The list's values are the setting's own names, which is
      * what the shared page syncs a list by, and the summary says what the choice does.
      */
+    static NavigationRow navigationRow(Context context) {
+        NavigationRow row = new NavigationRow(context);
+        row.setKey(Settings.NAVIGATION_SETTINGS_TARGET.key);
+        row.setTitle(L10n.t("Open settings with a tab long press"));
+        row.setDialogTitle(L10n.t("Choose a tab"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        NavigationTarget[] targets = NavigationTarget.values();
+        CharSequence[] labels = new CharSequence[targets.length];
+        CharSequence[] values = new CharSequence[targets.length];
+        for (int i = 0; i < targets.length; i++) {
+            labels[i] = navigationLabel(targets[i]);
+            values[i] = targets[i].name();
+        }
+        row.setEntries(labels);
+        row.setEntryValues(values);
+        row.setValue(Settings.NAVIGATION_SETTINGS_TARGET.savedValue().name());
+        return row;
+    }
+
+    static String navigationLabel(NavigationTarget target) {
+        switch (target) {
+            case FEED: return L10n.t("Home");
+            case SEARCH: return L10n.t("Search");
+            case CLIPS: return L10n.t("Reels");
+            case DIRECT: return L10n.t("Messages");
+            case PROFILE: return L10n.t("Profile");
+            case SHARE: return L10n.t("Create (+)");
+            case CREATION: return L10n.t("Camera");
+            case NEWS: return L10n.t("Activity");
+            case PRODUCER_PROFILE_PANEL: return L10n.t("Creator tools");
+            case FEED_SWITCHER: return L10n.t("Home feed picker");
+            case DYNAMIC_TAB: return L10n.t("Custom tab");
+            default: return L10n.t("Off");
+        }
+    }
+
     static QualityRow qualityRow(Context context) {
         QualityRow row = new QualityRow(context);
         row.setKey(Settings.DOWNLOAD_QUALITY.key);
@@ -1769,7 +1951,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** The quality rows' and the ring size's summaries are sentences of their own rather than the chosen entry. */
     @Override
     protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
-        if (listPreference instanceof QualityRow) {
+        if (listPreference instanceof NavigationRow) {
+            ((NavigationRow) listPreference).showSummary();
+        } else if (listPreference instanceof QualityRow) {
             ((QualityRow) listPreference).showSummary();
         } else if (listPreference instanceof PlaybackQualityRow) {
             ((PlaybackQualityRow) listPreference).showSummary();
@@ -1951,6 +2135,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             showAllText(view);
             ScreenColors.row(view, this);
             view.setAccessibilityDelegate(isSelectable() ? new RowSemantics(this, Button.class) : null);
+            view.setAccessibilityLiveRegion("hushgram_export_configuration".equals(getKey())
+                    ? View.ACCESSIBILITY_LIVE_REGION_POLITE : View.ACCESSIBILITY_LIVE_REGION_NONE);
         }
     }
 
@@ -2183,6 +2369,35 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * The download quality's row. Its summary follows its value, whoever sets it: the person, the
      * shared page syncing it from the setting, or an import.
      */
+    static final class NavigationRow extends ListPreference {
+        private String summary;
+        NavigationRow(Context context) { super(context); }
+        @Override public void setValue(String value) { super.setValue(value); showSummary(); }
+        void showSummary() {
+            NavigationTarget target = NavigationTarget.OFF;
+            for (NavigationTarget candidate : NavigationTarget.values()) {
+                if (candidate.name().equals(getValue())) target = candidate;
+            }
+            summary = target == NavigationTarget.OFF
+                    ? L10n.t("Tab long presses keep Instagram's own action. Choose one to open HushGram instead.")
+                    : L10n.f("Long-press %1$s to open HushGram instead of that tab's usual action. "
+                            + "Normal taps and other tabs stay the same. Only tabs your account shows can be used. "
+                            + "Restart Instagram after changing it.", navigationLabel(target));
+            setSummary(summary);
+        }
+        @Override public CharSequence getSummary() { return summary != null ? summary : super.getSummary(); }
+        @Override protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+        @Override protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
     static final class QualityRow extends ListPreference {
         QualityRow(Context context) {
             super(context);
@@ -2316,7 +2531,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             Preference.OnPreferenceClickListener open = getOnPreferenceClickListener();
             setOnPreferenceClickListener(row -> {
                 Activity activity = getActivity();
-                if (HushgramPreferenceFragment.this.getView() != null && activity != null
+                if (row.isEnabled() && HushgramPreferenceFragment.this.getView() != null && activity != null
                         && !activity.isFinishing() && !activity.isDestroyed()) {
                     open.onPreferenceClick(row);
                 }
@@ -2354,6 +2569,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             showAllText(view);
             ScreenColors.row(view, this);
             view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+            view.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         }
     }
 
@@ -2394,6 +2610,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 list.onInitializeAccessibilityNodeInfoForItem(host, position, info);
             }
             info.setClassName(role.getName());
+            // A Switch role reads its own label instead of aggregating descendant TextViews.
+            CharSequence title = preference.getTitle(), summary = preference.getSummary();
+            info.setContentDescription(TextUtils.isEmpty(summary) ? title : TextUtils.isEmpty(title)
+                    ? summary : TextUtils.concat(title, "\n", summary));
             if (preference instanceof TwoStatePreference) {
                 info.setCheckable(true);
                 info.setChecked(((TwoStatePreference) preference).isChecked());

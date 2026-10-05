@@ -1,0 +1,11 @@
+Input: D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\Best Apks\android-steamlinkvr-release-2.0.20-5001812.apk; bytes=40427387; SHA-256=c696be092956854c4f5ca42ec088449a8b3e62ede72c47d4448a2d5329be6048
+Case: exact 2.0.20/5001812; trigger-first
+Evidence: actual Morphe execution/finalize and unsigned APK packaging from original Valve input; no installation, Android linker, GLES, runtime resolution or headset proof.
+Selection: Foveal canvas original APK metadata audit, Galaxy XR high-resolution 3-projection fix, Full-FOV foveal canvas (experimental)
+Dependency closure: Foveal canvas original APK metadata audit, Galaxy XR high-resolution 3-projection fix, , Full-FOV foveal canvas (experimental)
+Morphe PASS: Foveal canvas original APK metadata audit
+Morphe PASS: Full-FOV foveal canvas (experimental)
+Morphe PASS: Galaxy XR high-resolution 3-projection fix
+PASS combined-resolution boundary: scene and DEX unchanged; both exact pinned helpers installed.
+PASS immutable renderer functions; canvas helper SHA-256=2939db189b19322da6ec601e96f9d4036d449fd8ee386e3cbd69e491d539eac3; canvas manifest SHA-256=2ff0b8e93e682ae39247f9f7e0a394e8ee6cabbefa374a1249b19bb1195a12e5; scene SHA-256=eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a; Surface trigger present=true
+PASS original input unchanged; output=D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\build\foveal-canvas-work\morphe-final\trigger-first\steamlink-2.0.20-5001812-foveal-canvas-trigger-first-unsigned.apk; bytes=40853452; SHA-256=8b17c945b4a7c79d5bb5fd8f187faa2d33adbf08097af3f05217d26d84e195c7; unsigned=true

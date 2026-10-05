@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-01",
+  "failedRun": "https://github.com/AngelDark92/steamlink-patches/actions/runs/36907870366",
+  "jobId": 110522863368,
+  "commit": "7e488df1bff24de5911c88d00b0d76571028c7fd",
+  "confirmedFailure": {
+    "stage": ":patches:test",
+    "found": 136,
+    "failed": 5,
+    "skipped": 8,
+    "cause": "FovealCanvasPatchTest.originalScene hard-failed on absent ignored decoded 2.0.20/5001812 scene",
+    "androidPackaging": "buildAndroid succeeded before tests failed"
+  },
+  "additionalLocalIssue": {
+    "cause": "Windows checkout converted SHA-pinned manifest LF to CRLF",
+    "fix": "Exact manifest text eol=lf attribute; canonical LF hash preserved"
+  },
+  "changes": [
+    "Missing-only JUnit4 assumptions for 4 real-input audits; invalid present inputs still fail",
+    "4 mandatory portable foveal tests: exact metadata, excluded build access guard, unknown renderer rejection, tracked payload validation/tampering",
+    "Preserved installer atomicity/idempotence/retired-trigger checks on actual decoded input",
+    "Repository AGENTS.md plus morphe-patches and cavecrew skills updated"
+  ],
+  "verification": {
+    "cachedCompileAndJUnit": {
+      "passed": 137,
+      "failed": 0,
+      "skipped": 0
+    },
+    "isolatedTrackedSourceCheckout": {
+      "passed": 125,
+      "failed": 0,
+      "skipped": 12,
+      "fovealPassed": 4,
+      "fovealSkipped": 4,
+      "existingVdSkipped": 8,
+      "note": "Tracked source files exported with git archive; runtime compiled classpaths explicit; ignored decoded inputs absent; JUnit assumption aborts counted as skipped"
+    },
+    "skills": "2 quick_validate.py passes using temporary PyYAML dependency",
+    "manifestSha256": "2ff0b8e93e682ae39247f9f7e0a394e8ee6cabbefa374a1249b19bb1195a12e5",
+    "githubCorrectedCommit": "Not pushed or run; local evidence only"
+  },
+  "cleanup": "Deferred automatic approval review rejection; ci-cleanup.json"
+}

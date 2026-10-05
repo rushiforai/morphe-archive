@@ -51,6 +51,117 @@ public class SettingsEntryTest {
         HushTelegramPreferenceFragment.failNextInitialization = null;
     }
 
+    @Test public void repeatedImmediateEntryOpensQueueExactlyOneDialog() {
+        ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup();
+        Activity activity = controller.get();
+        try {
+            assertTrue(SettingsEntry.open(activity));
+            assertTrue(SettingsEntry.open(activity));
+            activity.getFragmentManager().executePendingTransactions();
+            org.junit.Assert.assertEquals("one dialog before either tap's transaction settles", 1,
+                    activity.getFragmentManager().getFragments().stream()
+                            .filter(fragment -> fragment instanceof SettingsDialog).count());
+        } finally {
+            SettingsEntry.onClosedByUser();
+            controller.pause().stop().destroy();
+        }
+    }
+
+    @Test public void nativeLauncherAndAppInfoRequestsShareTheExistingDialog() {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            SettingsEntry.openFromNative(activity);
+            SettingsEntry.openFromNative(activity);
+            SettingsEntry.onNewIntent(activity, new Intent().putExtra(SettingsEntry.EXTRA_OPEN_SETTINGS, true));
+            SettingsEntry.onNewIntent(activity, new Intent(Intent.ACTION_APPLICATION_PREFERENCES));
+            watcher.onActivityResumed(activity);
+            ShadowLooper.idleMainLooper();
+            org.junit.Assert.assertEquals(1, activity.getFragmentManager().getFragments().stream()
+                    .filter(fragment -> fragment instanceof SettingsDialog).count());
+            Object shown = dialogOver(activity);
+            SettingsEntry.openFromNative(activity);
+            ShadowLooper.idleMainLooper();
+            org.junit.Assert.assertSame(shown, dialogOver(activity));
+            ((SettingsDialog) shown).getDialog().onBackPressed();
+            ShadowLooper.idleMainLooper();
+            assertNull(dialogOver(activity));
+            SettingsEntry.openFromNative(activity);
+            ShadowLooper.idleMainLooper();
+            org.junit.Assert.assertNotSame(shown, dialogOver(activity));
+            org.junit.Assert.assertEquals(1, activity.getFragmentManager().getFragments().stream()
+                    .filter(fragment -> fragment instanceof SettingsDialog).count());
+            SettingsEntry.onClosedByUser();
+        }
+    }
+
+    @Test public void theNativeTitleUsesEveryExistingTranslation() {
+        for (String language : new String[]{"de", "es", "in", "pt-rBR", "tr"}) {
+            RuntimeEnvironment.setQualifiers(language);
+            org.junit.Assert.assertEquals(language,
+                    app.hushtelegram.extension.shared.L10nTablesForTests.of(language.toLowerCase(java.util.Locale.ROOT))
+                            .get("HushTelegram settings"),
+                    SettingsEntry.nativeSettingsTitle());
+        }
+    }
+
+    @Test public void nativeEntryKeepsPartialSelectionsTruthfulWhileOffOrPaused() {
+        try {
+            Settings.HIDE_ADS.save(false);
+            for (java.util.EnumSet<PatchFamily> selected : java.util.Arrays.asList(
+                    java.util.EnumSet.noneOf(PatchFamily.class), java.util.EnumSet.of(PatchFamily.HIDE_ADS))) {
+                PatchFamily.inBuildForTests = selected;
+                PatchFamily.capabilitiesForTests = java.util.EnumSet.noneOf(PatchFamily.Capability.class);
+                for (app.hushtelegram.extension.shared.settings.HushTelegramPause.Reason reason :
+                        app.hushtelegram.extension.shared.settings.HushTelegramPause.Reason.values()) {
+                    app.hushtelegram.extension.shared.settings.PauseForTests.pause(reason);
+                    for (String route : new String[]{"native", "launcher", "app-info"}) {
+                        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                            for (int request = 0; request < 2; request++) {
+                                if (route.equals("native")) SettingsEntry.openFromNative(controller.get());
+                                else SettingsEntry.onNewIntent(controller.get(), route.equals("launcher")
+                                        ? new Intent().putExtra(SettingsEntry.EXTRA_OPEN_SETTINGS, true)
+                                        : new Intent(Intent.ACTION_APPLICATION_PREFERENCES));
+                                watcher.onActivityResumed(controller.get());
+                            }
+                            ShadowLooper.idleMainLooper();
+                            org.junit.Assert.assertEquals(route, 1, controller.get().getFragmentManager().getFragments().stream()
+                                    .filter(fragment -> fragment instanceof SettingsDialog).count());
+                            HushTelegramPreferenceFragment page = pageOver(controller.get());
+                            org.junit.Assert.assertEquals(selected.contains(PatchFamily.HIDE_ADS),
+                                    page.findPreference(Settings.HIDE_ADS.key) != null);
+                            assertNull(page.findPreference(Settings.HIDE_COMMERCE.key));
+                            assertNull(page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key));
+                            assertNull(page.findPreference("local_notification_status"));
+                            org.junit.Assert.assertFalse(Settings.HIDE_ADS.savedValue());
+                            SettingsEntry.onClosedByUser();
+                        }
+                    }
+                }
+            }
+        } finally {
+            PatchFamily.inBuildForTests = null;
+            PatchFamily.capabilitiesForTests = null;
+            Settings.HIDE_ADS.resetToDefault();
+            app.hushtelegram.extension.shared.settings.PauseForTests.resume();
+        }
+    }
+
+    @Test public void nativeEntryWaitsForASuitableHostAndSurvivesRecreationOnce() {
+        SettingsEntry.openFromNative(null);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            SettingsEntry.openFromNative(controller.get());
+            ShadowLooper.idleMainLooper();
+            controller.configurationChange();
+            ShadowLooper.idleMainLooper();
+            SettingsEntry.openFromNative(controller.get());
+            ShadowLooper.idleMainLooper();
+            org.junit.Assert.assertEquals(1, controller.get().getFragmentManager().getFragments().stream()
+                    .filter(fragment -> fragment instanceof SettingsDialog).count());
+            assertNotNull(pageOver(controller.get()));
+            SettingsEntry.onClosedByUser();
+        }
+    }
+
     /**
      * The launcher shortcut is labelled in the phone's language when it's first published, and a
      * phone that changes language gets it relabelled: one found under the old label is pushed

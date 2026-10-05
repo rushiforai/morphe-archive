@@ -1,0 +1,6 @@
+{
+  "files": 523,
+  "bytes": 24080753,
+  "inputs": "git ls-files plus 3 intended new source/test files",
+  "ignored_decoded_inputs": false
+}

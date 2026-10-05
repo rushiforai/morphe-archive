@@ -46,7 +46,8 @@ internal fun BytecodePatchContext.declaredInHierarchy(
 /**
  * Makes the HushGram screen reachable from a long-press shortcut on Instagram's launcher icon and
  * from a row at the top of Instagram's Settings and activity screen. The shortcut opens Instagram's
- * main activity with an extra, and the screen opens over it once it resumes. The row is found by
+ * main activity with an extra, and the screen opens over it once it resumes. A default-off choice
+ * also gives one native navigation tab's long press to the same settings entry. The row is found by
  * the strings its screen's factory puts in the arguments. Every other name used here is a manifest
  * component or a framework or androidx override or call. Nothing is added to the manifest.
  */
@@ -54,8 +55,9 @@ internal fun BytecodePatchContext.declaredInHierarchy(
 val settingsPatch = bytecodePatch(
     name = "HushGram settings",
     description = "Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick " +
-        "HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, " +
-        "to turn features on or off, pause HushGram and export diagnostics. The licenses are there too.",
+        "HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity. " +
+        "You can also choose one tab whose long press opens HushGram. That choice starts off. " +
+        "Turn features on or off, pause HushGram and export diagnostics. The licenses are there too.",
     default = true,
 ) {
     category("Settings")
@@ -63,6 +65,8 @@ val settingsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.instagram())
 
     execute {
+        // The two binding variants and the returned view must be proved before startup is edited.
+        val navigation = navigationEntryTargets()
         // Before each return of the application's onCreate, after Instagram's own startup, which
         // is when the shortcut is published and the activity callbacks that open the screen are
         // registered.
@@ -94,5 +98,7 @@ val settingsPatch = bytecodePatch(
         // A launcher that shows no shortcuts on a long press still gets there from Instagram's
         // own settings.
         addSettingsRow()
+        preserveSettingsState()
+        addNavigationEntry(navigation)
     }
 }

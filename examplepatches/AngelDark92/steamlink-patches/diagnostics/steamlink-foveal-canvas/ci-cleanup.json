@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-01",
+  "status": "DEFERRED_POLICY_REJECTION",
+  "targets": [
+    {
+      "path": "build/foveal-ci-work",
+      "files": 248,
+      "bytes": 2694185
+    },
+    {
+      "path": "C:/Users/Angelo/AppData/Local/Temp/steamlink-foveal-ci-e2a50cd68eac43b59e22e8a0595b48ef",
+      "files": 41,
+      "bytes": 482096
+    }
+  ],
+  "filesRemoved": 0,
+  "bytesReclaimed": 0,
+  "deferredBytes": 3176281,
+  "reason": "Automatic approval review rejected scoped native PowerShell cleanup with blocked by policy before execution; no alternate deletion route attempted",
+  "completionCondition": "Fresh containment, reparse, tracked-file, process and retained-artifact checks, then policy-permitted deletion of only these exact generated paths"
+}

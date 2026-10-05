@@ -314,6 +314,15 @@ public final class StickerGallerySaver {
                 SaveResult result = saveDownloadedSticker(context, asset, url, source, contentType);
                 if (!result.success) throw new IOException(result.message);
                 return result;
+            } catch (MediaBudget.StopException refusal) {
+                Logger.printException(() -> "Sticker save stopped", refusal);
+                if (refusal.reason == MediaBudget.StopException.Reason.SERVER_WAIT) {
+                    return SaveResult.failure(L10n.t("The server asked us to wait. Try again later."));
+                }
+                if (refusal.reason == MediaBudget.StopException.Reason.CANCELLED) {
+                    return SaveResult.failure(L10n.t("Save cancelled. Nothing was saved."));
+                }
+                return SaveResult.failure(L10n.t("The sticker couldn't be saved. Try again."));
             } catch (Throwable error) {
                 failure.addSuppressed(new IOException(
                         "Sticker mirror failed (" + error.getClass().getSimpleName() + "): "
@@ -354,9 +363,12 @@ public final class StickerGallerySaver {
                 MediaBudget.check(deadline);
                 int responseCode = response.statusCode;
                 if (MediaBudget.isTransientStatus(responseCode)
-                        && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
-                    MediaBudget.waitBeforeRetry(response.header("Retry-After"), attempt, deadline);
-                    continue;
+                        || (responseCode >= 300 && response.header("Retry-After") != null)) {
+                    String retryAfter = response.header("Retry-After");
+                    response.close();
+                    MediaBudget.waitBeforeRetry(retryAfter, attempt, deadline);
+                    if (MediaBudget.isTransientStatus(responseCode)
+                            && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) continue;
                 }
                 if (responseCode < 200 || responseCode >= 300) {
                     throw new IOException("Sticker server returned " + responseCode);
@@ -372,6 +384,10 @@ public final class StickerGallerySaver {
                 return response.contentType();
             } catch (IOException | RuntimeException error) {
                 boolean cleaned = MediaCache.deletePartial(target);
+                if (error instanceof MediaBudget.StopException) {
+                    if (!cleaned) error.addSuppressed(new IOException("Could not remove partial sticker output"));
+                    throw (MediaBudget.StopException) error;
+                }
                 boolean retryable = MediaBudget.isRetryableTransport(error);
                 if (cleaned && retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
                     MediaBudget.waitBeforeRetry(null, attempt, deadline);

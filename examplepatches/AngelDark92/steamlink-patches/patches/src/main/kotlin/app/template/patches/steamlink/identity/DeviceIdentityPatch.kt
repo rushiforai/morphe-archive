@@ -1,5 +1,6 @@
 package app.template.patches.steamlink.identity
 
+import app.template.patches.shared.PatchCategories
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -373,6 +374,7 @@ val deviceIdentityPatch = rawResourcePatch(
         "Optional on 2.0.23/5002363; explicit Quest Pro and Pico profiles populate exact Galaxy XR product entries.",
     default = false,
 ) {
+    category(PatchCategories.APP_AND_DEVICE_IDENTITY)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
     // Morphe executes dependencies without checking their compatibility. The legacy foundation is
     // therefore build-aware and becomes a mutation no-op on native builds, while older builds retain the

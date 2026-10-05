@@ -880,6 +880,35 @@ public class Mp4JoinTest {
         dead(marker);
     }
 
+    /** A failed RELEASE flush leaves its byte buffered, so close retries it after the launcher exits. */
+    @Test public void anExitedLaunchersClosedPipeDoesNotFailCleanup() throws Exception {
+        boolean[] closed = {false};
+        java.io.BufferedOutputStream pipe = new java.io.BufferedOutputStream(new java.io.OutputStream() {
+            @Override public void write(int value) throws IOException { throw new IOException("The pipe is being closed"); }
+            @Override public void close() { closed[0] = true; }
+        });
+        pipe.write('R');
+        assertThrows(IOException.class, pipe::flush);
+        Process exited = new Process() {
+            @Override public java.io.OutputStream getOutputStream() { return pipe; }
+            @Override public java.io.InputStream getInputStream() { return new java.io.ByteArrayInputStream(new byte[0]); }
+            @Override public java.io.InputStream getErrorStream() { return getInputStream(); }
+            @Override public int waitFor() { return 0; }
+            @Override public int exitValue() { return 0; }
+            @Override public boolean isAlive() { return false; }
+            @Override public void destroy() { }
+        };
+        java.lang.reflect.Constructor<CodecProcess> constructor = CodecProcess.class.getDeclaredConstructor(long.class);
+        constructor.setAccessible(true);
+        CodecProcess owned = constructor.newInstance(System.nanoTime() + TimeUnit.SECONDS.toNanos(1));
+        java.lang.reflect.Field launcher = CodecProcess.class.getDeclaredField("launcher");
+        launcher.setAccessible(true);
+        launcher.set(owned, exited);
+        owned.close();
+        assertTrue("the underlying pipe must still close", closed[0]);
+        assertFalse(exited.isAlive());
+    }
+
     @Test(timeout = 12_000)
     public void aDeadlineCannotKillAProcessOutsideItsOwnershipBoundary() throws Exception {
         File otherMarker = temp.newFile("unrelated.txt");

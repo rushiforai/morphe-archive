@@ -893,6 +893,7 @@ public final class SettingsActivity extends Activity {
     static String releasesUrl = "https://api.github.com/repos/SysAdminDoc/HushMessenger/releases/latest";
     static int updateTimeoutMillis = 5000;
     static java.util.function.LongSupplier updateClock = System::currentTimeMillis;
+    private static final Object UPDATE_CACHE_LOCK = new Object();
 
     /**
      * Compares release numbers part by part as integers, so 0.10.0 is newer than 0.9.0. A leading "v"
@@ -961,6 +962,16 @@ public final class SettingsActivity extends Activity {
         return generation == updateGeneration && !isDestroyed() && Settings.preferences.getBoolean("check_updates", false);
     }
 
+    private boolean saveUpdate(long generation, SharedPreferences.Editor editor, String error) {
+        // Only workers take this lock. Serialize accepted writes so an older write cannot
+        // finish after a newer one, without making cancellation wait for disk I/O.
+        synchronized (UPDATE_CACHE_LOCK) {
+            if (!currentUpdate(generation)) return false;
+            if (!editor.commit()) android.util.Log.w("HushMessenger", error);
+            return true;
+        }
+    }
+
     private void showRelease(long generation, ReleaseCheck release) {
         runOnUiThread(() -> {
             if (!currentUpdate(generation)) return;
@@ -1025,12 +1036,9 @@ public final class SettingsActivity extends Activity {
                 if (code == 403 || code == 429) {
                     int failures = ReleaseCheck.failures(prefs);
                     long deadline = ReleaseCheck.retryAt(conn, updateClock.getAsLong(), failures);
-                    synchronized (this) {
-                        if (!currentUpdate(generation)) return;
-                        if (!prefs.edit().putLong(ReleaseCheck.RETRY_KEY, deadline).putString(ReleaseCheck.RETRY_ENDPOINT_KEY, endpoint)
-                            .putInt(ReleaseCheck.FAILURES_KEY, Math.min(6, failures + 1)).commit())
-                            android.util.Log.w("HushMessenger", "Couldn't save update retry time");
-                    }
+                    if (!saveUpdate(generation, prefs.edit().putLong(ReleaseCheck.RETRY_KEY, deadline)
+                        .putString(ReleaseCheck.RETRY_ENDPOINT_KEY, endpoint).putInt(ReleaseCheck.FAILURES_KEY, Math.min(6, failures + 1)),
+                        "Couldn't save update retry time")) return;
                     showRetry(generation, deadline);
                     return;
                 }
@@ -1040,11 +1048,7 @@ public final class SettingsActivity extends Activity {
                     release = cached.revalidated(conn.getHeaderField("ETag"), updateClock.getAsLong());
                     if (release == null) {
                         // A changed ETag can't confirm the cached release. Drop it so the next check asks unconditionally.
-                        synchronized (this) {
-                            if (!currentUpdate(generation)) return;
-                            if (!prefs.edit().remove(ReleaseCheck.CACHE_KEY).commit())
-                                android.util.Log.w("HushMessenger", "Couldn't clear the cached release");
-                        }
+                        if (!saveUpdate(generation, prefs.edit().remove(ReleaseCheck.CACHE_KEY), "Couldn't clear the cached release")) return;
                         throw new java.io.IOException("Changed ETag on 304");
                     }
                 } else {
@@ -1063,12 +1067,8 @@ public final class SettingsActivity extends Activity {
                         .decode(java.nio.ByteBuffer.wrap(response.toByteArray())).toString();
                     release = ReleaseCheck.parse(body, endpoint, conn.getHeaderField("ETag"), updateClock.getAsLong());
                 }
-                synchronized (this) {
-                    if (!currentUpdate(generation)) return;
-                    if (!prefs.edit().putString(ReleaseCheck.CACHE_KEY, release.encode()).remove(ReleaseCheck.RETRY_KEY)
-                        .remove(ReleaseCheck.RETRY_ENDPOINT_KEY).remove(ReleaseCheck.FAILURES_KEY).commit())
-                        android.util.Log.w("HushMessenger", "Couldn't save checked release");
-                }
+                if (!saveUpdate(generation, prefs.edit().putString(ReleaseCheck.CACHE_KEY, release.encode()).remove(ReleaseCheck.RETRY_KEY)
+                    .remove(ReleaseCheck.RETRY_ENDPOINT_KEY).remove(ReleaseCheck.FAILURES_KEY), "Couldn't save checked release")) return;
                 showRelease(generation, release);
             } catch (java.io.IOException | IllegalArgumentException | IllegalStateException | SecurityException error) {
                 if (generation == updateGeneration) android.util.Log.e("HushMessenger", "Update check failed", error);
@@ -1311,6 +1311,32 @@ public final class SettingsActivity extends Activity {
                 if (provider != null && (context.getPackageName().equals(provider.packageName) ||
                         (provider.applicationInfo != null && provider.applicationInfo.uid == android.os.Process.myUid())))
                     throw new SecurityException("Choices document belongs to this app");
+                if (request == SAVE_CHOICES) {
+                    android.net.Uri media = "media".equals(authority) ? uri : null;
+                    boolean mediaDocument = "com.android.providers.media.documents".equals(authority);
+                    if (android.os.Build.VERSION.SDK_INT >= 29 && (mediaDocument ||
+                            "com.android.externalstorage.documents".equals(authority))) {
+                        media = android.provider.MediaStore.getMediaUri(context, uri);
+                    }
+                    if (mediaDocument && media == null)
+                        throw new SecurityException("Choices media ownership is unavailable");
+                    if (media != null) {
+                        if (android.os.Build.VERSION.SDK_INT < 29)
+                            throw new SecurityException("Choices media ownership is unavailable");
+                        // A third-party picker can return MediaStore rows owned by Messenger.
+                        // Check before opening with wt, which can truncate immediately.
+                        try (android.database.Cursor row = context.getContentResolver().query(media,
+                                new String[] {android.provider.MediaStore.MediaColumns.OWNER_PACKAGE_NAME},
+                                null, null, null, cancellation)) {
+                            if (row == null || !row.moveToFirst())
+                                throw new SecurityException("Choices media ownership is unavailable");
+                            String ownerPackage = row.getString(row.getColumnIndexOrThrow(
+                                    android.provider.MediaStore.MediaColumns.OWNER_PACKAGE_NAME));
+                            if (ownerPackage == null || ownerPackage.isEmpty() || context.getPackageName().equals(ownerPackage) || row.moveToNext())
+                                throw new SecurityException("Choices media is private or has unknown ownership");
+                        }
+                    }
+                }
                 try (android.content.res.AssetFileDescriptor opened = context.getContentResolver()
                         .openAssetFileDescriptor(uri, request == SAVE_CHOICES ? "wt" : "r", cancellation)) {
                     if (opened == null) throw new java.io.IOException("No choices document");

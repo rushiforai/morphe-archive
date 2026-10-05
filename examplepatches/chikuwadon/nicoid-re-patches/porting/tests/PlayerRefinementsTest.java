@@ -1,0 +1,12 @@
+package e.e.a;
+import java.io.*;import java.util.*;
+public class PlayerRefinementsTest {
+ static void check(boolean b,String s){if(!b)throw new AssertionError(s);}
+ static void near(float a,float b,String s){check(Math.abs(a-b)<.01,s+" "+a+" != "+b);}
+ public static void main(String[] args)throws Exception{
+  for(float speed:new float[]{.1f,.5f,1,2,4}){CommentMotionRules c=new CommentMotionRules();Object first=new Object();c.frame(0,0,speed,true);float start=c.start(first,0);for(int t=20;t<=1000;t+=20)c.frame(t,Math.round(t*speed),speed,true);near(c.position()-start,100,"motion stays 1x at "+speed);Object next=new Object();near(c.start(next,speed*100),c.position(),"onset synced to video");float before=c.position();c.frame(1020,Math.round(1000*speed),speed,false);c.frame(2020,Math.round(1000*speed),speed,false);near(c.position(),before,"pause freezes");c.frame(2040,50000,speed,true);near(c.position(),5000,"seek resets");}
+  CommentMotionRules c=new CommentMotionRules();c.frame(0,0,1,true);Object first=new Object();float start=c.start(first,0);c.frame(100,100,1,true);float before=c.position();c.frame(200,500,4,true);near(c.position()-before,10,"speed switch has no animation jump");near(c.start(first,0),start,"active comment anchor unchanged");
+  File f=File.createTempFile("nicoid-pack-test",".ncache");try{byte[] a="playlist".getBytes("UTF-8"),b=new byte[1024];Arrays.fill(b,(byte)7);try(OutputStream out=new FileOutputStream(f)){out.write(a);out.write(b);CachePackIndex.finish(out,Arrays.asList(new CachePackIndex.Entry("sm1.m3u8",0,a.length,1),new CachePackIndex.Entry("sm1_asset_0.bin",a.length,b.length,2)));}try(FileInputStream in=new FileInputStream(f)){Map<String,CachePackIndex.Entry> index=CachePackIndex.read(in.getChannel());check(index.size()==2,"two index entries");CachePackIndex.Entry e=index.get("sm1_asset_0.bin");check(e.offset==a.length&&e.size==b.length,"seekable resource boundaries");in.getChannel().position(e.offset);byte[] actual=new byte[(int)e.size];check(in.read(actual)==b.length&&Arrays.equals(actual,b),"original bytes retained");}try(RandomAccessFile out=new RandomAccessFile(f,"rw")){out.seek(f.length()-4);out.writeInt(Integer.MAX_VALUE);}boolean corrupt=false;try(FileInputStream in=new FileInputStream(f)){CachePackIndex.read(in.getChannel());}catch(IOException expected){corrupt=true;}check(corrupt,"invalid index rejected");}finally{f.delete();}
+  System.out.println("Player refinements and cache-container checks passed");
+ }
+}

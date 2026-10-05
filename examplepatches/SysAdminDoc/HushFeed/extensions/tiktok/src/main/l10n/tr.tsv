@@ -1329,6 +1329,8 @@ Stopping after this file	Bu dosyadan sonra durduruluyor
 Waiting to save %1$s files	%1$s dosya kaydedilmeyi bekliyor
 Waiting to save one file	Bir dosya kaydedilmeyi bekliyor
 Save cancelled. Nothing was saved.	Kaydetme iptal edildi. Hiçbir şey kaydedilmedi.
+The server asked us to wait. Try again later.	Sunucu beklememizi istedi. Daha sonra tekrar deneyin.
+Saved %1$s of %2$s. The server asked us to wait. Try again later.	%2$s dosyadan %1$s kaydedildi. Sunucu beklememizi istedi. Daha sonra tekrar deneyin.
 One more save waiting	Bir kayıt daha bekliyor
 %1$s more saves waiting	%1$s kayıt daha bekliyor
 Starts after one other save	Başka bir kayıttan sonra başlar

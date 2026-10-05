@@ -25,12 +25,14 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableIntEncodedValue
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableStringEncodedValue
 import org.junit.Assert.assertEquals
@@ -40,6 +42,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
+import java.lang.ref.SoftReference
 
 /** Registered credentials change two initialization literals and tag the native init version. Authentication stays intact. */
 class UseRegisteredApiCredentialsFixtureTest {
@@ -74,13 +77,25 @@ class UseRegisteredApiCredentialsFixtureTest {
                 otherMethods(before, plan.connectionInitializer), otherMethods(after, plan.connectionInitializer))
             val connection = plan.connectionInitializer.instructions()
             val tag = connection[plan.nativeCall]
-            assertEquals(Opcode.XOR_INT_LIT8, tag.opcode)
-            assertEquals(listOf(plan.versionRegister, plan.versionRegister), tag.namedRegisters())
-            assertEquals(nativeVersionTag(ID.toInt()), (tag as NarrowLiteralInstruction).narrowLiteral)
-            assertEquals("native_init", connection[plan.nativeCall + 1].call()?.name)
-            assertEquals(plan.versionRegister, connection[plan.nativeCall + 1].namedRegisters()[1])
+            assertEquals(Opcode.XOR_INT, tag.opcode)
+            assertEquals(listOf(plan.versionRegister, plan.versionRegister, plan.apiRegister), tag.namedRegisters())
+            val branch = connection[plan.nativeCall + 1]
+            assertEquals(Opcode.IF_NEZ, branch.opcode)
+            assertEquals(listOf(plan.versionRegister), branch.namedRegisters())
+            assertEquals(connection.subList(plan.nativeCall + 1, plan.nativeCall + 4).sumOf { it.codeUnits },
+                (branch as OffsetInstruction).codeOffset)
+            val fallback = connection[plan.nativeCall + 2]
+            assertEquals(Opcode.XOR_INT_LIT16, fallback.opcode)
+            assertEquals(listOf(plan.versionRegister, plan.apiRegister), fallback.namedRegisters())
+            assertEquals(128, (fallback as NarrowLiteralInstruction).narrowLiteral)
+            val invert = connection[plan.nativeCall + 3]
+            assertEquals(Opcode.XOR_INT_LIT8, invert.opcode)
+            assertEquals(listOf(plan.versionRegister, plan.versionRegister), invert.namedRegisters())
+            assertEquals(-1, (invert as NarrowLiteralInstruction).narrowLiteral)
+            assertEquals("native_init", connection[plan.nativeCall + 4].call()?.name)
+            assertEquals(plan.versionRegister, connection[plan.nativeCall + 4].namedRegisters()[1])
             assertEquals("${build.name}: only the version tag is added", oldConnection.map(::operation),
-                connection.filterIndexed { index, _ -> index != plan.nativeCall }.map(::operation))
+                connection.filterIndexed { index, _ -> index !in plan.nativeCall until plan.nativeCall + 4 }.map(::operation))
             assertEquals("${build.name}: initializer branches stay intact", ControlFlow.of(oldInitializer).normal.toList(),
                 ControlFlow.of(plan.initializer).normal.toList())
             assertEquals("${build.name}: initializer exception edges stay intact", ControlFlow.of(oldInitializer).exceptional.toList(),
@@ -91,13 +106,61 @@ class UseRegisteredApiCredentialsFixtureTest {
     }
 
     @Test
-    fun `native version tag is negative for every API ID and follows the ID`() {
-        for (id in listOf(1, 127, 128, 255, ID.toInt(), Int.MAX_VALUE)) {
-            val tag = nativeVersionTag(id)
-            assertTrue("$id: tag fits xor-int/lit8", tag in -128..-1)
-            assertTrue("$id: tagged version can't equal a stock build version", (71129 xor tag) < 0)
+    fun `missing native declaration or changed native modifiers refuse before edits`() {
+        refusal { context, _ -> context.mutableClassDefBy(CONNECTIONS).methods.removeAll { it.name == "native_init" } }
+        for (flag in listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.NATIVE)) refusal { context, _ ->
+            val method = context.mutableClassDefBy(CONNECTIONS).methods.single { it.name == "native_init" }
+            method.accessFlags = method.accessFlags and flag.value.inv()
         }
-        assertTrue(nativeVersionTag(1) != nativeVersionTag(2))
+    }
+
+    @Test
+    fun `registered IDs that shared the old low bits receive distinct native versions`() {
+        val versions = listOf(0, 1, 71129, 71159, Int.MAX_VALUE)
+        val ids = listOf(1, 129, 127, 128, 255, 256, 257, 71129, 71159, 19077001, 19077129, Int.MAX_VALUE)
+        for (build in Fixtures.declaredBuilds()) {
+            val markers = versions.associateWith { mutableSetOf<Int>() }
+            for (id in ids) {
+                val versionsForId = mutableSetOf<Int>()
+                val context = PatchContexts.of(hosts(build))
+                val plan = context.resolveApiCredentials()
+                val arguments = plan.connectionInitializer.instructions()[plan.nativeCall].namedRegisters()
+                withOptions(id.toString(), HASH) { useRegisteredApiCredentialsPatch.execute(context) }
+                val code = plan.connectionInitializer.instructions()
+                val nativeCall = code.indices.single { code[it].call()?.name == "native_init" }
+                for (version in versions) {
+                    val registers = IntArray(plan.connectionInitializer.implementation!!.registerCount) { 0x13579 + it }
+                    registers[arguments[1]] = version
+                    registers[arguments[3]] = id
+                    val before = registers.copyOf()
+                    for (instruction in code.subList(plan.nativeCall, nativeCall)) {
+                        val operands = instruction.namedRegisters()
+                        if (instruction.opcode == Opcode.IF_NEZ) {
+                            if (registers[operands[0]] != 0) break
+                            continue
+                        }
+                        registers[operands[0]] = when (instruction.opcode) {
+                            Opcode.XOR_INT -> registers[operands[1]] xor registers[operands[2]]
+                            Opcode.XOR_INT_LIT8, Opcode.XOR_INT_LIT16 ->
+                                registers[operands[1]] xor (instruction as NarrowLiteralInstruction).narrowLiteral
+                            else -> error("Unexpected native marker instruction: ${instruction.opcode}")
+                        }
+                    }
+                    val marker = registers[arguments[1]]
+                    assertTrue("${build.name}: marker must differ from stock and uninitialized versions", marker != version && marker != 0)
+                    assertEquals("${build.name}: only equal ID/version needs the negative fallback", id == version, marker < 0)
+                    assertTrue("${build.name}: marker must differ from every released eight-bit tag",
+                        (-128..-1).none { marker == (version xor it) })
+                    assertTrue("${build.name}: API $id collided at version $version", markers.getValue(version).add(marker))
+                    assertTrue("${build.name}: version $version collided for API $id", versionsForId.add(marker))
+                    assertEquals("${build.name}: marker must retain every API ID bit", id,
+                        if (marker < 0) version else version xor marker)
+                    for (register in registers.indices.filter { it != arguments[1] }) {
+                        assertEquals("${build.name}: native argument/register $register changed", before[register], registers[register])
+                    }
+                }
+            }
+        }
     }
 
     @Test
@@ -108,6 +171,40 @@ class UseRegisteredApiCredentialsFixtureTest {
         refusal { _, plan ->
             val method = plan.connectionInitializer
             method.addInstructionsWithLabels(plan.nativeCall - 1, "if-eqz v${plan.versionRegister}, :native",
+                ExternalLabel("native", method.getInstruction<Instruction>(plan.nativeCall)))
+        }
+    }
+
+    @Test
+    fun `changed native parameter types return type and range length refuse before edits`() {
+        for (mutation in listOf("parameter", "declaration", "return", "range")) refusal { context, plan ->
+            val instruction = plan.connectionInitializer.instructions()[plan.nativeCall]
+            val reference = instruction.call()!!
+            val arguments = instruction.namedRegisters()
+            val parameters = reference.parameterTypes.map(CharSequence::toString).toMutableList()
+            if (mutation == "parameter" || mutation == "declaration") parameters[4] = "I"
+            if (mutation == "declaration") {
+                val owner = context.mutableClassDefBy(CONNECTIONS)
+                val definition = owner.methods.single { it.name == "native_init" }
+                val changed = definition.parameters.mapIndexed { index, parameter ->
+                    if (index == 4) ImmutableMethodParameter("I", parameter.annotations, parameter.name) else parameter
+                }
+                owner.methods.remove(definition)
+                owner.methods.add(ImmutableMethod(definition.definingClass, definition.name, changed, definition.returnType,
+                    definition.accessFlags, definition.annotations, definition.hiddenApiRestrictions, definition.implementation).toMutable())
+            }
+            val result = if (mutation == "return") "I" else reference.returnType
+            val end = arguments.last() - if (mutation == "range") 1 else 0
+            plan.connectionInitializer.replaceInstruction(plan.nativeCall,
+                "invoke-static/range {v${arguments.first()} .. v$end}, ${reference.definingClass}->${reference.name}(${parameters.joinToString("")})$result")
+        }
+    }
+
+    @Test
+    fun `a sole predecessor that jumps over the inserted marker refuses before edits`() {
+        refusal { _, plan ->
+            val method = plan.connectionInitializer
+            method.addInstructionsWithLabels(plan.nativeCall, "goto :native",
                 ExternalLabel("native", method.getInstruction<Instruction>(plan.nativeCall)))
         }
     }
@@ -315,12 +412,12 @@ class UseRegisteredApiCredentialsFixtureTest {
                     })
             })
     }
-    private fun hosts(build: File) = HOSTS.getOrPut(build.absolutePath) {
+    private fun hosts(build: File) = HOSTS[build.absolutePath]?.get() ?: run {
         val selected = FixtureDex.classesWhere(build,
             { dex -> dex.fieldSection.any { it.isCredential() } },
             { method -> method.instructions().any { it.field()?.isCredential() == true } }).associateBy { it.type }.toMutableMap()
         selected.putAll(FixtureDex.classes(build, setOf(BUILD_VARS, CONNECTIONS, "Lorg/telegram/messenger/PasskeysController;")))
-        selected.values.toList()
+        selected.values.toList().also { HOSTS[build.absolutePath] = SoftReference(it) }
     }
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
     private fun Instruction.field() = (this as? ReferenceInstruction)?.reference as? FieldReference
@@ -335,6 +432,6 @@ class UseRegisteredApiCredentialsFixtureTest {
     private companion object {
         const val ID = "12345678"
         const val HASH = "0123456789abcdef0123456789abcdef"
-        val HOSTS = mutableMapOf<String, List<ClassDef>>()
+        val HOSTS = mutableMapOf<String, SoftReference<List<ClassDef>>>()
     }
 }

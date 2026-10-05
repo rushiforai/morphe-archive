@@ -159,9 +159,9 @@ internal val expectedHooks = mapOf(
 internal fun Method.hookId() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
 /** Match semantics first, then require the complete set from both tested APKs. */
-internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>> {
+internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInboxContract? = findCommunityInbox(classes)): Map<String, List<Method>> {
     val found = expectedHooks.keys.associateWith { mutableListOf<Method>() }
-    findCommunityInbox(classes)?.let { found.getValue(COMMUNITY_INBOX).add(it.render) }
+    community?.let { found.getValue(COMMUNITY_INBOX).add(it.render) }
     found.getValue("ai_sticker_cell").addAll(findAiStickerCells(classes))
     val adContract = classes.any { it.type == AD_ITEM } && classes.any { cls ->
         cls.type == IMMUTABLE_LIST && cls.methods.any {
@@ -236,20 +236,23 @@ internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>
         }
     }
     var searchFieldRender: Method? = null
+    var changedViewer = false
     for (cls in classes) {
         val original = cls.fields.firstOrNull { it.name == "__redex_internal_original_name" }
             ?.initialValue.let { (it as? StringEncodedValue)?.value }
         for (method in cls.methods) {
+            fun add(key: String) { found.getValue(key).add(method) }
+            if ((cls.type == EPHEMERAL_VIEWER && (method.name in EPHEMERAL_DIALOGS || method.name == "onResume")) ||
+                (cls.type == QUICKSNAP_VIEWER && method.name == "onCreateView")) {
+                try {
+                    method.screenshotViewerSites()
+                    add("screenshot_viewers")
+                } catch (_: PatchException) { changedViewer = true }
+            }
             val instructions = method.implementation?.instructions?.toList() ?: continue
             val refs = instructions.mapNotNull { (it as? ReferenceInstruction)?.reference }
             val strings = refs.filterIsInstance<StringReference>().map { it.string }.toSet()
             val gate = method.returnType == "Z" && method.parameterTypes.isEmpty()
-            fun add(key: String) { found.getValue(key).add(method) }
-            if ((cls.type == EPHEMERAL_VIEWER && (method.name in EPHEMERAL_DIALOGS || method.name == "onResume")) ||
-                (cls.type == QUICKSNAP_VIEWER && method.name == "onCreateView")) {
-                method.screenshotViewerSites()
-                add("screenshot_viewers")
-            }
             if (method.returnType == "Z" && (method.parameterTypes.isEmpty() ||
                 (AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes == listOf(cls.type)))) {
                 for ((key, spec) in pluginGates) if (strings.any { it in spec.anchors }) add(key)
@@ -402,6 +405,7 @@ internal fun findControls(classes: Iterable<ClassDef>): Map<String, List<Method>
         chip?.methods?.singleOrNull { it.name == "render" && it.returnType == field.returnType }
             ?.let { found.getValue("ai_search_chip").add(it) }
     }
+    if (changedViewer) found.getValue("screenshot_viewers").clear()
     return found
 }
 
@@ -885,6 +889,12 @@ internal fun Method.validateMenuSettingsBind() {
         !parameterTypes[0].startsWith("L") || impl.registerCount < 3) {
         throw PatchException("Messenger controls: invalid menu settings binder registers or parameters")
     }
+    val holder = impl.registerCount - 2
+    if (code.any { instruction ->
+        instruction.opcode != Opcode.CHECK_CAST && instruction.opcode.setsRegister() &&
+            instruction is OneRegisterInstruction && (instruction.registerA == holder ||
+                instruction.opcode.setsWideRegister() && instruction.registerA + 1 == holder)
+    }) throw PatchException("Messenger controls: menu settings binder overwrites its holder")
 }
 
 internal fun MutableMethod.injectMenuSettingsBind() {

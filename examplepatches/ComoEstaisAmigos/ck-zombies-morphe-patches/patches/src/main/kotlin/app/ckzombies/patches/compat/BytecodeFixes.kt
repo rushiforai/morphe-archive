@@ -1,17 +1,21 @@
 package app.ckzombies.patches.compat
 
+import app.ckzombies.patches.screen.TOUCH_METHODS
+import app.ckzombies.patches.screen.TouchFingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val EXTENSION_CLASS = "Lapp/ckzombies/extension/ExternalStorage;"
+private const val TOUCH_EDGE = "Lapp/ckzombies/extension/TouchEdge;"
 
 /**
  * Instead of returning null when `file.big` is missing, creates its directory and lets the
@@ -99,5 +103,36 @@ internal val explicitServiceIntentPatch = bytecodePatch {
                 """,
             )
         }
+    }
+}
+
+/** Each touch method starts by clamping its x and y, `p1` and `p2`, to 0. */
+internal fun clampTouch(touch: MutableMethod) {
+    val registers = touch.implementation?.registerCount ?: throw PatchException("${touch.name} has no code")
+    // p0 is this, then x, y and the pointer id; x and y must be below v16 for invoke-static.
+    if (registers - 2 > 15) throw PatchException("${touch.name} has $registers registers, too many to reach y")
+    touch.addInstructions(
+        0,
+        """
+            invoke-static {p1}, $TOUCH_EDGE->clamp(I)I
+            move-result p1
+            invoke-static {p2}, $TOUCH_EDGE->clamp(I)I
+            move-result p2
+        """,
+    )
+}
+
+/**
+ * The engine packs each touch position into 14 bits per axis, so a negative one arrives as 16384
+ * minus the distance. A view that does not start at the screen's edge, as beside a camera cutout,
+ * gets negative positions from a finger that runs past it, and the store's item strip took such a
+ * swipe for a jump of thousands of pixels and vanished off screen. The extension's `TouchEdge`
+ * clamps every position the four touch methods pass on.
+ */
+internal val touchEdgePatch = bytecodePatch {
+    extendWith("extensions/extension.mpe")
+
+    execute {
+        for (name in TOUCH_METHODS) clampTouch(TouchFingerprint(name).method)
     }
 }

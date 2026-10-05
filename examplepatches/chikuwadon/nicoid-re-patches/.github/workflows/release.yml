@@ -36,6 +36,24 @@ jobs:
         run: |
           javac -d /tmp/nicoid-count-tests extensions/extension/src/main/java/e/e/a/VideoCountRules.java porting/tests/VideoCountRulesTest.java
           java -cp /tmp/nicoid-count-tests e.e.a.VideoCountRulesTest
+      - name: Check authenticated Cast HLS relay
+        run: |
+          javac -d /tmp/nicoid-cast-tests extensions/extension/src/main/java/e/e/a/CastHls.java extensions/extension/src/main/java/e/e/a/CastRelay.java extensions/extension/src/main/java/e/e/a/CastDiagnostics.java porting/tests/cast-stubs/e/e/a/*.java porting/tests/CastRelayTest.java
+          java -cp /tmp/nicoid-cast-tests e.e.a.CastRelayTest
+      - name: Test performance policies
+        run: |
+          mkdir -p /tmp/nicoid-performance-tests
+          javac -d /tmp/nicoid-performance-tests extensions/extension/src/main/java/e/e/a/PageCache.java extensions/extension/src/main/java/e/e/a/ImageDiskCache.java extensions/extension/src/main/java/e/e/a/NetworkTask.java porting/tests/PerformanceTest.java
+          java -cp /tmp/nicoid-performance-tests e.e.a.PerformanceTest
+      - name: Check paid metadata and badge reuse
+        run: |
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/nicoid-json.jar
+          javac -cp /tmp/nicoid-json.jar -d /tmp/nicoid-paid-tests $(find porting/tests/paid-stubs -name '*.java') extensions/extension/src/main/java/e/e/a/PaidVideos.java extensions/extension/src/main/java/e/e/a/UiStrings.java porting/tests/PaidVideosTest.java
+          java -cp /tmp/nicoid-paid-tests:/tmp/nicoid-json.jar e.e.a.PaidVideosTest porting/tests/paid-list-fixture.json porting/tests/paid-watch-fixture.json
+      - name: Check content filtering and history deletion
+        run: |
+          javac -d /tmp/nicoid-content-tests extensions/extension/src/main/java/e/e/a/ContentFilterRules.java extensions/extension/src/main/java/e/e/a/HistoryRules.java porting/tests/ContentHistoryRulesTest.java
+          java -cp /tmp/nicoid-content-tests e.e.a.ContentHistoryRulesTest
       - name: Check manual login cookie input
         run: |
           javac -d /tmp/nicoid-cookie-tests extensions/extension/src/main/java/e/e/a/ManualCookie.java porting/tests/ManualCookieTest.java

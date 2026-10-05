@@ -434,27 +434,47 @@ if ($SkipDescriptionTestCount) {
 # them: they are a fact about the release, and a push that rewrites no description has no count
 # to compare them with and no reason to have run them.
 if (-not $SkipDescriptionTestCount) {
-    $patchTestRoot = Join-Path $rootPath 'patches/build/test-results/test'
-    $patchTestFiles = @(Get-ChildItem -LiteralPath $patchTestRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
-    if ($patchTestFiles.Count -eq 0) {
-        throw ("No patch test results found under $patchTestRoot. Run :patches:test with " +
-            'HUSHFEED_FIXTURE_DIR set first.')
+    $patchTestFiles = @()
+    # Each partition writes a content receipt beside its XML. A timestamp alone rejects a
+    # byte-identical rewrite even when Gradle correctly reuses the earlier result.
+    foreach ($partition in @('test', 'documentationTest')) {
+        $patchTestRoot = Join-Path $rootPath "patches/build/test-results/$partition"
+        $partitionFiles = @(Get-ChildItem -LiteralPath $patchTestRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
+        if ($partitionFiles.Count -eq 0) {
+            throw ("No patch test results found under $patchTestRoot. Run :patches:test with " +
+                'HUSHFEED_FIXTURE_DIR set first.')
+        }
+        $inputPaths = @('patches/src', 'patches-list.json')
+        if ($partition -eq 'documentationTest') {
+            $inputPaths += @('README.md', 'patches-bundle.json', 'assets/readme-hero.png',
+                'patches-bundle.png', 'concepts/marketing/2026-09-12')
+        } else {
+            $inputPaths += 'extensions'
+        }
+        $currentInputs = @($inputPaths | ForEach-Object { Join-Path $rootPath $_ } |
+            Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object {
+                if (Test-Path -LiteralPath $_ -PathType Container) { Get-ChildItem -LiteralPath $_ -Recurse -File }
+                else { Get-Item -LiteralPath $_ }
+            } | ForEach-Object {
+                $relative = $_.FullName.Substring($rootPath.TrimEnd('\', '/').Length).TrimStart('\', '/').Replace('\', '/')
+                if ($relative.StartsWith('extensions/') -and
+                    ($relative -notmatch '/src/' -or $relative -match '/build/')) { return }
+                '{0} {1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $relative
+            })
+        $inputReceipt = Join-Path $patchTestRoot 'source-inputs.sha256'
+        if (-not (Test-Path -LiteralPath $inputReceipt -PathType Leaf)) {
+            throw "No patch input receipt found for $partition. Run :patches:test."
+        }
+        $testedInputs = @(Get-Content -LiteralPath $inputReceipt -Encoding UTF8 | Where-Object { $_ })
+        if ($testedInputs.Count -ne $currentInputs.Count -or
+            @(Compare-Object -ReferenceObject $currentInputs -DifferenceObject $testedInputs -CaseSensitive).Count -gt 0) {
+            throw "Patch test inputs changed in $partition. Run :patches:test."
+        }
+        $patchTestFiles += $partitionFiles
     }
-    # Stale and partial runs, read the same way as the runtime results above: the trees the patch
-    # tests build from, and every test class the module has.
-    $patchSourceRoots = @('patches/src', 'extensions/tiktok/src/main', 'extensions/shared/library/src/main') |
-        ForEach-Object { Join-Path $rootPath $_ } |
-        Where-Object { Test-Path -LiteralPath $_ }
-    $newestPatchSource = $patchSourceRoots |
-        ForEach-Object { Get-ChildItem -LiteralPath $_ -Recurse -File -ErrorAction SilentlyContinue } |
-        Sort-Object LastWriteTimeUtc -Descending |
-        Select-Object -First 1
-    $newestPatchResult = $patchTestFiles | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
-    if ($null -ne $newestPatchSource -and $newestPatchResult.LastWriteTimeUtc -lt $newestPatchSource.LastWriteTimeUtc) {
-        throw ("Patch test results are older than the sources. The newest result " +
-            "$($newestPatchResult.Name) was written $($newestPatchResult.LastWriteTimeUtc.ToString('u')) but " +
-            "$($newestPatchSource.FullName) changed $($newestPatchSource.LastWriteTimeUtc.ToString('u')). " +
-            'Run :patches:test --rerun.')
+    $duplicates = @($patchTestFiles | Group-Object BaseName | Where-Object Count -gt 1)
+    if ($duplicates.Count -gt 0) {
+        throw ("Duplicate patch test results across partitions: " + (($duplicates | ForEach-Object Name) -join ', '))
     }
     $patchTestSourceRoot = Join-Path $rootPath 'patches/src/test'
     if (Test-Path -LiteralPath $patchTestSourceRoot) {

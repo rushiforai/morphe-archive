@@ -7,20 +7,14 @@ package app.morphe.patches.strava.media.upload
 import app.morphe.patcher.Fingerprint
 
 internal object GetCompressionQualityFingerprint : Fingerprint(
-    custom = { method, _ ->
-        method.name == "getCompressionQuality"
-    },
+    name = "getCompressionQuality",
 )
 
 internal object GetMaxDurationFingerprint : Fingerprint(
-    custom = { method, _ ->
-        method.name == "getMaxDuration"
-    },
+    name = "getMaxDuration",
 )
 
 internal object GetMaxSizeFingerprint : Fingerprint(
-    custom = { method, _ ->
-        method.name == "getMaxSize"
-    },
+    name = "getMaxSize",
 )
 

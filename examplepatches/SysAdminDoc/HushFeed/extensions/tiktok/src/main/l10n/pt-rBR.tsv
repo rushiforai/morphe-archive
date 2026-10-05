@@ -1329,6 +1329,8 @@ Stopping after this file	Parando depois deste arquivo
 Waiting to save %1$s files	Aguardando para salvar %1$s arquivos
 Waiting to save one file	Aguardando para salvar um arquivo
 Save cancelled. Nothing was saved.	Salvamento cancelado. Nada foi salvo.
+The server asked us to wait. Try again later.	O servidor pediu para esperarmos. Tente novamente mais tarde.
+Saved %1$s of %2$s. The server asked us to wait. Try again later.	%1$s de %2$s salvos. O servidor pediu para esperarmos. Tente novamente mais tarde.
 One more save waiting	Mais um salvamento aguardando
 %1$s more saves waiting	Mais %1$s salvamentos aguardando
 Starts after one other save	Começa depois de outro salvamento

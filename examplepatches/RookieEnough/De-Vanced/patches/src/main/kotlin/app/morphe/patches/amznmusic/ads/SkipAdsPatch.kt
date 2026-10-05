@@ -26,8 +26,7 @@ private const val OUTCOME_CLASS = "Lcom/amazon/digitalmusicxp/callbacks/Outcome;
 internal object AmplifyClientGetNextTracksFingerprint : Fingerprint(
     definingClass = AMPLIFY_CLIENT_CLASS,
     name = "getNextTracks",
-    returnType = OUTCOME_CLASS,
-    custom = { method, _ -> method.name == "getNextTracks" },
+    returnType = OUTCOME_CLASS
 )
 
 @Suppress("unused")

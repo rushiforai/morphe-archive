@@ -15,7 +15,24 @@ Stable releases come from `main`. To try preview builds from `dev`, enable **pre
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.0.0](https://github.com/riky-dev/morphe-patches/releases/tag/v2.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v2.2.0](https://github.com/riky-dev/morphe-patches/releases/tag/v2.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+<details open>
+<summary>📦 CapCut&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 9.0.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass effects region restriction](#bypass-effects-region-restriction) | Fixes effects/transitions not loading (Shark WAF block) by spoofing device_platform from "android" to "windows" in effect API requests. |  |
+| [CapCut network tunnel](#capcut-network-tunnel) | Opt-in CapCut-only WireGuard tunnel. Import your own wg-quick .conf (paste or file) in-app; traffic is scoped to CapCut only. Requires Android VPN consent once. Independent of Unlock Premium. |  |
+| [Unlock Premium](#unlock-premium) | Forces CapCut 9.0 VIP gates to true (VipSubscribeManager, SubscribeImpl, UserVipInfo, benefits). Cloud-gated assets may still fail. |  |
+
+</details>
+
 <details open>
 <summary>📦 Electron: battery health info&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -60,21 +77,6 @@ Stable releases come from `main`. To try preview builds from `dev`, enable **pre
 | [Hide export nags](#hide-export-nags) | Hides the post-export review dialog and the inspiring-tips guidance banner. |  |
 | [Hide projects ads](#hide-projects-ads) | Hides AdsLayout banners (Projects list and other in-app ad slots). |  |
 | [Unlock Premium](#unlock-premium) | Unlocks premium features, removes watermark, hides Pro tab, and hides the home upgrade-to-Pro banner. |  |
-
-</details>
-
-<details open>
-<summary>📦 CapCut&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 9.0.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Forces CapCut 9.0 VIP gates to true (VipSubscribeManager, SubscribeImpl, UserVipInfo, benefits). Cloud-gated assets may still fail. |  |
 
 </details>
 

@@ -7,8 +7,7 @@ package app.morphe.patches.microsoft.officelens.misc.onedrive
 import app.morphe.patcher.Fingerprint
 
 internal object HasMigratedToOneDriveFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.endsWith("FREManager;") && method.name == "getMigrationStage"
-    },
+    definingClass = "FREManager;",
+    name = "getMigrationStage",
 )
 

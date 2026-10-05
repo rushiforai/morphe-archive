@@ -36,7 +36,7 @@ public final class ClearSeenVideoHistoryPreference extends Preference
         ROWS.add(new java.lang.ref.WeakReference<>(this));
 
         setOnPreferenceClickListener(preference -> {
-            if (SeenVideoHistory.isClearing()) return true;
+            if (SeenVideoHistory.isClearing() || SeenVideoHistory.isRestoring()) return true;
             if (SeenVideoHistory.canUndo()) {
                 undoClear(context);
                 return true;
@@ -67,7 +67,7 @@ public final class ClearSeenVideoHistoryPreference extends Preference
     }
 
     private void undoClear(Context context) {
-        SeenVideoHistory.undoClear(result -> {
+        SeenVideoHistory.undoClear((result, retained, requested) -> {
             if (result == SeenVideoHistory.UndoResult.SUPERSEDED) {
                 refreshRows();
                 return;
@@ -75,6 +75,12 @@ public final class ClearSeenVideoHistoryPreference extends Preference
             String message;
             if (result == SeenVideoHistory.UndoResult.RESTORED) {
                 message = "Seen videos put back";
+            } else if (result == SeenVideoHistory.UndoResult.PARTIAL) {
+                message = L10n.f(context, "Seen videos put back: %1$s of %2$s",
+                        NumberFormat.getInstance().format(retained),
+                        NumberFormat.getInstance().format(requested));
+            } else if (result == SeenVideoHistory.UndoResult.NONE_RETAINED) {
+                message = "No cleared videos fit the current history limits.";
             } else if (result == SeenVideoHistory.UndoResult.FAILED) {
                 message = FAILED;
             } else if (result == SeenVideoHistory.UndoResult.EMPTY) {
@@ -85,11 +91,18 @@ public final class ClearSeenVideoHistoryPreference extends Preference
             SettingsActionBanner.showNotice(context, L10n.t(context, message));
             refreshRows();
         });
+        refreshRows();
     }
 
     private void applyState(boolean canUndo) {
         boolean clearing = SeenVideoHistory.isClearing();
-        setEnabled(!clearing);
+        boolean restoring = SeenVideoHistory.isRestoring();
+        setEnabled(!clearing && !restoring);
+        if (restoring) {
+            setTitle(UNDO_TITLE);
+            setSummary("Putting seen videos back");
+            return;
+        }
         if (clearing) {
             setTitle(CLEAR_TITLE);
             setSummary("Clearing seen videos");

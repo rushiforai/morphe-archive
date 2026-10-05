@@ -7,7 +7,7 @@ import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
-import app.morphe.extension.tiktok.settings.preference.categories.InterfacePreferenceCategory;
+import app.morphe.extension.tiktok.settings.preference.categories.ExtensionPreferenceCategory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.After;
@@ -74,7 +74,7 @@ public class ScreenCaptureTest {
             var activity = owner.get(); Utils.setContext(activity); Utils.setIsDarkModeEnabled(true);
             SettingsStatus.screenCaptureEnabled = true;
             var screen = activity.getPreferenceManager().createPreferenceScreen(activity);
-            new InterfacePreferenceCategory(activity, screen);
+            new ExtensionPreferenceCategory(activity, screen);
             var toggle = screen.findPreference("allow_screen_capture");
             assertNotNull(toggle);
             assertTrue(toggle.getSummary().toString().contains("Restart"));

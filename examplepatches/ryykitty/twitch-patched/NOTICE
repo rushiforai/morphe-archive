@@ -1,0 +1,87 @@
+Morphe NOTICE
+=============
+
+7c. Project Name Restriction
+----------------------------
+
+This license does not grant permission to use the name "Morphe", or any
+name, logo, or branding that is confusingly similar, as the name or
+primary identifying mark of any modified version, fork, or derivative work.
+
+Any redistribution or derivative work must adopt a distinct name and
+branding that clearly differentiates it from the Morphe project and does
+not cause confusion as to source or origin.
+
+References to Morphe are permitted solely for descriptive compatibility
+purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
+provided that such references:
+
+- Are accurate, factual, and non-misleading;
+- Do not suggest authorship by the Morphe project; and
+- Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Included source and attribution
+===============================
+
+Foundation: MorpheApp/morphe-patches-template, commit
+57538a3b85ccd3c9a24ed3cc06ec722787563879, GNU GPL version 3.
+https://github.com/MorpheApp/morphe-patches-template
+Modified package names, feature implementations, build metadata and local tools.
+The upstream LICENSE and project-name restriction above are retained.
+
+Channel-point provider/getter and bytecode return-hook approaches, and native
+ad presenter/eligibility/no-ad-result approaches, adapt uyu contributors' GNU
+GPL version 3 source, commit a35ca594e26570607fe0c17c67651a44519e9ae2:
+https://github.com/bakwudo/uyu
+Original paths under patches/src/main/kotlin/io/github/bakwudo/uyu/:
+patches/twitch/channelpoints/AutoClaimChannelPointsPatch.kt and Fingerprints.kt;
+patches/util/BytecodeUtils.kt;
+patches/twitch/ads/BlockAdsPatch.kt and Fingerprints.kt.
+The inspected files contain no separate copyright headers. Changes include
+current-version contract validation, typed bridges, lifecycle-owned bounded
+claim state and independent feature selection/settings. Player forcing and
+external proxy implementations are excluded. GPLv3 is retained in LICENSE.
+
+Direct-session HLS design adapts scamorza/TwitchAdBlock vaft.user.js, commit
+a1453021869b43870e30fac4c384d09b60bef435:
+https://github.com/scamorza/TwitchAdBlock
+Copyright (c) 2020-present TwitchAdSolutions Contributors
+Copyright (c) 2026-present TwitchAdBlock Contributors
+MIT license and permission notice: licenses/TwitchAdBlock-MIT.txt.
+Changes: typed Java IVS transport, native token calls, lifecycle cancellation,
+bounded rendition selection and broadcast timeline reconstruction. Browser
+workers, empty segment responses and external stream proxies are excluded.
+
+Hermes opcode names/operand metadata and execution/literal format references:
+Meta Platforms, Inc. and affiliates, MIT license, commit
+b054113c6dfa00cb39cc713121c8ac7be66d7fe7.
+https://github.com/facebook/hermes
+BytecodeList.def, BytecodeFileFormat.h, SerializedLiteralParser.h,
+SerializedLiteralGenerator.h and ShapeTableEntry.h. The opcode schema and
+full MIT license are retained at patches/src/main/resources/hermes/.
+Our bounded Kotlin inspector reads the format; no compiler or decompiler is
+distributed. P1sec/hermes-dec was a local research tool only; no AGPL code
+from it is included. Original Twitch assets and SDK implementations are not
+distributed; compile-only SDK signatures are handwritten declarations.
+
+PurpleTV was studied as a research reference, commit
+4f99372ae3e140f46c6fbb6b2ee6a5b31bd725e6:
+https://github.com/NyanArchive/PurpleTV
+No PurpleTV smali or proxy implementation is included. Its research license
+and Copyright 2022 TwitchMod notice remain in licenses/PurpleTV-APACHE-2.0.txt.
+
+Native chat hook strategy and source-channel field discovery studied and
+adapted from arandomhooman/hoomans-morphe-patches, GPL-3.0, commit
+018277825a611ad61f3a16a70e562291c06f4081:
+https://github.com/arandomhooman/hoomans-morphe-patches
+patches/twitch/emotes/ThirdPartyEmotesPatch.kt and Fingerprints.kt.
+Changes: derived typed bridges replace fixed scratch-register assumptions;
+runtime catalogs, tokenization, rendering and image lifecycle are implemented
+in separate feature modules. The GPL-3.0 license is retained in LICENSE.
+
+Firebase Installations registration correction adapted from the notifications
+patches in arandomhooman/hoomans-morphe-patches (commit above) and bakwudo/uyu,
+commit a35ca594e26570607fe0c17c67651a44519e9ae2, GPL-3.0:
+https://github.com/bakwudo/uyu
+Changes: internal dependency, Firebase endpoint matching, strict header-call
+and register-liveness checks, label-preserving insertion and synthetic tests.

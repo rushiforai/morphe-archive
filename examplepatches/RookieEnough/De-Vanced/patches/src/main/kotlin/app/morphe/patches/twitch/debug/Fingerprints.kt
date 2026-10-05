@@ -7,23 +7,20 @@ package app.morphe.patches.twitch.debug
 import app.morphe.patcher.Fingerprint
 
 internal object IsDebugConfigEnabledMethodFingerprint : Fingerprint(
-    returnType = "Z",
-    custom = { method, classDef ->
-        method.name == "isDebugConfigEnabled" && classDef.type.endsWith("/BuildConfigUtil;")
-    },
+    definingClass = "/BuildConfigUtil;",
+    name = "isDebugConfigEnabled",
+    returnType = "Z"
 )
 
 internal object IsOmVerificationEnabledMethodFingerprint : Fingerprint(
-    returnType = "Z",
-    custom = { method, classDef ->
-        method.name == "isOmVerificationEnabled" && classDef.type.endsWith("/BuildConfigUtil;")
-    },
+    definingClass = "/BuildConfigUtil;",
+    name = "isOmVerificationEnabled",
+    returnType = "Z"
 )
 
 internal object ShouldShowDebugOptionsMethodFingerprint : Fingerprint(
-    returnType = "Z",
-    custom = { method, classDef ->
-        method.name == "shouldShowDebugOptions" && classDef.type.endsWith("/BuildConfigUtil;")
-    },
+    definingClass = "/BuildConfigUtil;",
+    name = "shouldShowDebugOptions",
+    returnType = "Z"
 )
 

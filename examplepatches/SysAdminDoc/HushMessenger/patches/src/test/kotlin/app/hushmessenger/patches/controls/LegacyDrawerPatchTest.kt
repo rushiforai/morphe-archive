@@ -16,6 +16,26 @@ import kotlin.test.assertTrue
 class LegacyDrawerPatchTest {
     @AfterTest fun reset() { activeProfile = BASE_PROFILE }
 
+    @Test fun menuBinderRejectsHolderWritesBeforeAnyMutation() {
+        for (write in listOf("const/4 p1, 0x0", "move-object p1, p0", "const-wide/16 p0, 0x0", "const-wide/16 p1, 0x0")) {
+            val method = fixtureMethod("LX/Binder;->bind(Ljava/lang/Object;I)V", "$write\nreturn-void", registers = 5)
+            val before = lifecycleDex(listOf(fixtureClass(method.definingClass, listOf(method))))
+            assertFailsWith<PatchException>(write) { method.injectMenuSettingsBind() }
+            assertTrue(before.contentEquals(lifecycleDex(listOf(fixtureClass(method.definingClass, listOf(method))))))
+        }
+        val method = fixtureMethod("LX/Binder;->bind(Ljava/lang/Object;I)V", """
+            check-cast p1, Landroid/view/View;
+            const/4 v0, 0x0
+            if-eqz p2, :done
+            invoke-virtual {p1, v0}, Landroid/view/View;->setEnabled(Z)V
+            :done
+            return-void
+        """.trimIndent(), registers = 5)
+        method.injectMenuSettingsBind()
+        val code = method.implementation!!.instructions.toList()
+        assertEquals("$SETTINGS->handleMenuItemBound(Ljava/lang/Object;)V", (code[code.branchTarget(2)] as ReferenceInstruction).reference.toString())
+    }
+
     private fun plan(fixture: LegacyDrawerFixture, profile: ControlProfile): LegacyDrawerPlan {
         val ids = profile.hooks.getValue("menu_settings")
         return prepareLegacyDrawer(fixture.method(ids.single { it.endsWith("()V") }),

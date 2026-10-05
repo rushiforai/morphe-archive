@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Locale;
 
 import app.morphe.extension.shared.L10n;
-import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.Setting;
@@ -41,7 +40,7 @@ import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragmen
 final class SettingsNavigation extends BaseAdapter {
     private static final String STATE = "hushfacebook_navigation";
     private static final String MORE = "more";
-    /** Marks the Pause, Resume or Undo button placed under a status row's text, so a rebind replaces it. */
+    /** Marks the Pause, Resume or Undo button placed under a status row's title, so a rebind replaces it. */
     private static final String STATUS_ACTION = "hushfacebook_status_action";
     private final HushfacebookPreferenceFragment page;
     private final SettingsDialog host;
@@ -407,13 +406,13 @@ final class SettingsNavigation extends BaseAdapter {
         boolean nextPaused = HushfacebookPause.pausesNextStart(screen.getContext());
         boolean paused = HushfacebookPause.isPaused();
         TextView summary = row.findViewById(android.R.id.summary);
-        String build = "\n" + L10n.f("Build %1$s", L10n.isolate(Utils.getPatchesBuildIdentity()));
+        String build = "\n" + HushfacebookPreferenceFragment.overviewBuildDetails();
         if (!paused && !nextPaused && ReleaseCheck.statusLine() == null) {
             summary.setText(L10n.t("Your controls are active.") + build);
         } else if (paused && nextPaused && HushfacebookPause.reason() == HushfacebookPause.Reason.SWITCH
                 && !markerLeft()) {
             // A marker Resume couldn't remove keeps the card's own line, which says what to do.
-            summary.setText(L10n.t("Your choices are saved. Tap Resume, then restart Facebook.") + build);
+            summary.setText(L10n.t("Tap Resume, then restart Facebook.") + build);
         }
         bindAction(row, paused, nextPaused);
     }
@@ -446,19 +445,23 @@ final class SettingsNavigation extends BaseAdapter {
             rebuild();
         });
         // From one and a half times the text size, a button beside the text leaves the name too
-        // little room and it breaks inside the word, so the button goes under the text there.
+        // little room and it breaks inside the word. Keep the action before long recovery advice.
         TextView summary = row.findViewById(android.R.id.summary);
         if (screen.getContext().getResources().getConfiguration().fontScale >= 1.5f
                 && summary != null && summary.getParent() instanceof android.widget.RelativeLayout) {
             android.widget.RelativeLayout.LayoutParams place = new android.widget.RelativeLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            place.addRule(android.widget.RelativeLayout.BELOW, android.R.id.summary);
+            place.addRule(android.widget.RelativeLayout.BELOW, android.R.id.title);
             place.addRule(android.widget.RelativeLayout.ALIGN_PARENT_START);
             ViewGroup column = (ViewGroup) summary.getParent();
             View earlier = column.findViewWithTag(STATUS_ACTION);
             if (earlier != null) column.removeView(earlier);
             action.setTag(STATUS_ACTION);
+            action.setId(View.generateViewId());
             column.addView(action, place);
+            android.widget.RelativeLayout.LayoutParams detail = (android.widget.RelativeLayout.LayoutParams) summary.getLayoutParams();
+            detail.addRule(android.widget.RelativeLayout.BELOW, action.getId());
+            summary.setLayoutParams(detail);
             frame.setVisibility(View.GONE);
             return;
         }

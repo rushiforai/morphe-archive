@@ -53,10 +53,13 @@ public class BooleanSetting extends Setting<Boolean> {
      * accidental usage when {@link #save(Boolean)} was intnded.
      */
     public static void privateSetValue(@NonNull BooleanSetting setting, @NonNull Boolean newValue) {
-        setting.value = Objects.requireNonNull(newValue);
+        synchronized (Setting.class) {
+            if (!setting.value.equals(Objects.requireNonNull(newValue))) setting.savedRevision++;
+            setting.value = newValue;
 
-        if (setting.isSetToDefault()) {
-            setting.removeFromPreferences();
+            if (setting.isSetToDefault()) {
+                setting.removeFromPreferences();
+            }
         }
     }
 

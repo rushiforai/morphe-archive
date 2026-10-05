@@ -31,6 +31,27 @@ public final class DefaultFollowing {
     private DefaultFollowing() {
     }
 
+    /**
+     * The bytecode home-page hook uses Twitch's native Following page when the user selected
+     * Following. Live and Clips continue through the existing tab-selection fallback below,
+     * preserving Kizu's three-way setting while we use the native hook where it maps cleanly.
+     */
+    public static boolean useNativeFollowing() {
+        try {
+            android.content.Context context = io.github.bakwudo.uyu.extension.Utils.getContext();
+            if (context == null) return true;
+            android.content.SharedPreferences preferences =
+                    context.getSharedPreferences(
+                            app.morphe.extension.settings.Setting.PREFERENCES_NAME,
+                            android.content.Context.MODE_PRIVATE
+                    );
+            String value = preferences.getString("default_home_tab", "following");
+            return !"live".equalsIgnoreCase(value) && !"clips".equalsIgnoreCase(value);
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
     public static void onActivityStarted(Activity activity) {
         schedule(activity);
     }

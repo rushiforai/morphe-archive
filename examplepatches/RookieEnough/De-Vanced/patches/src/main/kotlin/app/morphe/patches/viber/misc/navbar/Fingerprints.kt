@@ -7,10 +7,8 @@ package app.morphe.patches.viber.misc.navbar
 import app.morphe.patcher.Fingerprint
 
 internal object ShouldShowTabIdMethodFingerprint : Fingerprint(
-    returnType = "Z",
-    custom = { method, _ ->
-        // Upstream name is stable, but the owning class / signature can shift between versions.
-        method.name == "shouldShowTabId"
-    },
+    // Upstream name is stable, but the owning class / signature can shift between versions.
+    name = "shouldShowTabId",
+    returnType = "Z"
 )
 

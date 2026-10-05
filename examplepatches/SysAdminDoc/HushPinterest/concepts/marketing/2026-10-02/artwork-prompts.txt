@@ -1,0 +1,28 @@
+LOGO
+
+Use case: logo-brand
+Asset type: HushPinterest README logo, square PNG with true alpha.
+Primary request: Adapt the provided HushTelegram family emblem into HushPinterest. HushPinterest is a Morphe patch bundle for Pinterest Android that removes promoted pins. Use the reference only for family identity, geometry, bevels and finish. Replace its blue/cyan palette with rich Pinterest crimson and pink; replace the paper plane with an elegant diagonal push pin.
+Input image 1: HushTelegram emblem, style and geometry reference to adapt.
+Subject: A perfectly circular emblem with a luminous crimson outer rim, dark ruby inner disc, and a strong chunky white beveled capital H. A sculpted bright red/pink push pin crosses the lower middle of the H diagonally, its short silver tip pointing down-left, but both H uprights remain clearly readable. Keep the push pin's shape unmistakable, with a broad head and slender stem, not a map location marker.
+Style: Crisp polished dimensional brand icon, restrained faceted white bevels and vivid red specular edges, matching the Hush reference. Simple bold silhouette that still reads at 36 pixels. Front view, balanced and centered, generous transparent margin.
+Palette: crimson #E60023, ruby #780016, pink #FF647E, warm white #FFF7F8 and small silver highlights. No cyan or blue.
+Text: Only the H monogram. No words, letters P, or numerals.
+Constraints: Do not reproduce Pinterest's script P logo. No extra decorations. No detached glow outside the emblem. Output a square 1254 by 1254 PNG in RGBA with a real alpha channel. Everything outside the emblem must be fully transparent alpha=0. Do not render a checkerboard, white, gray, black, colored or textured background. No watermark.
+
+HERO
+
+Use case: ads-marketing
+Asset type: Evergreen HushPinterest GitHub README hero banner.
+Primary request: Adapt image 1, the HushTelegram README hero, into the HushPinterest family member. Keep its polished glass-card style and clean left-text/right-art layout, but change the palette, title, icon, tagline and platform motif to Pinterest. HushPinterest is a Morphe patch bundle for Pinterest Android that removes promoted pins.
+Input image 1: HushTelegram hero, composition and style reference to adapt.
+Input image 2: Selected HushPinterest emblem, exact brand identity to use. Preserve its circular red rim, white beveled H and diagonal red push pin faithfully. Show it once, beside the title at top-left.
+Scene/backdrop: Near-black burgundy and dark plum with subtle crimson atmosphere. Elegant, premium dimensional artwork with restrained red/pink edge glow. No blue or cyan.
+Composition: A wide 1672 by 941 landscape banner matching the reference aspect ratio. Left 52 percent holds the small emblem and bold title, short crimson-to-pink underline, spaced subtitle, and a large two-line tagline. Use generous safe margins; all text fully inside the image. Right 48 percent shows tall Pinterest-inspired frosted ruby glass image cards in staggered masonry columns, tilted gently with sharp luminous red/pink edges. A thin luminous crimson ribbon curls between them. Some distant cards blur softly. Use abstract geometric landscape and material blocks inside the cards, with short non-text caption bars. Do not draw message avatars or chat bubbles.
+Typography: Very legible, heavy uppercase modern sans serif. Main title white, subtitle soft warm white. First tagline line white, second line vivid coral pink. Keep text free of distortion.
+Text (verbatim, only these four text elements):
+"HUSHPINTEREST"
+"MORPHE PATCHES FOR PINTEREST"
+"KEEP THE PINS."
+"LOSE THE ADS."
+Constraints: Use the exact provided emblem once. No real pins, accounts or version number. No usernames, readable card text, app UI screenshot, device mockups, extra claims, extra slogans or watermark. No Pinterest script P mark. Cards and ribbon stay behind the typography and never cross into the left text block. Preserve the family visual identity while replacing every Telegram-specific object and every blue color.

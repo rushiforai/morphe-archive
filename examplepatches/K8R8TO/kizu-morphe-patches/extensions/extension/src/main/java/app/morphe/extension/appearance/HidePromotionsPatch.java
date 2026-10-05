@@ -37,6 +37,11 @@ public final class HidePromotionsPatch {
                     view -> Settings.HIDE_SUBSCRIPTION_PROMOTIONS.get(), false),
             new Target("turbo_upsell_container",
                     view -> Settings.HIDE_SUBSCRIPTION_PROMOTIONS.get(), false),
+            // Twitch 31.3.1's dedicated Stories shelf contains the RecyclerView
+            // resource "stories_shelf". This target is resolved only inside the
+            // BaseViewDelegate root, so it cannot match Home/navigation containers.
+            new Target("stories_shelf",
+                    view -> Settings.HIDE_STORIES.get(), true),
     };
 
     private HidePromotionsPatch() {}

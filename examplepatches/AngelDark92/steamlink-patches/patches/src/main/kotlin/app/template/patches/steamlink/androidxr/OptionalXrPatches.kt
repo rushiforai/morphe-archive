@@ -1,5 +1,6 @@
 package app.template.patches.steamlink.androidxr
 
+import app.template.patches.shared.PatchCategories
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
@@ -38,6 +39,7 @@ val unrestrictedBatteryUsagePatch = bytecodePatch(
     description = "Opens Android's per-app Battery usage page at startup so Unrestricted can be selected for XR streaming.",
     default = false,
 ) {
+    category(PatchCategories.STARTUP_AND_PERMISSIONS)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
     // Restore the legacy automatic foundation while its native-build guards make it a no-op.
     dependsOn(
@@ -74,6 +76,7 @@ val appearOnTopPatch = bytecodePatch(
     description = "Legacy overlay-permission fallback retained for older Steam Link builds. Adds SYSTEM_ALERT_WINDOW and the compositor signal window.",
     default = false,
 ) {
+    category(PatchCategories.STARTUP_AND_PERMISSIONS)
     // Older exact builds retain this selectable TYPE_APPLICATION_OVERLAY fallback, but it is
     // no longer recommended by default.
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST.toTypedArray())
@@ -308,6 +311,7 @@ val xrGalaxyXrHighResolutionPatch = resourcePatch(
     description = "Permission-free resolution fix for exact builds 5001712, 5001812, 5001968, 5002244, and 5002363. Preserves each build's native projection layout (2 layers on the supported 2.0.20 and 2.0.21 builds; 3 layers on supported 2.0.22 and 2.0.23 builds) and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction.",
     default = false,
 ) {
+    category(PatchCategories.IMAGE_QUALITY)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.toTypedArray())
     dependsOn(
         androidSurfaceTriggerResourcesPatch,

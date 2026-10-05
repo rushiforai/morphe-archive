@@ -91,6 +91,9 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_POPULAR_APPS, "Hide popular apps");
         ROW_TITLES.put(PatchFamily.DISABLE_CHAT_SWIPE, "No swipe actions on chats");
         ROW_TITLES.put(PatchFamily.DISABLE_CHANNEL_PULL, "Stop pull to next channel");
+        ROW_TITLES.put(PatchFamily.NORMAL_PASTE, "Use normal paste");
+        ROW_TITLES.put(PatchFamily.SHOW_LOCAL_IDS, "Show user and chat IDs");
+        ROW_TITLES.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, "Disable double-tap reactions");
         ROW_TITLES.put(PatchFamily.QUIET_CONTACTS_NAG, "Quiet contacts prompts");
         ROW_TITLES.put(PatchFamily.HOLIDAY_LOOK, "New Year look all year");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop usage reports");
@@ -105,7 +108,7 @@ public class HushTelegramPreferenceFragmentTest {
 
     /** The sections every build has, in the order they're drawn. */
     private static final List<String> EVERY_BUILD = Arrays.asList(
-            "Links", "Updates", "Pause, backup and diagnostics", "About");
+            "Links", "Updates", "Pause", "Settings backup", "Diagnostics", "About");
 
     @After
     public void restore() {
@@ -155,6 +158,7 @@ public class HushTelegramPreferenceFragmentTest {
             }
             assertEquals("a switch Pause turns off is missing from the screen", switchKeys, shown);
             assertNotNull("nothing on the screen says what Pause can't reach", stays);
+            assertEquals("Pause", stays.getParent().getTitle());
             assertEquals(PatchFamily.staysWhilePausedSummary(EnumSet.allOf(PatchFamily.class)),
                     String.valueOf(stays.getSummary()));
 
@@ -211,6 +215,8 @@ public class HushTelegramPreferenceFragmentTest {
                         || build.contains(PatchFamily.HIDE_PROMOTIONAL_BANNERS) || build.contains(PatchFamily.HIDE_SPONSORED_PROXY)
                         || build.contains(PatchFamily.HIDE_POPULAR_APPS) || build.contains(PatchFamily.DISABLE_CHAT_SWIPE)
                         || build.contains(PatchFamily.DISABLE_CHANNEL_PULL)
+                        || build.contains(PatchFamily.NORMAL_PASTE) || build.contains(PatchFamily.SHOW_LOCAL_IDS)
+                        || build.contains(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS)
                         || build.contains(PatchFamily.QUIET_CONTACTS_NAG) || build.contains(PatchFamily.HOLIDAY_LOOK)) expected.add("Chats");
                 if (build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.DISABLE_CALL_DEBUG)
                         || build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS) || build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP)) expected.add("Privacy");
@@ -313,7 +319,7 @@ public class HushTelegramPreferenceFragmentTest {
             assertTrue(Settings.QUIET_CONTACTS_NAG.key,
                     ((SwitchPreference) page.findPreference(Settings.QUIET_CONTACTS_NAG.key)).isChecked());
             assertEquals("New Year look all year", String.valueOf(page.findPreference(Settings.HOLIDAY_LOOK.key).getTitle()));
-            assertEquals("Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat "
+            assertEquals("Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar and, with animated chat "
                             + "backgrounds on, over chat backgrounds. Off by default in settings.",
                     String.valueOf(page.findPreference(Settings.HOLIDAY_LOOK.key).getSummary()));
             // Telegram keeps its own holiday dates until someone turns the switch on.

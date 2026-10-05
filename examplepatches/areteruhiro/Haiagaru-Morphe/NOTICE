@@ -56,3 +56,8 @@ MonaLite is a reduced MonaFont-derived font for displaying Japanese ASCII art.
 Its embedded metadata credits the MonaFont contributors and describes the font
 as public domain. The MonaFont project permits modification and redistribution:
 https://monafont.sourceforge.net/index.html
+
+The optional ChMate 191 automatic image-NG fix bundles ABI-specific
+libtensorflowlite_jni.so files from ChMate 0.8.10.226 dev. TensorFlow Lite is
+copyright Google LLC and is distributed under the Apache License 2.0:
+https://www.apache.org/licenses/LICENSE-2.0

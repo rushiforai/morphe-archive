@@ -1,5 +1,6 @@
 package app.template.patches.steamlink.binary
 
+import app.template.patches.shared.PatchCategories
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.stringOption
@@ -23,6 +24,7 @@ private fun blueNoisePatch(layer: BlueNoiseLayer) = rawResourcePatch(
         " layer. Accepts 8-bit or 10-bit input and always uses 8-bit sRGB output. Select independently or together with the other layer's blue-noise patch. Separate from OLED/VD-like processing; headset validation pending. Unknown host shaders pass through unchanged.",
     default = false,
 ) {
+    category(PatchCategories.EXPERIMENTS)
     compatibleWith(*BLUE_NOISE_LAYOUTS.map { layout ->
         Compatibility(
             name = EXPERIMENTAL_COMPATIBILITY_NAME,

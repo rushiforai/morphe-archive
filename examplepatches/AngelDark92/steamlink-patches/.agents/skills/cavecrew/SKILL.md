@@ -63,6 +63,17 @@ Or `No issues.` Findings sorted file → line ascending.
 
 ## Chaining patterns
 
+For Steam Link patch/test changes in this repository, include fresh-checkout input availability in the investigator/reviewer task. Use the [Morphe skill](../morphe-patches/SKILL.md) CI guidance: local ignored decoded APKs are not GitHub inputs, and absent-input audits must be distinguished from mandatory portable tests.
+
+For build/CI failures, give the investigator the exact commit/run/job and first
+failed task. Ask the reviewer to compare imported test libraries with Gradle test
+dependency declarations, and to check that the full Gradle test/Android/catalog
+gate precedes release preparation. A manual classpath or desktop fat JAR may
+contain undeclared libraries: compressed reports must label fallback checks as
+diagnostic, not Gradle/CI proof. Include actual commands, compiler/runtime versions
+and executed/skipped counts; only the corrected SHA's workflow can establish its
+CI result. Main thread retains responsibility for this final verification.
+
 **Locate → fix → verify** (most common):
 1. `cavecrew-investigator` returns site list.
 2. Main thread picks 1-2 sites, hands paths to `cavecrew-builder`.

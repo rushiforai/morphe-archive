@@ -282,6 +282,12 @@ public final class SettingsDialog extends DialogFragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        SettingsEntry.onDialogShown(getActivity());
+    }
+
+    @Override
     public void onCancel(android.content.DialogInterface dialog) {
         // Back key or a tap outside: the person closed it.
         SettingsEntry.onClosedByUser();

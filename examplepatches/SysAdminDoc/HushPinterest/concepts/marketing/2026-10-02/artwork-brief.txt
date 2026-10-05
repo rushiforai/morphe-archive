@@ -1,0 +1,23 @@
+HushPinterest README artwork
+
+Selected family identity
+The circular HushTelegram emblem is the family reference. HushPinterest keeps
+its white beveled H and polished circular rim, changes the colors to crimson
+and ruby, and uses a diagonal red push pin. The rim, letter and pin remain
+legible on a light or dark surface. The logo is 1254 by 1254, RGBA, with real
+transparent pixels outside the emblem.
+
+Hero
+The selected 1672 by 941 RGB banner follows HushTelegram's left-text and
+right-art composition. It uses a dark burgundy backdrop, the selected emblem,
+and tall glass image cards in staggered columns with a crimson light ribbon.
+The copy reads HUSHPINTEREST, MORPHE PATCHES FOR PINTEREST, and
+"Keep the pins. Lose the ads."
+No real pins, accounts or version number.
+
+Files
+selected/logo-master.png and selected/hero-master.png are the original selected
+masters. The assets/ copies are identical. artwork-prompts.txt contains the
+complete briefs. initial-draft/ preserves the earlier code-drawn logo and hero,
+their original brief, the source script and the README before this update.
+Running that archived script only changes files inside initial-draft/.

@@ -172,7 +172,6 @@ Answer TikTok's reads of your contacts with an empty list. Find Friends and Peop
 "Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.","Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone."
 App,App
 App AB,App AB
-App checks,App checks
 Appearance,Appearance
 Applies to both video and photo downloads.,Applies to both video and photo downloads.
 Apply,Apply
@@ -197,7 +196,6 @@ Automatic clear display,Automatic clear display
 Avatar and follow button,Avatar and follow button
 Back,Back
 Back up settings,Back up settings
-Background play,Background play
 Backup and restore,Backup and restore
 Black,Black
 Block clipboard reads,Block clipboard reads
@@ -227,6 +225,7 @@ Bottom tabs to keep,Bottom tabs to keep
 Browse,Browse
 Build details,Build details
 Build details copied to the clipboard,Build details copied to the clipboard
+Buttons on videos,Buttons on videos
 Calm feed,Calm feed
 Calm feed couldn't be applied. Nothing was changed.,Calm feed couldn't be applied. Nothing was changed.
 Calm feed couldn't start. Try again in a moment.,Calm feed couldn't start. Try again in a moment.
@@ -717,7 +716,7 @@ Last recording: %1$d gates.,Last recording: %1$d gates.
 Last recording: 1 gate.,Last recording: 1 gate.
 Later,Later
 Layout,Layout
-"Layout, player, search and system","Layout, player, search and system"
+"Layout, search, profile and system","Layout, search, profile and system"
 Leave maximum empty to keep it unlimited.,Leave maximum empty to keep it unlimited.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.,Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.
 Leave when TikTok says time is up,Leave when TikTok says time is up
@@ -787,6 +786,7 @@ No,No
 No app on this phone opens that file,No app on this phone opens that file
 No apps match this search,No apps match this search
 "No chat with @%1$s turned up on this account. Open your chat with them once, then try again.","No chat with @%1$s turned up on this account. Open your chat with them once, then try again."
+No cleared videos fit the current history limits.,No cleared videos fit the current history limits.
 No creator to block on this video,No creator to block on this video
 No creator to hide on this video,No creator to hide on this video
 "No creators are hidden yet. Hide one from a video, or add a handle above.","No creators are hidden yet. Hide one from a video, or add a handle above."
@@ -939,6 +939,7 @@ Pulling down at the top of For You no longer reloads it.,Pulling down at the top
 Put %1$s in %2$s first.,Put %1$s in %2$s first.
 Put back the settings saved before the last restore or reset.,Put back the settings saved before the last restore or reset.
 Put every setting back to its default straight away. Your current settings are kept for Undo.,Put every setting back to its default straight away. Your current settings are kept for Undo.
+Putting seen videos back,Putting seen videos back
 Putting the saved videos back,Putting the saved videos back
 Putting the settings back to their defaults,Putting the settings back to their defaults
 Quality,Quality
@@ -1035,6 +1036,7 @@ Saved %1$s of %2$s photos before the story failed,Saved %1$s of %2$s photos befo
 "Saved %1$s of %2$s, the rest cancelled","Saved %1$s of %2$s, the rest cancelled"
 "Saved %1$s of %2$s, the rest need more free space","Saved %1$s of %2$s, the rest need more free space"
 "Saved %1$s of %2$s, the rest ran out of time","Saved %1$s of %2$s, the rest ran out of time"
+Saved %1$s of %2$s. The server asked us to wait. Try again later.,Saved %1$s of %2$s. The server asked us to wait. Try again later.
 Saved %1$s original photos,Saved %1$s original photos
 Saved one original photo,Saved one original photo
 Saved videos forgotten. The files are still there.,Saved videos forgotten. The files are still there.
@@ -1055,7 +1057,6 @@ Saving the story,Saving the story
 Saving video,Saving video
 Saving video to %1$s,Saving video to %1$s
 Saving video: %1$s,Saving video: %1$s
-Screen,Screen
 Screen layout recorded. Export the diagnostic report to send it.,Screen layout recorded. Export the diagnostic report to send it.
 Screen time,Screen time
 Search,Search
@@ -1078,6 +1079,7 @@ Seen this session,Seen this session
 Seen videos,Seen videos
 Seen videos cleared. You can undo until TikTok closes.,Seen videos cleared. You can undo until TikTok closes.
 Seen videos put back,Seen videos put back
+Seen videos put back: %1$s of %2$s,Seen videos put back: %1$s of %2$s
 Select,Select
 Select at least one field.,Select at least one field.
 Select every tab,Select every tab
@@ -1294,6 +1296,7 @@ The report couldn't be saved. Try again.,The report couldn't be saved. Try again
 The row of story avatars across the top of the Inbox goes. Stories still play from the feed and from profiles.,The row of story avatars across the top of the Inbox goes. Stories still play from the feed and from profiles.
 The saved-video choice couldn't open. Try again.,The saved-video choice couldn't open. Try again.
 The saved-video choice is still open,The saved-video choice is still open
+The server asked us to wait. Try again later.,The server asked us to wait. Try again later.
 The setting couldn't finish updating. Its saved value is shown.,The setting couldn't finish updating. Its saved value is shown.
 The settings backup was rejected. Nothing was altered.,The settings backup was rejected. Nothing was altered.
 The smallest value is above the largest,The smallest value is above the largest

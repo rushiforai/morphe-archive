@@ -31,14 +31,11 @@ internal object Cb11ConstructorFingerprint : Fingerprint(
         "Ljava/lang/String;",
         "L",
     ),
-    custom = { _, classDef ->
-        classDef.endsWith("CB11Details;")
-    },
+    definingClass = "CB11Details;",
 )
 
 internal object GetBottomBarFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "getBottomBar" && classDef.endsWith("HomeMenu;")
-    },
+    definingClass = "HomeMenu;",
+    name = "getBottomBar",
 )
 

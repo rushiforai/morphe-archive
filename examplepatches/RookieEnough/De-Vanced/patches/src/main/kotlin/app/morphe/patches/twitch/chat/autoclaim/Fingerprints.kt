@@ -7,10 +7,8 @@ package app.morphe.patches.twitch.chat.autoclaim
 import app.morphe.patcher.Fingerprint
 
 internal object CommunityPointsButtonViewDelegateMethodFingerprint : Fingerprint(
-    returnType = "V",
-    custom = { method, classDef ->
-        method.name == "showClaimAvailable" &&
-            classDef.type.endsWith("CommunityPointsButtonViewDelegate;")
-    },
+    definingClass = "CommunityPointsButtonViewDelegate;",
+    name = "showClaimAvailable",
+    returnType = "V"
 )
 

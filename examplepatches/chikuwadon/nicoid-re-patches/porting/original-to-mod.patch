@@ -3815,6 +3815,15 @@
  
      invoke-virtual {v6, v7}, Landroid/widget/TextView;->setTextColor(I)V
  
+@@ -1926,6 +1926,9 @@
+     :goto_8
+     invoke-virtual {v5, v11}, Landroid/widget/LinearLayout;->setVisibility(I)V
+
++    move-object/from16 v1, p1
++    invoke-static {v0, v1}, Le/e/a/VideoInfoUi;->bindStatistics(Ljava/lang/Object;Landroid/view/View;)V
++
+     return-void
+ .end method
 --- a/smali/com/sauzask/nicoid/NicoidVideoListActivity.smali
 +++ b/smali/com/sauzask/nicoid/NicoidVideoListActivity.smali
 @@ -90,6 +90,8 @@
@@ -8049,3 +8058,14 @@
  
  
  # direct methods
+--- a/smali/e/e/a/d0.smali
++++ b/smali/e/e/a/d0.smali
+@@ -7753,6 +7753,8 @@
+
+     invoke-direct {v10, v11}, Lorg/json/JSONObject;-><init>(Ljava/lang/String;)V
+
++    invoke-static {v10, v9}, Le/e/a/VideoInfoUi;->captureStatistics(Lorg/json/JSONObject;Landroid/os/Bundle;)V
++
+     invoke-virtual {v10, v5}, Lorg/json/JSONObject;->has(Ljava/lang/String;)Z
+
+     move-result v11

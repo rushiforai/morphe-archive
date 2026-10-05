@@ -31,8 +31,9 @@ public final class OldMenu {
     private static final String BEHAVIOR = "com.google.android.material.bottomsheet.BottomSheetBehavior";
     private static final int FLAG_DIM_BEHIND = 2;
 
-    // Read by patched Compose code: true while the extensions page is open.
     public static boolean extensionsActive;
+
+    private static boolean bottomToolbar;
 
     private static WeakReference<Dialog> dialogRef = new WeakReference<>(null);
     private static WeakReference<View> sheetRef = new WeakReference<>(null);
@@ -67,11 +68,11 @@ public final class OldMenu {
         }
     };
 
-    // MenuDialogFragment / MenuFragment onCreateDialog, just before it returns the dialog.
     public static void onCreateDialog(Dialog dialog) {
         try {
             ModSettings.latch(dialog.getContext());
             extensionsActive = false;
+            bottomToolbar = isBottom(dialog.getContext());
             if (!ModSettings.oldMenu()) return;
             Window window = dialog.getWindow();
             if (window == null) return;
@@ -83,18 +84,15 @@ public final class OldMenu {
         }
     }
 
-    // Start of the dialog's OnShowListener.onShow.
     public static void onShowStart(DialogInterface dialog) {
         if (dialog instanceof Dialog) dialogRef = new WeakReference<>((Dialog) dialog);
     }
 
-    // End of the dialog's OnShowListener.onShow, after stock setup ran.
     public static void afterShow() {
         if (!ModSettings.oldMenu()) return;
         apply(dialogRef.get());
     }
 
-    // MenuDialogFragment.onViewCreated: apply the look before the first frame.
     public static void onViewCreated(Dialog dialog) {
         if (!ModSettings.oldMenu() || dialog == null) return;
         dialogRef = new WeakReference<>(dialog);
@@ -103,27 +101,59 @@ public final class OldMenu {
         if (sheet != null) playEnter(sheet);
     }
 
-    // calculateMenuSheetWidth(): fixed width in dp.
     public static int menuWidth(Resources resources, int dp) {
         return (int) (resources.getDisplayMetrics().density * dp);
     }
 
-    // MainMenu: extensions page is open when expanded and opened from the browser.
     public static void setExtensionsActive(Object accessPoint, boolean expanded) {
         boolean browser = accessPoint instanceof Enum && "Browser".equals(((Enum<?>) accessPoint).name());
         extensionsActive = expanded && browser;
         applyWidth(extensionsActive ? 314 : 240);
     }
 
+    public static float navPadding() {
+        return bottomToolbar ? 9f : 12f;
+    }
+
     public static float bottomPadding(float stock, boolean expanded) {
-        return (stock == 16f || expanded) ? 0f : 48f;
+        if (stock == 16f || expanded) return bottomToolbar ? 0f : 6f;
+        return 48f;
+    }
+
+    public static boolean showBottomDivider() {
+        return bottomToolbar && ModSettings.oldMenu();
+    }
+
+    private static int modIcon;
+
+    public static int modIcon(Context context) {
+        if (modIcon != 0) return modIcon;
+        Resources res = context.getResources();
+        String pkg = context.getPackageName();
+        String[] names = {
+            "mozac_ic_customize_24",
+            "mozac_ic_theme_24",
+            "mozac_ic_experiment_24",
+            "mozac_ic_wrench_24",
+            "mozac_ic_developer_tools_24",
+            "mozac_ic_sparkle_24",
+            "mozac_ic_lightbulb_24",
+            "mozac_ic_settings_24",
+        };
+        for (String name : names) {
+            int id = res.getIdentifier(name, "drawable", pkg);
+            if (id != 0) {
+                modIcon = id;
+                break;
+            }
+        }
+        return modIcon;
     }
 
     public static Object trailingIcon(Object stock) {
         return ModSettings.oldMenu() ? null : stock;
     }
 
-    // Account row subtitle is hidden in the old menu.
     public static String accountSubtitle(String stock) {
         return ModSettings.oldMenu() ? null : stock;
     }

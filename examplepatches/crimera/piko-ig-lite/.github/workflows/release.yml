@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+
+# A release on main back-merges into dev, so never run two releases at once.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+      # semantic-release searches and closes its own failure issues, and labels released ones.
+      issues: write
+      pull-requests: write
+    env:
+      # The shared libraries and the Morphe plugin come from GitHub Packages, which needs a token
+      # even for public packages, so no Gradle step may go without it.
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: crimera
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Builds, verifies and tests in prepareCmd, then publishes to GitHub Packages and the release.
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        id: release
+
+      # GitHub offers attestations only on public repositories (or organization plans), so this step
+      # skips itself while the repository is private.
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true' && github.event.repository.private == false
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Piko IG Lite ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp

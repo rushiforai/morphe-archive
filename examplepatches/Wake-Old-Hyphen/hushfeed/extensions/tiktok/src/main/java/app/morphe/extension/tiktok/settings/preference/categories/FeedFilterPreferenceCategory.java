@@ -31,8 +31,8 @@ import app.morphe.extension.tiktok.feedfilter.CreatorExceptions;
 /**
  * What reaches the feed, in the order a reader asks: which kinds of post, how much of them,
  * from whom and with which sounds, which words and countries, what was already seen, and the
- * one advanced switch. The player's four buttons live here too, since blocking a creator or a
- * sound from a video is the same choice as listing them.
+ * one advanced switch. The buttons that block or hide from a video are on Feed screen with every
+ * other control drawn on the video, so one page answers what shows up there.
  */
 @SuppressWarnings("deprecation")
 public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory {
@@ -44,9 +44,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
         return SettingsStatus.feedFilterEnabled
-                || SettingsStatus.seenVideoFilterEnabled
-                || SettingsStatus.blockAuthorEnabled
-                || SettingsStatus.notInterestedEnabled;
+                || SettingsStatus.seenVideoFilterEnabled;
     }
 
     @Override
@@ -63,7 +61,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         if (SettingsStatus.feedFilterEnabled) addAds(context);
         if (SettingsStatus.feedFilterEnabled) addKindsOfPost(context);
         if (SettingsStatus.feedFilterEnabled) addLimits(context);
-        addCreatorsAndSounds(context);
+        if (SettingsStatus.feedFilterEnabled) addCreatorsAndSounds(context);
         if (SettingsStatus.feedFilterEnabled) addWordsAndCountries(context);
         if (SettingsStatus.feedFilterEnabled && SettingsStatus.liveFeedFilterEnabled) addLiveFeed(context);
         if (SettingsStatus.seenVideoFilterEnabled) addSeenVideoRules(context);
@@ -133,6 +131,10 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Hide videos posted as part of a playlist.",
                 Settings.HIDE_PLAYLIST_VIDEOS
         ));
+        // A kind of post, not an ad: its summary says it goes even when the badge isn't paid.
+        addPreference(new TogglePreference(context, "Filter location-tagged videos",
+                "Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.",
+                Settings.FILTER_LOCATION_VIDEOS));
     }
 
     private void addAds(Context context) {
@@ -151,9 +153,6 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         ));
         addPreference(new TogglePreference(context, "Hide promotional music",
                 "Hide videos marked as using promotional music.", Settings.HIDE_PROMOTIONAL_MUSIC));
-        addPreference(new TogglePreference(context, "Filter location-tagged videos",
-                "Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.",
-                Settings.FILTER_LOCATION_VIDEOS));
     }
 
     private void addLimits(Context context) {
@@ -192,9 +191,6 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     }
 
     private void addCreatorsAndSounds(Context context) {
-        boolean any = SettingsStatus.feedFilterEnabled || SettingsStatus.blockAuthorEnabled
-                || SettingsStatus.notInterestedEnabled;
-        if (!any) return;
         addPreference(new SectionHeadingPreference(context, "Creators and sounds"));
         if (SettingsStatus.feedFilterEnabled) {
             addPreference(new InputTextPreference(context, "Blocked creators", "Comma separated account handles or user ids. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.", Settings.BLOCKED_CREATORS)
@@ -211,35 +207,6 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                     .withCheck(CreatorExceptions::entryProblem)
                     .withNote(CreatorExceptions::conflictNote)
                     .withNameKeyboard());
-        }
-        // The player's own buttons. They were the middle of the App page's Player card,
-        // three pages away from the lists they add to.
-        if (SettingsStatus.blockAuthorEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Show the block button on videos",
-                    "Block the creator in one tap. Once TikTok confirms, skip to the next video. "
-                            + "A small Unblock button appears at the top left for two seconds. "
-                            + "You can also unblock later in TikTok's Privacy > Blocked accounts.",
-                    Settings.BLOCK_AUTHOR_BUTTON
-            ));
-            addPreference(new TogglePreference(
-                    context,
-                    "Show the hide button on videos",
-                    "Add a button that hides the current creator on this phone without blocking them.",
-                    Settings.LOCAL_HIDE_BUTTON
-            ));
-            addPreference(new TogglePreference(
-                    context,
-                    "Show the block sound button",
-                    "Add a separate button that skips videos using the current sound.",
-                    Settings.BLOCK_SOUND_BUTTON
-            ));
-        }
-        if (SettingsStatus.notInterestedEnabled) {
-            addPreference(new TogglePreference(context, "Show the Not interested button",
-                    "Add a button beside the block control to send feedback about the current video.",
-                    Settings.NOT_INTERESTED_BUTTON));
         }
         if (SettingsStatus.feedFilterEnabled) {
             addPreference(new TogglePreference(

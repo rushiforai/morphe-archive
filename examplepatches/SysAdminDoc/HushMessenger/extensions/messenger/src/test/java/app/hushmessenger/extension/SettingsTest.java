@@ -96,6 +96,32 @@ public class SettingsTest {
         }
     }
 
+    @Test @Config(sdk = {28, 36}) public void unsentIdsAreBoundedWithoutTakingTheSettingsMonitor() throws Exception {
+        Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+        Settings.keepUnsent();
+        var legacy = new java.util.HashSet<String>();
+        for (int i = 0; i < 5000; i++) legacy.add("old-" + i);
+        Settings.preferences.edit().putStringSet("kept_unsent_ids", legacy).commit();
+        var finished = new java.util.concurrent.CountDownLatch(1);
+        Thread writer = new Thread(() -> {
+            try { Settings.recordUnsent("old-0"); } finally { finished.countDown(); }
+        });
+        try {
+            synchronized (Settings.class) {
+                writer.start();
+                assertTrue("Recording must not acquire the UI/settings monitor", finished.await(3, java.util.concurrent.TimeUnit.SECONDS));
+            }
+        } finally { writer.join(5000); }
+        assertFalse(writer.isAlive());
+        assertEquals(4096, Settings.preferences.getStringSet("kept_unsent_ids", java.util.Set.of()).size());
+        assertTrue(Settings.isKeptUnsent("old-0"));
+        for (int i = 0; i < 10; i++) {
+            Settings.recordUnsent("new-" + i);
+            assertEquals(4096, Settings.preferences.getStringSet("kept_unsent_ids", java.util.Set.of()).size());
+            assertTrue(Settings.isKeptUnsent("new-" + i));
+        }
+    }
+
     @Test @Config(sdk = {28, 36}) public void retainedUnsendChoiceSurvivesRestartWithoutClaimingChatCoverage() {
         Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
         Settings.recordUnsent("retained-message");

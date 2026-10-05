@@ -152,9 +152,37 @@ public final class WacchoiLongPressMenu {
         // In current ChMate, the context-menu target is kept separately from
         // the loaded response list. Prefer it so recycled rows cannot leak a
         // neighboring post's Wacchoi into this action.
-        Object target = fieldValue(parent, "o");
-        Object selectedResponse = fieldValue(target, "c");
-        if (selectedResponse != null) visit(selectedResponse, 0, seen, found, true);
+        Object selectedResponse = null;
+        if (parent != null && parent.getClass().getName().endsWith("ResListFragment")) {
+            // 226 keeps the long-pressed response in i.b and its board in E.
+            Object legacySelection = fieldValue(parent, "i");
+            selectedResponse = fieldValue(legacySelection, "b");
+            Object legacyBoard = fieldValue(parent, "E");
+            if (legacyBoard != null && legacyBoard.getClass().getName().endsWith("BBSUrlInfo")) {
+                readBoard(legacyBoard, found);
+            }
+            // 241 keeps the selected response in k.d. The o field is the
+            // RecyclerView adapter, not a response; traversing it could pick
+            // a token from a different, already-loaded row.
+            if (selectedResponse == null) {
+                selectedResponse = fieldValue(fieldValue(parent, "k"), "d");
+                Object model = invokeNoArg(fieldValue(parent, "s"), "getValue");
+                Object boardFlow = fieldValue(model, "ab");
+                Object board = invokeNoArg(boardFlow, "b");
+                if (board != null && board.getClass().getName().endsWith("BBSUrlInfo")) {
+                    readBoard(board, found);
+                }
+            }
+        }
+        // Other versions can still expose the target through the older holder.
+        if (selectedResponse == null) {
+            Object target = fieldValue(parent, "o");
+            selectedResponse = fieldValue(target, "c");
+        }
+        if (selectedResponse != null) {
+            readTokenFromFields(selectedResponse, found);
+            if (found.query == null) visit(selectedResponse, 0, seen, found, true);
+        }
         // Some releases keep the selected response in the dialog's arguments
         // or view-model rather than the list fragment. Search that first so a
         // neighboring loaded row cannot supply the query accidentally.
@@ -375,10 +403,20 @@ public final class WacchoiLongPressMenu {
     private static void readTokenFromFields(Object target, SearchContext found) {
         for (Class<?> type = target.getClass(); type != null; type = type.getSuperclass()) {
             for (Field field : type.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers()) || field.getType() != String.class) continue;
+                if (Modifier.isStatic(field.getModifiers())
+                        || (field.getType() != String.class
+                        && field.getType() != CharSequence.class
+                        && field.getType() != CharSequence[].class)) continue;
                 try {
                     field.setAccessible(true);
-                    String text = (String) field.get(target);
+                    Object raw = field.get(target);
+                    if (raw instanceof CharSequence[]) {
+                        for (CharSequence part : (CharSequence[]) raw) {
+                            if (part != null && (found.query = queryInText(part.toString())) != null) return;
+                        }
+                        continue;
+                    }
+                    String text = raw == null ? null : raw.toString();
                     if (text == null) continue;
                     Matcher labeled = LABELED_TOKEN.matcher(text);
                     if (labeled.find()) {

@@ -1,0 +1,18 @@
+HushPinterest README artwork
+
+Drawn in code by make_art.py (Pillow and NumPy), so the art can be rebuilt or
+tweaked without an image model. Run it from any directory; it writes both
+masters into selected/, which are then copied to assets/icon.png and
+assets/readme-hero.png.
+
+Logo
+Circular crimson emblem in the Hush family layout: a red ring around a deep
+red disc, a bold white H, and a pink push pin stuck through the H's crossbar.
+Keep it distinct from Pinterest's own mark (no P, no script lettering). The
+canvas outside the circle is transparent with real alpha. 1254 pixels square.
+
+Hero
+Wide dark banner, 1672 by 941, RGB. The emblem on the left, the HushPinterest
+wordmark, the line "Keep the pins. Lose the ads." and "Morphe patches for
+Pinterest on Android" beneath it. A faded masonry grid of blank pin cards
+runs down the right side. No real pins, accounts or version number.

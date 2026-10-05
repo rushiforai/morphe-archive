@@ -526,7 +526,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                     ? L10n.f("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.", file, folder)
                     : L10n.f("The file %1$s couldn't be removed. Delete it from %2$s to turn Hushfacebook back on.",
                     file, folder);
-            statusCard.setSummary(left + "\n" + L10n.f("Build %1$s", L10n.isolate(Utils.getPatchesBuildIdentity())));
+            statusCard.setSummary(left + "\n" + overviewBuildDetails());
             // Resume can be tapped on a category page too, where the card isn't in view.
             Utils.showToastLong(left);
             return;
@@ -548,18 +548,36 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         boolean pausedNext = HushfacebookPause.pausesNextStart(context);
         String status;
         if (!HushfacebookPause.isPaused()) {
-            String version = L10n.f("Version %1$s for Facebook %2$s",
-                    L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()));
-            status = pausedNext ? version + " " + L10n.t("Hushfacebook pauses when Facebook restarts.") : version;
+            status = L10n.t(pausedNext ? "Hushfacebook pauses when Facebook restarts." : "Your controls are active.");
         } else if (pausedNext) {
             status = pausedSummary(HushfacebookPause.reason(), context.getPackageName())
                     + " " + L10n.t("Tap to turn it back on.");
         } else {
             status = L10n.t("Hushfacebook turns back on when Facebook restarts.");
         }
-        status += "\n" + L10n.f("Build %1$s", L10n.isolate(Utils.getPatchesBuildIdentity()));
+        status += "\n" + overviewBuildDetails();
         String release = ReleaseCheck.statusLine();
         card.setSummary(release == null ? status : status + "\n" + release);
+    }
+
+    private static final java.util.regex.Pattern BUILD_IDENTITY = java.util.regex.Pattern.compile(
+            "sha256=([0-9a-f]{64}); source=(?:(clean|dirty):[0-9a-f]{40}; tree=[0-9a-f]{40}|(unknown)); inputs=[0-9a-f]{64}");
+
+    /** Only the overview abbreviates identity. About and exported diagnostics keep the original bytes. */
+    static String overviewBuildDetails() {
+        String value = Utils.getPatchesBuildIdentity();
+        java.util.regex.Matcher identity = BUILD_IDENTITY.matcher(value == null ? "" : value);
+        String build;
+        if (identity.matches()) {
+            String shortId = L10n.isolate(identity.group(1).substring(0, 8));
+            build = "dirty".equals(identity.group(2)) ? L10n.f("Build %1$s (modified)", shortId)
+                    : "clean".equals(identity.group(2)) ? L10n.f("Build %1$s (source known)", shortId)
+                    : L10n.f("Build %1$s (source unknown)", shortId);
+        } else {
+            String state = value == null || value.isEmpty() || "unknown".equals(value) ? "unknown" : "unverified";
+            build = L10n.f("Build %1$s", L10n.isolate(state));
+        }
+        return L10n.f("Version %1$s", L10n.isolate(Utils.getPatchesReleaseVersion())) + "\n" + build;
     }
 
     /**

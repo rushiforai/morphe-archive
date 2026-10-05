@@ -40,12 +40,14 @@ internal object NativeEdits {
             WordEdit(0x002B8638, 0xEB07BCDEL, 0xE1A00000L),
             WordEdit(0x0035E438, 0x1A000001L, 0xE1A00000L),
             WordEdit(0x00360AC0, 0xE2853058L, 0xE2853030L),
+            WordEdit(0x0037B498, 0x1A000059L, 0xE1A00000L),
             WordEdit(0x003CE9B0, 0xE92D47F0L, 0xE12FFF1EL),
         ),
         "armeabi-v7a" to listOf(
             WordEdit(0x002AAC68, 0xEB0753C3L, 0xE1A00000L),
             WordEdit(0x00341C28, 0x1A000001L, 0xE1A00000L),
             WordEdit(0x00344074, 0xE2853058L, 0xE2853030L),
+            WordEdit(0x0035EA0C, 0x1A00005AL, 0xE1A00000L),
             WordEdit(0x003B24EC, 0xE92D47F0L, 0xE12FFF1EL),
         ),
     )
@@ -71,6 +73,14 @@ internal object NativeEdits {
             WordEdit(0x0016EB10, 0xE3700001L, 0xEBFB9190L),
             WordEdit(0x0016EB14, 0xE1A0A000L, 0xE1B0A000L),
             WordEdit(0x0016EB18, 0x0A000004L, 0x4A000004L),
+        ),
+    )
+    val DAILY_DEAL: Map<String, List<WordEdit>> = mapOf(
+        "armeabi" to listOf(
+            WordEdit(0x003AD2E0, 0x0A00000BL, 0xEA00000BL),
+        ),
+        "armeabi-v7a" to listOf(
+            WordEdit(0x00390B24, 0x0A00000BL, 0xEA00000BL),
         ),
     )
     val JNI_GUARDS: Map<String, List<WordEdit>> = mapOf(

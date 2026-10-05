@@ -1288,8 +1288,16 @@ public class SeenVideoHistoryTest {
         drain();
         SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
         AtomicBoolean first = new AtomicBoolean(true);
+        CountDownLatch queuedWriteEntered = new CountDownLatch(1);
+        CountDownLatch releaseQueuedWrites = new CountDownLatch(1);
+        ExecutorService worker = io();
         SeenVideoHistory.rowWriter = (database, values) -> {
             if (first.getAndSet(false)) {
+                worker.execute(() -> {
+                    queuedWriteEntered.countDown();
+                    try { releaseQueuedWrites.await(15, TimeUnit.SECONDS); }
+                    catch (InterruptedException failure) { Thread.currentThread().interrupt(); }
+                });
                 SeenVideoHistory.onPlayProgressChange("during-a", 5000, 10000);
                 SeenVideoHistory.onPlayProgressChange("during-b", 5000, 10000);
             }
@@ -1302,10 +1310,19 @@ public class SeenVideoHistoryTest {
                 result.set(outcome);
                 retained.set(kept);
             }));
+            assertTrue(queuedWriteEntered.await(15, TimeUnit.SECONDS));
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            if (result.get() != null) {
+                assertEquals("Undo reported rows before concurrent writes became durable",
+                        persistedIds().stream().filter(id -> id.startsWith("cleared-")).count(),
+                        retained.get());
+            }
+            releaseQueuedWrites.countDown();
             drain();
             // Writes enqueued inside the transaction land after the first drain marker.
             drain();
         } finally {
+            releaseQueuedWrites.countDown();
             SeenVideoHistory.rowWriter = original;
         }
         org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
@@ -1319,6 +1336,74 @@ public class SeenVideoHistoryTest {
         Set<String> durable = persistedIds();
         assertEquals(retained.get(), durable.stream().filter(id -> id.startsWith("cleared-")).count());
         assertEquals(durable, ((Map<?, ?>) field("SEEN")).keySet());
+    }
+
+    @Test public void aFailedConcurrentUndoRowRollsBackAndKeepsRecovery() throws Exception {
+        insert("cleared", System.currentTimeMillis() - 60_000);
+        SeenVideoHistory.clear();
+        drain();
+        SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
+        AtomicBoolean first = new AtomicBoolean(true);
+        SeenVideoHistory.rowWriter = (db, values) -> {
+            if (first.getAndSet(false)) {
+                SeenVideoHistory.onPlayProgressChange("during", 5000, 10000);
+            }
+            return "during".equals(values.getAsString("aid")) ? -1L : original.insert(db, values);
+        };
+        AtomicReference<SeenVideoHistory.UndoResult> result = new AtomicReference<>();
+        try {
+            assertTrue(SeenVideoHistory.undoClear(result::set));
+            drain();
+            drain();
+        } finally {
+            SeenVideoHistory.rowWriter = original;
+        }
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(SeenVideoHistory.UndoResult.FAILED, result.get());
+        assertEquals(Set.of("during"), persistedIds());
+        assertTrue(SeenVideoHistory.canUndo());
+        assertFalse(SeenVideoHistory.isRestoring());
+        assertTrue(SeenVideoHistory.undoClear());
+        drain();
+        assertEquals(Set.of("cleared", "during"), persistedIds());
+    }
+
+    @Test public void queuedSightingCannotRegressTimestampCommittedByUndo() throws Exception {
+        long now = System.currentTimeMillis();
+        insert("cleared", now - 60_000);
+        SeenVideoHistory.clear();
+        drain();
+        SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
+        AtomicBoolean first = new AtomicBoolean(true);
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        ExecutorService worker = io();
+        Method mark = SeenVideoHistory.class.getDeclaredMethod("markSeen", String.class, String.class, long.class);
+        mark.setAccessible(true);
+        SeenVideoHistory.rowWriter = (db, values) -> {
+            if (first.getAndSet(false)) {
+                try {
+                    mark.invoke(null, ME, "during", now - 2000);
+                    worker.execute(() -> {
+                        entered.countDown();
+                        try { release.await(15, TimeUnit.SECONDS); }
+                        catch (InterruptedException failure) { Thread.currentThread().interrupt(); }
+                    });
+                    mark.invoke(null, ME, "during", now - 1000);
+                } catch (ReflectiveOperationException failure) { throw new AssertionError(failure); }
+            }
+            return original.insert(db, values);
+        };
+        try {
+            assertTrue(SeenVideoHistory.undoClear());
+            assertTrue(entered.await(15, TimeUnit.SECONDS));
+            assertEquals("an older queued write replaced Undo's newer committed sighting",
+                    now - 1000, lastSeen(ME, "during"));
+        } finally {
+            release.countDown();
+            drain();
+            SeenVideoHistory.rowWriter = original;
+        }
     }
 
     @Test public void undoDoesNotPublishOrMergeOnTheCallerAndRejectsASecondPendingUndo() throws Exception {

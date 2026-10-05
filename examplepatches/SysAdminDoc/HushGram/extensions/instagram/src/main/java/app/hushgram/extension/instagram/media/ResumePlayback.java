@@ -7,9 +7,11 @@
 package app.hushgram.extension.instagram.media;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.view.accessibility.AccessibilityManager;
 
 import androidx.annotation.Nullable;
 
@@ -21,7 +23,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -168,13 +170,16 @@ public final class ResumePlayback {
 
     private static final Players PLAYERS = new Players();
     private static final Object POINTS_LOCK = new Object();
-    private static final AtomicBoolean AGED = new AtomicBoolean();
+    private static final Object AGED = new Object();
+    /** Null until submitted; the request owns completion, including across test process resets. */
+    private static final AtomicReference<Object> aging = new AtomicReference<>();
     @Nullable
     private static ResumePoints points;
     /** The only Undo copy is in this process. Every access is under POINTS_LOCK. */
     @Nullable private static Map<String, ResumePoints.Point> clearedPoints;
     @Nullable private static ResumePoints clearedStore;
     private static long undoUntil;
+    private static long undoId;
     public static final long UNDO_WINDOW_MS = 10_000;
 
     private ResumePlayback() {
@@ -191,8 +196,16 @@ public final class ResumePlayback {
             PLAYERS.clear();
             clearedPoints = snapshot;
             clearedStore = store;
-            undoUntil = SystemClock.elapsedRealtime() + UNDO_WINDOW_MS;
-            Utils.runOnMainThreadDelayed(ResumePlayback::canUndoHistory, UNDO_WINDOW_MS);
+            int timeout = (int) UNDO_WINDOW_MS;
+            Context context = Utils.getContext();
+            if (Build.VERSION.SDK_INT >= 29 && context != null) {
+                AccessibilityManager accessibility = context.getSystemService(AccessibilityManager.class);
+                if (accessibility != null) timeout = accessibility.getRecommendedTimeoutMillis(timeout,
+                        AccessibilityManager.FLAG_CONTENT_TEXT | AccessibilityManager.FLAG_CONTENT_CONTROLS);
+            }
+            undoId++;
+            undoUntil = SystemClock.elapsedRealtime() + timeout;
+            Utils.runOnMainThreadDelayed(ResumePlayback::canUndoHistory, timeout);
         }
     }
 
@@ -210,7 +223,25 @@ public final class ResumePlayback {
     /** Consumes Undo before writing. An old queued seek stays cancelled even after Undo. */
     public static boolean undoHistory() {
         synchronized (POINTS_LOCK) {
-            if (!canUndoHistory()) return false;
+            return undoHistory(undoHistoryToken());
+        }
+    }
+
+    public static long undoHistoryToken() {
+        synchronized (POINTS_LOCK) {
+            return canUndoHistory() ? undoId : 0;
+        }
+    }
+
+    public static long undoHistoryDeadline(long token) {
+        synchronized (POINTS_LOCK) {
+            return token != 0 && token == undoHistoryToken() ? undoUntil : 0;
+        }
+    }
+
+    public static boolean undoHistory(long token) {
+        synchronized (POINTS_LOCK) {
+            if (undoHistoryDeadline(token) == 0) return false;
             Map<String, ResumePoints.Point> snapshot = clearedPoints;
             ResumePoints store = clearedStore;
             clearedPoints = null;
@@ -536,15 +567,26 @@ public final class ResumePlayback {
      * nothing reads the points, so they'd stay for good otherwise.
      */
     private static void ageOnce() {
-        if (!Utils.settingsReady() || !AGED.compareAndSet(false, true)) return;
-        Utils.runOnBackgroundThread(() -> {
+        if (!Utils.settingsReady() || aging.get() != null) return;
+        Object request = new Object();
+        if (!aging.compareAndSet(null, request)) return;
+        if (!Utils.runOnBackgroundThread(() -> {
             try {
-                ResumePoints store = points();
-                if (store != null) store.dropExpired(System.currentTimeMillis());
+                ResumePoints store;
+                synchronized (POINTS_LOCK) {
+                    if (aging.get() != request) return;
+                    store = points();
+                }
+                if (store != null) {
+                    store.dropExpired(System.currentTimeMillis());
+                    aging.compareAndSet(request, AGED);
+                }
             } catch (Throwable failure) {
                 Logger.printException(() -> "Resume long videos: could not age the saved points", failure);
+            } finally {
+                aging.compareAndSet(request, null);
             }
-        });
+        })) aging.compareAndSet(request, null);
     }
 
     /** The saved points, read the first time they're needed. Null outside the main process. */
@@ -723,12 +765,12 @@ public final class ResumePlayback {
     static void forget() {
         PLAYERS.clear();
         synchronized (POINTS_LOCK) {
+            aging.set(null);
             points = null;
             clearedPoints = null;
             clearedStore = null;
             undoUntil = 0;
         }
-        AGED.set(false);
         access = PATCHED;
         later = ON_MAIN_LOOPER;
         pointsForTests = null;

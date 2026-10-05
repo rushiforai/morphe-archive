@@ -23,3 +23,6 @@ verify:
     - file: com/lm/components/subscribe/config/UserVipInfo.smali
       pattern: '\.method public final isVipUser\(\)Z[\s\S]+?const/4 v0, 0x1\s+?return v0'
       label: UserVipInfo isVipUser spoof
+    - file: com/vega/launcher/ScaffoldApplication.smali
+      pattern: 'WireGuardManager;->initialize\(Landroid/content/Context;\)V'
+      label: ScaffoldApplication network tunnel init

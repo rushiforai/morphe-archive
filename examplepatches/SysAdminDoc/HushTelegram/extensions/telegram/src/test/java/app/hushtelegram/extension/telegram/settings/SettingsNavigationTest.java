@@ -89,7 +89,7 @@ public class SettingsNavigationTest {
         assertNotNull(page.navigation);
         // The status card, Browse settings, Chats, Privacy and More settings.
         assertEquals(5, list().getCount());
-        assertEquals(7, page.sections().size());
+        assertEquals(9, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
             assertTrue(page.navigation.open(section));
@@ -109,6 +109,113 @@ public class SettingsNavigationTest {
         assertFalse(Settings.DISABLE_UPDATE_CHECKS.savedValue());
         assertTrue(Settings.DISABLE_ANALYTICS.savedValue());
         assertTrue(Settings.HIDE_ADS.savedValue());
+    }
+
+    /** Each task has its own page, while search still reaches every original control. */
+    @Test public void pauseBackupAndDiagnosticsHaveSeparatePagesInEveryShippedLanguage() {
+        String[][] languages = {{"en", null}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+        for (String[] language : languages) {
+            controller.close();
+            org.robolectric.RuntimeEnvironment.setQualifiers("+" + language[0]);
+            controller = Robolectric.buildActivity(Activity.class).setup().visible();
+            dialog = SettingsL10nTest.show(controller.get());
+            page = page(dialog);
+            Map<String, String> table = language[1] == null ? new TreeMap<>() : SettingsL10nTest.TranslationsForTests.of(language[1]);
+            for (String[] group : controlGroups()) {
+                String title = table.getOrDefault(group[0], group[0]);
+                if (language[1] != null) assertTrue(group[0] + " has no " + language[0] + " translation", table.containsKey(group[0]));
+                page.navigation.navigate("more");
+                assertTrue("missing page " + group[0], contains("section_" + group[0]));
+                assertEquals(title, ((Preference) list().getItemAtPosition(position("section_" + group[0]))).getTitle());
+                tap("section_" + group[0]);
+                assertEquals(title, pageTitle().getText().toString());
+                assertEquals("unexpected controls on " + title, group.length - 1, list().getCount());
+                for (int i = 1; i < group.length; i++) {
+                    Preference control = page.findPreference(group[i]);
+                    assertEquals(title, control.getParent().getTitle());
+                    assertSame(control, list().getItemAtPosition(position(group[i])));
+                    page.navigation.search(control.getTitle().toString());
+                    assertSame("search lost " + group[i], control, list().getItemAtPosition(position(group[i])));
+                    assertEquals("search repeated " + group[i], 1, occurrences(group[i]));
+                    assertTrue(page.navigation.open(control));
+                    assertEquals(title, pageTitle().getText().toString());
+                }
+                page.navigation.search(title);
+                for (int i = 1; i < group.length; i++) assertEquals("group search lost " + group[i], 1, occurrences(group[i]));
+            }
+        }
+    }
+
+    /** A page title is spoken once as a localized heading, and every control wraps at either text size. */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void groupedPagesKeepTheirHeadingsAndAllControlsAtNormalAndDoubleText() {
+        String[] languages = {"en", "de", "es", "in-rID", "pt-rBR", "tr"};
+        try {
+            for (String language : languages) for (float scale : new float[]{1f, 2f}) {
+                controller.close();
+                org.robolectric.RuntimeEnvironment.setQualifiers("+" + language);
+                org.robolectric.RuntimeEnvironment.setFontScale(scale);
+                controller = Robolectric.buildActivity(Activity.class).setup().visible();
+                dialog = SettingsL10nTest.show(controller.get());
+                page = page(dialog);
+                for (String[] group : controlGroups()) {
+                    page.navigation.navigate(group[0]);
+                    layout(dialog.getView());
+                    TextView heading = pageTitle();
+                    assertEquals(L10n.t(group[0]), heading.getText().toString());
+                    assertTrue(heading.createAccessibilityNodeInfo().isHeading());
+                    assertCompleteText(heading);
+                    assertEquals(group.length - 1, list().getCount());
+                    for (int i = 1; i < group.length; i++) {
+                        int position = position(group[i]);
+                        list().setSelection(position);
+                        layout(dialog.getView());
+                        View row = list().getChildAt(position - list().getFirstVisiblePosition());
+                        assertNotNull(language + " at " + scale + " hid " + group[i], row);
+                        android.view.accessibility.AccessibilityNodeInfo info = row.createAccessibilityNodeInfo();
+                        assertFalse(group[i] + " repeats the page heading", info.isHeading());
+                        assertTrue(group[i] + " has no double tap", info.isClickable());
+                        assertEquals(page.findPreference(group[i]) instanceof SwitchPreference
+                                ? android.widget.Switch.class.getName() : android.widget.Button.class.getName(), info.getClassName());
+                        TextView title = row.findViewById(android.R.id.title);
+                        assertEquals(page.findPreference(group[i]).getTitle(), title.getText());
+                        assertNotEquals(heading.getText().toString(), title.getText().toString());
+                        assertCompleteText(title);
+                        assertCompleteText(row.findViewById(android.R.id.summary));
+                    }
+                }
+            }
+        } finally {
+            org.robolectric.RuntimeEnvironment.setFontScale(1f);
+        }
+    }
+
+    private static String[][] controlGroups() {
+        return new String[][]{{"Pause", BaseSettings.PAUSED.key},
+                {"Settings backup", "action_export_settings", "action_import_settings"},
+                {"Diagnostics", BaseSettings.DEBUG.key, "action_export_diagnostic_report", "action_clear_diagnostic_data"}};
+    }
+
+    private TextView pageTitle() {
+        android.widget.LinearLayout bar = (android.widget.LinearLayout) ((android.widget.LinearLayout) dialog.getView()).getChildAt(0);
+        return (TextView) bar.getChildAt(1);
+    }
+
+    private int occurrences(String key) {
+        int found = 0;
+        for (int i = 0; i < list().getCount(); i++) if (key.equals(((Preference) list().getItemAtPosition(i)).getKey())) found++;
+        return found;
+    }
+
+    private static void assertCompleteText(TextView view) {
+        assertNotNull(view);
+        android.text.Layout text = view.getLayout();
+        assertNotNull(view.getText() + " wasn't laid out", text);
+        int last = text.getLineCount() - 1;
+        assertEquals(view.getText().length(), text.getLineEnd(last));
+        for (int line = 0; line <= last; line++) assertEquals(0, text.getEllipsisCount(line));
+        assertTrue(view.getText() + " was clipped vertically", text.getLineBottom(last)
+                <= view.getHeight() - view.getCompoundPaddingTop() - view.getCompoundPaddingBottom());
     }
 
     @Test public void overviewPauseAndUndoUpdateTheSavedSwitchAndRestartNotice() {
@@ -395,7 +502,7 @@ public class SettingsNavigationTest {
      * back, after which the line goes. A restart owed for a setting a page shows is said there too.
      */
     @Test public void aPauseOrAChangeWaitingOnARestartIsSaidOnItsPage() {
-        page.navigation.navigate("Pause, backup and diagnostics");
+        page.navigation.navigate("Pause");
         tap(BaseSettings.PAUSED.key);
         layout(dialog.getView());
         Preference line = (Preference) list().getItemAtPosition(0);
@@ -651,8 +758,8 @@ public class SettingsNavigationTest {
         assertEquals(5, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
-        // More settings: Links, Updates, Pause, backup and diagnostics, and About.
-        assertEquals(5, list().getCount());
+        // More settings: Notifications, Links, Updates, Pause, Settings backup, Diagnostics and About.
+        assertEquals(7, list().getCount());
         dialog.getDialog().onBackPressed();
         assertEquals(5, list().getCount());
         dialog.getDialog().onBackPressed();
@@ -684,7 +791,7 @@ public class SettingsNavigationTest {
             int morePosition = list().getFirstVisiblePosition();
             int moreOffset = list().getChildAt(0).getTop();
             assertTrue(morePosition > 0 || moreOffset < 0);
-            page.navigation.navigate("Pause, backup and diagnostics");
+            page.navigation.navigate("Pause");
             // Preference updates can arrive after navigation but before the next layout.
             ((android.widget.BaseAdapter) page.getPreferenceScreen().getRootAdapter()).notifyDataSetChanged();
             layout(dialog.getView(), 400);
@@ -768,12 +875,13 @@ public class SettingsNavigationTest {
         ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS);
         capture("search-empty");
         page.navigation.back();
-        page.navigation.navigate("Pause, backup and diagnostics");
+        page.navigation.navigate("Diagnostics");
         Preference export = page.findPreference("action_export_diagnostic_report");
         export.getOnPreferenceClickListener().onPreferenceClick(export);
         AlertDialog report = (AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
         captureDialog("dialog-report", report);
         report.dismiss();
+        page.navigation.navigate("Settings backup");
         page.pendingImport = SettingsBackup.parse("{\"format\":\"hushtelegram-settings\",\"schema\":1,\"settings\":{\"hushtelegram_hide_ads\":false}}").toBundle();
         SettingsBackupPreference.onPageResumed(page);
         captureDialog("dialog-import", page.importPreview);
@@ -832,7 +940,7 @@ public class SettingsNavigationTest {
             capture("pt-br-large-privacy");
             page.navigation.navigate("Links");
             capture("pt-br-large-links");
-            page.navigation.navigate("Pause, backup and diagnostics");
+            page.navigation.navigate("Pause");
             capture("pt-br-large-pause");
         } finally {
             org.robolectric.RuntimeEnvironment.setFontScale(1f);

@@ -17,6 +17,7 @@ import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
+import app.morphe.extension.tiktok.settings.preference.categories.ExtensionPreferenceCategory;
 import app.morphe.extension.tiktok.settings.preference.categories.InterfacePreferenceCategory;
 import org.junit.Rule;
 import org.junit.Test;
@@ -416,9 +417,16 @@ public class GestureActionsTest {
             PreferenceScreen screen = activity.getPreferenceManager().createPreferenceScreen(activity);
             new InterfacePreferenceCategory(activity, screen);
             for (String key : new String[]{"hide_feed_caption", "hide_feed_music", "hide_feed_action_bar",
-                    "hide_feed_surveys", "hide_status_bar", "hide_detail_comment_bar",
+                    "hide_feed_surveys", "hide_detail_comment_bar",
                     "hide_sensitive_warnings"}) {
                 assertNotNull(key, screen.findPreference(key));
+            }
+            // The status bar is the whole app's, so its two rows are on App.
+            PreferenceScreen app = activity.getPreferenceManager().createPreferenceScreen(activity);
+            new ExtensionPreferenceCategory(activity, app);
+            for (String key : new String[]{"hide_status_bar", "hide_status_bar_in_live"}) {
+                assertNotNull(key, app.findPreference(key));
+                assertNull(key + " is still on Feed screen", screen.findPreference(key));
             }
         } finally {
             SettingsStatus.videoOverlaysEnabled = false;

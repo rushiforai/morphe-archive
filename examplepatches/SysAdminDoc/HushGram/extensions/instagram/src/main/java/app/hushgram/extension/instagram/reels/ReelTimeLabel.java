@@ -7,7 +7,10 @@ package app.hushgram.extension.instagram.reels;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -123,6 +126,10 @@ final class ReelTimeLabel {
         boolean described;
         /** Whether the last update placed the label to be shown, subject to the bar showing. */
         boolean wanted;
+        /** Only restore a snapshot while the bar still carries our own drawable. */
+        Drawable originalThumb;
+        GradientDrawable thumb;
+        int originalThumbOffset;
 
         State(SeekBar bar) {
             this.bar = new WeakReference<>(bar);
@@ -195,6 +202,7 @@ final class ReelTimeLabel {
         public void onViewDetachedFromWindow(View view) {
             try {
                 unwatch();
+                updateThumb((SeekBar) view, (State) label.getTag(), false);
                 hide((SeekBar) view, label);
             } catch (Throwable failure) {
                 HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "seek bar window", failure);
@@ -208,7 +216,11 @@ final class ReelTimeLabel {
         public boolean onPreDraw() {
             try {
                 SeekBar bar = barOf(label);
-                if (bar != null) follow(bar, label);
+                if (bar != null) {
+                    updateThumb(bar, (State) label.getTag(), ReelSeekBar.thumbOn()
+                            && ordinaryReel(bar) && bar.getMax() > 0 && bar.isAttachedToWindow());
+                    follow(bar, label);
+                }
             } catch (Throwable failure) {
                 HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "seek bar frame", failure);
                 hideAfterFailure(label);
@@ -261,9 +273,10 @@ final class ReelTimeLabel {
                 Tracker tracker = trackerOf(bar);
                 if (tracker != null) {
                     State state = (State) tracker.label.getTag();
+                    if (ad) updateThumb(bar, state, false);
                     if (!stillOrdinary || !Objects.equals(state.reel, reelOf(bar))) hide(bar, tracker.label);
                     tracker.queue(bar);
-                } else if (!ad && on.getAsBoolean()) {
+                } else if (!ad && (on.getAsBoolean() || ReelSeekBar.thumbOn())) {
                     MAIN.post(() -> update(bar, bar.getProgress(), on));
                 }
             }
@@ -291,7 +304,14 @@ final class ReelTimeLabel {
                 return;
             }
             int max = bar.getMax();
-            if (!on.getAsBoolean() || max <= 0) {
+            boolean labelOn = on.getAsBoolean();
+            boolean thumbOn = ReelSeekBar.thumbOn() && max > 0 && bar.isAttachedToWindow();
+            if (tracker == null && thumbOn) tracker = track(bar, on);
+            if (tracker != null) {
+                label = tracker.label;
+                updateThumb(bar, (State) label.getTag(), thumbOn);
+            }
+            if (!labelOn || max <= 0) {
                 if (label != null) hide(bar, label);
                 return;
             }
@@ -312,6 +332,46 @@ final class ReelTimeLabel {
     static TextView labelOf(SeekBar bar) {
         Tracker tracker = trackerOf(bar);
         return tracker == null ? null : tracker.label;
+    }
+
+    /** Uses Android's thumb drawing and seeking without replacing any listener. */
+    private static void updateThumb(SeekBar bar, State state, boolean wanted) {
+        float density = bar.getResources().getDisplayMetrics().density;
+        int diameter = Math.min(Math.round(10 * density), bar.getHeight());
+        if (!wanted || diameter <= 0) {
+            if (state.thumb != null && bar.getThumb() == state.thumb) {
+                bar.setThumb(state.originalThumb);
+                bar.setThumbOffset(state.originalThumbOffset);
+            }
+            state.thumb = null;
+            state.originalThumb = null;
+            return;
+        }
+        if (state.thumb == null || bar.getThumb() != state.thumb
+                || state.thumb.getIntrinsicWidth() != diameter) {
+            if (state.thumb == null || bar.getThumb() != state.thumb) {
+                state.originalThumb = bar.getThumb();
+                state.originalThumbOffset = bar.getThumbOffset();
+            }
+            GradientDrawable thumb = new GradientDrawable();
+            thumb.setShape(GradientDrawable.OVAL);
+            thumb.setColor(Color.WHITE);
+            thumb.setStroke(Math.max(1, Math.round(density)), Color.BLACK);
+            thumb.setSize(diameter, diameter);
+            state.thumb = thumb;
+            // AbsSeekBar only positions a replacement when its old thumb is non-null. A same-call
+            // seed makes Android lay out a previously absent thumb without changing playback progress.
+            if (bar.getThumb() == null) bar.setThumb(new GradientDrawable());
+            bar.setThumb(thumb);
+            // Clear only our drawable's tint, preserving the native policy and original drawable.
+            thumb.setTintList(null);
+        }
+        // Instagram pads its compact track down to the bottom of the view. Keep the full circle
+        // inside that view without changing its track, padding, touch bounds or horizontal position.
+        Rect bounds = state.thumb.getBounds();
+        int top = Math.max(-bar.getPaddingTop(),
+                Math.min(bounds.top, bar.getHeight() - bar.getPaddingTop() - diameter));
+        if (bounds.top != top) state.thumb.setBounds(bounds.left, top, bounds.right, top + diameter);
     }
 
     /** "m:ss", or "h:mm:ss" from an hour, like Instagram's own scrubber times, in the phone's digits. */
@@ -613,6 +673,7 @@ final class ReelTimeLabel {
     /** Hides the label and takes it off whatever holds it. [bar] may be gone. */
     private static void remove(SeekBar bar, TextView label) {
         State state = (State) label.getTag();
+        if (bar != null) updateThumb(bar, state, false);
         state.text = null;
         state.wanted = false;
         label.setVisibility(View.GONE);
@@ -715,7 +776,10 @@ final class ReelTimeLabel {
     private static void hideAfterFailure(TextView label) {
         if (label == null) return;
         try {
-            ((State) label.getTag()).wanted = false;
+            State state = (State) label.getTag();
+            SeekBar bar = state.bar.get();
+            if (bar != null) updateThumb(bar, state, false);
+            state.wanted = false;
             label.setVisibility(View.GONE);
         } catch (RuntimeException alsoFailed) {
             Logger.printException(() -> "Reel seek bar: the label couldn't be hidden", alsoFailed);

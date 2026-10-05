@@ -14,8 +14,11 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction12x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
 
@@ -26,8 +29,36 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReferenc
  */
 internal object SettingsPatchHosts {
     const val SETTINGS_SCREEN = "Lfixture/SettingsScreenFragment;"
+    const val STATE_HOST = "Lfixture/BaseActivity;"
 
-    fun all(): List<ClassDef> = listOf(application(), mainActivity(), settingsScreen())
+    fun all(): List<ClassDef> {
+        val navigation = NavigationEntryHosts.classes()
+        val main = mainActivity()
+        val factory = navigation.single { it.type == MAIN_ACTIVITY }
+        val combined = ImmutableClassDef(main.type, main.accessFlags, main.superclass, main.interfaces,
+            main.sourceFile, main.annotations, main.fields, main.methods + factory.methods)
+        return listOf(application(), combined, settingsScreen(), stateHost()) + navigation.filter { it.type != MAIN_ACTIVITY }
+    }
+
+    fun stateHost(): ClassDef {
+        val remove = ImmutableMethodReference("Landroid/os/BaseBundle;", "remove", listOf("Ljava/lang/String;"), "V")
+        return ImmutableClassDef(
+            STATE_HOST, AccessFlags.PUBLIC.value, "Landroid/app/Activity;", null, null, null, null,
+            listOf(ImmutableMethod(
+                STATE_HOST, "createInternal", listOf(ImmutableMethodParameter("Landroid/os/Bundle;", null, null)),
+                "V", AccessFlags.PUBLIC.value, null, null,
+                ImmutableMethodImplementation(4, listOf(
+                    ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference("IgFragmentActivity.internalOnCreate")),
+                    ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference(".internalOnCreate")),
+                    ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference("android:fragments")),
+                    ImmutableInstruction12x(Opcode.MOVE_OBJECT, 1, 3),
+                    ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 0, 0, 0, 0, remove),
+                    ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 1, 0, 0, 0, 0, remove),
+                    ImmutableInstruction10x(Opcode.RETURN_VOID),
+                ), null, null),
+            )),
+        )
+    }
 
     /**
      * A settings screen shaped like Instagram 449's: a static factory that puts the two keys in the
@@ -92,7 +123,7 @@ internal object SettingsPatchHosts {
     private fun mainActivity(): ClassDef {
         val returns = ImmutableInstruction10x(Opcode.RETURN_VOID)
         return ImmutableClassDef(
-            MAIN_ACTIVITY, AccessFlags.PUBLIC.value, "Landroid/app/Activity;", null, null, null, null,
+            MAIN_ACTIVITY, AccessFlags.PUBLIC.value, STATE_HOST, null, null, null, null,
             listOf(
                 ImmutableMethod(
                     MAIN_ACTIVITY, "onNewIntent", listOf(ImmutableMethodParameter("Landroid/content/Intent;", null, null)),

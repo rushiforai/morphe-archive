@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-03",
+  "baselineCommit": "01afad24ebbbb1f7fa7a2fb4d8e5094e7e954d4a",
+  "categories": {
+    "Recommended sets": 5,
+    "Image quality": 2,
+    "Tracking & audio": 6,
+    "Startup & permissions": 4,
+    "App & device identity": 2,
+    "Advanced XR compatibility": 7,
+    "Experiments": 3
+  },
+  "catalogCounts": {
+    "patches-list-all.json": 29,
+    "patches-list-experimental.json": 29,
+    "patches-list-stable.json": 26,
+    "patches-list.json": 29
+  },
+  "catalogOtherMetadataDelta": 0,
+  "patchMutationBodyDelta": 0,
+  "canonicalResourceByteDelta": 0,
+  "junit": {
+    "retained-inputs": {
+      "tests": 139,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "passed": 139
+    },
+    "fresh-checkout": {
+      "tests": 139,
+      "skipped": 12,
+      "failures": 0,
+      "errors": 0,
+      "passed": 127
+    }
+  },
+  "documentationTests": {
+    "passed": 4,
+    "skipped": 0
+  },
+  "technicalReferenceIdempotent": true,
+  "manualIndexLinksVerified": true,
+  "bundle": {
+    "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\patches-1.21.1-dev.1-categories-local.mpp",
+    "sha256": "9ca115062d51d5ae7c50ac05a9a25775d1915cf12aaa84d1b6788bb3fd6b0042",
+    "bytes": 2067427,
+    "patcher": "1.13.0",
+    "desktopRuntime": "1.15.1",
+    "packaging": "D8 Release/API26; standard extension DEX040 assembled at API33",
+    "status": "local fallback artifact, not Gradle/CI release or installed APK"
+  },
+  "toolchain": {
+    "patcher": "1.13.0",
+    "plugin": "1.3.4",
+    "smali": "d856bad65f",
+    "managerMinimum": "1.30.0",
+    "localCompiler": "2.3.21",
+    "ciCompiler": "2.4.10",
+    "runtime": "Desktop 1.15.1"
+  },
+  "gradle": "blocked before compilation: plugin 1.3.4 resolution",
+  "ci": "not run; local changes not committed or published",
+  "runtime": "No APK install, headset or SteamVR validation"
+}

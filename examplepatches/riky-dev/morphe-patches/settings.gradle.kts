@@ -19,3 +19,12 @@ pluginManagement {
 plugins {
     id("app.morphe.patches") version "1.3.3"
 }
+
+settings {
+    extensions {
+        defaultNamespace = "app.riky.extension"
+
+        // Absolute path required so nested extension modules resolve proguard.
+        proguardFiles(rootProject.projectDir.resolve("extensions/proguard-rules.pro").toString())
+    }
+}

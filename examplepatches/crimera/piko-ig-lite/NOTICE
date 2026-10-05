@@ -1,0 +1,73 @@
+Piko IG Lite
+Copyright (C) 2026 crimera
+https://github.com/crimera/piko-ig-lite
+
+=============
+
+This patch bundle is a lean, Instagram-only fork of piko. It builds on:
+
+    Piko Patches Library
+    https://github.com/crimera/piko-patches-library
+    Copyright (C) 2026 crimera
+    Licensed under GPL-3.0-or-later.
+
+    Morphe Patches Library
+    https://github.com/MorpheApp/morphe-patches-library
+    Copyright (C) MorpheApp
+    Licensed under GPL-3.0 with additional terms.
+
+    morphe-bytecode
+    https://github.com/crimera/morphe-bytecode
+    Copyright (C) 2026 crimera
+    Licensed under GPL-3.0-or-later.
+
+    morphe-patcher and the Morphe patch plugin
+    https://github.com/MorpheApp
+    Copyright (C) MorpheApp
+    Licensed under GPL-3.0.
+
+=============
+
+The release configuration (the GitHub workflows, .releaserc and the issue and pull request templates) is
+adapted from morphe-patches. The notice that project requires derivative works to carry follows.
+
+    Morphe NOTICE
+    https://github.com/MorpheApp/morphe-patches
+
+    GPLv3 Section 7b: Preservation of User Notices
+
+    All derivative works (source code and binaries) must include this
+    NOTICE text and provide it to the software user.
+
+    Portions of this software are provided "AS IS" by the Morphe software project.
+    Any express or implied warranties, including the implied warranties of
+    merchantability and fitness for a particular purpose, are disclaimed.
+
+    GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+    You are prohibited from misrepresenting the origin of the Program,
+    and modified versions of the Program must be identified and marked in
+    reasonable ways as different from the original version so as not to cause
+    confusion regarding their origin.
+
+    GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+    This License does not grant any rights or permission under trademark law
+    to use the name "Morphe" or any of the Program's trade names, trademarks,
+    service marks, or logos.
+
+Piko IG Lite is an independent project. It is not part of, endorsed by, or affiliated with Morphe, Instagram
+or Meta; "Instagram" and "Meta" are trademarks of their respective owners. The classes under
+extensions/instagram/stub only declare the signatures of the Instagram app that the extension compiles
+against; they contain no Instagram code and are not packaged into the patched app.
+
+=============
+
+7b. Attribution Requirement
+---------------------------
+
+This NOTICE file must be preserved and retained in all distributions
+of the Source Code and any Derivative Works.
+
+This project is licensed under the GNU General Public License v3.0 or later;
+the full text is in LICENSE.

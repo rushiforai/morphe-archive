@@ -1332,6 +1332,8 @@ Stopping after this file	Wird nach dieser Datei beendet
 Waiting to save %1$s files	%1$s Dateien warten auf das Speichern
 Waiting to save one file	Eine Datei wartet auf das Speichern
 Save cancelled. Nothing was saved.	Speichern abgebrochen. Es wurde nichts gespeichert.
+The server asked us to wait. Try again later.	Der Server hat uns gebeten zu warten. Versuch es später noch einmal.
+Saved %1$s of %2$s. The server asked us to wait. Try again later.	%1$s von %2$s gespeichert. Der Server hat uns gebeten zu warten. Versuch es später noch einmal.
 One more save waiting	Eine weitere Speicherung wartet
 %1$s more saves waiting	%1$s weitere Speicherungen warten
 Starts after one other save	Startet nach einer anderen Speicherung

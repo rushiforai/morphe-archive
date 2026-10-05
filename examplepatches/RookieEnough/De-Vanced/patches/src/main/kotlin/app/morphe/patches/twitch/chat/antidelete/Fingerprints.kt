@@ -8,18 +8,15 @@ import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal object DeletedMessageClickableSpanCtorMethodFingerprint : Fingerprint(
+    definingClass = "DeletedMessageClickableSpan;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-    returnType = "V",
-    custom = { _, classDef ->
-        classDef.type.endsWith("DeletedMessageClickableSpan;")
-    },
+    returnType = "V"
 )
 
 internal object SetHasModAccessMethodFingerprint : Fingerprint(
+    definingClass = "DeletedMessageClickableSpan;",
+    name = "setHasModAccess",
     returnType = "V",
-    parameters = listOf("Z"),
-    custom = { method, classDef ->
-        method.name == "setHasModAccess" && classDef.type.endsWith("DeletedMessageClickableSpan;")
-    },
+    parameters = listOf("Z")
 )
 

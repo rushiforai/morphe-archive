@@ -35,6 +35,10 @@ public final class RememberClearDisplayPatch {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static String currentId;
     private static Runnable pending;
+    private static Runnable onFocus;
+    private static volatile long generation;
+    private static boolean applied;
+    private static boolean manuallyChanged;
     private static boolean posting;
     /**
      * Whether the app is in clear display right now. The persisted setting cannot answer
@@ -64,11 +68,16 @@ public final class RememberClearDisplayPatch {
     };
     private static final ViewTreeObserver.OnWindowFocusChangeListener FOCUS = focused -> {
         if (!focused) cancel();
+        else if (onFocus != null) onFocus.run();
     };
     private static final View.OnAttachStateChangeListener ATTACH = new View.OnAttachStateChangeListener() {
         @Override public void onViewAttachedToWindow(View view) { }
         @Override public void onViewDetachedFromWindow(View view) {
+            if (window.get() != view) return;
             cancel();
+            onFocus = null;
+            applied = false;
+            if (!manuallyChanged) currentId = null;
             if (view.getViewTreeObserver().isAlive()) view.getViewTreeObserver().removeOnWindowFocusChangeListener(FOCUS);
             view.removeOnAttachStateChangeListener(this);
             if (window.get() == view) window.clear();
@@ -83,6 +92,9 @@ public final class RememberClearDisplayPatch {
             old.removeOnAttachStateChangeListener(ATTACH);
         }
         cancel();
+        onFocus = null;
+        applied = false;
+        if (!manuallyChanged) currentId = null;
         window = new WeakReference<>(view);
         view.getViewTreeObserver().addOnWindowFocusChangeListener(FOCUS);
         view.addOnAttachStateChangeListener(ATTACH);
@@ -99,7 +111,9 @@ public final class RememberClearDisplayPatch {
             Object player = owner.get();
             if (player == null) return;
             Object activity = Reflect.readField(player, "activity");
-            if (activity instanceof Activity) observeWindow(((Activity) activity).getWindow().getDecorView());
+            if (!(activity instanceof Activity) || ((Activity) activity).isFinishing()
+                    || ((Activity) activity).isDestroyed()) return;
+            observeWindow(((Activity) activity).getWindow().getDecorView());
             String id = videoId(player);
             firstFrame(id, () -> {
                 Object live = owner.get();
@@ -128,12 +142,19 @@ public final class RememberClearDisplayPatch {
             // bar is theirs and is left alone here.
             cancel();
             currentId = null;
+            onFocus = null;
+            applied = false;
+            manuallyChanged = false;
             if (clearNow && hushfeedCleared) emit(event, false);
             return;
         }
+        // The production condition holds only a weak reference to the current controller.
+        onFocus = () -> firstFrame(id, stillCurrent, event);
         if (!Settings.AUTOMATIC_CLEAR_DISPLAY.get()) {
             cancel();
             currentId = null;
+            applied = false;
+            manuallyChanged = false;
             // Not under the daily hold, whose panel needs TikTok's tabs back (leaveForHold).
             if (Settings.CLEAR_DISPLAY.get() && !SessionBudget.isLocked()) emit(event, true);
             // Switched off while it had the controls hidden: TikTok brings them back on the next
@@ -142,16 +163,24 @@ public final class RememberClearDisplayPatch {
             else if (automaticHidden) emit(event, false);
             return;
         }
-        if (id.equals(currentId)) return;
-        cancel();
-        currentId = id;
-        emit(event, false);
+        if (!id.equals(currentId)) {
+            cancel();
+            currentId = id;
+            applied = false;
+            manuallyChanged = false;
+            emit(event, false);
+        }
+        if (pending != null || applied || manuallyChanged) return;
+        long attempt = generation;
         pending = () -> {
+            if (attempt != generation) return;
             pending = null;
             if (Settings.AUTOMATIC_CLEAR_DISPLAY.get() && id.equals(currentId) && stillCurrent.holds()
                     && !SessionBudget.isLocked()) {
-                emit(event, true);
-                automaticHidden = true;
+                if (emit(event, true)) {
+                    applied = true;
+                    automaticHidden = true;
+                }
             }
         };
         MAIN.postDelayed(pending, Math.max(0, Math.min(30000, Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.get())));
@@ -170,6 +199,7 @@ public final class RememberClearDisplayPatch {
             return;
         }
         cancel();
+        applied = false;
         if (clearNow) emit(RememberClearDisplayPatch::postClear, false);
     }
 
@@ -177,6 +207,15 @@ public final class RememberClearDisplayPatch {
     static void resetForTests() {
         cancel();
         currentId = null;
+        onFocus = null;
+        applied = false;
+        manuallyChanged = false;
+        View old = window.get();
+        if (old != null) {
+            if (old.getViewTreeObserver().isAlive()) old.getViewTreeObserver().removeOnWindowFocusChangeListener(FOCUS);
+            old.removeOnAttachStateChangeListener(ATTACH);
+        }
+        window.clear();
         clearNow = false;
         hushfeedCleared = false;
         automaticHidden = false;
@@ -188,17 +227,25 @@ public final class RememberClearDisplayPatch {
         return clearNow;
     }
 
-    private static void emit(ClearEvent event, boolean clear) {
-        clearNow = clear;
-        hushfeedCleared = clear;
-        automaticHidden = false;
+    private static boolean emit(ClearEvent event, boolean clear) {
+        long dispatch = generation;
+        boolean wasPosting = posting;
         posting = true;
-        try { event.accept(clear); }
-        catch (RuntimeException error) { Logger.printException(() -> "Could not change clear display", error); }
-        finally { posting = false; }
+        try {
+            event.accept(clear);
+            if (dispatch != generation) return false;
+            clearNow = clear;
+            hushfeedCleared = clear;
+            automaticHidden = false;
+            return true;
+        } catch (RuntimeException error) {
+            Logger.printException(() -> "Could not change clear display", error);
+            return false;
+        } finally { posting = wasPosting; }
     }
 
     static void cancel() {
+        generation++;
         if (pending != null) MAIN.removeCallbacks(pending);
         pending = null;
     }
@@ -215,7 +262,14 @@ public final class RememberClearDisplayPatch {
         hushfeedCleared = false;
         // TikTok's own change: the state is TikTok's or the user's from here.
         automaticHidden = false;
-        cancelOnMain();
+        long observed = generation;
+        Runnable changed = () -> {
+            if (observed != generation) return;
+            manuallyChanged = true;
+            cancel();
+        };
+        if (Looper.myLooper() == Looper.getMainLooper()) changed.run();
+        else MAIN.post(changed);
         // Paused, TikTok's own clear mode is not remembered over the choice kept for later.
         if (Setting.isPaused()) return;
         Settings.CLEAR_DISPLAY.save((Boolean) clear);

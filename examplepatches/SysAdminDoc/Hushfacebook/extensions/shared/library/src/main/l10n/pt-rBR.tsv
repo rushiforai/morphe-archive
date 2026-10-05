@@ -243,7 +243,6 @@ The switch takes effect when Facebook restarts.	A opção entra em vigor quando 
 Use the system font	Usar a fonte do sistema
 Use the phone's emoji	Usar os emojis do celular
 Version	Versão
-Version %1$s for Facebook %2$s	Versão %1$s para o Facebook %2$s
 Videos go to %1$s and photos to %2$s.	Os vídeos vão para %1$s e as fotos para %2$s.
 Open web links in your browser. Facebook's own pages stay in the app.	Abre links da web no seu navegador. As páginas do próprio Facebook continuam abrindo no aplicativo.
 Record patch activity and show errors for a bug report. Leave off during normal use.	Registra a atividade dos patches e mostra os erros para um relatório de problema. Mantenha desativado durante o uso normal.
@@ -439,7 +438,6 @@ Try a different word or clear the search.	Tente outra palavra ou limpe a busca.
 Search settings	Buscar configurações
 Clear search	Limpar busca
 Your controls are active.	Seus controles estão ativos.
-Your choices are saved. Tap Resume, then restart Facebook.	Suas escolhas estão salvas. Toque em Retomar e depois reinicie o Facebook.
 Pause	Pausar
 Resume	Retomar
 Undo	Desfazer
@@ -649,3 +647,10 @@ Apply whole-word matching to both lists. For example, hat matches hat! but not w
 Off	Desativado
 On	Ativado
 Saved now %1$s. After import %2$s.	Salvo agora %1$s. Após importar %2$s.
+
+# context: Compact overview identity and the order for resuming. Source known does not mean signed or safe.
+Version %1$s	Versão %1$s
+Build %1$s (modified)	Build %1$s (modificada)
+Build %1$s (source known)	Build %1$s (origem conhecida)
+Build %1$s (source unknown)	Build %1$s (origem desconhecida)
+Tap Resume, then restart Facebook.	Toque em Retomar e reinicie o Facebook.

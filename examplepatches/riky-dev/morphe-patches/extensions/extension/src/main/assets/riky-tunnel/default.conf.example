@@ -1,0 +1,4 @@
+# Optional baked conf example (private builds only)
+
+Users normally import their own wg-quick `.conf` in-app.
+Do not commit real PrivateKey material.

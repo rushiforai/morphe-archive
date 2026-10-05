@@ -1,0 +1,347 @@
+# Brazilian Portuguese for HushPinterest: the English key, a tab, the translation. One row per string.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$d item in that file isn't a setting this version of HushPinterest knows, so it'll be left out.	%1$d item desse arquivo não é uma configuração conhecida por esta versão do HushPinterest e será ignorado.
+%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.	%1$d itens desse arquivo não são configurações conhecidas por esta versão do HushPinterest e serão ignorados.
+%1$d switch will change.	%1$d opção será alterada.
+%1$d switches will change.	%1$d opções serão alteradas.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Isso foi definido quando você aplicou os patches, então a pausa não pode desativá-lo. Para descartar essa possibilidade, aplique os patches novamente sem esse patch.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Esses itens foram definidos quando você aplicou os patches, então a pausa não pode desativá-los. Para descartar um deles, aplique os patches novamente sem o patch entre parênteses depois dele.
+A diagnostic report is already being saved.	Um relatório de diagnóstico já está sendo salvo.
+A file named %1$s in %2$s paused HushPinterest.	Um arquivo chamado %1$s em %2$s pausou o HushPinterest.
+About	Sobre
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	O Android 11 e as versões anteriores não informam quais links abrem aqui. Toque para abrir as configurações deste app e depois Abrir por padrão.
+Back	Voltar
+Cancel	Cancelar
+Clear diagnostic data	Limpar dados de diagnóstico
+Copy quick report	Copiar relatório rápido
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Não foi possível importar as configurações nem restaurar as que você tinha. Confira as opções nesta tela.
+Couldn't import the settings. Nothing was changed.	Não foi possível importar as configurações. Nada foi alterado.
+Couldn't open that file. Nothing was changed.	Não foi possível abrir esse arquivo. Nada foi alterado.
+Couldn't open the file picker. Try again.	Não foi possível abrir o seletor de arquivos. Tente de novo.
+Couldn't put back the diagnostic data. Try again.	Não foi possível restaurar os dados de diagnóstico. Tente de novo.
+Couldn't save the settings file. Try again.	Não foi possível salvar o arquivo de configurações. Tente de novo.
+Couldn't start that. Try again in a moment.	Não foi possível iniciar isso. Tente de novo em instantes.
+Couldn't start the report export. Try again shortly.	Não foi possível iniciar a exportação do relatório. Tente de novo daqui a pouco.
+Couldn't turn HushPinterest back on. Try again.	Não foi possível reativar o HushPinterest. Tente novamente.
+Debug logging	Registro de depuração
+Diagnostic data cleared. Tap again to put it back.	Dados de diagnóstico apagados. Toque de novo para restaurá-los.
+Diagnostic data put back.	Dados de diagnóstico restaurados.
+Diagnostic report copied to the clipboard.	Relatório de diagnóstico copiado para a área de transferência.
+Empties the log and the hook findings a report would include.	Apaga o registro e os resultados dos hooks que seriam incluídos em um relatório.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Todas as opções, exceto Registro de depuração, funcionam como se estivessem desativadas, e o que foi definido ao aplicar os patches permanece ativo. Suas configurações não são alteradas.
+Export diagnostic report	Exportar relatório de diagnóstico
+Export settings	Exportar configurações
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	A partir da próxima abertura, todas as opções, menos o Registro de depuração, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo, e suas escolhas ficam salvas.
+Hide ads	Ocultar anúncios
+Links, updates, backup and more	Links, atualizações, backup e mais
+Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Salve suas opções em um arquivo. Elas valem para todas as contas deste app do Pinterest. Pausa e Registro de depuração não são incluídos, nem a verificação de novas versões.
+Settings exported. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	Configurações exportadas. O app que guarda o arquivo não deixou o HushPinterest lê-lo de volta, então ele não foi conferido.
+The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.	O app que guarda esse arquivo está demorando demais, então o HushPinterest parou de esperar. Nada foi alterado.
+The app holding the last settings file still hasn't answered. Try again later.	O app do último arquivo de configurações ainda não respondeu. Tente de novo mais tarde.
+The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.	O app que guarda o arquivo de configurações está demorando demais, então o HushPinterest parou de esperar. Esse app ainda pode terminar de salvá-lo, então confira o arquivo antes de confiar nele.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	Não foi possível remover o arquivo %1$s. Exclua-o de %2$s e toque em Retomar de novo.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	O arquivo de configurações foi salvo, mas ao ser lido de volta não corresponde ao que foi gravado. Salve de novo como um arquivo novo.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Até você retomar, todas as opções, menos o Registro de depuração, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo.
+Full report saved to %1$s	Relatório completo salvo em %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, com os avisos dos projetos em que o HushPinterest se baseia
+HushPinterest is on	O HushPinterest está ativo
+HushPinterest is paused	O HushPinterest está pausado
+HushPinterest settings	Configurações do HushPinterest
+HushPinterest settings couldn't open	Não foi possível abrir as configurações do HushPinterest
+Import	Importar
+Import settings	Importar configurações
+Importing settings	Importando as configurações
+Licenses	Licenças
+Links	Links
+OK	OK
+Pause HushPinterest	Pausar o HushPinterest
+Reading the settings file	Lendo o arquivo de configurações
+Retry	Tentar novamente
+Save full report	Salvar relatório completo
+Check for new HushPinterest releases	Procurar novas versões do HushPinterest
+Ask GitHub once a day when Pinterest starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Consulta o GitHub uma vez por dia quando o Pinterest inicia e mostra uma versão mais nova no topo destas configurações. Desativado por padrão. Nada é baixado.
+Check now	Verificar agora
+Asks GitHub for the newest release right now, even with the switch above off.	Consulta o GitHub agora mesmo em busca da versão mais nova, mesmo que a opção acima esteja desativada.
+Checking GitHub now.	Consultando o GitHub agora.
+HushPinterest %1$s is out. Update it in Morphe Manager.	O HushPinterest %1$s está disponível. Atualize-o pelo Morphe Manager.
+You have the newest HushPinterest release.	Você já está usando a versão mais nova do HushPinterest.
+The newest HushPinterest release is %1$s.	A versão mais nova do HushPinterest é %1$s.
+Couldn't reach GitHub. Try again later.	Não foi possível conectar-se ao GitHub. Tente novamente mais tarde.
+GitHub is turning away checks from this network for now. Try again later.	O GitHub está recusando consultas desta rede por enquanto. Tente novamente mais tarde.
+GitHub's answer couldn't be used. Try again later.	Não foi possível usar a resposta do GitHub. Tente novamente mais tarde.
+Saving the settings file	Salvando o arquivo de configurações
+Set when you patched	Definido ao aplicar os patches
+Settings couldn't open	Não foi possível abrir as configurações
+Settings couldn't refresh completely. Reopen settings and try again.	Não foi possível atualizar completamente as configurações. Reabra as configurações e tente novamente.
+Settings exported.	Configurações exportadas.
+Settings imported. %1$d switch changed.	Configurações importadas. %1$d opção foi alterada.
+Settings imported. %1$d switches changed.	Configurações importadas. %1$d opções foram alteradas.
+Source code and issues	Código-fonte e relatos de problemas
+Stays in while paused	O que continua ativo na pausa
+Tap to turn it back on.	Toque para reativar.
+That file is too large to be a settings file. Nothing was changed.	Esse arquivo é grande demais para ser um arquivo de configurações. Nada foi alterado.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	Esse arquivo não contém texto legível, então pode ter sido corrompido durante o processo. Nada foi alterado.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	Esse arquivo contém uma configuração duplicada, então não é possível saber qual valor usar. Nada foi alterado.
+That isn't a HushPinterest settings file. Nothing was changed.	Isso não é um arquivo de configurações do HushPinterest. Nada foi alterado.
+That settings file holds a value HushPinterest can't read. Nothing was changed.	Esse arquivo de configurações tem um valor que o HushPinterest não consegue ler. Nada foi alterado.
+That settings file is damaged or only partly downloaded. Nothing was changed.	Esse arquivo de configurações está corrompido ou foi baixado apenas parcialmente. Nada foi alterado.
+That settings file was written by a newer HushPinterest than this one. Nothing was changed.	Esse arquivo de configurações foi criado por uma versão do HushPinterest mais nova que esta. Nada foi alterado.
+The diagnostic report couldn't be saved yet. Try again in a moment.	O relatório de diagnóstico ainda não pôde ser salvo. Tente de novo em instantes.
+The diagnostic report couldn't be saved. Try again.	Não foi possível salvar o relatório de diagnóstico. Tente de novo.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.	Não foi possível remover o arquivo %1$s. Exclua-o de %2$s para reativar o HushPinterest.
+The setting couldn't finish updating. Its saved value is shown.	Não foi possível concluir a atualização da configuração. O valor salvo está sendo mostrado.
+There's no diagnostic data to clear.	Não há dados de diagnóstico para limpar.
+There's no diagnostic data to put back.	Não há dados de diagnóstico para restaurar.
+This phone has no file picker, so there's no way to choose a file here.	Este dispositivo não tem seletor de arquivos, então não é possível escolher um arquivo aqui.
+Version	Versão
+Record patch activity and show errors for a bug report. Leave off during normal use.	Registra a atividade dos patches e mostra os erros para um relatório de problema. Mantenha desativado durante o uso normal.
+You paused HushPinterest.	Você pausou o HushPinterest.
+Your switches already match that file, so nothing will change.	Suas opções já correspondem às desse arquivo, então nada será alterado.
+Copy a short report to the clipboard.	Copie um relatório curto para a área de transferência.
+Settings imported.	Configurações importadas.
+No app on this phone can open the link. The address is %1$s.	Nenhum aplicativo neste dispositivo consegue abrir o link. O endereço é %1$s.
+Pause, backup and diagnostics	Pausa, backup e diagnóstico
+Updates	Atualizações
+Jump to a section	Ir para uma seção
+Go straight to one group of settings. Back returns to where you were.	Vá diretamente para um grupo de configurações. Voltar leva você de volta ao ponto em que estava.
+Browse settings	Explorar configurações
+More settings	Mais configurações
+No matching settings	Nenhuma configuração encontrada
+%1$d setting found	%1$d configuração encontrada
+%1$d settings found	%1$d configurações encontradas
+Try a different word or clear the search.	Tente outra palavra ou limpe a busca.
+Search settings	Buscar configurações
+Clear search	Limpar busca
+Your controls are active.	Seus controles estão ativos.
+Pause	Pausar
+Resume	Retomar
+Undo	Desfazer
+Supported links	Links compatíveis
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	“Abrir links compatíveis” está desativado para este app nas configurações do Android. Toque para ativar.
+Android didn't say which links open here. Tap to check in Android's settings.	O Android não informou quais links abrem aqui. Toque para conferir nas configurações do Android.
+Selecting links by hand	Selecionar links manualmente
+
+A change here applies after Pinterest restarts.	Uma alteração daqui vale depois que o Pinterest reiniciar.
+Android verified this app for Pinterest's web addresses, so their links open here.	O Android verificou este app para os endereços web do Pinterest, então os links deles abrem aqui.
+Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.	As configurações do Android para este app não abriram. Abra Informações do app pelo ícone do Pinterest e depois Abrir por padrão.
+HushPinterest %1$s on Pinterest %2$s	HushPinterest %1$s no Pinterest %2$s
+HushPinterest %1$s supports Pinterest %2$s.	O HushPinterest %1$s é compatível com o Pinterest %2$s.
+HushPinterest pauses when Pinterest restarts.	O HushPinterest será pausado quando o Pinterest for reiniciado.
+HushPinterest turns back on when Pinterest restarts.	O HushPinterest será reativado quando o Pinterest for reiniciado.
+It supports Pinterest %1$s.	Compatível com o Pinterest %1$s.
+None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Nenhum endereço web do Pinterest está selecionado para este app, então os links deles abrem em outro lugar. Toque para selecioná-los nas configurações do Android.
+Only some of Pinterest's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Só alguns endereços web do Pinterest estão selecionados para este app, e os links para os outros abrem em outro lugar. Toque para selecioná-los nas configurações do Android.
+Saved. Restart Pinterest to apply this change.	Salvo. Reinicie o Pinterest para aplicar esta alteração.
+# context: Immutable hook coverage shown when a patch has missing targets.
+This build has no coverage for %1$s.	Esta versão não cobre %1$s.
+This build covers %1$s. Missing coverage: %2$s.	Esta versão cobre %1$s. Falta cobertura para %2$s.
+Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.	O Pinterest fechou com erro ou travou no primeiro minuto após iniciar, três vezes seguidas, então o HushPinterest foi pausado automaticamente.
+Pinterest's web addresses are selected for this app in Android's settings, so their links open here.	Os endereços web do Pinterest estão selecionados para este app nas configurações do Android, então os links deles abrem aqui.
+Try again, or go back to Pinterest.	Tente novamente ou volte para o Pinterest.
+Release notes	Notas da versão
+Read HushPinterest releases on GitHub. Nothing is downloaded here.	Leia as versões do HushPinterest no GitHub. Nada é baixado aqui.
+Update instructions	Instruções de atualização
+Open the installation steps on GitHub.	Abra as etapas de instalação no GitHub.
+Your choices are saved. Tap Resume, then restart Pinterest.	Suas escolhas estão salvas. Toque em Retomar e depois reinicie o Pinterest.
+No HushPinterest release is out yet.	Ainda não há nenhuma versão do HushPinterest.
+Accounts	Contas
+Every switch here applies to all the accounts in this Pinterest app, not only the one you have open.	Cada opção aqui vale para todas as contas deste app do Pinterest, não só para a que está aberta.
+AI-labeled pins	Pins com selo de IA
+AI-labeled pins in lists	pins com selo de IA nas listas
+Android opens pinterest.com and pin.it links in a patched Pinterest only when their addresses are selected for it. Selecting them sends their links here, and your other link settings stay as they are.	O Android abre links de pinterest.com e pin.it em um Pinterest modificado só quando os endereços estão selecionados para ele. Ao selecioná-los, os links vêm para cá, e suas outras configurações de links continuam como estão.
+Feed	Feed
+Hide AI-labeled pins	Ocultar pins com selo de IA
+Pins that Pinterest labels as made or changed with AI leave the same lists. AI images without Pinterest's label still show.	Os pins que o Pinterest marca como criados ou alterados com IA saem das mesmas listas. Imagens de IA sem o selo do Pinterest continuam aparecendo.
+Promoted and AI-labeled pins	Pins promovidos e com selo de IA
+Promoted pins	Pins promovidos
+Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Os pins promovidos saem do feed inicial, da busca, dos pins relacionados e dos quadros antes de serem exibidos, e os painéis que só têm anúncios ficam recolhidos.
+ad-only views	telas só de anúncios
+promoted pins in lists	pins promovidos nas listas
+Privacy	Privacidade
+Pin actions	Ações do Pin
+Interface	Interface
+Hide shopping and product pins	Ocultar compras e Pins de produtos
+Shoppable pins, shopping stories and featured boards	Pins de compras, histórias de compras e pastas em destaque
+Disable analytics	Desativar análises
+Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Interrompe os envios de uso e o início dos serviços de análise. O Firebase Analytics continua desativado até você aplicar os patches sem este.
+Firebase Analytics collection is disabled	A coleta do Firebase Analytics está desativada
+Analytics launch tasks	Inicialização dos serviços de análise
+Analytics uploads	Envios de análises
+Strip link tracking	Remover rastreamento de links
+Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Remove parâmetros de rastreamento conhecidos dos links copiados e compartilhados. Os links curtos permanecem como o Pinterest os criou.
+Download pins	Baixar Pins
+Open links in your browser	Abrir links no seu navegador
+Open pin Visit links and profile websites in your browser.	Abra links de Visitar dos Pins e sites de perfis no seu navegador.
+System share sheet	Menu de compartilhamento do sistema
+Share uses Android's share sheet.	Compartilhar usa o menu do Android.
+No screenshot share menu	Sem menu ao tirar capturas de tela
+Hide search history	Ocultar histórico de pesquisa
+Hide navigation buttons	Ocultar botões de navegação
+Hide Create button	Ocultar botão Criar
+Hide Notifications button	Ocultar botão Notificações
+Hide header buttons	Ocultar botões do cabeçalho
+Filter pin menu	Filtrar menu do Pin
+Hide collage menu items	Ocultar opções de colagem
+Hide Search image menu item	Ocultar opção Buscar imagem
+Hide Promote pin menu item	Ocultar opção Promover Pin
+Hide comments	Ocultar comentários
+Quiet email reminders	Ocultar lembretes de e-mail
+Disable update nag	Ocultar aviso de atualização
+Download pin	Baixar Pin
+Share pin	Compartilhar Pin
+Open pin link	Abrir link do Pin
+Download started. Check Downloads.	Download iniciado. Confira Downloads.
+Pin saved.	Pin salvo.
+Couldn't save this pin.	Não foi possível salvar este Pin.
+Another pin is being saved. Try again when it's finished.	Outro Pin está sendo salvo. Tente novamente quando terminar.
+The file may have saved. Check your chosen save location.	O arquivo pode ter sido salvo. Confira o local escolhido.
+Couldn't remove the incomplete file. Check your chosen save location.	Não foi possível remover o arquivo incompleto. Confira o local escolhido.
+Queued	Na fila
+Downloading	Baixando
+Paused	Pausado
+Failed	Falhou
+Completed	Concluído
+Missing	Não encontrado
+Unavailable	Indisponível
+Android will retry the download.	O Android tentará baixar novamente.
+Waiting for a network connection.	Aguardando conexão de rede.
+Waiting for Wi-Fi.	Aguardando Wi-Fi.
+Paused by Android.	Pausado pelo Android.
+Not enough storage.	Espaço de armazenamento insuficiente.
+Download storage is unavailable.	O armazenamento de downloads está indisponível.
+The file already exists.	O arquivo já existe.
+Android couldn't resume the download.	O Android não conseguiu retomar o download.
+The download server couldn't complete the request.	O servidor de download não conseguiu concluir a solicitação.
+Android couldn't save the file.	O Android não conseguiu salvar o arquivo.
+Download failed.	O download falhou.
+Check Downloads for the saved file.	Procure o arquivo salvo em Downloads.
+Android no longer has this request. Check Downloads before saving again.	O Android não tem mais esta solicitação. Confira Downloads antes de salvar novamente.
+Couldn't check Downloads. Try again.	Não foi possível consultar Downloads. Tente novamente.
+Resume HushPinterest and turn on Download pins to retry.	Retome o HushPinterest e ative Baixar pins para tentar novamente.
+Open the pin again to get a fresh download link.	Abra o pin novamente para obter um novo link de download.
+This request can't be retried. Check Downloads or open the pin again.	Não é possível repetir esta solicitação. Confira Downloads ou abra o pin novamente.
+Download started, but its history couldn't be saved. Check Downloads.	O download começou, mas seu histórico não pôde ser salvo. Confira Downloads.
+History removed. Files and active downloads were kept.	Histórico removido. Os arquivos e downloads ativos foram mantidos.
+Couldn't remove this history entry. Try again.	Não foi possível remover esta entrada do histórico. Tente novamente.
+Couldn't open Downloads.	Não foi possível abrir Downloads.
+Couldn't open this pin.	Não foi possível abrir este pin.
+Download history	Histórico de downloads
+Check recent downloads started by HushPinterest.	Confira os downloads recentes iniciados pelo HushPinterest.
+Checking download history...	Consultando o histórico de downloads...
+Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads.	Só aparecem as 32 solicitações mais recentes do HushPinterest. Gerencie os downloads ativos em Downloads.
+No HushPinterest downloads in this history.	Não há downloads do HushPinterest neste histórico.
+Pin %s	Pin %s
+Retry download	Tentar baixar novamente
+Starts a new download. Android manages it.	Inicia um novo download. O Android o gerencia.
+Open pin	Abrir pin
+Remove from history	Remover do histórico
+Removes this history entry. Files and active downloads are kept.	Remove esta entrada do histórico. Os arquivos e downloads ativos são mantidos.
+Open Downloads	Abrir Downloads
+Refresh	Atualizar
+Saving	Salvando
+Interrupted	Interrompido
+Access unavailable	Acesso indisponível
+Save cleanup pending	Limpeza do salvamento pendente
+This save is still running. Try again when it's finished.	Este salvamento ainda está em andamento. Tente de novo quando terminar.
+Couldn't check your chosen save location. Open your Files app to inspect it.	Não foi possível verificar o local escolhido. Abra seu app de arquivos para conferir.
+Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.	Não foi possível confirmar a limpeza do salvamento. O arquivo foi mantido. Tente remover esta entrada do histórico de novo.
+Check your chosen save location before saving again. HushPinterest won't resume or delete this file.	Confira o local escolhido antes de salvar de novo. O HushPinterest não vai retomar nem excluir este arquivo.
+Save history removed. The file was kept.	Histórico do salvamento removido. O arquivo foi mantido.
+Couldn't record the save location. No file data was written.	Não foi possível registrar o local. Nenhum dado foi gravado no arquivo.
+Save history is full. Remove an old entry before saving another pin.	O histórico de salvamentos está cheio. Remova uma entrada antiga antes de salvar outro Pin.
+Pending saves	Salvamentos pendentes
+Check unfinished file picker saves. Files are kept.	Confira salvamentos inacabados do seletor de arquivos. Os arquivos são mantidos.
+Checking pending saves...	Verificando salvamentos pendentes...
+No pending HushPinterest saves.	Nenhum salvamento pendente do HushPinterest.
+Only unfinished saves are listed. Check your chosen location before saving again.	Só os salvamentos inacabados são listados. Confira o local escolhido antes de salvar de novo.
+Pin saved. Check Pending saves if its history remains.	Pin salvo. Confira Salvamentos pendentes se o histórico ainda aparecer.
+Download unavailable	Download indisponível
+Supplied media details	Detalhes da mídia fornecida
+These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Estes detalhes vêm da URL da mídia e dos metadados fornecidos pelo Pinterest. O arquivo não foi inspecionado.
+Supplied width: %s	Largura fornecida: %s
+Supplied height: %s	Altura fornecida: %s
+Supplied URL type: %s	Tipo da URL fornecida: %s
+%d pixels	%d pixels
+Unknown	Desconhecido
+Close	Fechar
+Couldn't show the supplied media details. Open the pin again and try again.	Não foi possível mostrar os detalhes fornecidos. Abra o Pin de novo e tente outra vez.
+Pinterest supplied an adaptive video stream, but no downloadable MP4.	O Pinterest forneceu um fluxo de vídeo adaptativo, mas nenhum MP4 para download.
+Pinterest hasn't supplied a downloadable MP4 for this pin.	O Pinterest não forneceu um MP4 para download deste Pin.
+Pinterest hasn't supplied an original image to download.	O Pinterest não forneceu uma imagem original para download.
+The supplied original image type isn't supported for download.	O tipo da imagem original fornecida não é compatível com download.
+The supplied media link isn't a supported public Pinterest link.	O link da mídia fornecida não é um link público compatível do Pinterest.
+Couldn't start the download. Check system Downloads and try again.	Não foi possível iniciar o download. Confira os Downloads do sistema e tente de novo.
+Couldn't open a save location. Try again from the pin.	Não foi possível abrir um local para salvar. Tente de novo a partir do Pin.
+Couldn't complete the save. Check your connection and chosen save location.	Não foi possível concluir o salvamento. Confira a conexão e o local escolhido.
+Couldn't write to the chosen save location. Check its access and available space.	Não foi possível gravar no local escolhido. Confira o acesso e o espaço disponível.
+Couldn't download this pin. Check your connection and try again.	Não foi possível baixar este Pin. Confira a conexão e tente de novo.
+Couldn't prepare this pin for download. Open the pin again and try again.	Não foi possível preparar este Pin para download. Abra o Pin de novo e tente outra vez.
+%1$s (%2$s to %3$s)	%1$s (de %2$s para %3$s)
+Saved choice only. This build doesn't include this control.	Apenas a escolha salva. Esta versão não inclui este controle.
+Undoing import	Desfazendo importação
+Import undone. Your earlier switches are back.	Importação desfeita. Seus ajustes anteriores foram restaurados.
+Undo ended because a saved switch changed.	Não é mais possível desfazer porque um ajuste salvo mudou.
+There's no import to undo.	Não há importação para desfazer.
+Couldn't undo the import. Your imported switches are unchanged.	Não foi possível desfazer a importação. Seus ajustes importados não mudaram.
+Couldn't undo the import or restore the imported switches. Check the switches on this screen.	Não foi possível desfazer a importação nem restaurar os ajustes importados. Confira os ajustes nesta tela.
+Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Restaure os ajustes anteriores à última importação. Alterar um ajuste ou reiniciar o Pinterest encerra a opção de desfazer.
+Undo import	Desfazer importação
+Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Escolha um arquivo de configurações. Confira o nome e os valores antigos e novos de cada ajuste antes de importar. Suas escolhas valem para todas as contas neste app do Pinterest.
+On	Ativado
+Off	Desativado
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copie um relatório rápido ou salve o completo em %1$s. Links, IDs, cookies e tokens de login são omitidos. Confira outros textos privados antes de compartilhar.
+Save the full report in %1$s.	Salve o relatório completo em %1$s.
+Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copie um relatório rápido. O armazenamento de relatórios está indisponível agora. Links, IDs, cookies e tokens de login são omitidos. Confira outros textos privados antes de compartilhar.
+Report storage is unavailable right now. You can still copy a quick report.	O armazenamento de relatórios está indisponível agora. Você ainda pode copiar um relatório rápido.
+Hides new Play Store update prompts. An open prompt won't change.	Oculta novos avisos de atualização da Play Store. Um aviso aberto não muda.
+Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work.	Impede sugestões de compartilhamento de capturas de tela após reiniciar o Pinterest. As capturas continuam funcionando.
+Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Oculta linhas e carrosséis de pesquisas recentes na próxima atualização de layout ou visibilidade. Não apaga o histórico da conta.
+Hides Create in the bottom bar on its next layout.	Oculta Criar na barra inferior na próxima atualização de layout.
+Hides Notifications in the bottom bar on its next layout.	Oculta Notificações na barra inferior na próxima atualização de layout.
+Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Oculta os ícones no fim do cabeçalho na próxima atualização de layout. Voltar, ações de texto e controles da conta continuam disponíveis.
+Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Oculta Adicionar à colagem e Remixar colagem nos menus de Pin recém-criados. Um menu existente não muda.
+Hides Search image in newly created pin menus. An existing menu won't change.	Oculta Buscar imagem nos menus de Pin recém-criados. Um menu existente não muda.
+Hides Promote pin in newly created pin menus. An existing menu won't change.	Oculta Promover Pin nos menus de Pin recém-criados. Um menu existente não muda.
+Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Oculta painéis e prévias de comentários abaixo dos Pins na próxima atualização de layout ou visibilidade. Não muda quem pode comentar.
+Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Dispensa lembretes opcionais de confirmação de e-mail recém-criados. Um lembrete aberto não muda. As verificações de confirmação e login continuam valendo.
+Save media	Salvar mídia
+Recent searches autocomplete	Preenchimento automático de pesquisas recentes
+Activity alerts	Alertas de atividade
+Toolbar icons	Ícones da barra de ferramentas
+Reverse image search	Pesquisa reversa de imagens
+Boost pin	Impulsionar Pin
+Setup and backup guide	Guia de configuração e backup
+Optional help with sign-in, supported links, patch choices and backups.	Ajuda opcional para entrar, abrir links compatíveis, escolher patches e fazer backups.
+Installed patches and switches	Patches instalados e opções
+Choose the patches when you build the app in Morphe Manager. The switches here can control only patches included in that build. Changing switches doesn't add or remove patches. Pause keeps your saved choices, but changes made while patching remain in the app.	Escolha os patches ao gerar o aplicativo no Morphe Manager. As opções aqui só controlam os patches incluídos nessa compilação. Alterá-las não adiciona nem remove patches. Pausar mantém suas escolhas salvas, mas as alterações feitas ao aplicar os patches continuam no aplicativo.
+Sign in to your existing account	Entre na sua conta existente
+Use the email linked to your existing Pinterest account and a Pinterest password. Google sign-in isn't supported with this build's changed signing key. Pinterest no longer offers Facebook login. Push notifications haven't been verified.	Use o e-mail vinculado à sua conta existente do Pinterest e uma senha do Pinterest. O login com Google não é compatível com a nova chave de assinatura desta compilação. O Pinterest não oferece mais login com Facebook. As notificações push ainda não foram verificadas.
+If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.	Se você se cadastrou pelo Google ou não sabe sua senha do Pinterest, escolha Esqueceu sua senha? na página de login do Pinterest. Informe o e-mail já vinculado a essa conta e use o link enviado por e-mail para definir uma senha do Pinterest. Ela é diferente da sua senha do Google. Você não precisa desvincular o Google.
+Pinterest password help	Ajuda do Pinterest com a senha
+Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.	Assinar novamente pode impedir a verificação automática de links. Você pode escolher os endereços web nas configurações Abrir por padrão do Android.
+Open link settings	Abrir configurações de links
+Back up before changing builds	Faça backup antes de trocar de compilação
+Export settings saves HushPinterest's feature switches. It doesn't include your Pinterest account, pins, downloaded files or Morphe Manager's signing key. Keep the settings file and Manager's signing-key backup somewhere you can find them.	Exportar configurações salva as opções de recursos do HushPinterest. Não inclui sua conta do Pinterest, Pins, arquivos baixados nem a chave de assinatura do Morphe Manager. Guarde o arquivo de configurações e o backup da chave de assinatura do Manager em um lugar onde possa encontrá-los.
+An accepted upgrade signed with the same key keeps the app's data. A build with a different key isn't a compatible update, and Android may refuse a downgrade. Keep the installed app and its data if an update is refused.	Uma atualização aceita e assinada com a mesma chave mantém os dados do aplicativo. Uma compilação com outra chave não é uma atualização compatível, e o Android pode recusar uma versão anterior. Se uma atualização for recusada, mantenha o aplicativo instalado e seus dados.
+Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.	A exportação de dados do Pinterest é separada de Exportar configurações. A página de ajuda do Pinterest explica como solicitar seus dados pessoais da conta que você já usa.
+Pinterest data export help	Ajuda do Pinterest para exportar dados
+Couldn't open the setup guide. Try again.	Não foi possível abrir o guia de configuração. Tente novamente.
+Download visible pins	Baixar Pins visíveis
+A pin selection is still being saved.	Uma seleção de Pins ainda está sendo salva.
+No visible pins are available. Open a pin menu from the grid and try again.	Nenhum Pin visível disponível. Abra o menu de um Pin na grade e tente novamente.
+Select visible pins (up to %d)	Selecionar Pins visíveis (até %d)
+Queue selected	Adicionar seleção à fila
+Couldn't open the pin selection. Try again from the grid.	Não foi possível abrir a seleção de Pins. Tente novamente pela grade.
+Stop selection	Parar seleção
+Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Na fila: %d\nSalvos: %d\nIgnorados: %d\nNão compatíveis: %d\nFalhas: %d
+Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Parar mantém os downloads já iniciados. Seleções não iniciadas terminam quando o Pinterest fecha.
+History could not be saved for %d results. Check Downloads or your chosen files.	Não foi possível salvar o histórico de %d resultados. Confira Downloads ou os arquivos escolhidos.
+Saved	Salvo
+Skipped	Ignorado
+Unsupported	Não compatível
+Saved to the location you chose.	Salvo no local escolhido.
+No download was queued. The selection was stopped, canceled or unavailable.	Nenhum download foi adicionado à fila. A seleção foi parada, cancelada ou estava indisponível.
+Pinterest didn't supply supported media for this pin.	O Pinterest não forneceu mídia compatível para este Pin.
+Download a pin or select visible grid pins. Saves supplied original images and videos.	Baixe um Pin ou selecione Pins visíveis na grade. Salva imagens originais e vídeos fornecidos.
+Android 9 uses the file picker. Results from visible-pin selections appear here.	O Android 9 usa o seletor de arquivos. Os resultados das seleções de Pins visíveis aparecem aqui.
+Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Apenas os 32 downloads e resultados de seleção mais recentes são listados. Os arquivos salvos são mantidos.

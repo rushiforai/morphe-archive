@@ -1,20 +1,6 @@
 package app.tkiethuynh.patches.proxman
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 
-internal fun MutableMethod.replaceBodyWith(smali: String) {
-    val impl = implementation!!
-    impl.tryBlocks.clear()
-    impl.removeInstructions(impl.instructions.size)
-    addInstructions(0, smali.trimIndent())
-}
-
-internal const val RETURN_TRUE_BODY = """
-    const/4 v0, 0x1
-    return v0
-"""
 
 // Smali fragments that leave the desired value in v2 for a subsequent map put.
 internal object V2 {

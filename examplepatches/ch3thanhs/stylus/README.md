@@ -13,10 +13,16 @@ A collection of font related [Morphe](https://morphe.software) patches.
 > - If you already patched Reddit using Stylus, your install continues to work and nothing needs to change.
 > - For all future Reddit patching, use the official Morphe source.
 
+> [!NOTE]
+> **Telegram** dependency
+>
+> Telegram font patch needs the `Bypass integrity check` patch from - [Doom's Morphe Patches](https://github.com/rushiranpise/morphe-patches/blob/main/PATCHES.md#telegram-orgtelegrammessenger)
+
+
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.5.4](https://github.com/ch3thanhs/stylus/releases/tag/v1.5.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.6.0](https://github.com/ch3thanhs/stylus/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
 <summary>📦 GitHub&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -51,17 +57,17 @@ A collection of font related [Morphe](https://morphe.software) patches.
 </details>
 
 <details open>
-<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Telegram&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 439.0.0.37.89 |
+| 12.10.6 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Force system font (Instagram)](#force-system-font-instagram) | Renders Instagram UI text using the device system font. |  |
+| [Force system font (Telegram)](#force-system-font-telegram) | Renders the app using the device's system font instead of Telegram's bundled font. |  |
 
 </details>
 

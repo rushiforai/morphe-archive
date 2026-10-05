@@ -73,6 +73,9 @@ body:
         - Disable call debug upload
         - Disable chat swipe actions
         - Disable pull to next channel
+        - Use normal paste
+        - Show user and chat IDs
+        - Disable double-tap reactions
         - Disable draft link previews
         - Disable update checks
         - Gallery camera on tap

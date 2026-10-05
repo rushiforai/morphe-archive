@@ -7,9 +7,8 @@ package app.morphe.patches.strava.subscription
 import app.morphe.patcher.Fingerprint
 
 internal object GetSubscribedFingerprint : Fingerprint(
-    returnType = "Z",
-    custom = { method, classDef ->
-        method.name == "getSubscribed" && classDef.endsWith("/SubscriptionDetailResponse;")
-    },
+    definingClass = "/SubscriptionDetailResponse;",
+    name = "getSubscribed",
+    returnType = "Z"
 )
 

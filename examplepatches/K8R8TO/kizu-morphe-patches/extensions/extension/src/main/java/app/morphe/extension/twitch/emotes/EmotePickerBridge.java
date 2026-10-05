@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import app.morphe.extension.Utils;
+import app.morphe.extension.settings.SettingsUi;
 import io.github.bakwudo.uyu.extension.settings.Settings;
 
 public final class EmotePickerBridge {
@@ -233,7 +234,9 @@ public final class EmotePickerBridge {
         TextView thirdParty = new TextView(activity);
         thirdParty.setTag(COMPOSER_BUTTON_TAG);
         thirdParty.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-        thirdParty.setCompoundDrawablesWithIntrinsicBounds(new WinkIconDrawable(dp(activity, 22)), null, null, null);
+        thirdParty.setCompoundDrawablesWithIntrinsicBounds(
+                new WinkIconDrawable(dp(activity, 22), SettingsUi.primaryTextColor(activity)),
+                null, null, null);
         thirdParty.setGravity(Gravity.CENTER);
         thirdParty.setContentDescription("Third-party emote picker");
         thirdParty.setClickable(true);
@@ -253,7 +256,7 @@ public final class EmotePickerBridge {
         });
 
         View divider = new View(activity);
-        divider.setBackgroundColor(Color.argb(72, 255, 255, 255));
+        divider.setBackgroundColor(SettingsUi.dividerColor(activity));
 
         LinearLayout.LayoutParams thirdPartyParams =
                 new LinearLayout.LayoutParams(dp(activity, 40), nativeHeight);
@@ -514,13 +517,23 @@ public final class EmotePickerBridge {
         LinearLayout root = new LinearLayout(activity);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(activity, 8), dp(activity, 8), dp(activity, 8), dp(activity, 8));
-        root.setBackgroundColor(Color.rgb(24, 24, 27));
+        int surfaceColor = SettingsUi.surfaceColor(activity);
+        int alternateColor = SettingsUi.alternateBackgroundColor(activity);
+        int textColor = SettingsUi.primaryTextColor(activity);
+        int secondaryTextColor = SettingsUi.secondaryTextColor(activity);
+        root.setBackgroundColor(surfaceColor);
 
         EditText search = new EditText(activity);
         search.setSingleLine(true);
         search.setHint("Search emotes");
         search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         search.setPadding(dp(activity, 10), 0, dp(activity, 10), 0);
+        search.setTextColor(textColor);
+        search.setHintTextColor(secondaryTextColor);
+        GradientDrawable searchBackground = new GradientDrawable();
+        searchBackground.setColor(alternateColor);
+        searchBackground.setCornerRadius(dp(activity, 8));
+        search.setBackground(searchBackground);
         root.addView(search, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, dp(activity, 40)));
 
@@ -537,6 +550,7 @@ public final class EmotePickerBridge {
         status.setGravity(Gravity.CENTER);
         status.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         status.setText("Loading third-party emotes...");
+        status.setTextColor(secondaryTextColor);
         root.addView(status, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, dp(activity, 28)));
 
@@ -551,7 +565,7 @@ public final class EmotePickerBridge {
                 true
         );
         GradientDrawable background = new GradientDrawable();
-        background.setColor(Color.rgb(24, 24, 27));
+        background.setColor(surfaceColor);
         background.setCornerRadius(dp(activity, 12));
         popup.setBackgroundDrawable(background);
         popup.setOutsideTouchable(true);
@@ -1061,10 +1075,12 @@ public final class EmotePickerBridge {
     private static final class WinkIconDrawable extends Drawable {
         private final android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
         private final int size;
+        private final int color;
 
-        WinkIconDrawable(int size) {
+        WinkIconDrawable(int size, int color) {
             this.size = size;
-            paint.setColor(Color.rgb(225, 225, 225));
+            this.color = color;
+            paint.setColor(color);
             paint.setStyle(android.graphics.Paint.Style.STROKE);
             paint.setStrokeCap(android.graphics.Paint.Cap.ROUND);
             paint.setStrokeJoin(android.graphics.Paint.Join.ROUND);

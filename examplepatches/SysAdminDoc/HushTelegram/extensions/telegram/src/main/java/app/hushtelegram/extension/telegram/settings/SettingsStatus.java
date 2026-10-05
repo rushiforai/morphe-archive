@@ -47,6 +47,14 @@ public final class SettingsStatus {
     public static boolean hidePopularApps() { return false; }
     public static boolean disableChatSwipe() { return false; }
     public static boolean disableChannelPull() { return false; }
+    public static boolean normalPaste() { return false; }
+    public static boolean showLocalIds() { return false; }
+    public static boolean disableDoubleTapReactions() { return false; }
+    public static boolean composePlainPaste() { return false; }
+    public static boolean captionPlainPaste() { return false; }
+    public static boolean profileLocalIds() { return false; }
+    public static boolean chatDoubleTapReaction() { return false; }
+    public static boolean previewDoubleTapReaction() { return false; }
     public static boolean quietContactsNag() { return false; }
     public static boolean holidayLook() { return false; }
     public static boolean storyRequests() { return false; }

@@ -9,9 +9,8 @@ import app.morphe.patches.shared.misc.extension.ExtensionHook
 import app.morphe.patches.shared.misc.extension.sharedExtensionPatch
 
 internal object MessengerApplicationOnCreateFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "onCreate" && classDef.endsWith("/MessengerApplication;")
-    },
+    definingClass = "/MessengerApplication;",
+    name = "onCreate"
 )
 
 internal val messengerApplicationOnCreateHook = ExtensionHook(

@@ -34,6 +34,7 @@ import org.w3c.dom.Element
 import org.w3c.dom.Document
 import java.net.URI
 import java.io.File
+import java.security.MessageDigest
 import java.util.Locale
 
 private const val EXTENSION = "Lapp/morphe/extension/chmate/Haiagaru;"
@@ -380,7 +381,7 @@ private fun BytecodePatchContext.patchEdgeArchiveToolbar(
         "Ljp/syoboi/a2chMate/feature/toolbar/ToolbarDefault;"
     }
 
-    fun MutableMethod.wrapModelReturns() {
+    fun MutableMethod.wrapModelReturns(includeMarkAllRead: Boolean = false) {
         val indexes = implementation?.instructions
             ?.withIndex()
             ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
@@ -388,11 +389,16 @@ private fun BytecodePatchContext.patchEdgeArchiveToolbar(
             .orEmpty()
         for (index in indexes.asReversed()) {
             val register = (implementation!!.instructions[index] as OneRegisterInstruction).registerA
+            val markAllRead = if (includeMarkAllRead) """
+                invoke-static/range { v$register .. v$register }, $EXTENSION->addMarkAllReadToolbarChoice(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object v$register
+            """.trimIndent() else ""
             addInstructionsWithLabels(
                 index,
                 """
                     invoke-static/range { v$register .. v$register }, $EXTENSION->addEdgeArchiveToolbarChoice(Ljava/lang/Object;)Ljava/lang/Object;
                     move-result-object v$register
+                    $markAllRead
                 check-cast v$register, $toolbarModelType
                 """.trimIndent(),
             )
@@ -406,7 +412,7 @@ private fun BytecodePatchContext.patchEdgeArchiveToolbar(
         throw PatchException("ホームツールバーの生成メソッドを特定できません: $versionName")
     }
     homeToolbarMethods.forEach { method ->
-        mutableClassDefBy(profile.homeFragmentClass).findMutableMethodOf(method).wrapModelReturns()
+        mutableClassDefBy(profile.homeFragmentClass).findMutableMethodOf(method).wrapModelReturns(includeMarkAllRead = true)
     }
 
     // A board's thread list owns a separate toolbar model.  Patching the
@@ -461,7 +467,7 @@ private fun BytecodePatchContext.patchEdgeArchiveToolbar(
             throw PatchException("ツールバー項目一覧の生成メソッドを特定できません: $versionName")
         }
         catalogMethods.forEach { method ->
-            mutableClassDefBy(catalogDescriptor).findMutableMethodOf(method).wrapModelReturns()
+            mutableClassDefBy(catalogDescriptor).findMutableMethodOf(method).wrapModelReturns(includeMarkAllRead = true)
         }
     }
 
@@ -664,6 +670,177 @@ private fun BytecodePatchContext.patchQuickFilterToolbar(version: String) {
     // Compose row while the compact toolbar option is enabled.
 }
 
+/** Board display settings and the post-bookmark thread list are separate flows. */
+private fun BytecodePatchContext.patchReadThreadsFirst(version: String) {
+    if (version == "0.8.10.191 dev" || version == "0.8.10.226 dev") {
+        val adapterType = if (version == "0.8.10.191 dev") "Lo/m8a;" else "Lo/getWriteBytesTotal;"
+        val adapterMethod = if (version == "0.8.10.191 dev") "e" else "b"
+        val adapter = mutableClassDefBy(adapterType).methods.single { method ->
+            method.name == adapterMethod && method.returnType == "V" &&
+                method.parameters.size == 7 && method.parameters[0].toString() == "Ljava/util/ArrayList;"
+        }
+        val notifyIndex = adapter.implementation!!.instructions.indexOfLast { instruction ->
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.name == "notifyDataSetChanged" && ref.parameterTypes.isEmpty()
+        }
+        check(notifyIndex >= 0) { "$version legacy board adapter has no final notify" }
+        adapter.addInstructionsWithLabels(notifyIndex,
+            "invoke-static/range {p0 .. p0}, " +
+                "Lapp/morphe/extension/chmate/ReadThreadsFirst;->reorderLegacyAdapter(Ljava/lang/Object;)V")
+        val rebuild = mutableClassDefBy(adapterType).methods.single { method ->
+            method.name == "d" && method.returnType == "V" && method.parameters.isEmpty()
+        }
+        val rebuildNotifyIndex = rebuild.implementation!!.instructions.indexOfLast { instruction ->
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.name == "notifyDataSetChanged" && ref.parameterTypes.isEmpty()
+        }
+        check(rebuildNotifyIndex >= 0) { "$version legacy board rebuild has no final notify" }
+        rebuild.addInstructionsWithLabels(rebuildNotifyIndex,
+            "invoke-static/range {p0 .. p0}, " +
+                "Lapp/morphe/extension/chmate/ReadThreadsFirst;->reorderLegacyAdapter(Ljava/lang/Object;)V")
+        if (version == "0.8.10.191 dev") {
+            val dialog = mutableClassDefBy("Lo/onRewardedAdDisplayFailed;")
+                .methods.single { it.name == "onViewCreated" && it.parameters.size == 2 }
+            val returnIndex = dialog.implementation!!.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+            check(returnIndex >= 0) { "191 display dialog has no return" }
+            dialog.addInstructionsWithLabels(returnIndex,
+                "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/ReadThreadsFirst;->attachLegacyDialog(Ljava/lang/Object;)V")
+        } else {
+            val settingsContent = mutableClassDefBy("Lo/enB54;").methods.single { method ->
+                method.implementation?.instructions?.any { instruction ->
+                    val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    ref?.definingClass == "Lo/setUserAgentString;" && ref.name == "b" &&
+                        ref.parameterTypes.size == 9
+                } == true
+            }
+            // Each board-type branch closes its inner Compose scope after its
+            // last checkbox. Insert before that close so the row appears last
+            // in both branches (and is not bypassed by a branch target).
+            val instructions = settingsContent.implementation!!.instructions
+            val checkboxes = instructions.withIndex().filter { (_, instruction) ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == "Lo/setUserAgentString;" && ref.name == "b" &&
+                    ref.parameterTypes.size == 9
+            }
+            check(checkboxes.size == 8) { "226 display-setting checkbox layout changed: ${checkboxes.size}" }
+            for (lastCheckbox in listOf(checkboxes[5], checkboxes[7]).asReversed()) {
+                val call = lastCheckbox.value as? RegisterRangeInstruction
+                    ?: error("226 display checkbox invocation is not a range")
+                val composerRegister = call.startRegister + 6
+                val close = (lastCheckbox.index + 1 until instructions.size).firstOrNull { index ->
+                    val ref = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+                    ref?.definingClass == "Lo/getValue;" && ref.name == "i" &&
+                        ref.returnType == "V" && ref.parameterTypes.isEmpty()
+                } ?: error("226 board-type Compose scope close missing")
+                settingsContent.addInstructionsWithLabels(close,
+                    "invoke-static/range {v$composerRegister .. v$composerRegister}, " +
+                        "Lapp/morphe/extension/chmate/ReadThreadsFirst;->render226(Ljava/lang/Object;)V")
+            }
+        }
+        return
+    }
+    if (version == "0.8.10.241") {
+    val checkboxOwner = mutableClassDefBy("Lo/zaaj;")
+    val compose = checkboxOwner.methods.single { method ->
+        method.name == "invoke" && method.parameters.size == 3 && method.implementation != null
+    }
+    val instructions = compose.implementation!!.instructions
+    val starLabel = instructions.indexOfFirst { instruction ->
+        val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass == "Lo/SignInConnectionListener;" && ref.name == "l" && ref.parameterTypes.isEmpty()
+    }
+    check(starLabel >= 0) { "241 board display-settings star label missing" }
+    val checkboxIndex = (starLabel + 1 until instructions.size).lastOrNull { index ->
+        val ref = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass == "Lo/zaak;" && ref.name == "e" && ref.parameterTypes.size == 5
+    } ?: error("241 board display-settings checkbox missing")
+    val checkboxCall = instructions[checkboxIndex] as? FiveRegisterInstruction
+        ?: error("241 board display-settings checkbox register format changed")
+    val composerRegister = checkboxCall.registerF
+    compose.addInstructionsWithLabels(
+        checkboxIndex + 1,
+        "invoke-static/range {v$composerRegister .. v$composerRegister}, " +
+            "Lapp/morphe/extension/chmate/ReadThreadsFirst;->render(Ljava/lang/Object;)V",
+    )
+    } else if (version == "0.8.10.242 dev" || version == "0.8.10.243 dev") {
+        if (version == "0.8.10.242 dev") {
+            val checkItem = mutableClassDefBy("Lo/zzaxj;").methods.single { method ->
+                method.name == "b" && method.returnType == "V" &&
+                    method.parameters.size == 3 && method.implementation != null
+            }
+            val composeScope = checkItem.implementation!!.instructions.indexOfFirst { instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == "Lo/Y;" && ref.name == "a" &&
+                    ref.returnType == "Lo/Y;"
+            }
+            check(composeScope >= 0) { "242 setting Compose scope missing" }
+            checkItem.addInstructionsWithLabels(composeScope + 2,
+                "invoke-static {p0}, " +
+                    "Lapp/morphe/extension/chmate/ReadThreadsFirst;->syncCompose242CheckItem(Ljava/lang/Object;)V")
+            val checkbox = mutableClassDefBy("Lo/zzaxz;").methods.single { method ->
+                method.name == "a" && method.returnType == "V" &&
+                    method.parameters.map(CharSequence::toString) == listOf(
+                        "Lo/zzajk;", "Z", "I", "Lo/zzcbx;", "Lo/Y;", "I")
+            }
+            val checkboxScope = checkbox.implementation!!.instructions.indexOfFirst { instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == "Lo/Y;" && ref.name == "a" &&
+                    ref.returnType == "Lo/Y;"
+            }
+            check(checkboxScope >= 0) { "242 checkbox Compose scope missing" }
+            checkbox.addInstructionsWithLabels(checkboxScope + 2,
+                "invoke-static {p2, p1}, " +
+                    "Lapp/morphe/extension/chmate/ReadThreadsFirst;->compose242CheckedForLabel(IZ)Z\n" +
+                    "move-result p1")
+        }
+        val builderType = if (version == "0.8.10.242 dev") "Lo/zzaxz;" else "Lo/zzenf;"
+        val builderName = if (version == "0.8.10.242 dev") "a" else "b"
+        val builder = mutableClassDefBy(builderType).methods.single { method ->
+            method.name == builderName && method.returnType == "Ljava/util/List;" &&
+                method.parameters.size == 4 &&
+                method.parameters[2].toString() ==
+                    "Ljp/syoboi/a2chMate/fragment/dialog/ThreadListSettingDialogViewModel;"
+        }
+        val returns = builder.implementation!!.instructions.withIndex()
+            .filter { it.value.opcode == Opcode.RETURN_OBJECT }.asReversed()
+        check(returns.isNotEmpty()) { "$version display-setting builder has no return" }
+        for ((index, instruction) in returns) {
+            val register = (instruction as OneRegisterInstruction).registerA
+            builder.addInstructionsWithLabels(index,
+                "invoke-static/range {v$register .. v$register}, " +
+                    "Lapp/morphe/extension/chmate/ReadThreadsFirst;->appendComposeSetting(Ljava/util/List;)V")
+        }
+    }
+
+    val viewModel = mutableClassDefBy("Ljp/syoboi/a2chMate/ui/threadlist/ThreadListViewModel;")
+    val mappingNames = when (version) {
+        "0.8.10.241" -> listOf("a", "c")
+        "0.8.10.242 dev" -> listOf("b", "d")
+        "0.8.10.243 dev" -> listOf("c", "e")
+        else -> error("Unsupported thread-list mapping: $version")
+    }
+    for (name in mappingNames) {
+        val applyBookmarks = viewModel.methods.single { method ->
+            method.name == name && method.returnType == "Ljava/util/List;" &&
+                method.parameters.map(CharSequence::toString) == listOf(
+                    "Ljp/syoboi/a2chMate/ui/threadlist/ThreadListViewModel;",
+                    "Ljava/util/List;", "Ljava/util/Map;",
+                )
+        }
+        val returns = applyBookmarks.implementation!!.instructions.withIndex()
+            .filter { it.value.opcode == Opcode.RETURN_OBJECT }.asReversed()
+        check(returns.isNotEmpty()) { "$version bookmark mapping $name has no return" }
+        for ((index, instruction) in returns) {
+            val register = (instruction as OneRegisterInstruction).registerA
+            applyBookmarks.addInstructionsWithLabels(
+                index,
+                "invoke-static/range {v$register .. v$register}, " +
+                "Lapp/morphe/extension/chmate/ReadThreadsFirst;->reorderMapped(Ljava/util/List;)V",
+            )
+        }
+    }
+}
+
 private val haiagaruBytecodePatch = bytecodePatch {
     compatibleWith(chMateCompatibility)
     extendWith("extensions/chmate.mpe")
@@ -673,6 +850,9 @@ private val haiagaruBytecodePatch = bytecodePatch {
 
         patchEdgeArchiveToolbar(profile, packageMetadata.versionName)
         patchQuickFilterToolbar(packageMetadata.versionName)
+        if (packageMetadata.versionName in listOf("0.8.10.191 dev", "0.8.10.226 dev", "0.8.10.241", "0.8.10.242 dev")) {
+            patchReadThreadsFirst(packageMetadata.versionName)
+        }
 
         patchNgRegistrationLimit()
 
@@ -881,6 +1061,18 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 patchLegacyCellularSocketRefresh()
             }
             "0.8.10.226 dev" -> {
+                patchUpliftIntegrityComparison("Lo/OpenJSSEPlatformCompanion;", "d", "Lo/OpenJSSEPlatformCompanion\$IconCompatParcelizer;")
+                patchUpliftIntegrityComparison("Lo/OpenJSSEPlatformCompanion;", "j", "[Ljava/lang/Object;", returnType = "Ljava/lang/Object;")
+                patchLiteralDiagnosticSubstring242(
+                    "Lo/OpenJSSEPlatformCompanion;",
+                    "1,30,null cannot be cast to non-null type " +
+                        "jp.syoboi.a2chMate.bbs.a5ch.UpliftClient.LoginResult.Success",
+                    5,
+                )
+                patchUpliftTokenExpiryArithmetic(
+                    "Lo/OpenJSSEPlatformCompanion;", "d",
+                    "Lo/OpenJSSEPlatformCompanion\$IconCompatParcelizer;", 653820,
+                )
                 patchAboutLogoThemeColor226()
                 patchPreIoS2mSettingActivityIntegrityTrap()
                 patchLegacyBeResponseBody("Lo/BouncyCastleSocketAdapterCompanion;", "d")
@@ -908,6 +1100,14 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 )
             }
             "0.8.10.243 dev" -> {
+                patchUpliftIntegrityComparison("Lo/zzaai;", "e", "Lo/zzaai\$ComponentActivity;")
+                patchUpliftIntegrityComparison("Lo/zzaah;", "d", "Lo/zzaai\$ComponentActivity;", "Lo/zzbus;", "J")
+                patchLiteralDiagnosticSubstring242(
+                    "Lo/zzaah;",
+                    "30/22/1/null cannot be cast to non-null type " +
+                        "jp.syoboi.a2chMate.bbs.a5ch.UpliftClient.LoginResult.Success",
+                    8,
+                )
                 patchLegacyBeResponseBody("Lo/zzabv;", "j")
                 patchProgrammableNgModern("Lo/zzdic;", "a", "c")
                 patchPreIoHissiMenu("Lo/zzacz;", "c", "Lo/zzabv;", "Lo/zzacz\$write;")
@@ -925,6 +1125,8 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 patchBbsMenuUrl("c", "Lo/TaskRunnerCompanion\$ComponentActivity;")
                 patchIoTalkDatLoading()
                 patchIoTalkPostIntegrity()
+                patchIoUpliftLoginCastMessage()
+                patchIoUpliftTokenExpiryArithmetic()
                 patchIoThreadRefreshCache()
             }
             "0.8.10.242 dev" -> {
@@ -935,7 +1137,20 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 patchBbsMenuUrl("c", "Lo/getPlayProviderFactory\$ComponentActivity;")
                 patchModernTalkDatLoading242()
                 patchModernTalkPostIntegrity("Lo/getTopCountDown;")
+                patchUpliftPostingIntegrity242()
+                patchUpliftLoginIntegrity242()
                 patchImageUploadIntegrity242()
+                patchLiteralDiagnosticSubstring242(
+                    "Lo/getAdLogo;",
+                    "3|18|null cannot be cast to non-null type " +
+                        "jp.syoboi.a2chMate.bbs.a5ch.UpliftClient.LoginResult.Success",
+                    5,
+                )
+                patchLiteralDiagnosticSubstring242(
+                    "Ljp/syoboi/a2chMate/fragment/dialog/ThreadListSettingDialogViewModel;",
+                    "20|21|31|22|6|threadQuickFilterManager",
+                    14,
+                )
             }
             else -> patchSetTextCalls()
         }
@@ -943,6 +1158,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
             patchProgrammableNgModern("Lo/RewardedInterstitialAdLoadCallback;", "a", "a")
         }
         patchTabletThreadHeaderAdSpace(packageMetadata.versionName)
+        patchShortThreadTopAlignment(packageMetadata.versionName)
         when (packageMetadata.versionName) {
             "0.8.10.191 dev" -> {
                 EdgeSubjectUrl191Fingerprint.method.rewriteEdgeSubjectUrl()
@@ -1817,6 +2033,27 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchTabletThreadHeade
     )
 }
 
+/** Preserve ChMate's default layout unless the user enables top-aligned short threads. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchShortThreadTopAlignment(
+    version: String,
+) {
+    val setter = when (version) {
+        "0.8.10.241" -> "d"
+        "0.8.10.242 dev" -> "e"
+        "0.8.10.243 dev" -> "a"
+        else -> return
+    }
+    val method = mutableClassDefBy("Landroidx/recyclerview/widget/LinearLayoutManager;")
+        .methods.single { candidate ->
+            candidate.name == setter && candidate.returnType == "V"
+                && candidate.parameters.map(CharSequence::toString) == listOf("Z")
+        }
+    method.addInstructionsWithLabels(0, """
+        invoke-static {p0, p1}, $EXTENSION->threadListStackFromEnd(Ljava/lang/Object;Z)Z
+        move-result p1
+    """.trimIndent())
+}
+
 /**
  * Normalizes the result of 243's certificate-derived helper before the generated Talk
  * token builder consumes it. The generated wrapper itself is loaded from an in-memory
@@ -2174,6 +2411,78 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchIoTalkDatLoading(
     )
 }
 
+/**
+ * 241 computes the start of an UPLIFT success-cast diagnostic through an
+ * obfuscated, signature-dependent division. On repackaged APKs it can become
+ * -1 (or divide by zero) before the successful login result is stored.
+ * Keep the login result handling intact and restore the diagnostic's literal
+ * prefix length. The string starts with "2," and should be sliced after it.
+ */
+private fun BytecodePatchContext.patchIoUpliftLoginCastMessage() {
+    val message = "2,null cannot be cast to non-null type " +
+        "jp.syoboi.a2chMate.bbs.a5ch.UpliftClient.LoginResult.Success"
+    val owner = mutableClassDefBy("Lo/VLj;")
+    val candidates = owner.methods.mapNotNull { method ->
+        val instructions = method.implementation?.instructions?.toList() ?: return@mapNotNull null
+        val messageIndex = instructions.indexOfFirst { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == message
+        }
+        if (messageIndex < 0) return@mapNotNull null
+        val substringIndex = (messageIndex + 1 until minOf(messageIndex + 5, instructions.size))
+            .firstOrNull { index ->
+                val reference = (instructions[index] as? ReferenceInstruction)?.reference
+                    as? MethodReference
+                reference?.definingClass == "Ljava/lang/String;"
+                    && reference.name == "substring"
+                    && reference.parameterTypes.map(CharSequence::toString) == listOf("I")
+            } ?: return@mapNotNull null
+        method to substringIndex
+    }
+    check(candidates.size == 1) { "Expected one ChMate 241 UPLIFT cast message, found ${candidates.size}" }
+    val (method, substringIndex) = candidates.single()
+    val indexRegister = when (val call = method.implementation!!.instructions[substringIndex]) {
+        is FiveRegisterInstruction -> call.registerD
+        is RegisterRangeInstruction -> call.startRegister + 1
+        else -> error("ChMate 241 UPLIFT substring index register changed")
+    }
+    method.addInstructionsWithLabels(substringIndex, "const/4 v$indexRegister, 0x2")
+}
+
+/** 241's cached UPLIFT token expiry adds a signature-derived quotient to a
+ * roughly one-day TTL. The divisor can be zero after repackaging; the quotient
+ * is not needed to decide whether the cached token is still valid. */
+private fun BytecodePatchContext.patchIoUpliftTokenExpiryArithmetic() =
+    patchUpliftTokenExpiryArithmetic("Lo/VLj;", "c", "Lo/VLj\$ComponentActivity;", 1284195)
+
+private fun BytecodePatchContext.patchUpliftTokenExpiryArithmetic(
+    ownerType: String, methodName: String, parameterType: String, numerator: Int,
+) {
+    val method = mutableClassDefBy(ownerType).methods.single { candidate ->
+        candidate.name == methodName && candidate.returnType == "Ljava/lang/String;" &&
+            candidate.parameters.map(CharSequence::toString) == listOf(parameterType)
+    }
+    val instructions = method.implementation?.instructions?.toList()
+        ?: error("UPLIFT token expiry method missing: $ownerType.$methodName")
+    val expiryConstant = instructions.indices.singleOrNull { index ->
+        (instructions[index] as? NarrowLiteralInstruction)?.narrowLiteral == numerator
+    } ?: error("UPLIFT token expiry constant missing: $ownerType.$methodName")
+    val divides = (expiryConstant + 1 until minOf(expiryConstant + 12, instructions.size))
+        .filter { index -> instructions[index].opcode == Opcode.DIV_INT ||
+            instructions[index].opcode == Opcode.DIV_INT_2ADDR }
+    check(divides.size == 1) {
+        "UPLIFT token expiry divide changed in $ownerType.$methodName: ${divides.size} " +
+            instructions.subList(expiryConstant, minOf(expiryConstant + 12, instructions.size))
+                .map { it.opcode }
+    }
+    val index = divides.single()
+    val result = when (val divide = instructions[index]) {
+        is ThreeRegisterInstruction -> divide.registerA
+        is TwoRegisterInstruction -> divide.registerA
+        else -> error("UPLIFT token expiry destination changed in $ownerType.$methodName")
+    }
+    method.replaceInstruction(index, "const/4 v$result, 0x0")
+}
+
 /** 241 uses the same generated Talk authenticator behind a differently obfuscated caller. */
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchIoTalkPostIntegrity() {
     patchIoTalkAuthentication()
@@ -2482,23 +2791,84 @@ val haiagaruPatch = resourcePatch(
         description = "パッチ実行端末上のPNG/WebP画像の絶対パス。空欄なら内蔵アイコンを使用します。",
     )
 
+    val imageNgTfliteFix = stringOption(
+        key = "imageNgTfliteFix",
+        default = "true",
+        title = "191の自動NG画像判定クラッシュを修正",
+        description = "true=修正版TFLiteを適用（推奨）、false=元のライブラリを維持。191 devのみ対象です。",
+    )
+
     execute {
+        val replaceImageNgTflite = when (imageNgTfliteFix.value.orEmpty().trim().lowercase(Locale.ROOT)) {
+            "true", "1", "yes", "on" -> true
+            "false", "0", "no", "off" -> false
+            else -> throw PatchException("imageNgTfliteFixは true / false を指定してください")
+        }
+        if (replaceImageNgTflite && packageMetadata.versionName == "0.8.10.191 dev") {
+            // 191's bundled TFLite JNI crashes in NativeInterpreterWrapper_run
+            // during automatic image NG classification. Keep the model and Java
+            // classifier intact; replace only the affected native runtime with
+            // the ABI-matched runtime verified from ChMate 226 dev.
+            val tfliteLibraries = mapOf(
+                "arm64-v8a" to "430a5cc57c285e9f7a8dede904eb998ad50c634e592baf7f06f8a896b2dea557",
+                "armeabi-v7a" to "ba8c1f290d797820695231f86a8de16c74d1fa10595ea33d9397791f0f93d52b",
+                "x86" to "1a8bad7f404050f259b9224e572106beb1326bc1c66c9856b4ecc58f5358df74",
+                "x86_64" to "a7597671e6685259cd27959040959786c2c5e8f5dfd8303746554b3644315f5b",
+            )
+            tfliteLibraries.forEach { (abi, expectedHash) ->
+                val resource = "/chmate/tflite-226/$abi/libtensorflowlite_jni.so"
+                val bytes = checkNotNull(EmojiFontResourceMarker::class.java.getResourceAsStream(resource)) {
+                    "Bundled TFLite library is missing: $resource"
+                }.use { it.readBytes() }
+                val actualHash = MessageDigest.getInstance("SHA-256").digest(bytes)
+                    .joinToString("") { "%02x".format(it) }
+                check(actualHash == expectedHash) { "Bundled TFLite library hash mismatch: $abi" }
+                get("lib").resolve("$abi/libtensorflowlite_jni.so").apply {
+                    parentFile.mkdirs()
+                    writeBytes(bytes)
+                }
+            }
+        }
         document("res/values/strings.xml").use { strings ->
             val entry = strings.createElement("string")
             entry.setAttribute("name", "haiagaru_edge_archive")
             entry.textContent = "エッジ過去ログ"
             strings.documentElement.appendChild(entry)
+            val markRead = strings.createElement("string")
+            markRead.setAttribute("name", "haiagaru_mark_all_read")
+            markRead.textContent = "未読をすべて0にする"
+            strings.documentElement.appendChild(markRead)
+            val readFirst = strings.createElement("string")
+            readFirst.setAttribute("name", "haiagaru_read_threads_first")
+            readFirst.textContent = "既読スレを上に"
+            strings.documentElement.appendChild(readFirst)
         }
         document("res/values-en/strings.xml").use { strings ->
             val entry = strings.createElement("string")
             entry.setAttribute("name", "haiagaru_edge_archive")
             entry.textContent = "Edge archive"
             strings.documentElement.appendChild(entry)
+            val markRead = strings.createElement("string")
+            markRead.setAttribute("name", "haiagaru_mark_all_read")
+            markRead.textContent = "Mark all threads read"
+            strings.documentElement.appendChild(markRead)
+            val readFirst = strings.createElement("string")
+            readFirst.setAttribute("name", "haiagaru_read_threads_first")
+            readFirst.textContent = "Show read threads first"
+            strings.documentElement.appendChild(readFirst)
         }
         PublicXmlManager(get("res/values/public.xml")).use { publicResources ->
             publicResources.createPublicId("string", "haiagaru_edge_archive")
             publicResources.createPublicId("drawable", "haiagaru_edge_archive")
+            publicResources.createPublicId("string", "haiagaru_mark_all_read")
+            publicResources.createPublicId("string", "haiagaru_read_threads_first")
+            publicResources.createPublicId("drawable", "haiagaru_mark_all_read")
         }
+        get("res").resolve("drawable/haiagaru_mark_all_read.xml").writeText("""
+            <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+                <path android:fillColor="#FFFFFFFF" android:pathData="M3,5h12v2H3zM3,10h9v2H3zM3,15h8v2H3zM14,16l2.5,2.5L21,13l1.5,1.5-6,7L12.5,17.5z"/>
+            </vector>
+        """.trimIndent())
         document("res/values/strings.xml").use { strings ->
             val entry = strings.createElement("string")
             entry.setAttribute("name", "haiagaru_quick_filter")
@@ -2962,7 +3332,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoSettingsCons
 val saveChMateCrashLogsPatch = bytecodePatch(
     name = "Save ChMate crash logs",
     description = "Save uncaught ChMate crash logs to Download/Haiagaru.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(chMateCompatibility)
     dependsOn(haiagaruBytecodePatch)
@@ -3135,6 +3505,129 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageSelectionRef
         "goto/32 :haiagaru_image_upload_path",
         ExternalLabel("haiagaru_image_upload_path", instructions[uploadPathIndex])
     )
+}
+
+/** Prefer the real UPLIFT branch over the re-signing-sensitive decoy. */
+private fun BytecodePatchContext.patchUpliftIntegrityComparison(
+    ownerType: String,
+    methodName: String,
+    vararg parameters: String,
+    returnType: String = "Ljava/lang/String;",
+) {
+    val method = mutableClassDefBy(ownerType).methods.single { candidate ->
+        candidate.name == methodName && candidate.returnType == returnType
+            && candidate.parameterTypes.map(CharSequence::toString) == parameters.toList()
+    }
+    val instructions = method.implementation?.instructions?.toList()
+        ?: error("UPLIFT integrity method missing: $ownerType.$methodName")
+    val guards = instructions.indices.filter { index ->
+        instructions[index].opcode == Opcode.IF_NE
+            && instructions.subList(maxOf(0, index - 8), index).count { it.opcode == Opcode.AGET } >= 2
+    }
+    check(guards.size == 1) {
+        "Expected one UPLIFT integrity comparison in $ownerType.$methodName, found ${guards.size}"
+    }
+    method.replaceInstruction(guards.single(), "nop")
+}
+
+/** Skip the certificate-dependent decoy that throws a numeric error before UPLIFT posting. */
+private fun BytecodePatchContext.patchUpliftPostingIntegrity242() {
+    val method = mutableClassDefBy("Lo/getBackImage;").methods.single { candidate ->
+        candidate.name == "c"
+            && candidate.returnType == "Ljava/lang/String;"
+            && candidate.parameterTypes.map(CharSequence::toString) ==
+                listOf("Lo/getBackImage\$ComponentActivity;")
+    }
+    val instructions = method.implementation?.instructions?.toList()
+        ?: error("ChMate 242 UPLIFT posting method missing")
+    val runtimeError = instructions.indexOfLast { instruction ->
+        val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass == "Ljava/lang/RuntimeException;"
+            && ref.name == "<init>"
+            && ref.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;")
+    }
+    check(runtimeError >= 0 && instructions.getOrNull(runtimeError + 1)?.opcode == Opcode.THROW) {
+        "ChMate 242 numeric UPLIFT integrity error changed"
+    }
+    val normalPath = instructions.indexOfFirst { instruction ->
+        val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass == "Lo/zzbvt;" && ref.name == "getValue"
+    }
+    check(normalPath > 0 && normalPath < runtimeError) { "ChMate 242 UPLIFT client path missing" }
+    val methodStart = instructions.indexOfFirst { instruction ->
+        val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass == "Ljava/lang/reflect/Field;" && ref.name == "getLong"
+    }
+    check(methodStart > 0 && methodStart < runtimeError) {
+        "ChMate 242 UPLIFT integrity entry changed"
+    }
+    // Preserve the method prologue/register setup. The target path initializes
+    // its own client and token variables and returns either the cached token or
+    // the result of the normal UPLIFT login call.
+    method.addInstructionsWithLabels(
+        methodStart,
+        "const-string v12, \"\"\ngoto/32 :haiagaru_uplift_client_242",
+        ExternalLabel("haiagaru_uplift_client_242", instructions[normalPath - 1]),
+    )
+}
+
+/** Keep 242's real UPLIFT login branch reachable after re-signing the APK. */
+private fun BytecodePatchContext.patchUpliftLoginIntegrity242() {
+    val method = mutableClassDefBy("Lo/getAdLogo;").methods.single { candidate ->
+        candidate.name == "e" && candidate.returnType == "Ljava/lang/String;"
+            && candidate.parameterTypes.map(CharSequence::toString) == listOf(
+                "Lo/getBackImage\$ComponentActivity;", "Lo/ApiAnyClient;", "J",
+            )
+    }
+    val instructions = method.implementation?.instructions?.toList()
+        ?: error("ChMate 242 UPLIFT login implementation missing")
+    val successResult = instructions.indexOfFirst { instruction ->
+        val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass == "Lo/TTVideoLandingPageActivity2;" && ref.name == "c"
+            && ref.returnType == "Lo/TTVideoLandingPageActivity2\$ComponentActivity;"
+    }
+    // The final certificate comparison jumps to a deliberate null throw.
+    // Keep the normal result handling immediately after that guard.
+    val integrityGuards = instructions.indices.filter { index ->
+        index < successResult && instructions[index].opcode == Opcode.IF_NE
+            && instructions.subList(maxOf(0, index - 8), index).count { it.opcode == Opcode.AGET } >= 2
+    }
+    check(integrityGuards.size == 1) {
+        "Expected one ChMate 242 UPLIFT integrity comparison, found ${integrityGuards.size}"
+    }
+    method.replaceInstruction(integrityGuards.single(), "nop")
+}
+
+/** Restore the literal prefix length used only to form a Kotlin diagnostic. */
+private fun BytecodePatchContext.patchLiteralDiagnosticSubstring242(
+    ownerType: String,
+    diagnostic: String,
+    prefixLength: Int,
+) {
+    val candidates = mutableClassDefBy(ownerType).methods.mapNotNull { method ->
+        val instructions = method.implementation?.instructions?.toList() ?: return@mapNotNull null
+        val textIndex = instructions.indexOfFirst { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == diagnostic
+        }
+        if (textIndex < 0) return@mapNotNull null
+        val substringIndex = (textIndex + 1 until minOf(textIndex + 5, instructions.size))
+            .firstOrNull { index ->
+                val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.definingClass == "Ljava/lang/String;"
+                    && reference.name == "substring"
+                    && reference.parameterTypes.map(CharSequence::toString) == listOf("I")
+            } ?: return@mapNotNull null
+        method to substringIndex
+    }
+    check(candidates.size == 1) { "Expected one $ownerType diagnostic substring, found ${candidates.size}" }
+    val (method, substringIndex) = candidates.single()
+    val indexRegister = when (val call = method.implementation!!.instructions[substringIndex]) {
+        is FiveRegisterInstruction -> call.registerD
+        is RegisterRangeInstruction -> call.startRegister + 1
+        else -> error("$ownerType diagnostic substring register changed")
+    }
+    val opcode = if (prefixLength < 8) "const/4" else "const/16"
+    method.addInstructionsWithLabels(substringIndex, "$opcode v$indexRegister, 0x${prefixLength.toString(16)}")
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageUploadIntegrity242() {

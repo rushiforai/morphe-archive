@@ -9,21 +9,28 @@ import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -93,8 +100,7 @@ class HolidayLookFixtureTest {
         }
     }
 
-    // The switch's text promises only the snow. If a build draws the chat list title as plain text
-    // again, the hat shows too and this fails so the text can say so.
+    // Keep the stock plain-title block pinned while the logo has its own additive bridge.
     @Test
     fun `the bar draws the hat only over a plain-text title, and the chat list title is Telegram's logo`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -114,6 +120,218 @@ class HolidayLookFixtureTest {
             assertTrue("$name: its title is the logo", title.any { it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I" })
             assertTrue("$name: spanned over the app name", title.any {
                 it.opcode == Opcode.NEW_INSTANCE && it.reference() == "Landroid/text/style/ImageSpan;" })
+        }
+    }
+
+    @Test
+    fun `the patched logo title has an owned span bridge without converting its app name to text`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = contextFor(build)
+            val sites = context.resolveHolidayLookSites()
+            val logo = context.resolveHolidayLogoSites(sites)
+            val stockBar = ImmutableMethod.of(logo.bar)
+            val stockTitle = ImmutableMethod.of(logo.create)
+            holidayLookPatch.execute(context)
+            val screen = owners(build).single { owner -> owner.methods.any { method -> method.name == "createView" &&
+                method.instructions().any { it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I" } } }
+            val create = context.mutableClassDefBy(screen.type).methods.single { it.name == "createView" }.instructions()
+            assertEquals("${build.name}: register exactly the chat list logo span", 1, create.count {
+                it.reference() == "$HOLIDAY_LOOK->registerLogoSpan(Landroid/text/style/ImageSpan;)V" })
+            val bar = sites.readers.single { it.name == "drawChild" }
+            val after = context.mutableClassDefBy(bar.definingClass).methods.single { it.name == "drawChild" }.instructions()
+            assertEquals("${build.name}: owned logo gate", 1, after.count {
+                it.reference() == "$HOLIDAY_LOOK->isLogoTitle(Ljava/lang/CharSequence;)Z" })
+            assertEquals("${build.name}: separate drawing bridge", 1, after.count {
+                it.reference() == "$HOLIDAY_LOOK->drawLogoHat(Landroid/graphics/Canvas;Landroid/view/View;Landroid/graphics/drawable/Drawable;Landroid/view/View;)V" })
+            assertEquals("${build.name}: no String conversion", 0, after.count {
+                it.reference() == "Ljava/lang/CharSequence;->toString()Ljava/lang/String;" })
+            assertKeepsStock("${build.name}: plain title and snow", stockBar, logo.bar, logo.gate, 9)
+            assertKeepsStock("${build.name}: original logo and title actions", stockTitle, logo.create, logo.registerAt, 1)
+            val bridge = context.mutableClassDefBy(HOLIDAY_LOOK).methods.single { it.name == "drawLogoHat" }.instructions()
+            assertEquals("${build.name}: bounded getter bridge", 1, bridge.count {
+                it.reference() == "$HOLIDAY_LOOK->drawLogoHatAt(Landroid/graphics/Canvas;Ljava/lang/CharSequence;Landroid/graphics/drawable/Drawable;IIIIIII)V" })
+            assertEquals("${build.name}: bridge never measures AppName", 0, bridge.count {
+                it.reference()?.contains("getTextBounds") == true || it.reference()?.contains("measureText") == true })
+        }
+    }
+
+    @Test
+    fun `changed logo String gate refuses before editing`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = contextFor(build)
+            val bar = context.resolveHolidayLookSites().readers.single { it.name == "drawChild" }
+            val method = context.mutableClassDefBy(bar.definingClass).methods.single { it.name == "drawChild" }
+            val body = method.instructions()
+            val gate = body.indices.single { body[it].opcode == Opcode.INSTANCE_OF && body[it].reference() == "Ljava/lang/String;" }
+            val registers = body[gate].namedRegisters()
+            method.replaceInstruction(gate, "instance-of v${registers[0]}, v${registers[1]}, Landroid/text/Spanned;")
+            assertRefusedUntouched(build, "changed String gate", context)
+        }
+    }
+
+    @Test
+    fun `changed span ownership placement and bridge access refuse atomically on both targets`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val changes: List<Pair<String, (BytecodePatchContext, HolidayLookSites, HolidayLogoSites) -> Unit>> = listOf(
+                "String cast" to { _, _, logo ->
+                    val at = logo.bar.instructions().indices.single { logo.bar.instructions()[it].opcode == Opcode.CHECK_CAST &&
+                        logo.bar.instructions()[it].reference() == "Ljava/lang/String;" }
+                    logo.bar.replaceInstruction(at, "check-cast v14, Ljava/lang/Object;")
+                },
+                "start X getter" to { _, _, logo ->
+                    val at = logo.bar.instructions().indexOfFirst { it.reference()?.endsWith("->getTextStartX()I") == true }
+                    logo.bar.replaceInstruction(at, "invoke-virtual {v8}, " + logo.bar.instructions()[at].reference()!!.replace("getTextStartX", "getTextStartY"))
+                },
+                "hat centering divide" to { _, _, logo ->
+                    val at = (logo.gate until logo.afterHat).first { logo.bar.instructions()[it].opcode == Opcode.DIV_INT_2ADDR }
+                    logo.bar.replaceInstruction(at, "mul-int/2addr v14, v12")
+                },
+                "vertical ceiling" to { _, _, logo ->
+                    val at = logo.bar.instructions().indexOfFirst { it.reference() == "Ljava/lang/Math;->ceil(D)D" }
+                    logo.bar.replaceInstruction(at, "invoke-static {v11, v12}, Ljava/lang/Math;->floor(D)D")
+                },
+                "theme horizontal offset" to { _, sites, logo ->
+                    val at = logo.bar.instructions().indexOfFirst { it.reference() == "${sites.check.definingClass}->D1:I" }
+                    logo.bar.replaceInstruction(at, "sget v14, ${sites.check.definingClass}->E1:I")
+                },
+                "scale adjustment" to { _, _, logo ->
+                    val at = (logo.gate until logo.afterHat).first { (logo.bar.instructions()[it] as? WideLiteralInstruction)?.wideLiteral == 0x41000000L }
+                    logo.bar.replaceInstruction(at, "const/high16 v10, 0x41100000")
+                },
+                "hat bounds operands" to { _, _, logo ->
+                    val at = (logo.gate until logo.afterHat).first { logo.bar.instructions()[it].reference()?.endsWith("->setBounds(IIII)V") == true }
+                    logo.bar.replaceInstruction(at, "invoke-virtual {v9, v10, v14, v11, v13}, Landroid/graphics/drawable/Drawable;->setBounds(IIII)V")
+                },
+                "logo constructor drawable" to { _, _, logo ->
+                    logo.create.replaceInstruction(logo.registerAt - 1,
+                        "invoke-direct {v5, v3}, Landroid/text/style/ImageSpan;-><init>(Landroid/graphics/drawable/Drawable;)V")
+                },
+                "logo alignment" to { _, _, logo ->
+                    logo.create.replaceInstruction(logo.registerAt - 1,
+                        "invoke-direct {v5, v9, v8}, Landroid/text/style/ImageSpan;-><init>(Landroid/graphics/drawable/Drawable;I)V")
+                },
+                "logo span range" to { _, _, logo ->
+                    val at = logo.create.instructions().indexOfFirst { it.reference()?.endsWith("->setSpan(Ljava/lang/Object;III)V") == true }
+                    logo.create.replaceInstruction(at,
+                        "invoke-virtual {v3, v5, v11, v6, v6}, Landroid/text/SpannableStringBuilder;->setSpan(Ljava/lang/Object;III)V")
+                },
+                "logo bounds start" to { _, _, logo -> logo.create.replaceInstruction(2, "const/4 v11, 0x1") },
+                "logo span flags" to { _, _, logo ->
+                    val at = (0 until logo.registerAt).last { logo.create.instructions()[it].opcode.setsRegister() &&
+                        logo.create.instructions()[it].namedRegisters().firstOrNull() == 6 }
+                    logo.create.replaceInstruction(at, "const/16 v6, 0x22")
+                },
+                "main chat list guard" to { _, _, logo ->
+                    val at = logo.create.instructions().indexOfFirst { it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I" } - 58
+                    val original = logo.create.getInstruction(at) as BuilderOffsetInstruction
+                    logo.create.replaceInstruction(at, BuilderInstruction21t(Opcode.IF_NEZ, 3, original.target))
+                },
+                "second holiday owner" to { context, _, logo ->
+                    val owner = context.mutableClassDefBy(logo.create.definingClass)
+                    owner.methods.add(MutableMethod(ImmutableMethod(logo.create.definingClass, "anotherHolidayOwner", logo.create.parameters,
+                        logo.create.returnType, logo.create.accessFlags, null, null, logo.create.implementation)))
+                },
+                "private text getter" to { context, _, logo ->
+                    val type = logo.bar.instructions().first { it.reference()?.endsWith("->getTextStartX()I") == true }
+                        .reference()!!.substringBefore("->")
+                    val getter = context.mutableClassDefBy(type).methods.single { it.name == "getTextStartX" }
+                    getter.accessFlags = getter.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value
+                },
+                "private theme offset" to { context, sites, _ ->
+                    val field = context.mutableClassDefBy(sites.check.definingClass).fields.single { it.name == "D1" }
+                    field.accessFlags = field.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value
+                },
+                "static overlay field" to { context, _, logo ->
+                    val field = (logo.bar.instructions()[logo.gate - 13] as ReferenceInstruction).reference as FieldReference
+                    val mutable = context.mutableClassDefBy(field.definingClass).fields.single { it.name == field.name }
+                    mutable.accessFlags = mutable.accessFlags or AccessFlags.STATIC.value
+                },
+                "title forwarding argument" to { context, _, logo ->
+                    val setter = context.mutableClassDefBy(logo.bar.definingClass).methods.single { it.name == "I" &&
+                        it.parameterTypes.firstOrNull()?.toString() == "Ljava/lang/CharSequence;" }
+                    val reference = setter.instructions()[17].reference()
+                    setter.replaceInstruction(17, "invoke-virtual {v2, v6}, $reference")
+                },
+                "title forwarding branch" to { context, _, logo ->
+                    val setter = context.mutableClassDefBy(logo.bar.definingClass).methods.single { it.name == "I" &&
+                        it.parameterTypes.firstOrNull()?.toString() == "Ljava/lang/CharSequence;" }
+                    val original = setter.getInstruction(7) as BuilderOffsetInstruction
+                    setter.replaceInstruction(7, BuilderInstruction21t(Opcode.IF_NEZ, 2, original.target))
+                },
+                "text getter loses span ownership" to { context, _, logo ->
+                    val type = logo.bar.instructions().first { it.reference()?.endsWith("->getText()Ljava/lang/CharSequence;") == true }
+                        .reference()!!.substringBefore("->")
+                    val getter = context.mutableClassDefBy(type).methods.single { it.name == "getText" }
+                    getter.replaceInstruction(0, "const-string v0, \"Telegram\"")
+                },
+            )
+            for ((case, change) in changes) {
+                val context = contextFor(build)
+                val sites = context.resolveHolidayLookSites()
+                val logo = context.resolveHolidayLogoSites(sites)
+                change(context, sites, logo)
+                assertRefusedUntouched(build, case, context)
+            }
+            for (hook in listOf("registerLogoSpan", "isLogoTitle", "drawLogoHat", "drawLogoHatAt")) {
+                for (kind in 0..4) {
+                    val context = contextFor(build)
+                    val method = context.mutableClassDefBy(HOLIDAY_LOOK).methods.single { it.name == hook }
+                    method.accessFlags = when (kind) {
+                        0 -> method.accessFlags and AccessFlags.PUBLIC.value.inv()
+                        1 -> method.accessFlags and AccessFlags.STATIC.value.inv()
+                        2 -> method.accessFlags or AccessFlags.NATIVE.value
+                        3 -> method.accessFlags or AccessFlags.ABSTRACT.value
+                        else -> method.accessFlags
+                    }
+                    if (kind == 4) {
+                        val owner = context.mutableClassDefBy(HOLIDAY_LOOK)
+                        owner.methods.add(MutableMethod(ImmutableMethod(method.definingClass, method.name,
+                            method.parameters + ImmutableMethodParameter("I", null, null), method.returnType,
+                            method.accessFlags, null, null, method.implementation)))
+                    }
+                    assertRefusedUntouched(build, "$hook shape $kind", context)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `changed title geometry getter bodies refuse before editing`() {
+        for (build in Fixtures.declaredBuilds()) {
+            for (name in listOf("getTextHeight", "getTextStartX", "getTextStartY")) {
+                val context = contextFor(build)
+                val logo = context.resolveHolidayLogoSites(context.resolveHolidayLookSites())
+                val type = logo.bar.instructions().first { it.reference()?.endsWith("->getTextStartX()I") == true }
+                    .reference()!!.substringBefore("->")
+                val getter = context.mutableClassDefBy(type).methods.single { it.name == name }
+                getter.replaceInstruction(0, "const/4 v0, 0x0")
+                assertRefusedUntouched(build, "changed $name geometry", context)
+            }
+        }
+    }
+
+    @Test
+    fun `changed title geometry fields arithmetic and branches refuse atomically`() {
+        for (build in Fixtures.declaredBuilds()) {
+            for (case in listOf("height field", "horizontal addition", "vertical branch")) {
+                val context = contextFor(build)
+                val logo = context.resolveHolidayLogoSites(context.resolveHolidayLookSites())
+                val type = logo.bar.instructions().first { it.reference()?.endsWith("->getTextStartX()I") == true }
+                    .reference()!!.substringBefore("->")
+                val methods = context.mutableClassDefBy(type).methods
+                when (case) {
+                    "height field" -> methods.single { it.name == "getTextHeight" }
+                        .replaceInstruction(0, "iget v0, p0, $type->n:I")
+                    "horizontal addition" -> methods.single { it.name == "getTextStartX" }
+                        .replaceInstruction(30, "sub-int/2addr v0, v2")
+                    else -> {
+                        val getter = methods.single { it.name == "getTextStartY" }
+                        val branch = getter.getInstruction(1) as BuilderOffsetInstruction
+                        getter.replaceInstruction(1, BuilderInstruction21t(Opcode.IF_EQZ, 0, branch.target))
+                    }
+                }
+                assertRefusedUntouched(build, "changed $case", context)
+            }
         }
     }
 
@@ -160,7 +378,8 @@ class HolidayLookFixtureTest {
     private fun assertRefusedUntouched(file: java.io.File, case: String, context: BytecodePatchContext) {
         val build = file.name
         val owners = owners(file).map { it.type }
-        val before = owners.associateWith { type -> context.mutableClassDefBy(type).methods.map { it.instructions().map(::operation) } }
+        val types = owners + listOf(HOLIDAY_LOOK, SETTINGS_STATUS).filter { context.classDefByOrNull(it) != null }
+        val before = snapshot(context, types)
         try {
             holidayLookPatch.execute(context)
             fail("$build: $case was accepted")
@@ -168,9 +387,18 @@ class HolidayLookFixtureTest {
             assertTrue("$build: $case: ${expected.message}", expected.message.orEmpty().contains("before editing"))
         }
         assertEquals("$build: $case doesn't partly mutate the holiday check or its readers", before,
-            owners.associateWith { type -> context.mutableClassDefBy(type).methods.map { it.instructions().map(::operation) } })
+            snapshot(context, types))
         val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "holidayLook" }.instructions()
         assertEquals("$build: $case leaves the build fact false", 0, (status[0] as NarrowLiteralInstruction).narrowLiteral)
+    }
+
+    private fun snapshot(context: BytecodePatchContext, types: List<String>) = types.associateWith { type ->
+        val owner = context.mutableClassDefBy(type)
+        listOf(owner.accessFlags, owner.fields.map { listOf(it.name, it.type, it.accessFlags, it.initialValue) },
+            owner.methods.map { method -> listOf(method.name, method.parameterTypes.map(CharSequence::toString), method.returnType,
+                method.accessFlags, method.implementation?.registerCount, method.instructions().map(::operation),
+                method.implementation?.let { ControlFlow.of(method).normal.toList() },
+                method.implementation?.let { ControlFlow.of(method).exceptional.toList() }) })
     }
 
     /**
@@ -200,8 +428,9 @@ class HolidayLookFixtureTest {
         assertEquals("${build.name}: the holiday check", 1, check.size)
         val loader = check.single().methods.single { method -> method.instructions().any { it.reference() == NEW_YEAR_HAT } }
         val snow = loader.instructions().first { it.opcode == Opcode.SPUT_BOOLEAN }.reference()
-        val readers = FixtureDex.classesWhere(build, SNOW_CENSUS, { true }) { method -> method.instructions().any {
-            it.opcode == Opcode.SGET_BOOLEAN && it.reference() == snow } }
+        val readers = FixtureDex.classesWhere(build, SNOW_CENSUS, { true }) { method -> method.name == "getTextStartX" ||
+            method.instructions().any { (it.opcode == Opcode.SGET_BOOLEAN && it.reference() == snow) ||
+                (method.name == "createView" && it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I") } }
         return (check + readers).distinctBy { it.type }
     }
 
@@ -221,5 +450,6 @@ class HolidayLookFixtureTest {
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
     private fun Instruction.reference() = ((this as? ReferenceInstruction)?.reference as? Any)?.let {
         if (it is FieldReference) "${it.definingClass}->${it.name}:${it.type}" else it.toString() }
-    private fun operation(instruction: Instruction) = instruction.opcode to instruction.reference()
+    private fun operation(instruction: Instruction) = listOf(instruction.opcode, instruction.reference(), instruction.namedRegisters(),
+        (instruction as? WideLiteralInstruction)?.wideLiteral)
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="piko_copied_media_link">Medya bağlantısı kopyalandı</string>
+    <string name="piko_download_current_media">Mevcut medyayı indir</string>
+    <string name="piko_no_internet">Lütfen internete bağlanın</string>
+</resources>

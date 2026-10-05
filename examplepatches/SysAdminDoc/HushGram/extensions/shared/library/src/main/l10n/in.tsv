@@ -257,7 +257,7 @@ Turn on Default playback quality to use this choice.	Aktifkan Kualitas pemutaran
 Updating remembered positions...	Memperbarui posisi tersimpan...
 Undo cleared positions	Pulihkan posisi yang dihapus
 Clear remembered positions	Hapus posisi tersimpan
-You can restore the cleared positions once within 10 seconds.	Kamu dapat memulihkan posisi yang dihapus satu kali dalam 10 detik.
+Undo is available until %1$s.	Pembatalan tersedia hingga %1$s.
 Up to 200 positions, kept for 30 days. Tap to clear them from this device.	Hingga 200 posisi disimpan selama 30 hari. Ketuk untuk menghapusnya dari perangkat ini.
 Remembered playback positions restored.	Posisi pemutaran tersimpan dipulihkan.
 Undo has expired.	Waktu untuk memulihkan telah habis.
@@ -267,9 +267,9 @@ Settings backup	Cadangan pengaturan
 Export HushGram settings	Ekspor pengaturan HushGram
 Choose a file for your installed patches' settings. Accounts and history stay on this device.	Pilih file untuk pengaturan patch yang terpasang. Akun dan riwayat tetap di perangkat ini.
 Import HushGram settings	Impor pengaturan HushGram
-Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Pilih file pengaturan. Pilihan yang valid diterapkan bersama; kunci yang tidak didukung dilewati. Pembatalan berlaku selama 10 detik.
+Choose a settings file. Valid choices apply together. Unsupported keys are skipped. The Undo row shows its deadline.	Pilih file pengaturan. Pilihan yang valid diterapkan bersama. Kunci yang tidak didukung dilewati. Baris pembatalan menampilkan batas waktunya.
 Undo settings import	Batalkan impor pengaturan
-Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Pulihkan pilihan sebelumnya satu kali dalam 10 detik. Memulai ulang Instagram menghapus opsi pembatalan.
+Undo is available until %1$s. Restarting Instagram discards Undo.	Pembatalan tersedia hingga %1$s. Memulai ulang Instagram menghapus opsi pembatalan.
 No settings import to undo.	Tidak ada impor pengaturan yang dapat dibatalkan.
 No document picker is available. Your settings haven't changed.	Pemilih dokumen tidak tersedia. Pengaturan Anda tidak berubah.
 Couldn't use that settings file. Your settings haven't changed.	File pengaturan tersebut tidak dapat digunakan. Pengaturan Anda tidak berubah.
@@ -357,3 +357,28 @@ View DM photos and videos anonymously	Lihat foto dan video di pesan secara anoni
 Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.	Menahan tanda sudah dilihat untuk foto dan video sekali lihat. Media tetap kedaluwarsa. Fitur uji coba ini awalnya nonaktif.
 Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	Salinan tersimpan belum selesai dibuang. Coba Buang nilai pengganti tersimpan lagi. Nilai pengganti Instagram tidak berubah.
 Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	Pembersihan pemulihan belum selesai. Gunakan Pulihkan nilai pengganti sebelumnya atau Buang nilai pengganti tersimpan.
+Restored %1$d settings. Kept %2$d newer choices.	%1$d pengaturan dipulihkan. %2$d pilihan yang lebih baru dipertahankan.
+Preparing diagnostic report...	Menyiapkan laporan diagnostik...
+Saving diagnostic report...	Menyimpan laporan diagnostik...
+Diagnostic report saved.	Laporan diagnostik disimpan.
+Choose a file for the settings export.	Pilih file untuk mengekspor pengaturan.
+Exporting HushGram settings...	Mengekspor pengaturan HushGram...
+Settings export cancelled.	Ekspor pengaturan dibatalkan.
+Show a Reel seek thumb	Tampilkan pegangan penggeser Reel
+Adds a white circular handle to Instagram's Reel seek bar. Drag to seek. Ads keep their own bar.	Menambahkan pegangan bulat putih pada bilah Reel Instagram. Cara menggeser tetap seperti biasa, dan iklan tetap memakai bilahnya sendiri.
+# Chosen navigation long-press settings entry. Account tab availability varies.
+Settings entry	Akses pengaturan
+Open settings with a tab long press	Buka pengaturan dengan menekan lama tab
+Choose a tab	Pilih tab
+Home	Beranda
+Search	Cari
+Profile	Profil
+Create (+)	Buat (+)
+Camera	Kamera
+Activity	Aktivitas
+Creator tools	Alat kreator
+Home feed picker	Pemilih beranda
+Custom tab	Tab khusus
+Off	Nonaktif
+Tab long presses keep Instagram's own action. Choose one to open HushGram instead.	Menekan lama tab tetap menjalankan tindakan Instagram. Pilih satu tab untuk membuka HushGram sebagai gantinya.
+Long-press %1$s to open HushGram instead of that tab's usual action. Normal taps and other tabs stay the same. Only tabs your account shows can be used. Restart Instagram after changing it.	Tekan lama %1$s untuk membuka HushGram menggantikan tindakan biasa tab itu. Ketukan biasa dan tab lainnya tetap sama. Hanya tab yang ditampilkan akunmu yang dapat digunakan. Mulai ulang Instagram setelah mengubahnya.

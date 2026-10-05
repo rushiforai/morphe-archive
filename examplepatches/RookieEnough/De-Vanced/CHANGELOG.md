@@ -1,3 +1,15 @@
+## [1.5.1](https://github.com/RookieEnough/De-Vanced/compare/v1.5.0...v1.5.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **Amazon Music:** Resolve app crash on startup ([114c5fc](https://github.com/RookieEnough/De-Vanced/commit/114c5fca44d634bf01f23bd58aac63eccd9120dd))
+
+## [1.5.1-dev.1](https://github.com/RookieEnough/De-Vanced/compare/v1.5.0...v1.5.1-dev.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **Amazon Music:** Resolve app crash on startup ([114c5fc](https://github.com/RookieEnough/De-Vanced/commit/114c5fca44d634bf01f23bd58aac63eccd9120dd))
+
 ## [1.5.0](https://github.com/RookieEnough/De-Vanced/compare/v1.4.4...v1.5.0) (2026-10-02)
 
 ### 🐛 Bug Fixes

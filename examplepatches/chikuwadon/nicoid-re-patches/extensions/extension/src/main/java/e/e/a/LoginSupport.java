@@ -8,6 +8,9 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
 import android.preference.PreferenceManager;
+import android.preference.Preference;
+import android.preference.PreferenceGroup;
+import android.preference.PreferenceActivity;
 import android.os.Build;
 import android.view.View;
 import android.text.InputFilter;
@@ -24,6 +27,67 @@ import android.widget.Toast;
 public final class LoginSupport {
     private LoginSupport() { }
     private static String t(String source) { return UiStrings.translate(source); }
+
+    public static void settings(PreferenceActivity activity) {
+        Preference login = activity.findPreference("login");
+        if (login == null || activity.findPreference("nicoid_logout") != null) return;
+        PreferenceGroup group = parent(activity.getPreferenceScreen(), login);
+        if (group == null) return;
+        Preference logout = new Preference(activity);
+        logout.setKey("nicoid_logout"); logout.setTitle(t("ログアウト"));
+        logout.setOrder(login.getOrder() + 1);
+        logout.setOnPreferenceClickListener(p -> {
+            AlertDialog dialog = builder(activity, "ログアウト")
+                .setMessage(t("ログイン情報を削除してログアウトしますか？"))
+                .setPositiveButton(t("ログアウト"), (d, which) -> logout(activity))
+                .setNegativeButton(t("キャンセル"), null).create();
+            show(dialog, activity); return true;
+        });
+        group.addPreference(logout);
+    }
+
+    private static PreferenceGroup parent(PreferenceGroup group, Preference target) {
+        for (int n = 0; n < group.getPreferenceCount(); n++) {
+            Preference child = group.getPreference(n);
+            if (child == target) return group;
+            if (child instanceof PreferenceGroup) {
+                PreferenceGroup result = parent((PreferenceGroup) child, target);
+                if (result != null) return result;
+            }
+        }
+        return null;
+    }
+
+    private static void logout(Activity activity) {
+        try {
+            Class<?> owner = Class.forName("e.e.a.v0");
+            Object empty = owner.getMethod("b", String.class).invoke(null, "");
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
+            if (!prefs.edit().remove("save_cookie").remove("login_mail").remove("login_pass")
+                .putBoolean("nologin", true).putBoolean("nicoid_clear_web_login", true).commit())
+                throw new IllegalStateException();
+            Object previous = owner.getField("b").get(null);
+            if (previous != null) Class.forName("org.apache.http.client.CookieStore").getMethod("clear").invoke(previous);
+            owner.getField("b").set(null, empty);
+            // Old devices can log out without loading their unsupported WebView.
+            Toast.makeText(activity, t("ログアウトしました"), Toast.LENGTH_SHORT).show();
+            activity.recreate();
+        } catch (Exception failure) {
+            Toast.makeText(activity, t("ログアウトできませんでした。再試行してください。"), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /** Clear the previous web session only when a working login WebView exists. */
+    public static void loadLogin(android.webkit.WebView web, String url) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(web.getContext());
+        if (!prefs.getBoolean("nicoid_clear_web_login", false)) { web.loadUrl(url); return; }
+        android.webkit.CookieManager cookies = android.webkit.CookieManager.getInstance();
+        cookies.removeAllCookies(removed -> {
+            cookies.flush();
+            prefs.edit().remove("nicoid_clear_web_login").apply();
+            web.loadUrl(url);
+        });
+    }
 
     public static void open(Activity activity) {
         if (activity.isFinishing()) return;
@@ -116,8 +180,7 @@ public final class LoginSupport {
     }
     private static void show(AlertDialog dialog, Activity activity) {
         dialog.show();
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(color(activity, android.R.attr.colorBackground)));
-        for (int button : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE})
-            if (dialog.getButton(button) != null) dialog.getButton(button).setTextColor(color(activity, 0x7f03005e));
+        PlaybackSession.formDialog(dialog);
+
     }
 }

@@ -7,27 +7,23 @@ package app.morphe.patches.photoshopmix
 import app.morphe.patcher.Fingerprint
 
 internal object IsLoggedInMethodFingerprint : Fingerprint(
+    definingClass = "/CreativeCloudSource;",
+    name = "isLoggedIn",
     returnType = "Z",
-    custom = { method, classDef ->
-        method.name == "isLoggedIn" && classDef.endsWith("/CreativeCloudSource;")
-    },
 )
 
 internal object CcLibButtonClickHandlerMethodFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "ccLibButtonClickHandler" && classDef.endsWith("/PSMixFragment;")
-    },
+    definingClass = "/PSMixFragment;",
+    name = "ccLibButtonClickHandler",
 )
 
 internal object LightroomButtonClickHandlerMethodFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "lightroomButtonClickHandler" && classDef.endsWith("/PSMixFragment;")
-    },
+    definingClass = "/PSMixFragment;",
+    name = "lightroomButtonClickHandler",
 )
 
 internal object CcButtonClickHandlerMethodFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "ccButtonClickHandler" && classDef.endsWith("/PSMixFragment;")
-    },
+    definingClass = "/PSMixFragment;",
+    name = "ccButtonClickHandler",
 )
 

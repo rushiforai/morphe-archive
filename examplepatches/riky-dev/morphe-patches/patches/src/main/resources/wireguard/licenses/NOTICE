@@ -1,0 +1,36 @@
+riky's patches — CapCut embedded WireGuard
+
+Adapted from the Piko Twitter/X WireGuard embed
+(https://github.com/crimera/piko/pull/1945, closed).
+Copyright (C) 2026 piko / crimera contributors
+Copyright (C) 2026 riky-dev (CapCut adaptation)
+
+WireGuard Android tunnel library 1.0.20260102
+Copyright 2017-2025 WireGuard LLC. All Rights Reserved.
+https://git.zx2c4.com/wireguard-android/
+Apache License 2.0: Apache-2.0.txt
+The upstream library and native binaries are used without modification.
+
+wireguard-go (as embedded by the upstream Android artifact)
+Copyright 2017-2025 WireGuard LLC. All Rights Reserved.
+https://git.zx2c4.com/wireguard-go/
+MIT license: MIT-wireguard-go.txt
+
+Go and native dependencies
+Copyright The Go Authors. All rights reserved.
+https://go.dev/
+Go-BSD.txt
+golang.org/x/crypto: Go-crypto-BSD.txt
+golang.org/x/net: Go-net-BSD.txt
+golang.org/x/sys: Go-sys-BSD.txt
+
+AndroidX Collection and Annotation
+Copyright The Android Open Source Project.
+Apache License 2.0: AndroidX-Apache-2.0.txt
+
+Kotlin standard library (transitive dependency of AndroidX Collection)
+Copyright JetBrains s.r.o. and Kotlin Programming Language contributors.
+Apache License 2.0: Kotlin-Apache-2.0.txt
+
+Full license texts are bundled beside this notice in assets/riky-tunnel/.
+The CapCut integration is covered by this repository's GPLv3 and NOTICE terms.

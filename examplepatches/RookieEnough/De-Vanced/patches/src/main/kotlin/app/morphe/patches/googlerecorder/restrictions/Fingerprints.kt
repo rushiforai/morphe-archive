@@ -7,10 +7,8 @@ package app.morphe.patches.googlerecorder.restrictions
 import app.morphe.patcher.Fingerprint
 
 internal object ApplicationOnCreateFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "onCreate" &&
-            method.returnType == "V" &&
-            method.parameterTypes.isEmpty() &&
-            classDef.endsWith("/RecorderApplication;")
-    },
+    definingClass = "/RecorderApplication;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf()
 )

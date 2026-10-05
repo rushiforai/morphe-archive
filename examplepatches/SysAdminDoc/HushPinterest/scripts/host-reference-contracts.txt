@@ -1,0 +1,5 @@
+# Each exact entry is an explicitly reviewed platform API boundary, not a missing-target waiver.
+# Every direct caller must prove SDK_INT >= the declared API. Handles to an entry are refused.
+# SettingsEntry mirrors ShortcutManager's API-30 operation. It is shipped even in host builds
+# with no native push call. Its guarded private push path has an API-28 add/evict fallback.
+api-entry Lapp/hushpinterest/extension/pinterest/settings/SettingsEntry;->pushDynamicShortcut(Landroid/content/pm/ShortcutManager;Landroid/content/pm/ShortcutInfo;)V since 30

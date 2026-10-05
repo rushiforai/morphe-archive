@@ -13,7 +13,8 @@ import java.util.WeakHashMap;
 /** Playback policies for the verified 6.49 target. All calls run on the main thread. */
 public final class PlaybackSession {
     public static final float[] SPEEDS = PlaybackRules.SPEEDS;
-    public static final String[] LABELS = {"0.5×","0.75×","1.0×","1.15×","1.25×","1.4×","1.5×","1.75×","2.0×"};
+    public static final String[] LABELS = new String[40];
+    static {for(int i=0;i<LABELS.length;i++)LABELS[i]=SpeedSlider.label(SPEEDS[i]);}
     private static final WeakHashMap<Object, Session> SESSIONS = new WeakHashMap<>();
     private static String speedVideo;
     private static class Session {
@@ -28,52 +29,48 @@ public final class PlaybackSession {
         return PlaybackRules.version(b.get("nicovideo_version"));
     }
     public static Context dialogContext(Context c) {
-        boolean night = false;
-        try { night = (Boolean)Class.forName("e.e.a.DynamicTheme").getMethod("isNight",Context.class).invoke(null,c); } catch(Exception e) { log(e); }
+        boolean night = night(c);
+        try { night = night || (Boolean)Class.forName("e.e.a.DynamicTheme").getMethod("isNight",Context.class).invoke(null,c); } catch(Exception e) { log(e); }
         return new ContextThemeWrapper(c,night ? android.R.style.Theme_Material_Dialog_Alert : android.R.style.Theme_Material_Light_Dialog_Alert);
+    }
+    public static boolean night(Context c){
+        try{if((Boolean)Class.forName("e.e.a.DynamicTheme").getMethod("isNight",Context.class).invoke(null,c))return true;}catch(Exception e){log(e);}
+        android.util.TypedValue v=new android.util.TypedValue();if(c.getTheme().resolveAttribute(android.R.attr.colorBackground,v,true)){int color=v.resourceId==0?v.data:c.getResources().getColor(v.resourceId);return android.graphics.Color.red(color)*299+android.graphics.Color.green(color)*587+android.graphics.Color.blue(color)*114<128000;}return false;
     }
     public static void styleDialog(AlertDialog d) {
         try {
-            Context c=d.getContext();
-            boolean dynamic=Build.VERSION.SDK_INT>=31 && prefs(c).getBoolean("material_you_mode",false);
-            if (!dynamic) return;
-            boolean night=(Boolean)Class.forName("e.e.a.DynamicTheme").getMethod("isNight",Context.class).invoke(null,c);
-            int id=c.getResources().getIdentifier(night?"system_accent1_200":"system_accent1_600","color","android");
-            int color=c.getResources().getColor(id,c.getTheme());
-            int surface=c.getResources().getIdentifier(night?"system_neutral1_900":"system_neutral1_50","color","android");
-            android.graphics.drawable.GradientDrawable background=new android.graphics.drawable.GradientDrawable();
-            background.setColor(c.getResources().getColor(surface,c.getTheme()));
-            background.setCornerRadius(24*c.getResources().getDisplayMetrics().density);
-            d.getWindow().setBackgroundDrawable(background);
-            android.content.res.ColorStateList tint=android.content.res.ColorStateList.valueOf(color);
-            d.getButton(-2).setTextColor(color);
-            android.widget.ListView list=d.getListView();
-            if(list!=null) {
-                android.widget.AbsListView.OnScrollListener listener=new android.widget.AbsListView.OnScrollListener(){
-                    public void onScrollStateChanged(android.widget.AbsListView v,int s){}
-                    public void onScroll(android.widget.AbsListView v,int f,int count,int total){
-                        for(int i=0;i<v.getChildCount();i++) {
-                            android.view.View child=v.getChildAt(i);
-                            if(child instanceof android.widget.CheckedTextView) ((android.widget.CheckedTextView)child).setCheckMarkTintList(tint);
-                        }
-                    }
-                };
-                list.setOnScrollListener(listener);
-                list.post(()->listener.onScroll(list,0,list.getChildCount(),list.getCount()));
+            DialogInputs.pad(d.getWindow().getDecorView());Context c=d.getContext();boolean dark=night(c);android.util.TypedValue value=new android.util.TypedValue();c.getTheme().resolveAttribute(0x7f03005e,value,true);int color=value.resourceId==0?value.data:c.getResources().getColor(value.resourceId);
+            int surface=dark?0xff191b20:0xfffafafa;
+            if(Build.VERSION.SDK_INT>=31 && prefs(c).getBoolean("material_you_mode",false)){
+                int id=c.getResources().getIdentifier(dark?"system_accent1_200":"system_accent1_600","color","android");if(id!=0)color=c.getResources().getColor(id,c.getTheme());
+                id=c.getResources().getIdentifier(dark?"system_neutral1_900":"system_neutral1_50","color","android");if(id!=0)surface=c.getResources().getColor(id,c.getTheme());
             }
-        } catch(Exception e) { log(e); }
+            android.graphics.drawable.GradientDrawable background=new android.graphics.drawable.GradientDrawable();background.setColor(surface);background.setCornerRadius(24*c.getResources().getDisplayMetrics().density);d.getWindow().setBackgroundDrawable(background);
+            for(int button:new int[]{-1,-2,-3})if(d.getButton(button)!=null)d.getButton(button).setTextColor(color);
+            android.content.res.ColorStateList tint=android.content.res.ColorStateList.valueOf(color);android.widget.ListView list=d.getListView();
+            if(list!=null){android.widget.AbsListView.OnScrollListener listener=new android.widget.AbsListView.OnScrollListener(){public void onScrollStateChanged(android.widget.AbsListView v,int state){}public void onScroll(android.widget.AbsListView v,int first,int count,int total){for(int i=0;i<v.getChildCount();i++){android.view.View child=v.getChildAt(i);if(child instanceof android.widget.CheckedTextView)((android.widget.CheckedTextView)child).setCheckMarkTintList(tint);}}};list.setOnScrollListener(listener);list.post(()->listener.onScroll(list,0,list.getChildCount(),list.getCount()));}
+        }catch(Exception e){log(e);}
+    }
+    public static void showDialog(AlertDialog d){d.show();styleDialog(d);}
+    public static void showForm(AlertDialog d){d.show();formDialog(d);}
+    public static void formDialog(AlertDialog d){styleDialog(d);form(d.getWindow().getDecorView(),night(d.getContext()));}
+    private static void form(android.view.View v,boolean dark){
+        if(v instanceof android.widget.LinearLayout||v instanceof android.widget.ScrollView)v.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        if(v instanceof android.widget.EditText){android.widget.EditText e=(android.widget.EditText)v;e.setTextColor(dark?0xffffffff:0xff202124);e.setHintTextColor(dark?0xffb7bac3:0xff666a73);android.util.TypedValue value=new android.util.TypedValue();v.getContext().getTheme().resolveAttribute(0x7f03005e,value,true);int color=value.resourceId==0?value.data:v.getResources().getColor(value.resourceId);e.setBackgroundTintList(android.content.res.ColorStateList.valueOf(color));}
+        if(v instanceof android.view.ViewGroup){android.view.ViewGroup g=(android.view.ViewGroup)v;for(int i=0;i<g.getChildCount();i++)form(g.getChildAt(i),dark);}
     }
     public static void normalChoose(Object fragment,int mode) {
         interaction(fragment,false);
         try {
             Activity a=(Activity)get(fragment,"A1");
             UiStrings.selectLanguage(prefs(a).getString("app_lang", "0"));
+            if(mode==1){float current=Class.forName("e.e.a.ModernControls").getField("speed").getFloat(null);SpeedSlider.show(a,"再生速度",current,false,speed->{try{setSpeed(get(fragment,"a0"),speed);Class.forName("e.e.a.ModernControls").getMethod("update",fragment.getClass()).invoke(null,fragment);}catch(Exception e){log(e);}});return;}
             String[] labels=LABELS;
             if(mode==0) {
                 labels=new String[3];
                 for(int i=0;i<3;i++) labels[i]=(String)Class.forName("e.e.a.ModernControls").getMethod("qualityOption",int.class).invoke(null,i);
             }
-            int selected=2;
+            int selected=3;
             float current=Class.forName("e.e.a.ModernControls").getField("speed").getFloat(null);
             if(mode==1) for(int i=0;i<SPEEDS.length;i++) if(SPEEDS[i]==current) selected=i;
             if(mode==0) { int q=(Integer)get(get(fragment,"h1"),"e"); selected=q==4?2:q==3?1:0; }
@@ -104,7 +101,8 @@ public final class PlaybackSession {
         PreferenceGroup group=(PreferenceGroup)a.findPreference("player");
         if(group==null || a.findPreference("default_playback_speed")!=null) return;
         String[] values=new String[SPEEDS.length]; for(int i=0;i<values.length;i++) values[i]=Float.toString(SPEEDS[i]);
-        list(a,group,"default_playback_speed","デフォルトの再生速度",LABELS,values,"1.0");
+        PlayerGestures.settings(a,group);
+        SpeedSlider.settings(a,group);
         String[] policies={"何もしない（従来の動作）","バックグラウンド再生","ポップアップ再生"};
         String[] keys={"none","background","popup"};
         list(a,group,"app_switch_playback","アプリ切替時の動作",policies,keys,"none");

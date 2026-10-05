@@ -1,6 +1,5 @@
 package com.dmoniak.patches.freefire
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
@@ -32,8 +31,8 @@ val freeFire120FpsPatch = bytecodePatch(
 fun BytecodePatchContext.executeFreeFire120FpsLogic(logger: Logger) {
     logger.info("Executing Free Fire MAX 120 FPS & Device Model Spoof patch...")
     var replacedBuildFields = 0
-    var windowRateHooks = 0
-    var reflectionHooks = 0
+    var replacedFpsConstants = 0
+    var hookedGetters = 0
 
     classDefForEach { classDef ->
         val type = classDef.type
@@ -47,82 +46,10 @@ fun BytecodePatchContext.executeFreeFire120FpsLogic(logger: Logger) {
         for (method in classDef.methods.toList()) {
             val imp = method.implementation ?: continue
             val mName = method.name
+            val mNameLower = mName.lowercase()
             val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
 
-            // 1. Inject Reflection Build Spoofer in Application / MainActivity onCreate
-            if (!isStatic && (mName == "onCreate" || mName == "attachBaseContext") &&
-                (tl.contains("application") || tl.contains("mainactivity") || tl.contains("splashactivity"))
-            ) {
-                try {
-                    val mutableMethod = mutableClass.findMutableMethodOf(method)
-                    mutableMethod.addInstructions(
-                        0,
-                        """
-                        :try_start_spoofer
-                        const-string v0, "android.os.Build"
-                        invoke-static {v0}, Ljava/lang/Class;->forName(Ljava/lang/String;)Ljava/lang/Class;
-                        move-result-object v0
-
-                        const-string v1, "MODEL"
-                        invoke-virtual {v0, v1}, Ljava/lang/Class;->getDeclaredField(Ljava/lang/String;)Ljava/lang/reflect/Field;
-                        move-result-object v1
-                        const/4 v2, 0x1
-                        invoke-virtual {v1, v2}, Ljava/lang/reflect/Field;->setAccessible(Z)V
-                        const-string v3, "ASUS_AI2401"
-                        const/4 v4, 0x0
-                        invoke-virtual {v1, v4, v3}, Ljava/lang/reflect/Field;->set(Ljava/lang/Object;Ljava/lang/Object;)V
-
-                        const-string v1, "MANUFACTURER"
-                        invoke-virtual {v0, v1}, Ljava/lang/Class;->getDeclaredField(Ljava/lang/String;)Ljava/lang/reflect/Field;
-                        move-result-object v1
-                        invoke-virtual {v1, v2}, Ljava/lang/reflect/Field;->setAccessible(Z)V
-                        const-string v3, "asus"
-                        invoke-virtual {v1, v4, v3}, Ljava/lang/reflect/Field;->set(Ljava/lang/Object;Ljava/lang/Object;)V
-
-                        const-string v1, "BRAND"
-                        invoke-virtual {v0, v1}, Ljava/lang/Class;->getDeclaredField(Ljava/lang/String;)Ljava/lang/reflect/Field;
-                        move-result-object v1
-                        invoke-virtual {v1, v2}, Ljava/lang/reflect/Field;->setAccessible(Z)V
-                        invoke-virtual {v1, v4, v3}, Ljava/lang/reflect/Field;->set(Ljava/lang/Object;Ljava/lang/Object;)V
-                        :try_end_spoofer
-                        .catch Ljava/lang/Throwable; {:try_start_spoofer .. :try_end_spoofer} :catch_spoofer
-                        :catch_spoofer
-                        """.trimIndent()
-                    )
-                    reflectionHooks++
-                    logger.info("[Free Fire 120 FPS] Injected reflection Build spoofer in ${type}->${mName}")
-                } catch (e: Exception) {
-                    logger.fine("[Free Fire 120 FPS] Skip reflection inject: ${e.message}")
-                }
-            }
-
-            // 2. Hook Activity onCreate/onResume to configure 120Hz display refresh rate
-            if (!isStatic && (mName == "onCreate" || mName == "onResume") && tl.contains("activity")) {
-                try {
-                    val mutableMethod = mutableClass.findMutableMethodOf(method)
-                    mutableMethod.addInstructions(
-                        0,
-                        """
-                        invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
-                        move-result-object v0
-                        if-nez v0, :morphe_ff_skip
-                        invoke-virtual {v0}, Landroid/view/Window;->getAttributes()Landroid/view/WindowManager${'$'}LayoutParams;
-                        move-result-object v1
-                        if-nez v1, :morphe_ff_skip
-                        const/high16 v2, 0x42f00000
-                        iput v2, v1, Landroid/view/WindowManager${'$'}LayoutParams;->preferredRefreshRate:F
-                        invoke-virtual {v0, v1}, Landroid/view/Window;->setAttributes(Landroid/view/WindowManager${'$'}LayoutParams;)V
-                        :morphe_ff_skip
-                        """.trimIndent()
-                    )
-                    windowRateHooks++
-                    logger.fine("[Free Fire 120 FPS] Configured 120Hz WindowManager in ${type}->${mName}")
-                } catch (e: Exception) {
-                    logger.fine("[Free Fire 120 FPS] Skip window hook: ${e.message}")
-                }
-            }
-
-            // 3. Scan instructions for Build.MODEL / MANUFACTURER / BRAND reads
+            // 1. Scan instructions for Build.MODEL / MANUFACTURER / BRAND / HARDWARE reads (100% in-place safe)
             val instructions = imp.instructions.toList()
             for ((index, instruction) in instructions.withIndex()) {
                 if (instruction.opcode == Opcode.SGET_OBJECT) {
@@ -132,6 +59,10 @@ fun BytecodePatchContext.executeFreeFire120FpsLogic(logger: Logger) {
                         val spoofVal = when (fieldRef.name) {
                             "MODEL", "DEVICE", "PRODUCT" -> "ASUS_AI2401"
                             "MANUFACTURER", "BRAND" -> "asus"
+                            "HARDWARE" -> "qcom"
+                            "BOARD" -> "taro"
+                            "SOC_MODEL" -> "SM8650"
+                            "FINGERPRINT" -> "asus/WW_AI2401/ASUS_AI2401:14/UKQ1.230924.001/34.1420.1420.316-0:user/release-keys"
                             else -> null
                         }
 
@@ -153,30 +84,71 @@ fun BytecodePatchContext.executeFreeFire120FpsLogic(logger: Logger) {
                 }
             }
 
-            // 4. Hook framerate getters returning int (target 120 fps)
-            val mNameLower = mName.lowercase()
+            // 2. Safely upgrade 60 FPS cap constants (0x3c -> 0x78) in FPS-related methods
+            val isFpsMethod = mNameLower.contains("fps") ||
+                mNameLower.contains("framerate") ||
+                mNameLower.contains("refreshrate") ||
+                mNameLower.contains("targetrate") ||
+                mNameLower.contains("targetframe")
+
+            if (isFpsMethod) {
+                for ((index, instruction) in instructions.withIndex()) {
+                    // Check for const/4 reg, 0x3c or const/16 reg, 0x3c (60 FPS cap)
+                    if (instruction.opcode == Opcode.CONST_4 || instruction.opcode == Opcode.CONST_16) {
+                        val reg = (instruction as? OneRegisterInstruction)?.registerA ?: continue
+                        val literal = when (instruction) {
+                            is com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction -> instruction.narrowLiteral
+                            else -> null
+                        }
+                        if (literal == 60) {
+                            try {
+                                val mutableMethod = mutableClass.findMutableMethodOf(method)
+                                val newInstruction = com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21s(
+                                    Opcode.CONST_16,
+                                    reg,
+                                    120 // 120 FPS
+                                )
+                                mutableMethod.replaceInstruction(index, newInstruction)
+                                replacedFpsConstants++
+                            } catch (e: Exception) {
+                                logger.fine("[Free Fire 120 FPS] Skip 60fps literal replace: ${e.message}")
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3. Hook framerate getters safely by replacing return register value in-place
             if (!isStatic && (
                 mNameLower == "gettargetfps" ||
                 mNameLower == "getmaxframerate" ||
                 mNameLower == "gettargetframerate" ||
                 mNameLower == "getdesiredfps"
             ) && method.returnType == "I" && method.parameterTypes.isEmpty()) {
-                try {
-                    val mutableMethod = mutableClass.findMutableMethodOf(method)
-                    mutableMethod.addInstructions(
-                        0,
-                        """
-                        const/16 v0, 0x78
-                        return v0
-                        """.trimIndent() // 120
-                    )
-                    logger.info("[Free Fire 120 FPS] Hooked $mName to return 120")
-                } catch (e: Exception) {
-                    logger.fine("[Free Fire 120 FPS] Failed to hook $mName: ${e.message}")
+                for ((index, instruction) in instructions.withIndex()) {
+                    if (instruction.opcode == Opcode.RETURN) {
+                        val reg = (instruction as? OneRegisterInstruction)?.registerA ?: continue
+                        try {
+                            val mutableMethod = mutableClass.findMutableMethodOf(method)
+                            val const120 = com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21s(
+                                Opcode.CONST_16,
+                                reg,
+                                120
+                            )
+                            // Replace whatever loaded the return value right before RETURN with const_16 reg, 120
+                            if (index > 0) {
+                                mutableMethod.replaceInstruction(index - 1, const120)
+                                hookedGetters++
+                            }
+                        } catch (e: Exception) {
+                            logger.fine("[Free Fire 120 FPS] Skip getter replace: ${e.message}")
+                        }
+                        break
+                    }
                 }
             }
         }
     }
 
-    logger.info("[Free Fire 120 FPS] Finished: $reflectionHooks reflection hooks, $windowRateHooks window rate hooks, $replacedBuildFields Build field accesses spoofed.")
+    logger.info("[Free Fire 120 FPS] Finished: $replacedBuildFields Build field accesses spoofed, $replacedFpsConstants 60 FPS constants boosted to 120, $hookedGetters getters hooked in-place.")
 }

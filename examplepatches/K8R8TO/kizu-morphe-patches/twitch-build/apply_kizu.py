@@ -20,6 +20,11 @@ stream_proxy.write_text(proxy_text.replace(old, new, 1))
 (settings_dst / "UyuSettingsFragment.java").write_text(Path("twitch-build/UyuSettingsFragment.java").read_text())
 (settings_dst / "PrivacySupport.java").write_text(Path("twitch-build/PrivacySupport.java").read_text())
 
+chat_patch_dst = ROOT / "patches/src/main/kotlin/io/github/bakwudo/uyu/patches/twitch/chat"
+chat_patch_dst.mkdir(parents=True, exist_ok=True)
+(chat_patch_dst / "Fingerprints.kt").write_text(Path("twitch-build/ChatFingerprints.kt").read_text())
+(chat_patch_dst / "ShowDeletedMessagesPatch.kt").write_text(Path("twitch-build/ShowDeletedMessagesPatch.kt").read_text())
+
 enhancement_dst = ROOT / "patches/src/main/kotlin/io/github/bakwudo/uyu/patches/twitch/enhancement"
 enhancement_dst.mkdir(parents=True, exist_ok=True)
 (enhancement_dst / "EnhancementPatch.kt").write_text(Path("twitch-build/EnhancementPatch.kt").read_text())
@@ -787,16 +792,21 @@ for path, symbol in internal_patches:
 for path, symbol in [
     (ROOT / "patches/src/main/kotlin/io/github/bakwudo/uyu/patches/twitch/channelpoints/AutoClaimChannelPointsPatch.kt",
      "autoClaimChannelPointsPatch"),
+    (ROOT / "patches/src/main/kotlin/io/github/bakwudo/uyu/patches/twitch/chat/ShowDeletedMessagesPatch.kt",
+     "showDeletedMessagesPatch"),
     (ROOT / "patches/src/main/kotlin/io/github/bakwudo/uyu/patches/twitch/danmaku/DanmakuCommentsPatch.kt",
      "danmakuCommentsPatch"),
     (ROOT / "patches/src/main/kotlin/io/github/bakwudo/uyu/patches/twitch/separateapp/SeparateAppPatch.kt",
      "separateAppPatch"),
 ]:
     text = path.read_text()
-    needle = f'val {symbol} ='
-    if needle not in text:
-        raise RuntimeError(f"Could not locate public patch {symbol}")
-    text = text.replace(needle, f'internal val {symbol} =', 1)
+    internal_needle = f'internal val {symbol} ='
+    public_needle = f'val {symbol} ='
+    if internal_needle in text:
+        continue
+    if public_needle not in text:
+        raise RuntimeError(f"Could not locate patch {symbol}")
+    text = text.replace(public_needle, internal_needle, 1)
     path.write_text(text)
 
 # --- Emote picker (global third-party emotes in the native picker) -----------

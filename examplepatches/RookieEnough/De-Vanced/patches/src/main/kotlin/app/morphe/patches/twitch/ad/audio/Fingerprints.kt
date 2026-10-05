@@ -7,9 +7,8 @@ package app.morphe.patches.twitch.ad.audio
 import app.morphe.patcher.Fingerprint
 
 internal object AudioAdsPresenterPlayMethodFingerprint : Fingerprint(
-    returnType = "V",
-    custom = { method, classDef ->
-        method.name == "playAd" && classDef.type.endsWith("/AudioAdsPlayerPresenter;")
-    },
+    definingClass = "/AudioAdsPlayerPresenter;",
+    name = "playAd",
+    returnType = "V"
 )
 

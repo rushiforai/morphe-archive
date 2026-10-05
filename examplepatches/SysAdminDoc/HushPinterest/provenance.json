@@ -1,0 +1,163 @@
+{
+  "note": "Where every shipped source file under patches/ and extensions/ came from. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it. HushPinterest started from HushTelegram at 8c54a1d, which started from HushThreads at b141524, which started from Hushfacebook at c15d4f79, so most rules name HushTelegram and carry on the chain the earlier projects recorded for the same files. A Pinterest source named here also has to be allowed by sources/pinterest-sources.json.",
+  "rules": [
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/L10n.java",
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/Logger.java",
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/ResourceType.java",
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/ResourceUtils.java",
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/StringRef.java",
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/Utils.java",
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/diagnostics/**",
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/settings/**",
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/ui/**",
+        "patches/src/main/kotlin/app/morphe/patches/shared/misc/**",
+        "patches/src/main/kotlin/app/morphe/util/**",
+        "patches/stub/src/main/java/android/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "commit": "8c54a1d9992f5a19c39dd0246abe74dec1292e05",
+      "via": [
+        "https://github.com/SysAdminDoc/HushThreads",
+        "https://github.com/SysAdminDoc/Hushfacebook",
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Renamed for Pinterest: packages app.hushpinterest.extension.pinterest, app.hushpinterest.extension.shared and app.morphe.patches.pinterest, so the payload can't collide with another Morphe source's classes. Pinterest's application, launcher activity, target build and signer in place of Telegram's, Pinterest's own feature families and wording, and the Telegram-only features taken out. Earlier history: Renamed for Telegram: packages app.hushtelegram.extension.telegram, app.hushtelegram.extension.shared and app.morphe.patches.telegram, so the payload can't collide with another Morphe source's classes. Telegram's application, launcher activity, target build and signer in place of Threads', Telegram's own feature families and wording, and the Threads-only features taken out. Earlier history: Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/shared/compat/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "commit": "8c54a1d9992f5a19c39dd0246abe74dec1292e05",
+      "via": [
+        "https://github.com/SysAdminDoc/HushThreads",
+        "https://github.com/SysAdminDoc/Hushfacebook",
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/andrewliang25/morphe-patches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Pinterest: packages app.hushpinterest.extension.pinterest, app.hushpinterest.extension.shared and app.morphe.patches.pinterest, so the payload can't collide with another Morphe source's classes. Pinterest's application, launcher activity, target build and signer in place of Telegram's, Pinterest's own feature families and wording, and the Telegram-only features taken out. Earlier history: Renamed for Telegram: packages app.hushtelegram.extension.telegram, app.hushtelegram.extension.shared and app.morphe.patches.telegram, so the payload can't collide with another Morphe source's classes. Telegram's application, launcher activity, target build and signer in place of Threads', Telegram's own feature families and wording, and the Threads-only features taken out. Earlier history: Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/hushpinterest/extension/shared/L10nTranslations.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "commit": "8c54a1d9992f5a19c39dd0246abe74dec1292e05",
+      "via": [
+        "https://github.com/SysAdminDoc/HushThreads",
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Pinterest: packages app.hushpinterest.extension.pinterest, app.hushpinterest.extension.shared and app.morphe.patches.pinterest, so the payload can't collide with another Morphe source's classes. Pinterest's application, launcher activity, target build and signer in place of Telegram's, Pinterest's own feature families and wording, and the Telegram-only features taken out. Earlier history: Renamed for Telegram: packages app.hushtelegram.extension.telegram, app.hushtelegram.extension.shared and app.morphe.patches.telegram, so the payload can't collide with another Morphe source's classes. Telegram's application, launcher activity, target build and signer in place of Threads', Telegram's own feature families and wording, and the Threads-only features taken out. Earlier history: Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsBackup.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "commit": "8c54a1d9992f5a19c39dd0246abe74dec1292e05",
+      "via": [
+        "https://github.com/SysAdminDoc/HushThreads",
+        "https://github.com/SysAdminDoc/Hushfacebook",
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Pinterest: packages app.hushpinterest.extension.pinterest, app.hushpinterest.extension.shared and app.morphe.patches.pinterest, so the payload can't collide with another Morphe source's classes. Pinterest's application, launcher activity, target build and signer in place of Telegram's, Pinterest's own feature families and wording, and the Telegram-only features taken out. Earlier history: Renamed for Telegram: packages app.hushtelegram.extension.telegram, app.hushtelegram.extension.shared and app.morphe.patches.telegram, so the payload can't collide with another Morphe source's classes. Telegram's application, launcher activity, target build and signer in place of Threads', Telegram's own feature families and wording, and the Threads-only features taken out. Earlier history: Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsBackupPreference.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "commit": "8c54a1d9992f5a19c39dd0246abe74dec1292e05",
+      "via": [
+        "https://github.com/SysAdminDoc/HushThreads",
+        "https://github.com/SysAdminDoc/Hushfacebook",
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Pinterest: packages app.hushpinterest.extension.pinterest, app.hushpinterest.extension.shared and app.morphe.patches.pinterest, so the payload can't collide with another Morphe source's classes. Pinterest's application, launcher activity, target build and signer in place of Telegram's, Pinterest's own feature families and wording, and the Telegram-only features taken out. Earlier history: Renamed for Telegram: packages app.hushtelegram.extension.telegram, app.hushtelegram.extension.shared and app.morphe.patches.telegram, so the payload can't collide with another Morphe source's classes. Telegram's application, launcher activity, target build and signer in place of Threads', Telegram's own feature families and wording, and the Threads-only features taken out. Earlier history: Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ChoiceCards.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/DialogChoices.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/FamilyNames.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/HushPinterestPreferenceFragment.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/PatchFamily.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ReleaseCheck.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ReleaseTransport.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ScreenColors.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/Settings.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsDialog.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsEntry.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsIcons.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsNavigation.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsStatus.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SupportedLinks.java",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/misc/extension/**",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/misc/settings/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "commit": "8c54a1d9992f5a19c39dd0246abe74dec1292e05",
+      "via": [
+        "https://github.com/SysAdminDoc/HushThreads",
+        "https://github.com/SysAdminDoc/Hushfacebook",
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SapitoSucio/FroggoMorphePatches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Pinterest: packages app.hushpinterest.extension.pinterest, app.hushpinterest.extension.shared and app.morphe.patches.pinterest, so the payload can't collide with another Morphe source's classes. Pinterest's application, launcher activity, target build and signer in place of Telegram's, Pinterest's own feature families and wording, and the Telegram-only features taken out. Earlier history: Renamed for Telegram: packages app.hushtelegram.extension.telegram, app.hushtelegram.extension.shared and app.morphe.patches.telegram, so the payload can't collide with another Morphe source's classes. Telegram's application, launcher activity, target build and signer in place of Threads', Telegram's own feature families and wording, and the Threads-only features taken out. Earlier history: Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ads/**",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/ads/**",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/privacy/**",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/privacy/**",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ui/**",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/ui/**",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/actions/**",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/DownloadHistoryPreference.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/PendingSavesPreference.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SetupGuidancePreference.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/PushReadiness.java",
+        "patches/src/main/kotlin/app/morphe/patches/pinterest/actions/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushPinterest",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Pinterest feed and view filters written for version 14.25.0 from its own dex. Every switch leaves Pinterest's own path in place when it's off or paused, and each hook reports its own capability."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/util/RegisterKinds.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Unchanged. Written for HushTelegram: Register kind analysis written for HushTelegram, so a hook's jump is checked against what ART's verifier accepts before the method changes.",
+      "commit": "8c54a1d9992f5a19c39dd0246abe74dec1292e05"
+    }
+  ]
+}

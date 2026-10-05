@@ -20,6 +20,18 @@ import org.junit.Test
 /** The actual vendor application and launcher bodies, independent of the shortcut stand-ins. */
 class SettingsVendorFixtureTest {
     @Test
+    fun `each declared self settings builder receives its own dedicated native row`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val hosts = NativeSettingsFixtures.hosts(build)
+            val context = PatchContexts.of(ExtensionDex.classes() + SettingsPatchHosts.all() + hosts)
+            settingsPatch.execute(context)
+            val owner = context.mutableClassDefBy(hosts.first().type)
+            assertEquals("${build.name}: dedicated row uses the native owner", 1,
+                owner.methods.count { it.name == "hushTelegramAddSettingsRow" })
+        }
+    }
+
+    @Test
     fun `each declared distribution exposes and receives every native settings lifecycle hook`() {
         for (build in Fixtures.declaredBuilds()) {
             val hosts = FixtureDex.classes(build, setOf(TELEGRAM_APPLICATION,

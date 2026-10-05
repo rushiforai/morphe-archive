@@ -1,0 +1,124 @@
+name: Build mpp
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Publish the mpp as a GitHub release (tag v<version> from gradle.properties)'
+        type: boolean
+        default: false
+      notes:
+        description: 'Release notes in Markdown (defaults to the commit and run the mpp was built from)'
+        type: string
+        default: ''
+      delete_previous_releases:
+        description: 'Delete every existing release and its tag before publishing'
+        type: boolean
+        default: false
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    name: Build mpp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v5.6.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      # buildAndroid adds classes.dex to the mpp. Without it Morphe Manager on Android loads 0 patches.
+      - name: Build with Gradle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean :patches:buildAndroid
+
+      - name: Check mpp contains DEX
+        run: |
+          mpp=$(ls patches/build/libs/patches-*.mpp | grep -v -e '-javadoc' -e '-sources')
+          unzip -l "$mpp" | grep -q ' classes.dex$'
+
+      - name: Upload mpp
+        uses: actions/upload-artifact@v4
+        with:
+          name: reddit-nsfw-blocker-mpp
+          path: |
+            patches/build/libs/patches-*.mpp
+            !patches/build/libs/patches-*-javadoc.mpp
+            !patches/build/libs/patches-*-sources.mpp
+          if-no-files-found: error
+
+  release:
+    name: Release mpp
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && inputs.release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download mpp
+        uses: actions/download-artifact@v4
+        with:
+          name: reddit-nsfw-blocker-mpp
+          path: dist
+
+      - name: Delete previous releases
+        if: inputs.delete_previous_releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release list --limit 1000 --json tagName --jq '.[].tagName' | while read -r tag; do
+            gh release delete "$tag" --cleanup-tag --yes
+          done
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          version=$(sed -n 's/^version *= *//p' gradle.properties)
+          if [ -z "$NOTES" ]; then
+            NOTES="Build of \`$GITHUB_SHA\` from run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID."
+          fi
+          gh release create "v$version" dist/*.mpp \
+            --target "$GITHUB_SHA" \
+            --title "Reddit NSFW Blocker v$version" \
+            --notes "$NOTES"
+
+      # Morphe Manager reads patches-bundle.json from the default branch to find the mpp of a remote source.
+      # Without this it keeps downloading the release the file pointed to before.
+      - name: Point patches-bundle.json to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          version=$(sed -n 's/^version *= *//p' gradle.properties)
+          git fetch origin "$DEFAULT_BRANCH"
+          git checkout -B "$DEFAULT_BRANCH" "origin/$DEFAULT_BRANCH"
+
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/v$version" | jq --arg version "$version" \
+            --arg url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/v$version/patches-$version.mpp" \
+            '{created_at: (.published_at | sub("Z$"; "")), description: .body, download_url: $url, version: $version}' \
+            > patches-bundle.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          git diff --cached --quiet || git commit -m "chore: Point patches-bundle.json to v$version [skip ci]"
+          git push origin "$DEFAULT_BRANCH"

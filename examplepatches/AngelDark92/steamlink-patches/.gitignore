@@ -163,4 +163,19 @@ extensions/resolution-trace-layer/build-android-new/
 extensions/resolution-trace-layer/build-android-cpu/
 extensions/resolution-trace-layer/build-host-tests/
 VirtualDesktop/**
-diagnostics/
+diagnostics/*
+# Keep the new experiment's compact provenance and receipts reviewable.
+!diagnostics/steamlink-foveal-canvas/
+diagnostics/steamlink-foveal-canvas/*
+!diagnostics/steamlink-foveal-canvas/*.md
+!diagnostics/steamlink-foveal-canvas/*.json
+!diagnostics/steamlink-foveal-canvas/*.txt
+!diagnostics/steamlink-foveal-canvas/Verify-Catalogs.py
+
+# Category validation keeps compact receipts/recipes; compiler logs and reports stay local.
+!diagnostics/patch-categories/
+diagnostics/patch-categories/*
+!diagnostics/patch-categories/*.md
+!diagnostics/patch-categories/*.json
+!diagnostics/patch-categories/*.py
+!diagnostics/patch-categories/*.java

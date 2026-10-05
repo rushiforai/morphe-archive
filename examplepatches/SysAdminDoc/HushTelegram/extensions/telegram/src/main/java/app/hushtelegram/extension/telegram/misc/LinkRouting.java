@@ -143,7 +143,8 @@ public final class LinkRouting {
             for (ResolveInfo match : matches) {
                 ActivityInfo activity = match.activityInfo;
                 IntentFilter filter = match.filter;
-                if (activity == null || !activity.enabled || !activity.exported || filter == null ||
+                // The query applies runtime enabled state; ActivityInfo.enabled is the manifest default.
+                if (activity == null || !activity.exported || filter == null ||
                         !filter.hasDataScheme(scheme) || filter.countDataAuthorities() != 0 ||
                         filter.countDataSchemeSpecificParts() != 0 || activity.packageName == null ||
                         activity.packageName.equals(ownPackage) || activity.packageName.equals("android")) continue;

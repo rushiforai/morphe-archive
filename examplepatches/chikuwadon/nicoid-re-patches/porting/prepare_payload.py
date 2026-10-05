@@ -38,6 +38,9 @@ def main():
     for patch in ['original-to-mod.patch', 'fixes.patch', 'pull-refresh.patch', 'shorts.patch', 'manual-login.patch']:
         run('git', '-C', decoded, 'apply', '--check', ROOT / patch)
         run('git', '-C', decoded, 'apply', ROOT / patch)
+    run('python3', ROOT / 'player-cache.py', decoded)
+    run('python3', ROOT / 'player-refinements.py', decoded)
+    run('python3', ROOT / 'player-ui.py', decoded)
     helper_classes, helper_dex = work / 'helper-classes', work / 'helper-dex'
     helper_classes.mkdir(); helper_dex.mkdir()
     sources = sorted((ROOT.parent / 'extensions/extension/src/main/java/e/e/a').glob('*.java'))
@@ -51,11 +54,13 @@ def main():
     patched = work / 'patched-base.apk'
     run(java, '-jar', args.apktool.absolute(), 'b', decoded, '-o', patched)
     classpath = os.pathsep.join([str(args.dexlib), str(args.guava)])
-    run(javac, '-encoding', 'UTF-8', '-cp', classpath, '-d', work, ROOT / 'MakePayload.java')
+    run(javac, '-encoding', 'UTF-8', '-cp', classpath, '-d', work, ROOT / 'MakePayload.java', ROOT / 'CacheDexHooks.java')
+    run(java, '-cp', str(work) + os.pathsep + classpath, 'CacheDexHooks',
+        ROOT / 'upstream-helper.dex', work / 'upstream-cache.dex')
     payload = ROOT.parent / 'patches/src/main/resources/nicoid'
     run(java, '-cp', str(work) + os.pathsep + classpath, 'MakePayload', apk, patched,
         decoded / 'smali', work / 'original-smali', payload,
-        ROOT / 'upstream-helper.dex', helper_dex / 'classes.dex')
+        work / 'upstream-cache.dex', helper_dex / 'classes.dex')
 
 if __name__ == '__main__':
     main()

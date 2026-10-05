@@ -112,6 +112,33 @@ val unlimitedCurrencyPatch = rawResourcePatch(
 }
 
 /**
+ * Keeps the Daily Deal popup from opening on the map.
+ *
+ * `COffersManager::Tick()` runs on every map update. Once the delay since the popup was last
+ * closed has passed (20 minutes in the game's offers config), it looks up the day's item and,
+ * when there is one, builds a `CDailyDealDialogWindow` and queues it on the map. The `beq` that
+ * skips the window when the item is missing becomes a plain `b`, so `Tick()` always takes that
+ * path: it still stores the time of the check and checks again after the same delay.
+ *
+ * The deal itself is untouched. `COffersManager::UpdateOffers()` puts the day's item on sale,
+ * and the store shows it with its sale marker and timer. `CheckAndShowDD()` builds the same
+ * window but has no caller.
+ */
+@Suppress("unused")
+val hideDailyDealPatch = rawResourcePatch(
+    name = "Hide Daily Deal popup",
+    description = "Hides the annoying Daily Deal popup that shows at every launch. The deal is still in the store.",
+) {
+    compatibleWith(COMPATIBILITY_CK_ZOMBIES)
+
+    dependsOn(nativeLibraryCheckPatch)
+
+    execute {
+        editLibraries(NativeEdits.DAILY_DEAL)
+    }
+}
+
+/**
  * Removes the wait on the loading screen that only happens with a live connection.
  *
  * `AppInitGameDataGS::Load()` reports "not finished" for as long as the login flow runs, and
@@ -131,8 +158,9 @@ internal val serverCheckStallPatch = rawResourcePatch {
 /**
  * Stops the two native requests to Glu's `gserve` S3 bucket, which no longer exists (a free
  * bucket name can be claimed by anyone, who would then be serving this game over plain HTTP),
- * takes out the two menu buttons that lead to dead services, and drops the offline message the
- * dead time server causes.
+ * takes out the two menu buttons that lead to dead services, drops the offline message the dead
+ * time server causes, and leaves out the one time offer that Google's dead billing service was
+ * to sell.
  *
  * - `CDynamicAd::SetImageUrl()` fetches Glu's own banner through `WebUtil::httpGet()` and never
  *   reads the call's result. With the call made a no-op the `WebUtil` stays idle, and
@@ -152,6 +180,11 @@ internal val serverCheckStallPatch = rawResourcePatch {
  *   `bne` on that flag becomes a no-op and the function returns as on any other update. The
  *   bonus logic and its saved fields are untouched; the day the message was last shown is kept
  *   only in memory and read nowhere else.
+ * - `CGPSMapGame::Init()` shows a one time offer of Glu credits once the tutorial is over
+ *   (`COffersManager::ShouldBeShown()`). Its Buy Now goes to Google's in-app billing, which is
+ *   gone, and the Java side refuses inside the call: the "Please wait..." window opened that
+ *   same frame, so it never gets the failure command, and the game waits forever. The `bne`
+ *   into the offer becomes a no-op. `ShouldBeShown()` still runs and counts the showing.
  */
 internal val deadServersNativePatch = rawResourcePatch {
     dependsOn(nativeLibraryCheckPatch)

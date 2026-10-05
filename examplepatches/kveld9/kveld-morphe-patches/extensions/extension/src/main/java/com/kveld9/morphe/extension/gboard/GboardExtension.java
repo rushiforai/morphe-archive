@@ -5,12 +5,23 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.TextView;
+import com.kveld9.morphe.extension.gboard.i18n.GboardI18n;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 @SuppressWarnings("unused")
 public class GboardExtension {
+    public static final String PREF_KEY_HEADER = "morphe_patches_header";
+    public static final String PREF_KEY_SCREEN = "morphe_patches_screen";
+    public static final String PREF_KEY_CAT_ACTIONS = "morphe_cat_actions";
+    public static final String PREF_KEY_CAT_APPEARANCE = "morphe_cat_appearance";
+    public static final String PREF_KEY_CAT_TOOLBAR = "morphe_cat_toolbar";
+    public static final String PREF_KEY_CAT_CLIPBOARD = "morphe_cat_clipboard";
+    public static final String PREF_KEY_CAT_HAPTICS = "morphe_cat_haptics";
+    public static final String PREF_KEY_CAT_SMART = "morphe_cat_smart";
+    public static final String PREF_KEY_CAT_PRIVACY = "morphe_cat_privacy";
+
     public static final String PREF_KEY_RESTART_GBOARD = "morphe_restart_gboard";
     public static final String PREF_KEY_ENABLE_IME = "morphe_enable_ime";
     public static final String PREF_KEY_SELECT_IME = "morphe_select_ime";
@@ -60,6 +71,8 @@ public class GboardExtension {
     public static final int MAX_EMOJI_SCALE = 150;
     public static final int DEFAULT_EMOJI_SCALE = 100;
 
+
+
     private static final int FLAG_IGNORE_GLOBAL_SETTING = 2; // HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
     private static final int FALLBACK_VIBRATION_DURATION_MS = 10;
 
@@ -100,7 +113,6 @@ public class GboardExtension {
 
     private static volatile boolean restartPending = false;
     private static volatile java.lang.ref.WeakReference<Object> restartPrefRef = null;
-    private static volatile java.lang.ref.WeakReference<Object> restartHolderRef = null;
     private static volatile long lastRestartToastTime = 0;
 
     private static final SharedPreferences.OnSharedPreferenceChangeListener PREF_LISTENER = (prefs, key) -> {
@@ -111,10 +123,7 @@ public class GboardExtension {
                 if (ctx != null) {
                     showRestartToast(ctx);
                 }
-                updateRestartPreferenceStatus(
-                    restartPrefRef != null ? restartPrefRef.get() : null,
-                    restartHolderRef != null ? restartHolderRef.get() : null
-                );
+                updateRestartPreferenceStatus(restartPrefRef != null ? restartPrefRef.get() : null);
             }
             refreshHotPathCache();
         }
@@ -150,7 +159,8 @@ public class GboardExtension {
                 android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
                 handler.post(() -> {
                     try {
-                        android.widget.Toast.makeText(ctx, "Restart Gboard to apply changes", android.widget.Toast.LENGTH_SHORT).show();
+                        String msg = GboardI18n.getRestartToast(ctx);
+                        android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_SHORT).show();
                     } catch (Throwable ignored) {}
                 });
             } catch (Throwable ignored) {}
@@ -302,6 +312,58 @@ public class GboardExtension {
         return cachedBottomPadding;
     }
 
+    private static java.lang.ref.WeakReference<View> imeNavBarFrame = new java.lang.ref.WeakReference<>(null);
+
+    /**
+     * Since Android 13 the framework draws its own navigation bar inside the IME window
+     * (back chevron + IME switcher) and shrinks the IME content above it, so Gboard's own
+     * bottom offsets cannot remove that gap. Hide the frame and let the content reach the bottom.
+     */
+    public static void applyImeNavBarInset(android.inputmethodservice.InputMethodService service) {
+        try {
+            if (android.os.Build.VERSION.SDK_INT < 33 || getBottomPadding() < 0) return;
+            android.app.Dialog dialog = service.getWindow();
+            if (dialog == null) return;
+            android.view.Window window = dialog.getWindow();
+            if (window == null) return;
+            final android.view.ViewGroup decor = (android.view.ViewGroup) window.getDecorView();
+            View frame = null;
+            for (int i = 0; i < decor.getChildCount(); i++) {
+                View child = decor.getChildAt(i);
+                if (child.getClass().getName().endsWith("NavigationBarFrame")) {
+                    frame = child;
+                    break;
+                }
+            }
+            if (frame == null) return;
+            window.setDecorFitsSystemWindows(false);
+            hideImeNavBar(window, frame);
+            if (imeNavBarFrame.get() != frame) {
+                imeNavBarFrame = new java.lang.ref.WeakReference<>(frame);
+                // The framework re-shows the frame and Gboard re-tints the nav bar background on
+                // every nav button/theme update; re-apply before the frame is drawn.
+                decor.getViewTreeObserver().addOnPreDrawListener(() -> {
+                    View f = imeNavBarFrame.get();
+                    if (f == null || getBottomPadding() < 0) return true;
+                    return !hideImeNavBar(window, f);
+                });
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    private static boolean hideImeNavBar(android.view.Window window, View frame) {
+        boolean changed = false;
+        if (frame.getVisibility() != View.GONE) {
+            frame.setVisibility(View.GONE);
+            changed = true;
+        }
+        if (window.getNavigationBarColor() != android.graphics.Color.TRANSPARENT) {
+            window.setNavigationBarColor(android.graphics.Color.TRANSPARENT);
+            changed = true;
+        }
+        return changed;
+    }
+
     public static boolean isForceIncognitoEnabled(Context context) {
         return getBooleanPref(PREF_KEY_FORCE_INCOGNITO, false);
     }
@@ -364,11 +426,86 @@ public class GboardExtension {
         return original;
     }
 
+
     public static int getVibrationUsage(int originalUsage) {
         if (isDecoupleTouchFeedbackEnabled()) {
-            return 0;
+            return 17; // VibrationAttributes.USAGE_ALARM
         }
         return originalUsage;
+    }
+
+    @android.annotation.SuppressLint("MissingPermission")
+    public static boolean vibrateCustomDuration(Object player, int durationMs) {
+        if (!isDecoupleTouchFeedbackEnabled()) {
+            return false;
+        }
+        if (durationMs <= 0) {
+            return true;
+        }
+        Context ctx = null;
+        if (player != null) {
+            try {
+                Field fContext = findField(player.getClass(), "h");
+                if (fContext != null) {
+                    Object val = fContext.get(player);
+                    if (val instanceof Context) ctx = (Context) val;
+                }
+            } catch (Throwable ignored) {}
+        }
+        if (ctx == null) {
+            ctx = getContext(null);
+        }
+        if (ctx == null) return false;
+
+        try {
+            android.os.Vibrator vibrator = null;
+            if (player != null) {
+                try {
+                    Field fVibrator = findField(player.getClass(), "j");
+                    if (fVibrator != null) {
+                        Object supplier = fVibrator.get(player);
+                        if (supplier != null) {
+                            Method getMethod = supplier.getClass().getMethod("get");
+                            Object v = getMethod.invoke(supplier);
+                            if (v instanceof android.os.Vibrator) vibrator = (android.os.Vibrator) v;
+                        }
+                    }
+                } catch (Throwable ignored) {}
+            }
+            if (vibrator == null) {
+                vibrator = (android.os.Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
+            }
+            if (vibrator == null || !vibrator.hasVibrator()) return false;
+
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                android.os.VibrationEffect effect;
+                if (android.os.Build.VERSION.SDK_INT >= 30 && vibrator.areAllPrimitivesSupported(android.os.VibrationEffect.Composition.PRIMITIVE_CLICK)) {
+                    float scale = Math.min(1.0f, Math.max(0.05f, ((float) durationMs) * 0.01f));
+                    effect = android.os.VibrationEffect.startComposition()
+                            .addPrimitive(android.os.VibrationEffect.Composition.PRIMITIVE_CLICK, scale)
+                            .compose();
+                } else {
+                    effect = android.os.VibrationEffect.createOneShot(durationMs, android.os.VibrationEffect.DEFAULT_AMPLITUDE);
+                }
+
+                if (android.os.Build.VERSION.SDK_INT >= 33) {
+                    android.os.VibrationAttributes attrs = new android.os.VibrationAttributes.Builder()
+                            .setUsage(android.os.VibrationAttributes.USAGE_ALARM)
+                            .build();
+                    vibrator.vibrate(effect, attrs);
+                } else {
+                    android.media.AudioAttributes audioAttrs = new android.media.AudioAttributes.Builder()
+                            .setUsage(android.media.AudioAttributes.USAGE_ALARM)
+                            .build();
+                    vibrator.vibrate(effect, audioAttrs);
+                }
+            } else {
+                vibrator.vibrate(durationMs);
+            }
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     public static boolean performHapticFeedback(View view, int feedbackConstant) {
@@ -394,7 +531,7 @@ public class GboardExtension {
             android.os.Vibrator vibrator = (android.os.Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
             if (vibrator == null || !vibrator.hasVibrator()) return false;
             if (android.os.Build.VERSION.SDK_INT >= 29) {
-                android.os.VibrationEffect effect = null;
+                android.os.VibrationEffect effect;
                 if (android.os.Build.VERSION.SDK_INT >= 30 && vibrator.areAllPrimitivesSupported(android.os.VibrationEffect.Composition.PRIMITIVE_CLICK)) {
                     effect = android.os.VibrationEffect.startComposition()
                             .addPrimitive(android.os.VibrationEffect.Composition.PRIMITIVE_CLICK, 1.0f)
@@ -402,7 +539,17 @@ public class GboardExtension {
                 } else {
                     effect = android.os.VibrationEffect.createOneShot(FALLBACK_VIBRATION_DURATION_MS, android.os.VibrationEffect.DEFAULT_AMPLITUDE);
                 }
-                vibrator.vibrate(effect);
+                if (android.os.Build.VERSION.SDK_INT >= 33) {
+                    android.os.VibrationAttributes attrs = new android.os.VibrationAttributes.Builder()
+                            .setUsage(android.os.VibrationAttributes.USAGE_ALARM)
+                            .build();
+                    vibrator.vibrate(effect, attrs);
+                } else {
+                    android.media.AudioAttributes audioAttrs = new android.media.AudioAttributes.Builder()
+                            .setUsage(android.media.AudioAttributes.USAGE_ALARM)
+                            .build();
+                    vibrator.vibrate(effect, audioAttrs);
+                }
             } else {
                 vibrator.vibrate(FALLBACK_VIBRATION_DURATION_MS);
             }
@@ -577,26 +724,9 @@ public class GboardExtension {
 
     public static String formatSeekBarValue(Object pref, int value) {
         String key = getPreferenceKey(pref);
-        if (key != null) {
-            switch (key) {
-                case PREF_KEY_BOTTOM_PADDING:
-                    return value + " px";
-                case PREF_KEY_TOOLBAR_ITEM_COUNT:
-                    return Math.max(MIN_TOOLBAR_ITEM_COUNT, value) + " icons";
-                case PREF_KEY_CLIPBOARD_RETENTION_HOURS:
-                    return Math.max(MIN_CLIPBOARD_RETENTION_HOURS, value) + " h";
-                case PREF_KEY_CLIPBOARD_UNPINNED_LIMIT:
-                    return Math.max(MIN_CLIPBOARD_UNPINNED_LIMIT, value) + " clips";
-                case PREF_KEY_CLIPBOARD_GRID_COLUMNS:
-                    int cols = Math.max(MIN_CLIPBOARD_GRID_COLUMNS, value);
-                    return cols + (cols == 1 ? " col" : " cols");
-                case PREF_KEY_EMOJI_SCALE:
-                    return Math.max(MIN_EMOJI_SCALE, value) + " %";
-                default:
-                    break;
-            }
-        }
-        return String.valueOf(value);
+        if (key == null) return String.valueOf(value);
+        Context ctx = getContextFromPref(pref);
+        return GboardI18n.formatUnit(ctx, key, value);
     }
 
     public static boolean isImeEnabled(Context context) {
@@ -685,11 +815,23 @@ public class GboardExtension {
         String key = getPreferenceKey(pref);
         if (key == null) return;
 
+        android.view.View itemView = getItemViewFromHolder(holder);
+        if (itemView != null) {
+            if (itemView.getVisibility() != android.view.View.VISIBLE) {
+                itemView.setVisibility(android.view.View.VISIBLE);
+            }
+            android.view.ViewGroup.LayoutParams lp = itemView.getLayoutParams();
+            if (lp != null && lp.height != android.view.ViewGroup.LayoutParams.WRAP_CONTENT) {
+                lp.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+                itemView.setLayoutParams(lp);
+            }
+        }
+
         Context ctx = getContextFromPref(pref);
+        applyDynamicLocalization(pref, holder, key, ctx);
 
         if (PREF_KEY_RESTART_GBOARD.equals(key)) {
             restartPrefRef = new java.lang.ref.WeakReference<>(pref);
-            restartHolderRef = new java.lang.ref.WeakReference<>(holder);
             updateRestartPreferenceStatus(pref, holder);
             attachClickListener(holder, () -> onPreferenceClick(pref));
         } else if (PREF_KEY_ENABLE_IME.equals(key)) {
@@ -701,6 +843,30 @@ public class GboardExtension {
             boolean selected = isImeSelected(ctx);
             applyActionCardVisibility(holder, enabled && !selected, 0xFF2196F3);
             attachClickListener(holder, () -> onPreferenceClick(pref));
+        }
+    }
+
+    private static void applyDynamicLocalization(Object pref, Object holder, String key, Context ctx) {
+        if (PREF_KEY_RESTART_GBOARD.equals(key)) return;
+
+        String title = GboardI18n.getTitle(ctx, key);
+        String summary = GboardI18n.getSummary(ctx, key);
+        if (title == null && summary == null) return;
+
+        android.view.View itemView = getItemViewFromHolder(holder);
+        if (itemView != null) {
+            itemView.post(() -> {
+                try {
+                    if (title != null) {
+                        android.widget.TextView tvTitle = itemView.findViewById(android.R.id.title);
+                        if (tvTitle != null) tvTitle.setText(title);
+                    }
+                    if (summary != null) {
+                        android.widget.TextView tvSummary = itemView.findViewById(android.R.id.summary);
+                        if (tvSummary != null) tvSummary.setText(summary);
+                    }
+                } catch (Throwable ignored) {}
+            });
         }
     }
 
@@ -757,56 +923,46 @@ public class GboardExtension {
         } catch (Throwable ignored) {}
     }
 
+    public static void updateRestartPreferenceStatus(Object pref) {
+        updateRestartPreferenceStatus(pref, null);
+    }
+
     public static void updateRestartPreferenceStatus(Object pref, Object holder) {
         try {
             if (pref == null && restartPrefRef != null) {
                 pref = restartPrefRef.get();
             }
-            if (pref != null) {
-                try {
-                    Method mSetTitle = pref.getClass().getMethod("setTitle", CharSequence.class);
-                    Method mSetSummary = pref.getClass().getMethod("setSummary", CharSequence.class);
-                    if (restartPending) {
-                        mSetTitle.invoke(pref, "Restart Gboard (Restart Pending)");
-                        mSetSummary.invoke(pref, "Changes pending! Tap here to restart Gboard and apply changes now.");
-                    } else {
-                        mSetTitle.invoke(pref, "Restart Gboard Process");
-                        mSetSummary.invoke(pref, "Tap to apply changes (required for most options to take effect)");
-                    }
-                } catch (Throwable ignored) {}
-            }
+            Context ctx = (pref != null) ? getContextFromPref(pref) : getContext(null);
+            String title = GboardI18n.getRestartTitle(ctx, restartPending);
+            String summary = GboardI18n.getRestartSummary(ctx, restartPending);
 
-            if (holder == null && restartHolderRef != null) {
-                holder = restartHolderRef.get();
+            if (holder != null) {
+                android.view.View itemView = getItemViewFromHolder(holder);
+                if (itemView != null) {
+                    final int summaryColor = restartPending ? 0xFFFF5252 : 0xFF888888;
+                    itemView.post(() -> {
+                        try {
+                            android.widget.TextView titleView = itemView.findViewById(android.R.id.title);
+                            android.widget.TextView summaryView = itemView.findViewById(android.R.id.summary);
+                            if (titleView != null) titleView.setText(title);
+                            if (summaryView != null) {
+                                summaryView.setText(summary);
+                                summaryView.setTextColor(summaryColor);
+                            }
+                        } catch (Throwable ignored) {}
+                    });
+                }
+            } else if (pref != null) {
+                final Object targetPref = pref;
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    try {
+                        Method mSetTitle = targetPref.getClass().getMethod("setTitle", CharSequence.class);
+                        Method mSetSummary = targetPref.getClass().getMethod("setSummary", CharSequence.class);
+                        mSetTitle.invoke(targetPref, title);
+                        mSetSummary.invoke(targetPref, summary);
+                    } catch (Throwable ignored) {}
+                });
             }
-            if (holder == null) return;
-            android.view.View itemView = getItemViewFromHolder(holder);
-            if (itemView == null) return;
-
-            final boolean isPending = restartPending;
-            itemView.post(() -> {
-                try {
-                    android.widget.TextView titleView = itemView.findViewById(android.R.id.title);
-                    android.widget.TextView summaryView = itemView.findViewById(android.R.id.summary);
-                    if (isPending) {
-                        if (titleView != null) {
-                            titleView.setText("Restart Gboard (Restart Pending)");
-                        }
-                        if (summaryView != null) {
-                            summaryView.setText("Changes pending! Tap here to restart Gboard and apply changes now.");
-                            summaryView.setTextColor(0xFFFF5252);
-                        }
-                    } else {
-                        if (titleView != null) {
-                            titleView.setText("Restart Gboard Process");
-                        }
-                        if (summaryView != null) {
-                            summaryView.setText("Tap to apply changes (required for most options to take effect)");
-                            summaryView.setTextColor(0xFF888888);
-                        }
-                    }
-                } catch (Throwable ignored) {}
-            });
         } catch (Throwable ignored) {}
     }
 
@@ -852,7 +1008,8 @@ public class GboardExtension {
             Context ctx = getContextFromPref(pref);
             if (ctx != null) {
                 try {
-                    android.widget.Toast.makeText(ctx, "Restarting Gboard...", android.widget.Toast.LENGTH_SHORT).show();
+                    String msg = GboardI18n.getRestartingToast(ctx);
+                    android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_SHORT).show();
                 } catch (Throwable ignored) {}
 
                 try {

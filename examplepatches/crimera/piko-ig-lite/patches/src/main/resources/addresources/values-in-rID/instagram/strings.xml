@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="piko_copied_media_link">Tautan media disalin</string>
+    <string name="piko_download_current_media">Unduh media saat ini</string>
+    <string name="piko_no_internet">Silakan sambungkan ke internet</string>
+</resources>

@@ -11,7 +11,9 @@ import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.SystemClock;
+import android.view.accessibility.AccessibilityManager;
 
 import java.lang.reflect.Proxy;
 import java.util.Map;
@@ -33,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
@@ -115,6 +118,61 @@ public class ClearResumeHistoryTest {
         assertTrue(new ResumePoints(file).size(System.currentTimeMillis()) == 0);
     }
 
+    @Test @Config(sdk = {28, 29, 37})
+    public void undoUsesTheRecommendedInteractiveWindowOrTheLegacyFallback() {
+        AccessibilityManager manager = RuntimeEnvironment.getApplication()
+                .getSystemService(AccessibilityManager.class);
+        for (int recommendation : new int[]{10_000, 30_000, 120_000}) {
+            if (Build.VERSION.SDK_INT >= 29) {
+                Shadows.shadowOf(manager).setInteractiveUiTimeout(recommendation);
+                Shadows.shadowOf(manager).setNonInteractiveUiTimeout(0);
+            }
+            points.put("id", 60_000, System.currentTimeMillis());
+            ResumePlayback.clearHistory();
+            int window = Build.VERSION.SDK_INT >= 29 ? recommendation : 10_000;
+            SystemClock.sleep(window - 1);
+            assertTrue("Undo ended before the recommended window", ResumePlayback.canUndoHistory());
+            SystemClock.sleep(1);
+            ShadowLooper.idleMainLooper();
+            assertFalse(ResumePlayback.canUndoHistory());
+        }
+    }
+
+    @Test @Config(sdk = {29, 37})
+    public void undoAlsoRespectsTheRecommendedReadingTime() {
+        AccessibilityManager manager = RuntimeEnvironment.getApplication()
+                .getSystemService(AccessibilityManager.class);
+        Shadows.shadowOf(manager).setInteractiveUiTimeout(10_000);
+        Shadows.shadowOf(manager).setNonInteractiveUiTimeout(120_000);
+        points.put("id", 60_000, System.currentTimeMillis());
+        ResumePlayback.clearHistory();
+        SystemClock.sleep(30_000);
+        assertTrue("Undo omitted the text content flag", ResumePlayback.canUndoHistory());
+    }
+
+    @Test @Config(sdk = {28, 29, 37})
+    public void staleActionAndExpiryCannotConsumeTheNextClear() {
+        points.put("first", 60_000, System.currentTimeMillis());
+        ResumePlayback.clearHistory();
+        long old = ResumePlayback.undoHistoryToken();
+        long firstDeadline = ResumePlayback.undoHistoryDeadline(old);
+        SystemClock.sleep(5_000);
+        points.put("second", 70_000, System.currentTimeMillis());
+        ResumePlayback.clearHistory();
+        long current = ResumePlayback.undoHistoryToken();
+        assertTrue(old != current);
+        assertEquals(0, ResumePlayback.undoHistoryDeadline(old));
+        assertFalse(ResumePlayback.undoHistory(old));
+        SystemClock.sleep(firstDeadline - SystemClock.elapsedRealtime());
+        ShadowLooper.idleMainLooper();
+        assertTrue(ResumePlayback.canUndoHistory());
+        assertTrue(ResumePlayback.undoHistory(current));
+        assertEquals(1, points.size(System.currentTimeMillis()));
+        assertNotNull(points.get("second", System.currentTimeMillis()));
+        assertFalse(ResumePlayback.undoHistory(current));
+        assertEquals(0, ResumePlayback.undoHistoryToken());
+    }
+
     @Test public void clearingWhileOffAndPausedLeavesOtherSettingsAlone() {
         points.put("id", 60_000, System.currentTimeMillis());
         Settings.RESUME_LONG_VIDEOS.save(false);
@@ -152,10 +210,13 @@ public class ClearResumeHistoryTest {
                 SharedPreferences.class.getClassLoader(), new Class<?>[]{SharedPreferences.class}, (proxy, method, args) -> {
                     if (!method.getName().equals("edit")) return method.invoke(file, args);
                     SharedPreferences.Editor editor = file.edit();
+                    boolean[] clearing = {false};
                     return Proxy.newProxyInstance(SharedPreferences.Editor.class.getClassLoader(),
                             new Class<?>[]{SharedPreferences.Editor.class}, (editProxy, editMethod, editArgs) -> {
+                                if (editMethod.getName().equals("clear")) clearing[0] = true;
                                 Object result = editMethod.invoke(editor, editArgs);
-                                if (editMethod.getName().equals("commit") && commits.incrementAndGet() == 1) return false;
+                                if (editMethod.getName().equals("commit") && clearing[0]
+                                        && commits.incrementAndGet() == 1) return false;
                                 return result == editor ? editProxy : result;
                             });
                 });
@@ -163,6 +224,7 @@ public class ClearResumeHistoryTest {
         boolean failed = false;
         try { ResumePlayback.clearHistory(); } catch (IllegalStateException expected) { failed = true; }
         assertTrue(failed);
+        assertEquals("failed clear did not attempt its rollback", 2, commits.get());
         assertFalse(ResumePlayback.canUndoHistory());
         assertEquals(60_000, new ResumePoints(file).get("id", now).positionMs);
     }

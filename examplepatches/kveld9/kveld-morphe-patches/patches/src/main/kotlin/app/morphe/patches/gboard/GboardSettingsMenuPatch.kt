@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.sharedExtensionPatch
 import app.morphe.patches.shared.clearTryBlocks
 import java.io.File
 import org.w3c.dom.Document
@@ -13,13 +14,12 @@ import org.w3c.dom.Element
 
 private const val ANDROID_XML_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private const val DEVELOPER_SETTINGS_FRAGMENT = "com.google.android.apps.inputmethod.latin.preference.DeveloperSettingsFragment"
-private const val MORPHE_HEADER_KEY = "morphe_patches_header"
 
 private val gboardSeekBarEnhancementsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_GBOARD)
-    extendWith("extensions/extension.mpe")
+    dependsOn(sharedExtensionPatch)
 
     execute {
         var patched = 0
@@ -185,7 +185,7 @@ private fun injectMorpheHeader(doc: Document): Boolean {
     val header = doc.createElement("com.google.android.libraries.inputmethod.settings.widget.HeaderPreference")
     header.setAttributeNS(ANDROID_XML_NAMESPACE, "android:title", "Morphe Patches")
     header.setAttributeNS(ANDROID_XML_NAMESPACE, "android:summary", "Customization and patch toggles")
-    header.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", MORPHE_HEADER_KEY)
+    header.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", Constants.GboardPrefs.KEY_HEADER)
     header.setAttributeNS(ANDROID_XML_NAMESPACE, "android:icon", "@android:drawable/ic_menu_preferences")
     header.setAttributeNS(ANDROID_XML_NAMESPACE, "android:persistent", "false")
     header.setAttributeNS(ANDROID_XML_NAMESPACE, "android:fragment", DEVELOPER_SETTINGS_FRAGMENT)
@@ -218,7 +218,7 @@ private fun hasExistingHeader(root: Element): Boolean {
         val key = h.getAttributeNS(ANDROID_XML_NAMESPACE, "key").ifEmpty {
             h.getAttribute("android:key")
         }
-        if (key == MORPHE_HEADER_KEY) return true
+        if (key == Constants.GboardPrefs.KEY_HEADER) return true
     }
     return false
 }
@@ -281,10 +281,11 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
     }
 
     root.setAttributeNS(ANDROID_XML_NAMESPACE, "android:title", "Morphe Patches")
-    root.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", "morphe_patches_screen")
+    root.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", Constants.GboardPrefs.KEY_SCREEN)
 
     // 0. Quick Actions & Status
     val actionsCategory = doc.createElement("androidx.preference.PreferenceCategory")
+    actionsCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", Constants.GboardPrefs.KEY_CAT_ACTIONS)
     actionsCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:title", "Actions & Status")
     actionsCategory.appendChild(
         createActionPreference(
@@ -317,6 +318,7 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
 
     // 1. Appearance & Theme
     val appearanceCategory = doc.createElement("androidx.preference.PreferenceCategory")
+    appearanceCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", Constants.GboardPrefs.KEY_CAT_APPEARANCE)
     appearanceCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:title", "Appearance & Theme")
 
     appearanceCategory.appendChild(
@@ -371,6 +373,7 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
 
     // 2. Toolbar & Navigation
     val toolbarCategory = doc.createElement("androidx.preference.PreferenceCategory")
+    toolbarCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", Constants.GboardPrefs.KEY_CAT_TOOLBAR)
     toolbarCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:title", "Toolbar & Navigation")
 
     toolbarCategory.appendChild(
@@ -414,6 +417,7 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
 
     // 3. Clipboard Enhancements
     val clipboardCategory = doc.createElement("androidx.preference.PreferenceCategory")
+    clipboardCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", Constants.GboardPrefs.KEY_CAT_CLIPBOARD)
     clipboardCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:title", "Clipboard")
 
     clipboardCategory.appendChild(
@@ -480,6 +484,7 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
 
     // 4. Haptics & Vibration
     val hapticsCategory = doc.createElement("androidx.preference.PreferenceCategory")
+    hapticsCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", Constants.GboardPrefs.KEY_CAT_HAPTICS)
     hapticsCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:title", "Haptics & Vibration")
 
     hapticsCategory.appendChild(
@@ -495,6 +500,7 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
 
     // 5. Smart Features & Voice
     val smartCategory = doc.createElement("androidx.preference.PreferenceCategory")
+    smartCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", Constants.GboardPrefs.KEY_CAT_SMART)
     smartCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:title", "Smart Features & Voice")
 
     smartCategory.appendChild(
@@ -519,6 +525,7 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
 
     // 6. Privacy & Security
     val privacyCategory = doc.createElement("androidx.preference.PreferenceCategory")
+    privacyCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:key", Constants.GboardPrefs.KEY_CAT_PRIVACY)
     privacyCategory.setAttributeNS(ANDROID_XML_NAMESPACE, "android:title", "Privacy & Security")
 
     privacyCategory.appendChild(

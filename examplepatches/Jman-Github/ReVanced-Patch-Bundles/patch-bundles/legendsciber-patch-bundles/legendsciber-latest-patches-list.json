@@ -1,5 +1,5 @@
 {
-    "version": "v1.36.0",
+    "version": "v1.41.1",
     "patches": [
         {
             "compatiblePackages": [
@@ -148,18 +148,18 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.71.1"
+                            "version": "1.72.2"
                         }
                     ],
                     "versions": [
-                        "1.71.1"
+                        "1.72.2"
                     ]
                 }
             ],
             "default": true,
             "dependencies": [],
-            "description": "Completely removes ads: banners and interstitials can never be displayed (CFirebaseAds.showBanners/showInterstitial become no-ops) and ad-free is granted once per app start — loadStore() seeds mAdFree = 1, the native engine's poll grants it and the store's own reset (inappPurchasesProcessed) zeroes the field, so no repeated purchase popups.",
-            "name": "Hill Climb Racing Ad Removal",
+            "description": "Every in-app purchase is granted for free: coins, gems, paints, ad-skips, bundles and ad-free are reported as already bought with a full balance, without Google Play billing and without a network connection.",
+            "name": "Hill Climb Racing Free IAP",
             "options": []
         },
         {
@@ -171,41 +171,18 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.71.1"
+                            "version": "1.72.2"
                         }
                     ],
                     "versions": [
-                        "1.71.1"
+                        "1.72.2"
                     ]
                 }
             ],
             "default": true,
             "dependencies": [],
-            "description": "Every store item is granted instantly and free: coins, gems, paints, ad-skips, ad-free and bundles, without launching Google Play billing.",
-            "name": "Hill Climb Racing Free Store",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "appIconColor": "#2E7D32",
-                    "name": "Hill Climb Racing",
-                    "packageName": "com.fingersoft.hillclimb",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "1.71.1"
-                        }
-                    ],
-                    "versions": [
-                        "1.71.1"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Rewarded video ads grant their reward instantly without playing the ad: the native engine receives onVideoStartedSuccess + onVideoCompletedSuccess on the GL thread, exactly as if the video had been watched and completed.",
-            "name": "Hill Climb Racing Instant Rewarded Video Rewards",
+            "description": "Rewarded video rewards are granted instantly without playing an ad and without a network connection: the engine's own \"video completed\" path runs, so coins, the reward multipliers and every other ad-gated bonus are delivered immediately.",
+            "name": "Hill Climb Racing Instant Rewards",
             "options": []
         },
         {
@@ -298,6 +275,98 @@
             "dependencies": [],
             "description": "Unlocks premium, removes ads and unlocks all ball skins.",
             "name": "RB4 Premium & Skin Unlock",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#00BCD4",
+                    "name": "Sling Drift",
+                    "packageName": "com.rubygames.slingdrift",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "5.13.2"
+                        }
+                    ],
+                    "versions": [
+                        "5.13.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Every car reports as unlocked, so the whole garage is available right away no matter how the car would normally be earned.",
+            "name": "Sling Drift All Cars Unlock",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#00BCD4",
+                    "name": "Sling Drift",
+                    "packageName": "com.rubygames.slingdrift",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "5.13.2"
+                        }
+                    ],
+                    "versions": [
+                        "5.13.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Every ad-gated reward works without watching an ad and without a network connection: continuing after a crash, free car unlocks, free upgrades, the end-of-race multiplier, bonus rubies and daily quest rerolls are granted instantly.",
+            "name": "Sling Drift Instant Rewards",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#00BCD4",
+                    "name": "Sling Drift",
+                    "packageName": "com.rubygames.slingdrift",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "5.13.2"
+                        }
+                    ],
+                    "versions": [
+                        "5.13.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Rubies are pinned to 999,999,999 whenever they are earned, spent, purchased or loaded from a save, so the balance can never run out and every car stays affordable.",
+            "name": "Sling Drift Unlimited Money",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#00BCD4",
+                    "name": "Sling Drift",
+                    "packageName": "com.rubygames.slingdrift",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "5.13.2"
+                        }
+                    ],
+                    "versions": [
+                        "5.13.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "VIP status and the active subscription are always reported, so VIP cars and every VIP-gated feature stay available without Google Play billing.",
+            "name": "Sling Drift VIP Unlock",
             "options": []
         },
         {

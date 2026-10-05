@@ -20,10 +20,65 @@ import org.junit.Test;
 
 /** Resource limits that must hold when media work is retried or nested. */
 public class MediaBudgetTest {
-    @Test public void retryAfterIsCappedBeforeMillisecondsAreCalculated() {
-        assertEquals(MediaBudget.MAX_RETRY_DELAY_MS,
+    @Test public void retryAfterPreservesServerDelaysWithoutOverflowingMilliseconds() {
+        assertEquals(Long.MAX_VALUE,
                 MediaBudget.retryAfterMillis("9223372036854775807", 0));
+        assertEquals(Long.MAX_VALUE, MediaBudget.retryAfterMillis("99999999999999999999999999999", 0));
         assertEquals(1_000L, MediaBudget.retryAfterMillis("1", 0));
+        assertEquals(60_000L, MediaBudget.retryAfterMillis("60", 0));
+        assertEquals(0L, MediaBudget.retryAfterMillis("0", 0));
+    }
+
+    @Test public void allHttpDateFormsAndLeapSecondsUseTheSameDelay() {
+        long now = 784111777000L;
+        for (String header : new String[]{"Sun, 06 Nov 1994 08:50:37 GMT",
+                "Sunday, 06-Nov-94 08:50:37 GMT", "Sun Nov  6 08:50:37 1994"}) {
+            assertEquals(header, 60_000L, MediaBudget.retryAfterMillis(header, 0, now));
+            assertEquals("a past date waited again", 0L, MediaBudget.retryAfterMillis(header, 0, now + 120_000L));
+        }
+        assertEquals(0L, MediaBudget.retryAfterMillis("Sunday, 06-Nov-94 08:50:37 GMT", 0,
+                java.time.Instant.parse("2026-10-04T00:00:00Z").toEpochMilli()));
+        assertEquals(60_000L, MediaBudget.retryAfterMillis("Sat, 31 Dec 2016 23:59:60 GMT", 0,
+                java.time.Instant.parse("2016-12-31T23:59:00Z").toEpochMilli()));
+        for (String header : new String[]{null, "", "-1", "+1", "1.5", "tomorrow",
+                "Sun, 31 Nov 1994 08:50:37 GMT", "Sun, 06 Nov 1994 08:50:37 GMT junk"}) {
+            assertEquals(String.valueOf(header), 250L, MediaBudget.retryAfterMillis(header, 0, now));
+        }
+    }
+
+    @Test public void retryWaitUsesElapsedTimeEvenWhenWallTimeChanges() throws Exception {
+        try (var clock = new MediaTransportFixtures.RetryClock(120_000)) {
+            clock.onSleep = () -> clock.wall += 86_400_000L;
+            MediaBudget.waitBeforeRetry("Sun, 06 Nov 1994 08:50:37 GMT", 0, clock.deadline);
+            assertEquals(60_000_000_000L, clock.nanos);
+            assertEquals(600, clock.sleeps);
+            assertEquals(30_000, MediaBudget.timeoutMillis(clock.deadline, 30_000));
+            assertEquals(60_000, MediaBudget.timeoutMillis(clock.deadline, 90_000));
+        }
+    }
+
+    @Test public void anUnfinishableServerWaitStopsImmediatelyAndRemainsTerminal() throws Exception {
+        try (var clock = new MediaTransportFixtures.RetryClock(50_000)) {
+            var refusal = assertThrows(MediaBudget.StopException.class,
+                    () -> MediaBudget.waitBeforeRetry("60", 0, clock.deadline));
+            assertEquals(MediaBudget.StopException.Reason.SERVER_WAIT, refusal.reason);
+            assertEquals(0, clock.sleeps);
+            assertSame(refusal, assertThrows(MediaBudget.StopException.class,
+                    () -> MediaBudget.waitBeforeRetry("0", 0, clock.deadline)));
+            // Already-downloaded files can still be published within the remaining disk/time budget.
+            MediaBudget.check(clock.deadline);
+        }
+    }
+
+    @Test public void cancellationDuringAServerWaitDoesNotConsumeTheAdvertisedMinute() throws Exception {
+        try (var clock = new MediaTransportFixtures.RetryClock(120_000)) {
+            clock.deadline.cancellation = new java.util.concurrent.atomic.AtomicBoolean();
+            clock.onSleep = () -> clock.deadline.cancellation.set(true);
+            var refusal = assertThrows(MediaBudget.StopException.class,
+                    () -> MediaBudget.waitBeforeRetry("60", 0, clock.deadline));
+            assertEquals(MediaBudget.StopException.Reason.CANCELLED, refusal.reason);
+            assertEquals(100_000_000L, clock.nanos);
+        }
     }
 
     @Test public void socketTimeoutsRetry() {

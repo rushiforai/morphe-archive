@@ -35,6 +35,16 @@
 # The optional DM visual guard applies when its patch is explicitly selected. Both strings keep
 # the shared voice endpoint separate. Its source remains excluded from default builds pending
 # sender-side acceptance.
+# Navigation binding fields below are pinned 449 verification data. Production discovery infers
+# both concrete proxies, their shared tab owner and the factory's returned View before mutation.
+# Each native setter calls remember once, before its framework listener binding. The returned
+# factory View binds once, including the original systrace branch to its return.
+start-call Lapp/hushgram/extension/instagram/settings/NavigationSettings;->remember(Landroid/view/View;Ljava/lang/Object;Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener; in instance (Landroid/view/View$OnLongClickListener;)V calling instance Landroid/view/View;->setOnLongClickListener(Landroid/view/View$OnLongClickListener;)V holding LX/09ki;->A09:Landroid/view/View;
+start-call Lapp/hushgram/extension/instagram/settings/NavigationSettings;->remember(Landroid/view/View;Ljava/lang/Object;Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener; in instance (Landroid/view/View$OnLongClickListener;)V calling instance Landroid/view/View;->setOnLongClickListener(Landroid/view/View$OnLongClickListener;)V holding LX/0ZxV;->A00:Lcom/facebook/litho/LithoView;
+shared-call Lapp/hushgram/extension/instagram/settings/NavigationSettings;->remember(Landroid/view/View;Ljava/lang/Object;Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener; in instance (Landroid/view/View$OnLongClickListener;)V calling instance Landroid/view/View;->setOnLongClickListener(Landroid/view/View$OnLongClickListener;)V holding LX/09ki;->A09:Landroid/view/View;
+shared-call Lapp/hushgram/extension/instagram/settings/NavigationSettings;->remember(Landroid/view/View;Ljava/lang/Object;Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener; in instance (Landroid/view/View$OnLongClickListener;)V calling instance Landroid/view/View;->setOnLongClickListener(Landroid/view/View$OnLongClickListener;)V holding LX/0ZxV;->A00:Lcom/facebook/litho/LithoView;
+once-call Lapp/hushgram/extension/instagram/settings/NavigationSettings;->bind(Landroid/view/View;Ljava/lang/Object;)V in static (Landroid/view/ViewGroup;Lcom/instagram/mainactivity/InstagramMainActivity;L*;L*;Lkotlin/jvm/functions/Function1;IZZ)Landroid/view/View; holding InstagramMainActivity.createTabButton(
+
 start-call Lapp/hushgram/extension/instagram/direct/VisualSeen;->hold()Z in instance (L*;L*;L*;)V holding direct_v2/visual_threads/%s/item_seen/ raven_media
 once-call Lapp/hushgram/extension/instagram/direct/VisualSeen;->hold()Z in instance (L*;L*;L*;)V holding direct_v2/visual_threads/%s/item_seen/ raven_media
 # The inbox builder holds this selector in a sibling and filters its native Meta AI row once.

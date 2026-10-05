@@ -17,7 +17,7 @@ public final class UiText {
         String key = preference.getKey();
         boolean selectedEntry = "default_playback_speed".equals(key) || "app_switch_playback".equals(key)
             || "back_playback".equals(key) || "quality_mode".equals(key);
-        preference.setSummary(selectedEntry ? "%s" : text(preference.getSummary()));
+        preference.setSummary(selectedEntry && preference instanceof ListPreference ? "%s" : text(preference.getSummary()));
         if (preference instanceof ListPreference) {
             ListPreference list = (ListPreference) preference;
             CharSequence[] entries = list.getEntries();

@@ -109,4 +109,8 @@ public final class ReelSeekBar {
     static boolean switchedOn() {
         return Utils.settingsReady() && Settings.REEL_SEEK_BAR.get();
     }
+
+    static boolean thumbOn() {
+        return Utils.settingsReady() && Settings.REEL_SEEK_THUMB.get();
+    }
 }

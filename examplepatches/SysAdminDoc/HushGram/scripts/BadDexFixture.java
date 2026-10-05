@@ -338,6 +338,14 @@ public class BadDexFixture {
     private static final int NO_CHECK = 2;
 
     private static final String DM_RECEIPTS = "Lfixture/DmReceipts;";
+    private static final String NAV_ENTRY = "Lapp/hushgram/extension/fixture/settings/NavigationSettings;";
+    private static final String NAV_PLAIN = "Lfixture/NavigationPlain;";
+    private static final String NAV_LITHO = "Lfixture/NavigationLitho;";
+    private static final String NAV_FACTORY = "Lfixture/NavigationFactory;";
+    private static final String ON_LONG_LISTENER = "Landroid/view/View$OnLongClickListener;";
+    private static final ImmutableMethodReference NAV_REMEMBER = method(NAV_ENTRY, "remember", ON_LONG_LISTENER, VIEW, OBJECT, ON_LONG_LISTENER);
+    private static final ImmutableMethodReference NAV_BIND = method(NAV_ENTRY, "bind", "V", VIEW, OBJECT);
+    private static final ImmutableMethodReference SET_ON_LONG_LISTENER = method(VIEW, "setOnLongClickListener", "V", ON_LONG_LISTENER);
     private static final String DM_SEEN = "Lapp/hushgram/extension/fixture/direct/VisualSeen;";
     private static final ImmutableMethodReference DM_HOLD = method(DM_SEEN, "hold", "Z");
     private static final String DM_ENDPOINT = "direct_v2/visual_threads/%s/item_seen/";
@@ -423,7 +431,12 @@ public class BadDexFixture {
             "once-call Lapp/hushgram/extension/fixture/feed/SwipeToCreate;->enabled()I in instance (Lfixture/PositionConfig;)V calling instance Lfixture/SwipeContainer;->setEndPanelExtraParameter(Lfixture/PositionConfig;)V holding Lfixture/PositionConfig;->animate:Z",
             "once-call Lapp/hushgram/extension/fixture/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\\scannot\\sbe\\scast\\sto\\snon-null\\stype\\sT\\sof\\scom.instagram.store.PendingActionStore",
             "retry-call Lapp/hushgram/extension/fixture/stories/StorySeen;->toRetry(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance Ljava/util/Iterator;->hasNext()Z class-holding null\\scannot\\sbe\\scast\\sto\\snon-null\\stype\\sT\\sof\\scom.instagram.store.PendingActionStore",
-            "story-loop-call Linstagram/features/stories/fragment/ReelViewerFragment;->A1K(Lcom/instagram/model/reels/ReelItem;)Z in instance (Ljava/lang/Object;)V holding fixture_finished_story");
+            "story-loop-call Linstagram/features/stories/fragment/ReelViewerFragment;->A1K(Lcom/instagram/model/reels/ReelItem;)Z in instance (Ljava/lang/Object;)V holding fixture_finished_story",
+            "start-call Lapp/hushgram/extension/fixture/settings/NavigationSettings;->remember(Landroid/view/View;Ljava/lang/Object;Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener; in instance (Landroid/view/View$OnLongClickListener;)V calling instance Landroid/view/View;->setOnLongClickListener(Landroid/view/View$OnLongClickListener;)V holding Lfixture/NavigationPlain;->button:Landroid/view/View;",
+            "start-call Lapp/hushgram/extension/fixture/settings/NavigationSettings;->remember(Landroid/view/View;Ljava/lang/Object;Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener; in instance (Landroid/view/View$OnLongClickListener;)V calling instance Landroid/view/View;->setOnLongClickListener(Landroid/view/View$OnLongClickListener;)V holding Lfixture/NavigationLitho;->button:Landroid/view/View;",
+            "shared-call Lapp/hushgram/extension/fixture/settings/NavigationSettings;->remember(Landroid/view/View;Ljava/lang/Object;Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener; in instance (Landroid/view/View$OnLongClickListener;)V calling instance Landroid/view/View;->setOnLongClickListener(Landroid/view/View$OnLongClickListener;)V holding Lfixture/NavigationPlain;->button:Landroid/view/View;",
+            "shared-call Lapp/hushgram/extension/fixture/settings/NavigationSettings;->remember(Landroid/view/View;Ljava/lang/Object;Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener; in instance (Landroid/view/View$OnLongClickListener;)V calling instance Landroid/view/View;->setOnLongClickListener(Landroid/view/View$OnLongClickListener;)V holding Lfixture/NavigationLitho;->button:Landroid/view/View;",
+            "once-call Lapp/hushgram/extension/fixture/settings/NavigationSettings;->bind(Landroid/view/View;Ljava/lang/Object;)V in static (Ljava/lang/Object;)Landroid/view/View; holding InstagramMainActivity.createTabButton(");
 
     /**
      * One of the ShortcutManager calls the settings patch sends to SettingsEntry: its name, what it
@@ -1294,6 +1307,40 @@ public class BadDexFixture {
         return new ImmutableClassDef(DM_SEEN, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
                 Collections.singletonList(define(DM_SEEN, "hold", "Z", true, body(1,
                         new ImmutableInstruction11n(Opcode.CONST_4, 0, 1), op(Opcode.RETURN, 0)))));
+    }
+
+    /** The two straight native listener bindings. p0 is dead after its View has been read. */
+    private static ClassDef navigationBinding(String owner, int hooks, boolean late) {
+        List<Instruction> code = new ArrayList<>();
+        code.add(new ImmutableInstruction22c(Opcode.IGET_OBJECT, 0, 1, new ImmutableFieldReference(owner, "button", VIEW)));
+        if (late) code.add(new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0, method(NAV_FACTORY, "trace", "V")));
+        if (hooks > 0) code.add(new ImmutableInstruction22c(Opcode.IGET_OBJECT, 1, 1, new ImmutableFieldReference(owner, "tab", OBJECT)));
+        for (int i = 0; i < hooks; i++) {
+            code.add(new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 3, 0, 1, 2, 0, 0, NAV_REMEMBER));
+            code.add(op(Opcode.MOVE_RESULT_OBJECT, 2));
+        }
+        code.add(new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 0, 2, 0, 0, 0, SET_ON_LONG_LISTENER));
+        code.add(op(Opcode.RETURN_VOID));
+        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null,
+                Arrays.asList(new ImmutableField(owner, "button", VIEW, AccessFlags.PUBLIC.getValue(), null, null, null),
+                        new ImmutableField(owner, "tab", OBJECT, AccessFlags.PUBLIC.getValue(), null, null, null)),
+                Collections.singletonList(define(owner, "setLongPress", "V", false, body(3, code.toArray(new Instruction[0])), ON_LONG_LISTENER)));
+    }
+
+    private static ClassDef navigationFactory(int hooks) {
+        List<Instruction> code = new ArrayList<>();
+        code.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference("InstagramMainActivity.createTabButton(")));
+        code.add(new ImmutableInstruction21c(Opcode.NEW_INSTANCE, 0, new ImmutableTypeReference(VIEW)));
+        for (int i = 0; i < hooks; i++) code.add(new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 2, 0, 1, 0, 0, 0, NAV_BIND));
+        code.add(op(Opcode.RETURN_OBJECT, 0));
+        return new ImmutableClassDef(NAV_FACTORY, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(NAV_FACTORY, "makeTab", VIEW, true, body(2, code.toArray(new Instruction[0])), OBJECT)));
+    }
+
+    private static ClassDef navigationSettings() {
+        return new ImmutableClassDef(NAV_ENTRY, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null, Arrays.asList(
+                define(NAV_ENTRY, "remember", ON_LONG_LISTENER, true, body(3, op(Opcode.RETURN_OBJECT, 2)), VIEW, OBJECT, ON_LONG_LISTENER),
+                define(NAV_ENTRY, "bind", "V", true, body(2, op(Opcode.RETURN_VOID)), VIEW, OBJECT)));
     }
 
     private static ClassDef inboxFilter() {
@@ -2180,7 +2227,8 @@ public class BadDexFixture {
                 seenCache(Collections.<Instruction>emptyList(), false), storySeen(), storyRetryQueue(1, false, false),
                 tabBuilder(STATIC_CHECK, true, false), reelsTab(), dmReceipts(1, false), visualSeen(),
                 inboxSections(true), inboxFilter(), familyProviders(1, true, false), trustedProvider(), instagramSignature(),
-                setupPresenter(true), setupOpeners(true), setupData(), analyticsSetup(), swipeMovement(1), swipeConfig(), swipeGate(), storyLoopViewer("", true), storyAdvance());
+                setupPresenter(true), setupOpeners(true), setupData(), analyticsSetup(), swipeMovement(1), swipeConfig(), swipeGate(), storyLoopViewer("", true), storyAdvance(),
+                navigationBinding(NAV_PLAIN, 1, false), navigationBinding(NAV_LITHO, 1, false), navigationFactory(1), navigationSettings());
     }
 
     /** The clean host, Facebook's classes as they ship, with the batcher's flush making [handOver]. */
@@ -2200,7 +2248,8 @@ public class BadDexFixture {
                 linkParsers(0, 0, false, false), menuOptions(0, false),
                 seenStore(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList(), false),
                 seenCache(Collections.<Instruction>emptyList(), false), tabBuilder(STATIC_CHECK, false, false),
-                dmReceipts(0, false), inboxSections(false), familyProviders(0, false, false), trustedProvider(), setupPresenter(false), setupOpeners(false), setupData(), storyRetryQueue(0, false, false), swipeMovement(0), swipeConfig(), storyLoopViewer("", false));
+                dmReceipts(0, false), inboxSections(false), familyProviders(0, false, false), trustedProvider(), setupPresenter(false), setupOpeners(false), setupData(), storyRetryQueue(0, false, false), swipeMovement(0), swipeConfig(), storyLoopViewer("", false),
+                navigationBinding(NAV_PLAIN, 0, false), navigationBinding(NAV_LITHO, 0, false), navigationFactory(0));
     }
 
     /**
@@ -2898,6 +2947,11 @@ public class BadDexFixture {
         dexes.put("bad-home-tab-check-instance", replaced(good(), tabBuilder(INSTANCE_CHECK, true, false)));
 
         dexes.put("bad-dm-visual-guard-late", replaced(good(), dmReceipts(1, true)));
+        dexes.put("bad-navigation-plain-missing", replaced(good(), navigationBinding(NAV_PLAIN, 0, false)));
+        dexes.put("bad-navigation-litho-twice", replaced(good(), navigationBinding(NAV_LITHO, 2, false)));
+        dexes.put("bad-navigation-plain-late", replaced(good(), navigationBinding(NAV_PLAIN, 1, true)));
+        dexes.put("bad-navigation-factory-missing", replaced(good(), navigationFactory(0)));
+        dexes.put("bad-navigation-factory-twice", replaced(good(), navigationFactory(2)));
         dexes.put("bad-dm-visual-guard-twice", replaced(good(), dmReceipts(2, false)));
         dexes.put("metai-inbox-row-missing", replaced(good(), inboxSections(false)));
         dexes.put("bad-swipe-gate-missing", replaced(good(), swipeMovement(0)));

@@ -69,6 +69,9 @@ public class PatchFamilyTest {
         Settings.HIDE_ADS.resetToDefault();
         Settings.DISABLE_ANALYTICS.resetToDefault();
         Settings.DISABLE_UPDATE_CHECKS.resetToDefault();
+        Settings.NORMAL_PASTE.resetToDefault();
+        Settings.SHOW_LOCAL_IDS.resetToDefault();
+        Settings.DISABLE_DOUBLE_TAP_REACTIONS.resetToDefault();
         HookStatus.clear();
     }
 
@@ -145,6 +148,32 @@ public class PatchFamilyTest {
         assertEquals(EnumSet.of(PatchFamily.Capability.READ_METRICS),
                 PatchFamily.DISABLE_ANALYTICS.installedCapabilities());
         assertEquals("capabilities must never become saved settings", 0, SettingsStatus.class.getDeclaredFields().length);
+    }
+
+    @Test
+    public void localControlsHaveIndependentOffByDefaultSwitchesAndExactCoverageWhilePaused() {
+        Map<PatchFamily, Set<PatchFamily.Capability>> expected = new LinkedHashMap<>();
+        expected.put(PatchFamily.NORMAL_PASTE, EnumSet.of(PatchFamily.Capability.COMPOSE_PLAIN_PASTE, PatchFamily.Capability.CAPTION_PLAIN_PASTE));
+        expected.put(PatchFamily.SHOW_LOCAL_IDS, EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS));
+        expected.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, EnumSet.of(PatchFamily.Capability.CHAT_DOUBLE_TAP_REACTION, PatchFamily.Capability.PREVIEW_DOUBLE_TAP_REACTION));
+        PatchFamily.inBuildForTests = expected.keySet();
+        for (Map.Entry<PatchFamily, Set<PatchFamily.Capability>> entry : expected.entrySet()) {
+            PatchFamily family = entry.getKey();
+            assertEquals(entry.getValue(), family.expectedCapabilities());
+            assertEquals(1, family.switches.size());
+            assertFalse(family.switches.get(0).defaultValue);
+            for (PatchFamily.Capability only : entry.getValue()) {
+                PatchFamily.capabilitiesForTests = EnumSet.of(only);
+                assertEquals(EnumSet.of(only), family.installedCapabilities());
+                family.switches.get(0).save(true);
+                PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+                assertEquals(EnumSet.of(only), family.installedCapabilities());
+                assertTrue(family.switches.get(0).savedValue());
+                assertTrue(PatchFamily.reportLines(expected.keySet(), true).stream().anyMatch(line -> line.startsWith(family.patchName + " coverage: " + only.label)));
+                PauseForTests.resume();
+                family.switches.get(0).save(false);
+            }
+        }
     }
 
     /** The names are Morphe Manager's, so a report and the patch list say the same thing. */
@@ -242,7 +271,7 @@ public class PatchFamilyTest {
         assertEquals(Arrays.asList(
                 "Hide ads: on (hushtelegram_hide_ads=on)",
                 "Disable analytics: disabled by its switch (hushtelegram_disable_analytics=off)",
-                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Disable chat swipe actions, Disable pull to next channel, Quiet contacts nag, Holiday look all year, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration",
+                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration",
                 "Hide ads coverage: channel ads, video ads, search ads",
                 "Disable analytics coverage: device statistics reports, channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"),
                 running);

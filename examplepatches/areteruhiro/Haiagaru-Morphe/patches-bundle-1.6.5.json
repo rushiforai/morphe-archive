@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-10-04T06:01:48",
+  "description": "Haiagaru 1.6.5 pre-release: read threads first (191/226/241/242), mark all unread counts as read, quick-filter checkbox dialog, UPLIFT fixes, 191 image NG crash option, and viewer improvements. Android MPP for ChMate 0.8.10.191 dev, 0.8.10.226 dev, 0.8.10.241, 0.8.10.242 dev, and 0.8.10.243 dev.",
+  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.6.5/haiagaru_patches-1.6.5.mpp",
+  "signature_download_url": "",
+  "version": "1.6.5"
+}

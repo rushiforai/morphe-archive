@@ -16,8 +16,10 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
 import java.util.Properties
+import java.util.concurrent.TimeUnit
 import java.util.jar.JarFile
 import java.util.zip.Adler32
+import java.util.zip.ZipFile
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlinx.serialization.json.*
 import org.w3c.dom.Element
@@ -99,7 +101,7 @@ object CatalogTool {
         return keys.size
     }
 
-    fun validateDex(data: ByteArray) {
+    fun validateDex(data: ByteArray): Int {
         require(data.size >= 112 && data.copyOfRange(0, 8).toString(Charsets.US_ASCII)
             .matches(Regex("dex\\n0(?:3[5-9]|40)\\u0000"))) { "Invalid DEX header" }
         val bytes = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
@@ -194,9 +196,12 @@ object CatalogTool {
             val parsedEnd = annotator.cursor.toLong()
             val nextType = mapped.getOrNull(index + 1)?.first
             val nextAlignment = if (nextType in 0x2000..0x2005 && nextType != 0x2001) 1 else 4
-            require(parsedEnd <= limit && limit - parsedEnd < nextAlignment &&
+            // Patcher's STRIP_FAST compacts class_defs and class_data, then zeroes their tails.
+            // It preserves section offsets. Every other section still requires minimal padding.
+            val strippedTail = type == 6 || type == 0x2000
+            require(parsedEnd <= limit && (strippedTail || limit - parsedEnd < nextAlignment) &&
                 (parsedEnd.toInt() until limit.toInt()).all { data[it] == 0.toByte() }) {
-                "DEX map count leaves unparsed section bytes"
+                "DEX map count leaves unparsed section bytes: type=${type.toString(16)}, parsed=$parsedEnd, limit=$limit, next=$nextType"
             }
             annotator.clearLimit()
         }
@@ -258,12 +263,43 @@ object CatalogTool {
                 if (instruction is DualReferenceInstruction) instruction.reference2.validateReference()
             }
         }
-        require(classes.isNotEmpty()) { "DEX contains no classes" }
         val rebuilt = MemoryDataStore()
         try { DexPool.writeTo(rebuilt, dex) } finally { rebuilt.close() }
+        return classes.size
+    }
+
+    fun validateApk(apk: File, aapt2: File) {
+        require(aapt2.isFile) { "Android Build Tools aapt2 is required" }
+        ZipFile(apk).use { zip ->
+            val entries = zip.entries().asSequence().toList()
+            require(entries.map { it.name }.distinct().size == entries.size) { "Duplicate APK entry" }
+            require(setOf("AndroidManifest.xml", "resources.arsc", "classes.dex").all { zip.getEntry(it) != null }) {
+                "Incomplete APK"
+            }
+            for (entry in entries.filter { Regex("classes(?:[0-9]+)?\\.dex").matches(it.name) }) {
+                try { validateDex(zip.getInputStream(entry).use { it.readBytes() }) }
+                catch (error: IllegalArgumentException) { throw IllegalArgumentException("${entry.name}: ${error.message}", error) }
+            }
+        }
+        for (arguments in listOf(listOf("xmltree", "--file", "AndroidManifest.xml"), listOf("resources"))) {
+            val process = ProcessBuilder(listOf(aapt2.absolutePath, "dump") + arguments + apk.absolutePath)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD).redirectError(ProcessBuilder.Redirect.INHERIT).start()
+            try {
+                require(process.waitFor(120, TimeUnit.SECONDS) && process.exitValue() == 0) {
+                    "Invalid APK ${arguments.first()}"
+                }
+            } finally {
+                if (process.isAlive) process.destroyForcibly().waitFor()
+            }
+        }
     }
 
     @JvmStatic fun main(args: Array<String>) {
+        if (args.size == 3 && args[0] == "apk") {
+            validateApk(File(args[1]), File(args[2]))
+            println("Rebuilt manifest, resources and every DEX passed structural validation")
+            return
+        }
         require(args.size in 3..4 && args[0] in setOf("generate", "check")) { "Expected generate|check, MPP path, repository root and optional evidence path" }
         require(runCatching { Class.forName("app.hushmessenger.patches.MessengerTarget") }.isFailure) {
             "Loose patch classes are on the tool classpath; refusing to bypass the built MPP"
@@ -274,8 +310,11 @@ object CatalogTool {
         val version = JarFile(bundle).use { jar ->
             require(jar.getEntry("classes.dex") != null && jar.getEntry("extensions/messenger.mpe") != null) { "Incomplete Android bundle" }
             require(jar.entries().asSequence().map { it.name }.toList().let { it.size == it.toSet().size }) { "Duplicate bundle entry" }
-            validateDex(jar.getInputStream(jar.getEntry("classes.dex")).use { it.readBytes() })
-            validateDex(jar.getInputStream(jar.getEntry("extensions/messenger.mpe")).use { it.readBytes() })
+            for (name in listOf("classes.dex", "extensions/messenger.mpe")) {
+                require(validateDex(jar.getInputStream(jar.getEntry(name)).use { it.readBytes() }) > 0) {
+                    "Bundle DEX contains no classes"
+                }
+            }
             require(jar.manifest.mainAttributes.getValue("Timestamp") == properties.getProperty("bundleTimestampMillis")) { "Bundle timestamp differs from source" }
             jar.manifest.mainAttributes.getValue("Version")
         }

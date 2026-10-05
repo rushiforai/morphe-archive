@@ -3,6 +3,7 @@ package io.github.bakwudo.uyu.patches.twitch.enhancement
 import app.morphe.patcher.patch.bytecodePatch
 import io.github.bakwudo.uyu.patches.twitch.ads.blockAdsPatch
 import io.github.bakwudo.uyu.patches.twitch.appearance.hidePromotionsPatch
+import io.github.bakwudo.uyu.patches.twitch.chat.showDeletedMessagesPatch
 import io.github.bakwudo.uyu.patches.twitch.emotes.thirdPartyEmoteAutocompletePatch
 import io.github.bakwudo.uyu.patches.twitch.emotes.thirdPartyEmotePickerPatch
 import io.github.bakwudo.uyu.patches.twitch.emotes.thirdPartyEmotePickerUrlPatch
@@ -16,7 +17,7 @@ import io.github.bakwudo.uyu.patches.twitch.shared.Constants.COMPATIBILITY_TWITC
 @Suppress("unused")
 val twitchEnhancementPatch = bytecodePatch(
     name = "Twitch Enhancement",
-    description = "Kizu 0.3: live ad proxy, third-party emotes, privacy controls, Bits-button control, " +
+    description = "Kizu 0.3: live ad proxy, third-party emotes, deleted-message display, privacy controls, Bits-button control, " +
         "and patched-app login/notification compatibility.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
@@ -26,6 +27,7 @@ val twitchEnhancementPatch = bytecodePatch(
         fixNotificationsPatch,
         blockAdsPatch,
         hidePromotionsPatch,
+        showDeletedMessagesPatch,
         thirdPartyEmotesPatch,
         thirdPartyEmotePickerPatch,
         thirdPartyEmotePickerUrlPatch,

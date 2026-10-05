@@ -73,6 +73,8 @@ public final class SettingsEntry {
     private static volatile boolean callbacksRegistered;
     /** The activity the screen was last shown over, while the person hasn't closed it. */
     private static WeakReference<Activity> host;
+    /** Fragment transactions are queued, so a second tap can arrive before the tag exists. */
+    private static WeakReference<Activity> openingHost;
     private static volatile boolean closedByUser;
     /** The long label last pushed, or found already on the shortcut, in this process. */
     private static volatile String publishedLabel;
@@ -316,6 +318,7 @@ public final class SettingsEntry {
         @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
         @Override
         public void onActivityDestroyed(Activity activity) {
+            if (openingHost != null && openingHost.get() == activity) openingHost = null;
             // The screen can land on an activity just before it clears itself for the next one.
             // If its host goes away before the person closed it, ask again.
             WeakReference<Activity> shownOver = host;
@@ -359,6 +362,7 @@ public final class SettingsEntry {
      */
     @SuppressWarnings("deprecation") // Framework fragments are what the shared preference code builds on.
     public static boolean open(Activity activity) {
+        if (activity == null) return false;
         final String name = activity.getClass().getSimpleName();
         try {
             if (activity.isFinishing() || activity.isDestroyed()) {
@@ -366,26 +370,50 @@ public final class SettingsEntry {
                 return false;
             }
             FragmentManager fragments = activity.getFragmentManager();
-            if (fragments.findFragmentByTag(DIALOG_TAG) != null) return true;
+            if (fragments.findFragmentByTag(DIALOG_TAG) != null) {
+                onDialogShown(activity);
+                return true;
+            }
+            if (openingHost != null && openingHost.get() == activity) return true;
             if (fragments.isStateSaved()) {
                 Logger.printInfo(() -> "Settings wait: " + name + " has saved its state");
                 return false;
             }
             closedByUser = false;
+            openingHost = new WeakReference<>(activity);
             new SettingsDialog().show(fragments, DIALOG_TAG);
             host = new WeakReference<>(activity);
             Logger.printInfo(() -> "Settings opened over " + name);
             return true;
         } catch (Exception ex) {
+            if (openingHost != null && openingHost.get() == activity) openingHost = null;
             Logger.printException(() -> "Could not open the HushTelegram settings over " + name, ex);
             return false;
         }
+    }
+
+    /** Called only by the dedicated native self-settings row's patched click handler. */
+    public static void openFromNative(Activity activity) {
+        if (activity == null) return;
+        request("Telegram's settings row");
+        if (open(activity)) openPending = false;
+    }
+
+    /** Uses the same five translations and language selection as the launcher shortcut. */
+    public static String nativeSettingsTitle() {
+        return L10n.t("HushTelegram settings");
+    }
+
+    static void onDialogShown(Activity activity) {
+        if (openingHost != null && openingHost.get() == activity) openingHost = null;
+        if (activity != null) host = new WeakReference<>(activity);
     }
 
     /** Called by the screen when the person closes it, so it isn't reopened. */
     static void onClosedByUser() {
         closedByUser = true;
         host = null;
+        openingHost = null;
     }
 
     /**

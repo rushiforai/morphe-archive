@@ -8,25 +8,20 @@ import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal object CheckAdEligibilityLambdaMethodFingerprint : Fingerprint(
-    returnType = "Lio/reactivex/Single;",
-    custom = { method, classDef ->
-        method.name == "shouldRequestAd" &&
-            classDef.type.endsWith("AdEligibilityFetcher;")
-    },
+    definingClass = "AdEligibilityFetcher;",
+    name = "shouldRequestAd",
+    returnType = "Lio/reactivex/Single;"
 )
 
 internal object ContentConfigShowAdsMethodFingerprint : Fingerprint(
-    returnType = "Z",
-    custom = { method, classDef ->
-        method.name == "getShowAds" && classDef.type.endsWith("ContentConfigData;")
-    },
+    definingClass = "ContentConfigData;",
+    name = "getShowAds",
+    returnType = "Z"
 )
 
 internal object GetReadyToShowAdMethodFingerprint : Fingerprint(
-    returnType = "Ltv/twitch/android/core/mvp/presenter/StateAndAction;",
-    custom = { method, classDef ->
-        method.name == "getReadyToShowAdOrAbort" &&
-            classDef.type.endsWith("StreamDisplayAdsPresenter;")
-    },
+    definingClass = "StreamDisplayAdsPresenter;",
+    name = "getReadyToShowAdOrAbort",
+    returnType = "Ltv/twitch/android/core/mvp/presenter/StateAndAction;"
 )
 

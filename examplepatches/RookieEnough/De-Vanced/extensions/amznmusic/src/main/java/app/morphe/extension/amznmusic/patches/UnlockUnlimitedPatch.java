@@ -13,7 +13,7 @@ import java.util.Set;
 
 @SuppressWarnings("unused")
 public class UnlockUnlimitedPatch {
-    public static Set createBenefitSet() {
+    public static Set<?> createBenefitSet() {
         return new HashSet<>(Arrays.asList(User.Benefit.values()));
     }
 }

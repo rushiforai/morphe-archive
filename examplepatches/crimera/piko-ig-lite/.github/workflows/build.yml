@@ -1,0 +1,47 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  # Pushes to main and dev are built, verified and tested by the Release workflow.
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: crimera
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Build patch bundle
+        run: ./gradlew :patches:build --no-daemon
+
+      - name: Lint resolvers and extension descriptors
+        run: ./gradlew :patches:lintResolvers :patches:checkExtensionDescriptors --no-daemon
+
+      - name: Upload the patch bundle
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: |
+            patches/build/libs/patches-*.mpp
+            !patches/build/libs/patches-*-sources.mpp
+            !patches/build/libs/patches-*-javadoc.mpp

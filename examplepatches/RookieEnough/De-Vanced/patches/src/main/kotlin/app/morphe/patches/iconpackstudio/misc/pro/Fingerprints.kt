@@ -7,7 +7,7 @@ package app.morphe.patches.iconpackstudio.misc.pro
 import app.morphe.patcher.Fingerprint
 
 internal object CheckProFingerprint : Fingerprint(
+    definingClass = "IPSPurchaseRepository;",
     returnType = "Z",
-    custom = { _, classDef -> classDef.endsWith("IPSPurchaseRepository;") },
 )
 

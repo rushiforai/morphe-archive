@@ -1,0 +1,303 @@
+{
+  "date": "2026-10-01",
+  "status": "DEFERRED_POLICY_REJECTION",
+  "targets": [
+    {
+      "path": "build/foveal-canvas-work",
+      "resolved": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-canvas-work",
+      "files": 1947,
+      "bytes": 1994517965.0,
+      "status": "RETAINED_DEFERRED_POLICY_REJECTION"
+    },
+    {
+      "path": "build/foveal-canvas-layer-tests.exe",
+      "resolved": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-canvas-layer-tests.exe",
+      "files": 1,
+      "bytes": 1389568.0,
+      "status": "RETAINED_DEFERRED_POLICY_REJECTION"
+    },
+    {
+      "path": "build/foveal-canvas-layer-tests.pdb",
+      "resolved": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-canvas-layer-tests.pdb",
+      "files": 1,
+      "bytes": 5562368.0,
+      "status": "RETAINED_DEFERRED_POLICY_REJECTION"
+    }
+  ],
+  "workspaceTopLevel": [
+    {
+      "name": ".agents",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": ".android-sdk",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": ".git",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": ".github",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": ".gradle",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": ".kotlin",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": ".venv",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": ".vscode",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "build",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "decoded-apk-android-steamlinkvr-release-base-2.0.20-5001812",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "decoded-apk-android-steamlinkvr-release-base-2.0.21-5001968",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "diagnostics",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "extensions",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "gradle",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "Install",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "patches",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "Resources",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "SteamLink-GalaxyXR-Python-Patches-Already-Tried-for_Resolution_issue",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "VirtualDesktop",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": "XR_RESOLUTION_EXPERIMENT_LOGS",
+      "directory": true,
+      "reparse": false
+    },
+    {
+      "name": ".editorconfig",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": ".gitattributes",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": ".gitignore",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": ".releaserc",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "AGENTS.md",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "CHANGELOG.md",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "DEBUGGING.md",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "gradle.properties",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "GradleBuildCommand.txt",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "gradlew",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "gradlew.bat",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "images.jpg",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "LEGACY_VS_MORPHE_PATCHES.md",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "LICENSE",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "NOTICE",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "package-lock.json",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "package.json",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "PATCH_CATALOG.md",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "patches-bundle.json",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "patches-list-all.json",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "patches-list-experimental.json",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "patches-list-stable.json",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "patches-list.json",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "README.md",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "settings.gradle.kts",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "skills-lock.json",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "TECHNICAL_REFERENCE.md",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "Verify-Build.ps1",
+      "directory": false,
+      "reparse": false
+    },
+    {
+      "name": "WORKSPACE_CLEANUP.md",
+      "directory": false,
+      "reparse": false
+    }
+  ],
+  "retained": [
+    "Canonical new helper source and native payload",
+    "One current foveal-canvas local MPP",
+    "Original APKs and exact decoded inputs",
+    "SDK/OpenXR/Zig/Java tool caches",
+    "Compact validation receipts and retired experiment records",
+    "All unrelated build children and earlier packages"
+  ],
+  "regeneration": "extensions/foveal-canvas-layer/Build-Native.ps1 plus diagnostics/steamlink-foveal-canvas/README.md commands",
+  "bytesReclaimed": 0,
+  "filesRemoved": 0,
+  "deferredBytes": 2001469901.0,
+  "policyReason": "Automatic approval review rejected the scoped cleanup command before execution with blocked by policy",
+  "completionCondition": "Policy permits cleanup of these exact task-owned targets after fresh path, reparse, process and retained-artifact checks"
+}

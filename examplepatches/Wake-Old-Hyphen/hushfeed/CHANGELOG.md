@@ -4,13 +4,31 @@ Every Hushfeed release, newest first.
 
 ## Unreleased
 
+* **TikTok:** Automatic Clear Display retries on the current video after focus returns, including the first video after startup. A canceled or failed attempt no longer prevents another try. Manual exit remains respected, and callbacks from an earlier video cannot cancel the next video's timer.
+
+* **TikTok:** Media saves now honor the server's full retry delay, including HTTP dates, before following a redirect or trying another mirror or subtitle track. A delay beyond the save's time limit stops the job with a clear message and keeps files already saved. Cancel also interrupts a retry wait.
+
+* **TikTok:** Documentation edits no longer rerun unchanged APK fixture tests. Full test commands and release checks still cover every test, and source-reading checks now track their external inputs. Replacing an APK invalidates test results even when its size and timestamp match.
+
+* **TikTok:** Undo now commits watches recorded during restoration before counting them. Older queued writes also preserve newer watch times that Undo has already saved.
+
+* **TikTok:** Local storage scanner checks now keep Java diagnostics visible without treating successful runs as failures in Windows PowerShell.
+
+* **TikTok:** Local APK signing now accepts harmless Java startup diagnostics from heap and CPU limits. Invalid certificates and failed signing checks still stop installation.
+
+* **TikTok:** Undo clearing seen videos now restores history in the background and reports how many cleared records still fit the history limits. It no longer says videos were restored when newer watches leave no room for them. A failed save keeps Undo available.
+
 ## 0.67.1 (2026-10-03)
+
+* **TikTok:** Settings are easier to find. All five buttons Hushfeed draws on videos sit together under Feed screen > Buttons on videos. Playback now holds every player switch, including the progress bar and its thumbnail, stop looping and resume after scrolling, which were on App. Screenshots and the status bar moved to App > System along with Look like the store app. Allow Duet and Stitch is on Share sheet now. Your saved choices stay as they were.
+
+* **TikTok:** Every button Hushfeed draws on videos now starts off: block, hide, block sound, Not interested and mute. A fresh install shows none of them until you turn one on under Feed screen > Buttons on videos. If you used the mute button, turn on Show the mute button on videos again.
 
 * **TikTok:** Remove unused language packs no longer stops the whole patch run when Languages to keep is left at all and the APK carries a language set that hasn't been checked, like a split bundle merged with a single language. Nothing is removed then, and the patch log says why (#96).
 
 * **TikTok:** The streak line under Keep a streak going says "Sent to 15/15 chats" once TikTok has taken every message. It calls delivery unconfirmed only for a chat whose hand-off hit an error or never finished (#92).
 
-* **TikTok:** The Feed filter page's Show the hide button and Show the block sound button switches now draw their own feed controls even when Show the block button is off. New installs start those two helper switches off, so choosing Block author button doesn't add extra chips until you ask for them (#95).
+* **TikTok:** Show the hide button and Show the block sound button now draw their own feed controls even when Show the block button is off. Both work through Feed filter, so they're listed only when that patch is in. New installs start those two helper switches off, so choosing Block author button doesn't add extra chips until you ask for them (#95).
 
 * **TikTok:** Pause keeps the saved Home long-press shortcut available, so guests can reopen settings and resume Hushfeed after closing the screen. A disabled shortcut stays disabled, ordinary Home taps still work, and TikTok's own long-press action is preserved (#89).
 

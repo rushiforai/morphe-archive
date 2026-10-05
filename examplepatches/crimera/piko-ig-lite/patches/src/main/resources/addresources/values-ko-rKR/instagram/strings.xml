@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="piko_copied_media_link">미디어 링크를 복사하였습니다</string>
+    <string name="piko_download_current_media">현재 미디어 다운로드</string>
+    <string name="piko_no_internet">인터넷에 연결해 주세요</string>
+</resources>

@@ -1,5 +1,6 @@
 package app.template.patches.steamlink.binary
 
+import app.template.patches.shared.PatchCategories
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.floatSliderOption
@@ -348,6 +349,7 @@ val oledCalibrationPatch = rawResourcePatch(
     description = "OLED calibration with optional VD-informed SDR foveal processing and a separate foveal gamma adjustment, always with 8-bit sRGB output. The VD options bypass the calibration profile on the fovea while retaining Valve's decoder colour correction. Foveal gamma can darken that layer in any mode. Exact builds 5001712, 5001812, 5001968, 5002244, and 5002363; visible improvement requires headset verification.",
     default = false,
 ) {
+    category(PatchCategories.IMAGE_QUALITY)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
 
     val profile by stringOption(

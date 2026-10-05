@@ -112,7 +112,9 @@ Copy a short report to the clipboard.	Copie um relatório curto para a área de 
 Save the full report in Download/Morphe.	Salve o relatório completo em Download/Morphe.
 Settings imported.	Configurações importadas.
 No app on this phone can open the link. The address is %1$s.	Nenhum aplicativo neste dispositivo consegue abrir o link. O endereço é %1$s.
-Pause, backup and diagnostics	Pausa, backup e diagnóstico
+# context: Separate pages under More settings. Settings backup contains export and import; Diagnostics contains logging and diagnostic data controls.
+Settings backup	Backup de configurações
+Diagnostics	Diagnóstico
 Updates	Atualizações
 Jump to a section	Ir para uma seção
 Go straight to one group of settings. Back returns to where you were.	Vá diretamente para um grupo de configurações. Voltar leva você de volta ao ponto em que estava.
@@ -225,7 +227,7 @@ Quiet contacts prompts	Silenciar pedidos de contatos
 Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Depois que você recusar o acesso aos contatos, a aba Contatos para de pedir de novo e o selo de aviso some. O primeiro pedido, os botões da própria aba e a sincronização de contatos continuam.
 
 New Year look all year	Visual de Ano Novo o ano todo
-Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	A neve de Ano Novo do Telegram cai todos os dias sobre a barra superior da lista de chats e, com os fundos de chat animados ativados, sobre os fundos dos chats. Desativado por padrão nas configurações.
+Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	O gorro de Papai Noel do Telegram aparece sobre o logo da lista de chats. A neve de Ano Novo cai todos os dias sobre a barra superior e, com os fundos de chat animados ativados, sobre os fundos dos chats. Desativado por padrão nas configurações.
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Notificações
@@ -247,3 +249,20 @@ Allowed	Permitido
 Blocked	Bloqueado
 Yes	Sim
 No	Não
+Use normal paste	Usar colagem normal
+Show user and chat IDs	Mostrar IDs de usuário e chat
+Disable double-tap reactions	Desativar reações por toque duplo
+Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Cola texto sem a conversão de HTML, tabelas ou monoespaçado do Telegram. Espaços e URLs ficam intactos. As outras ações da área de transferência continuam disponíveis. Desativado por padrão nas configurações.
+Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Mostra um ID local de usuário ou chat que pode ser copiado no menu do perfil aberto. Os hashes de acesso ficam ocultos. Não adiciona solicitações ao servidor. Desativado por padrão nas configurações.
+Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Toques duplos não adicionam reações nos chats ou na prévia de reações. Rolagem, toques, seleção e menus de reação continuam iguais. Desativado por padrão nas configurações.
+compose text paste	colagem de texto ao escrever
+caption text paste	colagem de texto em legendas
+profile local IDs	IDs locais do perfil
+chat double-tap reactions	reações por toque duplo nos chats
+preview double-tap reactions	reações por toque duplo na prévia
+User ID %1$s	ID de usuário %1$s
+Chat ID %1$s	ID de chat %1$s
+Copy user ID %1$s	Copiar ID de usuário %1$s
+Copy chat ID %1$s	Copiar ID de chat %1$s
+ID	ID
+ID copied	ID copiado

@@ -11,10 +11,12 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 
@@ -204,7 +206,63 @@ public class LinkRoutingTest {
         assertEquals(tracked, target.getData());
     }
 
-    private void registerBrowser(String packageName, String authority) {
+    @Test public void runtimeEnabledAliasRemainsEligibleWithDisabledManifestDefault() {
+        PackageManager packages = context.getPackageManager();
+        ShadowPackageManager manager = shadowOf(packages);
+        ComponentName alias = new ComponentName("org.example.aliasbrowser", "org.example.aliasbrowser.BrowserAlias");
+        ActivityInfo activity = manager.addActivityIfNotPresent(alias);
+        activity.enabled = false;
+        activity.exported = true;
+        activity.targetActivity = "org.example.aliasbrowser.BrowserActivity";
+        manager.addOrUpdateActivity(activity);
+        IntentFilter filter = new IntentFilter(Intent.ACTION_VIEW);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        filter.addCategory(Intent.CATEGORY_BROWSABLE);
+        filter.addDataScheme("http");
+        filter.addDataScheme("https");
+        manager.addIntentFilterForActivity(alias, filter);
+        packages.setComponentEnabledSetting(alias, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+        Intent probe = new Intent(Intent.ACTION_VIEW, Uri.parse("https://")).addCategory(Intent.CATEGORY_BROWSABLE);
+        java.util.List<ResolveInfo> resolved = packages.queryIntentActivities(probe,
+                PackageManager.MATCH_DEFAULT_ONLY | PackageManager.GET_RESOLVED_FILTER);
+        assertEquals(1, resolved.size());
+        assertFalse("The resolver retains the manifest default", resolved.get(0).activityInfo.enabled);
+        assertTrue(LinkRouting.tryOpenExternal(context, tracked, false, new boolean[1], alias.getPackageName()));
+        assertEquals(alias.getPackageName(), shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity().getPackage());
+        for (int state : new int[]{PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED}) {
+            packages.setComponentEnabledSetting(alias, state, PackageManager.DONT_KILL_APP);
+            assertTrue(packages.queryIntentActivities(probe, PackageManager.MATCH_DEFAULT_ONLY).isEmpty());
+            assertFalse(LinkRouting.tryOpenExternal(context, tracked, false, new boolean[1], alias.getPackageName()));
+            assertEquals(null, shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity());
+        }
+    }
+
+    @Test public void chooserExcludesPrivateAndOwnComponentsAndKeepsUniqueResolverOrder() {
+        registerBrowser(context.getPackageName(), null);
+        registerBrowser("android", null);
+        registerBrowser("org.example.private", null).activityInfo.exported = false;
+        registerBrowser("org.example.first", null);
+        registerBrowser("org.example.first", null);
+        registerBrowser("org.example.second", null);
+        for (String excluded : new String[]{context.getPackageName(), "android", "org.example.private"}) {
+            assertFalse(LinkRouting.tryOpenExternal(context, tracked, false, new boolean[1], excluded));
+            assertEquals(null, shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity());
+        }
+        assertTrue(LinkRouting.tryOpenExternal(context, tracked, false, new boolean[1], null));
+        Intent chooser = shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
+        assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+        Intent target = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals("org.example.first", target.getPackage());
+        android.os.Parcelable[] additional = chooser.getParcelableArrayExtra(Intent.EXTRA_INITIAL_INTENTS);
+        assertEquals(1, additional.length);
+        assertEquals("org.example.second", ((Intent) additional[0]).getPackage());
+        // A chooser result isn't required, and cancelling it doesn't trigger another launch.
+        assertEquals(null, shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity());
+    }
+
+    private ResolveInfo registerBrowser(String packageName, String authority) {
         ResolveInfo info = new ResolveInfo();
         info.activityInfo = new ActivityInfo();
         info.activityInfo.packageName = packageName;
@@ -220,6 +278,7 @@ public class LinkRoutingTest {
         ShadowPackageManager manager = shadowOf(context.getPackageManager());
         for (String scheme : new String[]{"http", "https"}) manager.addResolveInfoForIntent(
                 new Intent(Intent.ACTION_VIEW, Uri.parse(scheme + "://")).addCategory(Intent.CATEGORY_BROWSABLE), info);
+        return info;
     }
 
     private void assertStock() {

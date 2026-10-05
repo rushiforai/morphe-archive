@@ -35,6 +35,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.io.File
+import java.lang.ref.SoftReference
 
 class DisableChannelPullFixtureTest {
     @Test fun `both hooks retain every stock operand edge handler and explicit channel opener`() {
@@ -292,7 +293,7 @@ class DisableChannelPullFixtureTest {
         error("release hook never leaves")
     }
 
-    private fun hosts(build: File): List<ClassDef> = HOSTS.getOrPut(build.absolutePath) {
+    private fun hosts(build: File): List<ClassDef> = HOSTS[build.absolutePath]?.get() ?: run {
         val layouts = FixtureDex.classesWhere(build, { true }) { it.isChannelPullScroll() }
         assertEquals("${build.name}: one bottom-pull layout manager", 1, layouts.size)
         val scroll = layouts.single().methods.single { it.isChannelPullScroll() }.instructions()
@@ -311,7 +312,7 @@ class DisableChannelPullFixtureTest {
             parent = definition.superclass
         }
         assertEquals("${build.name}: inherited scrolling implementation", superOwner, parents.last().type)
-        layouts + dependencies.values + parents
+        (layouts + dependencies.values + parents).also { HOSTS[build.absolutePath] = SoftReference(it) }
     }
 
     private fun contextFor(build: File, runtime: Boolean = true) = PatchContexts.of(
@@ -346,5 +347,5 @@ class DisableChannelPullFixtureTest {
     private fun Instruction.ref() = (this as? ReferenceInstruction)?.reference?.toString()
     private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
     private fun Instruction.call(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
-    private companion object { val HOSTS = mutableMapOf<String, List<ClassDef>>() }
+    private companion object { val HOSTS = mutableMapOf<String, SoftReference<List<ClassDef>>>() }
 }

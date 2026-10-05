@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_foveal_canvas",
+    "library_path": "libgxr_foveal_canvas.so",
+    "api_version": "1.1",
+    "implementation_version": "1",
+    "description": "Experimental regular-GL full-FOV foveal canvas for exact 2.0.20/5001812",
+    "disable_environment": "GXR_DISABLE_FOVEAL_CANVAS"
+  }
+}

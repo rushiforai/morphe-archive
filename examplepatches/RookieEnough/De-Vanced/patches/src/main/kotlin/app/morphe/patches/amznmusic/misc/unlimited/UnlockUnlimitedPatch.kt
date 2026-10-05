@@ -20,8 +20,7 @@ private const val USER_CLASS = "Lcom/amazon/music/account/User;"
 internal object UserConstructorFingerprint : Fingerprint(
     definingClass = USER_CLASS,
     name = "<init>",
-    returnType = "V",
-    custom = { method, _ -> method.name == "<init>" },
+    returnType = "V"
 )
 
 @Suppress("unused")

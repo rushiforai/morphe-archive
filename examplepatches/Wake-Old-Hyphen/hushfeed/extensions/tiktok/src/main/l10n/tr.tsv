@@ -648,7 +648,7 @@ Last original value	Son özgün değer
 Last recording: %1$d gates.	Son kayıt: %1$d kapı.
 Last recording: 1 gate.	Son kayıt: 1 kapı.
 Layout	Düzen
-Layout, player, search and system	Düzen, oynatıcı, arama ve sistem
+Layout, search, profile and system	Düzen, arama, profil ve sistem
 Leave maximum empty to keep it unlimited.	Sınırsız kalması için maksimumu boş bırak.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.	Sesi kaydedilen videonun dışında bırak. İkisini de istersen Sesi de kaydet seçeneği .m4a dosyasını yine videonun yanına yazar.
 Length and views per like	Süre ve beğeni başına görüntülenme
@@ -933,7 +933,6 @@ Saving the story	Hikaye kaydediliyor
 Saving the sound	Ses kaydediliyor
 Saving the profile picture	Profil fotoğrafı kaydediliyor
 Saving the live photo's clip	Canlı fotoğraf klibi kaydediliyor
-Screen	Ekran
 Screen time	Ekran süresi
 Search	Arama
 Search and override gates	Özellik kapılarını ara ve geçersiz kıl
@@ -1330,6 +1329,8 @@ Stopping after this file	Bu dosyadan sonra durduruluyor
 Waiting to save %1$s files	%1$s dosya kaydedilmeyi bekliyor
 Waiting to save one file	Bir dosya kaydedilmeyi bekliyor
 Save cancelled. Nothing was saved.	Kaydetme iptal edildi. Hiçbir şey kaydedilmedi.
+The server asked us to wait. Try again later.	Sunucu beklememizi istedi. Daha sonra tekrar deneyin.
+Saved %1$s of %2$s. The server asked us to wait. Try again later.	%2$s dosyadan %1$s kaydedildi. Sunucu beklememizi istedi. Daha sonra tekrar deneyin.
 One more save waiting	Bir kayıt daha bekliyor
 %1$s more saves waiting	%1$s kayıt daha bekliyor
 Starts after one other save	Başka bir kayıttan sonra başlar
@@ -1430,7 +1431,6 @@ Problem detected.	Sorun algılandı.
 Couldn't save these choices. Try again.	Bu seçimler kaydedilemedi. Tekrar dene.
 Clearing seen videos	İzlenen videolar temizleniyor
 Couldn't clear seen videos. Try again.	İzlenen videolar temizlenemedi. Tekrar dene.
-Background play	Arka planda oynatma
 Keep playing in the background	Arka planda oynatmaya devam et
 The video you're watching keeps playing to its end after you leave TikTok or turn the screen off, with TikTok's own media notification to pause it. TikTok's background play switch stays on while this is on. Restart TikTok to apply this.	İzlediğin video, TikTok'tan çıktıktan veya ekranı kapattıktan sonra da sonuna kadar oynamaya devam eder ve TikTok'un kendi medya bildiriminden duraklatılabilir. Bu açıkken TikTok'un arka planda oynatma anahtarı da açık kalır. Bunu uygulamak için TikTok'u yeniden başlat.
 Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.	Hushfeed'in Oynatma ayarlarında Arka planda oynatmaya devam et açık, bu yüzden TikTok bu anahtar için 2 alır ve buradaki bir geçersiz kılma o anahtar kapanana kadar etkisizdir.
@@ -1459,7 +1459,6 @@ A different account is signed in. Switch back to the one you set this up on, or 
 TikTok's messages didn't start in time. It tries again at %1$s.	TikTok'un mesajları zamanında başlamadı. Saat %1$s olunca tekrar denenir.
 The message didn't go through. It tries again at %1$s.	Mesaj gitmedi. Saat %1$s olunca tekrar denenir.
 Found %1$s in your chats.	%1$s sohbetlerinde bulundu.
-App checks	Uygulama kontrolleri
 Look like the store app to TikTok's checks	TikTok'un kontrollerine mağaza uygulaması gibi görünün
 Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.	TikTok'un nasıl imzalanıp yüklendiğine dair kendi kontrollerini, Play Store uygulaması gibi yanıtlar. Yenilemede kendiliğinden geri alınan takip veya beğeniler için. TikTok bunu, buraya erişemeyen yerel koddan da kontrol edebilir, bu yüzden yardımcı olmayabilir.
 Add apps to Share via	Şununla paylaş'a uygulama ekle
@@ -1505,3 +1504,8 @@ Don't save new searches	Yeni aramaları kaydetme
 Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.	Aradıklarını TikTok'un bu telefonda kaydettiği arama geçmişinin dışında tut. Zaten kayıtlı aramalar sen silene kadar kalır ve TikTok'un sunucuları kendi kayıtlarını tutmaya devam edebilir.
 Block suggested video notifications	Önerilen video bildirimlerini engelle
 Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.	TikTok'un senin için seçtiği popüler videolar hakkında gönderdiği bildirimleri durdur. Mesajlar, yorumlar, beğeniler, yeni takipçiler ve takip ettiğin hesapların videoları gelmeye devam eder.
+Buttons on videos	Videolardaki düğmeler
+
+Seen videos put back: %1$s of %2$s	Geri yüklenen izlenen videolar: %1$s / %2$s
+No cleared videos fit the current history limits.	Silinen videoların hiçbiri geçerli geçmiş sınırlarına uymuyor.
+Putting seen videos back	İzlenen videolar geri yükleniyor

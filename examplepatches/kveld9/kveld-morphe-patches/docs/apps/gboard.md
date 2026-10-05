@@ -63,7 +63,13 @@ If you perform a clean install of Gboard Lite with background sync debloat patch
 
 ## ⚙️ Gboard Enhancements: In-App Customization Suite
 
-The **`Gboard Enhancements`** patch injects a top-level **Morphe Patches** category directly into Gboard's main settings screen (*Ajustes > Morphe Patches*). All runtime-configurable features are consolidated here, eliminating the need to re-patch the APK to adjust settings.
+The **`Gboard Enhancements`** patch injects a top-level **Morphe Patches** category directly into Gboard's main settings screen (*Ajustes > Morphe Patches*). All runtime-configurable features are consolidated here, eliminating the need to re-patch the APK to adjust settings. All preference titles, summaries, category headers, status cards, and live slider units dynamically adapt to the active device/app language (supporting Spanish on `es` locales with English fallback).
+
+### 🌐 Multi-Language Support & Community Contributions
+The settings UI automatically detects the active device system language (`LocaleList` on Android 7+ and legacy `locale`) and routes strings to the corresponding language pack:
+- **Currently Supported**: English (`en`, base fallback) and Spanish (`es`).
+- **Granular Fallback**: If a key is omitted in a regional language pack, it falls back to the English string without breaking or showing empty/null values.
+- **Contributing Translations**: The localization engine is modular and designed for easy community contributions. Anyone can submit a new language pack via a single Pull Request. For step-by-step instructions and a template, refer to the [Gboard i18n Contribution Guide](../../extensions/extension/src/main/java/com/kveld9/morphe/extension/gboard/i18n/README.md).
 
 ### 1. Actions & Status
 - **Enable Gboard in System Settings**: Dynamic warning card shown when Gboard is installed but disabled in Android settings (`Settings > System > Languages & input > Manage keyboards`). Tapping the card opens the system keyboard manager directly.
@@ -76,7 +82,7 @@ The **`Gboard Enhancements`** patch injects a top-level **Morphe Patches** categ
 - **Key Border Shapes**: Unlocks key shape border selection (Default, Semi-rounded, Round) in theme customization.
 
 ### 3. Layout & Ergonomics
-- **Zero Bottom Inset**: Eliminates or customizes the navigation bar bottom inset padding (bottom chin/blank space) under the keyboard in gesture navigation mode.
+- **Zero Bottom Inset**: Eliminates or customizes the navigation bar bottom inset padding (bottom chin/blank space) under the keyboard in gesture navigation mode. On Android 13+ it also hides the system-drawn IME navigation bar (hide-keyboard chevron and IME switcher) that the framework reserves under the keyboard, so the keyboard sits flush with the screen edge; use the Bottom Padding slider to add space back.
 - **Bottom Padding (px)**: Live slider (0 to 150 px, default: `0 px`) to fine-tune the bottom margin. Formatted with live unit display during slider drag.
 - **Top Toolbar Item Count**: Live slider (4 to 8, default: `5`) controlling the maximum number of access point icons displayed on the top toolbar before collapsing into the overflow menu.
 - **Dismiss Suggestions Button**: Renders a close button (`X`) on proactive suggestion strips to quickly dismiss recommendations.

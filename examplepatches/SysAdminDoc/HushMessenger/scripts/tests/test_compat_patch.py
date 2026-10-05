@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from zipfile import ZipFile
 
 from scripts import verify_compat_patch as check
@@ -26,6 +26,7 @@ class ProfilePatchChecks(unittest.TestCase):
             "unchanged",
             "changed_bundle",
             "timeout",
+            "malformed_apk",
         )
         for case in cases:
             with self.subTest(case=case), tempfile.TemporaryDirectory() as temp:
@@ -126,7 +127,18 @@ class ProfilePatchChecks(unittest.TestCase):
                         command, 1 if case == "exit" else 0, "", ""
                     )
 
-                with patch.object(check.subprocess, "run", side_effect=run):
+                with (
+                    patch.object(check.subprocess, "run", side_effect=run),
+                    patch.object(
+                        check,
+                        "validate_apk",
+                        side_effect=(
+                            ValueError("malformed APK")
+                            if case == "malformed_apk"
+                            else None
+                        ),
+                    ) as validate,
+                ):
                     if case == "valid":
                         self.assertEqual(
                             "Desktop applied and rebuilt all 2 patches",
@@ -137,6 +149,7 @@ class ProfilePatchChecks(unittest.TestCase):
                                 Path("java"),
                                 names,
                                 check.digest(apk),
+                                Path("aapt2"),
                             ),
                         )
                     else:
@@ -150,7 +163,12 @@ class ProfilePatchChecks(unittest.TestCase):
                                 Path("java"),
                                 names,
                                 check.digest(apk),
+                                Path("aapt2"),
                             )
+                    if case in ("valid", "malformed_apk"):
+                        validate.assert_called_once_with(
+                            scratch[0] / "patched.apk", Path("java"), Path("aapt2")
+                        )
                 self.assertTrue(scratch)
                 self.assertTrue(all(not path.exists() for path in scratch))
                 self.assertEqual(original, apk.read_bytes())
@@ -166,6 +184,7 @@ class ProfilePatchChecks(unittest.TestCase):
                         Path("java"),
                         names,
                         "",
+                        Path("aapt2"),
                     )
                 run.assert_not_called()
 
@@ -178,9 +197,57 @@ class ProfilePatchChecks(unittest.TestCase):
                     ValueError, "changed after compatibility discovery"
                 ):
                     check.verify(
-                        source, source, source, Path("java"), ["menu"], "0" * 64
+                        source,
+                        source,
+                        source,
+                        Path("java"),
+                        ["menu"],
+                        "0" * 64,
+                        Path("aapt2"),
                     )
                 run.assert_not_called()
+
+    def test_content_validator_propagates_failure_and_stops_timed_out_process_tree(
+        self,
+    ):
+        for outcome in ("success", "failure", "timeout"):
+            with self.subTest(outcome=outcome):
+                process = Mock(returncode=1 if outcome == "failure" else 0)
+                process.communicate.side_effect = (
+                    [subprocess.TimeoutExpired("gradlew", 600), ("", "")]
+                    if outcome == "timeout"
+                    else [("", "invalid contents")]
+                )
+                with (
+                    patch.object(
+                        check.subprocess, "Popen", return_value=process
+                    ) as launch,
+                    patch.object(check, "stop_process_tree") as stop,
+                ):
+                    if outcome == "success":
+                        check.validate_apk(
+                            Path("rebuilt.apk"), Path("jdk/bin/java"), Path("aapt2")
+                        )
+                    else:
+                        with self.assertRaisesRegex(
+                            ValueError, "Rebuilt APK validation"
+                        ):
+                            check.validate_apk(
+                                Path("rebuilt.apk"), Path("jdk/bin/java"), Path("aapt2")
+                            )
+                    command = launch.call_args.args[0]
+                    self.assertIn(":patches:checkRebuiltApk", command)
+                    self.assertIn(
+                        f"-PvalidationApk={Path('rebuilt.apk').resolve()}", command
+                    )
+                    self.assertIn(
+                        f"-PvalidationAapt2={Path('aapt2').resolve()}", command
+                    )
+                    self.assertEqual(
+                        Path("jdk").resolve(),
+                        Path(launch.call_args.kwargs["env"]["JAVA_HOME"]),
+                    )
+                    self.assertEqual(outcome == "timeout", stop.called)
 
 
 if __name__ == "__main__":

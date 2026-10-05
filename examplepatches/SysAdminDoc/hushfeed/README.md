@@ -459,9 +459,11 @@ The Lab uses a compact toolbar so more gates fit on small screens. Tap the warni
 
 `tools/gen-release-notes.py` generates the in-app What's new text from published CHANGELOG entries starting at 0.60.0. It joins chunks at runtime so long notes and international text stay within Java's string-constant limit. Run `python -m unittest discover -s tools -p test_gen_release_notes.py` to check large notes through Java compilation and exact text round trips.
 
+The full `:patches:test` command includes `:patches:documentationTest`. README and artwork edits rerun the documentation checks while unchanged APK fixture results remain reusable. Source, catalog, dependency and fixture changes still rerun the affected tests. Release validation checks both result directories.
+
 APK fixture tests reuse read-only DEX containers only while the file's content and requested opcode version match. File replacement invalidates the cache even when its size and timestamp stay unchanged. Cache entries can be reclaimed under heap pressure, and each patch application keeps its own mutable context. Every declared and historical fixture stays in the test set.
 
-Use focused checks while editing and reserve the full suites and bundle build for a milestone. The configured `HUSHFEED_BUILD_WRAPPER` preserves spaced test filters, reports CPU and free memory, and runs with two workers at low priority. It defers a build when less than 6 GB is free instead of starting another heavy process.
+Use focused checks while editing and reserve the full suites and bundle build for a milestone. The configured `HUSHFEED_BUILD_WRAPPER` preserves spaced test filters, reports CPU and free memory, and runs with two workers at low priority. It bounds JVM heaps and reports low free memory as a warning. The build continues.
 
 Use JDK 21 or newer and an Android SDK configured through `local.properties`. GitHub Packages needs `GITHUB_ACTOR` and a `GITHUB_TOKEN` with `read:packages` access for the Morphe dependencies.
 

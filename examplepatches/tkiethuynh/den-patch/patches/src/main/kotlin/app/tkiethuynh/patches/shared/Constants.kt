@@ -4,6 +4,11 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
+const val RETURN_TRUE_BODY = """
+    const/4 v0, 0x1
+    return v0
+"""
+
 object Constants {
     val COMPATIBILITY_MISA = Compatibility(
         name = "MISA Money Keeper",

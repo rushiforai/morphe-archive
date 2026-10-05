@@ -113,7 +113,9 @@ Copy a short report to the clipboard.	Copia un informe breve en el portapapeles.
 Save the full report in Download/Morphe.	Guarda el informe completo en Download/Morphe.
 Settings imported.	Configuración importada.
 No app on this phone can open the link. The address is %1$s.	Ninguna app de este teléfono puede abrir el enlace. La dirección es %1$s.
-Pause, backup and diagnostics	Pausa, copia de seguridad y diagnóstico
+# context: Separate pages under More settings. Settings backup contains export and import; Diagnostics contains logging and diagnostic data controls.
+Settings backup	Copia de ajustes
+Diagnostics	Diagnóstico
 Updates	Actualizaciones
 Jump to a section	Ir a una sección
 Go straight to one group of settings. Back returns to where you were.	Ve directo a un grupo de ajustes. Atrás te devuelve a donde estabas.
@@ -228,7 +230,7 @@ Quiet contacts prompts	Silenciar avisos de contactos
 Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Cuando hayas rechazado el acceso a los contactos, la pestaña Contactos deja de pedirlo y su insignia de aviso desaparece. La primera solicitud, los botones propios de la pestaña y la sincronización de contactos se mantienen.
 
 New Year look all year	Aspecto de Año Nuevo todo el año
-Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	La nieve de Año Nuevo de Telegram cae todos los días sobre la barra superior de la lista de chats y, con los fondos de chat animados activados, sobre los fondos de chat. Desactivado por defecto en los ajustes.
+Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	El gorro de Papá Noel de Telegram aparece sobre el logo de la lista de chats. La nieve de Año Nuevo cae todos los días sobre la barra superior y, con los fondos de chat animados activados, sobre los fondos de chat. Desactivado por defecto en los ajustes.
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Notificaciones
@@ -250,3 +252,20 @@ Allowed	Permitido
 Blocked	Bloqueado
 Yes	Sí
 No	No
+Use normal paste	Usar pegado normal
+Show user and chat IDs	Mostrar IDs de usuario y chat
+Disable double-tap reactions	Desactivar reacciones al tocar dos veces
+Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Pega texto sin la conversión HTML, de tablas o monoespaciado de Telegram. Conserva los espacios y las URLs. Las demás acciones del portapapeles siguen disponibles. Desactivado por defecto en los ajustes.
+Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Muestra un ID local de usuario o chat que se puede copiar en el menú del perfil abierto. Los hashes de acceso siguen ocultos. No añade solicitudes al servidor. Desactivado por defecto en los ajustes.
+Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Tocar dos veces no añade reacciones en chats ni en la vista previa de reacciones. El desplazamiento, los toques, la selección y los menús de reacciones siguen igual. Desactivado por defecto en los ajustes.
+compose text paste	pegado de texto al escribir
+caption text paste	pegado de texto en leyendas
+profile local IDs	IDs locales del perfil
+chat double-tap reactions	reacciones al tocar dos veces en chats
+preview double-tap reactions	reacciones al tocar dos veces en la vista previa
+User ID %1$s	ID de usuario %1$s
+Chat ID %1$s	ID de chat %1$s
+Copy user ID %1$s	Copiar ID de usuario %1$s
+Copy chat ID %1$s	Copiar ID de chat %1$s
+ID	ID
+ID copied	ID copiado

@@ -24,9 +24,8 @@ internal object MetaAIKillSwitchCheckFingerprint : Fingerprint(
 
 internal object ExtensionMethodFingerprint : Fingerprint(
     strings = listOf("REPLACED_BY_PATCH"),
-    custom = { method, classDef ->
-        method.name == EXTENSION_METHOD_NAME && classDef.type == EXTENSION_CLASS_DESCRIPTOR
-    },
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = EXTENSION_METHOD_NAME,
 )
 
 /**

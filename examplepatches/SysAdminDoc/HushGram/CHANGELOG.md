@@ -4,6 +4,32 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Replaced navigation-tab listeners can no longer open settings or call an old native action. Each callback belongs to its current button binding, including tabs with no native long-press handler.
+
+* **Instagram:** Settings backups now include the chosen navigation tab for opening HushGram. Import reports when the change needs a restart, and Undo preserves any choice made after the import. Older backups leave this choice unchanged.
+
+* **Instagram:** Verified About and saved diagnostic reports on two Galaxy S22 builds sharing version 0.0.5. Each showed its own production identity matching the bundle and external receipt, with installed patch facts and no account identifiers, media URLs or tokens in either report.
+
+* **Instagram:** Settings can be opened by a long press on one chosen navigation tab. The choice starts off and replaces that tab's usual long-press action. Normal taps and other tabs keep their native behavior. Turning it off or pausing restores the native handler. Restart Instagram after changing the chosen tab. Galaxy S22 checks cover Home and Reels, native Home developer options, Off/Pause/Resume, both recovery entries, signed-out routing and the chooser at 200% text in right-to-left layout.
+
+* **Instagram:** TalkBack reads each settings switch's name and explanation instead of announcing only its state. Action rows expose their current value or disabled reason too. TalkBack and Switch Access checks cover right-to-left layout, 200% text, paused choices and refusal of stale actions.
+
+* **Instagram:** A late result from an earlier settings or override file picker can't cancel a newer picker or write to the older file. Each request keeps its own identity through screen recreation.
+
+* **Instagram:** Show a Reel seek thumb adds an optional white circular handle to Instagram's own Reel seek bar. It starts off and works independently of Keep a seek bar. Native taps, dragging and accessibility seeking remain available. Turning it off or pausing restores Instagram's appearance.
+
+* **Instagram:** Settings and diagnostic exports keep their progress and last result on the export row until Instagram restarts. Closing settings keeps a running export going, cancellation has its own message, and duplicate or stale callbacks can't replace a newer result.
+
+* **Instagram:** Settings and pending backup or override file requests survive Instagram restarting their screen behind Android's file picker. Returning from the picker restores the original page and delivers its result once.
+
+* **Instagram:** Expired playback positions are retried on the next video start if the worker queue is full or their private store can't be read or written. Cleanup only counts as finished after a confirmed disk write, even when a failed write already changed the in-memory preferences.
+
+* **Instagram:** Settings recovery also handles a page that fails while Android restores it after rotation. A working page keeps its pending file-picker request through recreation.
+
+* **Instagram:** Settings search keeps actions reachable when their labels change. Searching for remembered positions still shows Undo after clearing them, including when you reopen settings before its deadline.
+
+* **Instagram:** Settings import and playback-history Undo follow Android's accessibility timeout and show their deadline. Reopening settings doesn't extend it. Old taps can't undo newer operations, and settings Undo keeps choices changed after the import.
+
 * **Settings:** If the settings page can't open, the dialog keeps an explanation, Retry and Back. Retry removes any partial page, and buttons from an old or closed dialog can't reopen it.
 
 * **Tooling:** Verification fixtures find the compiler beside the selected Java executable when Java comes from PATH.

@@ -1,9 +1,11 @@
 [versions]
-morphe-patcher = "1.9.0-dev.1"
+# Category metadata is supported by patcher 1.13.0 / Morphe Manager 1.30.0.
+morphe-patcher = "1.13.0"
 #noinspection GradleDependency
-smali = "d92701d947"
+# Match patcher 1.13.0 so D8 sees 1 dexlib2 version.
+smali = "d856bad65f"
 gson = "2.14.0"
-# Match the Android tools runtime used by Morphe patcher 1.9.0-dev.1.
+# Match the Android tools runtime used by Morphe patcher 1.13.0.
 apksig = "9.1.1"
 
 [libraries]

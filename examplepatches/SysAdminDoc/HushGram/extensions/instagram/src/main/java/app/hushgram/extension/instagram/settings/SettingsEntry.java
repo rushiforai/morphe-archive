@@ -273,6 +273,14 @@ public final class SettingsEntry {
         }
     }
 
+    private static final String SAVED_SETTINGS = "app.hushgram.settings.saved_dialog";
+
+    /** Keep Android's fragment identities and pending result routing only for an open settings dialog. */
+    public static void removeFrameworkState(Bundle state, String key) {
+        if ("android:fragments".equals(key) && state.getBoolean(SAVED_SETTINGS, false)) return;
+        state.remove(key);
+    }
+
     static final class OpenWhenResumed implements Application.ActivityLifecycleCallbacks {
         /** The Instagram screen in front right now, if any. */
         private WeakReference<Activity> resumed;
@@ -283,6 +291,11 @@ public final class SettingsEntry {
                 // A screen put back after the process died carries its old intent; the request it
                 // held was spent the first time.
                 if (state == null) noteIntent(activity.getIntent());
+                if (activity.getFragmentManager().findFragmentByTag(DIALOG_TAG) instanceof SettingsDialog) {
+                    host = new WeakReference<>(activity);
+                    closedByUser = false;
+                    openPending = false;
+                }
             } catch (Exception ex) {
                 Logger.printException(() -> "Settings entry: could not read a new screen's intent", ex);
             }
@@ -329,7 +342,14 @@ public final class SettingsEntry {
 
         @Override public void onActivityStarted(Activity activity) { }
         @Override public void onActivityStopped(Activity activity) { }
-        @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
+        @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) {
+            Fragment dialog = activity.getFragmentManager().findFragmentByTag(DIALOG_TAG);
+            if (dialog instanceof SettingsDialog && dialog.isAdded() && !dialog.isRemoving()) {
+                state.putBoolean(SAVED_SETTINGS, true);
+            } else {
+                state.remove(SAVED_SETTINGS);
+            }
+        }
 
         @Override
         public void onActivityDestroyed(Activity activity) {
@@ -381,7 +401,11 @@ public final class SettingsEntry {
                 return false;
             }
             FragmentManager fragments = activity.getFragmentManager();
-            if (fragments.findFragmentByTag(DIALOG_TAG) != null) return true;
+            if (fragments.findFragmentByTag(DIALOG_TAG) != null) {
+                host = new WeakReference<>(activity);
+                closedByUser = false;
+                return true;
+            }
             if (fragments.isStateSaved()) {
                 Logger.printInfo(() -> "Settings wait: " + name + " has saved its state");
                 return false;
@@ -395,6 +419,18 @@ public final class SettingsEntry {
             Logger.printException(() -> "Could not open the HushGram settings over " + name, ex);
             return false;
         }
+    }
+
+    /** Queues a gesture through the shortcut's same resume/account handoff, without starting a tab. */
+    static boolean requestOpen(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return false;
+        if (!closedByUser && ((host != null && host.get() == activity)
+                || (openPending && SystemClock.elapsedRealtime() - requestedAt <= REQUEST_LIFETIME_MS))) return true;
+        closedByUser = false;
+        requestedAt = SystemClock.elapsedRealtime();
+        openPending = true;
+        OpenWhenResumed.openWhenSettled(activity);
+        return true;
     }
 
     /** Called by the screen when the person closes it, so it isn't reopened. */

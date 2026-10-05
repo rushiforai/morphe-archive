@@ -284,6 +284,7 @@ class NativeMediaControlsTest {
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
         assertEquals(controlProfiles.size, apks.size)
+        assertEquals(controlProfiles.keys.map { it.toString() }.toSet(), apks.map { it.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-') }.toSet())
         for (apk in apks) {
             val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
             activeProfile = controlProfileFor(code)
@@ -293,11 +294,11 @@ class NativeMediaControlsTest {
             assertEquals(expectedHash, digest.digest().joinToString("") { "%02x".format(it) })
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
-            val cell = findAiStickerCells(classes).single()
+            val discovered = findControls(classes)
+            validateControls(discovered, setOf("ai_sticker_cell", "screenshot_viewers"))
+            val cell = discovered.getValue("ai_sticker_cell").single()
             assertEquals(activeProfile.hooks.getValue("ai_sticker_cell").single(), cell.hookId())
-            val viewerIds = activeProfile.hooks.getValue("screenshot_viewers")
-            val viewers = classes.filter { it.type in setOf(EPHEMERAL_VIEWER, QUICKSNAP_VIEWER) }.flatMap { it.methods }.filter { it.hookId() in viewerIds }
-            validateControls(mapOf("ai_sticker_cell" to listOf(cell), "screenshot_viewers" to viewers), setOf("ai_sticker_cell", "screenshot_viewers"))
+            val viewers = discovered.getValue("screenshot_viewers")
             assertEquals(4, viewers.sumOf { it.screenshotViewerSites().size })
             for (native in viewers) {
                 val method = MutableMethod(native)

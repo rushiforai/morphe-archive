@@ -1,0 +1,350 @@
+# Indonesian for HushPinterest: the English key, a tab, the translation. One row per string.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$d item in that file isn't a setting this version of HushPinterest knows, so it'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi HushPinterest ini, jadi tidak akan disertakan.
+%1$d items in that file aren't settings this version of HushPinterest knows, so they'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi HushPinterest ini, jadi tidak akan disertakan.
+%1$d switch will change.	%1$d sakelar akan berubah.
+%1$d switches will change.	%1$d sakelar akan berubah.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
+A diagnostic report is already being saved.	Sudah ada laporan diagnostik yang sedang disimpan.
+A file named %1$s in %2$s paused HushPinterest.	File bernama %1$s di %2$s menjeda HushPinterest.
+About	Tentang
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.
+Back	Kembali
+Cancel	Batal
+Clear diagnostic data	Hapus data diagnostik
+Copy quick report	Salin laporan singkat
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Pengaturan tidak dapat diimpor, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa sakelar di layar ini.
+Couldn't import the settings. Nothing was changed.	Pengaturan tidak dapat diimpor. Tidak ada yang diubah.
+Couldn't open that file. Nothing was changed.	File itu tidak dapat dibuka. Tidak ada yang diubah.
+Couldn't open the file picker. Try again.	Pemilih file tidak dapat dibuka. Coba lagi.
+Couldn't put back the diagnostic data. Try again.	Data diagnostik tidak dapat dikembalikan. Coba lagi.
+Couldn't save the settings file. Try again.	File pengaturan tidak dapat disimpan. Coba lagi.
+Couldn't start that. Try again in a moment.	Tidak dapat dimulai. Coba lagi dalam beberapa saat.
+Couldn't start the report export. Try again shortly.	Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.
+Couldn't turn HushPinterest back on. Try again.	HushPinterest tidak dapat diaktifkan lagi. Coba lagi.
+Debug logging	Pencatatan debug
+Diagnostic data cleared. Tap again to put it back.	Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
+Diagnostic data put back.	Data diagnostik dikembalikan.
+Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
+Empties the log and the hook findings a report would include.	Mengosongkan log dan temuan hook yang akan dimasukkan ke laporan.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
+Export diagnostic report	Ekspor laporan diagnostik
+Export settings	Ekspor pengaturan
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
+Hide ads	Sembunyikan iklan
+Links, updates, backup and more	Tautan, pembaruan, cadangan, dan lainnya
+Save your switches to a file. They cover all the accounts in this Pinterest app. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Sakelar ini mencakup semua akun di aplikasi Pinterest ini. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
+Settings exported. The app holding the file wouldn't let HushPinterest read it back, so it wasn't checked.	Pengaturan diekspor. Aplikasi yang menyimpan file itu tidak mengizinkan HushPinterest membacanya kembali, jadi file itu tidak diperiksa.
+The app holding that file is taking too long, so HushPinterest stopped waiting. Nothing was changed.	Aplikasi yang menyimpan file itu terlalu lama, jadi HushPinterest berhenti menunggu. Tidak ada yang diubah.
+The app holding the last settings file still hasn't answered. Try again later.	Aplikasi yang menyimpan file pengaturan terakhir masih belum merespons. Coba lagi nanti.
+The app holding the settings file is taking too long, so HushPinterest stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushPinterest berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.
+Full report saved to %1$s	Laporan lengkap disimpan ke %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya
+HushPinterest is on	HushPinterest aktif
+HushPinterest is paused	HushPinterest dijeda
+HushPinterest settings	Pengaturan HushPinterest
+HushPinterest settings couldn't open	Pengaturan HushPinterest tidak dapat dibuka
+Import	Impor
+Import settings	Impor pengaturan
+Importing settings	Mengimpor pengaturan
+Licenses	Lisensi
+Links	Tautan
+OK	Oke
+Pause HushPinterest	Jeda HushPinterest
+Reading the settings file	Membaca file pengaturan
+Retry	Coba lagi
+Save full report	Simpan laporan lengkap
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushPinterest releases	Periksa rilis HushPinterest baru
+Ask GitHub once a day when Pinterest starts, and show a newer release at the top of these settings. Off by default. Nothing is downloaded.	Periksa GitHub sekali sehari saat Pinterest dimulai dan tampilkan rilis yang lebih baru di bagian atas pengaturan ini. Mati secara bawaan. Tidak mengunduh apa pun.
+Check now	Periksa sekarang
+Asks GitHub for the newest release right now, even with the switch above off.	Menanyakan rilis terbaru ke GitHub sekarang juga, meski sakelar di atas mati.
+Checking GitHub now.	Sedang memeriksa GitHub.
+HushPinterest %1$s is out. Update it in Morphe Manager.	HushPinterest %1$s sudah dirilis. Perbarui di Morphe Manager.
+You have the newest HushPinterest release.	Anda sudah memakai rilis HushPinterest terbaru.
+The newest HushPinterest release is %1$s.	Rilis HushPinterest terbaru adalah %1$s.
+Couldn't reach GitHub. Try again later.	GitHub tidak dapat dihubungi. Coba lagi nanti.
+GitHub is turning away checks from this network for now. Try again later.	GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.
+GitHub's answer couldn't be used. Try again later.	Jawaban GitHub tidak dapat digunakan. Coba lagi nanti.
+Saving the settings file	Menyimpan file pengaturan
+Set when you patched	Diatur saat Anda menambal
+Settings couldn't open	Pengaturan tidak dapat dibuka
+Settings couldn't refresh completely. Reopen settings and try again.	Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.
+Settings exported.	Pengaturan diekspor.
+Settings imported. %1$d switch changed.	Pengaturan diimpor. %1$d sakelar berubah.
+Settings imported. %1$d switches changed.	Pengaturan diimpor. %1$d sakelar berubah.
+Source code and issues	Kode sumber dan laporan masalah
+Stays in while paused	Tetap aktif saat dijeda
+Tap to turn it back on.	Ketuk untuk mengaktifkan HushPinterest lagi.
+That file is too large to be a settings file. Nothing was changed.	File itu terlalu besar untuk sebuah file pengaturan. Tidak ada yang diubah.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	File itu bukan teks yang dapat dibaca, jadi mungkin rusak saat ditransfer. Tidak ada yang diubah.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	File itu mencantumkan satu pengaturan dua kali, jadi tidak jelas nilai mana yang harus dipakai. Tidak ada yang diubah.
+That isn't a HushPinterest settings file. Nothing was changed.	Itu bukan file pengaturan HushPinterest. Tidak ada yang diubah.
+That settings file holds a value HushPinterest can't read. Nothing was changed.	File pengaturan itu memuat nilai yang tidak dapat dibaca HushPinterest. Tidak ada yang diubah.
+That settings file is damaged or only partly downloaded. Nothing was changed.	File pengaturan itu rusak atau hanya terunduh sebagian. Tidak ada yang diubah.
+That settings file was written by a newer HushPinterest than this one. Nothing was changed.	File pengaturan itu dibuat oleh versi HushPinterest yang lebih baru daripada versi ini. Tidak ada yang diubah.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.
+The diagnostic report couldn't be saved. Try again.	Laporan diagnostik tidak dapat disimpan. Coba lagi.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushPinterest back on.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushPinterest lagi.
+The setting couldn't finish updating. Its saved value is shown.	Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.
+There's no diagnostic data to clear.	Tidak ada data diagnostik yang dapat dihapus.
+There's no diagnostic data to put back.	Tidak ada data diagnostik yang dapat dikembalikan.
+This phone has no file picker, so there's no way to choose a file here.	Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.
+Version	Versi
+Record patch activity and show errors for a bug report. Leave off during normal use.	Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.
+You paused HushPinterest.	Anda menjeda HushPinterest.
+Your switches already match that file, so nothing will change.	Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.
+Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
+Settings imported.	Pengaturan diimpor.
+No app on this phone can open the link. The address is %1$s.	Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.
+Pause, backup and diagnostics	Jeda, cadangan, dan diagnostik
+Updates	Pembaruan
+Jump to a section	Lompat ke bagian
+Go straight to one group of settings. Back returns to where you were.	Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.
+Browse settings	Jelajahi pengaturan
+More settings	Pengaturan lainnya
+No matching settings	Tidak ada pengaturan yang cocok
+%1$d setting found	%1$d pengaturan ditemukan
+%1$d settings found	%1$d pengaturan ditemukan
+Try a different word or clear the search.	Coba kata lain atau hapus pencarian.
+Search settings	Cari pengaturan
+Clear search	Hapus pencarian
+Your controls are active.	Kontrol Anda aktif.
+Pause	Jeda
+Resume	Lanjutkan
+Undo	Urungkan
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Pinterest's web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	Tautan yang didukung
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	“Buka link yang didukung” nonaktif untuk aplikasi ini di pengaturan Android. Ketuk untuk mengaktifkannya.
+Android didn't say which links open here. Tap to check in Android's settings.	Android tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk memeriksanya di pengaturan Android.
+Selecting links by hand	Memilih tautan secara manual
+
+A change here applies after Pinterest restarts.	Perubahan di sini berlaku setelah Pinterest dimulai ulang.
+Android verified this app for Pinterest's web addresses, so their links open here.	Android telah memverifikasi aplikasi ini untuk alamat web Pinterest, jadi tautannya terbuka di sini.
+Android's settings for this app didn't open. Open App info from Pinterest's icon, then Open by default.	Pengaturan Android untuk aplikasi ini tidak terbuka. Buka Info aplikasi dari ikon Pinterest, lalu Buka secara default.
+HushPinterest %1$s on Pinterest %2$s	HushPinterest %1$s di Pinterest %2$s
+HushPinterest %1$s supports Pinterest %2$s.	HushPinterest %1$s mendukung Pinterest %2$s.
+HushPinterest pauses when Pinterest restarts.	HushPinterest dijeda saat Pinterest dimulai ulang.
+HushPinterest turns back on when Pinterest restarts.	HushPinterest aktif lagi saat Pinterest dimulai ulang.
+It supports Pinterest %1$s.	Rilis ini mendukung Pinterest %1$s.
+None of Pinterest's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Tidak ada alamat web Pinterest yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
+Only some of Pinterest's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Hanya sebagian alamat web Pinterest yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
+Saved. Restart Pinterest to apply this change.	Tersimpan. Mulai ulang Pinterest untuk menerapkan perubahan ini.
+# context: Immutable hook coverage shown when a patch has missing targets.
+This build has no coverage for %1$s.	Versi ini tidak mencakup %1$s.
+This build covers %1$s. Missing coverage: %2$s.	Versi ini mencakup %1$s. Cakupan yang belum tersedia: %2$s.
+Pinterest crashed or froze within a minute of starting three times in a row, so HushPinterest paused itself.	Pinterest berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushPinterest menjeda dirinya sendiri.
+Pinterest's web addresses are selected for this app in Android's settings, so their links open here.	Alamat web Pinterest dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.
+Try again, or go back to Pinterest.	Coba lagi, atau kembali ke Pinterest.
+Release notes	Catatan rilis
+Read HushPinterest releases on GitHub. Nothing is downloaded here.	Baca rilis HushPinterest di GitHub. Tidak ada yang diunduh di sini.
+Update instructions	Petunjuk pembaruan
+Open the installation steps on GitHub.	Buka langkah pemasangan di GitHub.
+Your choices are saved. Tap Resume, then restart Pinterest.	Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Pinterest.
+No HushPinterest release is out yet.	Belum ada rilis HushPinterest.
+Accounts	Akun
+Every switch here applies to all the accounts in this Pinterest app, not only the one you have open.	Setiap sakelar di sini berlaku untuk semua akun di aplikasi Pinterest ini, bukan hanya akun yang sedang Anda buka.
+AI-labeled pins	Pin berlabel AI
+AI-labeled pins in lists	pin berlabel AI di daftar
+Android opens pinterest.com and pin.it links in a patched Pinterest only when their addresses are selected for it. Selecting them sends their links here, and your other link settings stay as they are.	Android membuka tautan pinterest.com dan pin.it di Pinterest yang sudah ditambal hanya jika alamatnya dipilih untuk aplikasi itu. Dengan memilihnya, tautan tersebut dikirim ke sini, dan pengaturan tautan Anda yang lain tidak berubah.
+Feed	Umpan
+Hide AI-labeled pins	Sembunyikan pin berlabel AI
+Pins that Pinterest labels as made or changed with AI leave the same lists. AI images without Pinterest's label still show.	Pin yang diberi label oleh Pinterest sebagai dibuat atau diubah dengan AI akan hilang dari daftar yang sama. Gambar AI tanpa label dari Pinterest tetap ditampilkan.
+Promoted and AI-labeled pins	Pin promosi dan pin berlabel AI
+Promoted pins	Pin promosi
+Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Pin promosi hilang dari beranda, pencarian, pin terkait, dan papan sebelum ditampilkan, dan panel yang hanya berisi iklan tetap terlipat.
+ad-only views	tampilan khusus iklan
+promoted pins in lists	pin promosi di daftar
+Privacy	Privasi
+Pin actions	Tindakan Pin
+Interface	Antarmuka
+Hide shopping and product pins	Sembunyikan belanja dan Pin produk
+Shoppable pins, shopping stories and featured boards	Pin belanja, cerita belanja, dan papan unggulan
+Disable analytics	Nonaktifkan analitik
+Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Menghentikan pengiriman data penggunaan dan tugas awal analitik. Firebase Analytics tetap nonaktif sampai Anda menambal ulang tanpa tambalan ini.
+Firebase Analytics collection is disabled	Pengumpulan data Firebase Analytics dinonaktifkan
+Analytics launch tasks	Tugas awal analitik
+Analytics uploads	Pengiriman data analitik
+Strip link tracking	Hapus pelacakan tautan
+Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Menghapus parameter pelacakan yang dikenal dari tautan yang disalin dan dibagikan. Tautan pendek tetap seperti yang dibuat Pinterest.
+Download pins	Unduh Pin
+Open links in your browser	Buka tautan di browser Anda
+Open pin Visit links and profile websites in your browser.	Buka tautan Kunjungi Pin dan situs web profil di browser Anda.
+System share sheet	Menu berbagi sistem
+Share uses Android's share sheet.	Bagikan menggunakan menu berbagi Android.
+No screenshot share menu	Matikan menu berbagi tangkapan layar
+Hide search history	Sembunyikan riwayat pencarian
+Hide navigation buttons	Sembunyikan tombol navigasi
+Hide Create button	Sembunyikan tombol Buat
+Hide Notifications button	Sembunyikan tombol Notifikasi
+Hide header buttons	Sembunyikan tombol header
+Filter pin menu	Filter menu Pin
+Hide collage menu items	Sembunyikan opsi kolase
+Hide Search image menu item	Sembunyikan opsi Cari gambar
+Hide Promote pin menu item	Sembunyikan opsi Promosikan Pin
+Hide comments	Sembunyikan komentar
+Quiet email reminders	Sembunyikan pengingat email
+Disable update nag	Sembunyikan pemberitahuan pembaruan
+Download pin	Unduh Pin
+Share pin	Bagikan Pin
+Open pin link	Buka tautan Pin
+Download started. Check Downloads.	Unduhan dimulai. Periksa Unduhan.
+Pin saved.	Pin disimpan.
+Couldn't save this pin.	Pin ini tidak dapat disimpan.
+Another pin is being saved. Try again when it's finished.	Pin lain sedang disimpan. Coba lagi setelah selesai.
+The file may have saved. Check your chosen save location.	File mungkin sudah tersimpan. Periksa lokasi penyimpanan yang dipilih.
+Couldn't remove the incomplete file. Check your chosen save location.	File yang belum selesai tidak dapat dihapus. Periksa lokasi penyimpanan yang dipilih.
+Queued	Dalam antrean
+Downloading	Mengunduh
+Paused	Dijeda
+Failed	Gagal
+Completed	Selesai
+Missing	Tidak ditemukan
+Unavailable	Tidak tersedia
+Android will retry the download.	Android akan mencoba mengunduh lagi.
+Waiting for a network connection.	Menunggu koneksi jaringan.
+Waiting for Wi-Fi.	Menunggu Wi-Fi.
+Paused by Android.	Dijeda oleh Android.
+Not enough storage.	Ruang penyimpanan tidak cukup.
+Download storage is unavailable.	Penyimpanan unduhan tidak tersedia.
+The file already exists.	File sudah ada.
+Android couldn't resume the download.	Android tidak dapat melanjutkan unduhan.
+The download server couldn't complete the request.	Server unduhan tidak dapat menyelesaikan permintaan.
+Android couldn't save the file.	Android tidak dapat menyimpan file.
+Download failed.	Unduhan gagal.
+Check Downloads for the saved file.	Periksa file yang disimpan di Unduhan.
+Android no longer has this request. Check Downloads before saving again.	Android tidak lagi memiliki permintaan ini. Periksa Unduhan sebelum menyimpan lagi.
+Couldn't check Downloads. Try again.	Tidak dapat memeriksa Unduhan. Coba lagi.
+Resume HushPinterest and turn on Download pins to retry.	Lanjutkan HushPinterest dan aktifkan Unduh pin untuk mencoba lagi.
+Open the pin again to get a fresh download link.	Buka pin lagi untuk mendapatkan tautan unduhan baru.
+This request can't be retried. Check Downloads or open the pin again.	Permintaan ini tidak dapat dicoba lagi. Periksa Unduhan atau buka pin lagi.
+Download started, but its history couldn't be saved. Check Downloads.	Unduhan dimulai, tetapi riwayatnya tidak dapat disimpan. Periksa Unduhan.
+History removed. Files and active downloads were kept.	Riwayat dihapus. File dan unduhan aktif tetap disimpan.
+Couldn't remove this history entry. Try again.	Tidak dapat menghapus entri riwayat ini. Coba lagi.
+Couldn't open Downloads.	Tidak dapat membuka Unduhan.
+Couldn't open this pin.	Tidak dapat membuka pin ini.
+Download history	Riwayat unduhan
+Check recent downloads started by HushPinterest.	Periksa unduhan terbaru yang dimulai oleh HushPinterest.
+Checking download history...	Memeriksa riwayat unduhan...
+Only the 32 most recent HushPinterest requests are listed. Manage active downloads in Downloads.	Hanya 32 permintaan HushPinterest terbaru yang ditampilkan. Kelola unduhan aktif di Unduhan.
+No HushPinterest downloads in this history.	Tidak ada unduhan HushPinterest dalam riwayat ini.
+Pin %s	Pin %s
+Retry download	Coba unduh lagi
+Starts a new download. Android manages it.	Memulai unduhan baru. Android mengelolanya.
+Open pin	Buka pin
+Remove from history	Hapus dari riwayat
+Removes this history entry. Files and active downloads are kept.	Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.
+Open Downloads	Buka Unduhan
+Refresh	Muat ulang
+Saving	Menyimpan
+Interrupted	Terhenti
+Access unavailable	Akses tidak tersedia
+Save cleanup pending	Pembersihan penyimpanan tertunda
+This save is still running. Try again when it's finished.	Penyimpanan ini masih berjalan. Coba lagi setelah selesai.
+Couldn't check your chosen save location. Open your Files app to inspect it.	Lokasi penyimpanan yang dipilih tidak dapat diperiksa. Buka aplikasi File untuk memeriksanya.
+Save cleanup couldn't be confirmed. The file was kept. Try removing this history entry again.	Pembersihan penyimpanan tidak dapat dipastikan. File tetap disimpan. Coba hapus entri riwayat ini lagi.
+Check your chosen save location before saving again. HushPinterest won't resume or delete this file.	Periksa lokasi penyimpanan yang dipilih sebelum menyimpan lagi. HushPinterest tidak akan melanjutkan atau menghapus file ini.
+Save history removed. The file was kept.	Riwayat penyimpanan dihapus. File tetap disimpan.
+Couldn't record the save location. No file data was written.	Lokasi penyimpanan tidak dapat dicatat. Tidak ada data file yang ditulis.
+Save history is full. Remove an old entry before saving another pin.	Riwayat penyimpanan penuh. Hapus entri lama sebelum menyimpan Pin lain.
+Pending saves	Penyimpanan tertunda
+Check unfinished file picker saves. Files are kept.	Periksa penyimpanan yang belum selesai dari pemilih file. File tetap disimpan.
+Checking pending saves...	Memeriksa penyimpanan tertunda...
+No pending HushPinterest saves.	Tidak ada penyimpanan HushPinterest yang tertunda.
+Only unfinished saves are listed. Check your chosen location before saving again.	Hanya penyimpanan yang belum selesai ditampilkan. Periksa lokasi yang dipilih sebelum menyimpan lagi.
+Pin saved. Check Pending saves if its history remains.	Pin disimpan. Periksa Penyimpanan tertunda jika riwayatnya masih ada.
+Download unavailable	Unduhan tidak tersedia
+Supplied media details	Detail media yang diberikan
+These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Detail ini berasal dari URL media dan metadata yang diberikan Pinterest. File belum diperiksa.
+Supplied width: %s	Lebar yang diberikan: %s
+Supplied height: %s	Tinggi yang diberikan: %s
+Supplied URL type: %s	Jenis dari URL yang diberikan: %s
+%d pixels	%d piksel
+Unknown	Tidak diketahui
+Close	Tutup
+Couldn't show the supplied media details. Open the pin again and try again.	Detail media yang diberikan tidak dapat ditampilkan. Buka Pin lagi dan coba kembali.
+Pinterest supplied an adaptive video stream, but no downloadable MP4.	Pinterest memberikan aliran video adaptif, tetapi tidak ada MP4 yang dapat diunduh.
+Pinterest hasn't supplied a downloadable MP4 for this pin.	Pinterest belum memberikan MP4 yang dapat diunduh untuk Pin ini.
+Pinterest hasn't supplied an original image to download.	Pinterest belum memberikan gambar asli untuk diunduh.
+The supplied original image type isn't supported for download.	Jenis gambar asli yang diberikan tidak didukung untuk diunduh.
+The supplied media link isn't a supported public Pinterest link.	Tautan media yang diberikan bukan tautan publik Pinterest yang didukung.
+Couldn't start the download. Check system Downloads and try again.	Unduhan tidak dapat dimulai. Periksa Unduhan sistem dan coba lagi.
+Couldn't open a save location. Try again from the pin.	Lokasi penyimpanan tidak dapat dibuka. Coba lagi dari Pin.
+Couldn't complete the save. Check your connection and chosen save location.	Penyimpanan tidak dapat diselesaikan. Periksa koneksi dan lokasi penyimpanan yang dipilih.
+Couldn't write to the chosen save location. Check its access and available space.	Tidak dapat menulis ke lokasi penyimpanan yang dipilih. Periksa akses dan ruang yang tersedia.
+Couldn't download this pin. Check your connection and try again.	Pin ini tidak dapat diunduh. Periksa koneksi dan coba lagi.
+Couldn't prepare this pin for download. Open the pin again and try again.	Pin ini tidak dapat disiapkan untuk diunduh. Buka Pin lagi dan coba kembali.
+%1$s (%2$s to %3$s)	%1$s (%2$s menjadi %3$s)
+Saved choice only. This build doesn't include this control.	Hanya pilihan tersimpan. Versi ini tidak menyertakan kontrol ini.
+Undoing import	Mengurungkan impor
+Import undone. Your earlier switches are back.	Impor diurungkan. Setelan sakelar sebelumnya dipulihkan.
+Undo ended because a saved switch changed.	Urungkan tidak lagi tersedia karena sakelar tersimpan berubah.
+There's no import to undo.	Tidak ada impor untuk diurungkan.
+Couldn't undo the import. Your imported switches are unchanged.	Tidak dapat mengurungkan impor. Sakelar yang diimpor tidak berubah.
+Couldn't undo the import or restore the imported switches. Check the switches on this screen.	Tidak dapat mengurungkan impor atau memulihkan sakelar yang diimpor. Periksa sakelar di layar ini.
+Restore the switches from before the last import. Editing a switch or restarting Pinterest ends Undo.	Pulihkan sakelar sebelum impor terakhir. Mengubah sakelar atau memulai ulang Pinterest mengakhiri Urungkan.
+Undo import	Urungkan impor
+Choose a settings file. Review each switch's name and old and new values before importing. Your choices apply to all accounts in this Pinterest app.	Pilih file setelan. Tinjau nama serta nilai lama dan baru setiap sakelar sebelum mengimpor. Pilihan berlaku untuk semua akun di aplikasi Pinterest ini.
+On	Aktif
+Off	Nonaktif
+Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap ke %1$s. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.
+Save the full report in %1$s.	Simpan laporan lengkap di %1$s.
+Copy a quick report. Report storage is unavailable right now. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat. Penyimpanan laporan saat ini tidak tersedia. Tautan, ID, cookie, dan token masuk tidak disertakan. Periksa teks pribadi lain sebelum membagikannya.
+Report storage is unavailable right now. You can still copy a quick report.	Penyimpanan laporan saat ini tidak tersedia. Anda masih dapat menyalin laporan singkat.
+Hides new Play Store update prompts. An open prompt won't change.	Menyembunyikan permintaan pembaruan Play Store yang baru. Permintaan yang sudah terbuka tidak berubah.
+Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still work.	Menghentikan saran berbagi tangkapan layar setelah Pinterest dimulai ulang. Tangkapan layar tetap berfungsi.
+Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Menyembunyikan baris dan karusel pencarian terbaru saat tata letak atau visibilitasnya diperbarui berikutnya. Riwayat pencarian akun tidak dihapus.
+Hides Create in the bottom bar on its next layout.	Menyembunyikan Buat di bilah bawah saat tata letaknya diperbarui berikutnya.
+Hides Notifications in the bottom bar on its next layout.	Menyembunyikan Notifikasi di bilah bawah saat tata letaknya diperbarui berikutnya.
+Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Menyembunyikan ikon di ujung bilah judul saat tata letaknya diperbarui berikutnya. Kembali, tindakan teks, dan kontrol akun tetap tersedia.
+Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Menyembunyikan Tambahkan ke kolase dan Remix kolase di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
+Hides Search image in newly created pin menus. An existing menu won't change.	Menyembunyikan Cari gambar di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
+Hides Promote pin in newly created pin menus. An existing menu won't change.	Menyembunyikan Promosikan Pin di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
+Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Menyembunyikan panel dan pratinjau komentar di bawah Pin saat tata letak atau visibilitasnya diperbarui berikutnya. Tidak mengubah siapa yang boleh berkomentar.
+Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Menutup pengingat opsional konfirmasi email yang baru dibuat. Pengingat yang terbuka tidak berubah. Pemeriksaan verifikasi dan masuk tetap berlaku.
+Save media	Simpan media
+Recent searches autocomplete	Pelengkapan otomatis pencarian terbaru
+Activity alerts	Notifikasi aktivitas
+Toolbar icons	Ikon bilah alat
+Reverse image search	Pencarian gambar terbalik
+Boost pin	Promosikan Pin
+Setup and backup guide	Panduan penyiapan dan pencadangan
+Optional help with sign-in, supported links, patch choices and backups.	Bantuan opsional untuk masuk, tautan yang didukung, pilihan patch, dan pencadangan.
+Installed patches and switches	Patch yang terpasang dan sakelar
+Choose the patches when you build the app in Morphe Manager. The switches here can control only patches included in that build. Changing switches doesn't add or remove patches. Pause keeps your saved choices, but changes made while patching remain in the app.	Pilih patch saat membuat aplikasi di Morphe Manager. Sakelar di sini hanya dapat mengontrol patch yang disertakan dalam build tersebut. Mengubah sakelar tidak menambah atau menghapus patch. Menjeda akan mempertahankan pilihan yang tersimpan, tetapi perubahan yang dibuat saat menerapkan patch tetap ada di aplikasi.
+Sign in to your existing account	Masuk ke akun yang sudah ada
+Use the email linked to your existing Pinterest account and a Pinterest password. Google sign-in isn't supported with this build's changed signing key. Pinterest no longer offers Facebook login. Push notifications haven't been verified.	Gunakan email yang terhubung ke akun Pinterest Anda yang sudah ada dan kata sandi Pinterest. Masuk dengan Google tidak didukung dengan kunci penandatanganan yang berubah pada build ini. Pinterest tidak lagi menyediakan login dengan Facebook. Notifikasi push belum diverifikasi.
+If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google.	Jika Anda mendaftar melalui Google atau tidak tahu kata sandi Pinterest Anda, pilih Lupa kata sandi di halaman login Pinterest. Masukkan email yang sudah terhubung ke akun tersebut, lalu gunakan tautan yang dikirim ke email Anda untuk menetapkan kata sandi Pinterest. Kata sandi ini berbeda dari kata sandi Google Anda. Anda tidak perlu memutuskan hubungan dengan Google.
+Pinterest password help	Bantuan kata sandi Pinterest
+Re-signing can prevent automatic link verification. You can choose the web addresses in Android's Open by default settings.	Penandatanganan ulang dapat mencegah verifikasi tautan otomatis. Anda dapat memilih alamat web di pengaturan Buka secara default di Android.
+Open link settings	Buka pengaturan tautan
+Back up before changing builds	Cadangkan sebelum mengganti build
+Export settings saves HushPinterest's feature switches. It doesn't include your Pinterest account, pins, downloaded files or Morphe Manager's signing key. Keep the settings file and Manager's signing-key backup somewhere you can find them.	Ekspor pengaturan menyimpan sakelar fitur HushPinterest. Ekspor ini tidak menyertakan akun Pinterest, pin, file unduhan, atau kunci penandatanganan Morphe Manager. Simpan file pengaturan dan cadangan kunci penandatanganan Manager di tempat yang mudah Anda temukan.
+An accepted upgrade signed with the same key keeps the app's data. A build with a different key isn't a compatible update, and Android may refuse a downgrade. Keep the installed app and its data if an update is refused.	Pembaruan yang diterima dan ditandatangani dengan kunci yang sama akan mempertahankan data aplikasi. Build dengan kunci berbeda bukan pembaruan yang kompatibel, dan Android dapat menolak penurunan versi. Pertahankan aplikasi yang terpasang beserta datanya jika pembaruan ditolak.
+Pinterest's data export is separate from Export settings. Pinterest's help page explains how to request your personal data from the account you're already using.	Ekspor data Pinterest terpisah dari Ekspor pengaturan. Halaman bantuan Pinterest menjelaskan cara meminta data pribadi dari akun yang sudah Anda gunakan.
+Pinterest data export help	Bantuan ekspor data Pinterest
+Couldn't open the setup guide. Try again.	Panduan penyiapan tidak dapat dibuka. Coba lagi.
+Download visible pins	Unduh Pin yang terlihat
+A pin selection is still being saved.	Pilihan Pin masih disimpan.
+No visible pins are available. Open a pin menu from the grid and try again.	Tidak ada Pin terlihat yang tersedia. Buka menu Pin dari kisi lalu coba lagi.
+Select visible pins (up to %d)	Pilih Pin yang terlihat (maksimal %d)
+Queue selected	Antrekan pilihan
+Couldn't open the pin selection. Try again from the grid.	Tidak dapat membuka pilihan Pin. Coba lagi dari kisi.
+Stop selection	Hentikan pilihan
+Queued: %d\nSaved: %d\nSkipped: %d\nUnsupported: %d\nFailed: %d	Dalam antrean: %d\nTersimpan: %d\nDilewati: %d\nTidak didukung: %d\nGagal: %d
+Stopping keeps downloads already started. Unstarted selections end when Pinterest closes.	Menghentikan pilihan tidak membatalkan unduhan yang sudah dimulai. Pilihan yang belum dimulai berakhir saat Pinterest ditutup.
+History could not be saved for %d results. Check Downloads or your chosen files.	Riwayat untuk %d hasil tidak dapat disimpan. Periksa Unduhan atau file yang Anda pilih.
+Saved	Tersimpan
+Skipped	Dilewati
+Unsupported	Tidak didukung
+Saved to the location you chose.	Disimpan ke lokasi yang Anda pilih.
+No download was queued. The selection was stopped, canceled or unavailable.	Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.
+Pinterest didn't supply supported media for this pin.	Pinterest tidak menyediakan media yang didukung untuk Pin ini.
+Download a pin or select visible grid pins. Saves supplied original images and videos.	Unduh satu Pin atau pilih Pin yang terlihat di kisi. Menyimpan gambar asli dan video yang disediakan.
+Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 memakai pemilih file. Hasil pilihan Pin yang terlihat muncul di sini.
+Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.

@@ -4,7 +4,10 @@
  */
 package app.hushgram.extension.instagram.settings;
 
+import android.content.Context;
+import android.os.Build;
 import android.os.SystemClock;
+import android.view.accessibility.AccessibilityManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,7 +34,10 @@ public final class ConfigurationBackup {
     private static final SettingsJson.Limits LIMITS =
             new SettingsJson.Limits(4, 2048, 4096, MAX_ENTRIES, MAX_BYTES);
     private static Map<Setting<?>, Object> undoValues;
+    private static Map<Setting<?>, Object> importedValues;
+    private static Map<Setting<?>, Long> importedRevisions;
     private static long undoUntil;
+    private static long undoId;
 
     private ConfigurationBackup() {}
 
@@ -64,6 +70,7 @@ public final class ConfigurationBackup {
             settings.put(Settings.FILENAME_TEMPLATE.key, Settings.FILENAME_TEMPLATE);
         }
         settings.put(BaseSettings.DEBUG.key, BaseSettings.DEBUG);
+        settings.put(Settings.NAVIGATION_SETTINGS_TARGET.key, Settings.NAVIGATION_SETTINGS_TARGET);
         return settings;
     }
 
@@ -177,27 +184,65 @@ public final class ConfigurationBackup {
 
     /** Consumed before a commit, including a failed Undo. The caller reports rollback explicitly. */
     public static synchronized Result undo() throws IOException {
-        if (!canUndo()) return null;
+        return undo(undoToken());
+    }
+
+    public static synchronized long undoToken() {
+        return canUndo() ? undoId : 0;
+    }
+
+    public static synchronized long undoDeadline(long token) {
+        return token != 0 && token == undoToken() ? undoUntil : 0;
+    }
+
+    /** A queued action belongs to the import it offered, never a later restore point. */
+    public static synchronized Result undo(long token) throws IOException {
+        if (undoDeadline(token) == 0) return null;
         Map<Setting<?>, Object> values = undoValues;
+        Map<Setting<?>, Object> expected = importedValues;
+        Map<Setting<?>, Long> revisions = importedRevisions;
         forgetUndo();
         synchronized (Setting.class) {
             boolean restart = false;
-            for (var entry : values.entrySet()) {
-                restart |= entry.getKey().rebootApp && !entry.getValue().equals(entry.getKey().savedValue());
+            int skipped = 0;
+            for (var entries = values.entrySet().iterator(); entries.hasNext();) {
+                var entry = entries.next();
+                Setting<?> setting = entry.getKey();
+                if (revisions.get(setting) != setting.savedRevision()
+                        || !expected.get(setting).equals(setting.savedValue())) {
+                    entries.remove();
+                    skipped++;
+                } else restart |= setting.rebootApp && !entry.getValue().equals(setting.savedValue());
             }
             Setting.saveAll(values);
-            return new Result(values.size(), 0, restart);
+            return new Result(values.size(), skipped, restart);
         }
     }
 
     private static void offerUndo(Map<Setting<?>, Object> values) {
         undoValues = values;
-        undoUntil = SystemClock.elapsedRealtime() + UNDO_WINDOW_MS;
-        Utils.runOnMainThreadDelayed(ConfigurationBackup::canUndo, UNDO_WINDOW_MS);
+        importedValues = new LinkedHashMap<>();
+        importedRevisions = new LinkedHashMap<>();
+        for (Setting<?> setting : values.keySet()) {
+            importedValues.put(setting, setting.savedValue());
+            importedRevisions.put(setting, setting.savedRevision());
+        }
+        int timeout = (int) UNDO_WINDOW_MS;
+        Context context = Utils.getContext();
+        if (Build.VERSION.SDK_INT >= 29 && context != null) {
+            AccessibilityManager accessibility = context.getSystemService(AccessibilityManager.class);
+            if (accessibility != null) timeout = accessibility.getRecommendedTimeoutMillis(timeout,
+                    AccessibilityManager.FLAG_CONTENT_TEXT | AccessibilityManager.FLAG_CONTENT_CONTROLS);
+        }
+        undoId++;
+        undoUntil = SystemClock.elapsedRealtime() + timeout;
+        Utils.runOnMainThreadDelayed(ConfigurationBackup::canUndo, timeout);
     }
 
     static synchronized void forgetUndo() {
         undoValues = null;
+        importedValues = null;
+        importedRevisions = null;
         undoUntil = 0;
     }
 

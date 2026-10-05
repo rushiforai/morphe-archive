@@ -31,6 +31,10 @@ import app.hushgram.extension.shared.settings.StringSetting;
  */
 @SuppressWarnings("unused")
 public class Settings extends BaseSettings {
+    /** Navigation listeners are installed at native tab binding, so the choice applies after restart. */
+    public static final EnumSetting<NavigationTarget> NAVIGATION_SETTINGS_TARGET =
+            new EnumSetting<>("hushgram_navigation_settings_target", NavigationTarget.OFF, true);
+
     /** Sponsored posts, reels and stories: the ad injector is told no ad went in. */
     public static final BooleanSetting HIDE_ADS =
             new BooleanSetting("hushgram_hide_ads", TRUE);
@@ -367,6 +371,10 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting REEL_SEEK_BAR =
             new BooleanSetting("hushgram_reel_seek_bar", TRUE);
+
+    /** A visible thumb on the native ordinary-Reel scrubber, independent of keeping its bar shown. */
+    public static final BooleanSetting REEL_SEEK_THUMB =
+            new BooleanSetting("hushgram_reel_seek_thumb", FALSE);
 
     /**
      * Instagram's auto scroll in Reels stays the way you last set it after a restart and after

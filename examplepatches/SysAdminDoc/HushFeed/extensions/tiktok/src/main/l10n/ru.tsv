@@ -1452,6 +1452,8 @@ Waiting to save %1$s files|few	%1$s файла ожидают сохранени
 Waiting to save %1$s files|many	%1$s файлов ожидают сохранения
 Waiting to save one file	Один файл ожидает сохранения
 Save cancelled. Nothing was saved.	Сохранение отменено. Ничего не сохранено.
+The server asked us to wait. Try again later.	Сервер попросил подождать. Попробуйте позже.
+Saved %1$s of %2$s. The server asked us to wait. Try again later.	Сохранено %1$s из %2$s. Сервер попросил подождать. Попробуйте позже.
 One more save waiting	Ещё одно сохранение в очереди
 %1$s more saves waiting	Ещё %1$s сохранений в очереди
 %1$s more saves waiting|one	Ещё %1$s сохранение в очереди

@@ -1,3 +1,114 @@
+## 1.6.2 (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Use icons consistently for video statistics in local and account watch history, and hide unavailable account watch counts.
+
+### 🔧 Improvements
+
+* **nicoid:** Display views, comments, likes, and mylists as icons in video information, with additional spacing around the statistics row.
+
+## 1.6.1 (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Complete missing English and Traditional Chinese translations for playback-speed controls, volume/brightness swipe settings, cache operations, permissions, Cast status, sorting, playlists, following, and video statistics.
+
+## 1.6.0 (2026-10-05)
+
+### ✨ New Features
+* **nicoid:** Choose a cache folder using the Android folder picker.
+* **nicoid:** Adjust playback speed from 0.1× to 3.0× in 0.05× steps with a slider, including the default speed setting.
+* **nicoid:** Add optional vertical-swipe volume and brightness controls with accidental-swipe protection.
+
+### 🐛 Bug Fixes
+* **nicoid:** Restore offline playback of cached videos and local watch-history persistence.
+* **nicoid:** Keep scrolling comments at normal speed during faster playback and fix popup comment outlines and crashes.
+* **nicoid:** Keep unrelated comment files out of the selected cache folder and prevent unplayable cache markers from appearing in gallery apps.
+* **nicoid:** Apply dark mode to comment-command dialogs and show the default playback speed correctly.
+
+### 🔧 Improvements
+* **nicoid:** Group each cached video in its own video-ID folder and consolidate HLS segments into a cache container.
+* **nicoid:** Refresh playback icons and refine control sizes, spacing, translucent backgrounds, and fullscreen title bars.
+* **nicoid:** Center translucent volume and brightness indicators on the video and use icons with percentage values.
+* **nicoid:** Unify rounded dialog styling and improve text-field spacing and underline alignment.
+* **nicoid:** Notify when a cache download starts as well as when it finishes.
+
+## 1.5.0 (2026-10-04)
+
+### ✨ New Features
+* **nicoid:** Add logout to account settings.
+* **nicoid:** Add keyword and channel filters to hide matching videos.
+* **nicoid:** Show paid labels on video thumbnails.
+
+### 🐛 Bug Fixes
+* **nicoid:** Fix deleted local watch history reappearing after reload and remove duplicated watch-count text.
+* **nicoid:** Simplify saved-login summaries and quality labels before loading a video.
+* **nicoid:** Support authenticated HLS delivery in Google Cast forwarding.
+
+### 🔧 Improvements
+* **nicoid:** Reduce repeated list and thumbnail requests and cancel obsolete loading tasks.
+
+## 1.5.0-dev.8 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Refine paid labels with top-left placement, duration-matched text, a rounded bottom-right corner, and a dark gray background in dark mode.
+
+## 1.5.0-dev.7 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix paid labels not appearing when video list rows are first displayed.
+
+## 1.5.0-dev.6 (2026-10-04)
+
+### ✨ New Features
+
+* **nicoid:** Label paid videos in video lists.
+
+## 1.5.0-dev.5 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Reduce repeated ranking/search requests and thumbnail downloads, and optimize content filtering.
+* **nicoid:** Cancel obsolete Shorts requests when leaving a screen.
+
+## 1.5.0-dev.4 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Show keyword and channel filters directly below comment settings.
+* **nicoid:** Preserve delivery authentication and relay HLS playlists and resources for Google Cast.
+
+## 1.5.0-dev.3 (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Show keyword and channel filters directly below comment settings.
+* **nicoid:** Preserve delivery authentication and relay HLS playlists and resources for Google Cast.
+
+## 1.5.0-dev.2 (2026-10-04)
+
+### ✨ New Features
+
+* **nicoid:** Add a channel-name filter and place content filters directly below comment settings.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Add Google Cast diagnostics to distinguish discovery, receiver launch, and stream transfer failures.
+
+## 1.5.0-dev.1 (2026-10-03)
+
+### ✨ New Features
+
+* **nicoid:** Add sign-out and a keyword content filter for video lists and Shorts.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix deleted local watch history reappearing after reload.
+* **nicoid:** Remove redundant sign-in, quality, and watch-count descriptions.
+
 ## 1.4.1 (2026-10-03)
 
 ### 🐛 Bug Fixes
@@ -43,6 +154,8 @@
 
 ### 🐛 Bug Fixes
 
+* **nicoid:** Keep the originating app in front when opening a video link in pop-up playback mode.
+
 * **nicoid:** Fix an installation failure introduced in the previous development build.
 
 ## 1.3.5-dev.2 (2026-10-03)
@@ -63,13 +176,13 @@
 
 ### 🐛 Bug Fixes
 
-* **nicoid:** apply selected language to added UI ([0c1f182](https://github.com/chikuwadon/nicoid-re-patches/commit/0c1f1820679bfeafc4eb8230a844889da19e5ce6))
+* **nicoid:** Apply selected language to added UI ([0c1f182](https://github.com/chikuwadon/nicoid-re-patches/commit/0c1f1820679bfeafc4eb8230a844889da19e5ce6))
 
 ## 1.3.4-dev.1 (2026-10-02)
 
 ### 🐛 Bug Fixes
 
-* **nicoid:** apply selected language to added UI ([0c1f182](https://github.com/chikuwadon/nicoid-re-patches/commit/0c1f1820679bfeafc4eb8230a844889da19e5ce6))
+* **nicoid:** Apply selected language to added UI ([0c1f182](https://github.com/chikuwadon/nicoid-re-patches/commit/0c1f1820679bfeafc4eb8230a844889da19e5ce6))
 
 ## 1.3.3 (2026-10-02)
 
@@ -148,6 +261,12 @@
 * refresh ranking and search lists with pull gesture ([d440fae](https://github.com/chikuwadon/nicoid-re-patches/commit/d440fae35d0f87aee9b0ecd4b88d2df395c373d9))
 * rename patch entry to nicoid Re ([92a8b53](https://github.com/chikuwadon/nicoid-re-patches/commit/92a8b53acd552940b3af128fa4648399a4bb1476))
 
+## [1.2.0](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.1.0...v1.2.0) (2026-10-01)
+
+### ✨ New Features
+
+* **nicoid:** rename patch entry to nicoid Re ([3852687](https://github.com/chikuwadon/nicoid-re-patches/commit/3852687e134c206f02e70a98159be229aaf5b4fa))
+
 ## [1.2.0-dev.8](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.2.0-dev.7...v1.2.0-dev.8) (2026-10-02)
 
 ### ✨ New Features
@@ -204,38 +323,62 @@
 
 * rename patch entry to nicoid Re ([92a8b53](https://github.com/chikuwadon/nicoid-re-patches/commit/92a8b53acd552940b3af128fa4648399a4bb1476))
 
-## [1.1.0](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.0.0...v1.1.0) (2026-10-01)
+## [1.1.0](https://github.com/chikuwadon/nicoid-mod-patches/compare/v1.0.0...v1.1.0) (2026-10-01)
 
 ### 🐛 Bug Fixes
 
-* expose popup and background playback in related-video menus ([cd0fa3d](https://github.com/chikuwadon/nicoid-re-patches/commit/cd0fa3dffd2f250495bfcedf787fa3f10a2ffb21))
+* **nicoid:** expose popup and background playback in related-video menus ([cd0fa3d](https://github.com/chikuwadon/nicoid-mod-patches/commit/cd0fa3dffd2f250495bfcedf787fa3f10a2ffb21))
 
 ### ✨ New Features
 
-* add playback policies and improve popup and video information ([3ea7f8a](https://github.com/chikuwadon/nicoid-re-patches/commit/3ea7f8a56b7c11f3659d5bb78a8958313f50b116))
-* release nicoid Re v1.1.0 ([5946e79](https://github.com/chikuwadon/nicoid-re-patches/commit/5946e79a9135c620021c37e743c2ba1b84aaa6a2))
+* **nicoid:** add playback policies and improve popup and video information ([3ea7f8a](https://github.com/chikuwadon/nicoid-mod-patches/commit/3ea7f8a56b7c11f3659d5bb78a8958313f50b116))
+* **nicoid:** release nicoid Re v1.1.0 ([5946e79](https://github.com/chikuwadon/nicoid-mod-patches/commit/5946e79a9135c620021c37e743c2ba1b84aaa6a2))
 
-## [1.1.0-dev.2](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-10-01)
+## [1.1.0-dev.2](https://github.com/chikuwadon/nicoid-mod-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-10-01)
 
 ### 🐛 Bug Fixes
 
-* expose popup and background playback in related-video menus ([cd0fa3d](https://github.com/chikuwadon/nicoid-re-patches/commit/cd0fa3dffd2f250495bfcedf787fa3f10a2ffb21))
+* expose popup and background playback in related-video menus ([cd0fa3d](https://github.com/chikuwadon/nicoid-mod-patches/commit/cd0fa3dffd2f250495bfcedf787fa3f10a2ffb21))
 
-## [1.1.0-dev.1](https://github.com/chikuwadon/nicoid-re-patches/compare/v1.0.0...v1.1.0-dev.1) (2026-10-01)
+## [1.1.0-dev.1](https://github.com/chikuwadon/nicoid-mod-patches/compare/v1.0.0...v1.1.0-dev.1) (2026-10-01)
 
 ### ✨ New Features
 
-* add playback policies and improve popup and video information ([3ea7f8a](https://github.com/chikuwadon/nicoid-re-patches/commit/3ea7f8a56b7c11f3659d5bb78a8958313f50b116))
+* add playback policies and improve popup and video information ([3ea7f8a](https://github.com/chikuwadon/nicoid-mod-patches/commit/3ea7f8a56b7c11f3659d5bb78a8958313f50b116))
 
 ## 1.0.0 (2026-10-01)
 
+Changes from the original nicoid 6.49 to nicoid Re v1.0.0.
+
 ### ✨ New Features
 
-* prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-re-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))
-* release nicoid Re v1.00 ([bcc5118](https://github.com/chikuwadon/nicoid-re-patches/commit/bcc5118bd10929ebe801c9f48a610185755e69df))
+* **nicoid:** Add an in-app web login using the current NicoNico account page and save the authenticated session.
+* **nicoid:** Add optional Material You wallpaper colors on Android 12 and later.
+* **nicoid:** Resize popup playback with a two-finger pinch, preserving the video aspect ratio and saving the window bounds.
+* **nicoid:** Add popup quality, playback-speed (0.75×, 1×, 1.25×, 1.5×, and 2×), and loop controls.
+* **nicoid:** Add five comment sizes (60%, 80%, 100%, 120%, and 140%) for normal and popup playback, applied from the next playback.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore video loading and playback through current watch metadata and authenticated HLS delivery APIs.
+* **nicoid:** Restore comment loading through the current comment-thread API.
+* **nicoid:** Update ranking, keyword/tag search, and account watch-history retrieval for current service endpoints and response formats.
+* **nicoid:** Adapt video caching and cached-comment loading to HLS playback.
+* **nicoid:** Fix the comment-renderer transfer crash when returning from popup to normal playback.
+* **nicoid:** Preserve the playback position and playing/paused state when changing quality, and map high quality to the highest available stream.
+* **nicoid:** Fix light-theme uploader/action backgrounds and comment-list text, including when the system uses dark mode.
+
+### 🔧 Improvements
+
+* **nicoid:** Show available video resolutions in quality settings after metadata loads, with video-dependent descriptions before loading.
+* **nicoid:** Place compact, right-aligned popup controls at the top so the seek bar stays unobstructed, and improve text-control readability and touch areas.
+* **nicoid:** Clamp popup resizing and movement to screen bounds and suppress button/seek actions during pinch gestures while retaining single-finger movement and corner resizing.
+* **nicoid:** Move Google Cast connect/disconnect controls below the comment settings and remove their duplicate menu/sidebar entries.
+* **nicoid:** Disable advertising requests and banner creation, and remove advertising startup registrations and the ad-removal billing screen.
+* **nicoid:** Identify the modified app as nicoid Re with the separate package `com.sauzask.nicoid.hls` and show the patch version in Settings while retaining app version 6.49.
 
 ## 1.0.0-dev.1 (2026-09-30)
 
 ### ✨ New Features
 
-* prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-re-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))
+* prepare stable nicoid mod v1.00 release ([491641d](https://github.com/chikuwadon/nicoid-mod-patches/commit/491641d5f521bacf0e7b72e51ff1124a22398cdd))

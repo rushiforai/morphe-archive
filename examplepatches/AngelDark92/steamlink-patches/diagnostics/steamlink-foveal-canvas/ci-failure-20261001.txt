@@ -1,0 +1,16 @@
+2026-10-01T18:36:57.9473762Z > Task :patches:buildAndroid
+2026-10-01T18:36:58.0582920Z > Task :patches:testClasses
+2026-10-01T18:37:00.3553462Z > Task :patches:test
+2026-10-01T18:37:00.3583986Z FovealCanvasPatchTest > actual decoded renderer accepts original functions and rejects altered contracts FAILED
+2026-10-01T18:37:00.3613372Z     java.lang.IllegalStateException at FovealCanvasPatchTest.kt:145
+2026-10-01T18:37:00.3643728Z FovealCanvasPatchTest > stale installed resource fails before installing its missing counterpart FAILED
+2026-10-01T18:37:00.3673459Z     java.lang.IllegalStateException at FovealCanvasPatchTest.kt:145
+2026-10-01T18:37:00.3713700Z FovealCanvasPatchTest > unknown renderer fails before creating resource directories FAILED
+2026-10-01T18:37:00.3715082Z     java.lang.IllegalStateException at FovealCanvasPatchTest.kt:145
+2026-10-01T18:37:00.3716581Z FovealCanvasPatchTest > tampered payload fails atomically before any installation FAILED
+2026-10-01T18:37:00.3717767Z     java.lang.IllegalStateException at FovealCanvasPatchTest.kt:145
+2026-10-01T18:37:00.3721827Z FovealCanvasPatchTest > production install and reapplication preserve native manifest and existing trigger FAILED
+2026-10-01T18:37:00.3723606Z     java.lang.IllegalStateException at FovealCanvasPatchTest.kt:145
+2026-10-01T18:37:05.3472258Z 136 tests completed, 5 failed, 8 skipped
+2026-10-01T18:37:05.5493956Z > Task :patches:test FAILED
+2026-10-01T18:37:05.5501001Z BUILD FAILED in 53s

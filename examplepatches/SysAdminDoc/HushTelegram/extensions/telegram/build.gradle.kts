@@ -227,6 +227,16 @@ android {
                 .withPropertyName("patchSources")
                 .withPathSensitivity(PathSensitivity.RELATIVE)
                 .normalizeLineEndings()
+            // CompiledSelectionUiTest consumes externally verified APK facts when supplied.
+            // Changing those facts must not reuse the ordinary source-only test result.
+            val selectionFacts = providers.environmentVariable("HUSHTELEGRAM_SELECTION_FACTS")
+            it.inputs.property("compiledSelectionFactsRequested", selectionFacts.map { path -> path.isNotEmpty() }.orElse(false))
+            it.inputs.files(selectionFacts.map { path ->
+                if (path.isEmpty()) emptyList() else listOf(File(path))
+            }.orElse(emptyList()))
+                .withPropertyName("compiledSelectionFacts")
+                .withPathSensitivity(PathSensitivity.NONE)
+                .normalizeLineEndings()
             it.jvmArgs(
                 "--add-opens=java.base/java.lang=ALL-UNNAMED",
                 "--add-opens=java.base/java.util=ALL-UNNAMED",

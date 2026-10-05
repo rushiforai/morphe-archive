@@ -72,11 +72,13 @@ final class MediaTransport {
                 String userAgent,
                 boolean identityEncoding
         ) throws IOException {
+            if (deadline == null) deadline = MediaBudget.deadline();
+            MediaBudget.awaitRetry(deadline);
             Target current = target(value);
             Set<String> visited = new HashSet<>();
             int redirects = 0;
             while (true) {
-                MediaBudget.check(deadline);
+                MediaBudget.awaitRetry(deadline);
                 if (!visited.add(current.identity)) {
                     throw new IOException("Media redirect loop refused");
                 }
@@ -102,7 +104,7 @@ final class MediaTransport {
                     current = redirect(current.uri, location);
                     redirects++;
                 } finally {
-                    if (!returned) connection.disconnect();
+                    if (!returned) response.close();
                 }
             }
         }
@@ -132,6 +134,7 @@ final class MediaTransport {
                     }
                     MediaBudget.check(deadline);
                     int statusCode = connection.getResponseCode();
+                    MediaBudget.recordRetryAfter(connection.getHeaderField("Retry-After"), deadline);
                     connected = true;
                     return new Response(connection, statusCode, target.url);
                 } catch (MediaBudget.StopException stop) {
@@ -150,6 +153,7 @@ final class MediaTransport {
 
     static final class Response implements AutoCloseable {
         private final HttpURLConnection connection;
+        private boolean closed;
         final int statusCode;
         final URL url;
 
@@ -172,7 +176,10 @@ final class MediaTransport {
         }
 
         @Override public void close() {
-            connection.disconnect();
+            if (!closed) {
+                closed = true;
+                connection.disconnect();
+            }
         }
     }
 

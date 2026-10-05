@@ -134,7 +134,7 @@ internal object FixtureDex {
         return found
     }
 
-    private fun inputIdentity(build: File): String {
+    fun inputIdentity(build: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
         build.inputStream().use { input ->
             val buffer = ByteArray(256 * 1024)

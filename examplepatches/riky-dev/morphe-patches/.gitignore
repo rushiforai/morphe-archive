@@ -141,3 +141,9 @@ build/verify-one/
 # Local Morphe CLI + device-test outputs (APKs already ignored)
 tools/
 
+# CapCut tunnel private peer material (Option 1b) — never commit keys
+patches/src/main/resources/capcut-tunnel/default.conf
+
+# Local options file
+options.json
+

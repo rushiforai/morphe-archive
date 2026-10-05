@@ -40,7 +40,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.RejectedExecutionException;
 
 import app.hushgram.extension.shared.L10n;
@@ -90,7 +89,6 @@ public final class LogBufferManager {
     private static final AtomicInteger logBufferCharSize = new AtomicInteger();
     private static final Object CRASH_FILE_LOCK = new Object();
     private static final Object CLEAR_UNDO_LOCK = new Object();
-    private static final AtomicBoolean FILE_EXPORT_RUNNING = new AtomicBoolean();
     private static ClearSnapshot lastClear;
 
     /** Everything the clear row removes, kept in memory until its next tap. */
@@ -168,65 +166,73 @@ public final class LogBufferManager {
      * 250,000 characters, and on the main thread that held up the tap that asked for it.
      */
     public static void exportToClipboard() {
+        String token = ExportStatus.DIAGNOSTICS.begin(L10n.t("Preparing diagnostic report..."), false);
+        if (token == null) return;
         boolean started = Utils.runOnBackgroundThread(() -> {
             String exportText;
             try {
                 exportText = clipboardText(CLIPBOARD_MAX_CHARS);
             } catch (Exception ex) {
-                clipboardFailed(ex);
+                clipboardFailed(token, ex);
                 return;
             }
-            Utils.runOnMainThread(() -> copyToClipboard(exportText));
+            Utils.runOnMainThread(() -> copyToClipboard(token, exportText));
         });
         if (!started) {
+            ExportStatus.DIAGNOSTICS.finish(token, L10n.t("Couldn't start the report export. Try again shortly."));
             Utils.showToastLong(say(couldNotStartMessage, L10n.t("Couldn't start the report export. Try again shortly.")));
         }
     }
 
     /** Puts a built report on the clipboard, on the main thread. */
-    private static void copyToClipboard(String exportText) {
+    private static void copyToClipboard(String token, String exportText) {
         try {
             Utils.setClipboard(exportText);
+            ExportStatus.DIAGNOSTICS.finish(token, L10n.t("Diagnostic report copied to the clipboard."));
             Utils.showToastShort(say(copiedMessage, L10n.t("Diagnostic report copied to the clipboard.")));
         } catch (Exception ex) {
-            clipboardFailed(ex);
+            clipboardFailed(token, ex);
         }
     }
 
-    private static void clipboardFailed(Exception ex) {
+    private static void clipboardFailed(String token, Exception ex) {
         // The exception's own text stays in the log. It can carry a path or a signed URL,
         // and a reader on a phone cannot act on it from a toast.
+        ExportStatus.DIAGNOSTICS.finish(token, L10n.t("The diagnostic report couldn't be saved. Try again."));
         Utils.showToastLong(say(exportFailedMessage, L10n.t("The diagnostic report couldn't be saved. Try again.")));
         Logger.printException(() -> "Failed to export diagnostics", ex);
     }
 
     public static void exportToFile() {
+        String token = ExportStatus.DIAGNOSTICS.begin(L10n.t("Saving diagnostic report..."), false);
+        if (token == null) {
+            Utils.showToastShort(say(alreadySavingMessage, L10n.t("A diagnostic report is already being saved.")));
+            return;
+        }
         Context context = Utils.getContext();
         if (context == null) {
+            ExportStatus.DIAGNOSTICS.finish(token, L10n.t("The diagnostic report couldn't be saved yet. Try again in a moment."));
             Utils.showToastLong(say(noContextMessage, L10n.t("The diagnostic report couldn't be saved yet. Try again in a moment.")));
             return;
         }
         Context application = context.getApplicationContext();
         final Context app = application == null ? context : application;
-        if (!FILE_EXPORT_RUNNING.compareAndSet(false, true)) {
-            Utils.showToastShort(say(alreadySavingMessage, L10n.t("A diagnostic report is already being saved.")));
-            return;
-        }
         try {
             Utils.submitOnBackgroundThread(() -> {
                 try {
                     String saved = writeToFile(app, buildExportText());
+                    ExportStatus.DIAGNOSTICS.finish(token, L10n.t("Diagnostic report saved."));
                     Utils.showToastLong(String.format(say(savedToMessage, L10n.t("Full report saved to %1$s")), L10n.isolate(saved)));
                 } catch (Exception ex) {
                     Utils.showToastLong(say(exportFailedMessage, L10n.t("The diagnostic report couldn't be saved. Try again.")));
                     Logger.printException(() -> "Failed to save diagnostics", ex);
                 } finally {
-                    FILE_EXPORT_RUNNING.set(false);
+                    ExportStatus.DIAGNOSTICS.finish(token, L10n.t("The diagnostic report couldn't be saved. Try again."));
                 }
                 return null;
             });
         } catch (RejectedExecutionException error) {
-            FILE_EXPORT_RUNNING.set(false);
+            ExportStatus.DIAGNOSTICS.finish(token, L10n.t("Couldn't start the report export. Try again shortly."));
             Logger.printException(() -> "Could not start diagnostic export", error);
             Utils.showToastLong(say(couldNotStartMessage, L10n.t("Couldn't start the report export. Try again shortly.")));
         }

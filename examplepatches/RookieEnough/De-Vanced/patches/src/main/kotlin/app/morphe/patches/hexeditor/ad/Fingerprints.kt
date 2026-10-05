@@ -7,8 +7,7 @@ package app.morphe.patches.hexeditor.ad
 import app.morphe.patcher.Fingerprint
 
 internal object PrimaryAdsMethodFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "isAdsDisabled" && classDef.type.endsWith("/PreferencesHelper;")
-    },
+    definingClass = "/PreferencesHelper;",
+    name = "isAdsDisabled",
 )
 

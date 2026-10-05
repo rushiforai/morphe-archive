@@ -68,7 +68,7 @@ import app.hushtelegram.extension.shared.settings.PauseForTests;
  * without a probe here fails the first test.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 30, shadows = {PausedHooksTest.AvatarScope.class, PausedHooksTest.ProxyScope.class, PausedHooksTest.LinkScope.class},
+@Config(sdk = 30, shadows = {PausedHooksTest.AvatarScope.class, PausedHooksTest.ProxyScope.class, PausedHooksTest.LinkScope.class, PausedHooksTest.IdScope.class},
         instrumentedPackages = {"app.hushtelegram.extension.telegram.misc", "app.hushtelegram.extension.telegram.ads"})
 public class PausedHooksTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
@@ -102,6 +102,16 @@ public class PausedHooksTest {
     @Implements(value = LinkRouting.class, isInAndroidSdk = false)
     public static class LinkScope {
         @Implementation protected static boolean protectedByTelegram(Uri uri) { return false; }
+    }
+
+    /** Fixture tests verify the native factory. This supplies a local inspection menu to Pause. */
+    @Implements(value = app.hushtelegram.extension.telegram.misc.LocalIds.class, isInAndroidSdk = false)
+    public static class IdScope {
+        @Implementation protected static android.view.View nativeAddRow(Object menu, String text) {
+            android.widget.TextView row = new android.widget.TextView(((android.view.View) menu).getContext());
+            ((android.widget.FrameLayout) menu).addView(row);
+            return row;
+        }
     }
 
     /** One hook with its switch on: true when it changed what Telegram would have done. */
@@ -172,6 +182,20 @@ public class PausedHooksTest {
         probes.put(PatchFamily.DISABLE_CHANNEL_PULL, Arrays.asList(
                 app.hushtelegram.extension.telegram.misc.ChannelPull::stopBottomPull,
                 app.hushtelegram.extension.telegram.misc.ChannelPull::keepChannelStill));
+        probes.put(PatchFamily.NORMAL_PASTE, Collections.singletonList(() -> {
+            android.content.ClipboardManager clipboard = (android.content.ClipboardManager) RuntimeEnvironment.getApplication()
+                    .getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("text", "plain"));
+            return app.hushtelegram.extension.telegram.misc.NormalPaste.contextMenuAction(
+                    new android.widget.EditText(RuntimeEnvironment.getApplication()), android.R.id.paste) == android.R.id.pasteAsPlainText;
+        }));
+        probes.put(PatchFamily.SHOW_LOCAL_IDS, Collections.singletonList(() -> {
+            android.widget.FrameLayout menu = new android.widget.FrameLayout(RuntimeEnvironment.getApplication());
+            app.hushtelegram.extension.telegram.misc.LocalIds.addToProfile(menu, 42, 0);
+            return menu.getChildCount() == 1;
+        }));
+        probes.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, Collections.singletonList(
+                app.hushtelegram.extension.telegram.misc.DoubleTapReactions::stopReaction));
         // After a "Not now", the Contacts tab neither asks again nor marks its icon.
         probes.put(PatchFamily.QUIET_CONTACTS_NAG, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.ContactsNag.skipAsk(declinedContactsPrompt()),

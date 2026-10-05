@@ -44,9 +44,21 @@ class ControlLifecycleTest {
             Selection("failed-menu", setOf(menuSettingsPatch, hidePeoplePatch), setOf("people"), menuSettingsPatch),
             Selection("failed-people", setOf(menuSettingsPatch, hidePeoplePatch), setOf("menu_row"), hidePeoplePatch),
             Selection("theme-only", setOf(materialYouPatch), setOf("material_you")),
+            Selection("changed-viewer", setOf(hidePeoplePatch), setOf("people")),
+            Selection("changed-community", setOf(hidePeoplePatch), setOf("people")),
         )
         for (selection in selections) {
-            val native = lifecycleClasses(selection.failed === menuSettingsPatch, selection.failed === hidePeoplePatch)
+            val native = lifecycleClasses(selection.failed === menuSettingsPatch, selection.failed === hidePeoplePatch).toMutableList()
+            if (selection.name == "changed-viewer") native += fixtureClass(EPHEMERAL_VIEWER, listOf(
+                fixtureMethod("$EPHEMERAL_VIEWER->onResume()V", "return-void")))
+            if (selection.name == "changed-community") {
+                val community = communityInboxFixture()
+                val contract = assertNotNull(findCommunityInbox(community))
+                val changed = community.single { it.type == contract.requests.substringBefore("->") }
+                changed.methods.removeIf { it.name == "<clinit>" }
+                changed.directMethods.removeIf { it.name == "<clinit>" }
+                native += community.filter { candidate -> native.none { it.type == candidate.type } }
+            }
             val apk = lifecycleApk(temporary.resolve("input-${selection.name}"), native)
             withLifecycleExtension(extension) { extensionReads ->
                 // Patcher initialization deletes its temporary root, which must not contain the input APK.
@@ -82,6 +94,11 @@ class ControlLifecycleTest {
                     val output = patcher.get()
                     val compiled = output.dexFiles.flatMap { file ->
                         file.stream.buffered().use { DexBackedDexFile.fromInputStream(Opcodes.forApi(28), it).classes.toList() }
+                    }
+                    if (selection.name.startsWith("changed-")) for (cls in native.filter { it.type !in targetTypes("people") &&
+                        it.type !in setOf(FACTORY_TYPE, SCREEN_HOST, SHORTCUT_HOST) }) {
+                        assertContentEquals(lifecycleDex(listOf(cls)), lifecycleDex(listOf(compiled.single { it.type == cls.type })),
+                            "${selection.name}: unrelated target ${cls.type}")
                     }
                     assertPatchedClasses(compiled, native, extensionTypes, selection)
                     assertCapabilities(lifecycleManifest(assertNotNull(output.resources.resourcesApk)), selection)

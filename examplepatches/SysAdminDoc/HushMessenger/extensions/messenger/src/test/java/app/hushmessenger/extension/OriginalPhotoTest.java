@@ -59,6 +59,7 @@ public class OriginalPhotoTest {
     public static final class ThrowingCallback extends Callback {
         @Override public void success(String uri, double sourceWidth, double sourceHeight, double width, double height,
                                       double quality, double psnr, boolean rotated, int a, boolean b, double c, double d, double e) {
+            super.success(uri, sourceWidth, sourceHeight, width, height, quality, psnr, rotated, a, b, c, d, e);
             throw new IllegalStateException("broken");
         }
     }
@@ -616,17 +617,20 @@ public class OriginalPhotoTest {
         assertEquals(0, OriginalPhoto.tempDir.listFiles().length);
     }
 
-    @Test public void aHandoverThatThrowsEndsTheSendAsAFailureInsteadOfHanging() throws Exception {
+    @Test public void aSuccessCallbackThatThrowsCannotReceiveASecondCompletionOrLoseItsCopy() throws Exception {
         File photo = jpeg(1600, 1200);
         switchOn();
         ThrowingCallback callback = new ThrowingCallback();
         assertTrue(OriginalPhoto.async(photo.getPath(), 4096, 4096, null, hd(), callback));
-        assertEquals(1, callback.failures.size());
-        assertEquals(1600.0, callback.failures.get(0)[0]);
-        assertEquals(1200.0, callback.failures.get(0)[1]);
-        assertTrue(callback.failures.get(0)[2] instanceof IOException);
+        assertEquals(1, callback.successes.size());
+        assertTrue(callback.failures.isEmpty());
         assertTrue(Settings.hookErrors.get(OriginalPhoto.KEY).startsWith("java.lang.reflect.InvocationTargetException at "));
-        assertEquals(0, OriginalPhoto.tempDir.listFiles().length);
+        File[] copies = OriginalPhoto.tempDir.listFiles();
+        assertEquals(1, copies.length);
+        File handedOver = copies[0];
+        assertEquals(android.net.Uri.fromFile(handedOver).toString(), callback.successes.get(0)[0]);
+        assertTrue(handedOver.isFile());
+        assertArrayEquals(Files.readAllBytes(photo.toPath()), Files.readAllBytes(handedOver.toPath()));
     }
 
     @Test public void aRefusedCompletionLeavesNoCopyAndFallsBack() throws Exception {

@@ -7,10 +7,10 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import java.util.logging.Logger
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22t
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -28,14 +28,45 @@ private const val LIBRARY_GROUP =
 private const val DIVIDER = "$MOD_COMPOSE->divider(Ljava/lang/Object;)V"
 private const val OBJ5 = "Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;"
 
+private const val EXTENSION_PIN = "Lapp/ftl/extension/firefox/ExtensionPin;"
+private const val PIN_PREFIX = "Lapp/ftl/extension/firefox/"
+private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
+private const val TOOLBAR_EVENT =
+    "Lmozilla/components/compose/browser/toolbar/store/BrowserToolbarInteraction\$BrowserToolbarEvent;"
+
 private fun BytecodePatchContext.installLambdaInterfaces() {
     listOf(
         MOD_LAMBDA to "Lkotlin/jvm/functions/Function2;",
-        MOD_CLICK to "Lkotlin/jvm/functions/Function0;",
+        MOD_CLICK to FUNCTION0,
+        "${PIN_PREFIX}PinObserver;" to "Lkotlin/jvm/functions/Function1;",
+        "${PIN_PREFIX}PinClick;" to FUNCTION0,
+        "${PIN_PREFIX}PinLong;" to FUNCTION0,
+        "${PIN_PREFIX}PinEvent;" to TOOLBAR_EVENT,
+        "${PIN_PREFIX}PinCont;" to "Lkotlin/coroutines/Continuation;",
     ).forEach { (type, function) ->
         val interfaces = mutableClassDefBy(type).interfaces
         if (function !in interfaces) interfaces.add(function)
     }
+
+    val continuation = mutableClassDefBy("${PIN_PREFIX}PinCont;")
+    val context = ImmutableMethod(
+        continuation.type,
+        "getContext",
+        emptyList(),
+        "Lkotlin/coroutines/CoroutineContext;",
+        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+        null,
+        null,
+        MutableMethodImplementation(2),
+    ).toMutable()
+    context.addInstructions(
+        0,
+        """
+            sget-object v0, Lkotlin/coroutines/EmptyCoroutineContext;->INSTANCE:Lkotlin/coroutines/EmptyCoroutineContext;
+            return-object v0
+        """,
+    )
+    continuation.methods.add(context)
 }
 
 private fun BytecodePatchContext.installComposeMethods() {
@@ -63,8 +94,7 @@ private fun MutableMethod.lastReturnObject() =
 private fun MutableMethod.lastReturnVoid() =
     implementation!!.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
 
-private fun MutableMethod.branchTarget(index: Int) =
-    getInstruction<BuilderInstruction22t>(index).target.location.index
+private fun MutableMethod.branchTarget(index: Int) = jumpTarget(index)
 
 private fun BytecodePatchContext.installWindowHooks() {
     listOf(DialogFragmentCreateDialogFingerprint, MenuFragmentCreateDialogFingerprint).forEach {
@@ -136,28 +166,129 @@ private fun BytecodePatchContext.installWindowHooks() {
     }
 }
 
+private val logger = Logger.getLogger("OldMenuPatch")
+
+private fun optional(name: String, block: () -> Unit) {
+    try {
+        block()
+    } catch (e: Exception) {
+        logger.warning("Skipped $name (stock look kept): ${e.message}")
+    }
+}
+
+private fun BytecodePatchContext.installPinHooks() {
+    ToolbarEndActionsFingerprint.let {
+        it.method.applyEdits(
+            insert(
+                it.instructionMatches[1].index + 2,
+                "invoke-static {v0, p0}, $EXTENSION_PIN->addPinned(Ljava/util/ArrayList;Ljava/lang/Object;)V",
+            ),
+        )
+    }
+
+    ToolbarMiddlewareFingerprint.let {
+        val m = it.instructionMatches
+        val menuClicked = m[4].index
+        it.method.applyEdits(
+            insert(
+                m[2].index + 1,
+                "invoke-static {v1, v0}, $EXTENSION_PIN->remember(Ljava/lang/Object;Ljava/lang/Object;)V",
+            ),
+            insert(
+                menuClicked,
+                """
+                    instance-of v4, v3, ${PIN_PREFIX}PinEvent;
+                    if-eqz v4, :ftl_next
+                    invoke-static {v3, v0}, $EXTENSION_PIN->handle(Ljava/lang/Object;Ljava/lang/Object;)V
+                    invoke-interface {v2, v3}, Lkotlin/jvm/functions/Function1;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
+                    goto/16 :ftl_end
+                """,
+                mapOf(
+                    "ftl_next" to { menuClicked },
+                    "ftl_end" to { jumpTarget(menuClicked - 1) },
+                ),
+            ),
+        )
+    }
+
+    WebExtensionMenuItemsPinFingerprint.let {
+        it.method.applyEdits(
+            insert(
+                it.instructionMatches[0].index,
+                """
+                    sget-object v6, Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;->LocalContext:Landroidx/compose/runtime/StaticProvidableCompositionLocal;
+                    invoke-virtual {v14, v6}, Landroidx/compose/runtime/GapComposer;->consume(Landroidx/compose/runtime/ProvidableCompositionLocal;)Ljava/lang/Object;
+                    move-result-object v6
+                    check-cast v6, Landroid/content/Context;
+                    invoke-static {v13, v8, v6}, $EXTENSION_PIN->wrap(Ljava/lang/Object;Ljava/lang/Object;Landroid/content/Context;)Ljava/lang/Object;
+                    move-result-object v13
+                    check-cast v13, $FUNCTION0
+                """,
+            ),
+        )
+    }
+
+    IconListItemFingerprint.let {
+        it.method.applyEdits(
+            insert(
+                it.instructionMatches[1].index + 1,
+                """
+                    invoke-static {v15}, $EXTENSION_PIN->longOf(Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object v16
+                    check-cast v16, $FUNCTION0
+                """,
+            ),
+        )
+    }
+}
+
 private fun BytecodePatchContext.installMenuTweaks() {
-    BottomSheetHandleFingerprint.method.applyEdits(returnWhenOld(0, 0, "return-void"))
+    optional("MenuNavigation") {
+        MenuNavigationFingerprint.let {
+            it.method.applyEdits(
+                swap(
+                    it.instructionMatches[0].index,
+                    2,
+                    """
+                        invoke-static {}, $OLD_MENU->navPadding()F
+                        move-result v2
+                    """,
+                ),
+            )
+        }
+    }
 
-    ExtensionsMenuItemFingerprint.let {
-        it.method.applyEdits(swap(it.instructionMatches[0].index, 5, "const/16 v5, 0x0"))
-    }
-    WebExtensionMenuItemsFingerprint.let {
-        it.method.applyEdits(zeroTo(it.instructionMatches[0].index))
+    optional("BottomSheetHandle") {
+        BottomSheetHandleFingerprint.method.applyEdits(returnWhenOld(0, 0, "return-void"))
     }
 
-    IPProtectionMenuItemFingerprint.let {
-        it.method.applyEdits(
-            surface(it.instructionMatches[0].index),
-            floatTo(it.instructionMatches[1].index, 0x42400000),
-        )
+    optional("ExtensionsMenuItem") {
+        ExtensionsMenuItemFingerprint.let {
+            it.method.applyEdits(swap(it.instructionMatches[0].index, 5, "const/16 v5, 0x0"))
+        }
     }
-    IPProtectionBadgeFingerprint.let {
-        val badge = it.instructionMatches[0].index
-        it.method.applyEdits(
-            swap(badge - 1, 6, "", count = 2),
-            floatTo(it.instructionMatches[1].index, 0x40000000),
-        )
+    optional("WebExtensionMenuItems") {
+        WebExtensionMenuItemsFingerprint.let {
+            it.method.applyEdits(zeroTo(it.instructionMatches[0].index))
+        }
+    }
+
+    optional("IPProtectionMenuItem") {
+        IPProtectionMenuItemFingerprint.let {
+            it.method.applyEdits(
+                surface(it.instructionMatches[0].index),
+                floatTo(it.instructionMatches[1].index, 0x42400000),
+            )
+        }
+    }
+    optional("IPProtectionBadge") {
+        IPProtectionBadgeFingerprint.let {
+            val badge = it.instructionMatches[0].index
+            it.method.applyEdits(
+                swap(badge - 1, 6, "", count = 2),
+                floatTo(it.instructionMatches[1].index, 0x40000000),
+            )
+        }
     }
 
     MainMenuAddonsFingerprint.let {
@@ -228,8 +359,10 @@ private fun BytecodePatchContext.installMenuTweaks() {
         )
     }
 
-    MoreExtensionsMenuItemFingerprint.let {
-        it.method.applyEdits(surface(it.instructionMatches[0].index))
+    optional("MoreExtensionsMenuItem") {
+        MoreExtensionsMenuItemFingerprint.let {
+            it.method.applyEdits(surface(it.instructionMatches[0].index))
+        }
     }
 
     listOf(MainMenuNavigationLambdaFingerprint, MainMenuDividerLambdaFingerprint).forEach {
@@ -308,115 +441,137 @@ private fun BytecodePatchContext.installMenuTweaks() {
         )
     }
 
-    MenuGroupFingerprint.let { it.method.applyEdits(zeroTo(it.instructionMatches[0].index)) }
-
-    BadgeFingerprint.let {
-        it.method.applyEdits(
-            floatTo(it.instructionMatches[0].index, 0x41400000),
-            floatTo(it.instructionMatches[1].index, 0x40000000),
-        )
+    optional("MenuGroup") {
+        MenuGroupFingerprint.let { it.method.applyEdits(zeroTo(it.instructionMatches[0].index)) }
     }
 
-    MenuBadgeItemFingerprint.let {
-        val m = it.instructionMatches
-        it.method.applyEdits(
-            surface(m[0].index),
-            floatTo(m[1].index, 0x40000000),
-            floatTo(m[2].index, 0x41400000),
-        )
+    optional("Badge") {
+        BadgeFingerprint.let {
+            it.method.applyEdits(
+                floatTo(it.instructionMatches[0].index, 0x41400000),
+                floatTo(it.instructionMatches[1].index, 0x40000000),
+            )
+        }
     }
 
-    MenuItemFingerprint.let {
-        val m = it.instructionMatches
-        it.method.applyEdits(
-            swap(m[0].index, 5, "const/16 v5, 0x0"),
-            surface(m[1].index),
-            floatTo(m[2].index, 0x42200000),
-            floatTo(m[3].index, 0x42200000),
-        )
+    optional("MenuBadgeItem") {
+        MenuBadgeItemFingerprint.let {
+            val m = it.instructionMatches
+            it.method.applyEdits(
+                surface(m[0].index),
+                floatTo(m[1].index, 0x40000000),
+                floatTo(m[2].index, 0x41400000),
+            )
+        }
     }
 
-    MenuTextItemFingerprint.let {
-        val m = it.instructionMatches
-        it.method.applyEdits(
-            floatTo(m[0].index, 0x42200000),
-            floatTo(m[1].index, 0x42200000),
-            surface(m[2].index),
-        )
+    optional("MenuItem") {
+        MenuItemFingerprint.let {
+            val m = it.instructionMatches
+            it.method.applyEdits(
+                swap(m[0].index, 5, "const/16 v5, 0x0"),
+                surface(m[1].index),
+                floatTo(m[2].index, 0x42200000),
+                floatTo(m[3].index, 0x42200000),
+            )
+        }
     }
 
-    WebExtensionMenuItemFingerprint.let {
-        val m = it.instructionMatches
-        it.method.applyEdits(
-            surface(m[0].index),
-            swap(
-                m[1].index,
-                27,
-                """
-                    const v27, 0x1fe47c
-                    if-eqz v2, :ftl_empty
-                    invoke-virtual {v2}, Ljava/lang/String;->length()I
-                    move-result v13
-                    if-nez v13, :ftl_filled
-                    :ftl_empty
-                    const/16 v22, 0x0
-                    :ftl_filled
-                """,
-            ),
-            floatTo(m[2].index, 0x42400000),
-        )
+    optional("MenuTextItem") {
+        MenuTextItemFingerprint.let {
+            val m = it.instructionMatches
+            it.method.applyEdits(
+                floatTo(m[0].index, 0x42200000),
+                floatTo(m[1].index, 0x42200000),
+                surface(m[2].index),
+            )
+        }
     }
 
-    MenuItemIconLambdaFingerprint.let {
-        val iget = it.instructionMatches[0].index
-        val register = it.method.getInstruction<OneRegisterInstruction>(iget).registerA
-        it.method.applyEdits(
-            insert(
-                iget + 1,
-                """
-                    invoke-static {v$register}, $OLD_MENU->trailingIcon(Ljava/lang/Object;)Ljava/lang/Object;
-                    move-result-object v$register
-                    check-cast v$register, Lkotlin/jvm/functions/Function0;
-                """,
-            ),
-        )
+    optional("WebExtensionMenuItem") {
+        WebExtensionMenuItemFingerprint.let {
+            val m = it.instructionMatches
+            it.method.applyEdits(
+                surface(m[0].index),
+                swap(
+                    m[1].index,
+                    27,
+                    """
+                        const v27, 0x1fe47c
+                        if-eqz v2, :ftl_empty
+                        invoke-virtual {v2}, Ljava/lang/String;->length()I
+                        move-result v13
+                        if-nez v13, :ftl_filled
+                        :ftl_empty
+                        const/16 v22, 0x0
+                        :ftl_filled
+                    """,
+                ),
+                floatTo(m[2].index, 0x42400000),
+            )
+        }
     }
 
-    MenuNavItemFingerprint.let {
-        val m = it.instructionMatches
-        it.method.applyEdits(
-            swap(m[0].index - 1, 41, ""),
-            swap(m[1].index, 43, ""),
-        )
+    optional("MenuItemIconLambda") {
+        MenuItemIconLambdaFingerprint.let {
+            val iget = it.instructionMatches[0].index
+            val register = it.method.getInstruction<OneRegisterInstruction>(iget).registerA
+            it.method.applyEdits(
+                insert(
+                    iget + 1,
+                    """
+                        invoke-static {v$register}, $OLD_MENU->trailingIcon(Ljava/lang/Object;)Ljava/lang/Object;
+                        move-result-object v$register
+                        check-cast v$register, Lkotlin/jvm/functions/Function0;
+                    """,
+                ),
+            )
+        }
     }
 
-    MenuFrameFingerprint.let { it.method.applyEdits(zeroTo(it.instructionMatches[0].index)) }
-
-    AccountMenuItemFingerprint.let {
-        val m = it.instructionMatches
-        it.method.applyEdits(surface(m[0].index), floatTo(m[1].index, 0x42400000))
+    optional("MenuNavItem") {
+        MenuNavItemFingerprint.let {
+            val m = it.instructionMatches
+            it.method.applyEdits(
+                swap(m[0].index - 1, 41, ""),
+                swap(m[1].index, 43, ""),
+            )
+        }
     }
 
-    AccountSubtitleLambdaFingerprint.let {
-        val iget = it.instructionMatches[1].index
-        val register = it.method.getInstruction<OneRegisterInstruction>(iget).registerA
-        it.method.applyEdits(
-            insert(
-                iget + 1,
-                """
-                    invoke-static {v$register}, $OLD_MENU->accountSubtitle(Ljava/lang/String;)Ljava/lang/String;
-                    move-result-object v$register
-                """,
-            ),
-        )
+    optional("MenuFrame") {
+        MenuFrameFingerprint.let { it.method.applyEdits(zeroTo(it.instructionMatches[0].index)) }
+    }
+
+    optional("AccountMenuItem") {
+        AccountMenuItemFingerprint.let {
+            val m = it.instructionMatches
+            it.method.applyEdits(surface(m[0].index), floatTo(m[1].index, 0x42400000))
+        }
+    }
+
+    optional("AccountSubtitleLambda") {
+        AccountSubtitleLambdaFingerprint.let {
+            val iget = it.instructionMatches[1].index
+            val register = it.method.getInstruction<OneRegisterInstruction>(iget).registerA
+            it.method.applyEdits(
+                insert(
+                    iget + 1,
+                    """
+                        invoke-static {v$register}, $OLD_MENU->accountSubtitle(Ljava/lang/String;)Ljava/lang/String;
+                        move-result-object v$register
+                    """,
+                ),
+            )
+        }
     }
 }
 
 @Suppress("unused")
 val oldMenuPatch = bytecodePatch(
     name = "Old style 3 dot menu",
-    description = "Adds \"Mod Settings\" to the 3 dot menu to switch between the stock " +
-        "bottom sheet menu and the old style popup menu.",
+    description = "Adds \"Mod Settings\" to the 3 dot menu: switch between the stock bottom sheet " +
+        "menu and the old style popup menu, and pin extensions to the search bar.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX_NIGHTLY)
@@ -428,5 +583,6 @@ val oldMenuPatch = bytecodePatch(
         installComposeMethods()
         installWindowHooks()
         installMenuTweaks()
+        installPinHooks()
     }
 }

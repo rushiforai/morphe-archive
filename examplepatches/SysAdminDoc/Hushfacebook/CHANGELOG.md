@@ -2,15 +2,20 @@
 
 Every Hushfacebook release, newest first.
 
-## Unreleased
+## 0.7.2 (2026-10-04)
+
+Source preparation. The latest published bundle remains v0.7.1.
 
 ### Fixed
 
-* **Supported links:** Messenger and Instagram rows no longer say links open here when Android's link handling is off or the relevant address states are missing. The rows refresh together from one Android answer when you return from settings.
+* **Facebook:** At large text sizes on narrow screens, the settings home title stays on one line and the empty search field keeps its whole hint visible. Back and Clear search retain their touch targets.
+* **Tooling:** Codec cleanup no longer fails a completed media test when closing the launcher's input retries a buffered release byte after the process has exited. Cleanup still reports errors while the launcher is alive.
+* **Facebook:** Messenger and Instagram rows no longer say links open here when Android's link handling is off or the relevant address states are missing. The rows refresh together from one Android answer when you return from settings.
 
 ### Changed
 
-* **Setup:** Installation help explains Expert mode and how to identify overlapping Facebook patch sources. Bug reports now ask for every source's version and patch selection, including the details needed to diagnose issue #79.
+* **Facebook:** The settings overview shows the version and a short build identity with its source state. About and diagnostic reports retain the full identity. At large text sizes, Pause, Resume and Undo appear before the recovery guidance so they stay in view.
+* **Facebook:** Installation help explains Expert mode and how to identify overlapping Facebook patch sources. Bug reports now ask for every source's version and patch selection, including the details needed to diagnose issue #79.
 
 ## 0.7.1 (2026-10-03)
 

@@ -2,7 +2,7 @@
 ◆9qrWgYJJCo
  # Haiagaru for Morphe
 
-ChMate `0.8.10.191 dev` / `0.8.10.226 dev` / `0.8.10.241` / `0.8.10.242 dev` / `0.8.10.243 dev` 対応のMorpheパッチです。 <br>
+ChMate `0.8.10.191 dev` / `0.8.10.226 dev` / `0.8.10.241` / `0.8.10.242 dev` / 対応のMorpheパッチです。 <br>
 機能は以下を参照
 https://github.com/areteruhiro/Haiagaru
 
@@ -23,7 +23,8 @@ https://github.com/areteruhiro/Haiagaru
 * ChMate `0.8.10.191 dev`／`0.8.10.226 dev`／`0.8.10.243 dev` のスレ内広告行の非表示
 * 5ch.io板が外部板扱いと5ch扱いで重複した場合の内部板一覧一括整理
 * パッケージ名・アプリ名・アイコン・versionCodeの変更
-* Morpheで任意に有効化できるクラッシュログ保存
+* クラッシュログ保存（Morpheで無効化可能、初期値ON）
+* エッヂ過去ログビューアーで開けない場合はエラーコードを表示し、`Download/Haiagaru` に診断ログを保存
 * ChMate `0.8.10.191 dev`／`0.8.10.226 dev` のChMate+互換設定
   * 単発ID表示を省略
   * コピペ省略2
@@ -190,7 +191,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 
 [MorpheへHaiagaruを追加](https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe&name=Haiagaru)
 
-通常版URLは `1.5.7`、プレリリースURLは `1.6.4` を取得します。
+通常版URLは `1.5.7`、プレリリースURLは `1.6.8` を取得します。
 配布物はAndroid拡張を内包したMPPです。
 
 現在の配布版（1.5.7）を取得するパッチソースです。
@@ -199,7 +200,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle.json
 ```
 
-プレリリース版（1.6.4）を取得するパッチソースです。
+プレリリース版（1.6.8）を取得するパッチソースです。
 
 ```text
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle-pre.json
@@ -210,6 +211,23 @@ URV Manager / Morphe Managerが更新を検出できるようにJSON上の配布
 更新が表示されない場合は、パッチソース画面から手動で更新を実行してください。
 
 ## 更新履歴
+
+### 1.6.8（プレリリース）
+
+- パッケージ名変更時の起動クラッシュを防ぐため、ChMate本来のパッケージ名を接頭辞に含む値のみを受け付けます。
+- 「未読をすべて0にする」実行後に画面を再生成せず、スレ一覧の表示状態を保つようにしました。
+
+### 1.6.5（プレリリース）
+
+- 板のスレ一覧に「既読スレを上に」を追加（191 dev／226 dev／241／242 dev）。241では履歴IDが0の既読スレも正しく並び替えるよう修正
+- 「未読をすべて0にする」をツールバーに追加。実行前に確認画面を表示し、レスや履歴は削除しません
+- レス数の少ないスレを上詰めで表示する設定を追加（241／242 dev／243 dev）
+- ツールバーのフィルタをチェックボックス式に変更し、ダイアログを開いたまま複数の項目を切り替え可能に。設定で元の上部フィルタ行だけを非表示にできます
+- 226 dev／241でワッチョイ長押し時に選択中のレスから検索文字列を取得する処理を修正
+- UPLIFTのログイン・書き込みに影響する再署名後の計算や分岐を修正（226 dev／241／242 dev／243 dev）
+- 191 devの自動NG画像判定クラッシュ向けに、パッチ適用時に無効化できる修正オプションを追加
+- 必死チェッカー専用ビューアでKyodemoの投稿／分析を切り替え可能に。エッヂ過去ログのエラー時は診断コードを表示し、`Download/Haiagaru`にログを保存
+- クラッシュログ保存パッチを初期状態で有効化（Morpheで無効化できます）
 
 ### 1.6.4（検証用プレリリース）
 
@@ -626,10 +644,15 @@ MEGAログインとTalkのゼロ除算は実機での解消を未確認です。
 生成物:
 
 ```text
-patches\build\libs\patches-1.6.4.mpp
+patches\build\libs\patches-1.6.5.mpp
 ```
 
 公開には`:patches:buildAndroid`で生成したMPPを使用し、`classes.dex`が含まれることを確認してください。
+
+191 devの自動NG画像判定でTFLiteがクラッシュする場合は、パッチ適用時の
+「191の自動NG画像判定クラッシュを修正」（`imageNgTfliteFix`）を有効にしてください。
+既定では有効です。`false`を指定すると元APKのTFLiteライブラリを維持します。
+このオプションは191 dev以外には影響しません。
 
 Morphe Desktopでは `Haiagaru` を有効にして対象APKへ適用します。
 APKは再署名されるため、Play版など署名が異なるChMateとはそのまま上書きできません。

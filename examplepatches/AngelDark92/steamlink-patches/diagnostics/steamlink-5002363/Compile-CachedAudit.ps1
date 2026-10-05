@@ -2,7 +2,8 @@
 param(
     [string]$JavaHome = $env:JAVA_HOME,
     [string]$ToolDirectory,
-    [string]$OutputDirectory
+    [string]$OutputDirectory,
+    [string]$PatcherRuntime
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
@@ -13,6 +14,9 @@ $compiler = Get-ChildItem (Join-Path $env:USERPROFILE '.gradle/wrapper/dists') -
     Sort-Object FullName | Select-Object -Last 1
 if (!$compiler) { throw 'Cached Kotlin compiler missing.' }
 $tools = (Resolve-Path $ToolDirectory).Path
+# Desktop 1.15.1 bundles patcher 1.13.0, including the category DSL.
+if (!$PatcherRuntime) { $PatcherRuntime = Join-Path $tools 'morphe-desktop-1.15.1-all.jar' }
+$patcherRuntimePath = (Resolve-Path $PatcherRuntime).Path
 $null = New-Item -ItemType Directory -Force -Path $OutputDirectory
 $out = (Resolve-Path $OutputDirectory).Path
 $classes = Join-Path $out 'classes'
@@ -21,8 +25,9 @@ $resources = Join-Path $out 'resources'
 $null = New-Item -ItemType Directory -Force -Path $classes,$tests,(Join-Path $resources 'extensions')
 # Match Gradle's kotlin("test-junit") adapter. The platform console includes
 # Jupiter classes, so keep it OFF the compiler classpath to expose CI mismatches.
-$dependencies = @('gson.jar','jcommander.jar','junit4.jar','hamcrest-core.jar','kotlin-test-junit.jar','kotlin-test.jar','morphe-desktop-1.13.1-all.jar') |
+$dependencies = @('gson.jar','jcommander.jar','junit4.jar','hamcrest-core.jar','kotlin-test-junit.jar','kotlin-test.jar') |
     ForEach-Object { (Resolve-Path (Join-Path $tools $_)).Path }
+$dependencies += $patcherRuntimePath
 $classpath = $dependencies -join ';'
 function Invoke-CheckedJava([string[]]$Arguments) {
     $previousPreference = $ErrorActionPreference

@@ -70,6 +70,15 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DISABLE_CHANNEL_PULL =
             new BooleanSetting("hushtelegram_disable_channel_pull", TRUE);
 
+    public static final BooleanSetting NORMAL_PASTE =
+            new BooleanSetting("hushtelegram_normal_paste", FALSE);
+
+    public static final BooleanSetting SHOW_LOCAL_IDS =
+            new BooleanSetting("hushtelegram_show_local_ids", FALSE);
+
+    public static final BooleanSetting DISABLE_DOUBLE_TAP_REACTIONS =
+            new BooleanSetting("hushtelegram_disable_double_tap_reactions", FALSE);
+
     /**
      * The Contacts tab's automatic prompt and its "!" badge once a contacts prompt was declined;
      * the first request, the tab's own buttons and contact sync stay stock.
@@ -78,9 +87,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_quiet_contacts_nag", TRUE);
 
     /**
-     * Telegram's New Year snow on any day, over the chat list's top bar and chat backgrounds. Its Santa
-     * hat only draws over a plain-text title, and 12.10.6's chat list title is the logo, so it doesn't
-     * show. Telegram's own holiday dates apply while it's off.
+     * Telegram's Santa hat over the chat list logo and New Year snow on any day, over the chat list's
+     * top bar and chat backgrounds. Telegram's own holiday dates apply while it's off.
      */
     public static final BooleanSetting HOLIDAY_LOOK =
             new BooleanSetting("hushtelegram_holiday_look", FALSE);

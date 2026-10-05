@@ -95,13 +95,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fetch Nai64 version
+      - name: Fetch Nai64 version (local mirror)
         if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         id: nai64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NAI64_JSON=$(curl -s "https://raw.githubusercontent.com/Nai64/Nai64ExtraPatches/refs/heads/main/patches-bundle.json")
-          NAI64_VER=$(echo "$NAI64_JSON" | jq -r '.version // "unknown"')
+          mkdir -p nai64-meta
+          gh release download nai64-bundle --repo ${{ github.repository }} \
+            --pattern "changelog_history.json" --dir nai64-meta/ || true
+          NAI64_VER="1.1.0"
+          if [ -f nai64-meta/changelog_history.json ]; then
+            V=$(jq -r 'if type=="array" then (last | .version? // empty) else (.version? // empty) end' nai64-meta/changelog_history.json 2>/dev/null || true)
+            [ -n "$V" ] && NAI64_VER="$V"
+          fi
           echo "NAI64_VERSION=$NAI64_VER" >> $GITHUB_OUTPUT
+          echo "Nai64 version (mirror): $NAI64_VER"
 
       - name: Upload changelog for publish job
         if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
@@ -191,11 +200,20 @@ jobs:
           mkdir -p bundles
           curl -L -o bundles/hushfeed.mpp "https://github.com/${{ github.repository }}/releases/download/v${{ needs.build-mpp.outputs.VERSION }}/patches-${{ needs.build-mpp.outputs.VERSION }}.mpp"
 
-      - name: Download Nai64 bundle
+      - name: Download Nai64 bundle (local mirror)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NAI64_JSON=$(curl -s "https://raw.githubusercontent.com/Nai64/Nai64ExtraPatches/refs/heads/main/patches-bundle.json")
-          NAI64_URL=$(echo "$NAI64_JSON" | jq -r '.download_url')
-          curl -L -o bundles/nai64.mpp "$NAI64_URL"
+          mkdir -p bundles nai64-meta
+          gh release download nai64-bundle --repo ${{ github.repository }} \
+            --pattern "patches.jar" --dir nai64-meta/
+          gh release download nai64-bundle --repo ${{ github.repository }} \
+            --pattern "patches.sha256" --dir nai64-meta/ || true
+          if [ -f nai64-meta/patches.sha256 ]; then
+            (cd nai64-meta && sha256sum -c patches.sha256) || echo "WARNING: sha256 check failed or format differs — continuing"
+          fi
+          mv nai64-meta/patches.jar bundles/nai64.mpp
+          echo "Nai64 bundle ready: $(du -h bundles/nai64.mpp | cut -f1)"
 
       - name: Generate options
         run: java -jar build/cli.jar options-create -p bundles/hushfeed.mpp -p bundles/nai64.mpp -o build/options.json
@@ -293,14 +311,16 @@ jobs:
         run: pip install pyyaml
 
       - name: Download bundles and CLI for options regeneration
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p build bundles
           CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest | jq -r '.assets[] | select(.name | endswith("-all.jar")) | .browser_download_url')
           curl -L -o build/cli.jar "$CLI_URL"
           curl -L -o bundles/hushfeed.mpp "https://github.com/${{ github.repository }}/releases/download/v${{ needs.build-mpp.outputs.VERSION }}/patches-${{ needs.build-mpp.outputs.VERSION }}.mpp"
-          NAI64_JSON=$(curl -s "https://raw.githubusercontent.com/Nai64/Nai64ExtraPatches/refs/heads/main/patches-bundle.json")
-          NAI64_URL=$(echo "$NAI64_JSON" | jq -r '.download_url')
-          curl -L -o bundles/nai64.mpp "$NAI64_URL"
+          gh release download nai64-bundle --repo ${{ github.repository }} \
+            --pattern "patches.jar" --dir bundles/
+          mv bundles/patches.jar bundles/nai64.mpp
 
       - name: Regenerate options for notes
         run: |

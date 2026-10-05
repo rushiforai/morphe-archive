@@ -102,7 +102,9 @@ final class SettingsNavigation extends BaseAdapter {
         section("Links", L10n.t("Links"), null, SettingsIcons.LINKS, false);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES, false);
         section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED, false);
-        section("Pause, backup and diagnostics", L10n.t("Pause, backup and diagnostics"), null, SettingsIcons.TOOLS, false);
+        section("Pause", L10n.t("Pause"), null, SettingsIcons.PAUSE, false);
+        section("Settings backup", L10n.t("Settings backup"), null, SettingsIcons.EXPORT, false);
+        section("Diagnostics", L10n.t("Diagnostics"), null, SettingsIcons.BUG, false);
         section("About", L10n.t("About"), null, SettingsIcons.ABOUT, false);
         browse = new HushTelegramPreferenceFragment.Heading(context);
         browse.setTitle(L10n.t("Browse settings"));

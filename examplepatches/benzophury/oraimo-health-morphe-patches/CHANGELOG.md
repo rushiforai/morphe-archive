@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/benzophury/oraimo-health-morphe-patches/compare/v1.9.0...v1.10.0) (2026-10-04)
+
+### ✨ New Features
+
+* **target:** update offline network patch and add support for v2.0.6 ([4d857ec](https://github.com/benzophury/oraimo-health-morphe-patches/commit/4d857ec650b4bc3f49008a138d0d6828bab1beae))
+
 ## [1.9.0](https://github.com/benzophury/oraimo-health-morphe-patches/compare/v1.8.0...v1.9.0) (2026-09-01)
 
 ### 🐛 Bug Fixes

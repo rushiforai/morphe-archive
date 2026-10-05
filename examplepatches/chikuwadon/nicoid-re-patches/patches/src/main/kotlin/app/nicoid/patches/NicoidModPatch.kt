@@ -9,6 +9,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -122,6 +123,151 @@ val nicoidModPatch = bytecodePatch(
                 target.setAccessFlags(source.accessFlags)
             }
         }
+        val settings = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidSetting;")
+        var loginSummaries = 0
+        for (method in settings.methods) {
+            for ((index, instruction) in (method.implementation?.instructions?.toList() ?: continue).withIndex()) {
+                val text = ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string
+                if (text == "ログイン情報を保存済み（サイト側の認証は未確認）") {
+                    val register = (instruction as OneRegisterInstruction).registerA
+                    method.replaceInstruction(index, "const-string v$register, \"ログイン情報を保存済み\"")
+                    loginSummaries++
+                }
+            }
+        }
+        check(loginSummaries == 1) { "Unexpected login summaries: $loginSummaries" }
+        val webLogin = mutableClassDefBy("Lcom/sauzask/nicoid/ModernLoginActivity;").methods.single { it.name == "onCreate" }
+        var loginLoads = 0
+        for ((index, instruction) in checkNotNull(webLogin.implementation).instructions.toList().withIndex()) {
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            if (ref?.definingClass == "Landroid/webkit/WebView;" && ref.name == "loadUrl") {
+                val call = instruction as FiveRegisterInstruction
+                webLogin.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/LoginSupport;->loadLogin(Landroid/webkit/WebView;Ljava/lang/String;)V")
+                loginLoads++
+            }
+        }
+        check(loginLoads == 1) { "Unexpected login page loads: $loginLoads" }
+        // Stored history uses bare IDs; displayed rows use full watch URLs.
+        val deletionTypes = listOf("Lcom/sauzask/nicoid/LocalHistoryBulkDelete;", "Lcom/sauzask/nicoid/NicoidVideoListFragment\$f\$e;")
+        for (type in deletionTypes) {
+            val deletion = mutableClassDefBy(type).methods.single { it.name == "onClick" && it.parameterTypes.size == 2 }
+            var comparisons = 0
+            var writes = 0
+            for ((index, instruction) in checkNotNull(deletion.implementation).instructions.toList().withIndex()) {
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                val call = instruction as? FiveRegisterInstruction ?: continue
+                if (ref.definingClass == "Ljava/lang/String;" && ref.name == "equals") {
+                    deletion.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/HistoryRules;->same(Ljava/lang/String;Ljava/lang/Object;)Z")
+                    comparisons++
+                } else if (ref.definingClass == "Ljava/util/HashSet;" && ref.name == "contains") {
+                    deletion.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/HistoryRules;->contains(Ljava/util/Set;Ljava/lang/Object;)Z")
+                    comparisons++
+                } else if (ref.definingClass == "Le/e/a/v0;" && ref.parameterTypes == listOf("I", "Lorg/json/JSONArray;", "Landroid/content/Context;")) {
+                    deletion.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}, v${call.registerE}}, Le/e/a/HistorySupport;->write(ILorg/json/JSONArray;Landroid/content/Context;)I")
+                    writes++
+                }
+            }
+            check(comparisons == 1 && writes == 1) { "Unexpected history deletion hooks: $type ($comparisons, $writes)" }
+        }
+        val historyLoad = mutableClassDefBy("Le/e/a/y1;").methods.single { it.name == "run" }
+        var historyFormats = 0
+        for ((index, instruction) in checkNotNull(historyLoad.implementation).instructions.toList().withIndex()) {
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            if (ref?.definingClass == "Ljava/lang/String;" && ref.name == "format") {
+                val call = instruction as FiveRegisterInstruction
+                historyLoad.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/HistorySupport;->format(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;")
+                historyFormats++
+            }
+        }
+        check(historyFormats == 1) { "Unexpected history date formats: $historyFormats" }
+        val historyStore = mutableClassDefBy("Le/e/a/v0;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Lorg/json/JSONObject;", "Landroid/content/Context;")
+        }
+        val historyRecord = checkNotNull(historyStore.implementation).registerCount - 2
+        historyStore.addInstructions(0, "invoke-static/range {v$historyRecord .. v$historyRecord}, Le/e/a/ContentFilter;->rememberHistory(Lorg/json/JSONObject;)V")
+        val historyInstructions = checkNotNull(historyLoad.implementation).instructions.toList()
+        val newHistoryRow = historyInstructions.indices.single { index ->
+            val ref = (historyInstructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Le/e/a/x1;" && ref.name == "<init>"
+        }
+        val rowCall = historyInstructions[newHistoryRow] as FiveRegisterInstruction
+        // The supported local-history loader keeps its source JSON record in v0.
+        historyLoad.addInstructions(newHistoryRow + 1,
+            "invoke-static {v${rowCall.registerC}, v0}, Le/e/a/ContentFilter;->restoreHistory(Ljava/lang/Object;Lorg/json/JSONObject;)V")
+        val adapter = mutableClassDefBy("Le/e/a/b0;")
+        val notify = adapter.methods.single { it.name == "notifyDataSetChanged" }
+        val notifyThis = checkNotNull(notify.implementation).registerCount - 1
+        notify.addInstructions(0, "invoke-static/range {v$notifyThis .. v$notifyThis}, Le/e/a/ContentFilter;->filter(Ljava/lang/Object;)V")
+        val adapterConstructor = adapter.methods.single { it.name == "<init>" }
+        val adapterThis = checkNotNull(adapterConstructor.implementation).registerCount - 5
+        val constructorReturn = checkNotNull(adapterConstructor.implementation).instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+        adapterConstructor.addInstructions(constructorReturn, "invoke-static/range {v$adapterThis .. v$adapterThis}, Le/e/a/ContentFilter;->filter(Ljava/lang/Object;)V")
+        mutableClassDefBy("Lcom/sauzask/nicoid/NicoidChromecastReceiverSelect;").methods.single { it.name == "onCreate" }
+            .addInstructions(0, "invoke-static {}, Le/e/a/CastDiagnostics;->discovery()V")
+        mutableClassDefBy("Lcom/sauzask/nicoid/NicoidChormecastSenderService\$c;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Landroid/os/Bundle;")
+        }.addInstructions(0, "invoke-static {}, Le/e/a/CastDiagnostics;->connected()V")
+        val castResult = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidChormecastSenderService\$c\$a;").methods.single { it.name == "a" }
+        val castResultCode = checkNotNull(castResult.implementation).instructions.toList()
+        val castStatus = castResultCode.indices.single { index ->
+            val ref = (castResultCode[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.returnType == "Lcom/google/android/gms/common/api/Status;"
+        }
+        val castStatusRegister = (castResultCode[castStatus + 1] as OneRegisterInstruction).registerA
+        castResult.addInstructions(castStatus + 2, "invoke-static {v$castStatusRegister}, Le/e/a/CastDiagnostics;->receiverResult(Ljava/lang/Object;)V")
+        val castStream = mutableClassDefBy("Le/e/a/p;").methods.single {
+            it.name == "a" && it.parameterTypes == listOf("Ljava/lang/String;", "Lorg/apache/http/client/CookieStore;", "Ljava/lang/String;")
+        }
+        val castUrlRegister = checkNotNull(castStream.implementation).registerCount - 3
+        val castStreamCode = checkNotNull(castStream.implementation).instructions.toList()
+        val startRelay = castStreamCode.indices.single { index ->
+            val ref = (castStreamCode[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.name == "start" && ref.parameterTypes.isEmpty() &&
+                ref.definingClass in setOf("Ljava/lang/Thread;", "Le/e/a/o2;")
+        }
+        val castCallback = castUrlRegister - 1
+        castStream.addInstructions(startRelay,
+            "invoke-static/range {v$castCallback .. v$castCallback}, Le/e/a/CastRelay;->attach(Ljava/lang/Object;)V")
+        castStream.addInstructions(0, """
+            invoke-static/range {v$castUrlRegister .. v$castUrlRegister}, Le/e/a/CastDiagnostics;->stream(Ljava/lang/String;)V
+            invoke-static/range {v$castCallback .. v$castUrlRegister}, Le/e/a/CastRelay;->prepare(Ljava/lang/Object;Ljava/lang/String;)V
+        """.trimIndent())
+        val castServer = mutableClassDefBy("Le/e/a/o2;")
+        val socketHandler = castServer.methods.single { it.name == "a" && it.parameterTypes == listOf("Ljava/net/Socket;") }
+        val socketThis = checkNotNull(socketHandler.implementation).registerCount - 2
+        check(socketThis >= 2) { "Cast handler requires scratch registers" }
+        socketHandler.addInstructions(0, """
+            invoke-static/range {v$socketThis .. v${socketThis + 1}}, Le/e/a/CastRelay;->dispatch(Ljava/lang/Object;Ljava/net/Socket;)Z
+            move-result v0
+            if-eqz v0, :legacy_cast_socket
+            return-void
+            :legacy_cast_socket
+            nop
+        """.trimIndent())
+        val stopRelay = castServer.methods.single { it.name == "b" && it.parameterTypes.isEmpty() }
+        val stopThis = checkNotNull(stopRelay.implementation).registerCount - 1
+        stopRelay.addInstructions(0, "invoke-static/range {v$stopThis .. v$stopThis}, Le/e/a/CastRelay;->detach(Ljava/lang/Object;)V")
+        val runRelay = castServer.methods.single { it.name == "run" }
+        val runThis = checkNotNull(runRelay.implementation).registerCount - 1
+        checkNotNull(runRelay.implementation).instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
+            .map { it.index }.reversed().forEach { index ->
+                runRelay.addInstructions(index, "invoke-static/range {v$runThis .. v$runThis}, Le/e/a/CastRelay;->detach(Ljava/lang/Object;)V")
+            }
+        for (type in listOf("Le/e/a/ModernRanking;", "Le/e/a/ModernSearch;")) {
+            val loadPage = mutableClassDefBy(type).methods.single { it.name == "load" }
+            val code = checkNotNull(loadPage.implementation).instructions.toList()
+            val input = code.indices.single { index ->
+                val ref = (code[index] as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == "Ljava/net/HttpURLConnection;" && ref.name == "getInputStream"
+            }
+            val register = (code[input] as FiveRegisterInstruction).registerC
+            loadPage.replaceInstruction(input, "invoke-static {v$register}, Le/e/a/PageCache;->input(Ljava/net/HttpURLConnection;)Ljava/io/InputStream;")
+        }
+        // Y is the original menu refresh; PullRefresh.a is the swipe refresh.
+        mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoListFragment;").methods.single { it.name == "Y" && it.parameterTypes.isEmpty() }
+            .addInstructions(0, "invoke-static {}, Le/e/a/PageCache;->refresh()V")
+        mutableClassDefBy("Le/e/a/PullRefresh;").methods.single { it.name == "a" && it.parameterTypes.isEmpty() }
+            .addInstructions(0, "invoke-static {}, Le/e/a/PageCache;->refresh()V")
         val cache = mutableClassDefBy("Le/e/a/CacheHls;")
         val download = cache.methods.single { it.name == "download" }
         val firstParameter = checkNotNull(download.implementation).registerCount - 4
@@ -184,6 +330,30 @@ val nicoidModPatch = bytecodePatch(
             invoke-static {v0, v7}, Le/e/a/ModernShorts;->finishMenu(Landroid/content/Context;Ljava/util/ArrayList;)V
             invoke-virtual {v8}, Landroid/widget/BaseAdapter;->notifyDataSetChanged()V
         """.trimIndent())
+        // Capture payment flags from the same responses already used to build lists.
+        for (type in listOf("Le/e/a/ModernRanking;", "Le/e/a/ModernSearch;", "Le/e/a/ModernRelated;")) {
+            for (method in mutableClassDefBy(type).methods) {
+                val instructions = method.implementation?.instructions?.toList() ?: continue
+                for ((index, instruction) in instructions.withIndex()) {
+                    val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                    val call = instruction as? FiveRegisterInstruction ?: continue
+                    if (ref.definingClass == "Lorg/json/JSONArray;" && ref.name == "getJSONObject")
+                        method.replaceInstruction(index, "invoke-static {v${call.registerC}, v${call.registerD}}, Le/e/a/PaidVideos;->item(Lorg/json/JSONArray;I)Lorg/json/JSONObject;")
+                }
+            }
+        }
+        // Older mylist/list loaders cast each JSON item before creating the row.
+        for (method in mutableClassDefBy("Le/e/a/e0;").methods) {
+            val instructions = method.implementation?.instructions?.toList() ?: continue
+            for (index in instructions.indices.reversed()) {
+                val instruction = instructions[index]
+                val ref = (instruction as? ReferenceInstruction)?.reference as? TypeReference
+                if (instruction.opcode == Opcode.CHECK_CAST && ref?.type == "Lorg/json/JSONObject;") {
+                    val register = (instruction as OneRegisterInstruction).registerA
+                    method.addInstructions(index + 1, "invoke-static/range {v$register .. v$register}, Le/e/a/PaidVideos;->remember(Lorg/json/JSONObject;)V")
+                }
+            }
+        }
         // Bind after the legacy Spanned-to-String conversion, so icon spans survive.
         // The supported adapter keeps the count TextView in v12 (post time is v1).
         val rows = mutableClassDefBy("Le/e/a/b0;").methods.single { it.name == "getView" }
@@ -199,6 +369,25 @@ val nicoidModPatch = bytecodePatch(
             }
         }
         check(countBindings == 1) { "Unexpected video count bindings: $countBindings" }
+        val rowInstructions = checkNotNull(rows.implementation).instructions.toList()
+        val rowThis = checkNotNull(rows.implementation).registerCount - 4
+        for (index in rowInstructions.indices.reversed()) {
+            val instruction = rowInstructions[index]
+            if (instruction.opcode == Opcode.RETURN_OBJECT) {
+                val register = (instruction as OneRegisterInstruction).registerA
+                // Keep original branch labels on the first hook instruction. Inserting
+                // before RETURN alone lets goto/if paths jump over the badge binding.
+                check(register != 0 && register != 1 && register != 2) { "Unexpected list return register: $register" }
+                rows.replaceInstruction(index, "move-object/from16 v0, v$register")
+                rows.addInstructions(index + 1, """
+                    move-object/from16 v1, v$rowThis
+                    move/from16 v2, v${rowThis + 1}
+                    invoke-static {v0, v1, v2}, Le/e/a/PaidVideos;->bindAdapter(Landroid/view/View;Ljava/lang/Object;I)V
+                    return-object v$register
+                """.trimIndent())
+            }
+        }
+
         val info = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoInfoFragment;")
             .methods.single { it.name == "a" && it.parameterTypes == listOf(
                 "Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;") }
@@ -237,7 +426,9 @@ val nicoidModPatch = bytecodePatch(
         classDefForEach { cls ->
             if ((cls.type.startsWith("Lcom/sauzask/nicoid/") || cls.type.startsWith("Le/e/a/")) &&
                 !cls.type.startsWith("Le/e/a/UiStrings") && !cls.type.startsWith("Le/e/a/UiText") &&
-                !cls.type.startsWith("Le/e/a/VideoCount")) {
+                !cls.type.startsWith("Le/e/a/VideoCount") && !cls.type.startsWith("Le/e/a/ContentFilterRules") &&
+                !cls.type.startsWith("Le/e/a/HistoryRules") && !cls.type.startsWith("Le/e/a/CastHls") &&
+                !cls.type.startsWith("Le/e/a/CastRelay") && !cls.type.startsWith("Le/e/a/PageCache")) {
                 if (cls.methods.any { method -> method.implementation?.instructions?.any { insn ->
                     val ref = (insn as? ReferenceInstruction)?.reference
                     (ref is StringReference && ref.string in translatedStrings) ||

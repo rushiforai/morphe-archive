@@ -606,7 +606,8 @@ public class ReleaseCheckTest {
             Preference card = rows(page).get(0);
             Preference checkNow = page.findPreference(HushfacebookPreferenceFragment.CHECK_NOW);
             String before = String.valueOf(card.getSummary());
-            assertEquals(2, before.split("\n", -1).length);
+            assertEquals(3, before.split("\n", -1).length);
+            assertTrue(before, before.contains(HushfacebookPreferenceFragment.overviewBuildDetails()));
             assertTrue(before, before.endsWith("\n" + L10n.f("Build %1$s", L10n.isolate("unknown"))));
 
             try {

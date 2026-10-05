@@ -32,6 +32,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                 || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled
                 || SettingsStatus.fullScreenHoldEnabled || SettingsStatus.feedMuteEnabled
                 || SettingsStatus.backgroundPlayEnabled
+                || SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
+                || SettingsStatus.stopVideoLoopingEnabled || SettingsStatus.resumeVideoAfterScrollEnabled
                 // The comment sheet switch is a playback switch, and on a bundle with the
                 // comment tools and none of the players it is the only thing on this page.
                 || SettingsStatus.commentToolsEnabled;
@@ -59,9 +61,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "Auto-advance keeps working.",
                     Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION));
         }
-        // Neither is auto-advance, and under its heading they read as parts of it: both keep you
-        // on the video you're on, one paused behind the comments and one at its end.
-        if (SettingsStatus.commentToolsEnabled || SettingsStatus.fullScreenHoldEnabled) {
+        // None of these is auto-advance, and under its heading they read as parts of it: each keeps
+        // you on the video you're on, paused behind the comments, held or stopped at its end, or
+        // picked up where you left it.
+        if (SettingsStatus.commentToolsEnabled || SettingsStatus.fullScreenHoldEnabled
+                || SettingsStatus.stopVideoLoopingEnabled || SettingsStatus.resumeVideoAfterScrollEnabled) {
             addPreference(new SectionHeadingPreference(context, "Staying on a video"));
         }
         if (SettingsStatus.commentToolsEnabled) {
@@ -76,19 +80,83 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "one. Swiping still moves on.",
                     Settings.FULL_SCREEN_HOLD));
         }
+        if (SettingsStatus.stopVideoLoopingEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Stop video looping",
+                    "Stop videos at the end instead of replaying them.",
+                    Settings.STOP_VIDEO_LOOPING
+            ));
+        }
+        if (SettingsStatus.resumeVideoAfterScrollEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Resume videos after scrolling",
+                    "Continue supported videos from where you stopped when you scroll back to them.",
+                    Settings.RESUME_VIDEO_AFTER_SCROLL
+            ));
+        }
+        // How the player itself behaves: the bar, the frame, the sound and what happens when you
+        // leave. The bar rows were on App and the frame rows under Quality, which they aren't.
+        if (SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
+                || SettingsStatus.videoFitEnabled || SettingsStatus.feedMuteEnabled
+                || SettingsStatus.backgroundPlayEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Player"));
+        }
+        if (SettingsStatus.showSeekbarEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Show the progress bar",
+                    "Show TikTok's own progress bar on videos where it's normally hidden.",
+                    Settings.SHOW_SEEKBAR
+            ));
+        }
+        if (SettingsStatus.seekbarThumbnailEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Show the progress bar thumbnail",
+                    "Show a video preview thumbnail while dragging the progress bar.",
+                    Settings.SHOW_SEEKBAR_THUMBNAIL
+            ));
+        }
+        if (SettingsStatus.videoFitEnabled) {
+            TogglePreference fit = new TogglePreference(context, "Fit the video to the screen",
+                    "Show the whole video instead of cropping it to the window. Nothing changes "
+                            + "on a tall phone, where it already fits. On a folding phone opened "
+                            + "up, a squarer screen or a split view the sides or the ends stop "
+                            + "being cut off.",
+                    Settings.FIT_VIDEO_TO_SCREEN);
+            TogglePreference fill = new TogglePreference(context, "Fill the screen with the video",
+                    "Crop the video until it covers the whole window. On a tall phone the black "
+                            + "strip TikTok leaves under a video goes and so does a little of each side.",
+                    Settings.FILL_VIDEO_TO_SCREEN);
+            // One or the other: the whole video inside the window and the window covered can't
+            // both hold, so turning either on turns the other off.
+            fit.setOnPreferenceChangeListener((preference, value) -> {
+                if (Boolean.TRUE.equals(value)) {
+                    Settings.FILL_VIDEO_TO_SCREEN.save(false);
+                    fill.setChecked(false);
+                }
+                return true;
+            });
+            fill.setOnPreferenceChangeListener((preference, value) -> {
+                if (Boolean.TRUE.equals(value)) {
+                    Settings.FIT_VIDEO_TO_SCREEN.save(false);
+                    fit.setChecked(false);
+                }
+                return true;
+            });
+            addPreference(fit);
+            addPreference(fill);
+        }
         if (SettingsStatus.feedMuteEnabled) {
-            addPreference(new SectionHeadingPreference(context, "Sound"));
             addPreference(new TogglePreference(context, "Mute feed videos",
                     "Play feed videos without sound and leave the phone's volume alone. Music "
                             + "from another app keeps playing while it's on. DMs, stories and LIVE "
                             + "keep their sound.",
                     Settings.FEED_MUTED));
-            addPreference(new TogglePreference(context, "Show the mute button on videos",
-                    "Add a button beside the block control that turns the feed's sound off and on.",
-                    Settings.FEED_MUTE_BUTTON));
         }
         if (SettingsStatus.backgroundPlayEnabled) {
-            addPreference(new SectionHeadingPreference(context, "Background play"));
             addPreference(new TogglePreference(context, "Keep playing in the background",
                     "The video you're watching keeps playing to its end after you leave "
                             + "TikTok or turn the screen off, with TikTok's own media notification "
@@ -134,46 +202,14 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     new String[]{"1.25x", "1.5x", "1.75x", "2x", "2.5x", "3x"},
                     new String[]{"1.25", "1.5", "1.75", "2", "2.5", "3"}));
         }
-        if (SettingsStatus.playbackQualityEnabled || SettingsStatus.videoFitEnabled) {
-            addPreference(new SectionHeadingPreference(context, "Quality"));
-        }
         if (SettingsStatus.playbackQualityEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Quality"));
             addPreference(new ChoicePreference(context, "Video playback quality", Settings.PLAYBACK_QUALITY,
                     new String[]{"Automatic", "Highest", "Lowest", "1080p", "720p", "540p", "480p", "360p"},
                     new String[]{"auto", "highest", "lowest", "1080", "720", "540", "480", "360"}));
             addPreference(new ChoicePreference(context, "On mobile data", Settings.PLAYBACK_QUALITY_METERED,
                     new String[]{"No limit", "Highest", "Lowest", "1080p", "720p", "540p", "480p", "360p"},
                     new String[]{"off", "highest", "lowest", "1080", "720", "540", "480", "360"}));
-        }
-        if (SettingsStatus.videoFitEnabled) {
-            TogglePreference fit = new TogglePreference(context, "Fit the video to the screen",
-                    "Show the whole video instead of cropping it to the window. Nothing changes "
-                            + "on a tall phone, where it already fits. On a folding phone opened "
-                            + "up, a squarer screen or a split view the sides or the ends stop "
-                            + "being cut off.",
-                    Settings.FIT_VIDEO_TO_SCREEN);
-            TogglePreference fill = new TogglePreference(context, "Fill the screen with the video",
-                    "Crop the video until it covers the whole window. On a tall phone the black "
-                            + "strip TikTok leaves under a video goes and so does a little of each side.",
-                    Settings.FILL_VIDEO_TO_SCREEN);
-            // One or the other: the whole video inside the window and the window covered can't
-            // both hold, so turning either on turns the other off.
-            fit.setOnPreferenceChangeListener((preference, value) -> {
-                if (Boolean.TRUE.equals(value)) {
-                    Settings.FILL_VIDEO_TO_SCREEN.save(false);
-                    fill.setChecked(false);
-                }
-                return true;
-            });
-            fill.setOnPreferenceChangeListener((preference, value) -> {
-                if (Boolean.TRUE.equals(value)) {
-                    Settings.FIT_VIDEO_TO_SCREEN.save(false);
-                    fit.setChecked(false);
-                }
-                return true;
-            });
-            addPreference(fit);
-            addPreference(fill);
         }
     }
 }

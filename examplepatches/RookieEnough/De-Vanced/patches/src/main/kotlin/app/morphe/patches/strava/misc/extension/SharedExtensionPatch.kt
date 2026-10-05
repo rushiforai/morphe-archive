@@ -9,9 +9,8 @@ import app.morphe.patches.shared.misc.extension.ExtensionHook
 import app.morphe.patches.shared.misc.extension.sharedExtensionPatch
 
 internal object StravaApplicationOnCreateFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "onCreate" && classDef.endsWith("/StravaApplication;")
-    },
+    definingClass = "/StravaApplication;",
+    name = "onCreate"
 )
 
 internal val applicationOnCreateHook = ExtensionHook(

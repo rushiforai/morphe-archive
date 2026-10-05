@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.hushmessenger.patches.controls.fixtureClass
 import app.hushmessenger.patches.controls.fixtureMethod
+import app.hushmessenger.patches.controls.lifecycleApk
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.immutable.ImmutableDexFile
 import com.android.tools.smali.dexlib2.writer.io.MemoryDataStore
@@ -13,12 +14,74 @@ import com.android.tools.smali.dexlib2.writer.pool.DexPool
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.zip.Adler32
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
+import org.junit.jupiter.api.io.TempDir
 import kotlinx.serialization.json.*
 import kotlin.test.*
 
 class CatalogToolTest {
+    @Test fun strippedClassSectionsMayRetainOnlyZeroFilledTails() {
+        val store = MemoryDataStore()
+        DexPool.writeTo(store, ImmutableDexFile(Opcodes.getDefault(), (0..31).map {
+            fixtureClass("Lfixture/Reserve$it;", listOf(fixtureMethod("Lfixture/Reserve$it;->run()V", "return-void", 1)))
+        }))
+        val data = store.data.copyOf()
+        store.close()
+        val bytes = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
+        bytes.putInt(96, 1)
+        val gap = bytes.getInt(100) + 32
+        val dataGap = bytes.getInt(gap + 24)
+        data.fill(0, gap, bytes.getInt(108))
+        val map = bytes.getInt(52)
+        val sections = (0 until bytes.getInt(map)).map { map + 4 + it * 12 }
+        for (type in listOf(6, 0x2000)) bytes.putInt(sections.single { bytes.getShort(it).toInt() == type } + 4, 1)
+        val dataEnd = sections.map { bytes.getInt(it + 8) }.filter { it > dataGap }.min()
+        data.fill(0, dataGap, dataEnd)
+        for (corruptAt in listOf(null, gap, dataGap)) {
+            data[gap] = 0
+            data[dataGap] = 0
+            if (corruptAt != null) data[corruptAt] = 1
+            MessageDigest.getInstance("SHA-1").digest(data.copyOfRange(32, data.size)).copyInto(data, 12)
+            bytes.putInt(8, Adler32().apply { update(data, 12, data.size - 12) }.value.toInt())
+            if (corruptAt == null) CatalogTool.validateDex(data)
+            else assertFails("Nonzero data cannot be treated as a stripped tail") { CatalogTool.validateDex(data) }
+        }
+    }
+
+    @Test fun rebuiltApkMustContainParseableManifestResourcesAndEveryDex(@TempDir temporary: Path) {
+        val sdk = File(requireNotNull(System.getenv("ANDROID_HOME")))
+        val aapt2 = sdk.resolve("build-tools").listFiles()!!.sortedByDescending { it.name }
+            .map { it.resolve(if (System.getProperty("os.name").startsWith("Windows")) "aapt2.exe" else "aapt2") }
+            .first { it.isFile }
+        val valid = lifecycleApk(temporary.resolve("valid"), listOf(fixtureClass("Lfixture/Valid;", listOf(
+            fixtureMethod("Lfixture/Valid;->run()V", "return-void", 1)))))
+        val entries = ZipFile(valid).use { zip -> zip.entries().asSequence().associate {
+            it.name to zip.getInputStream(it).use { stream -> stream.readBytes() }
+        } }.toMutableMap()
+        entries["classes3.dex"] = entries.getValue("classes.dex")
+        val empty = MemoryDataStore()
+        DexPool.writeTo(empty, ImmutableDexFile(Opcodes.getDefault(), emptyList()))
+        entries["classes2.dex"] = empty.data.copyOf()
+        empty.close()
+        for (broken in listOf(null, "AndroidManifest.xml", "resources.arsc", "classes.dex", "classes2.dex", "classes3.dex")) {
+            val apk = temporary.resolve("${broken ?: "valid"}.apk").toFile()
+            ZipOutputStream(apk.outputStream()).use { zip ->
+                for ((name, data) in entries) {
+                    zip.putNextEntry(ZipEntry(name))
+                    zip.write(if (name == broken) "patched".toByteArray() else data)
+                    zip.closeEntry()
+                }
+            }
+            if (broken == null) CatalogTool.validateApk(apk, aapt2)
+            else assertFails("Malformed $broken must fail") { CatalogTool.validateApk(apk, aapt2) }
+        }
+    }
+
     @Test fun aMethodCannotPointInsideAnotherParsedCodeItem() {
         val store = MemoryDataStore()
         val definition = fixtureClass("Lfixture/Overlapping;", listOf(

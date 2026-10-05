@@ -9,26 +9,22 @@ import app.morphe.patcher.Fingerprint
 internal const val ADMOB_HELPER_CLASS_NAME = "Lcom/letterboxd/letterboxd/helpers/AdmobHelper;"
 
 internal object AdmobHelperSetShowAdsFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "setShowAds" && classDef.type == ADMOB_HELPER_CLASS_NAME
-    },
+    definingClass = ADMOB_HELPER_CLASS_NAME,
+    name = "setShowAds",
 )
 
 internal object AdmobHelperShouldShowAdsFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "shouldShowAds" && classDef.type == ADMOB_HELPER_CLASS_NAME
-    },
+    definingClass = ADMOB_HELPER_CLASS_NAME,
+    name = "shouldShowAds",
 )
 
 internal object FilmFragmentShowAdsFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "showAds" && classDef.type.endsWith("/FilmFragment;")
-    },
+    definingClass = "/FilmFragment;",
+    name = "showAds",
 )
 
 internal object MemberExtensionShowAdsFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "showAds" && classDef.type.endsWith("/AMemberExtensionKt;")
-    },
+    definingClass = "/AMemberExtensionKt;",
+    name = "showAds",
 )
 

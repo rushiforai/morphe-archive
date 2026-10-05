@@ -1036,6 +1036,7 @@ Saved %1$s of %2$s photos before the story failed,Saved %1$s of %2$s photos befo
 "Saved %1$s of %2$s, the rest cancelled","Saved %1$s of %2$s, the rest cancelled"
 "Saved %1$s of %2$s, the rest need more free space","Saved %1$s of %2$s, the rest need more free space"
 "Saved %1$s of %2$s, the rest ran out of time","Saved %1$s of %2$s, the rest ran out of time"
+Saved %1$s of %2$s. The server asked us to wait. Try again later.,Saved %1$s of %2$s. The server asked us to wait. Try again later.
 Saved %1$s original photos,Saved %1$s original photos
 Saved one original photo,Saved one original photo
 Saved videos forgotten. The files are still there.,Saved videos forgotten. The files are still there.
@@ -1295,6 +1296,7 @@ The report couldn't be saved. Try again.,The report couldn't be saved. Try again
 The row of story avatars across the top of the Inbox goes. Stories still play from the feed and from profiles.,The row of story avatars across the top of the Inbox goes. Stories still play from the feed and from profiles.
 The saved-video choice couldn't open. Try again.,The saved-video choice couldn't open. Try again.
 The saved-video choice is still open,The saved-video choice is still open
+The server asked us to wait. Try again later.,The server asked us to wait. Try again later.
 The setting couldn't finish updating. Its saved value is shown.,The setting couldn't finish updating. Its saved value is shown.
 The settings backup was rejected. Nothing was altered.,The settings backup was rejected. Nothing was altered.
 The smallest value is above the largest,The smallest value is above the largest

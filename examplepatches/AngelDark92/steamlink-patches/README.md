@@ -11,7 +11,7 @@ This repository contains the patch source and downloadable `.mpp` patch bundles,
 ## What you need
 
 - A Samsung Galaxy XR headset and a PC with Steam and SteamVR.
-- [Morphe Manager](https://morphe.software) **1.22 or newer** on the headset, with compatibility checks enabled.
+- [Morphe Manager](https://morphe.software) **1.30.0 or newer** on the headset, with compatibility checks enabled.
 - A Steam Link VR APK matching an exact version and build listed below.
 - This repository's patch bundle: [add the source to Morphe](https://morphe.software/add-source?github=AngelDark92/steamlink-patches), or download the `.mpp` from [Releases](https://github.com/AngelDark92/steamlink-patches/releases) and import it into Morphe Manager.
 
@@ -58,6 +58,8 @@ N.D.: Delete the depot folder every time you switch to a new depot or the .apk w
 5. Launch the patched Steam Link, complete its permission prompts, and connect to SteamVR on your PC. If the Battery usage page opens, select **Unrestricted** and return to Steam Link.
 
 See the [full patch list](TECHNICAL_REFERENCE.md#full-patch-list) before selecting patches manually. Do not assume another build is compatible because it has the same version name.
+
+With category grouping enabled in Morphe Manager, find your bundle under **Recommended sets**. Individual patches appear under Image quality, Tracking & audio, Startup & permissions, App & device identity, Advanced XR compatibility, and Experiments. Grouping does not change the selected patches or their defaults.
 
 Optional blue-noise dithering has 2 separate experimental patches:
 **Foveal blue-noise dithering (experimental)** affects only the foveal layer;

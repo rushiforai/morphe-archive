@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(RobolectricTestRunner.class)
 // Checked AtomicFile writes need Android's POSIX replacement primitive on the Windows host.
-@Config(sdk = {28, 36}, shadows = CrashGuardTest.PosixAtomicRename.class)
+@Config(sdk = {28, 36})
 public class MaterialYouThemeTest {
 
     @Before public void setup() {

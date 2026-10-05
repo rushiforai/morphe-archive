@@ -41,6 +41,7 @@ public final class SettingsContextRule extends ExternalResource {
     @Override
     protected void before() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        restartExportProcessForTests();
         // Robolectric hands every test method a fresh application and preference cache, but
         // Setting's store is a static captured when its class first loaded in this sandbox,
         // which is whichever class ran first. A fragment resolves its own store from the
@@ -100,6 +101,25 @@ public final class SettingsContextRule extends ExternalResource {
             body.run();
         } finally {
             Utils.settingsReady = ready;
+        }
+    }
+
+    /** Drop process-only receipts and view subscriptions without serializing either one. */
+    public static void restartExportProcessForTests() {
+        try {
+            Class<?> type = app.hushgram.extension.shared.settings.preference.ExportStatus.class;
+            Field current = type.getDeclaredField("current");
+            Field watchers = type.getDeclaredField("watchers");
+            current.setAccessible(true);
+            watchers.setAccessible(true);
+            for (Object status : new Object[]{
+                    app.hushgram.extension.shared.settings.preference.ExportStatus.CONFIGURATION,
+                    app.hushgram.extension.shared.settings.preference.ExportStatus.DIAGNOSTICS}) {
+                current.set(status, null);
+                ((java.util.Collection<?>) watchers.get(status)).clear();
+            }
+        } catch (ReflectiveOperationException failure) {
+            throw new IllegalStateException("Could not reset process export feedback", failure);
         }
     }
 

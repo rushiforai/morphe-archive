@@ -1,3 +1,46 @@
+## [1.23.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.22.0...v1.23.0) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* throttle grip haptics to one pulse per controller ([d23fd8d](https://github.com/AngelDark92/steamlink-patches/commit/d23fd8df845e0524f552b8dc82639e191af7f1c7))
+
+### ✨ New Features
+
+* add controller grip haptics patch ([d999383](https://github.com/AngelDark92/steamlink-patches/commit/d999383e99e2508a1fe3b6eae97de30394d49dc4))
+* add controller pose extrapolation patch ([06a1408](https://github.com/AngelDark92/steamlink-patches/commit/06a14087bb5a1bc7ee64a080bfa71c6366bfef5b))
+* add controller velocity frame patch ([ccb0c01](https://github.com/AngelDark92/steamlink-patches/commit/ccb0c01e4278a002567873048e1a675a67773553))
+* allow the controller pose patches on the legacy bases ([7bf3fc6](https://github.com/AngelDark92/steamlink-patches/commit/7bf3fc6995b53a889936432ff3f4a58834850535))
+* generate grip haptics as waveforms ([714f979](https://github.com/AngelDark92/steamlink-patches/commit/714f9796023a0fae20aa68266f4808dc630a08c5))
+* group new controller experiments ([773195e](https://github.com/AngelDark92/steamlink-patches/commit/773195ec4f6df37bae6cd14e50a55ff1e8cbc348))
+* raise the grip vibrator's amplitude ceiling to 1.0 ([9a04e09](https://github.com/AngelDark92/steamlink-patches/commit/9a04e0905fd7fa546baf813dbadc6163c83270b2))
+
+## [1.22.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.21.0...v1.22.0) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **ci:** declare Gson and gate release builds ([29664df](https://github.com/AngelDark92/steamlink-patches/commit/29664dfd94f9b86d89458f90a1ec29761982ec26))
+* Enhance CI testing and documentation for foveal canvas patches ([9597eec](https://github.com/AngelDark92/steamlink-patches/commit/9597eec564dd67080f181faae8754054633b4ad0))
+
+### ✨ New Features
+
+* Introduce patch categories for better organization and filtering ([9c63254](https://github.com/AngelDark92/steamlink-patches/commit/9c63254039e9078489764acac040241751c99194))
+
+## [1.22.0-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.21.1-dev.1...v1.22.0-dev.1) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **ci:** declare Gson and gate release builds ([29664df](https://github.com/AngelDark92/steamlink-patches/commit/29664dfd94f9b86d89458f90a1ec29761982ec26))
+
+### ✨ New Features
+
+* Introduce patch categories for better organization and filtering ([9c63254](https://github.com/AngelDark92/steamlink-patches/commit/9c63254039e9078489764acac040241751c99194))
+
+## [1.21.1-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.21.0...v1.21.1-dev.1) (2026-10-01)
+
+### 🐛 Bug Fixes
+
+* Enhance CI testing and documentation for foveal canvas patches ([9597eec](https://github.com/AngelDark92/steamlink-patches/commit/9597eec564dd67080f181faae8754054633b4ad0))
+
 ## [1.21.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.20.0...v1.21.0) (2026-09-28)
 
 ### ✨ New Features

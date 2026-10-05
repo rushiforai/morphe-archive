@@ -220,6 +220,11 @@ internal val COMPOSE_METHODS = listOf(
             move-result-object v0
             const/4 v1, 0x6
             invoke-static {v0, p0, v1}, Lorg/mozilla/fenix/components/menu/compose/MenuGroupKt;->MenuGroup(Landroidx/compose/runtime/internal/ComposableLambdaImpl;Landroidx/compose/runtime/Composer;I)V
+            invoke-static {}, Lapp/ftl/extension/firefox/OldMenu;->showBottomDivider()Z
+            move-result v0
+            if-eqz v0, :ftl_end
+            invoke-static {p0}, Lapp/ftl/extension/firefox/ModCompose;->divider(Ljava/lang/Object;)V
+            :ftl_end
             return-void
 """,
     ),
@@ -237,7 +242,8 @@ internal val COMPOSE_METHODS = listOf(
             check-cast v0, Landroid/content/Context;
             invoke-static {v0}, Lapp/ftl/extension/firefox/ModClick;->open(Landroid/content/Context;)Lapp/ftl/extension/firefox/ModClick;
             move-result-object v10
-            sget v1, Lmozilla/components/ui/icons/R$drawable;->mozac_ic_settings_24:I
+            invoke-static {v0}, Lapp/ftl/extension/firefox/OldMenu;->modIcon(Landroid/content/Context;)I
+            move-result v1
             const/4 v5, 0x0
             move-object/from16 v4, v17
             invoke-static {v1, v4, v5}, Landroidx/compose/ui/res/PainterResources_androidKt;->painterResource(ILandroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;

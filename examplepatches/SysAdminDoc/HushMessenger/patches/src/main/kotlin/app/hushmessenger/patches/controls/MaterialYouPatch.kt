@@ -90,7 +90,7 @@ val materialYouPatch = bytecodePatch(
     execute {
         // Discover and validate against immutable definitions. A mutable lookup registers
         // the whole class for recompilation, even when it needs no theme changes.
-        data class Edit(val index: Int, val code: String, val insert: Boolean = false)
+        data class Edit(val index: Int, val code: String, val tail: String? = null)
         val edits = linkedMapOf<Method, MutableList<Edit>>()
 
         fun planReturns(method: Method, helper: String) {
@@ -103,7 +103,7 @@ val materialYouPatch = bytecodePatch(
                 val call = if (register < 16) "invoke-static {v$register}"
                     else "invoke-static/range {v$register .. v$register}"
                 edits.getOrPut(method) { mutableListOf() }.add(
-                    Edit(index, "$call, $THEME->$helper\nmove-result v$register", insert = true))
+                    Edit(index, "$call, $THEME->$helper", "move-result v$register\nreturn v$register"))
                 count++
             }
             if (count == 0) throw app.morphe.patcher.patch.PatchException("No return in ${method.hookId()}")
@@ -185,8 +185,9 @@ val materialYouPatch = bytecodePatch(
             mutableClassDefBy(method.definingClass).methods.single { it.hookId() == method.hookId() } to changes
         }
         for ((method, changes) in targets) for (edit in changes.sortedByDescending { it.index }) {
-            if (edit.insert) method.addInstructions(edit.index, edit.code)
-            else method.replaceInstruction(edit.index, edit.code)
+            // Replacing the return preserves incoming labels on the helper call.
+            method.replaceInstruction(edit.index, edit.code)
+            edit.tail?.let { method.addInstructions(edit.index + 1, it) }
         }
         java.util.logging.Logger.getLogger("").info(
             "Material You: ${edits.keys.map { it.definingClass }.toSet().size} classes, " +

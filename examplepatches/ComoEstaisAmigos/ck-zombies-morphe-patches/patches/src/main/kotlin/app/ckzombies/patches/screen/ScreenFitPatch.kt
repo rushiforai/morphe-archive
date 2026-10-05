@@ -37,6 +37,22 @@ internal class TouchFingerprint(name: String) : Fingerprint(
 
 internal val TOUCH_METHODS = listOf("touchBegan", "touchMoved", "touchEnded", "touchCancelled")
 
+/** Android reports the game's surface; the activity passes the size and format on to the engine. */
+internal object SurfaceChangedFingerprint : Fingerprint(
+    definingClass = PLATFORM_ACTIVITY,
+    name = "surfaceChanged",
+    returnType = "V",
+    parameters = listOf("Landroid/view/SurfaceHolder;", "I", "I", "I"),
+)
+
+/** The engine turns multi-touch on when it builds its 3D game and off when it destroys it. */
+internal object EnableMultipleTouchFingerprint : Fingerprint(
+    definingClass = PLATFORM_ACTIVITY,
+    name = "EnableMultipleTouch",
+    returnType = "V",
+    parameters = listOf("Z"),
+)
+
 private fun Instruction.field() = ((this as? ReferenceInstruction)?.reference as? FieldReference)
 
 /** `ScreenFit.attach()` gets the view right after it is stored in `m_MainView`, before it is added to the layout. */
@@ -98,18 +114,45 @@ internal fun scaleMoveThreshold(touchBegan: MutableMethod) {
 }
 
 /**
+ * The engine calls `EnableMultipleTouch(true)` when it builds its 3D game and `(false)` when it
+ * destroys it. `ScreenFit.gameScene()` gets the activity and the flag first and resizes the engine
+ * and the surface: the screen's own size for the 3D game, the fitted one otherwise.
+ */
+internal fun followGameScene(enableMultipleTouch: MutableMethod) {
+    val registers = enableMultipleTouch.implementation?.registerCount
+        ?: throw PatchException("EnableMultipleTouch has no code")
+    if (registers - 1 > 15) {
+        throw PatchException("EnableMultipleTouch has $registers registers, too many to pass its flag")
+    }
+    enableMultipleTouch.addInstruction(0, "invoke-static {p0, p1}, $SCREEN_FIT->gameScene(Ljava/lang/Object;Z)V")
+}
+
+/** `ScreenFit` keeps the surface format Android reports, to pass the engine a new size itself. */
+internal fun recordSurfaceFormat(surfaceChanged: MutableMethod) {
+    val registers = surfaceChanged.implementation?.registerCount
+        ?: throw PatchException("surfaceChanged has no code")
+    // p0 is this, then the holder, the format, the width and the height.
+    if (registers - 3 > 15) {
+        throw PatchException("surfaceChanged has $registers registers, too many to reach the format")
+    }
+    surfaceChanged.addInstruction(0, "invoke-static {p2}, $SCREEN_FIT->format(I)V")
+}
+
+/**
  * The engine sizes everything from its surface and draws its art unscaled, so on a screen above
  * 720p the menus and text are small and the full screen pictures do not fill it. This gives the
  * engine a surface 720 pixels high, which Android stretches over the screen, and scales touch
- * positions to match (see the extension's `ScreenFit`). Off by default, because the stretched
- * picture is blurrier than the screen's own resolution.
+ * positions to match (see the extension's `ScreenFit`). While the 3D game runs, the surface keeps
+ * the screen's own size: the 3D view fills any surface, so the 3D gameplay stays sharp, with the
+ * HUD the unpatched game has. A screen 720 pixels high or less keeps its own surface, so the
+ * game looks and plays there as it did.
  */
 @Suppress("unused")
 val screenFitPatch = bytecodePatch(
     name = "Render at 720p",
     description = "Makes the menus, text and pictures full size on screens above 720p, where they are " +
-        "otherwise small. The game is drawn at 720p and stretched to the screen, so it looks slightly blurry.",
-    default = false,
+        "otherwise small. Menus are drawn at 720p and stretched to the screen, so they look slightly blurry. " +
+        "The 3D gameplay keeps the screen's own resolution and stays sharp.",
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
 
@@ -119,9 +162,13 @@ val screenFitPatch = bytecodePatch(
         // Find everything first, so an APK that differs from Glu's is refused before any edit.
         val build = OnResDlDoneFingerprint.method
         val touches = TOUCH_METHODS.associateWith { TouchFingerprint(it).method }
+        val enableMultipleTouch = EnableMultipleTouchFingerprint.method
+        val surfaceChanged = SurfaceChangedFingerprint.method
 
         attachToMainView(build)
         scaleMoveThreshold(touches.getValue("touchBegan"))
         touches.values.forEach(::scaleTouch)
+        followGameScene(enableMultipleTouch)
+        recordSurfaceFormat(surfaceChanged)
     }
 }

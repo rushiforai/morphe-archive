@@ -7,6 +7,13 @@ import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.resource.ResourceMode
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
 import org.junit.jupiter.api.io.TempDir
 import org.w3c.dom.Element
 import java.nio.file.Files
@@ -141,6 +148,54 @@ class MaterialYouPatchTest {
                     assertFails { materialYouPatch.execute(context) }
                     classes.forEach { assertSame(it, context.classDefBy(it.type)) }
                     assertFalse(resources.hasTheme())
+                }
+            }
+        }
+    }
+
+    @Test fun branchesAndFallthroughReturnThroughTheThemeHelper(@TempDir temporary: Path) {
+        val routes = mapOf(DARK_SCHEME to "mig(I)I", FDS_COLORS to "fds(I)I", "LX/DarkCheck;" to "darkModeAnswer(Z)Z")
+        for (register in listOf(0, 16)) {
+            val classes = themeClasses().map { cls ->
+                if (cls.type !in routes) cls else {
+                    val method = cls.methods.single()
+                    val prefix = when (cls.type) {
+                        DARK_SCHEME -> "move-object/from16 v1, p1\ninvoke-interface {v1}, LX/Token;->color()I\nmove-result v$register"
+                        FDS_COLORS -> "move-object/from16 v1, p0\ninvoke-static {v1}, LX/DarkCheck;->dark(Landroid/content/Context;)Z\nmove-result v$register\nconst v$register, -0xf7f7f7"
+                        else -> "const/16 v$register, 0x1"
+                    }
+                    ImmutableClassDef.of(fixtureClass(cls.type, listOf(fixtureMethod(method.hookId(), prefix + "\n" + """
+                        if-eqz v$register, :done
+                        packed-switch v$register, :cases
+                        goto :done
+                        :done
+                        return v$register
+                        :cases
+                        .packed-switch 0x1
+                            :done
+                        .end packed-switch
+                    """.trimIndent(), registers = 20, flags = method.accessFlags))))
+                }
+            }
+            withThemeContext(temporary.resolve("register-$register"), classes) { context, _ ->
+                materialYouPatch.execute(context)
+                val dex = DexBackedDexFile(Opcodes.forApi(28), java.nio.ByteBuffer.wrap(lifecycleDex(classes.map { context.classDefBy(it.type) })))
+                for (cls in dex.classes.filter { it.type in routes }) {
+                    val code = cls.methods.single().implementation!!.instructions.toList()
+                    val helper = code.indexOfFirst { (it as? ReferenceInstruction)?.reference.toString() ==
+                        "Lapp/hushmessenger/extension/MaterialYouTheme;->${routes.getValue(cls.type)}" }
+                    assertTrue(helper >= 0)
+                    assertEquals(if (register < 16) Opcode.INVOKE_STATIC else Opcode.INVOKE_STATIC_RANGE, code[helper].opcode)
+                    assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.RETURN), code.drop(helper + 1).take(2).map { it.opcode })
+                    assertEquals(listOf(register, register), code.drop(helper + 1).take(2).map { (it as OneRegisterInstruction).registerA })
+                    for (at in code.indices.filter { code[it].opcode == Opcode.IF_EQZ || code[it].opcode == Opcode.GOTO }) {
+                        assertEquals(helper, code.branchTarget(at), cls.type)
+                    }
+                    val switch = code.indexOfFirst { it.opcode == Opcode.PACKED_SWITCH }
+                    val payload = code[code.branchTarget(switch)] as SwitchPayload
+                    val switchAddress = code.take(switch).sumOf { it.codeUnits }
+                    assertEquals(code.take(helper).sumOf { it.codeUnits }, switchAddress + payload.switchElements.single().offset)
+                    assertTrue(code[helper - 1] is OffsetInstruction)
                 }
             }
         }

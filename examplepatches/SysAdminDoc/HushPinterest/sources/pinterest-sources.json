@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "note": "Public sources reviewed for com.pinterest, with pinned commits, licenses and dispositions. scripts/pinterest-sources.ps1 validates schema version 1, scripts/audit-pinterest-sources.ps1 reports changes, and a local release needs a census from the last 14 days. docs/sources.md is the readable version. The 2026-10-03 native-source review did not refresh the full 2026-10-02 census. On 2026-10-03, GitHub repository search for pinterest org:Xposed-Modules-Repo returned 0. Indexed code searches for \"com.pinterest\" IXposedHookLoadPackage and \"com.pinterest\" XposedHelpers returned 1 and 4 files respectively, all from this project's audit or ktlint build catalogs. All three responses reported incomplete_results=false. No Pinterest hook implementation was identified in those results. These query results do not establish global absence of Xposed or LSPosed modules.",
+  "census": {
+    "checkedAt": "2026-10-02",
+    "skipped": []
+  },
+  "self": {
+    "repository": "https://github.com/SysAdminDoc/HushPinterest"
+  },
+  "officialBundle": {
+    "repository": "https://github.com/MorpheApp/morphe-patches",
+    "branch": "main",
+    "list": "patches-list.json",
+    "packages": []
+  },
+  "indexes": [
+    {
+      "id": "morphe-directory",
+      "name": "Morphe community directory",
+      "url": "https://morphe-patches.software",
+      "hushpinterest": {
+        "status": "not-listed",
+        "checked": "2026-10-02"
+      }
+    },
+    {
+      "id": "awesome-morphe",
+      "name": "Awesome Morphe",
+      "url": "https://github.com/nvbangg/awesome-morphe",
+      "hushpinterest": {
+        "status": "not-listed",
+        "checked": "2026-10-02"
+      }
+    },
+    {
+      "id": "morphe-patch-tracker",
+      "name": "Morphe Patch Tracker",
+      "url": "https://drnx64.github.io/morphe-track-patches/",
+      "hushpinterest": {
+        "status": "not-listed",
+        "checked": "2026-10-02"
+      }
+    },
+    {
+      "id": "jman-bundles",
+      "name": "Jman's ReVanced Patch Bundles",
+      "url": "https://github.com/Jman-Github/ReVanced-Patch-Bundles",
+      "hushpinterest": {
+        "status": "not-listed",
+        "checked": "2026-10-02"
+      }
+    },
+    {
+      "id": "morphe-archive",
+      "name": "Morphe Archive",
+      "url": "https://rushiforai.github.io/morphe-archive/",
+      "hushpinterest": {
+        "status": "not-listed",
+        "checked": "2026-10-02"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "id": "browzomje",
+      "repository": "https://github.com/browzomje/browzomje-patches",
+      "lineage": "browzomje",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.pinterest"
+      ],
+      "targetVersions": {
+        "com.pinterest": [
+          "14.23.0",
+          "14.28.0",
+          "14.32.0",
+          "14.34.0"
+        ]
+      },
+      "patchCounts": {
+        "com.pinterest": 28
+      },
+      "features": [
+        "Disable ads (Disable sponsored pins)",
+        "Hide ad views",
+        "Disable AppsFlyer tracking",
+        "Disable Google Engage (manifest)",
+        "Disable Google Engage worker",
+        "Disable third-party trackers (manifest)",
+        "Neutralize advertising ID",
+        "Sanitize copied links",
+        "Sanitize shared links",
+        "Download video",
+        "Copy direct link",
+        "Set pin as wallpaper",
+        "Download pin from long press",
+        "Download board",
+        "Open links in the default browser",
+        "Use the system share sheet",
+        "Hide screenshot share menu",
+        "Hide search history",
+        "Hide comments",
+        "Hide Create / Notifications / Search nav buttons",
+        "Hide greeting header buttons",
+        "Disable email confirmation dialog",
+        "Morphe settings entry / label / manifest",
+        "Morphe runtime names (native-looking toasts)"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "9dd5c671148f8849966c6369e2a009d5ffb92d45"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/browzomje/patches/pinterest",
+        "extensions/extension/src/main/java/app/template/extension/pinterest"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/browzomje/browzomje-patches/blob/9dd5c671148f8849966c6369e2a009d5ffb92d45/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "The most complete Pinterest source found: 28 Pinterest patches in a 33-patch bundle, release v1.10.0 on 2026-09-03, targeting 14.23.0 through 14.34.0. It filters sponsored pins by Gson field name through reflection instead of naming obfuscated classes, which is why its anchors have survived four builds. The license is GPL-3.0 with Morphe's section 7 name restriction. HushPinterest hasn't ported anything from it. Disable ads and the tracker patches are the ideas to check against 14.25.0. Link rewriting and the download patches are candidates only after review. The Morphe settings row it reports as untappable on Android 15 (issue 41) is a warning for our own settings patch.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "id": "soubryan",
+      "repository": "https://github.com/SouBryan/pinterest-morphed",
+      "lineage": "soubryan",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.pinterest"
+      ],
+      "targetVersions": {
+        "com.pinterest": [
+          "14.20.0",
+          "14.21.0",
+          "14.22.0",
+          "14.23.0",
+          "14.24.0",
+          "14.25.0",
+          "14.26.0",
+          "14.27.0",
+          "14.28.0",
+          "14.29.0",
+          "14.30.0"
+        ]
+      },
+      "patchCounts": {
+        "com.pinterest": 14
+      },
+      "features": [
+        "Hide promoted pins (getter rewrite)",
+        "Hide ad views",
+        "Disable AppsFlyer tracking",
+        "Disable Google Engage integration + worker",
+        "Disable Google Ads SDK",
+        "Disable Bugsnag crash tracking",
+        "Disable Firebase services",
+        "Opt out of Google Analytics",
+        "Remove Advertising ID permission",
+        "Disable Android Privacy Sandbox Ad Services",
+        "Sanitize copied links",
+        "Sanitize sharing links",
+        "Restore Google login (signature spoofing), off by default"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "a33eb3af9a5529d64496e2409b3a5d5ea33e9ccf"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/soubryan/patches/pinterest",
+        "extensions/pinterest/src/main/java/app/soubryan/extension/pinterest"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/SouBryan/pinterest-morphed/blob/a33eb3af9a5529d64496e2409b3a5d5ea33e9ccf/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "Fourteen Pinterest patches, release v1.7.0 on 2026-08-09, with 14.25.0 (14258020) as its recommended build, the same one HushPinterest starts from. It pins the Pinterest signing certificate and anchors on Gson field names and Pinterest-owned class names. Nothing newer since August, and its open issue 10 reports push notifications broken after patching on 14.25.0, which we'll want to compare against. The Google login signature spoofing patch is off by default and isn't something HushPinterest will ship. Its two compiled-APK mirrors are recorded below. Nothing has been ported from it.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [
+        {
+          "repository": "https://github.com/wizardloppy/PinterestMorphe",
+          "reason": "A distribution repository of compiled builds made from this bundle. README only, no source and no license. Its APKs were not downloaded.",
+          "blobs": []
+        },
+        {
+          "repository": "https://github.com/yosraq/PinterestMorphe",
+          "reason": "A second distribution repository of compiled builds made from this bundle. README only, no source and no license. Its APKs were not downloaded.",
+          "blobs": []
+        }
+      ],
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "id": "oyasumi",
+      "repository": "https://github.com/dunecache/oyasumi-patches",
+      "lineage": "oyasumi",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.pinterest"
+      ],
+      "targetVersions": {
+        "com.pinterest": [
+          "14.38.0"
+        ]
+      },
+      "features": [
+        "Disable AppsFlyer tracking",
+        "Disable Google Engage",
+        "Disable email confirmation dialog",
+        "Hide Search nav button",
+        "Morphe settings entry",
+        "Morphe settings screen (label)",
+        "Morphe settings screen (manifest)",
+        "Neutralize advertising ID"
+      ],
+      "patchCounts": {
+        "com.pinterest": 8
+      },
+      "branches": [
+        {
+          "name": "dev",
+          "commit": "6465d7af8460692b8eca63a18eb30a23aba73b59"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/pinterest/patches",
+        "extensions/extension/src/main/java/app/oyasumi/extension"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/dunecache/oyasumi-patches/blob/6465d7af8460692b8eca63a18eb30a23aba73b59/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "Pinterest work lives on the dev branch only. Reviewed dev 6465d7af8460692b8eca63a18eb30a23aba73b59, released as prerelease v0.6.0-dev.10 on 2026-10-03, lists eight patches for 14.38.0 (14388010). It now includes the settings entry and its extension activity, plus an optional Search navigation button patch. Stable v0.5.3, published 2026-09-30 from main f419de56016295da9adab0b6c1a3d9bc6efb0e44, lists no Pinterest patches. The version helper compares numeric components. Its code and settings changes have been studied, not adopted or exercised by HushPinterest.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-10-03"
+    },
+    {
+      "id": "mubelotix",
+      "repository": "https://github.com/Mubelotix/my-morphe-patches",
+      "lineage": "mubelotix",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.pinterest"
+      ],
+      "targetVersions": {
+        "com.pinterest": [
+          "14.23.0"
+        ]
+      },
+      "features": [
+        "Remove GMA ads",
+        "Remove promoted content"
+      ],
+      "patchCounts": {
+        "com.pinterest": 2
+      },
+      "branches": [
+        {
+          "name": "main",
+          "commit": "8b6f75e226634c6a0b4031bba6cda1de7db146a0"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/revanced/patches/pinterest"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/Mubelotix/my-morphe-patches/blob/8b6f75e226634c6a0b4031bba6cda1de7db146a0/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "Reviewed main 8b6f75e226634c6a0b4031bba6cda1de7db146a0 and stable v1.0.2, published 2026-10-02. GitHub redirects its old name Mubelotix/my-revanced-patches to this canonical repository. Its two Pinterest patches declare 14.23.0 only. Remove GMA ads returns false from the ads experiment, and Remove promoted content changes the promotion predicates and Shop the Look method. Both source files import Morphe's patcher API despite retaining the app.revanced package. The pinned GPL-3.0 license hash was verified. No code has been adopted and 14.23.0 is not a HushPinterest target.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [
+        "9bf7d457b88478a0a40ca6b9a1bdd4d7aa0bc8c7",
+        "88182af2462cc04e3b5eac3809ae4dd1bd746ee5",
+        "773083b073e7dfd4e464ad60798323ee32a7fa4f",
+        "b0c3db70d418aa83bb88a7907b7ff5dcf53c0c76"
+      ],
+      "mirrors": [],
+      "lastChecked": "2026-10-03"
+    },
+    {
+      "id": "insane96",
+      "repository": "https://github.com/Insane96/Pinterest-patch",
+      "lineage": "insane96",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.pinterest"
+      ],
+      "targetVersions": {
+        "com.pinterest": [
+          "14.35.0"
+        ]
+      },
+      "features": [
+        "Hide promoted pins (skip List.add in PinDeserializer)"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "fe524f6be9842427e6c7070004b24fae2c0f4d14"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/insane96/patches/pinterest"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/Insane96/Pinterest-patch/blob/fe524f6be9842427e6c7070004b24fae2c0f4d14/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "One patch, v1.0.0 on 2026-09-13, built against the APKMirror 14.35.0 APK. It skips List.add inside the pin deserializer using an obfuscated class name and hard-coded registers, so it's the most version-fragile design in the census and the registers would have to be worked out again for any other build. The idea (drop promoted pins where the list is built) is worth knowing. The code isn't worth porting. The README is still template text.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "id": "koi",
+      "repository": "https://github.com/secp192k1/koi-patches",
+      "lineage": "koi",
+      "upstream": null,
+      "kind": "revanced-patches",
+      "packages": [
+        "com.pinterest"
+      ],
+      "targetVersions": {
+        "com.pinterest": []
+      },
+      "features": [
+        "Disable ads (null ad fields in PinCloseupBaseModule ctor)"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "f6f527b04561d9bc0d80471f16425261a2a62d97"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/dev/alphexo/patches/pinterest"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/secp192k1/koi-patches/blob/f6f527b04561d9bc0d80471f16425261a2a62d97/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "The only ReVanced-API source for Pinterest: one Disable ads patch added 2026-04-29, with no version pinned and no release checked. It nulls ad fields in a closeup module constructor by un-obfuscated field names, which may mean an older build or may mean the names come from the Gson model. Unverified on any current build, so it stays a pointer, not a source.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "id": "binarymend",
+      "repository": "https://github.com/binarymend/morphe-patches",
+      "lineage": "binarymend",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.pinterest"
+      ],
+      "targetVersions": {
+        "com.pinterest": [
+          "14.11.0"
+        ]
+      },
+      "features": [
+        "Remove Promoted Pins",
+        "Disable Bugsnag Telemetry",
+        "Disable General Telemetry"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "9f3d71efccff6704a0a800cc38c494ef27ff32b2"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/morphe/patches/pinterest"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/binarymend/morphe-patches/blob/9f3d71efccff6704a0a800cc38c494ef27ff32b2/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "rejected",
+      "reason": "A 150-star multi-app bundle (v1.3.1) whose Pinterest patches pin obfuscated names from 14.11.0 and haven't changed since April. None of those anchors will match 14.25.0 or anything after it. Its open issues (Google login broken after patching, links not opening in the default browser) are worth reading as warnings. Licensed, but there's nothing here to take.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "id": "satanmerde",
+      "repository": "https://github.com/SatanMerde/D-moniakPatches",
+      "lineage": "satanmerde",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.pinterest"
+      ],
+      "targetVersions": {
+        "com.pinterest": []
+      },
+      "features": [
+        "Block Promoted Pins & Ads (Experimental)",
+        "Direct Media Download (Experimental)",
+        "Unlock Creator & Pro Tools (Experimental)"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "78f467515d293c288f20e6146959f677e3b9e9c7"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/com/dmoniak/patches/pinterest"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/SatanMerde/D-moniakPatches/blob/78f467515d293c288f20e6146959f677e3b9e9c7/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "rejected",
+      "reason": "A large multi-app bundle (v1.36.0). Its three Pinterest patches are marked experimental and untested in its own README, and they scan every class for unobfuscated method names that don't exist in a minified Pinterest build (isCreatorToolsEnabled, canDownloadOriginalImage) or for generic SDK names like show and loadAd. They'd hook nothing or the wrong thing. No versions are declared. Its Unlock Creator & Pro Tools patch is also one HushPinterest wouldn't ship.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-10-02"
+    }
+  ],
+  "outOfScope": [
+    {
+      "repository": "https://github.com/ReVanced/revanced-patches",
+      "reason": "ReVanced's official bundle. GitHub blocked the repository (HTTP 451, a DMCA notice filed 2026-03-12), so its tree and history couldn't be read. Indirect evidence says it has no Pinterest patch: none of the 367 bundle patch lists tracked by Jman-Github/ReVanced-Patch-Bundles names com.pinterest apart from the five Morphe sources, and code search of its forks returns nothing. That's a gap in what we could verify, not a finding.",
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "repository": "https://github.com/anddea/revanced-patches",
+      "reason": "A ReVanced fork. A git tree scan finds no path containing pinterest, and code search finds nothing (checked 2026-10-02).",
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "repository": "https://github.com/inotia00/revanced-patches",
+      "reason": "A ReVanced fork, branch revanced-extended. A git tree scan finds no path containing pinterest, and code search finds nothing (checked 2026-10-02).",
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "repository": "https://github.com/crimera/piko",
+      "reason": "A ReVanced fork for other apps. A git tree scan finds no path containing pinterest, and code search finds nothing (checked 2026-10-02).",
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "repository": "https://github.com/yashrajrocxx/Mophe-AutoBuilds",
+      "reason": "Build automation that publishes ready-made patched APKs, including an arm64 build of browzomje's bundle at 14.34.0. It holds no patch code of its own. Its config is the evidence that anyone is distributing a patched Pinterest. Read at dda8c7d, not downloaded.",
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "repository": "https://github.com/netwxxt/block_pin_ads",
+      "reason": "A mitmproxy script (GPL-3.0) that deletes any JSON object carrying an ad indicator key. Aimed at iOS but the API is shared, so it's evidence of the server's field names. It needs a trusted user certificate or a pinning bypass on Android, which a Morphe patch can't use.",
+      "lastChecked": "2026-10-02",
+      "reference": {
+        "kind": "historical",
+        "branch": "main",
+        "commit": "88f2da182ac4b3c9b9c75ef48a4ee46d2d8f0b5f",
+        "archived": false,
+        "verifiedAt": "2026-10-02",
+        "archivedAt": null
+      }
+    },
+    {
+      "repository": "https://github.com/authorisation/xterest",
+      "reason": "An iOS Theos tweak (GPL-3.0), last touched 2024-10-02. It hooks PINPinNode and returns nil when the pin type is 2, which shows that Pinterest's own display type 2 means promoted on iOS. Not applicable to Android.",
+      "lastChecked": "2026-10-02",
+      "reference": {
+        "kind": "historical",
+        "branch": "main",
+        "commit": "dc294079d77db4ef61accc442897ef263da26e13",
+        "archived": false,
+        "verifiedAt": "2026-10-02",
+        "archivedAt": null
+      }
+    },
+    {
+      "repository": "https://github.com/Angel2mp3/Pinterest-Power-Menu",
+      "reason": "A web userscript (MIT). Its only use for the Android app is the set of labels Pinterest's web client puts on ads: Sponsored, Sponsored Content, Partner Content, Promoted. It has no hook for the app.",
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "repository": "https://github.com/goosetea04/pinterest-sponsor-blocker",
+      "reason": "A web browser extension (MIT) that blocks sponsored pins on pinterest.com. Web only, nothing to take for the app beyond the same ad labels.",
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "repository": "https://github.com/x7007x/PinterestDownloader",
+      "reason": "A Python library (MIT) that calls Pinterest's web resource endpoints without a key. A reference for media fields only: image sizes 236x, 474x, 736x and orig, and the video_list keys V_720P, V_HLSV4 and V_HLSV3_MOBILE, the same ones the app's model uses.",
+      "lastChecked": "2026-10-02"
+    },
+    {
+      "repository": "https://github.com/motebaya/pindl-app",
+      "reason": "A Flutter downloader app (MIT) built on the same web endpoints as x7007x/PinterestDownloader. A reference for media fields, not a patch source.",
+      "lastChecked": "2026-10-02"
+    }
+  ]
+}

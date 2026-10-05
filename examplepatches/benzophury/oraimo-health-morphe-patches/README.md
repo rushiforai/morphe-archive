@@ -21,15 +21,15 @@ This patch suite converts the Oraimo Health application into a clean, dedicated,
 ## Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.0](https://github.com/benzophury/oraimo-health-morphe-patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.10.0](https://github.com/benzophury/oraimo-health-morphe-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 oraimo health&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.0.4 |
-| :---: |
+| 2.0.4 | 2.0.6 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -48,7 +48,7 @@ This patch suite converts the Oraimo Health application into a clean, dedicated,
 
 | Package Name | Supported App Version |
 | :--- | :--- |
-| `com.transsion.oraimohealth` | `2.0.4` |
+| `com.transsion.oraimohealth` | `2.0.4`, `2.0.6` |
 
 ---
 
@@ -57,7 +57,7 @@ This patch suite converts the Oraimo Health application into a clean, dedicated,
 ### Using Morphe Manager (Android)
 1. Open **Morphe Manager** on your Android device.
 2. Add this repository under **Sources**: `https://github.com/benzophury/oraimo-health-morphe-patches`
-3. Select `oraimo_Health.apk` (v2.0.4).
+3. Select `oraimo_Health.apk` (v2.0.4 or v2.0.6).
 4. Verify all 4 patches are selected.
 5. Tap **Patch** and install.
 

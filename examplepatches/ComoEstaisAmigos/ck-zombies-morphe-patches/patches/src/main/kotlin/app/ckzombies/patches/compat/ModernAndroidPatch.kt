@@ -26,5 +26,6 @@ val modernAndroidPatch = bytecodePatch(
         openFeintPatch,
         deadServiceRequestsPatch,
         obbMessagePatch,
+        touchEdgePatch,
     )
 }

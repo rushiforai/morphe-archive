@@ -203,6 +203,8 @@ public abstract class Setting<T> {
      * The value of the setting.
      */
     protected volatile T value;
+    /** Process-local write identity, including a choice changed away and then back. */
+    long savedRevision; // Guarded by Setting.class, including framework preference callbacks.
 
     /**
      * Pause HushGram, decided once when the process starts (see {@link HushgramPause}). While it
@@ -347,8 +349,10 @@ public abstract class Setting<T> {
      * This intentionally is a static method to deter
      * accidental usage when {@link #save(Object)} was intended.
      */
-    public static void privateSetValueFromString(Setting<?> setting, String newValue) {
+    public static synchronized void privateSetValueFromString(Setting<?> setting, String newValue) {
+        Object previous = setting.value;
         setting.setValueFromString(newValue);
+        if (!previous.equals(setting.value)) setting.savedRevision++;
 
         // Clear the preference value since default is used, to allow changing
         // the default for a future release.  Without this after upgrading
@@ -401,6 +405,7 @@ public abstract class Setting<T> {
                 return false;
             }
             newValue = coerce(Objects.requireNonNull(newValue));
+            savedRevision++;
             if (value.equals(newValue)) {
                 return true;
             }
@@ -482,6 +487,10 @@ public abstract class Setting<T> {
         return defaultValue;
     }
 
+    public final long savedRevision() {
+        synchronized (Setting.class) { return savedRevision; }
+    }
+
     /** A batch that didn't land. Whether every setting it named is back on its value from before is known and said. */
     public static final class BatchFailed extends java.io.IOException {
         /** Every setting the batch named holds its value from before, live and in the store. */
@@ -521,6 +530,7 @@ public abstract class Setting<T> {
             previous.put(setting, setting.savedValue());
         }
         Throwable failure = null;
+        for (Setting<?> setting : bounded.keySet()) setting.savedRevision++;
         boolean committing = false;
         try {
             var editor = stage(bounded);

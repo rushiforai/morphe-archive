@@ -198,14 +198,18 @@ class ShortcutCallsTest {
     @Test
     fun theSettingsPatchSendsEveryCallOutsideTheExtension() {
         val threads = "Lfixture/ShortcutPublisher;"
-        val context = PatchContexts.of(SettingsPatchHosts.all() + publisher(threads) + publisher(ENTRY))
+        val extension = ImmutableClassDef.of(ExtensionDex.classDef(ENTRY)).let { entry ->
+            ImmutableClassDef(entry.type, entry.accessFlags, entry.superclass, entry.interfaces,
+                entry.sourceFile, entry.annotations, entry.fields, entry.methods + publisher(ENTRY).methods)
+        }
+        val context = PatchContexts.of(SettingsPatchHosts.all() + publisher(threads) + extension)
 
         settingsPatch.execute(context)
 
         val sent = context.mutableClassDefBy(threads).methods.single().instructions()
         assertEquals("framework calls left in Telegram's code", emptyList<String>(), sent.mapNotNull { it.frameworkCall() })
         assertEquals("stand-ins in Telegram's code", SHORTCUT_CALLS.keys.sorted(), sent.mapNotNull { it.standInCall() }.sorted())
-        val kept = context.mutableClassDefBy(ENTRY).methods.single().instructions()
+        val kept = context.mutableClassDefBy(ENTRY).methods.single { it.name == "publish" }.instructions()
         assertEquals("the extension's own calls", SHORTCUT_CALLS.keys.sorted(), kept.mapNotNull { it.frameworkCall() }.sorted())
         assertEquals("stand-ins in the extension", emptyList<String>(), kept.mapNotNull { it.standInCall() })
     }
@@ -251,7 +255,7 @@ class ShortcutCallsTest {
                     callers.none { caller -> hosts.any { it.type == caller.type } },
                 )
 
-                val context = PatchContexts.of(hosts + callers)
+                val context = PatchContexts.of(ExtensionDex.classes() + hosts + callers)
                 settingsPatch.execute(context)
 
                 val sent = mutableMapOf<String, Int>()

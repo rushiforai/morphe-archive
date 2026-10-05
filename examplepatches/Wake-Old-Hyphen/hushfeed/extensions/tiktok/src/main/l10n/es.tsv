@@ -621,7 +621,7 @@ Last original value	Último valor original
 Last recording: %1$d gates.	Última grabación: %1$d interruptores.
 Last recording: 1 gate.	Última grabación: 1 interruptor.
 Layout	Diseño
-Layout, player, search and system	Diseño, reproductor, búsqueda y sistema
+Layout, search, profile and system	Diseño, búsqueda, perfil y sistema
 Leave maximum empty to keep it unlimited.	Deja el máximo vacío para que no tenga límite.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.	Dejar el sonido fuera del vídeo guardado. Guardar también el sonido sigue escribiendo el .m4a al lado si quieres los dos.
 Length and views per like	Duración y visualizaciones por me gusta
@@ -897,7 +897,6 @@ Saving the story	Guardando la historia
 Saving the sound	Guardando el sonido
 Saving the profile picture	Guardando la foto de perfil
 Saving the live photo's clip	Guardando el clip de la foto en vivo
-Screen	Pantalla
 Screen time	Tiempo de pantalla
 Search	Búsqueda
 Search by name, description or category.	Busca por nombre, descripción o categoría.
@@ -1330,6 +1329,8 @@ Stopping after this file	Se detendrá después de este archivo
 Waiting to save %1$s files	Esperando para guardar %1$s archivos
 Waiting to save one file	Esperando para guardar un archivo
 Save cancelled. Nothing was saved.	Guardado cancelado. No se guardó nada.
+The server asked us to wait. Try again later.	El servidor nos pidió que esperáramos. Inténtalo más tarde.
+Saved %1$s of %2$s. The server asked us to wait. Try again later.	Se guardaron %1$s de %2$s. El servidor nos pidió que esperáramos. Inténtalo más tarde.
 One more save waiting	Un guardado más en espera
 %1$s more saves waiting	%1$s guardados más en espera
 Starts after one other save	Empieza después de otro guardado
@@ -1430,7 +1431,6 @@ Problem detected.	Se detectó un problema.
 Couldn't save these choices. Try again.	No se pudieron guardar estas opciones. Inténtalo de nuevo.
 Clearing seen videos	Borrando los vídeos vistos
 Couldn't clear seen videos. Try again.	No se pudieron borrar los vídeos vistos. Inténtalo de nuevo.
-Background play	Reproducción en segundo plano
 Keep playing in the background	Seguir reproduciendo en segundo plano
 The video you're watching keeps playing to its end after you leave TikTok or turn the screen off, with TikTok's own media notification to pause it. TikTok's background play switch stays on while this is on. Restart TikTok to apply this.	El video que estás viendo sigue reproduciéndose hasta el final cuando sales de TikTok o apagas la pantalla, y puedes pausarlo desde la notificación multimedia de TikTok. El interruptor de reproducción en segundo plano de TikTok sigue activado mientras esto esté activado. Reinicia TikTok para que se aplique.
 Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.	Seguir reproduciendo en segundo plano está activado en los ajustes de Reproducción de Hushfeed, así que TikTok recibe 2 para esta clave y una sustitución aquí no tiene efecto hasta que desactives ese interruptor.
@@ -1459,7 +1459,6 @@ A different account is signed in. Switch back to the one you set this up on, or 
 TikTok's messages didn't start in time. It tries again at %1$s.	Los mensajes de TikTok no arrancaron a tiempo. Se vuelve a intentar a las %1$s.
 The message didn't go through. It tries again at %1$s.	El mensaje no se envió. Se vuelve a intentar a las %1$s.
 Found %1$s in your chats.	%1$s está en tus chats.
-App checks	Comprobaciones de la app
 Look like the store app to TikTok's checks	Aparentar ser la app de la tienda ante las comprobaciones de TikTok
 Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.	Responde a las comprobaciones de TikTok sobre cómo se firmó e instaló como lo haría la app de Play Store. Para seguidos o me gusta que se deshacen solos al actualizar. TikTok también puede comprobarlo desde código nativo que esto no alcanza, así que puede que no sirva.
 Add apps to Share via	Añadir apps a Compartir con
@@ -1505,3 +1504,8 @@ Don't save new searches	No guardar búsquedas nuevas
 Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.	Evita que lo que buscas se añada al historial de búsqueda que TikTok guarda en este teléfono. Las búsquedas que ya están se conservan hasta que las borres, y los servidores de TikTok pueden seguir guardando su propio registro.
 Block suggested video notifications	Bloquear las notificaciones de videos sugeridos
 Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.	Detiene las notificaciones que TikTok envía sobre videos populares que eligió para ti. Los mensajes, comentarios, Me gusta, nuevos seguidores y videos de las cuentas que sigues siguen llegando.
+Buttons on videos	Botones en los videos
+
+Seen videos put back: %1$s of %2$s	Vídeos vistos recuperados: %1$s de %2$s
+No cleared videos fit the current history limits.	Ningún vídeo borrado cabe dentro de los límites actuales del historial.
+Putting seen videos back	Recuperando vídeos vistos

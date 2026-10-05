@@ -44,8 +44,7 @@ enum class TargetApp(
         packageName = Constants.GBOARD_PACKAGE_NAME,
         candidateFilenames = listOf(
             "gboard-${Constants.GBOARD_TARGET_VERSION}.apk",
-            "gboard-18.2.4.969776716-lite_beta-arm64-v8a.apk",
-            "gboard-18.2.4.969776716-lite_beta-armeabi-v7a.apk",
+            "gboard-${Constants.GBOARD_TARGET_VERSION_V7A}.apk",
         ),
         filePattern = Regex("(?i).*gboard.*\\.apk$"),
         patchDirectoryPart = "gboard",
@@ -170,7 +169,10 @@ private fun findApkForTarget(target: TargetApp, searchDirs: List<File>): File? {
         }
     }
     for (dir in searchDirs) {
-        val matched = dir.listFiles { f -> f.isFile && target.filePattern.containsMatchIn(f.name) }
+        // Never fall back to an output of a previous run: re-patching a patched APK hides fingerprint drift.
+        val matched = dir.listFiles { f ->
+            f.isFile && target.filePattern.containsMatchIn(f.name) && !f.name.contains("patched", ignoreCase = true)
+        }
             ?.maxByOrNull { it.lastModified() }
         if (matched != null) return matched
     }
@@ -423,6 +425,17 @@ fun main(args: Array<String>) {
             if (!patchNameFilter.isNullOrEmpty()) " matching '$patchNameFilter'" else ""
     }
 
+    if (System.getProperty("allOptions").toBoolean()) {
+        var forced = 0
+        targetPatches.forEach { patch ->
+            patch.options.values.filter { it.default is Boolean }.forEach { option ->
+                patch.options[option.key] = true
+                forced++
+            }
+        }
+        println("[INFO] allOptions: forced $forced boolean patch option(s) to true.")
+    }
+
     println("Loaded ${targetPatches.size} patch(es) for ${targetApp.appName} from ${patchFiles.first().name}:")
     targetPatches.sortedBy { it.name }.forEach { println("  • ${it.name}") }
 
@@ -549,6 +562,11 @@ fun main(args: Array<String>) {
     val originalOut = System.out
     val originalErr = System.err
     val fingerprintErrors = java.util.concurrent.CopyOnWriteArrayList<String>()
+    // The inline smali tree walker only reports semantic errors (e.g. "[6,8] Invalid register: v22")
+    // to stderr and silently drops the offending instruction, so they must be caught here.
+    val smaliErrorPattern = Regex("""^\[\d+,\d+] .+""")
+    val pendingSmaliErrors = java.util.concurrent.CopyOnWriteArrayList<String>()
+    val smaliCompileErrors = mutableListOf<String>()
 
     class InterceptingOutputStream(val delegate: OutputStream) : OutputStream() {
         private val buffer = ByteArrayOutputStream()
@@ -577,6 +595,10 @@ fun main(args: Array<String>) {
         }
 
         private fun checkLine(line: String) {
+            if (smaliErrorPattern.matches(line.trim())) {
+                pendingSmaliErrors.add(line.trim())
+                return
+            }
             val lower = line.lowercase()
             if (line.startsWith("Detected Fingerprint Failures:") || line.startsWith("[ERROR]") || line.startsWith("FINAL PATCHING RESULT")) return
             if (lower.contains("failed to match the fingerprint") || (lower.contains("fingerprint mismatch") && !line.startsWith("Detected Fingerprint Failures:"))) {
@@ -607,6 +629,10 @@ fun main(args: Array<String>) {
             patcher().collect { result ->
                 totalPatches++
                 val patchName = result.patch.name ?: "Unknown"
+                if (pendingSmaliErrors.isNotEmpty()) {
+                    pendingSmaliErrors.forEach { smaliCompileErrors.add("$patchName: $it") }
+                    pendingSmaliErrors.clear()
+                }
                 if (result.exception == null) {
                     successfulPatches++
                     println("[PASS] $patchName")
@@ -629,9 +655,12 @@ fun main(args: Array<String>) {
         println("Successful:    $successfulPatches")
         println("Failed:        $failedPatches")
         println("Detected Fingerprint Failures: ${fingerprintErrors.size}")
+        println("Detected Smali Compile Errors: ${smaliCompileErrors.size}")
 
-        if (failedPatches == 0 && fingerprintErrors.isEmpty()) {
+        if (failedPatches == 0 && fingerprintErrors.isEmpty() && smaliCompileErrors.isEmpty()) {
             println("\n[BUILD] Compiling modified bytecode & assets via patcher.get()...")
+            File(tempDir, "patched/dex").mkdirs()
+            File(tempDir, "patched/originalDex").mkdirs()
             val patcherResult = patcher.get()
             println("[BUILD] Compiled ${patcherResult.dexFiles.size} DEX files successfully.")
 
@@ -649,24 +678,29 @@ fun main(args: Array<String>) {
                 val unsignedApk = File(tempDir, "unsigned-work.apk")
                 actualApkFile.copyTo(unsignedApk, overwrite = true)
                 println("\n[PACK] Applying patcher result to APK (source: ${unsignedApk.length()} bytes)...")
+                val maxVersionCode = System.getProperty("maxVersionCode") == "true" || System.getenv("MAX_VERSION_CODE") == "true"
+                var manifestSynced = false
                 patcherResult.applyTo(unsignedApk)
                 patcherResult.resources.resourcesApk?.let { resApk ->
                     java.util.zip.ZipFile(resApk).use { resZip ->
                         val manifestEntry = resZip.getEntry("AndroidManifest.xml")
                         if (manifestEntry != null) {
-                            val manifestBytes = resZip.getInputStream(manifestEntry).readBytes()
+                            val rawManifestBytes = resZip.getInputStream(manifestEntry).readBytes()
+                            // Apply the versionCode override in the same pass so the APK zip is rewritten only once.
+                            val manifestBytes = if (maxVersionCode) setBinaryXmlVersionCode(rawManifestBytes, Int.MAX_VALUE) else rawManifestBytes
                             val uri = java.net.URI.create("jar:" + unsignedApk.toURI())
                             val env = mapOf("create" to "false")
                             java.nio.file.FileSystems.newFileSystem(uri, env).use { fs ->
                                 val targetManifest = fs.getPath("AndroidManifest.xml")
                                 java.nio.file.Files.write(targetManifest, manifestBytes)
                             }
+                            manifestSynced = true
                             println("[PACK] Synchronized patched AndroidManifest.xml from resources.apk (${manifestBytes.size} bytes)")
+                            if (maxVersionCode) println("[PACK] Overrode AndroidManifest.xml versionCode -> 2147483647 (Int.MAX_VALUE)")
                         }
                     }
                 }
-                val maxVersionCode = System.getProperty("maxVersionCode") == "true" || System.getenv("MAX_VERSION_CODE") == "true"
-                if (maxVersionCode) {
+                if (maxVersionCode && !manifestSynced) {
                     val uri = java.net.URI.create("jar:" + unsignedApk.toURI())
                     val env = mapOf("create" to "false")
                     java.nio.file.FileSystems.newFileSystem(uri, env).use { fs ->
@@ -754,7 +788,7 @@ fun main(args: Array<String>) {
                         val splitApkEntries = apkmZip.entries().asSequence()
                             .filter { it.name.endsWith(".apk", ignoreCase = true) && it.name != baseEntry?.name }
                             .toList()
-                        for (splitEntry in splitApkEntries) {
+                        splitApkEntries.parallelStream().forEach { splitEntry ->
                             val rawSplitFile = File(tempDir, splitEntry.name)
                             apkmZip.getInputStream(splitEntry).use { input ->
                                 rawSplitFile.outputStream().buffered().use { output -> input.copyTo(output) }
@@ -839,6 +873,12 @@ fun main(args: Array<String>) {
         println("\n[ERROR] Unresolved fingerprint mismatches detected during patch execution (${fingerprintErrors.size}):")
         fingerprintErrors.forEach { println("  • $it") }
         error("Patcher execution failed: ${fingerprintErrors.size} fingerprint mismatch(es) detected! A patch update or creation is NEVER complete until 100% of fingerprints resolve cleanly.")
+    }
+
+    if (smaliCompileErrors.isNotEmpty()) {
+        println("\n[ERROR] Inline smali compile errors detected; the offending instructions were dropped (${smaliCompileErrors.size}):")
+        smaliCompileErrors.forEach { println("  • $it") }
+        error("Patcher execution failed: ${smaliCompileErrors.size} inline smali compile error(s) detected! Non-range invokes cannot address registers above v15; use the /range form or move values into low registers.")
     }
 
     if (failedPatches > 0) {

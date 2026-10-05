@@ -2,7 +2,24 @@
 
 ## Unreleased
 
-Development build 0.20.0. The public release remains 0.14.0.
+Development build 0.20.1. The public release remains 0.14.0.
+
+- The full compatibility check now requires the exact stock APKs. Community fixtures use recorded stock identities, and media replay goes through shared discovery. Tests track fixture changes and reject duplicate builds that would leave another build untested.
+- File tests now share Android's atomic-replace semantics on Windows, check post-commit read failures, and cover nonseekable restores on Android 16. Community discovery also reuses its constructor identifier in both scans.
+
+- Retained unsent markers are capped at 4,096 IDs and no longer share the settings monitor. This only prunes markers, never message content.
+- Choices saves check media-row ownership before opening the destination for writing. A picker can't use a Messenger-owned MediaStore row to overwrite its content.
+- An original-photo success callback that throws no longer receives a second failure callback or loses the copy it was handed.
+
+- Theme return hooks keep incoming branches attached to the color helper. Menu binding rejects reused holder registers before making changes, and the story Save helper is retained even when the patcher has already cached direct methods.
+
+- Community filtering preserves the native list type and checks backward and switch branches before reusing temporary values. Screenshot support now stays unavailable if any matching viewer method changes, even when the original methods still exist. Other controls remain available.
+
+- Profile recording now parses the rebuilt manifest, resource table and every DEX. A successful Desktop report and valid ZIP are no longer enough to accept malformed APK contents.
+
+- Changed media-viewer or community code now leaves those controls unavailable while other patches can still apply. Community discovery runs once during setup and reuses fixed method identifiers while checking the APK. Manager 1.33.0 applied all 33 patches to Messenger 581 at its unchanged 640 MB limit, with a 288 MB peak.
+
+- Closing settings or canceling an update check no longer waits for a slow cache write. Pending writes from canceled checks are discarded, and an older write cannot replace a newer result.
 
 - Saving choices continues through rotation or closing settings, with the same 30-second limit and a completion or failure message. Closing the screen no longer cancels a save after its destination may have been emptied. Restores still cancel when settings close.
 

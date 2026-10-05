@@ -165,6 +165,8 @@ public final class SettingsDialog extends DialogFragment {
         title.setTextColor(foreground());
         title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+        title.setAutoSizeTextTypeUniformWithConfiguration(16, 24, 1, TypedValue.COMPLEX_UNIT_SP);
+        title.setMaxLines(1);
         title.setPaddingRelative(dp(8), 0, 0, 0);
         title.setAccessibilityHeading(true);
         bar.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -219,13 +221,16 @@ public final class SettingsDialog extends DialogFragment {
         clear.setBackgroundColor(Color.TRANSPARENT);
         clear.setPadding(dp(12), dp(12), dp(12), dp(12));
         clear.setContentDescription(L10n.t("Clear search"));
-        clear.setVisibility(View.INVISIBLE);
+        // At large text sizes an empty button's reserved width cuts off the search hint.
+        int emptyClearVisibility = getResources().getConfiguration().fontScale >= 1.5f
+                ? View.GONE : View.INVISIBLE;
+        clear.setVisibility(emptyClearVisibility);
         clear.setOnClickListener(ignored -> search.setText(""));
         searchBox.addView(clear, new LinearLayout.LayoutParams(dp(48), dp(48)));
         search.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
-                clear.setVisibility(text.length() == 0 ? View.INVISIBLE : View.VISIBLE);
+                clear.setVisibility(text.length() == 0 ? emptyClearVisibility : View.VISIBLE);
                 HushfacebookPreferenceFragment page = page();
                 if (!settingSearch && page != null && page.navigation != null) page.navigation.search(text.toString());
             }
@@ -261,6 +266,7 @@ public final class SettingsDialog extends DialogFragment {
 
     void showPage(CharSequence title, boolean home, String query) {
         pageTitle.setText(title);
+        pageTitle.setMaxLines(home ? 1 : Integer.MAX_VALUE);
         searchBox.setVisibility(home ? View.VISIBLE : View.GONE);
         settingSearch = true;
         if (!search.getText().toString().equals(query)) search.setText(query);

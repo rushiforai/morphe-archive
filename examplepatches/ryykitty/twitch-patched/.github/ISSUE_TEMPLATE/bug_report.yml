@@ -1,0 +1,50 @@
+name: Bug or ad report
+description: Report ads, broken features, crashes or missing player coverage.
+title: "bug: "
+labels: [bug]
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: Twitch and patch-bundle versions
+      description: Include the Twitch version and bundle version or build identifier.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+    validations:
+      required: true
+  - type: textarea
+    id: selection
+    attributes:
+      label: Selected patches and settings
+      description: Include patches applied to the APK and relevant runtime toggles.
+    validations:
+      required: true
+  - type: dropdown
+    id: player
+    attributes:
+      label: Player or app surface
+      options:
+        - Classic Split with Vertical View option
+        - Vertical View
+        - Legacy Classic Split
+        - Swipe feed
+        - Settings or other surface
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Behavior and reproduction
+      description: Describe what happened and how to reproduce it. For ads, include the approximate time and whether you saw ad video, a countdown or a support banner.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Optional evidence
+      description: Logs, screenshots and channel information, if available.

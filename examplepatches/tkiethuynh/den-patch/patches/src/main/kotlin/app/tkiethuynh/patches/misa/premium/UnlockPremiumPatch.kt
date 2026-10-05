@@ -3,6 +3,12 @@ package app.tkiethuynh.patches.misa.premium
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.tkiethuynh.patches.shared.Constants.COMPATIBILITY_MISA
+import app.tkiethuynh.patches.shared.RETURN_TRUE_BODY
+
+private const val RETURN_FALSE_BODY = """
+    const/4 v0, 0x0
+    return v0
+"""
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
@@ -13,44 +19,13 @@ val unlockPremiumPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_MISA)
 
     execute {
-        UserSettingIsPremiumFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """
-        )
+        listOf(
+            userSettingIsPremiumFingerprint,
+            userSettingIsRemovedAdsFingerprint,
+            userInfoIsPremiumFingerprint,
+            userInfoIsRemovedAdsFingerprint
+        ).forEach { it.method.addInstructions(0, RETURN_TRUE_BODY) }
 
-        UserSettingIsRemovedAdsFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """
-        )
-
-        UserSettingIsShowUpgradePremiumFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """
-        )
-
-        UserInfoIsPremiumFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """
-        )
-
-        UserInfoIsRemovedAdsFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """
-        )
+        userSettingIsShowUpgradePremiumFingerprint.method.addInstructions(0, RETURN_FALSE_BODY)
     }
 }

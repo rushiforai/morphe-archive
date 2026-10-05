@@ -258,7 +258,7 @@ Turn on Default playback quality to use this choice.	이 옵션을 사용하려�
 Updating remembered positions...	저장된 위치를 업데이트하는 중...
 Undo cleared positions	위치 지우기 실행 취소
 Clear remembered positions	저장된 위치 지우기
-You can restore the cleared positions once within 10 seconds.	삭제한 재생 위치는 10초 이내에 한 번 복원할 수 있습니다
+Undo is available until %1$s.	%1$s까지 실행 취소할 수 있습니다.
 Up to 200 positions, kept for 30 days. Tap to clear them from this device.	최대 200개의 재생 위치를 30일 동안 보관할 수 있습니다. 탭하면 이 기기에서 해당 기록을 삭제합니다
 Remembered playback positions restored.	저장된 재생 위치가 복원되었습니다
 Undo has expired.	실행 취소가 만료되었습니다
@@ -268,9 +268,9 @@ Settings backup	설정 백업
 Export HushGram settings	HushGram 설정 내보내기
 Choose a file for your installed patches' settings. Accounts and history stay on this device.	설치된 패치의 설정이 들어 있는 파일을 선택하세요. 계정과 기록은 이 기기에 그대로 유지됩니다
 Import HushGram settings	HushGram 설정 가져오기
-Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	설정 파일을 선택하세요. 지원되는 설정은 함께 적용되며, 지원되지 않는 항목은 건너뜁니다. 실행 취소는 10초 동안 할 수 있습니다
+Choose a settings file. Valid choices apply together. Unsupported keys are skipped. The Undo row shows its deadline.	설정 파일을 선택하세요. 유효한 설정은 함께 적용됩니다. 지원되지 않는 항목은 건너뜁니다. 실행 취소 항목에 마감 시간이 표시됩니다.
 Undo settings import	설정 가져오기 실행 취소
-Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	이전 설정을 10초 이내에 한 번 복원할 수 있습니다. Instagram을 다시 시작하면 실행 취소할 수 없습니다
+Undo is available until %1$s. Restarting Instagram discards Undo.	%1$s까지 실행 취소할 수 있습니다. Instagram을 다시 시작하면 실행 취소할 수 없습니다.
 No settings import to undo.	실행 취소할 설정 가져오기가 없습니다
 No document picker is available. Your settings haven't changed.	문서 선택기를 사용할 수 없습니다. 설정은 변경되지 않았습니다
 Couldn't use that settings file. Your settings haven't changed.	해당 설정 파일을 사용할 수 없습니다. 설정은 변경되지 않았습니다
@@ -357,3 +357,27 @@ View DM photos and videos anonymously	DM 사진 및 동영상 몰래보기
 Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.	한 번만 볼 수 있는 사진과 동영상의 읽음 표시 전송을 차단합니다. 미디어는 기존과 동일하게 만료됩니다. 이 기능은 테스트 기능이며 기본적으로 꺼져 있습니다
 Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	저장된 복사본을 삭제하는 작업을 완료하지 못하였습니다. ‘저장된 재정의 삭제’를 다시 시도하세요. Instagram의 기본 재정의 설정은 변경되지 않았습니다
 Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	복구 작업을 완료하지 못하였습니다. ‘이전 재정의 복원’ 또는 ‘저장된 재정의 삭제’를 사용하세요
+Restored %1$d settings. Kept %2$d newer choices.	설정 %1$d개를 복원했습니다. 이후에 변경한 선택 %2$d개는 유지했습니다.
+Preparing diagnostic report...	진단 보고서 준비 중...
+Saving diagnostic report...	진단 보고서 저장 중...
+Diagnostic report saved.	진단 보고서가 저장되었습니다.
+Choose a file for the settings export.	설정을 내보낼 파일을 선택하세요.
+Exporting HushGram settings...	HushGram 설정 내보내는 중...
+Settings export cancelled.	설정 내보내기가 취소되었습니다.
+Show a Reel seek thumb	릴스 탐색 핸들 표시
+Settings entry	설정 열기
+Open settings with a tab long press	탭을 길게 눌러 설정 열기
+Choose a tab	탭 선택
+Home	홈
+Search	검색
+Profile	프로필
+Create (+)	만들기 (+)
+Camera	카메라
+Activity	활동
+Creator tools	크리에이터 도구
+Home feed picker	홈 피드 선택
+Custom tab	사용자 지정 탭
+Off	끄기
+Tab long presses keep Instagram's own action. Choose one to open HushGram instead.	탭을 길게 누르면 Instagram의 기존 기능이 실행됩니다. 대신 HushGram을 열 탭을 선택하세요.
+Long-press %1$s to open HushGram instead of that tab's usual action. Normal taps and other tabs stay the same. Only tabs your account shows can be used. Restart Instagram after changing it.	%1$s 탭을 길게 누르면 기존 기능 대신 HushGram이 열립니다. 일반 탭 동작과 다른 탭은 그대로 유지됩니다. 계정에 표시되는 탭만 사용할 수 있습니다. 변경 후 Instagram을 다시 시작하세요.
+Adds a white circular handle to Instagram's Reel seek bar. Drag to seek. Ads keep their own bar.	Instagram 릴스 탐색 막대에 흰색 원형 핸들을 추가합니다. 탐색 동작은 그대로 유지되며 광고는 기존 막대를 사용합니다.

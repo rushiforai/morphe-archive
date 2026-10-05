@@ -181,6 +181,9 @@ exit /b %errorlevel%
     $probeOut = Join-Path $fixture 'probe-output'
     $patchArguments = @{ Java = $Java; Sdk = $fixtureSdk; DesktopJar = $desktopJar; Apk = $unsigned; AllowStaleBundle = $true; OutDir = $patchOut }
     $probeArguments = @{ Java = $Java; Sdk = $fixtureSdk; OutDir = $probeOut }
+    # Existing cases omitted JVM startup diagnostics, so bounded build options rejected valid keys.
+    Set-FixtureEnvironment JAVA_TOOL_OPTIONS '-Xmx512m -XX:ActiveProcessorCount=2'
+    Set-FixtureEnvironment JDK_JAVA_OPTIONS '-Xms32m'
     $certificate = $null
     foreach ($case in @(
         @{ Leaf = 'blank.bks'; Type = 'BKS'; Store = ''; Entry = $entrySentinel }
@@ -222,6 +225,27 @@ exit /b %errorlevel%
     $signedDevice = $trustedDevice
     $signedProbe = $trustedProbe
     $defaults = @{ Keystore = Join-Path $fixture 'defaults.p12' }
+
+    # Separating stderr must not make malformed stdout or a failed checker acceptable.
+    $invalidChecker = Join-Path $fixture 'invalid-checker.cmd'
+    $firstDigest = 'a' * 64
+    $secondDigest = 'b' * 64
+    foreach ($case in @(
+        @{ Lines = @(); Code = 0 }
+        @{ Lines = @('echo invalid'); Code = 0 }
+        @{ Lines = @("echo $firstDigest", "echo $secondDigest"); Code = 0 }
+        @{ Lines = @("echo $firstDigest"); Code = 1 }
+    )) {
+        [IO.File]::WriteAllLines($invalidChecker,
+            @('@echo off', 'echo %HUSHFEED_FIXTURE_ENTRY% 1>&2') + $case.Lines + @("exit /b $($case.Code)"),
+            [Text.Encoding]::ASCII)
+        $invalidSession = [pscustomobject]@{ Java = $invalidChecker; Tools = $tools }
+        Assert-SigningRejected { Get-ApkSigningCertificate -Session $invalidSession -Apk $signedDevice } '*Could not verify the APK*'
+        Assert-SigningRejected {
+            New-ApkSigningSession -BoundParameters @{} -Root $Root -Sdk $fixtureSdk -Java $invalidChecker `
+                -Keystore $defaults.Keystore -KeyAlias sideload
+        } '*Could not unlock the signing key*'
+    }
 
     # Prior ownership fixtures kept keys outside output and missed keys occupying a generated
     # APK, signer sidecar, argument file or temporary child. Use valid stores and preserve the

@@ -9,6 +9,13 @@ package app.morphe.extension.tiktok.download;
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Shared transfer, disk and deadline limits for extension-owned media jobs. */
 final class MediaBudget {
@@ -22,13 +29,23 @@ final class MediaBudget {
     static final long DEFAULT_RETRY_DELAY_MS = 250L;
     static final long MAX_RETRY_DELAY_MS = 2_000L;
     private static final ThreadLocal<Deadline> CURRENT_DEADLINE = new ThreadLocal<>();
+    interface Clock {
+        long nanoTime();
+        long wallMillis();
+        void sleep(long millis) throws InterruptedException;
+    }
+    private static final Clock SYSTEM_CLOCK = new Clock() {
+        public long nanoTime() { return System.nanoTime(); }
+        public long wallMillis() { return System.currentTimeMillis(); }
+        public void sleep(long millis) throws InterruptedException { Thread.sleep(millis); }
+    };
 
     private MediaBudget() {}
 
     static Deadline deadline() {
         Deadline current = CURRENT_DEADLINE.get();
         if (current != null) return current;
-        return new Deadline(System.nanoTime() + JOB_DEADLINE_MS * 1_000_000L);
+        return new Deadline(SYSTEM_CLOCK.nanoTime() + JOB_DEADLINE_MS * 1_000_000L);
     }
 
     static void runWithJobDeadline(Runnable work) {
@@ -47,12 +64,18 @@ final class MediaBudget {
      * for any of them, or the job's time is up. Still an IOException to every single-file caller.
      */
     static final class StopException extends IOException {
-        /** True for the disk, false for the clock. */
+        enum Reason { SPACE, TIME, SERVER_WAIT, CANCELLED }
+        final Reason reason;
         final boolean space;
 
         StopException(String message, boolean space) {
+            this(message, space ? Reason.SPACE : Reason.TIME);
+        }
+
+        StopException(String message, Reason reason) {
             super(message);
-            this.space = space;
+            this.reason = reason;
+            this.space = reason == Reason.SPACE;
         }
     }
 
@@ -68,7 +91,7 @@ final class MediaBudget {
         Deadline active = deadline == null ? CURRENT_DEADLINE.get() : deadline;
         if (active == null) return configuredMillis;
         long remainingMs = Math.max(1L,
-                (active.endNanos - System.nanoTime() + 999_999L) / 1_000_000L);
+                (active.endNanos - active.clock.nanoTime() + 999_999L) / 1_000_000L);
         return (int) Math.min(configuredMillis, Math.min(Integer.MAX_VALUE, remainingMs));
     }
 
@@ -136,46 +159,130 @@ final class MediaBudget {
     }
 
     static long retryAfterMillis(String header, int attempt) {
+        return retryAfterMillis(header, attempt, SYSTEM_CLOCK.wallMillis());
+    }
+
+    static long retryAfterMillis(String header, int attempt, long nowMillis) {
         long fallback = Math.min(MAX_RETRY_DELAY_MS,
                 DEFAULT_RETRY_DELAY_MS << Math.min(3, Math.max(0, attempt)));
-        if (header == null) return fallback;
-        try {
-            long seconds = Long.parseLong(header.trim());
-            if (seconds < 0) return fallback;
-            long maxSeconds = MAX_RETRY_DELAY_MS / 1000L;
-            return seconds > maxSeconds ? MAX_RETRY_DELAY_MS : seconds * 1000L;
-        } catch (NumberFormatException ignored) {
-            return fallback;
+        long advertised = serverDelay(header, nowMillis);
+        return advertised < 0 ? fallback : advertised;
+    }
+
+    /** RFC 9110 permits delta-seconds and all three HTTP-date forms. */
+    private static long serverDelay(String header, long nowMillis) {
+        if (header == null) return -1;
+        String value = header.trim();
+        if (value.matches("[0-9]+")) {
+            try {
+                long seconds = Long.parseLong(value);
+                return seconds > Long.MAX_VALUE / 1000 ? Long.MAX_VALUE : seconds * 1000;
+            } catch (NumberFormatException overflow) {
+                return Long.MAX_VALUE;
+            }
         }
+        if (value.length() > 128) return -1;
+        // DateFormat rejects leap seconds. Parse the preceding second, then advance once.
+        boolean leapSecond = value.matches(".*:[0-5][0-9]:60 (GMT|[0-9]{4})");
+        String parsedValue = leapSecond ? value.replace(":60 ", ":59 ") : value;
+        TimeZone utc = TimeZone.getTimeZone("GMT");
+        for (String pattern : new String[]{"EEE, dd MMM yyyy HH:mm:ss 'GMT'",
+                "EEEE, dd-MMM-yy HH:mm:ss 'GMT'", "EEE MMM d HH:mm:ss yyyy"}) {
+            SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.US);
+            format.setTimeZone(utc);
+            format.setLenient(false);
+            // A two-digit year more than 50 years ahead means the preceding century.
+            Calendar century = Calendar.getInstance(utc, Locale.US);
+            century.setTimeInMillis(nowMillis);
+            century.add(Calendar.YEAR, -50);
+            format.set2DigitYearStart(century.getTime());
+            ParsePosition position = new ParsePosition(0);
+            Date date = format.parse(parsedValue, position);
+            if (date == null || position.getIndex() != parsedValue.length()) continue;
+            long target = date.getTime() + (leapSecond ? 1000 : 0);
+            if (target <= nowMillis) return 0;
+            long delay = target - nowMillis;
+            return delay < 0 ? Long.MAX_VALUE : delay;
+        }
+        return -1;
     }
 
     static void waitBeforeRetry(String retryAfter, int attempt, Deadline deadline) throws IOException {
-        if (deadline == null) deadline = CURRENT_DEADLINE.get();
-        long delay = retryAfterMillis(retryAfter, attempt);
-        if (deadline != null) {
-            long remainingMs = Math.max(0L,
-                    (deadline.endNanos - System.nanoTime()) / 1_000_000L);
-            delay = Math.min(delay, remainingMs);
+        if (deadline == null) deadline = deadline();
+        if (!deadline.retryPending && deadline.networkStop == null) {
+            recordRetryAfter(retryAfter, deadline);
+            if (!deadline.retryPending && deadline.networkStop == null) {
+                scheduleRetry(retryAfterMillis(null, attempt), false, deadline);
+            }
         }
+        awaitRetry(deadline);
+    }
+
+    /** Record once at receipt, including successful responses and redirects. */
+    static void recordRetryAfter(String header, Deadline deadline) {
+        long delay = serverDelay(header, deadline.clock.wallMillis());
+        if (delay >= 0) scheduleRetry(delay, true, deadline);
+    }
+
+    private static void scheduleRetry(long delay, boolean advertised, Deadline deadline) {
+        long start = deadline.clock.nanoTime();
+        if (delay > Long.MAX_VALUE / 1_000_000L || delay * 1_000_000L >= deadline.endNanos - start) {
+            deadline.networkStop = new StopException(advertised
+                    ? "Server retry delay exceeds the remaining media job time" : "Media job deadline exceeded",
+                    advertised ? StopException.Reason.SERVER_WAIT : StopException.Reason.TIME);
+            return;
+        }
+        deadline.retryAtNanos = start + delay * 1_000_000L;
+        deadline.retryPending = true;
+    }
+
+    /** Called only after the previous response has been released, before another network request. */
+    static void awaitRetry(Deadline deadline) throws IOException {
         check(deadline);
+        if (deadline.networkStop != null) throw deadline.networkStop;
+        if (!deadline.retryPending) return;
         try {
-            Thread.sleep(delay);
+            while (true) {
+                if (Thread.currentThread().isInterrupted()
+                        || (deadline.cancellation != null && deadline.cancellation.get())) {
+                    deadline.networkStop = new StopException("Media retry cancelled", StopException.Reason.CANCELLED);
+                    throw deadline.networkStop;
+                }
+                check(deadline);
+                long remaining = deadline.retryAtNanos - deadline.clock.nanoTime();
+                if (remaining <= 0) {
+                    deadline.retryPending = false;
+                    return;
+                }
+                deadline.clock.sleep(Math.min(100L, (remaining + 999_999L) / 1_000_000L));
+            }
         } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
-            throw new IOException("Media retry interrupted", error);
+            deadline.networkStop = new StopException("Media retry interrupted", StopException.Reason.CANCELLED);
+            deadline.networkStop.initCause(error);
+            throw deadline.networkStop;
         }
-        check(deadline);
     }
 
     static final class Deadline {
         private final long endNanos;
+        private final Clock clock;
+        AtomicBoolean cancellation;
+        StopException networkStop;
+        boolean retryPending;
+        long retryAtNanos;
 
         private Deadline(long endNanos) {
+            this(endNanos, SYSTEM_CLOCK);
+        }
+
+        Deadline(long endNanos, Clock clock) {
             this.endNanos = endNanos;
+            this.clock = clock;
         }
 
         boolean expired() {
-            return System.nanoTime() >= endNanos;
+            return endNanos - clock.nanoTime() <= 0;
         }
     }
 }

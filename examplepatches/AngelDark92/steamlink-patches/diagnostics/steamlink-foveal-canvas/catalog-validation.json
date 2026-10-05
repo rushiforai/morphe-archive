@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "catalog": "patches-list.json",
+      "oldPatches": 29,
+      "newPatches": 29,
+      "existingEntriesUnchanged": true,
+      "sha256": "e4288b98f85576fec6257bc70d19385da350b303f922ae514b83e741777a194c"
+    },
+    {
+      "catalog": "patches-list-stable.json",
+      "oldPatches": 26,
+      "newPatches": 26,
+      "existingEntriesUnchanged": true,
+      "sha256": "000664bb525cab3d07f6d8b59eedbc14f608faf0e400049af78ecd7223616b28"
+    },
+    {
+      "catalog": "patches-list-experimental.json",
+      "oldPatches": 29,
+      "newPatches": 29,
+      "existingEntriesUnchanged": true,
+      "sha256": "e4288b98f85576fec6257bc70d19385da350b303f922ae514b83e741777a194c"
+    },
+    {
+      "catalog": "patches-list-all.json",
+      "oldPatches": 29,
+      "newPatches": 29,
+      "existingEntriesUnchanged": true,
+      "sha256": "6cf2ad32282bd8c90d56020efbe2194d0c6ec938cbcdb5e591b0c43cc3d931c0"
+    }
+  ]
+}

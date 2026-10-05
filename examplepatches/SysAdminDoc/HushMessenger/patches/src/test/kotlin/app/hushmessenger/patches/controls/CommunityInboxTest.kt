@@ -7,6 +7,10 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10t
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31t
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderPackedSwitchPayload
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.*
 import com.android.tools.smali.dexlib2.iface.reference.*
@@ -25,6 +29,60 @@ class CommunityInboxTest {
     private fun structural(i: Instruction) = listOf(i.opcode, reference(i), (i as? OneRegisterInstruction)?.registerA,
         (i as? TwoRegisterInstruction)?.registerB, (i as? NarrowLiteralInstruction)?.narrowLiteral)
 
+    @Test fun fixtureUsesRecordedStockIdentitiesEvenWhenTheCompiledProfileDrifts() {
+        val profile = activeProfile
+        val original = profile.nativeCommunityInbox
+        val field = ControlProfile::class.java.getDeclaredField("nativeCommunityInbox").apply { isAccessible = true }
+        try {
+            field.set(profile, original.replaceFirst("->", "->changed_"))
+            val contract = assertNotNull(findCommunityInbox(communityInboxFixture()))
+            assertEquals(original, contract.identity, "The fixture must not repeat the changed compiled contract")
+            assertFailsWith<PatchException> {
+                injectCommunityInbox(contract, contract.render as MutableMethod,
+                    communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
+            }
+        } finally { field.set(profile, original) }
+    }
+
+    @Test fun backwardPathsMustReplaceScratchRegistersBeforeReadingThem() {
+        for (register in listOf(1, 3)) for (overwritten in listOf(false, true)) for (branch in listOf("goto", "if", "switch")) {
+            val classes = communityInboxFixture()
+            val contract = assertNotNull(findCommunityInbox(classes))
+            val render = contract.render as MutableMethod
+            val at = render.communityReadSite(contract.capturedScope)
+            render.replaceInstruction(49, "invoke-static {v$register}, LX/Consumer;->accept(Ljava/lang/Object;)V")
+            if (overwritten) render.replaceInstruction(48, "const/4 v$register, 0x0")
+            val implementation = render.implementation!!
+            val target = implementation.newLabelForIndex(48)
+            when (branch) {
+                "goto" -> implementation.replaceInstruction(at + 14, BuilderInstruction10t(Opcode.GOTO, target))
+                "if" -> implementation.replaceInstruction(at + 13, BuilderInstruction21t(Opcode.IF_EQZ, 2, target))
+                "switch" -> {
+                    val payloadAt = (at + 15..at + 16).first { body(render).take(it).sumOf { i -> i.codeUnits } % 2 == 0 }
+                    val payload = implementation.newLabelForIndex(payloadAt)
+                    implementation.replaceInstruction(payloadAt, BuilderPackedSwitchPayload(0, listOf(target)))
+                    implementation.replaceInstruction(at + 13, BuilderInstruction31t(Opcode.PACKED_SWITCH, 2, payload))
+                }
+            }
+            val before = body(render).map(::structural)
+            if (overwritten) assertNotNull(findCommunityInbox(classes))
+            else assertNull(findCommunityInbox(classes), "v$register is live through a backward $branch")
+            assertEquals(before, body(render).map(::structural))
+        }
+    }
+
+    @Test fun bothProjectionPathsRestoreTheNativeListType() {
+        val contract = assertNotNull(findCommunityInbox(communityInboxFixture()))
+        val render = contract.render as MutableMethod
+        val at = render.communityReadSite(contract.capturedScope)
+        injectCommunityInbox(contract, render, communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
+        val code = body(render)
+        assertEquals(at + 9, code.branchTarget(at + 6))
+        assertEquals(Opcode.CHECK_CAST, code[at + 9].opcode)
+        assertEquals(0, (code[at + 9] as OneRegisterInstruction).registerA)
+        assertEquals(IMMUTABLE_LIST, reference(code[at + 9]).toString())
+    }
+
     @Test fun everyProfileConnectsTheNativeMembershipAndMainOnlyRendererBeforeEditing() {
         for (profile in controlProfiles.values.toSet()) {
             activeProfile = profile
@@ -39,7 +97,7 @@ class CommunityInboxTest {
             val untouched = classes.flatMap { it.methods }.filter { it !== render }.associate { it.hookId() to body(it).map(::structural) }
             val helpers = injectCommunityInbox(contract, render, communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
             val after = body(render)
-            assertEquals(before, after.filterIndexed { index, _ -> index !in at + 1..at + 8 }.map(::structural))
+            assertEquals(before, after.filterIndexed { index, _ -> index !in at + 1..at + 9 }.map(::structural))
             assertSame(firstRead, after[5])
             assertEquals(contract.capturedPrefix, reference(after[at + 1]).toString())
             assertEquals(contract.capturedScope, reference(after[at + 2]).toString())
@@ -69,7 +127,7 @@ class CommunityInboxTest {
             assertEquals(66, at)
             val before = body(render).map(::structural)
             injectCommunityInbox(contract, render, communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
-            assertEquals(before, body(render).filterIndexed { index, _ -> index !in at + 1..at + 8 }.map(::structural))
+            assertEquals(before, body(render).filterIndexed { index, _ -> index !in at + 1..at + 9 }.map(::structural))
             assertEquals(at + 9, body(render).branchTarget(at + 6))
             exerciseNativeListProjection(render, at)
         }
@@ -81,7 +139,7 @@ class CommunityInboxTest {
     }
 
     @Test fun changedSnapshotScopePredicateAndForeignSearchCallerFailBeforeMutation() {
-        for (change in listOf("snapshot", "scope", "first_read", "second_alias", "predicate", "null_key", "foreign_search", "captured_write", "branch", "folder_path", "folder_getter", "scratch3", "scratch_one", "scratch_wide", "session_slot")) {
+        for (change in listOf("enum_init", "channel_field", "snapshot", "scope", "first_read", "second_alias", "predicate", "null_key", "foreign_search", "captured_write", "branch", "folder_path", "folder_getter", "scratch3", "scratch_one", "scratch_wide", "session_slot")) {
             val classes = communityInboxFixture().toMutableList()
             val valid = assertNotNull(findCommunityInbox(classes))
             val ids = valid.identity.split('|')
@@ -89,6 +147,8 @@ class CommunityInboxTest {
             val renderer = valid.render as MutableMethod
             val at = renderer.communityReadSite(valid.capturedScope)
             when (change) {
+                "enum_init" -> classes.single { it.type == valid.requests.substringBefore("->") }.methods.removeIf { it.name == "<clinit>" }
+                "channel_field" -> classes.flatMap { it.methods }.single { it.hookId() == ids[8] }.replaceInstruction(0, "const-string v0, \"changed\"")
                 "snapshot" -> update.replaceInstruction(58, "move-object/from16 v26, v2")
                 "scope" -> update.replaceInstruction(111, "const/16 v23, 0x0")
                 "first_read" -> renderer.replaceInstruction(6, "invoke-virtual {v1}, Ljava/util/AbstractCollection;->isEmpty()Z")
@@ -217,7 +277,7 @@ class CommunityInboxTest {
             var result: Any? = null
             var copies = 0
             var cursor = at + 1
-            while (cursor < at + 9) {
+            while (cursor < at + 10) {
                 val i = code[cursor]
                 val one = i as? OneRegisterInstruction
                 val two = i as? TwoRegisterInstruction
@@ -239,6 +299,10 @@ class CommunityInboxTest {
                         }
                     }
                     Opcode.MOVE_RESULT_OBJECT -> registers[one!!.registerA] = result
+                    Opcode.CHECK_CAST -> {
+                        assertEquals(IMMUTABLE_LIST, reference(i).toString())
+                        assertTrue(registers[one!!.registerA] is NativeImmutableList)
+                    }
                     Opcode.IF_EQ -> if (registers[two!!.registerA] === registers[two.registerB]) next = code.branchTarget(cursor)
                     else -> error("Unexpected projection instruction ${i.opcode}")
                 }
@@ -365,6 +429,7 @@ class CommunityInboxTest {
         assumeTrue(folder != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(folder!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
         assertEquals(controlProfiles.size, apks.size)
+        assertEquals(controlProfiles.keys.map { it.toString() }.toSet(), apks.map { it.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-') }.toSet())
         for (apk in apks) {
             val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
             activeProfile = controlProfileFor(code)
@@ -380,7 +445,7 @@ class CommunityInboxTest {
             val at = render.communityReadSite(contract.capturedScope)
             val before = body(render).map(::structural)
             val helpers = injectCommunityInbox(contract, render, communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
-            assertEquals(before, body(render).filterIndexed { index, _ -> index !in at + 1..at + 8 }.map(::structural))
+            assertEquals(before, body(render).filterIndexed { index, _ -> index !in at + 1..at + 9 }.map(::structural))
             exerciseTypedHelpers(classes.flatMap { it.methods } + helpers, contract)
             exerciseNativeListProjection(render, at)
         }

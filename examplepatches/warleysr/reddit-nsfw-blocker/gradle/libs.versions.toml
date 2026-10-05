@@ -1,0 +1,15 @@
+[versions]
+# Read by the Morphe Gradle plugin.
+morphe-patcher = "1.14.0"
+morphe-patches-library = "1.8.0-dev.1"
+# Tracking https://github.com/google/smali/issues/100.
+smali = "d92701d947"
+agp = "9.1.0"
+guava = "33.6.0-jre"
+
+[libraries]
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+
+[plugins]
+android-library = { id = "com.android.library" }

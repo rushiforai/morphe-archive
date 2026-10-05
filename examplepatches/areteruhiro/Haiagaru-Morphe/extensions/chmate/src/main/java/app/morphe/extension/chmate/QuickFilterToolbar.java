@@ -11,6 +11,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Uses the selected fragment's own filter state, never a global active-tab callback. */
 public final class QuickFilterToolbar {
@@ -38,10 +40,6 @@ public final class QuickFilterToolbar {
         try {
             activity = (Activity) fragment.getClass().getMethod("getActivity").invoke(fragment);
             if (activity == null || activity.isFinishing()) return true;
-            if (!Haiagaru.compactQuickFilters()) {
-                Toast.makeText(activity, "Haiagaru設定で「クイックフィルターをツールバーにまとめる」をONにしてください", Toast.LENGTH_LONG).show();
-                return true;
-            }
             String version = activity.getPackageManager()
                     .getPackageInfo(activity.getPackageName(), 0).versionName;
             if ("0.8.10.226 dev".equals(version)) {
@@ -79,16 +77,8 @@ public final class QuickFilterToolbar {
             final Object target = model;
             final Method action = toggle;
             final Object[] filterValues = values;
-            final Activity owner = activity;
-            new AlertDialog.Builder(activity).setTitle("フィルタ（再選択で解除）")
-                    .setItems(new String[]{"人気レス", "リンク", "画像", "動画"}, (dialog, which) -> {
-                        try {
-                            action.invoke(target, filterValues[which]);
-                        } catch (Exception error) {
-                            Log.e("Haiagaru", "Quick filter failed", error);
-                            Toast.makeText(owner, "フィルタを切り替えられませんでした", Toast.LENGTH_LONG).show();
-                        }
-                    }).setNegativeButton("閉じる", null).show();
+            showModelFilterDialog(activity, model, version,
+                    which -> action.invoke(target, filterValues[which]));
         } catch (Exception error) {
             Log.e("Haiagaru", "Unable to open quick filters", error);
             if (activity != null) Toast.makeText(activity, "フィルタを開けませんでした", Toast.LENGTH_LONG).show();
@@ -124,15 +114,59 @@ public final class QuickFilterToolbar {
             }
             if (values[i] == null) throw new IllegalStateException("226 filter missing: " + names[i]);
         }
-        new AlertDialog.Builder(activity).setTitle("フィルタ（再選択で解除）")
-                .setItems(new String[]{"人気レス", "リンク", "画像", "動画"}, (dialog, which) -> {
-                    try {
-                        invoke.invoke(callback, values[which]);
-                    } catch (Exception error) {
-                        Log.e("Haiagaru", "226 quick filter failed", error);
-                        Toast.makeText(activity, "フィルタを切り替えられませんでした", Toast.LENGTH_LONG).show();
-                    }
-                }).setNegativeButton("閉じる", null).show();
+        showModelFilterDialog(activity, model, "0.8.10.226 dev",
+                which -> invoke.invoke(callback, values[which]));
+    }
+
+    private interface FilterToggle {
+        void toggle(int index) throws Exception;
+    }
+
+    private static void showModelFilterDialog(Activity activity, Object model, String version,
+            FilterToggle toggle)
+            throws Exception {
+        boolean[] checked = readModelFilterStates(model, version);
+        if (checked == null) throw new IllegalStateException("Filter selection state unavailable");
+        // AlertDialog mutates its checkedItems array before invoking this listener.
+        boolean[] displayed = checked.clone();
+        new AlertDialog.Builder(activity).setTitle("フィルタ")
+                .setMultiChoiceItems(new String[]{"人気レス", "リンク", "画像", "動画"}, displayed,
+                        (dialog, which, enabled) -> {
+                            if (checked[which] == enabled) return;
+                            try {
+                                toggle.toggle(which);
+                                checked[which] = enabled;
+                            } catch (Exception error) {
+                                Log.e("Haiagaru", "Quick filter failed", error);
+                                ((AlertDialog) dialog).getListView().setItemChecked(which, checked[which]);
+                                Toast.makeText(activity, "フィルタを切り替えられませんでした", Toast.LENGTH_LONG).show();
+                            }
+                        }).setNegativeButton("閉じる", null).show();
+    }
+
+    private static boolean[] readModelFilterStates(Object model, String version) throws Exception {
+        // These are the response model's own StateFlow fields; other flows may
+        // have similarly named obfuscated accessors with unrelated side effects.
+        String fieldName = "0.8.10.226 dev".equals(version) ? "k"
+                : "0.8.10.243 dev".equals(version) ? "z" : "w";
+        String getterName = "0.8.10.226 dev".equals(version) ? "c"
+                : "0.8.10.241".equals(version) ? "b"
+                : "0.8.10.242 dev".equals(version) ? "d" : "a";
+        java.lang.reflect.Field field = model.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        Object flow = field.get(model);
+        if (flow == null) return null;
+        Object state = flow.getClass().getMethod(getterName).invoke(flow);
+        if (state == null) return null;
+        String description = state.toString();
+        if (!description.startsWith("FilterBarStates(popular=")) return null;
+        Matcher matcher = Pattern.compile("FilterBarState\\(selected=(true|false),").matcher(description);
+        boolean[] checked = new boolean[4];
+        int index = 0;
+        while (matcher.find() && index < checked.length) {
+            checked[index++] = Boolean.parseBoolean(matcher.group(1));
+        }
+        return index == checked.length && !matcher.find() ? checked : null;
     }
 
     /** Legacy 191 keeps its four quick filters as data-bound ToggleButtons. */
@@ -142,16 +176,17 @@ public final class QuickFilterToolbar {
         try {
             activity = (Activity) fragment.getClass().getMethod("getActivity").invoke(fragment);
             if (activity == null || activity.isFinishing()) return true;
-            if (!Haiagaru.compactQuickFilters()) {
-                Toast.makeText(activity, "Haiagaru設定でクイックフィルターをONにしてください", Toast.LENGTH_LONG).show();
-                return true;
-            }
             // The filter panel is owned by the activity layout, outside the
             // response fragment's own view on ChMate 191.
+            Object model = findLegacyFilterModel(fragment);
+            if (model != null) {
+                showLegacyModelDialog(activity, model);
+                return true;
+            }
             Object binding = findLegacyFilterBinding(activity.getWindow().getDecorView());
             if (binding == null) binding = rememberedLegacyBinding(activity);
             ToggleButton[] buttons = legacyFilterButtons(binding);
-            if (buttons == null) throw new IllegalStateException("Legacy quick-filter buttons unavailable");
+            if (buttons == null) throw new IllegalStateException("Legacy quick-filter model unavailable");
             String[] labels = {"人気レス", "リンク", "画像", "動画"};
             boolean[] checked = new boolean[buttons.length];
             for (int index = 0; index < buttons.length; index++) checked[index] = buttons[index].isChecked();
@@ -165,6 +200,52 @@ public final class QuickFilterToolbar {
             if (activity != null) Toast.makeText(activity, "フィルタを開けませんでした", Toast.LENGTH_LONG).show();
         }
         return true;
+    }
+
+    /** The 191 filter state belongs to the response adapter, not its lazily created header. */
+    private static Object findLegacyFilterModel(Object fragment) throws Exception {
+        if (!"o.pa".equals(fragment.getClass().getName())) return null;
+        java.lang.reflect.Field adapterField = fragment.getClass().getDeclaredField("c");
+        adapterField.setAccessible(true);
+        Object adapter = adapterField.get(fragment);
+        if (adapter == null || !"o.m9ExternalSyntheticLambda1".equals(
+                adapter.getClass().getName())) return null;
+        java.lang.reflect.Field modelField = adapter.getClass().getDeclaredField("Y");
+        modelField.setAccessible(true);
+        Object model = modelField.get(adapter);
+        return model != null && "o.maExternalSyntheticLambda0".equals(
+                model.getClass().getName()) ? model : null;
+    }
+
+    private static void showLegacyModelDialog(Activity activity, Object model) throws Exception {
+        String[] fields = {"c", "a", "e", "b"};
+        Object[] observables = new Object[fields.length];
+        boolean[] checked = new boolean[fields.length];
+        for (int i = 0; i < fields.length; i++) {
+            java.lang.reflect.Field field = model.getClass().getDeclaredField(fields[i]);
+            field.setAccessible(true);
+            observables[i] = field.get(model);
+            java.lang.reflect.Field value = observables[i].getClass().getDeclaredField("mValue");
+            value.setAccessible(true);
+            checked[i] = value.getBoolean(observables[i]);
+        }
+        new AlertDialog.Builder(activity).setTitle("フィルタ")
+                .setMultiChoiceItems(new String[]{"人気レス", "リンク", "画像", "動画"}, checked,
+                        (dialog, which, enabled) -> {
+                            try {
+                                Object observable = observables[which];
+                                java.lang.reflect.Field value = observable.getClass().getDeclaredField("mValue");
+                                value.setAccessible(true);
+                                if (value.getBoolean(observable) != enabled) {
+                                    value.setBoolean(observable, enabled);
+                                    // ChMate's original button handler also notifies DataBinding observers.
+                                    observable.getClass().getMethod("c").invoke(observable);
+                                }
+                            } catch (Exception error) {
+                                Log.e("Haiagaru", "191 quick filter failed", error);
+                                Toast.makeText(activity, "フィルタを切り替えられませんでした", Toast.LENGTH_LONG).show();
+                            }
+                        }).setNegativeButton("閉じる", null).show();
     }
 
     private static ToggleButton[] legacyFilterButtons(Object binding) throws Exception {
@@ -200,10 +281,39 @@ public final class QuickFilterToolbar {
             root.setAccessible(true);
             Object view = root.get(binding);
             if (view instanceof android.view.View) {
-                ((android.view.View) view).setVisibility(android.view.View.GONE);
+                android.view.View panel = (android.view.View) view;
+                panel.setVisibility(android.view.View.GONE);
+                android.view.ViewGroup.LayoutParams params = panel.getLayoutParams();
+                if (params != null) {
+                    params.height = 0;
+                    panel.setLayoutParams(params);
+                }
+                // The binding constructor runs before the row is attached.
+                // A dedicated ListView header wrapper may still reserve space.
+                panel.addOnAttachStateChangeListener(new android.view.View.OnAttachStateChangeListener() {
+                    @Override public void onViewAttachedToWindow(android.view.View view) {
+                        collapseLegacyWrapper(view);
+                    }
+                    @Override public void onViewDetachedFromWindow(android.view.View view) { }
+                });
+                collapseLegacyWrapper(panel);
             }
         } catch (Exception error) {
             Log.e("Haiagaru", "Unable to hide legacy quick-filter row", error);
+        }
+    }
+
+    private static void collapseLegacyWrapper(android.view.View panel) {
+        android.view.ViewParent parent = panel.getParent();
+        if (!(parent instanceof android.view.ViewGroup)) return;
+        android.view.ViewGroup holder = (android.view.ViewGroup) parent;
+        if (holder.getChildCount() != 1 || holder instanceof android.widget.AdapterView
+                || !(holder.getParent() instanceof android.widget.AdapterView)) return;
+        holder.setVisibility(android.view.View.GONE);
+        android.view.ViewGroup.LayoutParams params = holder.getLayoutParams();
+        if (params != null) {
+            params.height = 0;
+            holder.setLayoutParams(params);
         }
     }
 

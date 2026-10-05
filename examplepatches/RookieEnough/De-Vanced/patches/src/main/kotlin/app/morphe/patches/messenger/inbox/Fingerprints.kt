@@ -11,6 +11,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 
 internal object CreateInboxSubTabsFingerprint : Fingerprint(
+    name = "run",
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     filters = OpcodesFilter.opcodesToFilters(
@@ -18,25 +19,22 @@ internal object CreateInboxSubTabsFingerprint : Fingerprint(
         Opcode.INVOKE_VIRTUAL,
         Opcode.RETURN_VOID,
     ),
-    custom = { method, classDef ->
-        method.name == "run" &&
-            classDef.fields.any { field ->
-                if (field.name != "__redex_internal_original_name") return@any false
-                (field.initialValue as? StringEncodedValue)?.value == "InboxSubtabsItemSupplierImplementation\$onSubscribe\$1"
-            }
+    custom = { _, classDef ->
+        classDef.fields.any { field ->
+            if (field.name != "__redex_internal_original_name") return@any false
+            (field.initialValue as? StringEncodedValue)?.value == "InboxSubtabsItemSupplierImplementation\$onSubscribe\$1"
+        }
     },
 )
 
 internal object LoadInboxAdsFingerprint : Fingerprint(
+    definingClass = "Lcom/facebook/messaging/business/inboxads/plugins/inboxads/itemsupplier/" +
+            "InboxAdsItemSupplierImplementation;",
     returnType = "V",
     strings = listOf(
         "ads_load_begin",
         "inbox_ads_fetch_start",
     ),
-    custom = { method, _ ->
-        method.definingClass == "Lcom/facebook/messaging/business/inboxads/plugins/inboxads/itemsupplier/" +
-            "InboxAdsItemSupplierImplementation;"
-    },
 )
 
 internal object FriendsInboxTrayFingerprint : Fingerprint(

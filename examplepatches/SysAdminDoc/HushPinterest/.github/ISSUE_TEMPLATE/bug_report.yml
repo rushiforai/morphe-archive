@@ -1,0 +1,146 @@
+name: 🐞 Bug report
+description: Something in HushPinterest doesn't work the way it should.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # HushPinterest bug report
+
+        Thanks for taking the time to report this. Before you start:
+
+        - **Check whether it's already reported.** Search the [open and closed bug reports](https://github.com/SysAdminDoc/HushPinterest/issues?q=is%3Aissue%20label%3Abug). If yours was closed and it still happens, comment on it and we'll reopen it. GitHub doesn't let the person who reported something reopen it.
+        - **Patching stopped with an error?** That usually means Pinterest moved something in a new build. Say which Pinterest version you picked, and paste the error.
+  - type: input
+    id: versions
+    attributes:
+      label: HushPinterest and Pinterest versions
+      description: Long-press the Pinterest icon and tap HushPinterest, or open Pinterest's App info page and tap Additional settings in the app. Then open More settings, then About, and copy the Version line.
+      placeholder: HushPinterest 0.0.3 on Pinterest 14.38.0
+    validations:
+      required: true
+  - type: input
+    id: variant
+    attributes:
+      label: Which Pinterest file did you patch?
+      description: Where it came from, such as APKMirror's universal APK, and its version code if you know it. Most bugs on a build that should work come from a different build of the same version.
+      placeholder: APKMirror universal APK, 14.38.0 (14388010)
+  - type: dropdown
+    id: manager
+    attributes:
+      label: What did you patch Pinterest with?
+      options:
+        - Morphe Manager (the Android app)
+        - morphe-desktop (on a computer)
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: manager_version
+    attributes:
+      label: Its version
+      description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
+      placeholder: Morphe Manager 1.33.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: How was it installed?
+      options:
+        - Standard install (re-signed)
+        - Root Mount
+        - I don't know
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone and Android version
+      description: Both are in your phone's Settings, under About phone. If this Pinterest is a clone, say which kind too, such as one renamed by Morphe's Clone app patch, Dual Apps, Second space or a work profile.
+      placeholder: Samsung Galaxy S25, Android 16
+    validations:
+      required: true
+  - type: dropdown
+    id: selected_patches
+    attributes:
+      label: Which patches were in your build?
+      description: Hide ads, Disable analytics, Strip link tracking and the settings are selected by default. Other patches are only in your build if you picked them.
+      multiple: true
+      options:
+        - Disable analytics
+        - Disable update nag
+        - Download pins
+        - Filter pin menu
+        - Hide AI-labeled pins
+        - Hide ads
+        - Hide comments
+        - Hide header buttons
+        - Hide navigation buttons
+        - Hide search history
+        - Hide shopping and product pins
+        - HushPinterest settings
+        - No screenshot share menu
+        - Open links in your browser
+        - Quiet email reminders
+        - Strip link tracking
+        - System share sheet
+    validations:
+      required: true
+  - type: dropdown
+    id: affected_surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - The home feed
+        - Search
+        - A pin's page
+        - Boards
+        - Sharing or copying a link
+        - Notifications
+        - Signing in, or a screen that won't open
+        - HushPinterest settings
+        - Patching (Morphe Manager or morphe-desktop)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: What went wrong?
+      description: What happened, and what did you expect to happen instead? A screenshot or a screen recording helps a lot. Cover names and private boards first.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: What did you tap, in order?
+      description: Start from opening Pinterest. Include every HushPinterest switch you changed before it went wrong, and say whether it still happens after you close Pinterest and open it again. For a pin, say where it was, such as the home feed, search results, related pins or a board.
+      placeholder: |
+        1. Opened Pinterest
+        2. Searched for "kitchen ideas"
+        3. A promoted pin showed in the third row
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostic_report
+    attributes:
+      label: Diagnostic report
+      description: |
+        This answers most of our questions, so please add it if you can. It works with Debug logging off and then still names your build, the patches in it and what each one has counted. For the most detail, long-press the Pinterest icon, tap HushPinterest, turn on Debug logging, do the thing that goes wrong, then come back, tap Export diagnostic report and pick Save full report. If the screen opens on category pages, these controls are under More settings, then Pause, backup and diagnostics. That saves a text file in Download/Morphe on your phone. Drag it into this box. If you can't get the file off your phone, pick Copy quick report instead and paste the shorter report here.
+        The report leaves out links, long ID numbers, cookies, sign-in tokens and Authorization headers, JSON included. It can't spot a name, phone number or message written anywhere else, so read it and remove anything private before you post it.
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Anything else?
+      description: A workaround you found, an older version where it still worked, or anything else that might help.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before you send it
+      options:
+        - label: I searched the open and closed bug reports and this isn't one of them.
+          required: true
+        - label: I answered every question above as well as I could.
+          required: true

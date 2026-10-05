@@ -1,3 +1,24 @@
+## [1.3.2](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.3.1...v1.3.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* "Modern Android compatibility" patch now includes a fix for the store items disappearing on a fast swipe ([5c07bda](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/5c07bda573fc60da52cbbd5155a2f1ea1c1b9211))
+
+## [1.3.1](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.3.0...v1.3.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* "Stop requests to dead servers" patch also now removes the One Time Offer popup ([da8eeec](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/da8eeec9ebeb978b43c147d97196983a34321dc7))
+
+## [1.3.0](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.2.2...v1.3.0) (2026-10-04)
+
+### ✨ New Features
+
+* Hide the Daily Deal popup ([58f8e08](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/58f8e08b663eb463eaabf4fcde9945d63a6164bb))
+* Keep the 3D gameplay sharp with Render at 720p ([2401576](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/240157656e7c8f9d09858e4e4d204d0b7e3b22f8))
+
+Render at 720p is now on by default. It changes nothing on screens 720p and below.
+
 ## [1.2.2](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.2.1...v1.2.2) (2026-10-03)
 
 ### 🐛 Bug Fixes

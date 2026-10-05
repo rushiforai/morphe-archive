@@ -85,3 +85,43 @@ internal object BenefitGetFlagFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(),
 )
+
+/** CapCut Application.onCreate — network tunnel init hook. */
+internal object ScaffoldApplicationOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/launcher/ScaffoldApplication;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf(),
+)
+
+/**
+ * EffectConfiguration.Builder.platform(String) — sets device_platform query param.
+ * Classes7.dex, smali L970-989.
+ *
+ * Called from EffectManagerModule with "android", which triggers ByteDance Shark WAF
+ * to return status_code=-5 ("shark block reinstall") on CapCut 9.0.0.
+ * Overriding p1 to "windows" bypasses the block and returns the full effect catalog.
+ */
+internal object EffectConfigurationBuilderPlatformFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/effectmanager/EffectConfiguration\$Builder;",
+    name = "platform",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "Lcom/ss/android/ugc/effectmanager/EffectConfiguration\$Builder;",
+    parameters = listOf("Ljava/lang/String;"),
+)
+
+internal object EffectConfigurationBuilderDeviceIdFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/effectmanager/EffectConfiguration\$Builder;",
+    name = "deviceId",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "Lcom/ss/android/ugc/effectmanager/EffectConfiguration\$Builder;",
+    parameters = listOf("Ljava/lang/String;"),
+)
+
+internal object EffectConfigurationSetDeviceIdFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/effectmanager/EffectConfiguration;",
+    name = "setDeviceId",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;"),
+)

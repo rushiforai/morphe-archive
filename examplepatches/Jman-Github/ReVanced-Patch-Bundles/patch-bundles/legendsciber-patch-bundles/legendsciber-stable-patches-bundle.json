@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-03T16:44:56",
-  "description": "## [1.36.0](https://github.com/legendsciber/morphe-patches/compare/v1.35.1...v1.36.0) (2026-10-03)\n\n### \u2728 New Features\n\n* **solarsmash:** add all packages purchased patch ([b0b71a6](https://github.com/legendsciber/morphe-patches/commit/b0b71a6572d050bb1f9cbe73169234d6bfd9be53))\n",
-  "download_url": "https://github.com/legendsciber/morphe-patches/releases/download/v1.36.0/patches-1.36.0.mpp",
+  "created_at": "2026-10-05T00:02:06",
+  "description": "## [1.41.1](https://github.com/legendsciber/morphe-patches/compare/v1.41.0...v1.41.1) (2026-10-05)\n\n### \ud83d\udc1b Bug Fixes\n\n* **hillclimb:** report full IAP balances so purchases are actually granted ([9ec5b77](https://github.com/legendsciber/morphe-patches/commit/9ec5b77354fbc0eefc852715c7203f9d05798957))\n",
+  "download_url": "https://github.com/legendsciber/morphe-patches/releases/download/v1.41.1/patches-1.41.1.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.36.0"
+  "version": "v1.41.1"
 }

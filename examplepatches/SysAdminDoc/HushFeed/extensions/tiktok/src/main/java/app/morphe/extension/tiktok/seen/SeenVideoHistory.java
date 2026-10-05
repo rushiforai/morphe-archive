@@ -494,6 +494,29 @@ public final class SeenVideoHistory {
                                     throw new IllegalStateException("SQLite rejected seen-history Undo");
                                 }
                             }
+                            // Capture once so a busy feed cannot keep Undo running indefinitely.
+                            // These sightings must become durable before they affect its count;
+                            // their ordinary queued writes cannot run until this worker returns.
+                            Map<String, Long> arrived;
+                            synchronized (HISTORY_LOCK) {
+                                account();
+                                arrived = generation == undoGeneration && undo == copy
+                                        ? new HashMap<>(SEEN) : java.util.Collections.emptyMap();
+                            }
+                            for (Map.Entry<String, Long> row : arrived.entrySet()) {
+                                Long existing = rows.get(row.getKey());
+                                if (row.getValue() < cutoff
+                                        || (existing != null && existing >= row.getValue())) continue;
+                                ContentValues values = new ContentValues();
+                                values.put(COLUMN_ACCOUNT, account);
+                                values.put(COLUMN_AID, row.getKey());
+                                values.put(COLUMN_LAST_SEEN, row.getValue());
+                                if (rowWriter.insert(writable, values) == -1L) {
+                                    throw new IllegalStateException("SQLite rejected concurrent seen-history Undo row");
+                                }
+                                rows.put(row.getKey(), row.getValue());
+                            }
+                            trimMemory(rows);
                             if (cutoff != Long.MIN_VALUE) {
                                 writable.delete(TABLE, COLUMN_ACCOUNT + " = ? AND " + COLUMN_LAST_SEEN + " < ?",
                                         new String[]{account, String.valueOf(cutoff)});
@@ -523,8 +546,8 @@ public final class SeenVideoHistory {
                                     mergeSeen(row.getKey(), row.getValue());
                                 }
                                 trimMemory(SEEN);
-                                // Sightings arriving during SQLite's write can evict restored rows.
-                                for (String id : copy.keySet()) if (SEEN.containsKey(id)) retained++;
+                                // Later sightings are separate writes, not part of this commit.
+                                for (String id : copy.keySet()) if (rows.containsKey(id)) retained++;
                                 undo = null;
                                 undoOffered = false;
                                 LOAD_STARTED.set(true);
@@ -781,16 +804,15 @@ public final class SeenVideoHistory {
             trimMemory(SEEN);
             IO.execute(() -> {
                 try {
-                    ContentValues values = new ContentValues();
-                    values.put(COLUMN_ACCOUNT, account);
-                    values.put(COLUMN_AID, aid);
-                    values.put(COLUMN_LAST_SEEN, nowMs);
-                    getDatabase().getWritableDatabase().insertWithOnConflict(
-                            TABLE,
-                            null,
-                            values,
-                            SQLiteDatabase.CONFLICT_REPLACE
-                    );
+                    // Undo can commit a newer sighting before this older queued write runs.
+                    // Conditional INSERT works on the API 23 SQLite without requiring UPSERT.
+                    getDatabase().getWritableDatabase().execSQL(
+                            "INSERT OR REPLACE INTO " + TABLE + " (" + COLUMN_ACCOUNT + ", "
+                                    + COLUMN_AID + ", " + COLUMN_LAST_SEEN + ") SELECT ?, ?, ?"
+                                    + " WHERE NOT EXISTS (SELECT 1 FROM " + TABLE + " WHERE "
+                                    + COLUMN_ACCOUNT + " = ? AND " + COLUMN_AID + " = ? AND "
+                                    + COLUMN_LAST_SEEN + " >= ?)",
+                            new Object[]{account, aid, nowMs, account, aid, nowMs});
                     if (pruneIsDue()) {
                         pruneDatabase(account, nowMs);
                     }

@@ -14,10 +14,7 @@ private const val UNLIMITED_SKIPS_RULES_CLASS =
 
 internal object StationUnlimitedSkipsGetRuleFingerprint : Fingerprint(
     definingClass = UNLIMITED_SKIPS_RULES_CLASS,
-    name = "getRule",
-    custom = { method, _ ->
-        method.name == "getRule"
-    },
+    name = "getRule"
 )
 
 @Suppress("unused")

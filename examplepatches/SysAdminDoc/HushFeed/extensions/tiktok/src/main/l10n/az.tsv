@@ -1329,6 +1329,8 @@ Stopping after this file	Bu fayldan sonra dayandırılır
 Waiting to save %1$s files	%1$s fayl saxlamaq gözlənilir
 Waiting to save one file	Bir fayl saxlamaq gözlənilir
 Save cancelled. Nothing was saved.	Saxlama ləğv edildi. Heç nə saxlanılmadı.
+The server asked us to wait. Try again later.	Server gözləməyimizi istədi. Daha sonra yenidən cəhd edin.
+Saved %1$s of %2$s. The server asked us to wait. Try again later.	%2$s fayldan %1$s saxlanıldı. Server gözləməyimizi istədi. Daha sonra yenidən cəhd edin.
 One more save waiting	Daha bir saxlama gözləyir
 %1$s more saves waiting	Daha %1$s saxlama gözləyir
 Starts after one other save	Bir digər saxlamadan sonra başlayır

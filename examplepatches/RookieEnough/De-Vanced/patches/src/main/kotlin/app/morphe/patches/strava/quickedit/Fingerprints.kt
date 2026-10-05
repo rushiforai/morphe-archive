@@ -7,9 +7,7 @@ package app.morphe.patches.strava.quickedit
 import app.morphe.patcher.Fingerprint
 
 internal object GetHasAccessToQuickEditFingerprint : Fingerprint(
-    returnType = "Z",
-    custom = { method, _ ->
-        method.name == "getHasAccessToQuickEdit"
-    },
+    name = "getHasAccessToQuickEdit",
+    returnType = "Z"
 )
 

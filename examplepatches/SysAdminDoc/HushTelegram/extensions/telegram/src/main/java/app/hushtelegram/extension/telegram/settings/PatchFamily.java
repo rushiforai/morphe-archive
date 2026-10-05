@@ -60,6 +60,9 @@ public enum PatchFamily {
             Settings.DISABLE_CHAT_SWIPE),
     DISABLE_CHANNEL_PULL(FamilyNames.DISABLE_CHANNEL_PULL, "disableChannelPull", null,
             Settings.DISABLE_CHANNEL_PULL),
+    NORMAL_PASTE(FamilyNames.NORMAL_PASTE, "normalPaste", null, Settings.NORMAL_PASTE),
+    SHOW_LOCAL_IDS(FamilyNames.SHOW_LOCAL_IDS, "showLocalIds", null, Settings.SHOW_LOCAL_IDS),
+    DISABLE_DOUBLE_TAP_REACTIONS(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "disableDoubleTapReactions", null, Settings.DISABLE_DOUBLE_TAP_REACTIONS),
     QUIET_CONTACTS_NAG(FamilyNames.QUIET_CONTACTS_NAG, "quietContactsNag", null,
             Settings.QUIET_CONTACTS_NAG),
     HOLIDAY_LOOK(FamilyNames.HOLIDAY_LOOK, "holidayLook", null,
@@ -127,7 +130,7 @@ public enum PatchFamily {
 
     /** The families whose switches the Chats page holds. The page and its home row both read this. */
     static final Set<PatchFamily> CHATS_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_STORIES,
-            HIDE_RECOMMENDATIONS, HIDE_COMMERCE, HIDE_PROMOTIONAL_BANNERS, HIDE_SPONSORED_PROXY, HIDE_POPULAR_APPS, DISABLE_CHAT_SWIPE, DISABLE_CHANNEL_PULL,
+            HIDE_RECOMMENDATIONS, HIDE_COMMERCE, HIDE_PROMOTIONAL_BANNERS, HIDE_SPONSORED_PROXY, HIDE_POPULAR_APPS, DISABLE_CHAT_SWIPE, DISABLE_CHANNEL_PULL, NORMAL_PASTE, SHOW_LOCAL_IDS, DISABLE_DOUBLE_TAP_REACTIONS,
             QUIET_CONTACTS_NAG, HOLIDAY_LOOK));
 
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
@@ -163,6 +166,11 @@ public enum PatchFamily {
         BIRTHDAY_GIFT_BANNER(HIDE_PROMOTIONAL_BANNERS, "birthdayGiftBanner", "birthday gift banner"),
         CACHED_PROXY_DIALOG(HIDE_SPONSORED_PROXY, "cachedProxyDialog", "cached proxy channel"),
         CACHED_PROXY_FILTERS(HIDE_SPONSORED_PROXY, "cachedProxyFilters", "cached proxy folder entries"),
+        COMPOSE_PLAIN_PASTE(NORMAL_PASTE, "composePlainPaste", "compose text paste"),
+        CAPTION_PLAIN_PASTE(NORMAL_PASTE, "captionPlainPaste", "caption text paste"),
+        PROFILE_LOCAL_IDS(SHOW_LOCAL_IDS, "profileLocalIds", "profile local IDs"),
+        CHAT_DOUBLE_TAP_REACTION(DISABLE_DOUBLE_TAP_REACTIONS, "chatDoubleTapReaction", "chat double-tap reactions"),
+        PREVIEW_DOUBLE_TAP_REACTION(DISABLE_DOUBLE_TAP_REACTIONS, "previewDoubleTapReaction", "preview double-tap reactions"),
         EXTERNAL_BROWSER_ROUTING(OPEN_EXTERNAL_LINKS, "externalBrowserRouting", "external browser routing"),
         OPENED_LINK_TRACKING(STRIP_LINK_TRACKING, "openedLinkTracking", "opened link tracking"),
         SHARED_LINK_TRACKING(STRIP_LINK_TRACKING, "sharedLinkTracking", "shared link tracking"),

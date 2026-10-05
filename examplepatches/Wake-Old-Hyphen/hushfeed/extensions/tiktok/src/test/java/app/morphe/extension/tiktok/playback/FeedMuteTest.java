@@ -96,6 +96,7 @@ public class FeedMuteTest {
     @After public void tearDown() {
         FeedMute.resetForTests();
         Settings.FEED_MUTED.resetToDefault();
+        Settings.FEED_MUTE_BUTTON.resetToDefault();
         SettingsStatus.feedMuteEnabled = wasEnabled;
         feed.pause().stop().destroy();
     }
@@ -152,11 +153,13 @@ public class FeedMuteTest {
     /** A report of a silent feed says whether the mute was on and what it did (#58). */
     @Test public void theReportSaysWhetherTheFeedIsMutedAndWhatItSilenced() {
         assertEquals("FEED MUTE", FeedMute.Report.INSTANCE.title());
-        assertEquals(List.of("Mute feed videos: off", "Mute button on the feed: shown",
+        // The button is opt-in: a fresh install draws nothing on the video.
+        assertEquals(List.of("Mute feed videos: off", "Mute button on the feed: turned off",
                 "Feed players muted since TikTok started: 0", "Audio focus requests turned down: 0"),
                 FeedMute.Report.INSTANCE.lines());
 
         Settings.FEED_MUTED.save(true);
+        Settings.FEED_MUTE_BUTTON.save(true);
         FeedMute.onControllerPlay(new Controller(feed.get()), video("501"));
         Object engine = engine("A", "501");
         FeedMute.onEnginePlay(engine);
@@ -174,6 +177,7 @@ public class FeedMuteTest {
      */
     @Test public void aPausedReportKeepsTheChoicesAndSaysItIsPaused() {
         Settings.FEED_MUTED.save(true);
+        Settings.FEED_MUTE_BUTTON.save(true);
         PausedProcess.set(true);
         try {
             assertEquals(List.of("Mute feed videos: on",

@@ -250,7 +250,6 @@ The switch takes effect when Facebook restarts.	Anahtar, Facebook yeniden başla
 Use the system font	Sistem yazı tipini kullan
 Use the phone's emoji	Telefonun emojilerini kullan
 Version	Sürüm
-Version %1$s for Facebook %2$s	Facebook %2$s için %1$s sürümü
 Videos go to %1$s and photos to %2$s.	Videolar %1$s klasörüne, fotoğraflar %2$s klasörüne kaydedilir.
 Open web links in your browser. Facebook's own pages stay in the app.	Web bağlantılarını tarayıcınızda açar. Facebook sayfaları uygulamada kalır.
 Record patch activity and show errors for a bug report. Leave off during normal use.	Hata raporu için yama etkinliğini kaydeder ve hataları gösterir. Normal kullanımda kapalı bırakın.
@@ -541,7 +540,6 @@ Try a different word or clear the search.	Başka bir kelime deneyin veya aramay�
 Search settings	Ayarlarda ara
 Clear search	Aramayı temizle
 Your controls are active.	Kontrolleriniz etkin.
-Your choices are saved. Tap Resume, then restart Facebook.	Tercihleriniz kayıtlı. Devam et'e dokunun, sonra Facebook'u yeniden başlatın.
 Pause	Duraklat
 Resume	Devam et
 Undo	Geri al
@@ -755,3 +753,10 @@ Apply whole-word matching to both lists. For example, hat matches hat! but not w
 Off	Kapalı
 On	Açık
 Saved now %1$s. After import %2$s.	Şu an kayıtlı %1$s. İçe aktarma sonrası %2$s.
+
+# context: Compact overview identity and the order for resuming. Source known does not mean signed or safe.
+Version %1$s	Sürüm %1$s
+Build %1$s (modified)	Derleme %1$s (değiştirilmiş)
+Build %1$s (source known)	Derleme %1$s (kaynak biliniyor)
+Build %1$s (source unknown)	Derleme %1$s (kaynak bilinmiyor)
+Tap Resume, then restart Facebook.	Devam et'e dokunun, ardından Facebook'u yeniden başlatın.

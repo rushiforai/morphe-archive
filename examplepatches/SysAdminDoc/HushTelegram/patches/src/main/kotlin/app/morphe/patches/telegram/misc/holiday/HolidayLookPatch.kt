@@ -29,6 +29,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val PATCH = "Holiday look all year"
 internal const val HOLIDAY_LOOK = "$EXTENSION_PACKAGE/misc/HolidayLook;"
@@ -39,7 +40,7 @@ private const val APP_CONTEXT = "Lorg/telegram/messenger/ApplicationLoader;->app
 @Suppress("unused")
 val holidayLookPatch = bytecodePatch(
     name = PATCH,
-    description = "Adds a switch, off by default, that keeps Telegram's New Year snow falling all year over the chat list's top bar and chat backgrounds. Telegram's own holiday dates apply while it's off.",
+    description = "Adds a switch, off by default, that puts a Santa hat over the chat list logo and keeps Telegram's New Year snow falling all year over the chat list's top bar and chat backgrounds. Telegram's own holiday dates apply while it's off.",
     default = true,
 ) {
     category("Chats")
@@ -49,7 +50,12 @@ val holidayLookPatch = bytecodePatch(
     execute {
         requireStatusMethod("holidayLook")
         val sites = resolveHolidayLookSites()
-        sites.apply()
+        val logo = resolveHolidayLogoSites(sites)
+        // Assemble and check every insertion on copies before changing any host or build fact.
+        sites.apply(MutableMethod(ImmutableMethod.of(sites.check)))
+        logo.prepare()
+        sites.apply(sites.check)
+        logo.apply(this)
         enableStatus("holidayLook")
     }
 }
@@ -59,8 +65,8 @@ val holidayLookPatch = bytecodePatch(
  * timed by [checked], it sets [snow] (snow may start by itself) for Jan 1 and loads [hat] for
  * Dec 31 and Jan 1. [load] starts the hat's load and [done] the method's one exit, which returns
  * [hat]. [readers] are the methods that read [snow]: the top bar's draw, which also draws the hat,
- * and the chat background's. The bar draws the hat only over a plain-text title, and 12.10.6's chat
- * list title is Telegram's logo, so only the snow shows there. The hat still loads Telegram's way.
+ * and the chat background's. Telegram's plain-text hat block remains intact. The separately
+ * verified logo bridge draws the same holiday drawable over the chat list's owned ImageSpan.
  */
 internal class HolidayLookSites(
     val check: MutableMethod,
@@ -139,10 +145,10 @@ internal fun BytecodePatchContext.resolveHolidayLookSites(): HolidayLookSites {
     return HolidayLookSites(check, load, done, hat, snow, checked, readers)
 }
 
-private fun HolidayLookSites.apply() {
-    val (mode, flag) = check.freeLocalsAt(PATCH, 0, 2, targets = listOf(load, done))
+private fun HolidayLookSites.apply(method: MutableMethod) {
+    val (mode, flag) = method.freeLocalsAt(PATCH, 0, 2, targets = listOf(load, done))
     shape(flag == mode + 1, "the holiday check has no free register pair at its start")
-    check.addInstructionsAtControlFlowLabel(0, """
+    method.addInstructionsAtControlFlowLabel(0, """
         invoke-static {}, $HOLIDAY_LOOK->mode()I
         move-result v$mode
         if-eqz v$mode, :hush_stock
@@ -160,7 +166,7 @@ private fun HolidayLookSites.apply() {
         sput-wide v$mode, $checked
         :hush_stock
         nop
-    """.trimIndent(), ExternalLabel("hush_load", check.getInstruction(load)), ExternalLabel("hush_done", check.getInstruction(done)))
+    """.trimIndent(), ExternalLabel("hush_load", method.getInstruction(load)), ExternalLabel("hush_done", method.getInstruction(done)))
 }
 
 private fun BytecodePatchContext.requireRuntimeHook() {

@@ -190,7 +190,13 @@ public final class CodecProcess implements AutoCloseable {
         if (launcher != null) {
             try {
                 releaseLauncher(until, interrupted);
-                launcher.getOutputStream().close();
+                try {
+                    launcher.getOutputStream().close();
+                } catch (IOException closed) {
+                    // A failed RELEASE flush remains buffered and close retries it. An exited
+                    // launcher cannot read it, but a still-live launcher must remain a failure.
+                    if (!waitLauncher(until, interrupted)) throw closed;
+                }
                 if (!waitLauncher(until, interrupted)) {
                     launcher.destroyForcibly();
                     if (!waitLauncher(until, interrupted)) throw new IOException("codec launcher did not stop");

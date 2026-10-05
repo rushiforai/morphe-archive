@@ -1,3 +1,23 @@
+## [3.12.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.11.0...v3.12.0) (2026-10-04)
+
+### ✨ New Features
+
+* **Gboard:** add the `Frosted Glass` patch, bringing real-time background blur and customizable theme transparency to the keyboard. 👀
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Frosted Glass` Patch，為鍵盤加入即時背景模糊效果，並支援自訂主題透明度。👀
+
+## [3.12.0-dev.5](https://github.com/jasonwu1994/Gboard-patches/compare/v3.11.0...v3.12.0-dev.5) (2026-09-26)
+
+### ✨ New Features
+
+* **Gboard:** add the `Frosted Glass` patch, bringing real-time background blur and customizable theme transparency to the keyboard. 👀
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Frosted Glass` Patch，為鍵盤加入即時背景模糊效果，並支援自訂主題透明度。👀
+
 ## [3.11.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.10.0...v3.11.0) (2026-09-22)
 
 ### ✨ New Features

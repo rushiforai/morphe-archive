@@ -2258,7 +2258,7 @@ public class SettingsL10nTest {
                     "Daily budgets, reminders and the hold", "Filters, translation and copy options",
                     "Quality, files, subtitles and hand-off", "People, shortcuts and sending controls",
                     "Choose which rows and controls appear", "Tracking, device access and links",
-                    "Country and network preferences", "Layout, player, search and system",
+                    "Country and network preferences", "Layout, search, profile and system",
                     "Logging, hook status and reports", "Save, restore, reset and undo your settings"}) {
                 strings.add(L10n.t(activity, section));
             }

@@ -180,6 +180,63 @@ public class SettingsDialogBoundaryTest {
     }
 
     @Test @Config(sdk = {28, 37}, shadows = BrokenPage.class)
+    public void restoredChildViewFailureKeepsRecoveryInsideTheDialog() {
+        openRecovery();
+        BrokenPage.viewFailures = 1;
+        controller.recreate();
+        dialog = (SettingsDialog) controller.get().getFragmentManager().findFragmentByTag("boundary_settings");
+        assertNotNull(text(dialog.getView(), "Settings couldn't open"));
+        View retry = text(dialog.getView(), "Retry");
+        assertNotNull(retry);
+        retry.performClick();
+        assertNotNull(dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID).getView());
+        assertEquals(1, dialog.getChildFragmentManager().getFragments().size());
+    }
+
+    @Test @Config(sdk = {28, 37}, shadows = BrokenPage.class)
+    public void restoredChildConstructorFailureKeepsRecoveryInsideTheDialog() {
+        openRecovery();
+        BrokenPage.constructorFailures = 1;
+        controller.recreate();
+        dialog = (SettingsDialog) controller.get().getFragmentManager().findFragmentByTag("boundary_settings");
+        assertNotNull(text(dialog.getView(), "Settings couldn't open"));
+        View retry = text(dialog.getView(), "Retry");
+        assertNotNull(retry);
+        retry.performClick();
+        assertNotNull(dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID).getView());
+        assertEquals(1, dialog.getChildFragmentManager().getFragments().size());
+    }
+
+    @Test @Config(sdk = {28, 37}, shadows = BrokenPage.class)
+    public void rotationKeepsThePendingDocumentRequestAndItsFragmentIdentity() throws Exception {
+        openRecovery();
+        HushgramPreferenceFragment page = (HushgramPreferenceFragment)
+                dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
+        Bundle identity = new Bundle();
+        dialog.getChildFragmentManager().putFragment(identity, "page", page);
+        android.preference.Preference export = page.findPreference("hushgram_export_configuration");
+        export.getOnPreferenceClickListener().onPreferenceClick(export);
+        org.robolectric.shadows.ShadowActivity.IntentForResult picked =
+                org.robolectric.Shadows.shadowOf(controller.get()).getNextStartedActivityForResult();
+        assertNotNull(picked);
+        controller.recreate();
+        dialog = (SettingsDialog) controller.get().getFragmentManager().findFragmentByTag("boundary_settings");
+        HushgramPreferenceFragment restored = (HushgramPreferenceFragment)
+                dialog.getChildFragmentManager().getFragment(identity, "page");
+        assertNotSame(page, restored);
+        assertFalse(restored.findPreference("hushgram_export_configuration").isEnabled());
+        android.net.Uri document = android.net.Uri.parse("content://fixture/settings.json");
+        java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+        org.robolectric.Shadows.shadowOf(controller.get().getContentResolver()).registerOutputStream(document, output);
+        restored.onActivityResult(picked.requestCode, Activity.RESULT_OK, new android.content.Intent().setData(document));
+        Utils.awaitBackgroundTasksForTests();
+        ShadowLooper.idleMainLooper();
+        assertTrue(output.size() > 0);
+        assertTrue(restored.findPreference("hushgram_export_configuration").isEnabled());
+        assertEquals(1, dialog.getChildFragmentManager().getFragments().size());
+    }
+
+    @Test @Config(sdk = {28, 37}, shadows = BrokenPage.class)
     public void savedOrClosedOwnersCannotAcceptALateRetry() {
         BrokenPage.constructorFailures = 1;
         openRecovery();

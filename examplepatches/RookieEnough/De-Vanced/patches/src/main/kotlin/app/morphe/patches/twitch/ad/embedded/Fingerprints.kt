@@ -7,9 +7,8 @@ package app.morphe.patches.twitch.ad.embedded
 import app.morphe.patcher.Fingerprint
 
 internal object CreatesUsherClientMethodFingerprint : Fingerprint(
+    name = "buildOkHttpClient",
     returnType = "Lokhttp3/OkHttpClient;",
-    custom = { method, classDef ->
-        method.name == "buildOkHttpClient" && classDef.type.endsWith("OkHttpClientFactory;")
-    },
+    definingClass = "OkHttpClientFactory;"
 )
 

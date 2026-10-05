@@ -273,13 +273,26 @@ public final class Settings {
     }
 
     private static final String KEPT_UNSENT_KEY = "kept_unsent_ids";
+    private static final int KEPT_UNSENT_LIMIT = 4096;
+    private static final Object KEPT_UNSENT_LOCK = new Object();
 
-    public static synchronized void recordUnsent(String messageId) {
+    public static void recordUnsent(String messageId) {
         if (messageId == null || messageId.isEmpty() || !wouldUse("keep_unsent")) return;
         SharedPreferences prefs = preferences;
         if (prefs == null) return;
-        Set<String> ids = new HashSet<>(prefs.getStringSet(KEPT_UNSENT_KEY, Collections.emptySet()));
-        if (ids.add(messageId)) prefs.edit().putStringSet(KEPT_UNSENT_KEY, ids).apply();
+        synchronized (KEPT_UNSENT_LOCK) {
+            Set<String> previous = prefs.getStringSet(KEPT_UNSENT_KEY, Collections.emptySet());
+            if (previous.size() > KEPT_UNSENT_LIMIT || !previous.contains(messageId)) {
+                Set<String> ids = new HashSet<>();
+                ids.add(messageId);
+                // StringSet has no age ordering. Preserve this interception and bound the remaining markers.
+                for (String id : previous) {
+                    if (ids.size() == KEPT_UNSENT_LIMIT) break;
+                    ids.add(id);
+                }
+                prefs.edit().putStringSet(KEPT_UNSENT_KEY, ids).apply();
+            }
+        }
         activeAt.put("keep_unsent", System.currentTimeMillis());
     }
 

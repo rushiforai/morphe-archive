@@ -53,9 +53,17 @@ public final class SettingsDialog extends DialogFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setStyle(STYLE_NO_TITLE, android.R.style.Theme_Material_NoActionBar);
         failed = savedInstanceState != null && savedInstanceState.getBoolean(PAGE_FAILED);
+        try {
+            super.onCreate(savedInstanceState);
+        } catch (Exception failure) {
+            // Fragment.onCreate restores child constructors before our view exists.
+            // Finish the dialog's own initialization without retrying the failed saved child.
+            super.onCreate(null);
+            failed = true;
+            Logger.printException(() -> "Could not restore the preference list", failure);
+        }
+        setStyle(STYLE_NO_TITLE, android.R.style.Theme_Material_NoActionBar);
     }
 
     @Override
@@ -155,6 +163,12 @@ public final class SettingsDialog extends DialogFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Keep the restored child's identity and pending activity result, but defer its view
+        // until openPage can catch construction failures. Framework restoration would otherwise
+        // build that view after this callback and before onResume, outside the recovery boundary.
+        FragmentManager manager = getChildFragmentManager();
+        Fragment restored = manager.findFragmentById(CONTAINER_ID);
+        if (restored != null && !restored.isDetached()) manager.beginTransaction().detach(restored).commitNow();
         if (failed) showFailure(view);
     }
 
@@ -216,6 +230,8 @@ public final class SettingsDialog extends DialogFragment {
                 manager.beginTransaction()
                         .replace(CONTAINER_ID, new HushgramPreferenceFragment())
                         .commitNow();
+            } else if (child.isDetached()) {
+                manager.beginTransaction().attach(child).commitNow();
             }
             failed = false;
             retry = null;

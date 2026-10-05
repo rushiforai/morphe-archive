@@ -10,7 +10,7 @@ import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
-import app.morphe.extension.tiktok.settings.preference.categories.ExtensionPreferenceCategory;
+import app.morphe.extension.tiktok.settings.preference.categories.SharePreferenceCategory;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -80,7 +80,7 @@ public class DuetStitchTest {
             Utils.setContext(activity);
             SettingsStatus.duetStitchEnabled = true;
             PreferenceScreen screen = activity.getPreferenceManager().createPreferenceScreen(activity);
-            new ExtensionPreferenceCategory(activity, screen);
+            new SharePreferenceCategory(activity, screen);
             assertNotNull(screen.findPreference("allow_duet_and_stitch"));
         } finally {
             SettingsStatus.duetStitchEnabled = false;

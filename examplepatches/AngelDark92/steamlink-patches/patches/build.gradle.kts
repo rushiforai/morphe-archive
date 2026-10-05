@@ -52,6 +52,7 @@ dependencies {
     compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
     testImplementation(kotlin("test-junit"))
+    testImplementation(libs.gson)
 }
 
 // Morphe's D8 task unions compile and runtime classpaths, which resolve separately.

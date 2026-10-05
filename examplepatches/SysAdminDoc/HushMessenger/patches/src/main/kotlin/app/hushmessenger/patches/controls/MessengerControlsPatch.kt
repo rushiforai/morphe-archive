@@ -79,8 +79,8 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         activeProfile = controlProfileFor(packageMetadata.versionCode)
         val classes = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
         classDefForEach { classes.add(it) }
-        discoveredControls = findControls(classes)
         communityInboxContract = findCommunityInbox(classes)
+        discoveredControls = findControls(classes, communityInboxContract)
         val nativeGate = discoveredControls["bubble_mode"].orEmpty().singleOrNull()
         nativeBubbleRoutesVerified = nativeBubbleActivityVerified && nativeGate != null &&
             findNativeBubbleRoutes(classes, nativeGate.hookId()) == activeProfile.nativeBubbleRoutes
@@ -364,7 +364,10 @@ val saveStoriesPatch = bytecodePatch(
         if (builderClass.methods.any { it.name == STORY_SAVE_HELPER }) {
             throw PatchException("Messenger controls: the story menu already has $STORY_SAVE_HELPER")
         }
-        builderClass.methods.add(storySaveHelper(original.definingClass, save))
+        val direct = builderClass.directMethods
+        val helper = storySaveHelper(original.definingClass, save)
+        builderClass.methods.add(helper)
+        direct.add(helper)
         builder.injectStorySave(save)
         recordControl("save_stories")
         saveStoriesApplied = true

@@ -7,8 +7,7 @@ package app.morphe.patches.cricbuzz.misc.extension
 import app.morphe.patcher.Fingerprint
 
 internal object ApplicationInitFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        method.name == "onCreate" && classDef.endsWith("/NyitoActivity;")
-    },
+    definingClass = "/NyitoActivity;",
+    name = "onCreate"
 )
 

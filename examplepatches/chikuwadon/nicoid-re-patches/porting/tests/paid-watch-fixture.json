@@ -1,0 +1,33 @@
+{
+  "data": {
+    "response": {
+      "data": {
+        "payment": {
+          "video": {
+            "isPpv": false,
+            "isAdmission": true,
+            "isContinuationBenefit": false,
+            "isPremium": false,
+            "watchableUserType": "member",
+            "commentableUserType": "member",
+            "billingType": "member_only"
+          },
+          "preview": {
+            "ppv": {
+              "isEnabled": false
+            },
+            "admission": {
+              "isEnabled": true
+            },
+            "continuationBenefit": {
+              "isEnabled": false
+            },
+            "premium": {
+              "isEnabled": false
+            }
+          }
+        }
+      }
+    }
+  }
+}

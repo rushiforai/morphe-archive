@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'patch-releases' }}
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.ref || github.ref_name }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Check source hygiene
+        shell: pwsh
+        run: ./scripts/check-source.ps1
+
+      - name: Ensure Android SDK Platform 36
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test JavaScript adapters
+        run: npm test
+
+      - name: Build and test patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList :patches:test :extensions:twitch:testDebugUnitTest --no-daemon
+
+      - name: Release
+        if: github.event_name != 'pull_request' && vars.PATCH_RELEASES_ENABLED == 'true'
+        uses: cycjimmy/semantic-release-action@v6
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true' && github.event.repository.private == false
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Twitch patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-${{ steps.release.outputs.new_release_version }}.mpp

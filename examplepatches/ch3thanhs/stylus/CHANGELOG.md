@@ -1,3 +1,32 @@
+## [1.6.0](https://github.com/ch3thanhs/stylus/compare/v1.5.4...v1.6.0) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **instagram:** remove font patch covered by Piko ([bbd0bb6](https://github.com/ch3thanhs/stylus/commit/bbd0bb6c1f529165f663d56eb59ce8f2fa575315))
+* **telegram:** update patch description ([c973db1](https://github.com/ch3thanhs/stylus/commit/c973db14663f83acd9965f89f5801862c7e7bd09))
+
+### ✨ New Features
+
+* **telegram:** add force system font patch ([b72a882](https://github.com/ch3thanhs/stylus/commit/b72a882ed7ca4bb9e4072b673863e7efa34ee547))
+
+## [1.6.0-dev.2](https://github.com/ch3thanhs/stylus/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **telegram:** update patch description ([c973db1](https://github.com/ch3thanhs/stylus/commit/c973db14663f83acd9965f89f5801862c7e7bd09))
+
+## [1.6.0-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.5.5-dev.1...v1.6.0-dev.1) (2026-10-04)
+
+### ✨ New Features
+
+* **telegram:** add force system font patch ([b72a882](https://github.com/ch3thanhs/stylus/commit/b72a882ed7ca4bb9e4072b673863e7efa34ee547))
+
+## [1.5.5-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.5.4...v1.5.5-dev.1) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* **instagram:** remove font patch covered by Piko ([bbd0bb6](https://github.com/ch3thanhs/stylus/commit/bbd0bb6c1f529165f663d56eb59ce8f2fa575315))
+
 ## [1.5.4](https://github.com/ch3thanhs/stylus/compare/v1.5.3...v1.5.4) (2026-09-29)
 
 ### 🐛 Bug Fixes

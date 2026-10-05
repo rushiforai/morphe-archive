@@ -11,6 +11,7 @@ import android.app.Fragment;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.os.SystemClock;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
@@ -45,6 +46,8 @@ import org.robolectric.shadows.ShadowLooper;
 import app.hushgram.extension.instagram.download.DownloadQuality;
 import app.hushgram.extension.instagram.download.SaveControl;
 import app.hushgram.extension.instagram.download.SavesForTests;
+import app.hushgram.extension.instagram.media.ResumePlayback;
+import app.hushgram.extension.instagram.media.ResumePlaybackForTests;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.Utils;
@@ -111,6 +114,76 @@ public class SettingsSearchTest {
             if (adapter.getItem(i) == wanted) return adapter.getView(i, null, new FrameLayout(controller.get()));
         }
         throw new AssertionError("Preference isn't in the visible adapter: " + wanted.getKey());
+    }
+
+    @Test public void clearActionStaysReachableByItsOriginalWordsThroughUndoAndExpiry() throws Exception {
+        ResumePlaybackForTests.install();
+        try {
+            open(PatchFamily.RESUME_LONG_VIDEOS, PatchFamily.HIDE_ADS);
+            String query = L10n.t("Clear remembered positions");
+            page.searchSettings(query);
+            Preference row = visible("hushgram_clear_resume_points");
+            assertNotNull(row);
+            Preference.OnPreferenceClickListener clear = row.getOnPreferenceClickListener();
+            clear.onPreferenceClick(row);
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            assertSame(row, visible("hushgram_clear_resume_points"));
+            assertEquals(L10n.t("Undo cleared positions"), row.getTitle());
+            assertNull(visible(Settings.HIDE_ADS.key));
+            long token = ResumePlayback.undoHistoryToken();
+            clear.onPreferenceClick(row);
+            Utils.awaitBackgroundTasksForTests();
+            assertEquals(token, ResumePlayback.undoHistoryToken());
+            page.searchSettings("");
+            page.searchSettings(query);
+            assertSame(row, visible("hushgram_clear_resume_points"));
+            controller.pause().stop().start().resume();
+            assertSame(row, visible("hushgram_clear_resume_points"));
+            SystemClock.sleep(ResumePlayback.undoHistoryDeadline(token) - SystemClock.elapsedRealtime());
+            ShadowLooper.idleMainLooper();
+            assertSame(row, visible("hushgram_clear_resume_points"));
+            assertEquals(L10n.t("Clear remembered positions"), row.getTitle());
+        } finally { Utils.awaitBackgroundTasksForTests(); ResumePlaybackForTests.forget(); }
+    }
+
+    @Test @Config(qualifiers = "es-rES-w320dp-h640dp-xhdpi")
+    public void reopeningAnAvailableUndoStillFindsItsLocalizedClearAction() throws Exception {
+        ResumePlaybackForTests.install();
+        try {
+            open(PatchFamily.RESUME_LONG_VIDEOS, PatchFamily.HIDE_ADS);
+            Preference row = visible("hushgram_clear_resume_points");
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            controller.close();
+            controller = null;
+            open(PatchFamily.RESUME_LONG_VIDEOS, PatchFamily.HIDE_ADS);
+            page.searchSettings(L10n.t("Clear remembered positions").toUpperCase(Locale.ROOT));
+            row = visible("hushgram_clear_resume_points");
+            assertNotNull(row);
+            assertEquals(L10n.t("Undo cleared positions"), row.getTitle());
+            assertNull(visible(Settings.HIDE_ADS.key));
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            assertSame(row, visible("hushgram_clear_resume_points"));
+            assertEquals(L10n.t("Clear remembered positions"), row.getTitle());
+        } finally { Utils.awaitBackgroundTasksForTests(); ResumePlaybackForTests.forget(); }
+    }
+
+    @Test public void exportActionKeepsItsOriginalWordsDuringStatusTitleChanges() throws Exception {
+        open(PatchFamily.HIDE_ADS);
+        Preference row = visible("hushgram_export_configuration");
+        String query = row.getTitle().toString();
+        for (String status : new String[]{"Export running", "Export finished", "Export failed"}) {
+            row.setTitle(status);
+            page.searchSettings(query);
+            assertSame(row, visible("hushgram_export_configuration"));
+            assertNull(visible("hushgram_import_configuration"));
+            assertNull(visible(Settings.HIDE_ADS.key));
+            page.searchSettings("");
+        }
     }
 
     @Test public void verifiedAliasesFindOnlyTheirInstalledControls() throws Exception {

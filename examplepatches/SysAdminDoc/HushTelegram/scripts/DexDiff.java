@@ -848,7 +848,7 @@ public class DexDiff {
      * reads a register only where no path from the entry has written it, where the value can
      * only be the argument the method was called with.
      */
-    private static List<String> structuralFindings(ClassDef cd, Method m) {
+    static List<String> structuralFindings(ClassDef cd, Method m) {
         List<String> findings = new ArrayList<>();
         MethodImplementation impl = m.getImplementation();
         if (impl == null) return findings;
@@ -1707,7 +1707,7 @@ public class DexDiff {
      * such copy, those 212 came out changed. So every definition counts, and a signature is changed
      * when the multiset of its definitions' prints is.
      */
-    private static Map<String, String> fingerprintAll(File apk) throws Exception {
+    static Map<String, String> fingerprintAll(File apk) throws Exception {
         Map<String, String> out = new HashMap<>(1 << 20);
         MultiDexContainer<? extends DexFile> container =
                 DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
@@ -1855,7 +1855,7 @@ public class DexDiff {
     }
 
     /** One instruction as text: opcode, registers, branch offset, literal, reference, max register. */
-    private static String render(Instruction i) {
+    static String render(Instruction i) {
         StringBuilder b = new StringBuilder(i.getOpcode().name);
         List<String> regs = new ArrayList<>();
         int maxReg = -1;

@@ -10,11 +10,11 @@ import com.android.tools.smali.dexlib2.dexbacked.value.DexBackedStringEncodedVal
 internal object SendTypingIndicatorFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(),
-    custom = { method, classDef ->
-        method.name == "run" &&
-            classDef.fields.any {
-                it.name == "__redex_internal_original_name" &&
-                    (it.initialValue as? DexBackedStringEncodedValue)?.value == "ConversationTypingContext\$sendActiveStateRunnable\$1"
-            }
+    name = "run",
+    custom = { _, classDef ->
+        classDef.fields.any {
+            it.name == "__redex_internal_original_name" &&
+                (it.initialValue as? DexBackedStringEncodedValue)?.value == "ConversationTypingContext\$sendActiveStateRunnable\$1"
+        }
     },
 )

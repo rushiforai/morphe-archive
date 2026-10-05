@@ -185,6 +185,7 @@ class Elf32Test {
             "JNI_GUARDS" to NativeEdits.JNI_GUARDS,
             "JNI_ARGUMENTS" to NativeEdits.JNI_ARGUMENTS,
             "SOUND_CACHE_MODE" to NativeEdits.SOUND_CACHE_MODE,
+            "DAILY_DEAL" to NativeEdits.DAILY_DEAL,
             "CURRENCY" to NativeEdits.CURRENCY.mapValues { (_, plan) -> plan.edits },
         )
         for ((name, table) in tables) {
@@ -213,17 +214,20 @@ class Elf32Test {
     }
 
     @Test
-    fun `the dead server edits silence one call and one branch, return from one function and shorten one menu`() {
+    fun `the dead server edits silence one call and two branches, return from one function and shorten one menu`() {
         for (abi in ABIS) {
             // The generator sorts edits by address, so each is picked by what it replaces.
             val edits = NativeEdits.DEAD_SERVERS.getValue(abi)
-            assertEquals(4, edits.size, "$abi: four edits")
+            assertEquals(5, edits.size, "$abi: five edits")
             val call = edits.single { it.old ushr 24 == 0xEBL }
             assertEquals(0xE1A00000L, call.new, "$abi: the BL becomes mov r0, r0")
-            // bne to the offline daily bonus message, one instruction ahead: never taken.
-            val branch = edits.single { it.old ushr 24 == 0x1AL }
-            assertEquals(0x1A000001L, branch.old, "$abi: a bne over the return")
-            assertEquals(0xE1A00000L, branch.new, "$abi: the bne becomes mov r0, r0")
+            // Two bne, never taken now: one over the return into the offline daily bonus message,
+            // one forward into the one time offer.
+            val branches = edits.filter { it.old ushr 24 == 0x1AL }
+            assertEquals(2, branches.size, "$abi: two bne")
+            assertEquals(0x1A000001L, branches.minBy { it.vaddr }.old, "$abi: a bne over the return")
+            assertTrue(branches.maxBy { it.vaddr }.old and 0xFFFFFFL > 1, "$abi: a bne further ahead")
+            assertTrue(branches.all { it.new == 0xE1A00000L }, "$abi: both become mov r0, r0")
             val entry = edits.single { it.old and 0xFFFFC000L == 0xE92D4000L }
             assertEquals(0xE12FFF1EL, entry.new, "$abi: the push of lr becomes bx lr")
 

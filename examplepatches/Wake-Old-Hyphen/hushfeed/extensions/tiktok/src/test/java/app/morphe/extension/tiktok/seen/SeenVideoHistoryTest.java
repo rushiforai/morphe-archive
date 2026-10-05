@@ -1199,6 +1199,264 @@ public class SeenVideoHistoryTest {
         assertEquals(SeenVideoHistory.MAX_RECORDS, SeenVideoHistory.size());
     }
 
+    @Test public void ordinarySightingsAtCapacityCannotReportClearedRowsRestored() throws Exception {
+        long now = System.currentTimeMillis();
+        SQLiteDatabase db = database();
+        db.beginTransaction();
+        try {
+            for (int index = 0; index < SeenVideoHistory.MAX_RECORDS; index++) {
+                db.execSQL("INSERT INTO seen_videos VALUES (?, ?, ?)",
+                        new Object[]{ME, "cleared-" + index, now - 60_000});
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        SeenVideoHistory.clear();
+        drain();
+        assertEquals(SeenVideoHistory.MAX_RECORDS, SeenVideoHistory.undoSize());
+        for (int index = 0; index < SeenVideoHistory.MAX_RECORDS; index++) {
+            SeenVideoHistory.onPlayProgressChange("watched-" + index, 5000, 10000);
+        }
+        drain();
+        assertEquals(SeenVideoHistory.MAX_RECORDS, SeenVideoHistory.size());
+        assertTrue(SeenVideoHistory.canUndo());
+        AtomicReference<SeenVideoHistory.UndoResult> result = new AtomicReference<>();
+        assertTrue(SeenVideoHistory.undoClear(result::set));
+        drain();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertNotEquals("no cleared row survived the cap", SeenVideoHistory.UndoResult.RESTORED,
+                result.get());
+        Set<String> retained = persistedIds();
+        assertEquals(SeenVideoHistory.MAX_RECORDS, retained.size());
+        assertFalse(retained.stream().anyMatch(id -> id.startsWith("cleared-")));
+    }
+
+    @Test public void undoReportsTheRetainedSubsetAtTheCap() throws Exception {
+        long now = System.currentTimeMillis();
+        SQLiteDatabase db = database();
+        db.beginTransaction();
+        try {
+            for (int index = 0; index < SeenVideoHistory.MAX_RECORDS; index++) {
+                db.execSQL("INSERT INTO seen_videos VALUES (?, ?, ?)",
+                        new Object[]{ME, "cleared-" + index, now - 60_000});
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        SeenVideoHistory.clear();
+        drain();
+        SeenVideoHistory.onPlayProgressChange("new-a", 5000, 10000);
+        SeenVideoHistory.onPlayProgressChange("new-b", 5000, 10000);
+        drain();
+        AtomicReference<SeenVideoHistory.UndoResult> result = new AtomicReference<>();
+        AtomicInteger retained = new AtomicInteger();
+        AtomicInteger requested = new AtomicInteger();
+        assertTrue(SeenVideoHistory.undoClear((outcome, kept, total) -> {
+            result.set(outcome);
+            retained.set(kept);
+            requested.set(total);
+        }));
+        drain();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(SeenVideoHistory.UndoResult.PARTIAL, result.get());
+        assertEquals(SeenVideoHistory.MAX_RECORDS - 2, retained.get());
+        assertEquals(SeenVideoHistory.MAX_RECORDS, requested.get());
+        Set<String> durable = persistedIds();
+        assertEquals(SeenVideoHistory.MAX_RECORDS, durable.size());
+        assertTrue(durable.contains("new-a"));
+        assertTrue(durable.contains("new-b"));
+        assertEquals(retained.get(), durable.stream().filter(id -> id.startsWith("cleared-")).count());
+        assertEquals(durable, ((Map<?, ?>) field("SEEN")).keySet());
+    }
+
+    @Test public void undoCountsSightingsThatArriveDuringItsTransaction() throws Exception {
+        long now = System.currentTimeMillis();
+        SQLiteDatabase db = database();
+        db.beginTransaction();
+        try {
+            for (int index = 0; index < SeenVideoHistory.MAX_RECORDS; index++) {
+                db.execSQL("INSERT INTO seen_videos VALUES (?, ?, ?)",
+                        new Object[]{ME, "cleared-" + index, now - 60_000});
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        SeenVideoHistory.clear();
+        drain();
+        SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
+        AtomicBoolean first = new AtomicBoolean(true);
+        CountDownLatch queuedWriteEntered = new CountDownLatch(1);
+        CountDownLatch releaseQueuedWrites = new CountDownLatch(1);
+        ExecutorService worker = io();
+        SeenVideoHistory.rowWriter = (database, values) -> {
+            if (first.getAndSet(false)) {
+                worker.execute(() -> {
+                    queuedWriteEntered.countDown();
+                    try { releaseQueuedWrites.await(15, TimeUnit.SECONDS); }
+                    catch (InterruptedException failure) { Thread.currentThread().interrupt(); }
+                });
+                SeenVideoHistory.onPlayProgressChange("during-a", 5000, 10000);
+                SeenVideoHistory.onPlayProgressChange("during-b", 5000, 10000);
+            }
+            return original.insert(database, values);
+        };
+        AtomicInteger retained = new AtomicInteger(-1);
+        AtomicReference<SeenVideoHistory.UndoResult> result = new AtomicReference<>();
+        try {
+            assertTrue(SeenVideoHistory.undoClear((outcome, kept, total) -> {
+                result.set(outcome);
+                retained.set(kept);
+            }));
+            assertTrue(queuedWriteEntered.await(15, TimeUnit.SECONDS));
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            if (result.get() != null) {
+                assertEquals("Undo reported rows before concurrent writes became durable",
+                        persistedIds().stream().filter(id -> id.startsWith("cleared-")).count(),
+                        retained.get());
+            }
+            releaseQueuedWrites.countDown();
+            drain();
+            // Writes enqueued inside the transaction land after the first drain marker.
+            drain();
+        } finally {
+            releaseQueuedWrites.countDown();
+            SeenVideoHistory.rowWriter = original;
+        }
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(SeenVideoHistory.UndoResult.PARTIAL, result.get());
+        assertEquals(SeenVideoHistory.MAX_RECORDS - 2, retained.get());
+        assertTrue(SeenVideoHistory.shouldHide("during-a"));
+        assertTrue(SeenVideoHistory.shouldHide("during-b"));
+        resetLoadedMemory();
+        SeenVideoHistory.size();
+        drain();
+        Set<String> durable = persistedIds();
+        assertEquals(retained.get(), durable.stream().filter(id -> id.startsWith("cleared-")).count());
+        assertEquals(durable, ((Map<?, ?>) field("SEEN")).keySet());
+    }
+
+    @Test public void aFailedConcurrentUndoRowRollsBackAndKeepsRecovery() throws Exception {
+        insert("cleared", System.currentTimeMillis() - 60_000);
+        SeenVideoHistory.clear();
+        drain();
+        SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
+        AtomicBoolean first = new AtomicBoolean(true);
+        SeenVideoHistory.rowWriter = (db, values) -> {
+            if (first.getAndSet(false)) {
+                SeenVideoHistory.onPlayProgressChange("during", 5000, 10000);
+            }
+            return "during".equals(values.getAsString("aid")) ? -1L : original.insert(db, values);
+        };
+        AtomicReference<SeenVideoHistory.UndoResult> result = new AtomicReference<>();
+        try {
+            assertTrue(SeenVideoHistory.undoClear(result::set));
+            drain();
+            drain();
+        } finally {
+            SeenVideoHistory.rowWriter = original;
+        }
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(SeenVideoHistory.UndoResult.FAILED, result.get());
+        assertEquals(Set.of("during"), persistedIds());
+        assertTrue(SeenVideoHistory.canUndo());
+        assertFalse(SeenVideoHistory.isRestoring());
+        assertTrue(SeenVideoHistory.undoClear());
+        drain();
+        assertEquals(Set.of("cleared", "during"), persistedIds());
+    }
+
+    @Test public void queuedSightingCannotRegressTimestampCommittedByUndo() throws Exception {
+        long now = System.currentTimeMillis();
+        insert("cleared", now - 60_000);
+        SeenVideoHistory.clear();
+        drain();
+        SeenVideoHistory.RowWriter original = SeenVideoHistory.rowWriter;
+        AtomicBoolean first = new AtomicBoolean(true);
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        ExecutorService worker = io();
+        Method mark = SeenVideoHistory.class.getDeclaredMethod("markSeen", String.class, String.class, long.class);
+        mark.setAccessible(true);
+        SeenVideoHistory.rowWriter = (db, values) -> {
+            if (first.getAndSet(false)) {
+                try {
+                    mark.invoke(null, ME, "during", now - 2000);
+                    worker.execute(() -> {
+                        entered.countDown();
+                        try { release.await(15, TimeUnit.SECONDS); }
+                        catch (InterruptedException failure) { Thread.currentThread().interrupt(); }
+                    });
+                    mark.invoke(null, ME, "during", now - 1000);
+                } catch (ReflectiveOperationException failure) { throw new AssertionError(failure); }
+            }
+            return original.insert(db, values);
+        };
+        try {
+            assertTrue(SeenVideoHistory.undoClear());
+            assertTrue(entered.await(15, TimeUnit.SECONDS));
+            assertEquals("an older queued write replaced Undo's newer committed sighting",
+                    now - 1000, lastSeen(ME, "during"));
+        } finally {
+            release.countDown();
+            drain();
+            SeenVideoHistory.rowWriter = original;
+        }
+    }
+
+    @Test public void undoDoesNotPublishOrMergeOnTheCallerAndRejectsASecondPendingUndo() throws Exception {
+        SeenVideoHistory.onPlayProgressChange("before-clear", 5000, 10000);
+        drain();
+        SeenVideoHistory.clear();
+        drain();
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        io().execute(() -> {
+            entered.countDown();
+            try { release.await(5, TimeUnit.SECONDS); }
+            catch (InterruptedException failure) { Thread.currentThread().interrupt(); }
+        });
+        assertTrue(entered.await(5, TimeUnit.SECONDS));
+        try {
+            assertTrue(SeenVideoHistory.undoClear());
+            assertTrue(SeenVideoHistory.isRestoring());
+            assertFalse("the caller published history before the worker could commit",
+                    SeenVideoHistory.shouldHide("before-clear"));
+            assertFalse("a repeated tap must not supersede its own in-flight merge",
+                    SeenVideoHistory.undoClear());
+            SeenVideoHistory.onPlayProgressChange("during-undo", 5000, 10000);
+        } finally {
+            release.countDown();
+        }
+        drain();
+        assertFalse(SeenVideoHistory.isRestoring());
+        assertTrue(SeenVideoHistory.shouldHide("before-clear"));
+        assertTrue(SeenVideoHistory.shouldHide("during-undo"));
+        assertEquals(Set.of("before-clear", "during-undo"), persistedIds());
+    }
+
+    @Test public void expiredClearSnapshotReportsNothingRetained() throws Exception {
+        insert("expired-clear", System.currentTimeMillis() - TimeUnit.DAYS.toMillis(2));
+        SeenVideoHistory.clear();
+        drain();
+        Settings.SEEN_VIDEO_RETENTION_DAYS.save(1);
+        AtomicReference<SeenVideoHistory.UndoResult> result = new AtomicReference<>();
+        AtomicInteger retained = new AtomicInteger(-1);
+        assertTrue(SeenVideoHistory.undoClear((outcome, kept, total) -> {
+            result.set(outcome);
+            retained.set(kept);
+            assertEquals(1, total);
+        }));
+        drain();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals(SeenVideoHistory.UndoResult.NONE_RETAINED, result.get());
+        assertEquals(0, retained.get());
+        assertTrue(persistedIds().isEmpty());
+        assertFalse(SeenVideoHistory.canUndo());
+    }
+
     @Test public void aFailedOrFullySkippedImportKeepsTheExistingClearRecovery() throws Exception {
         long now = System.currentTimeMillis();
         insert("cleared", now - 1000);

@@ -85,7 +85,7 @@ val dex = tasks.register<JavaExec>("dex") {
 
 val bundleMpp = tasks.register<Zip>("bundleMpp") {
     dependsOn(tasks.jar, dex)
-    archiveBaseName.set("den-patch")
+    archiveBaseName.set("patches")
     archiveVersion.set(project.version.toString())
     archiveExtension.set("mpp")
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
@@ -96,16 +96,8 @@ val bundleMpp = tasks.register<Zip>("bundleMpp") {
     }
 }
 
-val copyPatchesMpp = tasks.register<Copy>("copyPatchesMpp") {
-    dependsOn(bundleMpp)
-    from(layout.buildDirectory.dir("libs"))
-    into(layout.buildDirectory.dir("libs"))
-    include("den-patch-${project.version}.mpp")
-    rename { "patches-${project.version}.mpp" }
-}
-
 tasks.register("buildAndroid") {
-    dependsOn(tasks.jar, bundleMpp, copyPatchesMpp)
+    dependsOn(tasks.jar, bundleMpp)
 }
 
 tasks.register<JavaExec>("generatePatchesList") {

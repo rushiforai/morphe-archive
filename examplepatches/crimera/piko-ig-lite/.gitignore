@@ -1,0 +1,11 @@
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.kotlin/
+*.iml
+.idea/
+local.properties
+.DS_Store
+apks/
+patches-list.json
+node_modules/

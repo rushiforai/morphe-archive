@@ -9,7 +9,7 @@ object Constants {
         packageName = "com.fingersoft.hillclimb",
         appIconColor = 0x2E7D32,
         targets = listOf(
-            AppTarget(version = "1.71.1")
+            AppTarget(version = "1.72.2")
         )
     )
 }

@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest a feature or additional Twitch surface.
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: Describe the problem and the behavior you want.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Relevant Twitch version and surface
+      description: Include player layout, chat or UI details and reference implementations if available.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or examples

@@ -8,6 +8,7 @@ public final class VideoCountRulesTest {
         for (String text : new String[]{
                 "再生:16,001  コメント:877  マイリス:42  いいね:2,749",
                 "Views: 16,001  Comments: 877  Mylists: 42  Likes: 2,749",
+                "Views:16,001 Comments:877 My Lists:42 Likes:2,749",
                 "觀看：16,001  留言：877  播放清單：42  按讚：2,749"}) {
             check(Arrays.equals(VideoCountRules.parse(text), new long[]{16001, 877, 2749, 42}), "Official order across languages");
         }

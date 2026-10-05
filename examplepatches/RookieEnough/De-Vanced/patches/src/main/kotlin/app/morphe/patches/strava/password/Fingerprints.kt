@@ -7,16 +7,14 @@ package app.morphe.patches.strava.password
 import app.morphe.patcher.Fingerprint
 
 internal object LogInGetUsePasswordFingerprint : Fingerprint(
-    returnType = "Z",
-    custom = { method, classDef ->
-        method.name == "getUsePassword" && classDef.endsWith("/RequestOtpLogInNetworkResponse;")
-    },
+    definingClass = "/RequestOtpLogInNetworkResponse;",
+    name = "getUsePassword",
+    returnType = "Z"
 )
 
 internal object EmailChangeGetUsePasswordFingerprint : Fingerprint(
-    returnType = "Z",
-    custom = { method, classDef ->
-        method.name == "getUsePassword" && classDef.endsWith("/RequestEmailChangeWithOtpOrPasswordResponse;")
-    },
+    definingClass = "/RequestEmailChangeWithOtpOrPasswordResponse;",
+    name = "getUsePassword",
+    returnType = "Z"
 )
 

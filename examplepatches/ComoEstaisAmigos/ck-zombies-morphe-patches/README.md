@@ -27,9 +27,9 @@ You need three things:
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.2](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/releases/tag/v1.2.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.3.2](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/releases/tag/v1.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
-<summary>📦 CK Zombies&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>📦 CK Zombies&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -39,10 +39,11 @@ You need three things:
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| Hide Daily Deal popup | Hides the annoying Daily Deal popup that shows at every launch. The deal is still in the store. |  |
 | Modern Android compatibility | Fixes the crash at launch on current Android and targets API 25 so that Android 14 and later install the game normally. The game is 32-bit only, so the device must still run 32-bit apps. |  |
 | Play intro once | Plays the intro video on the first launch after installing, and skips it after that. |  |
 | Remove unused permissions | Removes permissions the game no longer needs, such as phone and accounts, along with the dead services that needed them. |  |
-| Render at 720p | Makes the menus, text and pictures full size on screens above 720p, where they are otherwise small. The game is drawn at 720p and stretched to the screen, so it looks slightly blurry. *Off by default.* |  |
+| Render at 720p | Makes the menus, text and pictures full size on screens above 720p, where they are otherwise small. Menus are drawn at 720p and stretched to the screen, so they look slightly blurry. The 3D gameplay keeps the screen's own resolution and stays sharp. |  |
 | Smooth sound | Removes the stutter while firing, caused by the game building a new audio player for every sound. |  |
 | Stop requests to dead servers | Removes the 30 second wait on the loading screen and the daily offline message, and stops the game from contacting Tapjoy, OpenFeint and Glu's dead servers. |  |
 | Unlimited currency | A fresh install starts with 999,999,999 Glu credits and 999,999,999 Cash. If you install the patched app as an update, your current balance stays as it is. |  |

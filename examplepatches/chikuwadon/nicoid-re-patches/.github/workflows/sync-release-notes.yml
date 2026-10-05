@@ -26,8 +26,13 @@ jobs:
             tag="$(basename "$note" .md)"
             # New releases are published separately by semantic-release.
             gh release view "$tag" --json body -q .body > /tmp/current-release-body || continue
-            head -n 1 /tmp/current-release-body > /tmp/edited-release-body
-            printf '\n' >> /tmp/edited-release-body
-            cat "$note" >> /tmp/edited-release-body
+            # A version heading in the note also overrides the displayed date.
+            if head -n 1 "$note" | grep -q '^## '; then
+              cp "$note" /tmp/edited-release-body
+            else
+              head -n 1 /tmp/current-release-body > /tmp/edited-release-body
+              printf '\n' >> /tmp/edited-release-body
+              cat "$note" >> /tmp/edited-release-body
+            fi
             gh release edit "$tag" --notes-file /tmp/edited-release-body
           done

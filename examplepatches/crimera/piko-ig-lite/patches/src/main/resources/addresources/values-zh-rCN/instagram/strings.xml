@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="piko_copied_media_link">已复制媒体链接</string>
+    <string name="piko_download_current_media">下载当前媒体</string>
+    <string name="piko_no_internet">请连接到网络</string>
+</resources>

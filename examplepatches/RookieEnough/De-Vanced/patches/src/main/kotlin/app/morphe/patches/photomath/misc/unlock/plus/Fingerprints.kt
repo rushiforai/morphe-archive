@@ -8,11 +8,9 @@ import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal object IsPlusUnlockedFingerprint : Fingerprint(
+    definingClass = "/User;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     strings = listOf("genius"),
-    custom = { _, classDef ->
-        classDef.endsWith("/User;")
-    },
 )
 

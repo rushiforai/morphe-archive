@@ -4,6 +4,14 @@ Every Hushfeed release, newest first.
 
 ## Unreleased
 
+* **TikTok:** Automatic Clear Display retries on the current video after focus returns, including the first video after startup. A canceled or failed attempt no longer prevents another try. Manual exit remains respected, and callbacks from an earlier video cannot cancel the next video's timer.
+
+* **TikTok:** Media saves now honor the server's full retry delay, including HTTP dates, before following a redirect or trying another mirror or subtitle track. A delay beyond the save's time limit stops the job with a clear message and keeps files already saved. Cancel also interrupts a retry wait.
+
+* **TikTok:** Documentation edits no longer rerun unchanged APK fixture tests. Full test commands and release checks still cover every test, and source-reading checks now track their external inputs. Replacing an APK invalidates test results even when its size and timestamp match.
+
+* **TikTok:** Undo now commits watches recorded during restoration before counting them. Older queued writes also preserve newer watch times that Undo has already saved.
+
 * **TikTok:** Local storage scanner checks now keep Java diagnostics visible without treating successful runs as failures in Windows PowerShell.
 
 * **TikTok:** Local APK signing now accepts harmless Java startup diagnostics from heap and CPU limits. Invalid certificates and failed signing checks still stop installation.

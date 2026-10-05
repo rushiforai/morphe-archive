@@ -1,48 +1,92 @@
-name: 🐞 Bug report
-description: Report a bug or an issue.
+name: 🐞 バグ報告 / Bug report
+description: 不具合や動作上の問題を報告してください。 / Report a bug or unexpected behavior.
 title: "bug: "
 labels: ["Bug report"]
 body:
   - type: markdown
     attributes:
       value: |
-        # Patches template bug report
+        # nicoid Re — バグ報告 / Bug report
 
-        Before creating a new bug report, please keep the following in mind:
-
-        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/TEMPLATE/template-patches-template/issues?q=label%3A%22Bug+report%22).
-        - **Review the contribution guidelines**: Make sure your bug report adheres to it. You can find the guidelines [here](https://github.com/TEMPLATE/template-patches-template/blob/main/CONTRIBUTING.md).
-  - type: textarea
+        投稿前に[既存のバグ報告](https://github.com/chikuwadon/nicoid-re-patches/issues?q=is%3Aissue%20label%3A%22Bug%20report%22)を確認してください。
+        Please check [existing bug reports](https://github.com/chikuwadon/nicoid-re-patches/issues?q=is%3Aissue%20label%3A%22Bug%20report%22) before submitting.
+  - type: input
+    id: device
     attributes:
-      label: Bug description
+      label: 機種名 / Device model
+      description: メーカーと機種名・型番を記入してください。 / Enter the manufacturer and model name or number.
+      placeholder: "例 / e.g. Samsung Galaxy S23, Google Pixel Tablet"
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OSバージョン / OS version
+      description: Androidのバージョンを記入してください。 / Enter your Android version.
+      placeholder: "例 / e.g. Android 16"
+    validations:
+      required: true
+  - type: input
+    id: patch-version
+    attributes:
+      label: パッチバージョン / Patch version
       description: |
-        - Describe your bug in detail
-        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
-        - Add images and videos if possible
+        「設定」の「パッチバージョン」に表示される値を記入してください。アプリのバージョン（6.49）とは異なります。
+        Enter the Patch version shown in Settings. This is different from the app version (6.49).
+      placeholder: "例 / e.g. v1.6.2"
     validations:
       required: true
   - type: textarea
+    id: bug-description
     attributes:
-      label: Error logs
-      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+      label: 不具合の内容 / Bug description
+      description: 実際の動作と期待する動作を詳しく記入してください。 / Describe what happens and what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 再現手順 / Steps to reproduce
+      description: |
+        再現までの操作を順番に記入してください。画面の向きや通常・全画面・ポップアップ再生などの条件も記入してください。再現条件が不明な場合は、その旨を記入してください。
+        List the steps in order, including screen orientation and playback mode (normal, full screen, or popup). If the conditions are unknown, please say so.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: スクリーンショット・動画 / Screenshots or videos
+      description: 問題が分かる画像や動画があれば添付してください（任意）。 / Attach images or videos showing the problem, if available (optional).
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: エラーログ / Error logs
+      description: |
+        ログがあれば貼り付けてください（任意）。PCでADBを使える場合は「adb logcat」で取得できます。
+        Paste logs if available (optional). If you have access to ADB on a computer, you can capture them with "adb logcat".
       render: shell
   - type: textarea
+    id: solution
     attributes:
-      label: Solution
-      description: If applicable, add a possible solution to the bug.
+      label: 解決案 / Possible solution
+      description: 解決案があれば記入してください（任意）。 / Suggest a possible solution, if you have one (optional).
   - type: textarea
+    id: additional-context
     attributes:
-      label: Additional context
-      description: Add additional context here.
+      label: 補足情報 / Additional context
+      description: その他、調査に役立つ情報を記入してください（任意）。 / Add any other information that may help investigate the problem (optional).
   - type: checkboxes
     id: acknowledgements
     attributes:
-      label: Acknowledgements
-      description: Your bug report will be closed if you don't follow the checklist below.
+      label: 確認事項 / Checklist
       options:
-        - label: I have checked all open and closed bug reports and this is not a duplicate.
+        - label: 既存のIssue（解決済みを含む）を確認し、同じ報告がないことを確認しました。 / I checked existing issues, including closed ones, and found no duplicate.
           required: true
-        - label: I have chosen an appropriate title.
+        - label: 内容が分かるタイトルを付けました。 / I chose a title that describes the problem.
           required: true
-        - label: All requested information has been provided properly.
+        - label: 必須項目を記入しました。 / I provided all required information.
           required: true

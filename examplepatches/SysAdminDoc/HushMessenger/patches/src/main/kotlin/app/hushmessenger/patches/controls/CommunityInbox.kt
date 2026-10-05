@@ -1,10 +1,8 @@
 package app.hushmessenger.patches.controls
 
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -43,7 +41,7 @@ private fun Instruction.communityArgs(): List<Int> = when (this) {
     else -> emptyList()
 }
 private fun Instruction.communityWrites(register: Int) = opcode.setsRegister() &&
-    this is OneRegisterInstruction && (registerA == register || ("WIDE" in opcode.toString() && registerA + 1 == register))
+    this is OneRegisterInstruction && (registerA == register || (opcode.setsWideRegister() && registerA + 1 == register))
 private fun Instruction.communityReads(register: Int): Boolean {
     val name = opcode.toString()
     fun source(value: Int) = value == register || (("WIDE" in name || "LONG" in name || "DOUBLE" in name) && value + 1 == register)
@@ -67,7 +65,7 @@ private fun <T> List<T>.communitySingle(): T { communityRequire(size == 1); retu
 private fun communityEnums(cls: ClassDef): Map<String, FieldReference> {
     val result = linkedMapOf<String, FieldReference>()
     var label: String? = null
-    for (i in cls.methods.single { it.name == "<clinit>" }.communityCode()) {
+    for (i in cls.methods.filter { it.name == "<clinit>" }.communitySingle().communityCode()) {
         (i.communityRef() as? StringReference)?.let { label = it.string }
         if (i.opcode == Opcode.SPUT_OBJECT) (i.communityRef() as? FieldReference)?.let {
             if (it.type == cls.type && label != null) { result[label] = it; label = null }
@@ -97,6 +95,7 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         val u = update.communityCode()
         communityRequire(update.returnType == "V" && update.parameterTypes.size == 4 && update.parameterTypes.first().toString() == main.type)
         val ctor = definition(calls(update).filter { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString).contains(IMMUTABLE_LIST) }.communitySingle())
+        val ctorId = ctor.hookId()
         val closure = byType[ctor.definingClass] ?: throw CommunityChanged()
         val c = ctor.communityCode()
         communityRequire(ctor.parameterTypes.size == 14 && ctor.parameterTypes[11].toString() == IMMUTABLE_LIST && c.size == 17 &&
@@ -109,8 +108,9 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         communityRequire(c[0].opcode == Opcode.IPUT_OBJECT && (c[0] as? TwoRegisterInstruction)?.let { it.registerA == 13 && it.registerB == 1 } == true &&
             captured.name == "\$inboxUnitItems" && captured.type == IMMUTABLE_LIST && c[scopeAt].opcode == Opcode.IPUT_OBJECT &&
             (c[scopeAt] as? TwoRegisterInstruction)?.let { it.registerA == 10 && it.registerB == 1 } == true && scope.name == "\$threadTypeFilter")
-        val ctorCall = u.indices.filter { u[it].communityRef().toString() == ctor.hookId() }.communitySingle()
+        val ctorCall = u.indices.filter { u[it].communityRef().toString() == ctorId }.communitySingle()
         val ctorArgs = u[ctorCall].communityArgs()
+        communityRequire(ctorArgs.size == 15)
         fun previousWrite(register: Int) = (ctorCall - 1 downTo 0).firstOrNull { u[it].communityWrites(register) } ?: throw CommunityChanged()
         val listWrite = previousWrite(ctorArgs[12])
         val alias = u[listWrite] as? TwoRegisterInstruction ?: throw CommunityChanged()
@@ -140,7 +140,7 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
             .communitySingle()).filter { it.definingClass == scopeGetter.definingClass && it.name == "<init>" }.communitySingle()
         val coordinator = definition(calls(definition(loaderCtor)).filter { it.name == "<init>" && byType[it.definingClass]?.communityOriginal() == "InboxLoaderCoordinator" }.communitySingle())
         val configCtor = definition(calls(coordinator).filter { it.name == "<init>" && it.definingClass == config.type }.communitySingle())
-        val builder = byType[configCtor.parameterTypes.single().toString()] ?: throw CommunityChanged()
+        val builder = byType[configCtor.parameterTypes.toList().communitySingle().toString()] ?: throw CommunityChanged()
         val defaultBuilder = builder.methods.filter { it.name == "<init>" && it.parameterTypes.isEmpty() }.communitySingle()
         communityRequire(coordinator.communityString("threadTypeFilter") && !coordinator.communityString("folderName") &&
             defaultBuilder.communityCode().size == 5 && calls(defaultBuilder).any { it.definingClass == "Ljava/util/HashSet;" && it.name == "<init>" && it.parameterTypes.isEmpty() })
@@ -163,7 +163,7 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         val cb = callbackCtor.communityCode()
         communityRequire(callbackCtor.parameterTypes.map(CharSequence::toString) == listOf(main.type) && cb.size == 3 && cb[0].opcode == Opcode.IPUT_OBJECT &&
             (cb[0] as TwoRegisterInstruction).let { it.registerA == 1 && it.registerB == 0 })
-        val receiver = u[scopeWrite - 1].communityArgs().single()
+        val receiver = u[scopeWrite - 1].communityArgs().communitySingle()
         val loaderRead = (scopeWrite - 2 downTo 0).firstOrNull { u[it].communityWrites(receiver) } ?: throw CommunityChanged()
         communityRequire(u[loaderRead].opcode == Opcode.IGET_OBJECT)
         val g = scopeGetter.communityCode()
@@ -198,13 +198,15 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
             listOf(9, 14, 17).all { f[it].communityRegister() == 2 })
         publicStatic(requests)
         publicStatic(folders.getValue("INBOX"))
+        val updateId = update.hookId()
+        val captures = setOf(captured.toString(), scope.toString())
         var callers = 0; var allocations = 0; var writes = 0
         for (cls in all) for (m in cls.methods) for ((at, i) in m.communityCode().withIndex()) {
-            val ref = i.communityRef().toString()
-            if (ref == ctor.hookId()) { communityRequire(m.hookId() == update.hookId()); callers++ }
-            if (i.opcode == Opcode.NEW_INSTANCE && ref == closure.type) { communityRequire(m.hookId() == update.hookId()); allocations++ }
-            if (i.opcode.toString().startsWith("IPUT") && ref in setOf(captured.toString(), scope.toString())) {
-                communityRequire(m.hookId() == ctor.hookId() && at in setOf(0, scopeAt)); writes++
+            val ref = (i.communityRef() ?: continue).toString()
+            if (ref == ctorId) { communityRequire(m.hookId() == updateId); callers++ }
+            if (i.opcode == Opcode.NEW_INSTANCE && ref == closure.type) { communityRequire(m.hookId() == updateId); allocations++ }
+            if (i.opcode.toString().startsWith("IPUT") && ref in captures) {
+                communityRequire(m.hookId() == ctorId && at in setOf(0, scopeAt)); writes++
             }
         }
         communityRequire(callers == 1 && allocations == 1 && writes == 2)
@@ -234,7 +236,8 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         val any = definition(calls(nullable).filter { it.definingClass == THREAD_KEY && it.parameterTypes.isEmpty() && it.returnType == "Z" }.communitySingle())
         val channel = definition(calls(any).filter { it.definingClass == THREAD_KEY && it.parameterTypes.isEmpty() && it.returnType == "Z" }.communitySingle())
         val n = nullable.communityCode(); val a = any.communityCode(); val h = channel.communityCode()
-        val keyEnums = communityEnums(byType[(h[0].communityRef() as FieldReference).type] ?: throw CommunityChanged())
+        val keyType = (h.firstOrNull()?.communityRef() as? FieldReference)?.type ?: throw CommunityChanged()
+        val keyEnums = communityEnums(byType[keyType] ?: throw CommunityChanged())
         communityRequire(n.map { it.opcode } == listOf(Opcode.IF_EQZ, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_EQZ,
             Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN) && n.branchTarget(0) == 6 && n.branchTarget(3) == 6 &&
             nullable.implementation!!.registerCount == 1 && n[1].communityArgs() == listOf(0) && n[4].communityLiteral(0, 1) && n[6].communityLiteral(0, 0) &&
@@ -252,7 +255,7 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
     } catch (_: CommunityChanged) { return null }
 }
 
-/** Read two is consumed only as List; the first empty/header read and capture stay stock. */
+/** Preserve the first empty/header read and capture, and prove scratch liveness along every successor. */
 internal fun Method.communityReadSite(scope: String): Int {
     val c = communityCode()
     val listField = "$definingClass->\$inboxUnitItems:$IMMUTABLE_LIST"
@@ -267,7 +270,35 @@ internal fun Method.communityReadSite(scope: String): Int {
         c[at + 10].opcode == Opcode.MOVE_OBJECT_FROM16 && (c[at + 10] as? TwoRegisterInstruction)?.let { it.registerA == 17 && it.registerB == 0 } == true &&
         c[at + 11].opcode == Opcode.INVOKE_STATIC_RANGE && (c[at + 11].communityRef() as? MethodReference)?.parameterTypes?.map(CharSequence::toString)?.let { it.size == 12 && it.last() == "Ljava/util/List;" } == true &&
         c[at + 11].communityArgs().last() == 17 && (at + 1 until at + 10).none { c[it].communityWrites(0) } &&
-        jumpTargets().none { it in at + 1..at + 11 } && c.drop(at + 1).none { it.communityReads(1) || it.communityReads(3) })
+        jumpTargets().none { it in at + 1..at + 11 })
+    val addresses = IntArray(c.size + 1)
+    for (index in c.indices) addresses[index + 1] = addresses[index] + c[index].codeUnits
+    val indexAt = c.indices.associateBy { addresses[it] }
+    for (register in listOf(1, 3)) {
+        val pending = ArrayDeque<Int>()
+        val seen = mutableSetOf<Int>()
+        pending.add(at + 1)
+        while (pending.isNotEmpty()) {
+            val index = pending.removeFirst()
+            if (!seen.add(index)) continue
+            val instruction = c[index]
+            communityRequire(!instruction.communityReads(register))
+            if (instruction.communityWrites(register)) continue
+            if (instruction is OffsetInstruction && instruction.opcode != Opcode.FILL_ARRAY_DATA) {
+                val landing = indexAt[addresses[index] + instruction.codeOffset] ?: throw CommunityChanged()
+                if (instruction.opcode == Opcode.PACKED_SWITCH || instruction.opcode == Opcode.SPARSE_SWITCH) {
+                    val payload = c[landing] as? SwitchPayload ?: throw CommunityChanged()
+                    for (element in payload.switchElements) {
+                        pending.add(indexAt[addresses[index] + element.offset] ?: throw CommunityChanged())
+                    }
+                } else pending.add(landing)
+            }
+            if (instruction.opcode.canContinue()) {
+                communityRequire(index + 1 < c.size)
+                pending.add(index + 1)
+            }
+        }
+    }
     return at
 }
 
@@ -333,6 +364,8 @@ internal fun injectCommunityInbox(contract: CommunityInboxContract, render: Muta
         if-eq v0, v1, :stock_list
         invoke-static {v0}, $COMMUNITY_LIST_COPY
         move-result-object v0
-    """.trimIndent(), ExternalLabel("stock_list", render.getInstruction(at + 1)))
+        :stock_list
+        check-cast v0, $IMMUTABLE_LIST
+    """.trimIndent())
     return listOf(joinedHelper, scopeHelper)
 }

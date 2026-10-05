@@ -1,5 +1,6 @@
 package app.template.patches.steamlink.androidxr
 
+import app.template.patches.shared.PatchCategories
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_EARLIER_STARTUP
 import app.template.patches.shared.Constants.isEarlierStartupSteamLinkBuild
@@ -113,6 +114,7 @@ val xrCoreRuntimePatch = bytecodePatch(
     description = "Installs the Galaxy XR runtime bridge resources and extension DEX foundation used by other XR patches.",
     default = false,
 ) {
+    category(PatchCategories.ADVANCED_XR_COMPATIBILITY)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
     dependsOn(androidXrLibPatch, androidXrUiExtensionPatch, xrDirectInputFixPatch)
 }
@@ -123,6 +125,7 @@ val xrDeviceConfigBaselinePatch = rawResourcePatch(
     description = "Installs baseline Galaxy XR HMD/controller/default config payloads and dashboard bootstrap assets.",
     default = false,
 ) {
+    category(PatchCategories.ADVANCED_XR_COMPATIBILITY)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
     dependsOn(xrCoreRuntimePatch)
 
@@ -188,6 +191,7 @@ val xrManifestCapabilityPackPatch = resourcePatch(
     description = "Adds Android XR/OpenXR permissions, features, runtime queries, and app-level XR properties.",
     default = false,
 ) {
+    category(PatchCategories.ADVANCED_XR_COMPATIBILITY)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
     dependsOn(xrCoreRuntimePatch)
 
@@ -493,6 +497,7 @@ val xrLauncherBootstrapPatch = resourcePatch(
     description = "Adds the Launching Steam Link splash, older-build panel sizing and explicit unmanaged VRLink startup. Does not request tracking, microphone or Bluetooth permissions; select Startup permission requests separately.",
     default = false,
 ) {
+    category(PatchCategories.STARTUP_AND_PERMISSIONS)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_EARLIER_STARTUP.toTypedArray())
     // Keep the legacy launcher self-contained: its manifest activity needs the helper-only DEX,
     // and the lifecycle probe supplies the historical overlay activation hook. These same
@@ -654,6 +659,7 @@ val xrInputRoutingConfigPatch = rawResourcePatch(
     description = "Installs ui_config.json mappings for XR pointer/button routing in launcher UI flows.",
     default = false,
 ) {
+    category(PatchCategories.TRACKING_AND_AUDIO)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
     dependsOn(xrManifestCapabilityPackPatch)
 
@@ -692,6 +698,7 @@ val xrStartupPermissionsPatch = bytecodePatch(
     description = "Requests hand, eye and face tracking, microphone and Bluetooth permissions before opening Steam Link on exact older builds. Battery settings and the visible startup splash are separate patches.",
     default = false,
 ) {
+    category(PatchCategories.STARTUP_AND_PERMISSIONS)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_EARLIER_STARTUP.toTypedArray())
     dependsOn(xrPermissionSettingsBootstrapPatch, xrStartupPermissionDeclarationsPatch)
     execute {

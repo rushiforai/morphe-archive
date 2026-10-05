@@ -61,30 +61,35 @@ class PatchMigrator:
 
         return MigrationPlan(self.constants_file, content, new_content2, changes)
 
-    def plan_gboard_constants_update(self, new_version: str) -> MigrationPlan:
+    def _plan_version_constants(self, updates: List[Tuple[str, str]]) -> MigrationPlan:
+        """Bumps `const val <NAME> = "..."` entries without touching any other line."""
         content = self.constants_file.read_text(encoding="utf-8")
+        new_content = content
         changes = []
+        for const_name, new_version in updates:
+            updated = re.sub(
+                rf'const val {const_name} = "[^"]+"',
+                f'const val {const_name} = "{new_version}"',
+                new_content,
+                count=1,
+            )
+            if updated != new_content:
+                changes.append(f"Updated {const_name} to '{new_version}'")
+                new_content = updated
+        return MigrationPlan(self.constants_file, content, new_content, changes)
 
-        # 1. GBOARD_TARGET_VERSION = "..."
-        new_content = re.sub(
-            r'const val GBOARD_TARGET_VERSION = "[^"]+"',
-            f'const val GBOARD_TARGET_VERSION = "{new_version}"',
-            content
-        )
-        if new_content != content:
-            changes.append(f"Updated GBOARD_TARGET_VERSION to '{new_version}'")
+    def plan_gboard_constants_update(self, new_version: str) -> MigrationPlan:
+        # AppTarget descriptions interpolate $GBOARD_TARGET_VERSION / $GBOARD_TARGET_VERSION_V7A,
+        # so only the constants are bumped. Both ABI targets share one release.
+        base = re.sub(r"-(?:arm64-v8a|armeabi-v7a)$", "", new_version)
+        return self._plan_version_constants([
+            ("GBOARD_TARGET_VERSION", f"{base}-arm64-v8a"),
+            ("GBOARD_TARGET_VERSION_V7A", f"{base}-armeabi-v7a"),
+        ])
 
-        # 2. description = "Download ... (APK nodpi) from APKMirror"
-        new_content2 = re.sub(
-            r'description = "(?:Download [^"]+ from APKMirror|Gboard Lite beta [^"]+)"',
-            f'description = "Download {new_version} (APK nodpi) from APKMirror"',
-            new_content
-        )
-        if new_content2 != new_content:
-            changes.append(f"Updated Gboard AppTarget description to 'Download {new_version} (APK nodpi) from APKMirror'")
-
-        return MigrationPlan(self.constants_file, content, new_content2, changes)
-
+    def plan_tiktok_constants_update(self, new_version: str) -> MigrationPlan:
+        # AppTarget description interpolates $TIKTOK_TARGET_VERSION.
+        return self._plan_version_constants([("TIKTOK_TARGET_VERSION", new_version)])
 
     def plan_xiaomi_earbuds_constants_update(self, new_version: str) -> MigrationPlan:
         content = self.constants_file.read_text(encoding="utf-8")
@@ -110,6 +115,16 @@ class PatchMigrator:
 
         return MigrationPlan(self.constants_file, content, new_content2, changes)
 
+
+    def current_telemetry_offsets(self, is_arm32: bool = False) -> Dict[str, List[int]]:
+        """Reads HostEntry(arm64, arm32, host) offsets currently declared in BraveBlockTelemetryPatch.kt."""
+        offsets: Dict[str, List[int]] = {}
+        if not self.telemetry_patch_file.exists():
+            return offsets
+        pattern = re.compile(r'HostEntry\(\s*0x([0-9a-fA-F]+)L\s*,\s*0x([0-9a-fA-F]+)L\s*,\s*"([^"]+)"\s*\)')
+        for arm64_off, arm32_off, host in pattern.findall(self.telemetry_patch_file.read_text(encoding="utf-8")):
+            offsets.setdefault(host, []).append(int(arm32_off if is_arm32 else arm64_off, 16))
+        return offsets
 
     def plan_telemetry_hosts_update(self, host_results: List[HostAuditResult], is_arm32: bool = False) -> MigrationPlan:
         content = self.telemetry_patch_file.read_text(encoding="utf-8")
@@ -247,16 +262,17 @@ class PatchMigrator:
     def plan_scheduler_symbols_update(self, symbols: BraveNotificationSchedulerSymbols) -> MigrationPlan:
         content = self.scheduler_patch_file.read_text(encoding="utf-8")
         changes = []
+        new_name = symbols.on_start_task_method.new_symbol
 
-        # Update parameters = listOf("Landroid/content/Context;", "Lvtj;", "Locc;")
-        param_block = f'            parameters = listOf(\n                "Landroid/content/Context;",\n                "{symbols.param2_type}",\n                "{symbols.param3_type}",\n            ),'
+        # The onStartTask hook is anchored by its obfuscated name on NotificationSchedulerTask.
         new_content = re.sub(
-            r'            parameters = listOf\(\s*"Landroid/content/Context;",\s*"[^"]+",\s*"[^"]+",\s*\),',
-            param_block,
-            content
+            r'(definingClass = "Lorg/chromium/chrome/browser/notifications/scheduler/NotificationSchedulerTask;",\s*name = ")[^"]+(",\s*returnType = "I",)',
+            rf"\g<1>{new_name}\g<2>",
+            content,
+            count=1,
         )
         if new_content != content:
-            changes.append(f"Updated NotificationScheduler parameters to ['Landroid/content/Context;', '{symbols.param2_type}', '{symbols.param3_type}']")
+            changes.append(f"Updated NotificationScheduler onStartTask method name to '{new_name}'")
 
         return MigrationPlan(self.scheduler_patch_file, content, new_content, changes)
 

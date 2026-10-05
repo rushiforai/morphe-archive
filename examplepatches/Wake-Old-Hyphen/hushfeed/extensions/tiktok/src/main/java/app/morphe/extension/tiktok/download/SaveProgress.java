@@ -70,7 +70,7 @@ final class SaveProgress {
     }
 
     /** Why a run ended before its last file when it was not Cancel. */
-    enum Stop { NONE, NO_SPACE, NO_TIME }
+    enum Stop { NONE, NO_SPACE, NO_TIME, SERVER_WAIT }
 
     /** What a run of steps came to. */
     static final class Outcome {
@@ -264,32 +264,42 @@ final class SaveProgress {
      */
     Outcome run(Step step) {
         started = true;
-        int saved = 0;
-        int skipped = 0;
-        int index = 0;
-        Stop stop = Stop.NONE;
+        Outcome[] result = new Outcome[1];
         try {
-            for (; index < total; index++) {
-                if (isCancelled()) break;
-                showCount(index + 1);
-                try {
-                    step.save(index);
-                    saved++;
-                } catch (MediaBudget.StopException refusal) {
-                    int which = index + 1;
-                    Logger.printException(() -> "The save stopped at file " + which + " of " + total, refusal);
-                    stop = refusal.space ? Stop.NO_SPACE : Stop.NO_TIME;
-                    break;
-                } catch (IOException | RuntimeException failure) {
-                    int which = index + 1;
-                    Logger.printException(() -> "File " + which + " of " + total + " was not saved", failure);
-                    skipped++;
+            MediaBudget.runWithJobDeadline(() -> {
+                MediaBudget.Deadline deadline = MediaBudget.deadline();
+                deadline.cancellation = cancelled;
+                int saved = 0, skipped = 0, index = 0;
+                Stop stop = Stop.NONE;
+                for (; index < total; index++) {
+                    if (isCancelled()) break;
+                    showCount(index + 1);
+                    try {
+                        if (deadline.networkStop != null) throw deadline.networkStop;
+                        step.save(index);
+                        saved++;
+                    } catch (MediaBudget.StopException refusal) {
+                        int which = index + 1;
+                        Logger.printException(() -> "The save stopped at file " + which + " of " + total, refusal);
+                        switch (refusal.reason) {
+                            case SPACE: stop = Stop.NO_SPACE; break;
+                            case TIME: stop = Stop.NO_TIME; break;
+                            case SERVER_WAIT: stop = Stop.SERVER_WAIT; break;
+                            case CANCELLED: break;
+                        }
+                        break;
+                    } catch (IOException | RuntimeException failure) {
+                        int which = index + 1;
+                        Logger.printException(() -> "File " + which + " of " + total + " was not saved", failure);
+                        skipped++;
+                    }
                 }
-            }
+                result[0] = new Outcome(total, saved, skipped, total - index, stop);
+            });
         } finally {
             dismiss();
         }
-        return new Outcome(total, saved, skipped, total - index, stop);
+        return result[0];
     }
 
     /** {@code complete} when every file landed, otherwise what did and what did not, and why. */
@@ -300,6 +310,7 @@ final class SaveProgress {
         String skipped = String.valueOf(outcome.skipped);
         if (outcome.stop == Stop.NO_SPACE) return L10n.f("Saved %1$s of %2$s, the rest need more free space", saved, total);
         if (outcome.stop == Stop.NO_TIME) return L10n.f("Saved %1$s of %2$s, the rest ran out of time", saved, total);
+        if (outcome.stop == Stop.SERVER_WAIT) return L10n.f("Saved %1$s of %2$s. The server asked us to wait. Try again later.", saved, total);
         if (outcome.cancelled > 0 && outcome.skipped > 0) {
             return L10n.f("Saved %1$s of %2$s, %3$s skipped and the rest cancelled", saved, total, skipped);
         }

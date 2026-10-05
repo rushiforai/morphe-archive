@@ -620,7 +620,7 @@ Last original value,Nilai asli terakhir
 Last recording: %1$d gates.,Rekaman terakhir: %1$d gate.
 Last recording: 1 gate.,Rekaman terakhir: 1 gate.
 Layout,Tata letak
-"Layout, player, search and system","Tata letak, pemutar, pencarian, dan sistem"
+"Layout, search, profile and system","Tata letak, pencarian, profil, dan sistem"
 Leave when TikTok says time is up,Keluar saat TikTok bilang waktunya habis
 Leave maximum empty to keep it unlimited.,Kosongkan nilai maksimum agar tetap tanpa batas.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.,Hilangkan suara dari video yang disimpan. Simpan suaranya juga tetap menulis berkas .m4a di sebelahnya kalau kamu mau keduanya.
@@ -897,7 +897,6 @@ Saving the story,Menyimpan Story
 Saving the sound,Menyimpan suara
 Saving the profile picture,Menyimpan foto profil
 Saving the live photo's clip,Menyimpan klip foto langsung
-Screen,Layar
 Screen time,Waktu layar
 Search,Pencarian
 "Search by name, description or category.","Cari berdasarkan nama, deskripsi, atau kategori."
@@ -1328,6 +1327,8 @@ Stopping after this file,Berhenti setelah berkas ini
 Waiting to save %1$s files,Menunggu untuk menyimpan %1$s berkas
 Waiting to save one file,Menunggu untuk menyimpan satu berkas
 Save cancelled. Nothing was saved.,Penyimpanan dibatalkan. Tidak ada yang disimpan.
+The server asked us to wait. Try again later.,Server meminta kita menunggu. Coba lagi nanti.
+Saved %1$s of %2$s. The server asked us to wait. Try again later.,%1$s dari %2$s tersimpan. Server meminta kita menunggu. Coba lagi nanti.
 One more save waiting,Satu penyimpanan lagi menunggu
 %1$s more saves waiting,%1$s penyimpanan lagi menunggu
 Starts after one other save,Dimulai setelah satu penyimpanan lain
@@ -1427,7 +1428,6 @@ Problem detected.,Masalah terdeteksi.
 Couldn't save these choices. Try again.,Pilihan ini tidak dapat disimpan. Coba lagi.
 Clearing seen videos,Menghapus video yang sudah ditonton
 Couldn't clear seen videos. Try again.,Video yang sudah ditonton tidak dapat dihapus. Coba lagi.
-Background play,Putar di latar belakang
 Keep playing in the background,Tetap putar di latar belakang
 "The video you're watching keeps playing to its end after you leave TikTok or turn the screen off, with TikTok's own media notification to pause it. TikTok's background play switch stays on while this is on. Restart TikTok to apply this.","Video yang sedang kamu tonton tetap diputar sampai selesai setelah kamu keluar dari TikTok atau mematikan layar, dengan notifikasi media TikTok sendiri untuk menjedanya. Tombol putar di latar belakang milik TikTok tetap aktif selama ini aktif. Mulai ulang TikTok agar berlaku."
 "Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.","Tetap putar di latar belakang aktif di pengaturan Pemutaran Hushfeed, jadi TikTok mendapat 2 untuk kunci ini dan penggantian di sini tidak berpengaruh sampai tombol itu dimatikan."
@@ -1456,7 +1456,6 @@ Next message: tomorrow at %1$s.,Pesan berikutnya: besok pukul %1$s.
 TikTok's messages didn't start in time. It tries again at %1$s.,Pesan TikTok tidak mulai tepat waktu. Akan dicoba lagi pukul %1$s.
 The message didn't go through. It tries again at %1$s.,Pesan tidak terkirim. Akan dicoba lagi pukul %1$s.
 Found %1$s in your chats.,%1$s ditemukan di obrolanmu.
-App checks,Pemeriksaan aplikasi
 Look like the store app to TikTok's checks,Tampak seperti aplikasi dari toko bagi pemeriksaan TikTok
 "Answer TikTok's own checks of how it was signed and installed the way the Play Store app would. For follows or likes that undo themselves on a refresh. TikTok can also check from native code this doesn't reach, so it may not help.","Menjawab pemeriksaan TikTok sendiri tentang cara ia ditandatangani dan dipasang seperti yang dilakukan aplikasi Play Store. Untuk follow atau suka yang batal sendiri saat disegarkan. TikTok juga bisa memeriksa dari kode native yang tidak dijangkau ini, jadi mungkin tidak membantu."
 Add apps to Share via,Tambahkan aplikasi ke Bagikan via
@@ -1502,3 +1501,7 @@ Don't save new searches,Jangan simpan pencarian baru
 "Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.","Jangan masukkan apa yang kamu cari ke riwayat pencarian yang disimpan TikTok di ponsel ini. Pencarian yang sudah ada tetap tersimpan sampai kamu menghapusnya, dan server TikTok mungkin tetap menyimpan catatannya sendiri."
 Block suggested video notifications,Blokir notifikasi video yang disarankan
 "Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.","Hentikan notifikasi yang dikirim TikTok tentang video populer yang dipilihkan untukmu. Pesan, komentar, suka, pengikut baru, dan video dari akun yang kamu ikuti tetap masuk."
+Buttons on videos,Tombol di video
+Seen videos put back: %1$s of %2$s,Video ditonton yang dipulihkan: %1$s dari %2$s
+No cleared videos fit the current history limits.,Tidak ada video yang dihapus yang memenuhi batas riwayat saat ini.
+Putting seen videos back,Memulihkan video yang ditonton

@@ -105,6 +105,37 @@ def patches_table(patches):
     return "\n".join(rows)
 
 
+CATEGORY_ORDER = (
+    "Recommended sets",
+    "Image quality",
+    "Tracking & audio",
+    "Startup & permissions",
+    "App & device identity",
+    "Advanced XR compatibility",
+    "Experiments",
+)
+
+
+def categorized_patches(patches):
+    """Render categories within a compatibility group, retaining legacy tables."""
+    if not any(p.get("category") for p in patches):
+        return patches_table(patches)
+
+    by_category = {}
+    for patch in patches:
+        category = patch.get("category") or "Uncategorized"
+        by_category.setdefault(category, []).append(patch)
+
+    categories = [category for category in CATEGORY_ORDER if category in by_category]
+    categories.extend(sorted(set(by_category) - set(CATEGORY_ORDER) - {"Uncategorized"}))
+    if "Uncategorized" in by_category:
+        categories.append("Uncategorized")
+    return "\n\n".join(
+        f"#### {category}\n\n{patches_table(by_category[category])}"
+        for category in categories
+    )
+
+
 def versions_table(targets):
     """Render a markdown table of supported versions.
     Experimental versions get a 🧪 prefix.
@@ -169,7 +200,7 @@ def build_content(expanded=False):
     for _group, entry in by_pkg.items():
         patches = list(entry["patches"].values())
         label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
+        lines.append(spoiler(label, len(patches), entry["targets"], categorized_patches(patches), expanded))
         lines.append("")
 
     # Universal patches (no specific app)
@@ -181,7 +212,7 @@ def build_content(expanded=False):
 <summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
 <br>
 
-{patches_table(uni_patches)}
+{categorized_patches(uni_patches)}
 
 </details>""")
         lines.append("")

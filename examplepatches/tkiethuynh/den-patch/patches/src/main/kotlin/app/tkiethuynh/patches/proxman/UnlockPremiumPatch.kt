@@ -3,6 +3,7 @@ package app.tkiethuynh.patches.proxman
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.tkiethuynh.patches.shared.Constants.COMPATIBILITY_PROXMAN
+import app.tkiethuynh.patches.shared.RETURN_TRUE_BODY
 
 // Two attack surfaces, both must keep working:
 //   1. Pairip's tamper detection (LicenseContentProvider + LicenseClient) — kills the process

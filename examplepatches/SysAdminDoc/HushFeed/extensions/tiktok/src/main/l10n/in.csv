@@ -1327,6 +1327,8 @@ Stopping after this file,Berhenti setelah berkas ini
 Waiting to save %1$s files,Menunggu untuk menyimpan %1$s berkas
 Waiting to save one file,Menunggu untuk menyimpan satu berkas
 Save cancelled. Nothing was saved.,Penyimpanan dibatalkan. Tidak ada yang disimpan.
+The server asked us to wait. Try again later.,Server meminta kita menunggu. Coba lagi nanti.
+Saved %1$s of %2$s. The server asked us to wait. Try again later.,%1$s dari %2$s tersimpan. Server meminta kita menunggu. Coba lagi nanti.
 One more save waiting,Satu penyimpanan lagi menunggu
 %1$s more saves waiting,%1$s penyimpanan lagi menunggu
 Starts after one other save,Dimulai setelah satu penyimpanan lain

@@ -225,7 +225,9 @@ final class VideoDownloads {
                     }
                 });
                 if (published[0] == null) {
-                    Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
+                    Utils.showToastLong(outcome.stop == SaveProgress.Stop.SERVER_WAIT
+                            ? SaveProgress.message(outcome, "")
+                            : L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
                 } else {
                     // The video's own words when everything landed or only a track is missing,
                     // since they name the tracks that came; the count for anything else.

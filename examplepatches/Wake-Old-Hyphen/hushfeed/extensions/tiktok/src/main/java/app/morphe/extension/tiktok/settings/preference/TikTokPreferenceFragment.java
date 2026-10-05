@@ -109,7 +109,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         INBOX("Inbox", "Choose which rows and controls appear"),
         PRIVACY("Privacy", "Tracking, device access and links"),
         REGION("Region", "Country and network preferences"),
-        BEHAVIOR("App", "Layout, player, search and system"),
+        BEHAVIOR("App", "Layout, search, profile and system"),
         DIAGNOSTICS("Diagnostics", "Logging, hook status and reports"),
         BACKUP("Backup and restore", "Save, restore, reset and undo your settings");
 

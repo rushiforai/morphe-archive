@@ -66,6 +66,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -107,6 +108,7 @@ public final class Haiagaru {
     private static final Map<Activity, PopupWindow> SETTINGS_BUTTON_POPUPS =
             new WeakHashMap<>();
     private static final int EDDI_ARCHIVE_TOOLBAR_ID = 0x7e000001;
+    private static final int MARK_ALL_READ_TOOLBAR_ID = 0x7e000003;
     private static final String PREFS_NAME =
             "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final String LEGACY_TALK_PREFS_NAME = "talk";
@@ -214,6 +216,8 @@ public final class Haiagaru {
             + "9kQy5kSVkF2kCALI9DxTEE3yuzZFKw7f7pKGZzs3wZCyeMCZNCC2MRQ=";
 
     private static volatile Context applicationContext;
+    private static volatile WeakReference<Activity> resumedActivity = new WeakReference<>(null);
+    private static volatile boolean activityTrackingInstalled;
     private static volatile boolean crashLoggerInstalled;
     private static volatile boolean signatureSpoofInstalled;
     private static volatile String runtimePackageName = originalPackageName();
@@ -409,6 +413,24 @@ public final class Haiagaru {
         // hook.  The provider runs before ChMate creates its HTTP clients, so
         // applying the UA there is required for the first request after restart.
         initializeApplicationContext(application);
+        if (!activityTrackingInstalled) {
+            synchronized (Haiagaru.class) {
+                if (!activityTrackingInstalled) {
+                    application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+                        @Override public void onActivityCreated(Activity activity, Bundle state) { }
+                        @Override public void onActivityStarted(Activity activity) { }
+                        @Override public void onActivityResumed(Activity activity) {
+                            resumedActivity = new WeakReference<>(activity);
+                        }
+                        @Override public void onActivityPaused(Activity activity) { }
+                        @Override public void onActivityStopped(Activity activity) { }
+                        @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
+                        @Override public void onActivityDestroyed(Activity activity) { }
+                    });
+                    activityTrackingInstalled = true;
+                }
+            }
+        }
         EmojiFontFallback.register(application);
         HaiagaruMegaSync.maybeBackupOnStartup(application);
     }
@@ -418,14 +440,18 @@ public final class Haiagaru {
         return addToolbarChoice(toolbarModel, EDDI_ARCHIVE_TOOLBAR_ID, "haiagaru_edge_archive");
     }
 
+    public static Object addMarkAllReadToolbarChoice(Object toolbarModel) {
+        return addToolbarChoice(toolbarModel, MARK_ALL_READ_TOOLBAR_ID, "haiagaru_mark_all_read");
+    }
+
     public static boolean compactQuickFilters() {
         return applicationContext != null
                 && preferences(applicationContext).getBoolean("compactQuickFilters", false);
     }
 
     public static Object addQuickFilterToolbarChoice(Object toolbarModel) {
-        // Keep the action in ChMate's toolbar catalog even while the feature is
-        // off, so users of every supported version can add it before enabling it.
+        // The toolbar action is always available; the setting only hides the
+        // original filter row at the top of the response list.
         return addToolbarChoice(toolbarModel, QuickFilterToolbar.ID, "haiagaru_quick_filter");
     }
 
@@ -555,19 +581,14 @@ public final class Haiagaru {
 
     /** Handles the custom toolbar item before ChMate dispatches its stock actions. */
     public static boolean handleEdgeArchiveToolbarClick(Object fragment, int itemId) {
+        if (itemId == MARK_ALL_READ_TOOLBAR_ID) {
+            Activity activity = toolbarActivity(fragment);
+            if (activity != null) showMarkAllReadConfirmation(activity);
+            return true;
+        }
         if (itemId != EDDI_ARCHIVE_TOOLBAR_ID) return false;
         try {
-            Activity activity = null;
-            if (fragment instanceof Activity) {
-                activity = (Activity) fragment;
-            } else if (fragment != null) {
-                try {
-                    Object owner = fragment.getClass().getMethod("getActivity").invoke(fragment);
-                    if (owner instanceof Activity) activity = (Activity) owner;
-                } catch (ReflectiveOperationException ignored) {
-                    // Older toolbar dispatchers do not always pass a Fragment.
-                }
-            }
+            Activity activity = toolbarActivity(fragment);
             Context context = activity != null ? activity : applicationContext;
             if (context == null) return false;
             Intent intent = new Intent(context, HissiMenuActivity.class);
@@ -579,6 +600,81 @@ public final class Haiagaru {
         } catch (Throwable error) {
             Log.e(LOG_TAG, "Unable to open Edge archive search from ChMate toolbar", error);
             return false;
+        }
+    }
+
+    private static Activity toolbarActivity(Object owner) {
+        if (owner instanceof Activity) return (Activity) owner;
+        if (owner != null) {
+            try {
+                Object activity = owner.getClass().getMethod("getActivity").invoke(owner);
+                if (activity instanceof Activity) return (Activity) activity;
+            } catch (ReflectiveOperationException ignored) {
+                // Generated toolbar dispatchers may not be fragments.
+            }
+        }
+        Activity current = resumedActivity.get();
+        return current != null && !current.isFinishing() ? current : null;
+    }
+
+    private static void showMarkAllReadConfirmation(Activity activity) {
+        new AlertDialog.Builder(activity)
+                .setTitle(text("未読をすべて0にする", "Mark all threads read"))
+                .setMessage(text("すべてのスレの未読数を0にします。レスや履歴は削除しません。続けますか？",
+                        "Set every thread’s unread count to zero without deleting posts or history?"))
+                .setNegativeButton(text("キャンセル", "Cancel"), null)
+                .setPositiveButton(text("既読にする", "Mark read"), (dialog, which) ->
+                        new Thread(() -> {
+                            try {
+                                int changed = markAllBookmarksRead(activity.getApplicationContext());
+                                activity.runOnUiThread(() -> {
+                                    Toast.makeText(activity, text(changed + "件の未読を0にしました。",
+                                            "Marked " + changed + " threads read."), Toast.LENGTH_LONG).show();
+                                    if (changed > 0 && !activity.isFinishing()) {
+                                        activity.recreate();
+                                    }
+                                });
+                            } catch (Throwable error) {
+                                Log.e(LOG_TAG, "Unable to mark all threads read", error);
+                                activity.runOnUiThread(() -> Toast.makeText(activity,
+                                        text("未読数を更新できませんでした。", "Could not update unread counts."),
+                                        Toast.LENGTH_LONG).show());
+                            }
+                        }, "Haiagaru-mark-all-read").start())
+                .show();
+    }
+
+    private static int markAllBookmarksRead(Context context) throws IOException {
+        File database = context.getDatabasePath("roidon.sqlite");
+        if (database == null || !database.isFile()) {
+            throw new IOException("roidon.sqlite が見つかりません");
+        }
+        SQLiteDatabase db = SQLiteDatabase.openDatabase(
+                database.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
+        try {
+            List<String> columns = databaseTableColumns(db, "bookmarks");
+            if (!columns.contains("read_count") || !columns.contains("res_count")
+                    || !columns.contains("server_res_count")) {
+                throw new IOException("未読数のデータ構造が一致しません");
+            }
+            int changed;
+            db.beginTransaction();
+            try {
+                try (Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM bookmarks WHERE "
+                        + "read_count < MAX(res_count, server_res_count)", null)) {
+                    cursor.moveToFirst();
+                    changed = cursor.getInt(0);
+                }
+                db.execSQL("UPDATE bookmarks SET read_count = "
+                        + "MAX(read_count, res_count, server_res_count) WHERE "
+                        + "read_count < MAX(res_count, server_res_count)");
+                db.setTransactionSuccessful();
+            } finally {
+                db.endTransaction();
+            }
+            return changed;
+        } finally {
+            db.close();
         }
     }
 
@@ -682,6 +778,42 @@ public final class Haiagaru {
                 + "Thread: " + thread.getName() + "\n\n"
                 + stackTrace;
         writeDownloadLog(context, "chmate-crash-" + fileTimestamp + ".txt", report);
+    }
+
+    /** Save a recoverable archive-viewer failure beside crash logs and return its code. */
+    static String reportEddiArchiveError(Context context, String code, String detail,
+            Throwable error) {
+        String safeCode = code == null || !code.matches("[A-Z0-9_-]{2,48}")
+                ? "UNKNOWN" : code;
+        Date now = new Date();
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.US)
+                .format(now);
+        String fileTimestamp = new SimpleDateFormat("yyyyMMdd-HHmmss-SSS", Locale.US)
+                .format(now);
+        StringWriter trace = new StringWriter();
+        if (error != null) error.printStackTrace(new PrintWriter(trace));
+        String version = "unknown";
+        if (context != null) {
+            try {
+                version = context.getPackageManager().getPackageInfo(
+                        context.getPackageName(), 0).versionName;
+            } catch (Throwable ignored) { }
+        }
+        String report = "Haiagaru Edge archive viewer error\n"
+                + "Time: " + timestamp + "\n"
+                + "Error code: " + safeCode + "\n"
+                + "Package: " + (context == null ? "unknown" : context.getPackageName()) + "\n"
+                + "Version: " + version + "\n"
+                + "Android: " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + ")\n"
+                + "Device: " + Build.MANUFACTURER + " " + Build.MODEL + "\n"
+                + "Detail: " + (detail == null ? "" : detail) + "\n\n" + trace;
+        try {
+            writeDownloadLog(context, "eddi-archive-error-" + fileTimestamp + ".txt", report);
+        } catch (Throwable logError) {
+            Log.e(LOG_TAG, "Unable to save Edge archive viewer error " + safeCode, logError);
+        }
+        Log.e(LOG_TAG, "Edge archive viewer error " + safeCode + ": " + detail, error);
+        return safeCode;
     }
 
     /** Writes a UTF-8 report to Downloads/Haiagaru on every supported Android release. */
@@ -1064,6 +1196,18 @@ public final class Haiagaru {
         } catch (Throwable throwable) {
             Log.w(LOG_TAG, "Unable to suppress tablet banner spacer", throwable);
         }
+    }
+
+    /** Keep short response lists at the top instead of anchoring them to the bottom. */
+    public static boolean threadListStackFromEnd(Object layoutManager, boolean requested) {
+        SharedPreferences settings = preferencesOrNull();
+        if (settings != null && settings.getBoolean("topAlignShortThreads", false)
+                && layoutManager != null
+                && "jp.syoboi.a2chMate.view.MyLinearLayoutManager".equals(
+                        layoutManager.getClass().getName())) {
+            return false;
+        }
+        return requested;
     }
 
     public static boolean shouldHideAds(Context context) {
@@ -2740,6 +2884,14 @@ public final class Haiagaru {
                 text("広告を削除", "Remove ads"),
                 preferences.getBoolean("hideAd", true)
         );
+        Switch topAlignShortThreads = null;
+        if (supportsModernThreadList(activity)) {
+            topAlignShortThreads = addSwitch(
+                    layout, activity,
+                    text("レスが少ないスレを上詰めで表示", "Align short threads to the top"),
+                    preferences.getBoolean("topAlignShortThreads", false));
+        }
+        final Switch topAlignShortThreadsSwitch = topAlignShortThreads;
 
         Switch replaceUserAgent = addSwitch(
                 layout,
@@ -2843,10 +2995,24 @@ public final class Haiagaru {
         Switch compactFilters = null;
         if (QuickFilterToolbar.supported(activity)) {
             compactFilters = addSwitch(layout, activity,
-                    "スレのツールバーに「フィルタ」を追加する（191 dev／242 devでは旧フィルタ行も非表示。ON後、ツールバー設定で追加してスレを開き直してください）",
+                    "上部のフィルタを削除する（ツールバーの「フィルタ」は常に使用できます）",
                     preferences.getBoolean("compactQuickFilters", false));
         }
         final Switch compactQuickFiltersSwitch = compactFilters;
+        Switch readThreadsFirst = null;
+        // 191/241/242/243 expose this in ChMate's board display options.
+        // 226 keeps the Haiagaru toggle until its settings UI is migrated.
+        String chMateVersion = "";
+        try {
+            chMateVersion = activity.getPackageManager()
+                    .getPackageInfo(activity.getPackageName(), 0).versionName;
+        } catch (Throwable ignored) { }
+        if ("0.8.10.226 dev".equals(chMateVersion)) {
+            readThreadsFirst = addSwitch(layout, activity,
+                    text("板のスレ一覧で既読スレを上に", "Show read threads first in board lists"),
+                    ReadThreadsFirst.enabled());
+        }
+        final Switch readThreadsFirstSwitch = readThreadsFirst;
         Switch edgeReporterId = addSwitch(
                 layout,
                 activity,
@@ -3107,6 +3273,8 @@ public final class Haiagaru {
                     }
                     preferences.edit()
                             .putBoolean("hideAd", hideAd.isChecked())
+                            .putBoolean("topAlignShortThreads", topAlignShortThreadsSwitch != null
+                                    && topAlignShortThreadsSwitch.isChecked())
                             .putBoolean("replaceUserAgent", replaceUserAgent.isChecked())
                             .putString("userAgent", value(userAgent))
                             .putBoolean("removeMonaKey", removeMonaKey.isChecked())
@@ -3124,6 +3292,8 @@ public final class Haiagaru {
                             .putInt(HISSI_VIEWER_SWIPE_HISTORY_KEY, hissiViewerSwipeHistory.getSelectedItemPosition())
                             .putBoolean(KYODEMO_ENHANCED_VIEWER_KEY, kyodemoEnhancedViewer.isChecked())
                             .putBoolean("compactQuickFilters", compactQuickFiltersSwitch != null && compactQuickFiltersSwitch.isChecked())
+                            .putBoolean("readThreadsFirst", readThreadsFirstSwitch == null
+                                    ? ReadThreadsFirst.enabled() : readThreadsFirstSwitch.isChecked())
                             .putBoolean("edgeReporterId", edgeReporterId.isChecked())
                             .putBoolean("forceHttps", forceHttps.isChecked())
                             .putBoolean("automaticDat", automaticDat.isChecked())
@@ -3689,6 +3859,19 @@ public final class Haiagaru {
         }
     }
 
+    private static boolean supportsModernThreadList(Context context) {
+        if (context == null) return false;
+        try {
+            String version = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0).versionName;
+            return "0.8.10.241".equals(version)
+                    || "0.8.10.242 dev".equals(version)
+                    || "0.8.10.243 dev".equals(version);
+        } catch (Throwable error) {
+            return false;
+        }
+    }
+
     private static String defaultAdClass() {
         if (classExists(AD_CLASS_243)) return AD_CLASS_243;
         if (classExists(AD_CLASS_242)) return AD_CLASS_242;
@@ -3854,6 +4037,16 @@ public final class Haiagaru {
         return applicationContext;
     }
 
+    static void refreshBoardListAfterReadSortChange() {
+        Activity activity = resumedActivity.get();
+        if (activity != null) activity.runOnUiThread(() -> {
+            if (!ReadThreadsFirst.refreshLegacyAdapterInPlace(activity)) {
+                ReadThreadsFirst.refreshRecyclerAdapterInPlace(activity);
+            }
+            ReadThreadsFirst.refreshComposeSettingDialog(activity);
+        });
+    }
+
     public static int hissiViewerTheme() {
         SharedPreferences prefs = preferencesOrNull();
         if (prefs == null) return 0;
@@ -3903,6 +4096,7 @@ public final class Haiagaru {
 
     private static final class ConfigSnapshot {
         final boolean hideAd;
+        final boolean topAlignShortThreads;
         final boolean replaceUserAgent;
         final String userAgent;
         final boolean removeMonaKey;
@@ -3919,6 +4113,7 @@ public final class Haiagaru {
 
         private ConfigSnapshot(
                 boolean hideAd,
+                boolean topAlignShortThreads,
                 boolean replaceUserAgent,
                 String userAgent,
                 boolean removeMonaKey,
@@ -3934,6 +4129,7 @@ public final class Haiagaru {
                 String archiveRouteTemplates
         ) {
             this.hideAd = hideAd;
+            this.topAlignShortThreads = topAlignShortThreads;
             this.replaceUserAgent = replaceUserAgent;
             this.userAgent = userAgent;
             this.removeMonaKey = removeMonaKey;
@@ -3952,6 +4148,7 @@ public final class Haiagaru {
         static ConfigSnapshot read(SharedPreferences preferences) {
             return new ConfigSnapshot(
                     preferences.getBoolean("hideAd", true),
+                    preferences.getBoolean("topAlignShortThreads", false),
                     preferences.getBoolean("replaceUserAgent", false),
                     preferences.getString("userAgent", DEFAULT_USER_AGENT),
                     preferences.getBoolean("removeMonaKey", false),
@@ -3976,6 +4173,7 @@ public final class Haiagaru {
             if (!(other instanceof ConfigSnapshot)) return false;
             ConfigSnapshot value = (ConfigSnapshot) other;
             return hideAd == value.hideAd
+                    && topAlignShortThreads == value.topAlignShortThreads
                     && replaceUserAgent == value.replaceUserAgent
                     && removeMonaKey == value.removeMonaKey
                     && chtoio == value.chtoio

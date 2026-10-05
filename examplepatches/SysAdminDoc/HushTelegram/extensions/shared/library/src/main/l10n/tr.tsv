@@ -113,7 +113,9 @@ Copy a short report to the clipboard.	Kısa raporu panoya kopyalar.
 Save the full report in Download/Morphe.	Tam raporu Download/Morphe konumuna kaydeder.
 Settings imported.	Ayarlar içe aktarıldı.
 No app on this phone can open the link. The address is %1$s.	Bu telefondaki hiçbir uygulama bağlantıyı açamıyor. Adres: %1$s.
-Pause, backup and diagnostics	Duraklatma, yedekleme ve tanılama
+# context: Separate pages under More settings. Settings backup contains export and import; Diagnostics contains logging and diagnostic data controls.
+Settings backup	Ayar yedeği
+Diagnostics	Tanılama
 Updates	Güncellemeler
 Jump to a section	Bir bölüme git
 Go straight to one group of settings. Back returns to where you were.	Doğrudan bir ayar grubuna git. Geri, bulunduğun yere döndürür.
@@ -228,7 +230,7 @@ Quiet contacts prompts	Kişi isteklerini sustur
 Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Kişilere erişimi reddettikten sonra Kişiler sekmesi yeniden sormaz ve uyarı rozeti kaybolur. İlk istek, sekmenin kendi düğmeleri ve kişi eşitleme aynı kalır.
 
 New Year look all year	Yıl boyu yılbaşı görünümü
-Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Telegram'ın yılbaşı karı her gün sohbet listesinin üst çubuğuna, animasyonlu sohbet arka planları açıkken de sohbet arka planlarına yağar. Ayarlarda varsayılan olarak kapalıdır.
+Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Telegram'ın Noel Baba şapkası sohbet listesi logosunun üzerinde görünür. Yılbaşı karı her gün sohbet listesinin üst çubuğuna, animasyonlu sohbet arka planları açıkken de sohbet arka planlarına yağar. Ayarlarda varsayılan olarak kapalıdır.
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Bildirimler
@@ -250,3 +252,20 @@ Allowed	İzin verildi
 Blocked	Engellendi
 Yes	Evet
 No	Hayır
+Use normal paste	Normal yapıştırmayı kullan
+Show user and chat IDs	Kullanıcı ve sohbet kimliklerini göster
+Disable double-tap reactions	Çift dokunma tepkilerini kapat
+Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Metni Telegram'ın HTML, tablo veya eş aralıklı yazı dönüşümü olmadan yapıştırır. Boşluklar ve URL'ler korunur. Diğer pano işlemleri kullanılabilir. Ayarlarda varsayılan olarak kapalıdır.
+Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Açılan profilin menüsünde kopyalanabilir yerel kullanıcı veya sohbet kimliğini gösterir. Erişim karmaları gizli kalır. Sunucu isteği eklenmez. Ayarlarda varsayılan olarak kapalıdır.
+Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Çift dokunma sohbetlerde veya tepki önizlemesinde tepki eklemez. Kaydırma, dokunma, seçim ve tepki menüleri aynı kalır. Ayarlarda varsayılan olarak kapalıdır.
+compose text paste	mesaj yazarken metin yapıştırma
+caption text paste	açıklama metni yapıştırma
+profile local IDs	yerel profil kimlikleri
+chat double-tap reactions	sohbette çift dokunma tepkileri
+preview double-tap reactions	önizlemede çift dokunma tepkileri
+User ID %1$s	Kullanıcı kimliği %1$s
+Chat ID %1$s	Sohbet kimliği %1$s
+Copy user ID %1$s	Kullanıcı kimliğini kopyala %1$s
+Copy chat ID %1$s	Sohbet kimliğini kopyala %1$s
+ID	Kimlik
+ID copied	Kimlik kopyalandı

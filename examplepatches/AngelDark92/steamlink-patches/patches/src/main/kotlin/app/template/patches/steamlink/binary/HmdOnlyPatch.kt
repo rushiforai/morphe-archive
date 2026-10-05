@@ -1,5 +1,6 @@
 package app.template.patches.steamlink.binary
 
+import app.template.patches.shared.PatchCategories
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.intSliderOption
 import app.morphe.patcher.patch.rawResourcePatch
@@ -430,6 +431,7 @@ val hmdOnlyPatch = rawResourcePatch(
         "dedicated executable mapping over non-runtime ELF comment bytes and preserves live PLT entries.",
     default = false,
 ) {
+    category(PatchCategories.TRACKING_AND_AUDIO)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
 
     val offsetMs = intSliderOption(

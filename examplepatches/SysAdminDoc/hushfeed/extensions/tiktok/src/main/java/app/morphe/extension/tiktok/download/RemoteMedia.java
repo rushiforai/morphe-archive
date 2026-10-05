@@ -58,9 +58,12 @@ final class RemoteMedia {
                     MediaBudget.check(deadline);
                     int responseCode = response.statusCode;
                     if (MediaBudget.isTransientStatus(responseCode)
-                            && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
-                        MediaBudget.waitBeforeRetry(response.header("Retry-After"), attempt, deadline);
-                        continue;
+                            || (responseCode >= 300 && response.header("Retry-After") != null)) {
+                        String retryAfter = response.header("Retry-After");
+                        response.close();
+                        MediaBudget.waitBeforeRetry(retryAfter, attempt, deadline);
+                        if (MediaBudget.isTransientStatus(responseCode)
+                                && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) continue;
                     }
                     if (responseCode != 200) throw new IOException("Media server returned " + responseCode);
                     long expected = contentLength(response.header("Content-Length"));

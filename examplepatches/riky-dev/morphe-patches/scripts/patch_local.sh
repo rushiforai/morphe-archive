@@ -98,8 +98,8 @@ rm -rf "$OUT_DIR/${APP_PACKAGE}-input" "$OUT_APK"
 cd "$OUT_DIR"
 java -jar "$MORPHE_JAR" patch \
   --patches="$MPP" \
-  "$WORK_APK" \
-  "${EXTRA[@]+"${EXTRA[@]}"}"
+  ${EXTRA[@]+"${EXTRA[@]}"} \
+  "$WORK_APK"
 
 # Morphe Desktop writes under <stem>/<stem>-Morphe-*.apk (or *-patched.apk).
 FOUND="$(find "$OUT_DIR" -type f \( -name '*-Morphe-*.apk' -o -name '*-patched.apk' -o -name '*-patches-*.apk' \) ! -name "${APP_PACKAGE}-patched.apk" | sort | tail -1 || true)"

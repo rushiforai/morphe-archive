@@ -1,5 +1,6 @@
 package app.template.patches.steamlink.identity
 
+import app.template.patches.shared.PatchCategories
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -123,6 +124,7 @@ val changePackageNamePatch = resourcePatch(
     description = "Renames the manifest package and Steam Link's internal VR-launch component so the patched app can coexist with the original installation.",
     default = false,
 ) {
+    category(PatchCategories.APP_AND_DEVICE_IDENTITY)
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
     dependsOn(changePackageNameBytecodePatch)
 

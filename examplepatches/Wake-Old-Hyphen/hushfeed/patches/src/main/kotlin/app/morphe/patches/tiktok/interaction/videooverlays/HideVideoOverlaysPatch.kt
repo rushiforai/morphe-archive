@@ -52,7 +52,7 @@ val hideVideoOverlaysPatch = bytecodePatch(
         "button, location labels, the effect, template and CapCut tags above descriptions, and the Report " +
         "button some regions get above the creator's picture, without removing videos or changing location permissions. " +
         "One more takes the Add comment bar off those opened videos so they fill the screen. " +
-        "Switch: Hushfeed settings > Feed screen.",
+        "Switches: Hushfeed settings > Feed screen, and App for the status bar.",
     default = false,
 ) {
     category("Feed")

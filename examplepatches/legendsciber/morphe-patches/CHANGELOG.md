@@ -1,3 +1,88 @@
+## [1.41.1](https://github.com/legendsciber/morphe-patches/compare/v1.41.0...v1.41.1) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** report full IAP balances so purchases are actually granted ([9ec5b77](https://github.com/legendsciber/morphe-patches/commit/9ec5b77354fbc0eefc852715c7203f9d05798957))
+
+## [1.41.0](https://github.com/legendsciber/morphe-patches/compare/v1.40.0...v1.41.0) (2026-10-04)
+
+### ✨ New Features
+
+* **hillclimb:** native free IAP patch, replace smali store patch ([2444325](https://github.com/legendsciber/morphe-patches/commit/2444325aa401801dfbe8acd90903c1c018c21bac))
+
+## [1.40.0](https://github.com/legendsciber/morphe-patches/compare/v1.39.4...v1.40.0) (2026-10-04)
+
+### ✨ New Features
+
+* **hillclimb:** native instant rewards patch, target 1.72.2, drop ad removal ([842f8e9](https://github.com/legendsciber/morphe-patches/commit/842f8e9a0a65c9d5bf8b6a416a28f10cf3315387))
+
+## [1.39.4](https://github.com/legendsciber/morphe-patches/compare/v1.39.3...v1.39.4) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **slingdrift:** pass this pointer from x19 in reward stubs ([aeb7e57](https://github.com/legendsciber/morphe-patches/commit/aeb7e57b6fd95d32c2e38017e3843bedc816acad))
+
+## [1.39.3](https://github.com/legendsciber/morphe-patches/compare/v1.39.2...v1.39.3) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **slingdrift:** bypass internet reachability gate so rewards grant offline ([71b0d70](https://github.com/legendsciber/morphe-patches/commit/71b0d7057d6dcfdaa3778377aa6ac3ca91fb7a02))
+
+## [1.39.2](https://github.com/legendsciber/morphe-patches/compare/v1.39.1...v1.39.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **slingdrift:** scope code cave guards to each patch write region ([d9aeb5b](https://github.com/legendsciber/morphe-patches/commit/d9aeb5bd1b5bd9b07ab24b3a5c38694b26b90800))
+
+## [1.39.1](https://github.com/legendsciber/morphe-patches/compare/v1.39.0...v1.39.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **slingdrift:** grant ad rewards via closed-event cave and drop ad free ([e6f0a67](https://github.com/legendsciber/morphe-patches/commit/e6f0a67a4862158baaf46fcb4664cd62ff966bef))
+
+## [1.39.0](https://github.com/legendsciber/morphe-patches/compare/v1.38.3...v1.39.0) (2026-10-04)
+
+### ✨ New Features
+
+* **slingdrift:** add instant rewards patch ([4e698e1](https://github.com/legendsciber/morphe-patches/commit/4e698e102a4114820301be952a3600f7a1d2b8bf))
+
+## [1.38.3](https://github.com/legendsciber/morphe-patches/compare/v1.38.2...v1.38.3) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **slingdrift:** keep rewarded flow out of the ad free patch like soccer star ([9165587](https://github.com/legendsciber/morphe-patches/commit/916558782a2a7a63c25fb12fb71cf2e9754c6049))
+
+## [1.38.2](https://github.com/legendsciber/morphe-patches/compare/v1.38.1...v1.38.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **slingdrift:** also close rewarded ad offers in the ad free patch ([393a209](https://github.com/legendsciber/morphe-patches/commit/393a2097c53dbc1542dcaa9ac5d3384935fed8a3))
+
+## [1.38.1](https://github.com/legendsciber/morphe-patches/compare/v1.38.0...v1.38.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **slingdrift:** stop ad-free patch from disabling rewarded ad preloading ([d19d155](https://github.com/legendsciber/morphe-patches/commit/d19d155acff0ab81ee97a895dec1bc45fa520526))
+
+## [1.38.0](https://github.com/legendsciber/morphe-patches/compare/v1.37.1...v1.38.0) (2026-10-04)
+
+### ✨ New Features
+
+* **slingdrift:** add ad free patch ([17ed3c9](https://github.com/legendsciber/morphe-patches/commit/17ed3c9a8e82acc6262d0df0dfdebbb4d295841d))
+
+## [1.37.1](https://github.com/legendsciber/morphe-patches/compare/v1.37.0...v1.37.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **slingdrift:** pin rubies to 999,999,999 instead of patching the affordability check ([88e30af](https://github.com/legendsciber/morphe-patches/commit/88e30af69bab28f28f759c958e04667043baa317))
+
+## [1.37.0](https://github.com/legendsciber/morphe-patches/compare/v1.36.0...v1.37.0) (2026-10-04)
+
+### ✨ New Features
+
+* **slingdrift:** add 5.13.2 support ([6265832](https://github.com/legendsciber/morphe-patches/commit/62658321aaa256c447bfa5c79d225d530c67ef49))
+* **slingdrift:** add vip unlock, unlimited money and all cars unlock patches ([03d5355](https://github.com/legendsciber/morphe-patches/commit/03d535538b2f9c8f3a78f8383de679fc1edb8f69))
+
 ## [1.36.0](https://github.com/legendsciber/morphe-patches/compare/v1.35.1...v1.36.0) (2026-10-03)
 
 ### ✨ New Features

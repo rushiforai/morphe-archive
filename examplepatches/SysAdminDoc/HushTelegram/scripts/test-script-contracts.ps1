@@ -5455,6 +5455,7 @@ Write-Host '[scripts] tracked-file machine name contracts passed'
 & (Join-Path $Root 'scripts/test-public-patch-summary.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-native-packaging.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-native-library-check.ps1') -Root $Root
+& (Join-Path $Root 'scripts/test-patch-selections.ps1') -Root $Root
 
 # --- README artwork --------------------------------------------------------------------------
 $artworkReadme = Get-Content -LiteralPath (Join-Path $Root 'README.md') -Raw

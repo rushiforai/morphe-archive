@@ -47,18 +47,25 @@ UNUSED_KT = os.path.join(os.path.dirname(EDITS_KT), "..", "compat", "UnusedPermi
 EMPTY_KT = os.path.join(os.path.dirname(EDITS_KT), "..", "compat", "EmptyClasses.kt")
 LIB = "libandroidplatformjni.so"
 WORD_EDIT = r"WordEdit\(0x([0-9A-F]+), 0x([0-9A-F]+)L, 0x([0-9A-F]+)L\)"
-COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO, FIT = ("Modern Android compatibility", "Unlimited currency",
-                                                     "Smooth sound", "Remove unused permissions",
-                                                     "Stop requests to dead servers", "Play intro once",
-                                                     "Render at 720p")
-ALL_PATCHES = (COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO, FIT)
+COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO, FIT, DEAL = ("Modern Android compatibility", "Unlimited currency",
+                                                           "Smooth sound", "Remove unused permissions",
+                                                           "Stop requests to dead servers", "Play intro once",
+                                                           "Render at 720p", "Hide Daily Deal popup")
+ALL_PATCHES = (COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO, FIT, DEAL)
 MOVIE = "Lcom/glu/platform/android/GluMovieActivity;"
 INTRO_ONCE = "Lapp/ckzombies/extension/IntroOnce;"
 OBB_CHECK = "Lapp/ckzombies/extension/ObbCheck;"
 CENTERED_TEXT = "Lapp/ckzombies/extension/CenteredText;"
 SCREEN_FIT = "Lapp/ckzombies/extension/ScreenFit;"
+TOUCH_EDGE = "Lapp/ckzombies/extension/TouchEdge;"
 ACTIVITY = "Lcom/glu/platform/android/GluPlatformActivity;"
 TOUCH_METHODS = ("touchBegan", "touchMoved", "touchEnded", "touchCancelled")
+# What a touch method starts with, per patch: "Render at 720p" scales x and y, "Modern Android
+# compatibility" clamps them to 0. The two patches insert at the same place, in either order.
+SCALED = [f"invoke-static {{p1}}, {SCREEN_FIT}->x(I)I", "move-result p1",
+          f"invoke-static {{p2}}, {SCREEN_FIT}->y(I)I", "move-result p2"]
+CLAMPED = [f"invoke-static {{p1}}, {TOUCH_EDGE}->clamp(I)I", "move-result p1",
+           f"invoke-static {{p2}}, {TOUCH_EDGE}->clamp(I)I", "move-result p2"]
 failures = 0
 warnings = 0
 
@@ -134,27 +141,41 @@ def text_area_centred(lines):
         and len(ends) == 1 and returns == [ends[0] + 1]
 
 
+def leading_blocks(lines):
+    """Which of SCALED and CLAMPED a touch method's stripped lines start with, in any order."""
+    found, i = [], 0
+    while True:
+        block = next((b for b in (SCALED, CLAMPED) if b not in found and lines[i:i + len(b)] == b), None)
+        if block is None:
+            return found
+        found.append(block)
+        i += len(block)
+
+
 def screen_fit_parts(code):
     """
     Which edits of "Render at 720p" GluPlatformActivity carries. code(name) gives a method's
     stripped instruction lines. The view goes to ScreenFit.attach() right after it is stored in
     m_MainView, each touch method starts by scaling its x and y in place, and touchBegan passes
     the drag threshold through ScreenFit.threshold() between reading and storing it.
+    EnableMultipleTouch, which the engine calls when it builds and destroys its 3D game, starts
+    by telling ScreenFit.gameScene(), and surfaceChanged by handing ScreenFit.format() the format.
     """
     build, began = code("iOnResDLDone"), code("touchBegan")
     store = next((i for i, l in enumerate(build) if l.startswith("iput-object ") and "->m_MainView:" in l), None)
     view = build[store].split()[1].rstrip(",") if store is not None else None
     parts = {"attach": store is not None and build[store + 1] ==
              f"invoke-static {{{view}}}, {SCREEN_FIT}->attach(Landroid/view/SurfaceView;)V"}
-    scaled = [f"invoke-static {{p1}}, {SCREEN_FIT}->x(I)I", "move-result p1",
-              f"invoke-static {{p2}}, {SCREEN_FIT}->y(I)I", "move-result p2"]
     for name in TOUCH_METHODS:
-        parts[name] = code(name)[:4] == scaled
+        parts[name] = SCALED in leading_blocks(code(name))
     read = next((i for i, l in enumerate(began) if l.startswith("iget ") and "->TOUCH_MOVE_THRESHOLD:I" in l), None)
     reg = began[read].split()[1].rstrip(",") if read is not None else None
     parts["threshold"] = read is not None and began[read + 1:read + 3] == [
         f"invoke-static {{{reg}}}, {SCREEN_FIT}->threshold(I)I", f"move-result {reg}"] \
         and began[read + 3].startswith(f"iput {reg}, ") and "->m_MoveThreshold:I" in began[read + 3]
+    parts["scene"] = code("EnableMultipleTouch")[:1] == [
+        f"invoke-static {{p0, p1}}, {SCREEN_FIT}->gameScene(Ljava/lang/Object;Z)V"]
+    parts["format"] = code("surfaceChanged")[:1] == [f"invoke-static {{p2}}, {SCREEN_FIT}->format(I)V"]
     return parts
 
 
@@ -222,7 +243,8 @@ def native_patches(abi, a, b, plan):
     eb, wb = loaded_words(b)
     groups = {COMPAT: table("TEXT_RELOCATION")[abi] + table("JNI_GUARDS")[abi] + table("JNI_ARGUMENTS")[abi]
               + table("SOUND_CACHE_MODE")[abi],
-              CURRENCY: plan["edits"], DEAD: table("GSERVE_STALL")[abi] + table("DEAD_SERVERS")[abi]}
+              CURRENCY: plan["edits"], DEAD: table("GSERVE_STALL")[abi] + table("DEAD_SERVERS")[abi],
+              DEAL: table("DAILY_DEAL")[abi]}
     state = {}
     for name, edits in groups.items():
         if not edits:
@@ -234,7 +256,7 @@ def native_patches(abi, a, b, plan):
         else:
             state[name] = None
     check(state[COMPAT] is True, f"{abi}: {COMPAT}: all {len(groups[COMPAT])} words in place")
-    for name in (CURRENCY, DEAD):
+    for name in (CURRENCY, DEAD, DEAL):
         check(state[name] is not None, f"{abi}: {name}: " + {True: f"applied, all {len(groups[name])} words",
                                                              False: "not applied, every word Glu's",
                                                              None: "only partly applied"}[state[name]])
@@ -402,12 +424,12 @@ def main():
             e = ELFFile(io.BytesIO(got))
             check(not has_textrel(e) and text_relocations(e) == 0, f"{abi}: no text relocation left")
         # A library that is not the chain's says nothing about which native patches it carries.
-        found.update(dict.fromkeys((COMPAT, CURRENCY, DEAD), True if all(identical) else None))
+        found.update(dict.fromkeys((COMPAT, CURRENCY, DEAD, DEAL), True if all(identical) else None))
     else:
         plans = currency_plans()
         per_abi = [native_patches(abi, zo.read(f"lib/{abi}/{LIB}"), zp.read(f"lib/{abi}/{LIB}"), plans[abi])
                    for abi in abis]
-        for name in (COMPAT, CURRENCY, DEAD):
+        for name in (COMPAT, CURRENCY, DEAD, DEAL):
             states = {s[name] for s in per_abi}
             if len(states) > 1:
                 check(False, f"{name}: applied to some ABIs and not to others")
@@ -498,7 +520,7 @@ def main():
               "onCreate calls ExternalStorage.prepare first")
         # The extension is merged whole, so its classes are there even without the patches that use them.
         for name in ("ExternalStorage", "SndCache", "ShimPlayer", "PoolPlayer", "SoundBudget", "IntroOnce", "ObbCheck",
-                     "CenteredText", "ScreenFit"):
+                     "CenteredText", "ScreenFit", "TouchEdge"):
             check(smali_file(f"app/ckzombies/extension/{name}") is not None, f"extension class {name} merged into the dex")
         prepare = method("app/ckzombies/extension/ExternalStorage", "prepare")
         check("Lapp/ckzombies/extension/ExternalStorage;->askForObbDir(" in prepare,
@@ -603,6 +625,15 @@ def main():
               "the canvas before it returns")
         check(not deletes, "findGPKFileInDir no longer deletes wrong-size files")
 
+        # The compatibility patch's touch clamp: every touch method starts by clamping x and y to 0,
+        # before or after the scaling of "Render at 720p".
+        activity_code = lambda name: [l.strip() for l in method(ACTIVITY[1:-1], name).splitlines()[1:]
+                                      if l.strip() and not l.strip().startswith(".")]
+        unclamped = [name for name in TOUCH_METHODS if CLAMPED not in leading_blocks(activity_code(name))]
+        check(not unclamped, "each of the four touch methods clamps x and y to 0 first, so a finger past the "
+              "view's edge cannot wrap around the engine's 14-bit positions" +
+              (f" (missing in {', '.join(unclamped)})" if unclamped else ""))
+
         # Its OpenFeint half. A shell keeps a constructor exactly when it is not an interface and
         # its superclasses reach Object through other shells, the rule EmptyClasses.kt follows.
         shells = openfeint_shells(smali_trees)
@@ -652,12 +683,13 @@ def main():
 
         # "Render at 720p": all of its edits to GluPlatformActivity, or no trace of ScreenFit there.
         activity = io.open(smali_file(ACTIVITY[1:-1]), encoding="utf-8").read()
-        parts = screen_fit_parts(lambda name: [l.strip() for l in method(ACTIVITY[1:-1], name).splitlines()[1:]
-                                               if l.strip() and not l.strip().startswith(".")])
+        parts = screen_fit_parts(activity_code)
         if all(parts.values()):
             found[FIT] = True
             check(True, "the game's view goes to ScreenFit.attach() right after it is built")
             check(True, "each of the four touch methods scales its x and y first, and touchBegan its drag threshold")
+            check(True, "EnableMultipleTouch tells ScreenFit when the 3D game starts and ends, so the 3D gameplay keeps the "
+                         "screen's own resolution, and surfaceChanged passes it the surface format")
         elif SCREEN_FIT not in activity:
             found[FIT] = False
         else:
@@ -671,7 +703,7 @@ def main():
     check("Verified using v1 scheme (JAR signing): true" in sig, "v1 signature")
     check("Verified using v2 scheme (APK Signature Scheme v2): true" in sig, "v2 signature")
     if expect_libs:
-        for name in (SOUND, UNUSED, DEAD, INTRO):
+        for name in (SOUND, UNUSED, DEAD, INTRO, FIT):
             check(found.get(name), f"{name} applied, as --expect-libs means every default patch is on")
 
     print("[patches found]")

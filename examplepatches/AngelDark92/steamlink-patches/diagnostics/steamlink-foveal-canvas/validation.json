@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-01",
+  "target": "2.0.20/5001812",
+  "status": "OFFLINE_PASS_RUNTIME_UNTESTED",
+  "bundle": "patches/build/libs/patches-1.21.0-foveal-canvas-local.mpp",
+  "bundleSha256": "f7312d953f01b98882bc37396b50e743f5081a5530b688b968fd351bc52a5823",
+  "helperSha256": "2939db189b19322da6ec601e96f9d4036d449fd8ee386e3cbd69e491d539eac3",
+  "android": "NDK r27c ARM64/API29 static C++ runtime, 16KB ELF alignment",
+  "junit": {
+    "failed": 0,
+    "skipped": 0,
+    "passed": 136
+  },
+  "nativeMockScenarios": 13,
+  "geometry": "PASS",
+  "d8": "Release/API26 PASS",
+  "gradle": "offline test blocked before compilation: app.morphe.patches:1.3.3 plugin not resolved",
+  "morphe": [
+    {
+      "case": "alone",
+      "status": "PASS",
+      "unsignedApkBytes": 40561021,
+      "unsignedApkSha256": "0a08eb74fb2ab6e56b0703c33870508e0725992a85477592a2274dc790ac4247",
+      "report": "morphe-alone.txt"
+    },
+    {
+      "case": "trigger-first",
+      "status": "PASS",
+      "unsignedApkBytes": 40853452,
+      "unsignedApkSha256": "8b17c945b4a7c79d5bb5fd8f187faa2d33adbf08097af3f05217d26d84e195c7",
+      "report": "morphe-trigger-first.txt"
+    },
+    {
+      "case": "canvas-first",
+      "status": "PASS",
+      "unsignedApkBytes": 40853452,
+      "unsignedApkSha256": "8b17c945b4a7c79d5bb5fd8f187faa2d33adbf08097af3f05217d26d84e195c7",
+      "report": "morphe-canvas-first.txt"
+    },
+    {
+      "case": "recommended",
+      "status": "PASS",
+      "unsignedApkBytes": 40887740,
+      "unsignedApkSha256": "4eb9eea6d9b5708f92967f970e9fb4d5663b8a067b271782c936fb89442d3c67",
+      "report": "morphe-recommended.txt"
+    },
+    {
+      "case": "legacy-without-trigger",
+      "status": "PASS",
+      "unsignedApkBytes": 40599479,
+      "unsignedApkSha256": "6970c07f8f5fe5cd90776e376467356a2e78174060113f3512d660df2e712e87",
+      "report": "morphe-legacy-without-trigger.txt"
+    }
+  ],
+  "runtime": "No installation, ADB, Android linking, GPU pixel comparison, performance or headset result",
+  "sourceApkSha256": "c696be092956854c4f5ca42ec088449a8b3e62ede72c47d4448a2d5329be6048",
+  "sceneSha256": "eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a"
+}

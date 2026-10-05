@@ -37,7 +37,7 @@ import org.robolectric.shadows.ShadowToast;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = {28, 29, 36}, shadows = {ChoiceBackupTest.DocumentResolver.class, ChoiceBackupTest.SeekableDescriptor.class, ChoiceBackupTest.SeekableOs.class})
+@Config(sdk = {28, 29, 36}, shadows = {ChoiceBackupTest.DocumentResolver.class, ChoiceBackupTest.SeekableDescriptor.class, ChoiceBackupTest.SeekableOs.class, ChoiceBackupTest.MediaDocuments.class})
 public class ChoiceBackupTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
@@ -45,6 +45,8 @@ public class ChoiceBackupTest {
         CrashGuard.resetForTests();
         DocumentResolver.opener = null;
         DocumentResolver.onOpen = null;
+        DocumentResolver.query = null;
+        MediaDocuments.alias = null;
         SeekableDescriptor.files.clear();
         SeekableOs.errno = 0;
         SettingsActivity.documentTimeoutMillis = 30_000;
@@ -55,6 +57,15 @@ public class ChoiceBackupTest {
     public static class DocumentResolver extends ShadowContentResolver {
         static java.util.function.BiFunction<Uri, CancellationSignal, AssetFileDescriptor> opener;
         static java.util.function.Consumer<CancellationSignal> onOpen;
+        static java.util.function.BiFunction<Uri, CancellationSignal, android.database.Cursor> query;
+
+        @Implementation protected android.database.Cursor query(Uri uri, String[] projection, String selection,
+                String[] selectionArgs, String sortOrder, CancellationSignal signal) {
+            assertArrayEquals(new String[] {"owner_package_name"}, projection);
+            assertNotNull(signal);
+            signal.throwIfCanceled();
+            return query == null ? null : query.apply(uri, signal);
+        }
 
         @Implementation protected AssetFileDescriptor openAssetFileDescriptor(Uri uri, String mode, CancellationSignal signal)
                 throws java.io.FileNotFoundException {
@@ -97,6 +108,15 @@ public class ChoiceBackupTest {
                     }
                 };
             } catch (java.io.IOException error) { throw new java.io.FileNotFoundException("Fixture descriptor failed"); }
+        }
+    }
+
+    /** The system provider bridge is outside these in-process document fixtures. */
+    @Implements(android.provider.MediaStore.class)
+    public static class MediaDocuments {
+        static Uri alias;
+        @Implementation(minSdk = 29) protected static Uri getMediaUri(android.content.Context context, Uri document) {
+            return alias;
         }
     }
 
@@ -395,6 +415,46 @@ public class ChoiceBackupTest {
                 activity.onActivityResult(SettingsActivity.SAVE_CHOICES, Activity.RESULT_OK, new Intent().setData(uri));
                 awaitToast("Couldn't export");
                 assertEquals(0, output.size());
+            }
+        }
+    }
+
+    @Test public void mediaDestinationsRequireKnownForeignOwnershipBeforeOpeningForWrite() throws Exception {
+        for (String authority : new String[] {"media", "0@media", "com.android.providers.media.documents", "com.android.externalstorage.documents"}) {
+            for (String owner : new String[] {RuntimeEnvironment.getApplication().getPackageName(), "org.example.files", "", "missing", "error"}) {
+                try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                    Uri uri = Uri.parse("content://" + authority + "/document/17");
+                    Uri media = authority.endsWith("media") ? uri : Uri.parse("content://media/external/file/17");
+                    MediaDocuments.alias = media;
+                    var queries = new java.util.concurrent.atomic.AtomicInteger();
+                    var opens = new java.util.concurrent.atomic.AtomicInteger();
+                    var cursor = new android.database.MatrixCursor(new String[] {"owner_package_name"});
+                    if (!owner.equals("missing")) cursor.addRow(new Object[] {owner.isEmpty() ? null : owner});
+                    DocumentResolver.query = (requested, signal) -> {
+                        assertEquals(media, requested);
+                        queries.incrementAndGet();
+                        if (owner.equals("error")) throw new SecurityException("Unavailable owner");
+                        return cursor;
+                    };
+                    byte[] original = "existing Messenger content".getBytes(StandardCharsets.UTF_8);
+                    ByteArrayOutputStream output = new ByteArrayOutputStream();
+                    output.write(original);
+                    DocumentResolver.onOpen = signal -> { opens.incrementAndGet(); output.reset(); };
+                    Shadows.shadowOf(screen.get().getContentResolver()).registerOutputStream(uri, output);
+                    // API 28 has no ownership column or document-to-media bridge.
+                    boolean ordinaryOldDocument = android.os.Build.VERSION.SDK_INT == 28 && authority.equals("com.android.externalstorage.documents");
+                    boolean allowed = ordinaryOldDocument || android.os.Build.VERSION.SDK_INT >= 29 && owner.equals("org.example.files");
+                    startFile(screen.get(), true, uri);
+                    awaitToast(allowed ? "Choices file saved" : "Couldn't export");
+                    finishWorkers();
+                    assertEquals(allowed ? 1 : 0, opens.get());
+                    if (!allowed) assertArrayEquals(original, output.toByteArray());
+                    else assertEquals(ChoiceCodec.encode(Settings.preferences, Settings.installed), output.toString(StandardCharsets.UTF_8));
+                    if (android.os.Build.VERSION.SDK_INT >= 29) {
+                        assertEquals(1, queries.get());
+                        if (!owner.equals("error")) assertTrue(cursor.isClosed());
+                    } else assertEquals(0, queries.get());
+                }
             }
         }
     }
@@ -771,7 +831,20 @@ public class ChoiceBackupTest {
         } finally { Files.deleteIfExists(file); }
     }
 
-    @Test @Config(sdk = {28, 29}) public void aNonSeekableFiniteStreamStillRestoresChoices() throws Exception {
+    @Test @Config(sdk = {30, 36}) public void atomicReplacementUsesPosixSemanticsAlongsideDocumentShadows() throws Exception {
+        var file = Files.createTempFile("choices-atomic", ".txt");
+        var atomic = new android.util.AtomicFile(file.toFile());
+        try {
+            Files.write(file, "old".getBytes(StandardCharsets.UTF_8));
+            var output = atomic.startWrite();
+            output.write("new".getBytes(StandardCharsets.UTF_8));
+            atomic.finishWrite(output);
+            assertArrayEquals("new".getBytes(StandardCharsets.UTF_8), Files.readAllBytes(file));
+            assertFalse(Files.exists(java.nio.file.Path.of(file + ".new")));
+        } finally { atomic.delete(); }
+    }
+
+    @Test @Config(sdk = {28, 29, 36}) public void aNonSeekableFiniteStreamStillRestoresChoices() throws Exception {
         var file = Files.createTempFile("choices-nonseekable", ".txt");
         byte[] original = (ChoiceCodec.HEADER + "\nstories=true\n").getBytes(StandardCharsets.UTF_8);
         Files.write(file, original);

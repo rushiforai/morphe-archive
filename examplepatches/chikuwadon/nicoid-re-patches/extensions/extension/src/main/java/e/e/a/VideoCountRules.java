@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 /** Reads existing (including cached/localized) list statistics without rounding. */
 public final class VideoCountRules {
     private static final Pattern ITEM = Pattern.compile(
-        "(再生数|再生|Views|觀看|コメント|コメ|Comments|留言|いいね|Likes|按讚|マイリスト|マイリス|マイ|Mylists|播放清單)[:：]\\s*([0-9][0-9,]*)");
+        "(再生数|再生|Views|觀看|コメント|コメ|Comments|留言|いいね|Likes|按讚|マイリスト|マイリス|マイ|Mylists|My Lists|播放清單)[:：]\\s*([0-9][0-9,]*)");
     private VideoCountRules() {}
 
     // Official order: views, comments, likes, mylists. -1 means not supplied.

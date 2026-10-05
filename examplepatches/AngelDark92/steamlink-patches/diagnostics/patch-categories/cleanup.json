@@ -1,0 +1,88 @@
+{
+  "completionCondition": "After policy permits deletion, recheck paths and remove only the recorded task-owned allowlist",
+  "date": "2026-10-03",
+  "disposableBytes": 33148812,
+  "boundary": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003",
+  "status": "deferred: automatic approval review rejected scoped deletion before execution with blocked by policy",
+  "retained": [
+    "Final local MPP and bundle/audit receipt",
+    "Official Desktop 1.15.1 runtime required by cached audit helper",
+    "Compact evidence in diagnostics/patch-categories",
+    "Existing APKs decoded inputs native resources and unrelated artifacts"
+  ],
+  "allowlist": [
+    {
+      "reparsePoints": 0,
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\compiled",
+      "trackedFiles": 0,
+      "gitMetadata": 0,
+      "classification": "Task-created source copy or compiler/catalog/D8 scratch; canonical originals and receipts preserved",
+      "bytes": 3969684,
+      "files": 213
+    },
+    {
+      "reparsePoints": 0,
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\fresh-compiled",
+      "trackedFiles": 0,
+      "gitMetadata": 0,
+      "classification": "Task-created source copy or compiler/catalog/D8 scratch; canonical originals and receipts preserved",
+      "bytes": 3980657,
+      "files": 213
+    },
+    {
+      "reparsePoints": 0,
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\fresh-checkout",
+      "trackedFiles": 0,
+      "gitMetadata": 0,
+      "classification": "Task-created source copy or compiler/catalog/D8 scratch; canonical originals and receipts preserved",
+      "bytes": 24080753,
+      "files": 523
+    },
+    {
+      "reparsePoints": 0,
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\dex",
+      "trackedFiles": 0,
+      "gitMetadata": 0,
+      "classification": "Task-created source copy or compiler/catalog/D8 scratch; canonical originals and receipts preserved",
+      "bytes": 550104,
+      "files": 1
+    },
+    {
+      "reparsePoints": 0,
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\d8-input.jar",
+      "trackedFiles": 0,
+      "gitMetadata": 0,
+      "classification": "Task-created source copy or compiler/catalog/D8 scratch; canonical originals and receipts preserved",
+      "bytes": 557814,
+      "files": 1
+    },
+    {
+      "reparsePoints": 0,
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\validate.py",
+      "trackedFiles": 0,
+      "gitMetadata": 0,
+      "classification": "Task-created source copy or compiler/catalog/D8 scratch; canonical originals and receipts preserved",
+      "bytes": 4652,
+      "files": 1
+    },
+    {
+      "reparsePoints": 0,
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\package.py",
+      "trackedFiles": 0,
+      "gitMetadata": 0,
+      "classification": "Task-created source copy or compiler/catalog/D8 scratch; canonical originals and receipts preserved",
+      "bytes": 2825,
+      "files": 1
+    },
+    {
+      "reparsePoints": 0,
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\VerifyCategoryBundle.java",
+      "trackedFiles": 0,
+      "gitMetadata": 0,
+      "classification": "Task-created source copy or compiler/catalog/D8 scratch; canonical originals and receipts preserved",
+      "bytes": 2323,
+      "files": 1
+    }
+  ],
+  "removedBytes": 0
+}

@@ -135,7 +135,6 @@ dependencies {
     implementation("app.morphe:morphe-patcher:1.8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 }
-kotlin { jvmToolchain(21) }
 application { mainClass.set("verify.MainKt") }
 EOF
 

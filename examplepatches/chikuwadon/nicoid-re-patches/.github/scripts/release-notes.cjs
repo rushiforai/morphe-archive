@@ -9,6 +9,6 @@ module.exports.generateNotes = async (options, context) => {
   // Morphe needs a dated version heading and app-scoped * bullets for update detection.
   const body = notes.replace(/^#{1,3}\s+\[?v?\d[^\n]*\n+/, '')
     .replace(/^[-*]\s+(?:\*\*[^*]+:\*\*\s*)?/gm, '* **nicoid:** ');
-  const date = new Date().toISOString().slice(0, 10);
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   return '## ' + version + ' (' + date + ')\n\n' + body.trim() + '\n';
 };

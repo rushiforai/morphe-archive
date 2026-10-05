@@ -250,7 +250,6 @@ The switch takes effect when Facebook restarts.	Sakelar ini berlaku saat Faceboo
 Use the system font	Gunakan font sistem
 Use the phone's emoji	Gunakan emoji ponsel
 Version	Versi
-Version %1$s for Facebook %2$s	Versi %1$s untuk Facebook %2$s
 Videos go to %1$s and photos to %2$s.	Video disimpan ke %1$s dan foto ke %2$s.
 Open web links in your browser. Facebook's own pages stay in the app.	Buka tautan web di browser Anda. Halaman Facebook tetap di aplikasi.
 Record patch activity and show errors for a bug report. Leave off during normal use.	Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.
@@ -541,7 +540,6 @@ Try a different word or clear the search.	Coba kata lain atau hapus pencarian.
 Search settings	Cari pengaturan
 Clear search	Hapus pencarian
 Your controls are active.	Kontrol Anda aktif.
-Your choices are saved. Tap Resume, then restart Facebook.	Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Facebook.
 Pause	Jeda
 Resume	Lanjutkan
 Undo	Urungkan
@@ -755,3 +753,10 @@ Apply whole-word matching to both lists. For example, hat matches hat! but not w
 Off	Nonaktif
 On	Aktif
 Saved now %1$s. After import %2$s.	Tersimpan sekarang %1$s. Setelah impor %2$s.
+
+# context: Compact overview identity and the order for resuming. Source known does not mean signed or safe.
+Version %1$s	Versi %1$s
+Build %1$s (modified)	Build %1$s (diubah)
+Build %1$s (source known)	Build %1$s (sumber diketahui)
+Build %1$s (source unknown)	Build %1$s (sumber tidak diketahui)
+Tap Resume, then restart Facebook.	Ketuk Lanjutkan, lalu mulai ulang Facebook.

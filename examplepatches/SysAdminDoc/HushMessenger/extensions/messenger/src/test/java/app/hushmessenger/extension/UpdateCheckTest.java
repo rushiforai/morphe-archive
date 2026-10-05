@@ -256,6 +256,80 @@ public class UpdateCheckTest {
         }
     }
 
+    @Test public void stalledCacheWritesDoNotBlockCancellationOrOverwriteANewerCheck() throws Exception {
+        for (int code : new int[] {200, 403, 304}) for (String action : new String[] {"optout", "destroy", "newer"}) {
+            Settings.initialize(RuntimeEnvironment.getApplication());
+            Settings.preferences.edit().clear().commit();
+            if (code == 304) Settings.preferences.edit().putString(ReleaseCheck.CACHE_KEY,
+                cache("\"old\"", now.get() - ReleaseCheck.COOLDOWN_MS)).commit();
+            reply = json(code, release("v99.0.0", RELEASE_PAGE), "ETag: \"changed\"\r\n");
+            CountDownLatch writing = new CountDownLatch(1), releaseWrite = new CountDownLatch(1), returned = new CountDownLatch(1);
+            CountDownLatch newerResponse = new CountDownLatch(1);
+            AtomicInteger commits = new AtomicInteger();
+            var stalledWorker = new java.util.concurrent.atomic.AtomicReference<Thread>();
+            var screen = Robolectric.buildActivity(SettingsActivity.class).setup();
+            var prefs = Settings.preferences;
+            Settings.preferences = (android.content.SharedPreferences) java.lang.reflect.Proxy.newProxyInstance(
+                getClass().getClassLoader(), new Class<?>[] {android.content.SharedPreferences.class}, (proxy, method, args) -> {
+                    Object result = method.invoke(prefs, args);
+                    if (!method.getName().equals("edit")) return result;
+                    var editor = (android.content.SharedPreferences.Editor) result;
+                    return java.lang.reflect.Proxy.newProxyInstance(getClass().getClassLoader(),
+                        new Class<?>[] {android.content.SharedPreferences.Editor.class}, (editProxy, editMethod, editArgs) -> {
+                            if (editMethod.getName().equals("commit") && Thread.currentThread().getName().equals("HushUpdateCheck")
+                                && commits.incrementAndGet() == 1) {
+                                stalledWorker.set(Thread.currentThread());
+                                writing.countDown();
+                                assertTrue(releaseWrite.await(10, TimeUnit.SECONDS));
+                            }
+                            Object edited = editMethod.invoke(editor, editArgs);
+                            return edited == editor ? editProxy : edited;
+                        });
+                });
+            Thread safetyRelease = new Thread(() -> {
+                try { returned.await(3, TimeUnit.SECONDS); }
+                catch (InterruptedException error) { Thread.currentThread().interrupt(); }
+                if (returned.getCount() != 0) releaseWrite.countDown();
+            });
+            try {
+                View root = screen.get().getWindow().getDecorView();
+                root.findViewWithTag("check_updates").performClick();
+                assertTrue(writing.await(3, TimeUnit.SECONDS));
+                safetyRelease.start();
+                if (action.equals("optout")) root.findViewWithTag("check_updates").performClick();
+                else if (action.equals("destroy")) screen.pause().stop().destroy();
+                else {
+                    reply = out -> {
+                        json(200, release("v" + BuildConfig.VERSION_NAME, page("v" + BuildConfig.VERSION_NAME))).send(out);
+                        newerResponse.countDown();
+                    };
+                    root.findViewWithTag("check_now").performClick();
+                }
+                returned.countDown();
+                assertEquals("Cancellation waited for the disk write: " + code + "/" + action, 1, releaseWrite.getCount());
+                if (action.equals("newer")) assertTrue(newerResponse.await(3, TimeUnit.SECONDS));
+                releaseWrite.countDown();
+                stalledWorker.get().join(3000);
+                assertFalse(stalledWorker.get().isAlive());
+                if (action.equals("newer")) {
+                    assertEquals("You have the latest version.", awaitStatus(root).getText().toString());
+                    assertTrue(prefs.getString(ReleaseCheck.CACHE_KEY, "").contains("\nv" + BuildConfig.VERSION_NAME + "\n"));
+                    assertEquals(0, prefs.getLong(ReleaseCheck.RETRY_KEY, 0));
+                } else {
+                    Shadows.shadowOf(Looper.getMainLooper()).idle();
+                    assertNull(root.findViewWithTag("update_release"));
+                }
+            } finally {
+                returned.countDown();
+                releaseWrite.countDown();
+                if (stalledWorker.get() != null) stalledWorker.get().join(3000);
+                safetyRelease.join(3000);
+                if (!screen.get().isDestroyed()) screen.close();
+                Settings.preferences = prefs;
+            }
+        }
+    }
+
     private View openWithCheckOn() {
         Settings.preferences.edit().putBoolean("check_updates", true).commit();
         var screen = Robolectric.buildActivity(SettingsActivity.class).setup();

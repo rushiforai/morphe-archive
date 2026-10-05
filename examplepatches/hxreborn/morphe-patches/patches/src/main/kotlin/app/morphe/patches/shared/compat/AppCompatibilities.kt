@@ -21,6 +21,17 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "3.4.0", versionCode = 340, minSdk = 24)),
     )
 
+    val ALL_VIDEO_PLAYER = Compatibility(
+        name = "All Video Player App",
+        packageName = "com.allformatplayer.streamvideoplayer",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x0072FF,
+        signatures = setOf(
+            "567e9fdfe00635da716359222fee014a6a8621cf4b7fc08c579eaafba59bf690",
+        ),
+        targets = listOf(AppTarget(version = "1.4", versionCode = 14, minSdk = 26)),
+    )
+
     val ALPINEQUEST = Compatibility(
         name = "AlpineQuest",
         packageName = "psyberia.alpinequest.free",
@@ -34,7 +45,10 @@ internal object AppCompatibilities {
         packageName = "com.atlogis.atlomaps",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x0683DF,
-        targets = listOf(AppTarget(version = "1.0.6", versionCode = 153, minSdk = 29)),
+        targets = listOf(
+            AppTarget(version = "1.0.6", versionCode = 153, minSdk = 29),
+            AppTarget(version = "1.1.0", versionCode = 172, minSdk = 32),
+        ),
     )
 
     val ATVTOOLS = Compatibility(
@@ -50,7 +64,10 @@ internal object AppCompatibilities {
         packageName = "com.audible.application",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xF8991C,
-        targets = listOf(AppTarget(version = "26.30.05", versionCode = 2090263005, minSdk = 28)),
+        targets = listOf(
+            AppTarget(version = "26.30.05", versionCode = 2090263005, minSdk = 28),
+            AppTarget(version = "26.38.08", versionCode = 2090263808, minSdk = 28),
+        ),
     )
 
     val BETTERSLEEP = Compatibility(
@@ -118,6 +135,17 @@ internal object AppCompatibilities {
         ),
     )
 
+    val ECHO_EQUALIZER = Compatibility(
+        name = "Echo Equalizer",
+        packageName = "com.hapibits.soundlift",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x2E2E45,
+        signatures = setOf(
+            "96cdac84105ee04a12a48110d37ec60888aa8fbff8220345888d7f9c12c2f3fa",
+        ),
+        targets = listOf(AppTarget(version = "9.2", versionCode = 86, minSdk = 32)),
+    )
+
     val ECHOGRAM = Compatibility(
         name = "Echogram",
         packageName = "com.liori.echogram",
@@ -137,12 +165,26 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "7.97.0", versionCode = 79700150, minSdk = 32)),
     )
 
+    val FDDB = Compatibility(
+        name = "Fddb",
+        packageName = "com.fddb",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x006495,
+        signatures = setOf(
+            "9caf67d3efca4ffb9f888256a5963c6117c28051a0669bc3d8bb098291ea9f4f",
+        ),
+        targets = listOf(AppTarget(version = "v7.8.4-Build-1-gms-release", versionCode = 7080401, minSdk = 26)),
+    )
+
     val FORUS = Compatibility(
         name = "ForusApp",
         packageName = "com.myvitale.forus",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0772BA,
-        targets = listOf(AppTarget(version = "3.0.15", versionCode = 96, minSdk = 26)),
+        targets = listOf(
+            AppTarget(version = "3.0.15", versionCode = 96, minSdk = 26),
+            AppTarget(version = "3.0.18", versionCode = 99, minSdk = 26),
+        ),
     )
 
     val GAMMA_SCAN = Compatibility(
@@ -150,7 +192,10 @@ internal object AppCompatibilities {
         packageName = "com.gamma.scan",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x2196F3,
-        targets = listOf(AppTarget(version = "2.2.221", versionCode = 221, minSdk = 24)),
+        targets = listOf(
+            AppTarget(version = "2.2.221", versionCode = 221, minSdk = 24),
+            AppTarget(version = "2.2.224", versionCode = 224, minSdk = 24),
+        ),
     )
 
     val HINDU_CALENDAR = Compatibility(
@@ -185,6 +230,17 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x000000,
         targets = listOf(AppTarget(version = "p5.12.0", versionCode = 50138, minSdk = 29)),
+    )
+
+    val LED_BLINKER = Compatibility(
+        name = "LED Blinker",
+        packageName = "com.ledblinker",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x190C53,
+        signatures = setOf(
+            "40a44cbdf290932098b46c12ae0c9932c82211659a27253ddda4e5ca62780dea",
+        ),
+        targets = listOf(AppTarget(version = "26.01.08", versionCode = 12506, minSdk = 32)),
     )
 
     val MEMONEET = Compatibility(
@@ -225,7 +281,10 @@ internal object AppCompatibilities {
         packageName = "com.streetwriters.notesnook",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x008837,
-        targets = listOf(AppTarget(version = "3.4.12", versionCode = 4197422, minSdk = 24)),
+        targets = listOf(
+            AppTarget(version = "3.4.12", versionCode = 4197422, minSdk = 24),
+            AppTarget(version = "3.4.13", versionCode = 4197423, minSdk = 24),
+        ),
     )
 
     val ONE4HOME = Compatibility(
@@ -237,7 +296,10 @@ internal object AppCompatibilities {
             "5620d2344aa13b4fb30df6bb59df508839af348ad12f5e4f3b95fca02662b77b",
             "b87ed511109b159844ff23ab802e00d56ab9d94d1435d89edd32cf07b62551fa",
         ),
-        targets = listOf(AppTarget(version = "0.4.72", versionCode = 284, minSdk = 32)),
+        targets = listOf(
+            AppTarget(version = "0.4.72", versionCode = 284, minSdk = 32),
+            AppTarget(version = "0.4.97", versionCode = 309, minSdk = 32),
+        ),
     )
 
     val ONE_WEATHER = Compatibility(
@@ -256,7 +318,10 @@ internal object AppCompatibilities {
         packageName = "ai.perplexity.app.android",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x20808D,
-        targets = listOf(AppTarget(version = "2.95.0", versionCode = 260642, minSdk = 32)),
+        targets = listOf(
+            AppTarget(version = "2.95.0", versionCode = 260642, minSdk = 32),
+            AppTarget(version = "2.100.0", versionCode = 260662, minSdk = 32),
+        ),
     )
 
     val PHOTO_EDITOR_PRO = Compatibility(
@@ -304,6 +369,7 @@ internal object AppCompatibilities {
             "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853",
         ),
         targets = listOf(
+            AppTarget(version = "7.11.9", versionCode = 18324, minSdk = 29),
             AppTarget(version = "7.11.8", versionCode = 18323, minSdk = 29),
             AppTarget(version = "7.11.5", versionCode = 18317, minSdk = 29),
             AppTarget(version = "7.10.4", versionCode = 17667, minSdk = 29),
@@ -356,7 +422,10 @@ internal object AppCompatibilities {
         signatures = setOf(
             "6832f51be89158c630aa9a166c10781f2f68fc3bf1ef1e776e4fa2c218f0010d",
         ),
-        targets = listOf(AppTarget(version = "2.2.8", versionCode = 77, minSdk = 33)),
+        targets = listOf(
+            AppTarget(version = "2.2.8", versionCode = 77, minSdk = 33),
+            AppTarget(version = "2.2.9", versionCode = 78, minSdk = 33),
+        ),
     )
 
     val RATEGLANCE = Compatibility(
@@ -405,6 +474,7 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x8E58FF,
         targets = listOf(
+            AppTarget(version = "Android V1.78.51", minSdk = 26),
             AppTarget(version = "Android V1.78.49", minSdk = 26),
             AppTarget(version = "Android V1.78.47", minSdk = 26),
         ),
@@ -415,7 +485,10 @@ internal object AppCompatibilities {
         packageName = "app.rubberbands.fit",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0xFD8700,
-        targets = listOf(AppTarget(version = "3.9", versionCode = 291, minSdk = 26)),
+        targets = listOf(
+            AppTarget(version = "3.9", versionCode = 291, minSdk = 26),
+            AppTarget(version = "3.11", versionCode = 297, minSdk = 26),
+        ),
     )
 
     val SHOWLY = Compatibility(
@@ -458,7 +531,10 @@ internal object AppCompatibilities {
         packageName = "com.thetrainline",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x00A88F,
-        targets = listOf(AppTarget(version = "407.0.0.178994", versionCode = 1278994, minSdk = 26)),
+        targets = listOf(
+            AppTarget(version = "407.0.0.178994", versionCode = 1278994, minSdk = 26),
+            AppTarget(version = "415.0.0.182623", versionCode = 1282623, minSdk = 26),
+        ),
     )
 
     val VLLO = Compatibility(
@@ -483,7 +559,10 @@ internal object AppCompatibilities {
         packageName = "com.free.vpn.super.hotspot.open",
         apkFileType = ApkFileType.APKS_REQUIRED,
         appIconColor = 0x007DFF,
-        targets = listOf(AppTarget(version = "2.32.0", versionCode = 23200, minSdk = 32)),
+        targets = listOf(
+            AppTarget(version = "2.32.0", versionCode = 23200, minSdk = 32),
+            AppTarget(version = "2.33.0", versionCode = 23300, minSdk = 32),
+        ),
     )
 
     val YI_IOT = Compatibility(

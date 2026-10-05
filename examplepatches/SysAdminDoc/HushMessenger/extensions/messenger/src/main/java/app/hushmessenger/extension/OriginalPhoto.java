@@ -182,6 +182,9 @@ public final class OriginalPhoto {
             success.invoke(callback, Uri.fromFile(sent.copy).toString(), width, height,
                 sent.quarterTurn() ? height : width, sent.quarterTurn() ? width : height, 100.0, -1.0,
                 rotated, 0, false, 0.0, 0.0, 0.0);
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            // Messenger entered success and may already own the copy. Never complete the send twice.
+            Settings.hookFailedPrivately(KEY, "Original photo success callback failed", error);
         } catch (IOException | ReflectiveOperationException | RuntimeException error) {
             sent.copy.delete();
             Settings.hookFailedPrivately(KEY, "Original photo couldn't hand over its copy", error);

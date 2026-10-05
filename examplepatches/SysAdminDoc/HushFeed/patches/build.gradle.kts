@@ -10,6 +10,8 @@ import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import javax.xml.parsers.DocumentBuilderFactory
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 
 /**
  * The moment the bundle says it was built.
@@ -399,29 +401,114 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 }
 
+val documentationClasses = listOf("app/morphe/ReadmePatchNamesTest.class", "app/morphe/MarketingHeroTest.class")
+val documentationTest = tasks.register<Test>("documentationTest") {
+    group = "verification"
+    description = "Checks the README, source catalog and approved artwork."
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    maxHeapSize = "512m"
+    include(documentationClasses)
+    // TestFilter has no public getter for CLI patterns in the pinned Gradle 9.7.1 API.
+    // Record forwarded filters before input snapshotting, then apply them before execution.
+    inputs.property("suiteSelection", provider {
+        (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns
+    })
+    failOnNoDiscoveredTests.set(provider {
+        (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns.isEmpty()
+    })
+    doFirst {
+        val selected = (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns
+        if (selected.isNotEmpty()) {
+            setTestNameIncludePatterns(selected.toList())
+            filter.isFailOnNoMatchingTests = false
+        }
+    }
+}
+
+// A finalizer also runs when the native partition is UP-TO-DATE or NO-SOURCE.
+val verifyPatchTestSelection = tasks.register("verifyPatchTestSelection") {
+    mustRunAfter(tasks.test, documentationTest)
+    doLast {
+        val parser = DocumentBuilderFactory.newInstance().apply {
+            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+        }.newDocumentBuilder()
+        val suites = mutableSetOf<String>()
+        var total = 0
+        for (partition in listOf("test", "documentationTest")) {
+            val reports = layout.buildDirectory.dir("test-results/$partition").get().asFile
+            for (report in reports.listFiles().orEmpty().filter { it.name.startsWith("TEST-") && it.extension == "xml" }) {
+                val suite = parser.parse(report).documentElement
+                val name = suite.getAttribute("name")
+                check(suites.add(name)) { "Duplicate patch test suite: $name" }
+                total += suite.getElementsByTagName("testcase").length
+            }
+        }
+        check(total > 0) { "No tests matched the requested selection" }
+        val selection = tasks.test.get().filter as DefaultTestFilter
+        if (selection.commandLineIncludePatterns.isEmpty() && selection.includePatterns.isEmpty()) {
+            val expected = fileTree("src/test/kotlin") { include("**/*Test.kt") }
+                .files.map { it.nameWithoutExtension }.toSet()
+            val ran = suites.map { it.substringAfterLast('.') }.toSet()
+            check(ran == expected) {
+                "Incomplete patch test run. Missing: ${expected - ran}; orphaned: ${ran - expected}"
+            }
+        }
+        logger.lifecycle("Patch tests across both partitions: $total")
+    }
+}
+
+tasks.withType<Test>().matching { it.name == "test" || it.name == "documentationTest" }.configureEach {
+    val contractFiles = if (name == "documentationTest") rootProject.files(
+        "patches/src", "README.md", "patches-list.json", "patches-bundle.json",
+        "assets/readme-hero.png", "patches-bundle.png", "concepts/marketing/2026-09-12"
+    ) else rootProject.files(fileTree("src"), rootProject.file("patches-list.json"),
+        rootProject.fileTree("extensions") { include("**/src/**"); exclude("**/build/**") })
+    // These contracts read raw files beyond the compiled classpath. Hash content directly so
+    // equal size/mtime replacements also invalidate Gradle's cached file fingerprints.
+    val contractContent = provider {
+        contractFiles.asFileTree.files.filter { it.isFile }.associate { source ->
+            val digest = MessageDigest.getInstance("SHA-256")
+            source.inputStream().use { stream ->
+                val buffer = ByteArray(65_536)
+                while (true) {
+                    val read = stream.read(buffer)
+                    if (read < 0) break
+                    digest.update(buffer, 0, read)
+                }
+            }
+            source.relativeTo(rootProject.projectDir).invariantSeparatorsPath to
+                digest.digest().joinToString("") { "%02x".format(it) }
+        }
+    }
+    inputs.files(contractFiles).withPropertyName("contractFiles").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.property("contractContent", contractContent)
+    // The XML output directory, including this receipt, is retained with cached test results.
+    val receipt = layout.buildDirectory.file("test-results/$name/source-inputs.sha256")
+    var startedWith = emptyMap<String, String>()
+    doFirst { startedWith = contractContent.get() }
+    doLast {
+        check(startedWith == contractContent.get()) { "Contract inputs changed during $name" }
+        receipt.get().asFile.parentFile.mkdirs()
+        receipt.get().asFile.writeText(startedWith.toSortedMap().entries.joinToString("\n", postfix = "\n") {
+            (path, digest) -> "$digest $path"
+        })
+    }
+}
+
 tasks {
-    // The README tests read marketing and patch-list files outside this module. Declare those
-    // inputs so Gradle reruns them when the public page or its selected artwork changes.
     test {
+        dependsOn(documentationTest)
+        finalizedBy(verifyPatchTestSelection)
+        exclude(documentationClasses)
+        // A --tests selection may belong only to the documentation partition. The finalizer
+        // checks both result sets so an unmatched selection still fails, as it did before.
+        filter.isFailOnNoMatchingTests = false
+        failOnNoDiscoveredTests.set(false)
         // GateCatalogFixturesTest runs the catalog generator on each declared build, and the
         // generator holds a whole APK's dex (some 430 MB on 47.1.3, feature modules included)
         // while it walks it. Gradle's default test heap is 512 MB, where that ran out of memory.
         maxHeapSize = "4g"
-        inputs.file(rootProject.file("README.md"))
-            .withPropertyName("readme")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        inputs.file(rootProject.file("patches-list.json"))
-            .withPropertyName("patchList")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        inputs.file(rootProject.file("assets/readme-hero.png"))
-            .withPropertyName("readmeHero")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        inputs.file(rootProject.file("patches-bundle.png"))
-            .withPropertyName("approvedLogo")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        inputs.dir(rootProject.file("concepts/marketing/2026-09-12"))
-            .withPropertyName("marketingArchive")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
         // The fixture tests skip when this is unset and read the folder when it is set. What the
         // folder holds is the input, not its name: a run whose APK was swapped, re-signed or
         // deleted under the same path has to run again, not come back up to date or out of the
@@ -433,6 +520,24 @@ tasks {
         inputs.files(fixtureDirectory.map { if (it.isBlank()) emptyList() else listOf(File(it)) }.orElse(emptyList()))
             .withPropertyName("fixtures")
             .withPathSensitivity(PathSensitivity.RELATIVE)
+        // Gradle's file-hash cache can reuse a digest after an external file is replaced with
+        // the same size and timestamp. Read fixture bytes independently before checking reuse.
+        inputs.property("fixtureBytes", fixtureDirectory.map { directory ->
+            val fixtures = if (directory.isBlank()) emptyList() else File(directory).listFiles()
+                ?.filter { it.isFile && it.extension in setOf("apk", "apkm") }.orEmpty()
+            fixtures.associate { fixture ->
+                val digest = MessageDigest.getInstance("SHA-256")
+                fixture.inputStream().use { stream ->
+                    val buffer = ByteArray(65_536)
+                    while (true) {
+                        val read = stream.read(buffer)
+                        if (read < 0) break
+                        digest.update(buffer, 0, read)
+                    }
+                }
+                fixture.name to digest.digest().joinToString("") { "%02x".format(it) }
+            }
+        }.orElse(emptyMap()))
     }
     // The bundle a release publishes lives in build/release, not build/libs. The plugin's
     // buildAndroid merges the DEX payload into the jar task's own output in place, so any later

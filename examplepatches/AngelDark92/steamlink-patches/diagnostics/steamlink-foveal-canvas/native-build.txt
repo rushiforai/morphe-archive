@@ -1,0 +1,6 @@
+
+Algorithm       Hash                                                                   Path
+---------       ----                                                                   ----
+SHA256          2939DB189B19322DA6EC601E96F9D4036D449FD8EE386E3CBD69E491D539EAC3       D:\Angelo\Desktop\SteamLink-Gala…
+Build output only. Stage the validated helper and update its Kotlin SHA pin before packaging.
+

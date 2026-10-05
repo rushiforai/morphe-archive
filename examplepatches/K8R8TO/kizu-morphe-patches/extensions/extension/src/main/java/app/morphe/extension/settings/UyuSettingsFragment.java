@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import java.util.Locale;
 
+
 import io.github.bakwudo.uyu.extension.danmaku.DanmakuPreview;
 
 @SuppressWarnings("deprecation")
@@ -109,7 +110,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
     }
 
     private void addSectionLink(PreferenceScreen screen, String linkedSection, String summary) {
-        Preference preference = new Preference(screen.getContext());
+        Preference preference = new Preference(SettingsUi.preferenceContext(screen.getContext()));
         preference.setTitle(title(linkedSection));
         preference.setSummary(summary);
         preference.setOnPreferenceClickListener(clicked -> {
@@ -120,7 +121,9 @@ public class UyuSettingsFragment extends PreferenceFragment {
         screen.addPreference(preference);
     }
 
-    private void addGeneralSettings(PreferenceScreen screen) {
+        private void addGeneralSettings(PreferenceScreen screen) {
+        addSwitch(screen, Settings.HIDE_STORIES, "Hide Stories",
+                "Hide the Stories shelf from Twitch's Following/Home feed.");
         Preference homeTab = new Preference(screen.getContext());
         homeTab.setTitle("Default Home Tab");
         homeTab.setSummary(homeTabName(Settings.DEFAULT_HOME_TAB.get()));
@@ -225,7 +228,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
         });
         screen.addPreference(proxySelector);
 
-        Preference proxy = new TextPreference(screen.getContext(), Settings.ADS_PROXY_URL,
+        Preference proxy = new TextPreference(SettingsUi.preferenceContext(screen.getContext()), Settings.ADS_PROXY_URL,
                 "https://example.com/live/{channel}?allow_source=true&allow_audio_only=true&fast_bread=true",
                 "Using the built-in default: Luminous EU2. Edit to use a custom proxy URL.");
         proxy.setTitle("Proxy URL");
@@ -259,7 +262,29 @@ public class UyuSettingsFragment extends PreferenceFragment {
     }
 
     private void addChatSettings(PreferenceScreen screen) {
-        addSwitch(screen, Settings.CHAT_DELETED_MESSAGES, "Deleted messages", "Control whether deleted chat messages remain visible locally.");
+        addSwitch(screen, Settings.CHAT_DELETED_MESSAGES, "Deleted messages", "Control whether deleted chat messages remain visible locally.");        
+        Preference deletedMessageStyle = new Preference(screen.getContext());
+        deletedMessageStyle.setTitle("Deleted message style");
+        deletedMessageStyle.setSummary(deletedMessageStyleName(Settings.CHAT_DELETED_MESSAGES_STYLE.get()));
+        deletedMessageStyle.setOnPreferenceClickListener(clicked -> {
+            Activity activity = getActivity();
+            if (activity == null) return true;
+            String[] names = {"Mod", "Strikethrough", "Grey"};
+            String[] values = {"mod", "strikethrough", "grey"};
+            int selected = deletedMessageStyleIndex(Settings.CHAT_DELETED_MESSAGES_STYLE.get());
+            new AlertDialog.Builder(activity)
+                    .setTitle("Deleted message style")
+                    .setSingleChoiceItems(names, selected, (dialog, which) -> {
+                        Settings.CHAT_DELETED_MESSAGES_STYLE.save(values[which]);
+                        deletedMessageStyle.setSummary(names[which]);
+                        dialog.dismiss();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            return true;
+        });
+        screen.addPreference(deletedMessageStyle);
+
         addSwitch(screen, Settings.CHAT_TIMESTAMPS, "Chat timestamps", "Show timestamps on chat messages.");
         addSwitch(screen, Settings.CHAT_MENTION_HIGHLIGHT, "Highlight on mention",
                 "Highlight chat messages that directly mention your account.");
@@ -272,6 +297,20 @@ public class UyuSettingsFragment extends PreferenceFragment {
         addSlider(screen, Settings.LANDSCAPE_CHAT_SIZE, 5, "Landscape chat width", value -> value + "% of the screen");
         addSwitch(screen, Settings.LANDSCAPE_CHAT_OPACITY_ENABLED, "Landscape chat opacity", "Use the custom landscape chat opacity.");
         addSlider(screen, Settings.LANDSCAPE_CHAT_OPACITY, 5, "Landscape chat opacity", value -> value + "%");
+    }
+
+    private static int deletedMessageStyleIndex(String value) {
+        if ("strikethrough".equalsIgnoreCase(value)) return 1;
+        if ("grey".equalsIgnoreCase(value)) return 2;
+        // "default" is a legacy value and is equivalent to Mod.
+        return 0;
+    }
+
+    private static String deletedMessageStyleName(String value) {
+        if ("strikethrough".equalsIgnoreCase(value)) return "Strikethrough";
+        if ("grey".equalsIgnoreCase(value)) return "Grey";
+        // "default" is a legacy value and is equivalent to Mod.
+        return "Mod";
     }
 
     private void addPrivacySettings(PreferenceScreen screen) {
@@ -293,7 +332,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
 
     @Override public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        view.setBackgroundColor(SettingsUi.backgroundColor(view.getContext()));
+        SettingsUi.applySettingsView(view);
         view.setClickable(true);
     }
 
@@ -307,6 +346,8 @@ public class UyuSettingsFragment extends PreferenceFragment {
 
     @Override public void onResume() {
         super.onResume();
+        View settingsView = getView();
+        if (settingsView != null) SettingsUi.applySettingsView(settingsView);
         Activity activity = getActivity();
         TextView title = activity == null ? null : SettingsPatch.findToolbarTitle(activity);
         if (title == null) return;
@@ -335,8 +376,8 @@ public class UyuSettingsFragment extends PreferenceFragment {
         }
     }
 
-    private static void addSwitch(PreferenceGroup group, BooleanSetting setting, String title, String summary) {
-        SwitchPreference preference = new SwitchPreference(group.getContext());
+    private void addSwitch(PreferenceGroup group, BooleanSetting setting, String title, String summary) {
+        SwitchPreference preference = new SwitchPreference(SettingsUi.preferenceContext(group.getContext()));
         preference.setKey(setting.key);
         preference.setDefaultValue(setting.defaultValue);
         preference.setTitle(title);
@@ -345,13 +386,13 @@ public class UyuSettingsFragment extends PreferenceFragment {
     }
 
     private static void addSlider(PreferenceGroup group, IntSetting setting, int step, String title, SliderPreference.Formatter formatter) {
-        Preference preference = new SliderPreference(group.getContext(), setting, step, formatter);
+        Preference preference = new SliderPreference(SettingsUi.preferenceContext(group.getContext()), setting, step, formatter);
         preference.setTitle(title);
         group.addPreference(preference);
     }
 
     private static void addColor(PreferenceGroup group, IntSetting setting, String title) {
-        Preference preference = new ColorPreference(group.getContext(), setting);
+        Preference preference = new ColorPreference(SettingsUi.preferenceContext(group.getContext()), setting);
         preference.setTitle(title);
         group.addPreference(preference);
     }

@@ -1532,24 +1532,39 @@ try {
         Set-Content -LiteralPath (Join-Path $directory "TEST-fixture.$Suite.xml") -Encoding UTF8 -Value (
             "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$Suite`" tests=`"$Tests`" " +
             "skipped=`"$Skipped`" failures=`"0`" errors=`"0`">$cases</testsuite>")
+        if ($Folder.StartsWith('patches/')) {
+            # Only these input files exist in this deliberately small release fixture.
+            $receiptPaths = @('patches-list.json', 'patches/src/test/kotlin/fixture/PatchTest.kt',
+                'patches/src/test/kotlin/fixture/DocumentationTest.kt')
+            if ($Folder.EndsWith('/documentationTest')) { $receiptPaths += @('README.md', 'patches-bundle.json') }
+            else { $receiptPaths += 'extensions/tiktok/src/test/java/fixture/RuntimeTest.java' }
+            $lines = @($receiptPaths | Where-Object { Test-Path -LiteralPath (Join-Path $factsRoot $_) } |
+                ForEach-Object {
+                    '{0} {1}' -f (Get-FileHash -LiteralPath (Join-Path $factsRoot $_) -Algorithm SHA256).Hash.ToLowerInvariant(), $_
+                })
+            Set-Content -LiteralPath (Join-Path $directory 'source-inputs.sha256') -Encoding UTF8 -Value $lines
+        }
     }
     function Invoke-StrictFacts { & $factsScript -Root $factsRoot -SkipUrlCheck 6> $null }
     $runtimeResults = 'extensions/tiktok/build/test-results/testDebugUnitTest'
     $patchResults = 'patches/build/test-results/test'
+    $documentationResults = 'patches/build/test-results/documentationTest'
+    $patchNativeQuoted = $patchQuoted - 1
     try {
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted
+        Write-FactsResults $documentationResults 'DocumentationTest' 1
         Invoke-StrictFacts
         Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
             'The strict release check refused test results that match the description.'
 
         # A fixture test that skipped, which Gradle reports as a pass.
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted -Skipped 1
+        Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted -Skipped 1
         Assert-Throws { Invoke-StrictFacts } '*skipped 1 test*' `
             'A release was checked against patch test results with a skipped fixture test.'
 
         # A count the run doesn't have, which is how "All 269 patch tests passed" was written.
-        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted + 1)
+        Write-FactsResults $patchResults 'PatchTest' ($patchNativeQuoted + 1)
         Assert-Throws { Invoke-StrictFacts } '*patch test count*' `
             'A description quoting a patch test count the run does not have was accepted.'
 
@@ -1558,7 +1573,8 @@ try {
         # were counted as passing. The sources go in first so the results are the newer files.
         $runtimeSource = Join-Path $factsRoot 'extensions/tiktok/src/test/java/fixture/RuntimeTest.java'
         $patchSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/PatchTest.kt'
-        foreach ($source in @($runtimeSource, $patchSource)) {
+        $documentationSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/DocumentationTest.kt'
+        foreach ($source in @($runtimeSource, $patchSource, $documentationSource)) {
             New-Item -ItemType Directory -Path (Split-Path -Parent $source) -Force | Out-Null
             Set-Content -LiteralPath $source -Value '' -Encoding ASCII
         }
@@ -1567,22 +1583,90 @@ try {
                 "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$Suite`" tests=`"1`" " +
                 "skipped=`"0`" failures=`"0`" errors=`"0`"><testcase name=`"t1`" classname=`"fixture.$Suite`"/></testsuite>")
         }
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted
+        Write-FactsResults $documentationResults 'DocumentationTest' 1
         Write-FactsResults $runtimeResults 'RuntimeTest' ($runtimeQuoted - 1)
         Add-OrphanResult $runtimeResults 'GoneTest'
         Assert-Throws { Invoke-StrictFacts } '*runtime test results include 1 test class*GoneTest*' `
             'The runtime results of a deleted test class were counted.'
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
-        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Write-FactsResults $patchResults 'PatchTest' ($patchNativeQuoted - 1)
         Add-OrphanResult $patchResults 'GonePatchTest'
         Assert-Throws { Invoke-StrictFacts } '*patch test results include 1 test class*GonePatchTest*' `
             'The patch results of a deleted test class were counted.'
         # The control: the same sources with no orphan pass.
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
-        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted
         Invoke-StrictFacts
         Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
             'The strict release check refused results that match their sources and the description.'
+
+        Write-FactsResults $documentationResults 'DocumentationTest' 1 -Skipped 1
+        Assert-Throws { Invoke-StrictFacts } '*skipped 1 test*' `
+            'A skipped documentation test was omitted from the release check.'
+        Write-FactsResults $documentationResults 'DocumentationTest' 1
+        $documentationXml = Join-Path (Join-Path $factsRoot $documentationResults) 'TEST-fixture.DocumentationTest.xml'
+        $validDocumentationXml = Get-Content -LiteralPath $documentationXml -Raw
+        foreach ($attribute in @('failures', 'errors')) {
+            Set-Content -LiteralPath $documentationXml -Encoding UTF8 -Value (
+                $validDocumentationXml.Replace("$attribute=`"0`"", "$attribute=`"1`""))
+            Assert-Throws { Invoke-StrictFacts } '*has failures=*' `
+                "Documentation $attribute did not fail release validation."
+        }
+        Write-FactsResults $documentationResults 'DocumentationTest' 1
+        $duplicate = Join-Path (Join-Path $factsRoot $patchResults) 'TEST-fixture.DocumentationTest.xml'
+        Copy-Item -LiteralPath $documentationXml -Destination $duplicate
+        Assert-Throws { Invoke-StrictFacts } '*Duplicate patch test results*' `
+            'A documentation suite duplicated in the fixture partition was counted twice.'
+        Remove-Item -LiteralPath $duplicate
+        Remove-Item -LiteralPath $documentationXml
+        Assert-Throws { Invoke-StrictFacts } '*No patch test results*documentationTest*' `
+            'A missing documentation partition was accepted.'
+        Write-FactsResults $documentationResults 'DocumentationTest' 1
+
+        # Content, not mtime, determines freshness in each partition.
+        foreach ($folder in @($patchResults, $documentationResults)) {
+            $receiptPath = Join-Path (Join-Path $factsRoot $folder) 'source-inputs.sha256'
+            $receiptBytes = [IO.File]::ReadAllBytes($receiptPath)
+            try {
+                Remove-Item -LiteralPath $receiptPath
+                Assert-Throws { Invoke-StrictFacts } '*No patch input receipt*' 'Missing content evidence was accepted.'
+            } finally { [IO.File]::WriteAllBytes($receiptPath, $receiptBytes) }
+            $inputPath = if ($folder -eq $patchResults) { $patchSource } else { Join-Path $factsRoot 'README.md' }
+            $originalBytes = [IO.File]::ReadAllBytes($inputPath)
+            $originalDate = (Get-Item -LiteralPath $inputPath).LastWriteTimeUtc
+            try {
+                (Get-Item -LiteralPath $inputPath).LastWriteTimeUtc = [DateTime]::UtcNow.AddDays(1)
+                Invoke-StrictFacts
+                [IO.File]::WriteAllBytes($inputPath, $originalBytes + [Text.Encoding]::UTF8.GetBytes("`n<!-- input changed -->`n"))
+                (Get-Item -LiteralPath $inputPath).LastWriteTimeUtc = $originalDate
+                if ($folder -eq $patchResults) { Write-FactsResults $documentationResults 'DocumentationTest' 1 }
+                else { Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted }
+                Assert-Throws { Invoke-StrictFacts } '*Patch test inputs changed*' `
+                    "Fresh results in another partition hid changed $folder inputs."
+            } finally {
+                [IO.File]::WriteAllBytes($inputPath, $originalBytes)
+                (Get-Item -LiteralPath $inputPath).LastWriteTimeUtc = $originalDate
+                Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted
+                Write-FactsResults $documentationResults 'DocumentationTest' 1
+            }
+        }
+        $indexInput = Join-Path $factsRoot 'patches-bundle.json'
+        $indexBytes = [IO.File]::ReadAllBytes($indexInput)
+        $indexDate = (Get-Item -LiteralPath $indexInput).LastWriteTimeUtc
+        try {
+            [IO.File]::WriteAllBytes($indexInput, $indexBytes + [Text.Encoding]::UTF8.GetBytes("`n "))
+            (Get-Item -LiteralPath $indexInput).LastWriteTimeUtc = $indexDate
+            Assert-Throws { Invoke-StrictFacts } '*Patch test inputs changed in documentationTest*' `
+                'An index-only content change reused stale documentation results.'
+            Write-FactsResults $documentationResults 'DocumentationTest' 1
+            Invoke-StrictFacts
+        } finally {
+            [IO.File]::WriteAllBytes($indexInput, $indexBytes)
+            (Get-Item -LiteralPath $indexInput).LastWriteTimeUtc = $indexDate
+            Write-FactsResults $documentationResults 'DocumentationTest' 1
+        }
+        Invoke-StrictFacts
         foreach ($folder in @('extensions/tiktok/src', 'patches/src')) {
             Remove-Item -LiteralPath (Join-Path $factsRoot $folder) -Recurse -Force
         }
@@ -1643,9 +1727,11 @@ try {
     $signingMarker = Join-Path $hookRoot 'signing-ran.txt'
     $attestationMarker = Join-Path $hookRoot 'attestation-ran.txt'
     $bundleSignatureMarker = Join-Path $hookRoot 'bundle-signature-ran.txt'
+    $requireWrapper = Join-Path $hookRoot 'require-wrapper.txt'
     Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/validate-release-facts.ps1') -Encoding UTF8 -Value @(
         'param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag,',
         '    [switch]$VerifyPublishedAsset, [string]$ArtifactPath)',
+        "if ((Test-Path -LiteralPath '$requireWrapper') -and !(Test-Path -LiteralPath '$(Join-Path $hookRoot 'wrapper-ran.txt')')) { throw 'Release validation ran before documentation tests.' }",
         "Set-Content -LiteralPath '$factsMarker' -Value `"lag=`$AllowPublishedIndexLag verify=`$VerifyPublishedAsset artifact=`$ArtifactPath`"",
         'exit 0')
     Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/test-script-contracts.ps1') -Encoding UTF8 -Value @(
@@ -1744,30 +1830,6 @@ try {
     Assert-True (Test-Path -LiteralPath $factsMarker) `
         'A push that changed only the bug report form ran no release check.'
 
-    Invoke-Hook -Paths @('patches-bundle.json')
-    Assert-True (Test-Path -LiteralPath $factsMarker) 'An index change ran no release check.'
-    Assert-True ((Get-Content -LiteralPath $factsMarker -Raw) -like 'lag=False*') `
-        'An index change was allowed to lag behind the published release.'
-
-    # The order that shipped a dexless bundle: buildAndroid, then any task that reruns
-    # :patches:jar, which leaves the plain jar in build/libs under the bundle's own name. The
-    # finished bundle sits in build/release, and the index push must be compared against that
-    # one. A plain jar left beside it in build/libs is the state :patches:test produces.
-    $releaseDirectory = Join-Path $hookRoot 'patches/build/release'
-    $libsDirectory = Join-Path $hookRoot 'patches/build/libs'
-    New-Item -ItemType Directory -Path $releaseDirectory, $libsDirectory -Force | Out-Null
-    # Normalized, because the hook hands over the listing's own full name.
-    $releaseCopy = [System.IO.Path]::GetFullPath((Join-Path $releaseDirectory 'patches-9.9.9.mpp'))
-    Set-Content -LiteralPath $releaseCopy -Value 'bundle with classes.dex' -Encoding ASCII
-    Set-Content -LiteralPath (Join-Path $libsDirectory 'patches-9.9.9.mpp') -Value 'plain jar' -Encoding ASCII
-    Invoke-Hook -Paths @('patches-bundle.json')
-    $routed = Get-Content -LiteralPath $factsMarker -Raw
-    Assert-True ($routed -like '*verify=True*') `
-        'An index push with a built release bundle did not compare it against the published asset.'
-    Assert-True ($routed -like "*artifact=$releaseCopy*") `
-        "The index push compared something other than the release copy: $routed"
-    Remove-Item -LiteralPath (Join-Path $hookRoot 'patches') -Recurse -Force
-
     # A new remote branch can contain several unpublished commits. The code change here is in
     # the first commit and the tip changes only documentation. Looking at HEAD^..HEAD silently
     # misses the code and skips every build gate.
@@ -1848,38 +1910,6 @@ try {
         $env:GITHUB_TOKEN = $savedNewBranchToken
     }
 
-    # A first push lists the branch's whole tree, and every tree holds patches-bundle.json. That
-    # used to route the push as an index push: the strict release check, and no patching at all.
-    # This case sees the release check's mode; the patching half reads the same flag.
-    $firstPushRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-first-push-" + [guid]::NewGuid().ToString('N'))
-    try {
-        New-Item -ItemType Directory -Path (Join-Path $firstPushRoot 'scripts') -Force | Out-Null
-        # Tracked, because the hook runs its checks from an export of the pushed commit.
-        Copy-Item -LiteralPath (Join-Path $hookRoot 'scripts/validate-release-facts.ps1') -Destination (Join-Path $firstPushRoot 'scripts')
-        Copy-Item -LiteralPath (Join-Path $hookRoot 'scripts/test-script-contracts.ps1') -Destination (Join-Path $firstPushRoot 'scripts')
-        Set-Content -LiteralPath (Join-Path $firstPushRoot 'patches-bundle.json') -Encoding UTF8 -Value '{}'
-        & git -C $firstPushRoot init --quiet
-        $firstPushGitDir = (& git -C $firstPushRoot rev-parse --absolute-git-dir).Trim()
-        Assert-True ([IO.Path]::GetFullPath($firstPushGitDir).TrimEnd('\', '/') -ieq
-            [IO.Path]::GetFullPath((Join-Path $firstPushRoot '.git')).TrimEnd('\', '/')) `
-            'The first-push fixture resolved outside its temporary repository; refusing to write.'
-        & git -C $firstPushRoot config user.name 'Hook Contract'
-        & git -C $firstPushRoot config user.email 'hook@example.invalid'
-        & git -C $firstPushRoot add -A
-        & git -C $firstPushRoot commit --quiet -m 'first'
-        $firstPushHead = (& git -C $firstPushRoot rev-parse HEAD).Trim()
-        # The hook reads each pushed local ref again once its checks end, so it has to exist.
-        $firstPushBranch = (& git -C $firstPushRoot symbolic-ref HEAD).Trim()
-        Remove-Item -LiteralPath $factsMarker -Force -ErrorAction SilentlyContinue
-        $global:LASTEXITCODE = 0
-        & $prePushScript -Root $firstPushRoot -PushedRefs "$firstPushBranch $firstPushHead refs/heads/first $('0' * 40)" 6> $null
-        Assert-True ($LASTEXITCODE -eq 0) 'A first push of an unchanged index failed its release check.'
-        Assert-True ((Get-Content -LiteralPath $factsMarker -Raw) -like 'lag=True*') `
-            'A first push was taken for an index push because its tree holds the index.'
-    } finally {
-        Remove-Item -LiteralPath $firstPushRoot -Recurse -Force -ErrorAction SilentlyContinue
-    }
-
     # The build branch, which runs the Gradle gates that hold the Bouncy Castle graphs to the
     # reviewed release. Starting a real build from a contract test would be absurd, so the case
     # reads the first thing that branch does instead: with no GitHub credentials and no gh on
@@ -1899,12 +1929,12 @@ try {
                 'gradle/wrapper/gradle-wrapper.jar', 'gradlew', 'gradlew.bat',
                 'gradle/libs.versions.toml', 'gradle/verification-metadata.xml',
                 'settings.gradle.kts', 'build.gradle.kts', 'patches/build.gradle.kts',
-                'README.md', 'NOTICE', 'patches-list.json', 'patches-bundle.png', 'assets/readme-hero.png',
+                'README.md', 'NOTICE', 'patches-list.json', 'patches-bundle.json', 'patches-bundle.png', 'assets/readme-hero.png',
                 'concepts/marketing/2026-09-12/selected/hero-final.png')) {
             Remove-Item -LiteralPath $contractsMarker -Force -ErrorAction SilentlyContinue
             Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @($pin) 6> $null } `
                 '*GITHUB_ACTOR*' "A push that changed $pin did not reach the build gates."
-            if ($pin -notin @('README.md', 'NOTICE', 'patches-bundle.png', 'assets/readme-hero.png',
+            if ($pin -notin @('README.md', 'NOTICE', 'patches-bundle.json', 'patches-bundle.png', 'assets/readme-hero.png',
                     'concepts/marketing/2026-09-12/selected/hero-final.png')) {
                 Assert-True (Test-Path -LiteralPath $contractsMarker) `
                     "A patch or catalog input $pin skipped the script contracts before its build."
@@ -1936,6 +1966,79 @@ try {
             "Set-Content -LiteralPath '$wrapperMarker' -Value (`"dir=`$ProjectDir tasks=`" + (`$Tasks -join ','))",
             'exit 0')
         $env:HUSHFEED_BUILD_WRAPPER = $wrapperStub
+        Set-Content -LiteralPath $requireWrapper -Value 'required'
+        Remove-Item -LiteralPath $wrapperMarker -Force -ErrorAction SilentlyContinue
+        Invoke-Hook -Paths @('patches-bundle.json')
+        Assert-True (Test-Path -LiteralPath $wrapperMarker) 'An index change skipped documentation tests.'
+        Assert-True (Test-Path -LiteralPath $factsMarker) 'An index change ran no release check.'
+        Assert-True ((Get-Content -LiteralPath $factsMarker -Raw) -like 'lag=False*') `
+            'An index change was allowed to lag behind the published release.'
+
+        $validWrapper = Get-Content -LiteralPath $wrapperStub -Raw
+        try {
+            Set-Content -LiteralPath $wrapperStub -Value 'exit 1'
+            Remove-Item -LiteralPath $factsMarker, $wrapperMarker -Force -ErrorAction SilentlyContinue
+            Assert-Throws { Invoke-Hook -Paths @('patches-bundle.json') } '*runtime test build did not pass*' `
+                'An index push ignored a failed documentation build.'
+            Assert-True (-not (Test-Path -LiteralPath $factsMarker)) `
+                'Release validation continued after documentation tests failed.'
+        } finally { Set-Content -LiteralPath $wrapperStub -Encoding UTF8 -Value $validWrapper }
+
+        # The order that shipped a dexless bundle: buildAndroid, then any task that reruns
+        # :patches:jar, which leaves the plain jar in build/libs under the bundle's own name. The
+        # finished bundle sits in build/release, and the index push must be compared against that
+        # one. A plain jar left beside it in build/libs is the state :patches:test produces.
+        $releaseDirectory = Join-Path $hookRoot 'patches/build/release'
+        $libsDirectory = Join-Path $hookRoot 'patches/build/libs'
+        New-Item -ItemType Directory -Path $releaseDirectory, $libsDirectory -Force | Out-Null
+        # Normalized, because the hook hands over the listing's own full name.
+        $releaseCopy = [System.IO.Path]::GetFullPath((Join-Path $releaseDirectory 'patches-9.9.9.mpp'))
+        Set-Content -LiteralPath $releaseCopy -Value 'bundle with classes.dex' -Encoding ASCII
+        Set-Content -LiteralPath (Join-Path $libsDirectory 'patches-9.9.9.mpp') -Value 'plain jar' -Encoding ASCII
+        Remove-Item -LiteralPath $wrapperMarker -Force -ErrorAction SilentlyContinue
+        Invoke-Hook -Paths @('patches-bundle.json')
+        Assert-True (Test-Path -LiteralPath $wrapperMarker) 'An index change skipped documentation tests.'
+        $routed = Get-Content -LiteralPath $factsMarker -Raw
+        Assert-True ($routed -like '*verify=True*') `
+            'An index push with a built release bundle did not compare it against the published asset.'
+        Assert-True ($routed -like "*artifact=$releaseCopy*") `
+            "The index push compared something other than the release copy: $routed"
+        Remove-Item -LiteralPath (Join-Path $hookRoot 'patches') -Recurse -Force
+
+        # A first push lists the branch's whole tree, and every tree holds patches-bundle.json. That
+        # used to route the push as an index push: the strict release check, and no patching at all.
+        # This case sees the release check's mode; the patching half reads the same flag.
+        $firstPushRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-first-push-" + [guid]::NewGuid().ToString('N'))
+        try {
+            New-Item -ItemType Directory -Path (Join-Path $firstPushRoot 'scripts') -Force | Out-Null
+            # Tracked, because the hook runs its checks from an export of the pushed commit.
+            Copy-Item -LiteralPath (Join-Path $hookRoot 'scripts/validate-release-facts.ps1') -Destination (Join-Path $firstPushRoot 'scripts')
+            Copy-Item -LiteralPath (Join-Path $hookRoot 'scripts/test-script-contracts.ps1') -Destination (Join-Path $firstPushRoot 'scripts')
+            Set-Content -LiteralPath (Join-Path $firstPushRoot 'patches-bundle.json') -Encoding UTF8 -Value '{}'
+            & git -C $firstPushRoot init --quiet
+            $firstPushGitDir = (& git -C $firstPushRoot rev-parse --absolute-git-dir).Trim()
+            Assert-True ([IO.Path]::GetFullPath($firstPushGitDir).TrimEnd('\', '/') -ieq
+                [IO.Path]::GetFullPath((Join-Path $firstPushRoot '.git')).TrimEnd('\', '/')) `
+                'The first-push fixture resolved outside its temporary repository; refusing to write.'
+            & git -C $firstPushRoot config user.name 'Hook Contract'
+            & git -C $firstPushRoot config user.email 'hook@example.invalid'
+            & git -C $firstPushRoot add -A
+            & git -C $firstPushRoot commit --quiet -m 'first'
+            $firstPushHead = (& git -C $firstPushRoot rev-parse HEAD).Trim()
+            # The hook reads each pushed local ref again once its checks end, so it has to exist.
+            $firstPushBranch = (& git -C $firstPushRoot symbolic-ref HEAD).Trim()
+            Remove-Item -LiteralPath $factsMarker, $wrapperMarker -Force -ErrorAction SilentlyContinue
+            $global:LASTEXITCODE = 0
+            & $prePushScript -Root $firstPushRoot -PushedRefs "$firstPushBranch $firstPushHead refs/heads/first $('0' * 40)" 6> $null
+            Assert-True (Test-Path -LiteralPath $wrapperMarker) 'A first push skipped documentation tests.'
+            Assert-True ($LASTEXITCODE -eq 0) 'A first push of an unchanged index failed its release check.'
+            Assert-True ((Get-Content -LiteralPath $factsMarker -Raw) -like 'lag=True*') `
+                'A first push was taken for an index push because its tree holds the index.'
+        } finally {
+            Remove-Item -LiteralPath $firstPushRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        Remove-Item -LiteralPath $requireWrapper, $wrapperMarker -Force -ErrorAction SilentlyContinue
+
         & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/tiktok/src/test/java/AnyTest.java') 6> $null
         Assert-True (Test-Path -LiteralPath $wrapperMarker) `
             'The hook did not run the build through the wrapper HUSHFEED_BUILD_WRAPPER names.'
@@ -2247,7 +2350,12 @@ exit 0
             # here would restamp, so it leaves the bundle alone.
             Reset-Apply
             & $prePushScript -Root $hookRoot -ChangedPaths @('patches-bundle.json') 6> $null
-            Assert-True ((Get-ApplyCalls).Count -eq 0 -and -not (Test-Path -LiteralPath $wrapperMarker)) `
+            Assert-True ((Get-ApplyCalls).Count -eq 0) 'An index push reapplied the published bundle.'
+            $indexTasks = Get-Content -LiteralPath $wrapperMarker -Raw
+            foreach ($task in @(':extensions:tiktok:test', ':patches:test', ':extensions:shared:library:lint', ':extensions:tiktok:lint')) {
+                Assert-True ($indexTasks.Contains($task)) "An index push skipped $task."
+            }
+            Assert-True (-not $indexTasks.Contains(':patches:buildAndroid')) `
                 'An index push rebuilt the bundle it is compared against.'
             Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @($patchSource, 'patches-bundle.json') 6> $null } `
                 '*Push bundle inputs before the published index*' 'A mixed source/index push skipped payload verification.'

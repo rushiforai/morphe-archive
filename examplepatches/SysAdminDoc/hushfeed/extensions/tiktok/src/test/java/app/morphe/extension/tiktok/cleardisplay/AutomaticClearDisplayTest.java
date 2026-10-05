@@ -303,7 +303,7 @@ public class AutomaticClearDisplayTest {
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
         assertEquals(List.of(false), events);
     }
-    @Test public void leavingAndReturningBeforeTheDeadlineCancelsTheTimer() {
+    @Test public void leavingAndReturningBeforeTheDeadlineRearmsTheCurrentItem() {
         try (var owner = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
             RememberClearDisplayPatch.observeWindow(owner.get().getWindow().getDecorView());
             List<Boolean> events = new ArrayList<>();
@@ -312,8 +312,97 @@ public class AutomaticClearDisplayTest {
             owner.windowFocusChanged(true);
             RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
             Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
-            assertEquals(List.of(false), events);
+            assertEquals(List.of(false, true), events);
         }
+    }
+    @Test public void aCancelledCallbackCannotApplyDuringTheNewAttemptsDelay() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+        Runnable cancelled = org.robolectric.util.ReflectionHelpers.getStaticField(
+                RememberClearDisplayPatch.class, "pending");
+        RememberClearDisplayPatch.cancel();
+        RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+        cancelled.run();
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(999));
+        assertEquals("the stale attempt cleared before the new delay", List.of(false), events);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1));
+        assertEquals(List.of(false, true), events);
+    }
+    @Test public void aReplacementWindowCanClearTheSameItemAgain() {
+        try (var old = Robolectric.buildActivity(android.app.Activity.class).setup().visible();
+             var replacement = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.observeWindow(old.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            RememberClearDisplayPatch.observeWindow(replacement.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            assertEquals(List.of(false, true, false), events);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            assertEquals(List.of(false, true, false, true), events);
+        }
+    }
+    @Test public void focusReturnAndWindowReplacementPreserveAManualExitOnTheSameItem() {
+        try (var owner = Robolectric.buildActivity(android.app.Activity.class).setup().visible();
+             var replacement = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            RememberClearDisplayPatch.observeWindow(owner.get().getWindow().getDecorView());
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 0));
+            owner.windowFocusChanged(false);
+            owner.windowFocusChanged(true);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+            RememberClearDisplayPatch.observeWindow(replacement.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+            assertEquals("returning re-applied a clear the user exited", List.of(false), events);
+            RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            assertEquals(List.of(false, false, true), events);
+        }
+    }
+    @Test public void focusReturnCanClearTheFirstItemAfterItsInitialAttemptHadNoFocus() {
+        try (var owner = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            RememberClearDisplayPatch.observeWindow(owner.get().getWindow().getDecorView());
+            owner.windowFocusChanged(false);
+            var focused = new java.util.concurrent.atomic.AtomicBoolean(false);
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("first", focused::get, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+            assertEquals(List.of(false), events);
+
+            focused.set(true);
+            owner.windowFocusChanged(true);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(999));
+            assertEquals("focus return must retain the chosen delay", List.of(false), events);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1));
+            assertEquals("the first item remained permanently ineligible", List.of(false, true), events);
+        }
+    }
+    @Test public void aFailedClearDispatchCanRetryOnTheSameItem() {
+        List<Boolean> events = new ArrayList<>();
+        var fail = new java.util.concurrent.atomic.AtomicBoolean(true);
+        RememberClearDisplayPatch.ClearEvent receiver = value -> {
+            if (value && fail.getAndSet(false)) throw new IllegalStateException("receiver unavailable");
+            events.add(value);
+        };
+        RememberClearDisplayPatch.firstFrame("first", () -> true, receiver);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertFalse("a failed dispatch was recorded as clear", RememberClearDisplayPatch.isClearDisplayNow());
+        RememberClearDisplayPatch.firstFrame("first", () -> true, receiver);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertEquals(List.of(false, true), events);
+    }
+    @Test public void aQueuedManualEventFromTheOldItemCannotCancelTheNextItem() throws Exception {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("old", () -> true, events::add);
+        Thread delivery = new Thread(() ->
+                RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 0)));
+        delivery.start();
+        delivery.join();
+        RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertEquals("old event delivery cancelled the next item's timer", List.of(false, false, true), events);
     }
     @Test public void standaloneControlsShowDelayInMilliseconds() throws Exception {
         try (var owner = Robolectric.buildActivity(

@@ -43,3 +43,20 @@ java -cp /tmp/nicoid-cookie-tests e.e.a.ManualCookieTest
 ```
 
 値のみ・Cookieヘッダー・末尾区切り、認証Cookieの限定、重複・改行・不正文字・過大入力の拒否を確認します。実機ではWebViewが使えない端末からの入力、保存後の再起動と認証、既存Cookieの置換、無効Cookieでのサイト側の認証失敗、キャンセル時の情報保持、通常ログイン、Material Youのオン・オフと明暗、英語・繁體中文を確認してください。
+
+## アカウント視聴履歴
+
+```sh
+javac -cp /tmp/nicoid-json.jar -d /tmp/nicoid-account-history-tests \
+  $(find porting/tests/paid-stubs -name '*.java' ! -path '*/e/e/a/HistorySupport.java') \
+  $(find porting/tests/history-stubs -name '*.java') \
+  extensions/extension/src/main/java/e/e/a/{HistorySupport,HistoryRules,VideoCountRules,PaidVideos,UiStrings}.java \
+  porting/tests/AccountHistoryTest.java
+java -cp /tmp/nicoid-account-history-tests:/tmp/nicoid-json.jar e.e.a.AccountHistoryTest
+```
+
+実際の履歴バインダーを使い、アダプターの履歴種別（e=4）、統計の共有アイコン描画への受け渡し、視聴日時・投稿日時の保持、行の再利用、本体履歴を変更しないことを日本語・英語・繁體中文で確認します。アイコン描画自体は記録用スタブに置き換えるため、実機での描画確認も必要です。
+
+動画情報の統計表示: `VideoInfoCountsTest` は公式順序、全桁表示、取得できない項目の省略、実際の0、64bitの数値を確認します。`VideoInfoDexTest patched.apk` は単独・再生画面内の共通情報パネルからアイコン描画への接続と、既存メタデータ応答の統計取得フックを確認します。動画情報の数値は通常の太さで表示し、統計行の上下に2dpずつ余白を追加します。
+
+`InfoStatisticsPayload.java` は変更前の method-delta.dex と6.49の元APKを入力として、上記2フックを追加した今回のpayloadを生成する再現用ツールです（既にフックを含むpayloadへの再適用は不要）。

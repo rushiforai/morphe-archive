@@ -83,6 +83,8 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.simple_calculator";
     public static final String FEATURE_CUSTOM_THEME =
             "dev.jason.gboardpatches.feature.custom_theme";
+    public static final String FEATURE_FROSTED_GLASS =
+            "dev.jason.gboardpatches.feature.frosted_glass";
 
     private static final String TAG = "GboardPatches";
 

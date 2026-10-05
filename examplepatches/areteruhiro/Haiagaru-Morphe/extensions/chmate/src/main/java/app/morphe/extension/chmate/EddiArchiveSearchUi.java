@@ -20,7 +20,6 @@ import android.widget.Spinner;
 import android.widget.ArrayAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -216,11 +215,16 @@ final class EddiArchiveSearchUi {
                     }
                 });
             } catch (Exception error) {
+                String message = error.getMessage();
+                String code = message != null && message.matches("HTTP [0-9]{3}")
+                        ? "SEARCH_HTTP_" + message.substring(5) : "SEARCH_FAILED";
                 activity.runOnUiThread(() -> {
                     if (requestId != generation || activity.isFinishing()) return;
-                    status.setText("検索に失敗しました。通信状態を確認して再検索してください。");
+                    Haiagaru.reportEddiArchiveError(activity, code,
+                            "Search request failed: " + uri.getHost(), error);
+                    status.setText("検索に失敗しました（" + code
+                            + "）。Download/Haiagaru に診断ログを保存しました。");
                     previous.setEnabled(page > 1);
-                    Toast.makeText(activity, error.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }
         }, "Haiagaru-eddi-search").start();
@@ -313,8 +317,15 @@ final class EddiArchiveSearchUi {
             card.addView(title);
             card.addView(text(thread.date, 12, muted));
             card.setOnClickListener(view -> {
-                if (!opener.open(thread.url)) {
-                    Toast.makeText(activity, "スレを開けませんでした", Toast.LENGTH_SHORT).show();
+                try {
+                    if (opener.open(thread.url)) return;
+                    Haiagaru.reportEddiArchiveError(activity, "THREAD_OPEN_FAILED",
+                            "ChMate could not open archive result: " + thread.url, null);
+                    status.setText("スレを開けませんでした（THREAD_OPEN_FAILED）。診断ログを保存しました。");
+                } catch (RuntimeException error) {
+                    Haiagaru.reportEddiArchiveError(activity, "THREAD_OPEN_EXCEPTION",
+                            "Archive result: " + thread.url, error);
+                    status.setText("スレを開けませんでした（THREAD_OPEN_EXCEPTION）。診断ログを保存しました。");
                 }
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(

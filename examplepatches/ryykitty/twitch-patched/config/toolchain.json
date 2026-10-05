@@ -1,0 +1,14 @@
+{
+  "morpheDesktop": {
+    "version": "1.18.0",
+    "file": "morphe-desktop-1.18.0-all.jar",
+    "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.18.0/morphe-desktop-1.18.0-all.jar",
+    "sha256": "36e20d7a18f655fb5829ae50aadd61217e2208536c0741df5f7799300f758f56"
+  },
+  "jadx": {
+    "version": "1.5.6",
+    "file": "jadx-1.5.6.zip",
+    "url": "https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip",
+    "sha256": "545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974"
+  }
+}

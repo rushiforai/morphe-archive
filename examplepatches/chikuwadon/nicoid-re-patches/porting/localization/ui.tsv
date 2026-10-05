@@ -143,3 +143,46 @@ Google Cast の接続を解除	Disconnect Google Cast	中斷 Google Cast 連線
 ラジオ	Radio	廣播
 スポーツ	Sports	運動
 動物	Animals	動物
+再生速度変更	Change playback speed	變更播放速度
+スワイプで音量調整	Swipe to adjust volume	滑動調整音量
+上下スワイプで音量を調整します。輝度調整もONの場合は動画の右側で操作します	Swipe vertically to adjust volume. When brightness gestures are also enabled, use the right side of the video.	上下滑動調整音量。若同時啟用亮度調整，請在影片右側操作。
+スワイプで輝度調整	Swipe to adjust brightness	滑動調整亮度
+上下スワイプで再生画面の輝度を調整します。音量調整もONの場合は動画の左側で操作します	Swipe vertically to adjust video brightness. When volume gestures are also enabled, use the left side of the video.	上下滑動調整播放畫面的亮度。若同時啟用音量調整，請在影片左側操作。
+キャッシュのコピーが完了しました	Cache copy completed	快取複製完成
+キャッシュをコピー中	Copying cached videos…	正在複製快取影片…
+コピー	Copy	複製
+コピーに失敗しました。元のファイルは保持されています	Could not copy the cache. The original files have been kept.	無法複製快取。原始檔案已保留。
+フォルダー選択画面を開けませんでした	Could not open the folder picker	無法開啟資料夾選擇畫面
+以前の保存先からコピーします。元のファイルは削除しません	Copy cached videos from the previous folder. The original files will not be deleted.	從先前的儲存位置複製快取影片。原始檔案不會被刪除。
+保存先を使用できません。別のフォルダーを選択してください	Cannot use this folder. Please choose another one.	無法使用此儲存位置。請選擇其他資料夾。
+後で	Later	稍後
+既存キャッシュをコピー	Copy existing cache	複製現有快取
+設定でキャッシュ保存先を選択してください	Choose a cache folder in Settings	請在設定中選擇快取儲存位置
+キャスト再生中です	Casting video	正在投放影片
+ポップアップ再生を利用するには他のアプリの上に表示を許可してください	Allow display over other apps to use pop-up playback	若要使用懸浮視窗播放，請允許顯示在其他應用程式上層
+パーミッションの取得	Permissions	權限
+この動画はRTMPを使用している為再生できません	This video uses RTMP and cannot be played	此影片使用 RTMP，無法播放
+再生する	Play	播放
+再生リスト	Playlist	播放清單
+実況プレイ動画	Gameplay videos	遊戲實況影片
+バーチャル	Virtual	虛擬
+ランダム	Random	隨機
+人気が低い順	Least popular first	人氣由低到高
+人気が高い順	Most popular first	人氣由高到低
+並び順指定なし	Default order	不指定排序
+あなたにオススメの動画	Recommended for you	為你推薦的影片
+過去の視聴情報などからのオススメ動画	Videos recommended based on your viewing history	根據觀看紀錄推薦的影片
+端末との接続を解除	Disconnect from the device	中斷與裝置的連線
+既に登録済みです	Already added	已加入
+%s をお気に入りから解除しますか？	Remove %s from favorites?	要將 %s 從我的最愛移除嗎？
+フォローに失敗しました	Could not follow	無法追蹤
+フォローしました	Followed	已追蹤
+%s をフォローしますか？	Follow %s?	要追蹤 %s 嗎？
+フォロー	Follow	追蹤
+フォロー済み	Following	已追蹤
+昇順(上から下)	Ascending (top to bottom)	遞增（由上到下）
+降順(下から上)	Descending (bottom to top)	遞減（由下到上）
+再生:<b>%s</b> コメ:<b>%s</b> マイ:<b>%s</b> いいね:<b>%s</b>	Views:<b>%s</b> Comments:<b>%s</b> Mylists:<b>%s</b> Likes:<b>%s</b>	觀看:<b>%s</b> 留言:<b>%s</b> 播放清單:<b>%s</b> 按讚:<b>%s</b>
+ジャンル:<font color='#000000'><b>%s</b></font><br>過去最高:<font color='#000000'><b>%s</b></font>	Genre:<font color='#000000'><b>%s</b></font><br>Best rank:<font color='#000000'><b>%s</b></font>	類別:<font color='#000000'><b>%s</b></font><br>最高排名:<font color='#000000'><b>%s</b></font>
+カテゴリ:<font color='#000000'><b>%s</b></font><br>前日順位:<font color='#000000'><b>%s</b></font>(過去最高:<font color='#000000'><b>%s</b></font>)	Category:<font color='#000000'><b>%s</b></font><br>Yesterday:<font color='#000000'><b>%s</b></font> (Best:<font color='#000000'><b>%s</b></font>)	分類:<font color='#000000'><b>%s</b></font><br>昨日排名:<font color='#000000'><b>%s</b></font>（最高排名:<font color='#000000'><b>%s</b></font>）
+再生履歴の保存やキャッシュなどを取得する為にメディア、ファイルへのアクセス許可が必要です。\nアプリを再起動し再度許可ダイアログを表示させるか、端末の設定画面からアプリ→nicoidを選択し、ストレージのアクセス権限を付与してください。	Access to media and files is required to save watch history and download cached videos.\nRestart the app to show the permission dialog again, or grant storage access under Apps → nicoid in your device settings.	儲存觀看紀錄及下載快取影片需要媒體與檔案存取權限。\n請重新啟動應用程式以再次顯示權限對話框，或在裝置設定的「應用程式 → nicoid」中授予儲存空間存取權限。

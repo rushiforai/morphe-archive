@@ -1,0 +1,36 @@
+# Shrunk from seed 20261002900024, which RECKLESS got wrong:
+# guard off: (-904220856, 3) instruction 12 reads v2, which the hook borrowed
+mode=skip
+anchor=8
+target=9
+trap=2
+inputs=-904220856,3
+jump=verifies
+control=reckless
+---
+.method public static run(II)I
+    .registers 5
+    const/4 v2, 1
+    :loop_37
+    invoke-static {v4}, Lseeded/Probe;->mix(I)I
+    move-result v0
+    invoke-static {v4}, Lseeded/Probe;->mix(I)I
+    move-result v1
+    add-int/lit8 v2, v2, -1
+    if-gtz v2, :loop_37
+    if-eqz v0, :else_41
+    xor-int v0, v1, v3
+    :try_start_45
+    xor-int v0, v4, v2
+    :try_end_45
+    .catch Ljava/lang/Throwable; {:try_start_45 .. :try_end_45} :handler_45
+    goto :after_45
+    :handler_45
+    move-exception v1
+    invoke-static {v1}, Lseeded/Probe;->caught(Ljava/lang/Throwable;)V
+    :after_45
+    goto :end_41
+    :else_41
+    :end_41
+    return v3
+.end method

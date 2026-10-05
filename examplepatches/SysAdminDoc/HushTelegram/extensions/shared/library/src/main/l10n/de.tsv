@@ -113,7 +113,9 @@ Copy a short report to the clipboard.	Kurzen Bericht in die Zwischenablage kopie
 Save the full report in Download/Morphe.	Vollständigen Bericht unter Download/Morphe speichern.
 Settings imported.	Einstellungen importiert.
 No app on this phone can open the link. The address is %1$s.	Keine App auf diesem Handy kann den Link öffnen. Die Adresse ist %1$s.
-Pause, backup and diagnostics	Pause, Sicherung und Diagnose
+# context: Separate pages under More settings. Settings backup contains export and import; Diagnostics contains logging and diagnostic data controls.
+Settings backup	Sicherung der Einstellungen
+Diagnostics	Diagnose
 Updates	Updates
 Jump to a section	Zu einem Abschnitt springen
 Go straight to one group of settings. Back returns to where you were.	Direkt zu einer Gruppe von Einstellungen. Zurück bringt dich dorthin, wo du warst.
@@ -228,7 +230,7 @@ Quiet contacts prompts	Kontaktanfragen beruhigen
 Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Sobald du den Kontaktzugriff abgelehnt hast, fragt der Kontakte-Tab nicht erneut und sein Warnhinweis verschwindet. Die erste Anfrage, die eigenen Schaltflächen des Tabs und die Kontaktsynchronisierung bleiben.
 
 New Year look all year	Neujahrs-Look das ganze Jahr
-Telegram's New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Telegrams Neujahrsschnee fällt jeden Tag über der oberen Leiste der Chatliste und, wenn animierte Chat-Hintergründe an sind, über den Chat-Hintergründen. In den Einstellungen standardmäßig ausgeschaltet.
+Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Telegrams Weihnachtsmütze sitzt auf dem Logo der Chatliste. Neujahrsschnee fällt jeden Tag über der oberen Leiste der Chatliste und, wenn animierte Chat-Hintergründe an sind, über den Chat-Hintergründen. In den Einstellungen standardmäßig ausgeschaltet.
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Benachrichtigungen
@@ -250,3 +252,20 @@ Allowed	Erlaubt
 Blocked	Blockiert
 Yes	Ja
 No	Nein
+Use normal paste	Normal einfügen
+Show user and chat IDs	Benutzer- und Chat-IDs anzeigen
+Disable double-tap reactions	Reaktionen durch Doppeltippen deaktivieren
+Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Fügt Text ohne Telegrams HTML-, Tabellen- oder Monospace-Umwandlung ein. Leerzeichen und URLs bleiben erhalten. Andere Zwischenablageaktionen bleiben verfügbar. In den Einstellungen standardmäßig aus.
+Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Zeigt die lokale Benutzer- oder Chat-ID zum Kopieren im Menü des geöffneten Profils. Zugriffshashes bleiben verborgen. Es kommt keine Serveranfrage hinzu. In den Einstellungen standardmäßig aus.
+Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Doppeltippen fügt in Chats oder der Reaktionsvorschau keine Reaktion hinzu. Scrollen, Tippen, Auswahl und Reaktionsmenüs bleiben wie gewohnt. In den Einstellungen standardmäßig aus.
+compose text paste	Texteinfügen im Nachrichtenfeld
+caption text paste	Texteinfügen in Beschriftungen
+profile local IDs	lokale Profil-IDs
+chat double-tap reactions	Chat-Reaktionen durch Doppeltippen
+preview double-tap reactions	Vorschaureaktionen durch Doppeltippen
+User ID %1$s	Benutzer-ID %1$s
+Chat ID %1$s	Chat-ID %1$s
+Copy user ID %1$s	Benutzer-ID %1$s kopieren
+Copy chat ID %1$s	Chat-ID %1$s kopieren
+ID	ID
+ID copied	ID kopiert

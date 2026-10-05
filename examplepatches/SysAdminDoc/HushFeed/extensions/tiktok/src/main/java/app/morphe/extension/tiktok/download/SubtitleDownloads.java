@@ -107,7 +107,7 @@ final class SubtitleDownloads {
         return (Build.VERSION.SDK_INT >= 30 ? "Movies" : "Download") + (slash < 0 ? "/TikTok" : videoPath.substring(slash));
     }
 
-    static int save(Context context, List<Track> tracks, String videoName, String path) {
+    static int save(Context context, List<Track> tracks, String videoName, String path) throws MediaBudget.StopException {
         return save(context, tracks, videoName, path, MediaTransport.DEFAULT);
     }
 
@@ -117,17 +117,24 @@ final class SubtitleDownloads {
             String videoName,
             String path,
             MediaTransport.Client transport
-    ) {
-        int saved = 0;
-        for (Track track : tracks) {
-            try {
-                saveOne(context, track, videoName, path, transport);
-                saved++;
-            } catch (IOException | RuntimeException error) {
-                Logger.printException(() -> "Could not save " + track.language + " subtitles", error);
+    ) throws MediaBudget.StopException {
+        int[] saved = {0};
+        MediaBudget.StopException[] stopped = {null};
+        MediaBudget.runWithJobDeadline(() -> {
+            for (Track track : tracks) {
+                try {
+                    saveOne(context, track, videoName, path, transport);
+                    saved[0]++;
+                } catch (MediaBudget.StopException refusal) {
+                    stopped[0] = refusal;
+                    break;
+                } catch (IOException | RuntimeException error) {
+                    Logger.printException(() -> "Could not save " + track.language + " subtitles", error);
+                }
             }
-        }
-        return saved;
+        });
+        if (stopped[0] != null) throw stopped[0];
+        return saved[0];
     }
 
     /** One track beside its video, named after it; throws when it could not be written. */
@@ -181,9 +188,12 @@ final class SubtitleDownloads {
                     MediaBudget.check(deadline);
                     int responseCode = response.statusCode;
                     if (MediaBudget.isTransientStatus(responseCode)
-                            && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
-                        MediaBudget.waitBeforeRetry(response.header("Retry-After"), attempt, deadline);
-                        continue;
+                            || (responseCode >= 300 && response.header("Retry-After") != null)) {
+                        String retryAfter = response.header("Retry-After");
+                        response.close();
+                        MediaBudget.waitBeforeRetry(retryAfter, attempt, deadline);
+                        if (MediaBudget.isTransientStatus(responseCode)
+                                && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) continue;
                     }
                     if (responseCode != 200) throw new IOException("Subtitle server returned " + responseCode);
                     String lengthHeader = response.header("Content-Length");

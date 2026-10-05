@@ -7,7 +7,9 @@ package app.hushgram.extension.instagram.settings;
 import static org.junit.Assert.*;
 
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.SystemClock;
+import android.view.accessibility.AccessibilityManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -22,6 +24,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import app.hushgram.extension.instagram.download.DownloadQuality;
 import app.hushgram.extension.instagram.media.PlaybackQuality;
@@ -57,6 +61,47 @@ public class ConfigurationBackupTest {
         PatchFamily.inBuildForTests = null;
     }
 
+    @Test @Config(sdk = {28, 29, 37})
+    public void staleActionAndExpiryCannotConsumeTheNextImport() throws Exception {
+        ConfigurationBackup.restore(file(entry(Settings.HIDE_ADS.key, "boolean", false)));
+        long old = ConfigurationBackup.undoToken();
+        long firstDeadline = ConfigurationBackup.undoDeadline(old);
+        SystemClock.sleep(5_000);
+        ConfigurationBackup.restore(file(entry(Settings.HIDE_ADS.key, "boolean", true)));
+        long current = ConfigurationBackup.undoToken();
+        assertNotEquals(old, current);
+        assertEquals(0, ConfigurationBackup.undoDeadline(old));
+        assertNull(ConfigurationBackup.undo(old));
+        SystemClock.sleep(firstDeadline - SystemClock.elapsedRealtime());
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        assertTrue(ConfigurationBackup.canUndo());
+        assertNotNull(ConfigurationBackup.undo(current));
+        assertFalse(Settings.HIDE_ADS.savedValue());
+        assertNull(ConfigurationBackup.undo(current));
+        assertEquals(0, ConfigurationBackup.undoToken());
+    }
+
+    @Test public void undoPreservesAChoiceChangedAwayAndBackAfterImport() throws Exception {
+        Settings.PLAYBACK_QUALITY.save(PlaybackQuality.AUTO);
+        ConfigurationBackup.restore(file(entry(Settings.PLAYBACK_QUALITY.key, "enum", "HIGHEST")));
+        Settings.PLAYBACK_QUALITY.save(PlaybackQuality.DATA_SAVER);
+        Settings.PLAYBACK_QUALITY.save(PlaybackQuality.HIGHEST);
+        ConfigurationBackup.Result result = ConfigurationBackup.undo();
+        assertEquals(PlaybackQuality.HIGHEST, Settings.PLAYBACK_QUALITY.savedValue());
+        assertEquals(1, result.skipped);
+        assertFalse(ConfigurationBackup.canUndo());
+    }
+
+    @Test public void processStateLossCannotLeaveAnAvailableUndo() throws Exception {
+        ConfigurationBackup.restore(file(entry(Settings.HIDE_ADS.key, "boolean", false)));
+        long token = ConfigurationBackup.undoToken();
+        ConfigurationBackup.forgetUndo();
+        assertEquals(0, ConfigurationBackup.undoToken());
+        assertEquals(0, ConfigurationBackup.undoDeadline(token));
+        assertNull(ConfigurationBackup.undo(token));
+        assertFalse(Settings.HIDE_ADS.savedValue());
+    }
+
     @Test public void exportUsesSavedChoicesAndOnlyInstalledControls() throws Exception {
         Settings.HIDE_ADS.save(true);
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
@@ -64,9 +109,10 @@ public class ConfigurationBackupTest {
         original.edit().putString("private-session", "secret-token").commit();
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
         JSONObject values = new JSONObject(new String(ConfigurationBackup.export(), StandardCharsets.UTF_8)).getJSONObject("settings");
-        assertEquals(2, values.length());
+        assertEquals(3, values.length());
         assertTrue(values.getJSONObject(Settings.HIDE_ADS.key).getBoolean("value"));
         assertTrue(values.has(BaseSettings.DEBUG.key));
+        assertEquals("OFF", values.getJSONObject(Settings.NAVIGATION_SETTINGS_TARGET.key).getString("value"));
         assertFalse(values.has(BaseSettings.PAUSED.key));
         assertFalse(values.has(BaseSettings.SAFE_MODE.key));
         assertFalse(values.has(BaseSettings.FIRST_TIME_APP_LAUNCHED.key));
@@ -217,6 +263,46 @@ public class ConfigurationBackupTest {
         catch (Setting.BatchFailed failed) { assertTrue(failed.restored); }
         assertFalse(Settings.HIDE_ADS.savedValue());
         assertNull(ConfigurationBackup.undo());
+    }
+
+    @Test @Config(sdk = {28, 29, 37})
+    public void undoUsesTheRecommendedInteractiveWindowOrTheLegacyFallback() throws Exception {
+        AccessibilityManager manager = RuntimeEnvironment.getApplication()
+                .getSystemService(AccessibilityManager.class);
+        for (int recommendation : new int[]{10_000, 30_000, 120_000}) {
+            if (Build.VERSION.SDK_INT >= 29) {
+                Shadows.shadowOf(manager).setInteractiveUiTimeout(recommendation);
+                Shadows.shadowOf(manager).setNonInteractiveUiTimeout(0);
+            }
+            Settings.HIDE_ADS.save(true);
+            ConfigurationBackup.restore(file(entry(Settings.HIDE_ADS.key, "boolean", false)));
+            int window = Build.VERSION.SDK_INT >= 29 ? recommendation : 10_000;
+            SystemClock.sleep(window - 1);
+            assertTrue("Undo ended before the recommended window", ConfigurationBackup.canUndo());
+            SystemClock.sleep(1);
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            assertFalse(ConfigurationBackup.canUndo());
+        }
+    }
+
+    @Test @Config(sdk = {29, 37})
+    public void undoAlsoRespectsTheRecommendedReadingTime() throws Exception {
+        AccessibilityManager manager = RuntimeEnvironment.getApplication()
+                .getSystemService(AccessibilityManager.class);
+        Shadows.shadowOf(manager).setInteractiveUiTimeout(10_000);
+        Shadows.shadowOf(manager).setNonInteractiveUiTimeout(120_000);
+        ConfigurationBackup.restore(file(entry(Settings.HIDE_ADS.key, "boolean", false)));
+        SystemClock.sleep(30_000);
+        assertTrue("Undo omitted the text content flag", ConfigurationBackup.canUndo());
+    }
+
+    @Test public void undoPreservesAChoiceChangedAfterTheImport() throws Exception {
+        Settings.PLAYBACK_QUALITY.save(PlaybackQuality.AUTO);
+        ConfigurationBackup.restore(file(entry(Settings.PLAYBACK_QUALITY.key, "enum", "HIGHEST")));
+        Settings.PLAYBACK_QUALITY.save(PlaybackQuality.DATA_SAVER);
+        ConfigurationBackup.undo();
+        assertEquals(PlaybackQuality.DATA_SAVER, Settings.PLAYBACK_QUALITY.savedValue());
+        assertFalse(ConfigurationBackup.canUndo());
     }
 
     private void rejected(byte[] bytes) throws Exception {

@@ -63,6 +63,7 @@ public class SavedVideoArchiveTest {
     private boolean oldDetails, oldCheck, oldMuted, oldAudio, oldSubtitles, oldProgress;
     private java.util.concurrent.CountDownLatch reachedEnd, releaseCopy;
     private String oldPath, oldTemplate, oldQuality, oldExternal;
+    private boolean refuseAudio;
 
     @Before public void setup() throws Exception {
         oldProgress = Settings.DOWNLOAD_PROGRESS.get(); Settings.DOWNLOAD_PROGRESS.save(false);
@@ -91,8 +92,11 @@ public class SavedVideoArchiveTest {
             @Override protected URLConnection openConnection(URL url) {
                 requests.incrementAndGet();
                 return new FakeHttpsConnection(url) {
-                    @Override public int getResponseCode() { return HTTP_OK; }
+                    @Override public int getResponseCode() {
+                        return refuseAudio && url.getPath().startsWith("/audio") ? 429 : HTTP_OK;
+                    }
                     @Override public String getHeaderField(String name) {
+                        if (refuseAudio && url.getPath().startsWith("/audio") && "Retry-After".equals(name)) return "600";
                         return "Content-Length".equals(name) ? String.valueOf(VIDEO.length) : null;
                     }
                     @Override public InputStream getInputStream() {
@@ -146,6 +150,27 @@ public class SavedVideoArchiveTest {
     }
 
     @Test public void aSecondSaveOffersAChoiceAndSaveAgainKeepsBothPairs() throws Exception { repeatSave("dark"); }
+
+    @Test public void anOptionalDashSoundServerWaitKeepsTheVideoAndItsArchiveRecord() throws Exception {
+        boolean advanced = app.morphe.extension.tiktok.settings.SettingsStatus.advancedDownloadsEnabled;
+        app.morphe.extension.tiktok.settings.SettingsStatus.advancedDownloadsEnabled = true;
+        Settings.DOWNLOAD_WITHOUT_SOUND.save(true);
+        Settings.DOWNLOAD_AUDIO_TRACK.save(true);
+        Settings.DOWNLOAD_VIDEO_QUALITY.save("highest");
+        refuseAudio = true;
+        try {
+            assertTrue(VideoDownloads.start(new DashPost(), owner.get()));
+            awaitJobs();
+            assertArrayEquals(VIDEO, Files.readAllBytes(new File(root, "alice/123.mp4").toPath()));
+            assertEquals("123.mp4", SavedVideoArchive.find(owner.get(), "123").name);
+            assertEquals("audio mirrors or later files were attempted", 2, requests.get());
+            assertEquals(List.of("123.mp4"), List.of(new File(root, "alice").list()));
+            assertEquals("Saved 1 of 3. The server asked us to wait. Try again later.",
+                    ShadowToast.getTextOfLatestToast());
+        } finally {
+            app.morphe.extension.tiktok.settings.SettingsStatus.advancedDownloadsEnabled = advanced;
+        }
+    }
 
     @Test @Config(qualifiers = "w360dp-h800dp-notnight-mdpi")
     public void theSavedVideoChoiceWorksInTheLightTheme() throws Exception { repeatSave("light"); }
@@ -570,6 +595,20 @@ public class SavedVideoArchiveTest {
         public Video video = new Video();
         Post() { super("alice", "123"); desc = "A saved caption"; }
         public Video getVideo() { return video; }
+    }
+    public static final class DashPost extends DownloadDetailsTest.Post {
+        public final AdvancedDownloadsTest.VideoData video = new AdvancedDownloadsTest.VideoData(List.of(
+                new AdvancedDownloadsTest.Gear("normal_720_0", 700, "https://8.8.8.8/video.mp4")));
+        DashPost() {
+            super("alice", "123");
+            video.dash = true;
+            AdvancedDownloadsTest.Audio audio = new AdvancedDownloadsTest.Audio("audio", 128);
+            ReflectionHelpers.setField(audio.audioMeta.urlList, "mainUrl", "https://8.8.8.8/audio");
+            ReflectionHelpers.setField(audio.audioMeta.urlList, "backupUrl", "https://8.8.8.8/audio-backup");
+            ReflectionHelpers.setField(audio.audioMeta.urlList, "fallbackUrl", "https://8.8.8.8/audio-fallback");
+            video.bitRateAudio = List.of(audio);
+        }
+        public AdvancedDownloadsTest.VideoData getVideo() { return video; }
     }
     public static final class Video {
         public Address getDownloadNoWatermarkAddr() { return new Address(); }

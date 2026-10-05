@@ -380,7 +380,7 @@ try {
         # What the tests read from outside the source folders: the README's patch table and
         # hero, the catalog, NOTICE and the artwork. A push that changed only one of them ran
         # the release facts check at most, and never the test that reads it.
-        $_ -eq 'README.md' -or $_ -eq 'NOTICE' -or $_ -eq 'patches-list.json' -or
+        $_ -eq 'README.md' -or $_ -eq 'NOTICE' -or $_ -eq 'patches-list.json' -or $_ -eq 'patches-bundle.json' -or
         $_ -eq 'patches-bundle.png' -or $_ -like 'assets/readme-*' -or $_ -like 'concepts/marketing/*'
     }).Count -gt 0
     $touchesScripts = @($paths | Where-Object { $_ -like 'scripts/*' }).Count -gt 0

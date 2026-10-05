@@ -11,8 +11,10 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Build;
 import android.os.SystemClock;
 import android.preference.Preference;
+import android.view.accessibility.AccessibilityManager;
 import java.util.EnumSet;
 
 import app.hushgram.extension.instagram.media.ResumePlayback;
@@ -30,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
@@ -65,11 +68,44 @@ public class ClearResumeSettingsTest {
             Utils.awaitBackgroundTasksForTests();
             ShadowLooper.idleMainLooper();
             assertEquals("Undo cleared positions", String.valueOf(row.getTitle()));
-            assertTrue(String.valueOf(row.getSummary()).contains("10 seconds"));
+            long deadline = ResumePlayback.undoHistoryDeadline(ResumePlayback.undoHistoryToken());
+            ConfigurationDocumentsTest.assertDeadlineLabel(row, deadline, ".");
             row.getOnPreferenceClickListener().onPreferenceClick(row);
             Utils.awaitBackgroundTasksForTests();
             ShadowLooper.idleMainLooper();
             assertEquals("Clear remembered positions", String.valueOf(row.getTitle()));
+        }
+    }
+
+    @Test @Config(sdk = {28, 29, 37})
+    public void reopeningKeepsTheDeadlineAndOldRowsCannotClearAgain() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.RESUME_LONG_VIDEOS);
+        AccessibilityManager manager = RuntimeEnvironment.getApplication().getSystemService(AccessibilityManager.class);
+        if (Build.VERSION.SDK_INT >= 29) Shadows.shadowOf(manager).setInteractiveUiTimeout(30_000);
+        long deadline;
+        Preference old;
+        Preference.OnPreferenceClickListener oldClear;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(controller);
+            old = page.findPreference("hushgram_clear_resume_points");
+            oldClear = old.getOnPreferenceClickListener();
+            oldClear.onPreferenceClick(old);
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            deadline = ResumePlayback.undoHistoryDeadline(ResumePlayback.undoHistoryToken());
+            SystemClock.sleep(5_000);
+        }
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Preference row = DownloadSettingsTest.pageIn(controller).findPreference("hushgram_clear_resume_points");
+            ConfigurationDocumentsTest.assertDeadlineLabel(row, deadline, ".");
+            assertEquals(deadline, ResumePlayback.undoHistoryDeadline(ResumePlayback.undoHistoryToken()));
+            oldClear.onPreferenceClick(old);
+            Utils.awaitBackgroundTasksForTests();
+            ShadowLooper.idleMainLooper();
+            assertEquals(deadline, ResumePlayback.undoHistoryDeadline(ResumePlayback.undoHistoryToken()));
+            SystemClock.sleep(deadline - SystemClock.elapsedRealtime());
+            ShadowLooper.idleMainLooper();
+            assertEquals("Clear remembered positions", row.getTitle().toString());
         }
     }
 

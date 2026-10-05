@@ -88,18 +88,20 @@ final class ResumePoints {
         edit.apply();
     }
 
-    /** Drops every point past its age now, rather than when it's next read. */
+    /** Durably drops expired points on the cleanup worker, including failed earlier writes. */
     synchronized void dropExpired(long now) {
         load(now);
-        SharedPreferences.Editor edit = null;
-        for (Iterator<Map.Entry<String, Point>> each = points.entrySet().iterator(); each.hasNext(); ) {
-            Map.Entry<String, Point> point = each.next();
+        SharedPreferences.Editor edit = store.edit();
+        List<String> expired = new ArrayList<>();
+        for (Map.Entry<String, Point> point : points.entrySet()) {
             if (!expired(point.getValue(), now)) continue;
-            each.remove();
-            if (edit == null) edit = store.edit();
+            expired.add(point.getKey());
             edit.remove(point.getKey());
         }
-        if (edit != null) edit.apply();
+        // apply() and failed commit() can already have changed the preferences memory map.
+        // Commit even with no new removals so a retry still flushes that pending disk state.
+        if (!edit.commit()) throw new IllegalStateException("Could not persist expired resume point cleanup");
+        for (String key : expired) points.remove(key);
     }
 
     /** Forgets [videoId]'s point. True when there was one. */
@@ -168,7 +170,8 @@ final class ResumePoints {
      */
     private void load(long now) {
         if (loaded) return;
-        loaded = true;
+        // A failed read or cleanup can retry without retaining a partial in-memory snapshot.
+        points.clear();
         List<String> dropped = new ArrayList<>();
         List<Map.Entry<String, Point>> read = new ArrayList<>();
         for (Map.Entry<String, ?> entry : store.getAll().entrySet()) {
@@ -186,10 +189,12 @@ final class ResumePoints {
             if (index < surplus) dropped.add(entry.getKey());
             else points.put(entry.getKey(), entry.getValue());
         }
-        if (dropped.isEmpty()) return;
-        SharedPreferences.Editor edit = store.edit();
-        for (String key : dropped) edit.remove(key);
-        edit.apply();
+        if (!dropped.isEmpty()) {
+            SharedPreferences.Editor edit = store.edit();
+            for (String key : dropped) edit.remove(key);
+            edit.apply();
+        }
+        loaded = true;
     }
 
     private static boolean expired(Point point, long now) {

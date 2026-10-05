@@ -80,7 +80,7 @@ public class SettingsScreenStatesTest {
     }
 
     private static String withBuild(String message) {
-        return L10n.t(message) + "\n" + L10n.f("Build %1$s", L10n.isolate("unknown"));
+        return L10n.t(message) + "\n" + HushfacebookPreferenceFragment.overviewBuildDetails();
     }
 
     /** A phone whose only browser is off: Android throws where the page asks for one. */

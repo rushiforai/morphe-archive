@@ -73,6 +73,8 @@ import dev.jason.gboardpatches.patches.gboard.features.packagerename.isValidGboa
 import dev.jason.gboardpatches.patches.gboard.features.quickinsert.gboardQuickInsertFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.quickinsert.gboardQuickInsertFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.roundedkeyboard.gboardRoundedKeyboardFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.frostedglass.gboardFrostedGlassFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.frostedglass.gboardFrostedGlassLifecyclePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.signaturebypass.gboardSignatureBypassBytecodePatch
@@ -381,6 +383,23 @@ val gboardRoundedKeyboardPanelPatch = gboardPublicResourcePatch(
     dependsOn(
         gboardPatchesSettingsPatch,
         gboardRoundedKeyboardFeatureMarkerPatch,
+    )
+}
+
+@Suppress("unused")
+val gboardFrostedGlassPatch = gboardPublicResourcePatch(
+    featureId = "frosted_glass",
+    name = "Frosted Glass",
+    description = "為鍵盤加入即時背景模糊與自訂主題透明度。\n" +
+        "Add live background blur and custom-theme opacity to the keyboard.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardFrostedGlassFeatureMarkerPatch,
+        gboardFrostedGlassLifecyclePatch,
     )
 }
 
@@ -856,6 +875,7 @@ object GboardPublishedPatchCatalog {
         gboardSplitKeyboardPatch,
         gboardAccessibilityLayoutPatch,
         gboardRoundedKeyboardPanelPatch,
+        gboardFrostedGlassPatch,
         gboardAccessPointCountPatch,
         gboardCloseProactiveSuggestionsPatch,
         gboardFlowModeAnimationPatch,

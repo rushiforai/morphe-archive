@@ -6,6 +6,24 @@ Scope: `D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL`, including it
 
 Cleanup is part of completing an experiment or finalizing/applying a patch. Record the outcome, exact base, evidence and runtime limits; remove disposable outputs and superseded local copies; verify retained inputs and tool references. Keep a dated failed/retired record so a failed experiment is not recommended again. Parent and repository `AGENTS.md` enforce this rule.
 
+## Patch categories, 2026-10-03
+
+- Added 7 categories to all 29 public patches, preserving the 5 exact supported
+  Steam Link pairs and every existing mutation/default/option/dependency. All 4
+  generated catalogs differ only by category fields. [Validation and reproduction](diagnostics/patch-categories/README.md)
+  record 139 retained-input JUnit passes; 127 passes/12 missing-input skips in the
+  isolated checkout; 4 documentation passes; and local D8/archive metadata checks.
+- Standard Gradle remains blocked at Morphe plugin resolution, including updated
+  plugin 1.3.4. No CI, APK installation, headset behavior or publication is claimed.
+- Retain the local category-validation MPP beneath `build/patch-categories-20261003`,
+  the matching official Desktop 1.15.1 runtime in `build/startup-boundary-tools`, and
+  compact logs/recipes/reports in `diagnostics/patch-categories`. The scoped cleanup
+  receipt inventories disposable checkout/compiler/catalog/D8 scratch and retained
+  exceptions. Automatic approval review rejected the scoped deletion before execution
+  with "blocked by policy": **0 bytes removed**. Cleanup remains deferred until policy
+  permits deleting that recorded allowlist after fresh path checks. Original
+  bases/payloads, older artifacts and adjacent repositories remain preserved.
+
 ## Exact 5001812 / 5001968 adaptation, 2026-09-28
 
 - Added exact 2.0.20/5001812 and 2.0.21/5001968 with independent native addresses,
@@ -350,3 +368,56 @@ Results: all 59 targets absent; 0 missing or altered retained files (with archiv
   excluded and left untouched. No blanket build-tree removal was performed.
 - Regeneration commands are in the new diagnostic README. The retained local MPP
   is a delivery artifact, not a published Gradle release or signed application.
+
+### 2026-10-01 — Full-FOV foveal canvas experiment
+
+- Prepared a separate, default-off experiment for exact Steam Link **2.0.20/5001812**.
+  It retains the background projection and copies each foveal image into its angular
+  location on a transparent 5000x6000 full-FOV GL swapchain for projection 2.
+  Existing resolution workarounds and retired experiments remain unchanged.
+- Retained source, canonical helper/manifest, compact receipts and reproduction
+  commands in `extensions/foveal-canvas-layer/` and
+  `diagnostics/steamlink-foveal-canvas/`. Geometry checks, 13 production native
+  double scenarios, 136 Kotlin tests, Release/API26 D8, and 5 actual Morphe cases
+  against the pristine signed APK passed. Normal Gradle is blocked by unresolved
+  `app.morphe.patches:1.3.3`. No installation, ADB, SteamVR or headset result claimed.
+- Retained delivery bundle:
+  `patches/build/libs/patches-1.21.0-foveal-canvas-local.mpp`, SHA-256
+  `f7312d953f01b98882bc37396b50e743f5081a5530b688b968fd351bc52a5823`.
+  The helper SHA-256 is
+  `2939db189b19322da6ec601e96f9d4036d449fd8ee386e3cbd69e491d539eac3`.
+- **Cleanup deferred:** automatic approval review rejected the checked native
+  PowerShell removal with **blocked by policy** before execution. Removed 0 files
+  and reclaimed 0 bytes; no alternate deletion route attempted. The exact reviewed
+  allowlist totals **1,949 files / 2,001,469,901 bytes**:
+  `build/foveal-canvas-work` (1,947 files / 1,994,517,965 bytes),
+  `build/foveal-canvas-layer-tests.exe` (1 file / 1,389,568 bytes), and
+  `build/foveal-canvas-layer-tests.pdb` (1 file / 5,562,368 bytes).
+  See `diagnostics/steamlink-foveal-canvas/cleanup.json` for the inventory and
+  containment checks. Temporary compiler output, isolated APK copies, unsigned
+  audit APKs and preliminary bundles remain only within this allowlist.
+- Preserve the delivery bundle, canonical payloads, original signed APK, exact
+  decoded inputs, fixture APKs, SDKs, cached compilers/tools, compact receipts and
+  unrelated build children. Original APK and scene hashes were rechecked unchanged.
+  Remove only the reviewed allowlist when deletion is permitted; never root `build/`.
+
+### 2026-10-01 — Foveal canvas CI test correction
+
+- Fixed fresh-checkout test input handling and pinned JSON checkout line endings.
+  Retained compact failed-run/local/isolated receipts and reproduction context in
+  `diagnostics/steamlink-foveal-canvas/`. Updated `AGENTS.md` and the Morphe/cavecrew
+  skills. Cached compilation/JUnit passed 137 tests with retained inputs; isolated
+  tracked-source checks passed 125 with 12 explicit missing-input assumptions.
+  Both skill validators passed. No corrected GitHub run, installation or runtime
+  result claimed; canonical scene/payload guards and the existing MPP are preserved.
+- **Cleanup deferred:** automatic approval review rejected native PowerShell removal
+  with **blocked by policy** before execution; no alternate route attempted.
+  Removed 0 files / 0 bytes. The 2 task-owned targets retain **289 files / 3,176,281 bytes**:
+  `build/foveal-ci-work` (248 files / 2,694,185 bytes) and
+  `C:/Users/Angelo/AppData/Local/Temp/steamlink-foveal-ci-e2a50cd68eac43b59e22e8a0595b48ef`
+  (41 files / 482,096 bytes). This is separate from the earlier deferred canvas
+  experiment outputs. See `diagnostics/steamlink-foveal-canvas/ci-cleanup.json`.
+- Preserve original/decoded APK inputs, canonical sources/resources, current MPP,
+  compact receipts and shared tooling. Regenerate via the cached audit compiler and
+  the isolated `git archive`/JUnit procedure documented in the CI receipt. Remove
+  only these exact owned outputs after fresh safety checks when policy permits.

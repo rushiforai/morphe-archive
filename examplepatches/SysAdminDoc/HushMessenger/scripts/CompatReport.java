@@ -279,10 +279,12 @@ public class CompatReport {
 
     /** Discovery isn't patch application. Never publish a profile on discovery evidence alone. */
     static boolean verifyPatch(File apk, String apkHash, Path desktop, Path bundle) throws IOException, InterruptedException {
+        String aapt2 = findTool("aapt2");
+        if (aapt2 == null) throw new IOException("Android Build Tools aapt2 is required to validate the rebuilt APK");
         var command = new ArrayList<>(List.of("python", scriptDir().resolve("verify_compat_patch.py").toString(),
             "--apk", apk.getAbsolutePath(), "--apk-sha256", apkHash, "--desktop", desktop.toAbsolutePath().toString(),
             "--bundle", bundle.toAbsolutePath().toString(), "--java",
-            Path.of(System.getProperty("java.home"), "bin", "java").toString()));
+            Path.of(System.getProperty("java.home"), "bin", "java").toString(), "--aapt2", aapt2));
         var names = new TreeSet<>(PATCHES.keySet());
         names.addAll(List.of("Install beside Meta apps", "Restore screens on re-signed builds", "Material You theme"));
         for (var name : names) { command.add("--enable"); command.add(name); }

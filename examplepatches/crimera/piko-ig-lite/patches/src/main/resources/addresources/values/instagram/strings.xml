@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings screen. The first block is required by the shared settings UI. -->
+    <string name="piko_ig_settings_title">Piko Settings</string>
+    <string name="piko_ig_settings_ok">OK</string>
+    <string name="piko_ig_settings_cancel">Cancel</string>
+    <string name="piko_ig_patch_version" translatable="false">Piko %s</string>
+    <string name="piko_ig_settings_search_hint">Search settings</string>
+    <string name="piko_ig_settings_search_clear">Clear search</string>
+    <string name="piko_ig_settings_search_no_results">No results for \"%s\"</string>
+    <string name="piko_ig_restart_title">Restart Instagram?</string>
+    <string name="piko_ig_restart_summary">Restart the app now to apply this change.</string>
+    <string name="piko_ig_restart_now">Restart now</string>
+    <string name="piko_ig_action_failed">The settings action failed</string>
+    <string name="piko_ig_setting_validation_failed">Could not validate this setting</string>
+    <string name="piko_ig_backup_success">Settings backed up</string>
+    <string name="piko_ig_backup_failed">Could not back up settings</string>
+    <string name="piko_ig_restore_failed">Could not restore settings</string>
+    <string name="piko_ig_backup_restore_no_file">No settings file was selected</string>
+
+    <string name="piko_ig_category_ads_title">Ads</string>
+    <string name="piko_ig_category_ads_summary">Remove sponsored content</string>
+    <string name="piko_ig_hide_feed_ads_title">Hide feed ads</string>
+    <string name="piko_ig_hide_feed_ads_summary">Removes sponsored posts and ad units from the main feed</string>
+    <string name="piko_ig_hide_reels_and_stories_ads_title">Hide reels and stories ads</string>
+    <string name="piko_ig_hide_reels_and_stories_ads_summary">Stops Instagram from inserting ads into Reels and Stories</string>
+
+    <string name="piko_ig_category_downloads_title">Downloads</string>
+    <string name="piko_ig_category_downloads_summary">Download buttons and how media is saved</string>
+    <string name="piko_ig_feed_download_button_title">Feed download button</string>
+    <string name="piko_ig_feed_download_button_summary">Shows a download button beside the save icon on feed posts</string>
+    <string name="piko_ig_story_download_button_title">Story download button</string>
+    <string name="piko_ig_story_download_button_summary">Shows a download button beside the reply pill on stories</string>
+    <string name="piko_ig_reel_download_button_title">Reels download button</string>
+    <string name="piko_ig_reel_download_button_summary">Shows a download button in the reels action column</string>
+    <string name="piko_ig_download_sheet_thumbnails_title">Show media thumbnails</string>
+    <string name="piko_ig_download_sheet_thumbnails_summary">Loads a preview image for each media in the download sheet</string>
+    <string name="piko_ig_direct_download_title">Direct download</string>
+    <string name="piko_ig_direct_download_summary">Saves the media being viewed without asking. Video stories keep the video instead of offering a photo</string>
+    <string name="piko_ig_download_username_folder_title">Split media by username</string>
+    <string name="piko_ig_download_username_folder_summary">Creates subfolders based on username</string>
+
+    <string name="piko_ig_category_ghost_title">Ghost mode</string>
+    <string name="piko_ig_category_ghost_summary">Use Instagram without telling people what you saw</string>
+    <string name="piko_ig_ghost_stories_title">Hide story views</string>
+    <string name="piko_ig_ghost_stories_summary">Stories you watch are not marked as seen for their author</string>
+    <string name="piko_ig_ghost_instants_title">Hide Instant views</string>
+    <string name="piko_ig_ghost_instants_summary">Instants you watch are not marked as seen for their author</string>
+    <string name="piko_ig_ghost_messages_title">Hide message views</string>
+    <string name="piko_ig_ghost_messages_summary">Messages and disappearing photos you open are not marked as seen for the sender</string>
+
+    <!-- Download sheet and toasts. -->
+    <string name="piko_copied_media_link">Copied media link</string>
+    <string name="piko_download_all_count">Download all (%1$d)</string>
+    <string name="piko_download_count">Download (%1$d)</string>
+    <string name="piko_download_current_media">Download current media</string>
+    <string name="piko_download_sheet_from">From @%1$s</string>
+    <string name="piko_download_sheet_select_title">Select media</string>
+    <string name="piko_download_sheet_selected">%1$d of %2$d selected</string>
+    <string name="piko_download_sheet_subtitle">Select media to save to your device</string>
+    <string name="piko_download_sheet_title">Download media</string>
+    <string name="piko_download_story_photo">Download as photo</string>
+    <string name="piko_download_story_video">Download</string>
+    <string name="piko_media_photo">Photo</string>
+    <string name="piko_media_video">Video</string>
+    <string name="piko_no_internet">Please connect to internet</string>
+</resources>

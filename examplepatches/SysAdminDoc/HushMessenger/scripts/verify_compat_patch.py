@@ -4,11 +4,17 @@
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from zipfile import BadZipFile, ZipFile
+
+if __package__:
+    from .check_release import stop_process_tree
+else:
+    from check_release import stop_process_tree
 
 
 def digest(path):
@@ -16,7 +22,42 @@ def digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def verify(apk, bundle, desktop, java, names, apk_sha256):
+def validate_apk(apk, java, aapt2):
+    root = Path(__file__).resolve().parents[1]
+    process = subprocess.Popen(
+        [
+            str(root / ("gradlew.bat" if sys.platform == "win32" else "gradlew")),
+            ":patches:checkRebuiltApk",
+            f"-PvalidationApk={apk.resolve()}",
+            f"-PvalidationAapt2={aapt2.resolve()}",
+            "--no-daemon",
+            "--no-configuration-cache",
+            "--max-workers=2",
+            "-Dorg.gradle.jvmargs=-Xmx1024m -XX:ActiveProcessorCount=2",
+        ],
+        cwd=root,
+        env={**os.environ, "JAVA_HOME": str(java.resolve().parent.parent)},
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        start_new_session=sys.platform != "win32",
+    )
+    try:
+        stdout, stderr = process.communicate(timeout=600)
+    except subprocess.TimeoutExpired:
+        stop_process_tree(process)
+        try:
+            process.communicate(timeout=30)
+        except subprocess.TimeoutExpired:
+            pass  # The failed check still cannot record a profile.
+        raise ValueError("Rebuilt APK validation timed out") from None
+    if process.returncode:
+        raise ValueError("Rebuilt APK validation failed\n" + (stdout + stderr)[-4000:])
+
+
+def verify(apk, bundle, desktop, java, names, apk_sha256, aapt2):
     if not names or len(names) != len(set(names)):
         raise ValueError("expected patch names must be nonempty and distinct")
     hashes = {path: digest(path) for path in (apk, bundle, desktop)}
@@ -77,6 +118,7 @@ def verify(apk, bundle, desktop, java, names, apk_sha256):
             raise ValueError("Desktop output is not a valid ZIP") from error
         if digest(output) == hashes[apk]:
             raise ValueError("Desktop output is unchanged stock")
+        validate_apk(output, java, aapt2)
         if any(digest(path) != sha for path, sha in hashes.items()):
             raise ValueError("a patching input changed during verification")
     return f"Desktop applied and rebuilt all {len(names)} patches"
@@ -84,7 +126,7 @@ def verify(apk, bundle, desktop, java, names, apk_sha256):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("apk", "bundle", "desktop", "java"):
+    for name in ("apk", "bundle", "desktop", "java", "aapt2"):
         parser.add_argument(f"--{name}", required=True, type=Path)
     parser.add_argument("--enable", action="append", required=True)
     parser.add_argument("--apk-sha256", required=True)
@@ -98,6 +140,7 @@ def main():
                 args.java,
                 args.enable,
                 args.apk_sha256,
+                args.aapt2,
             )
         )
         return 0

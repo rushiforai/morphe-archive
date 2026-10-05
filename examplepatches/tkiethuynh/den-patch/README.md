@@ -66,11 +66,11 @@ https://github.com/tkiethuynh/den-patch
 ```
 
 ### Using with Morphe CLI
-Download the latest patch bundle (`den-patch-<version>.mpp` or `.jar`) from [Releases](https://github.com/tkiethuynh/den-patch/releases/latest):
+Download the latest patch bundle (`patches-<version>.mpp` or `.jar`) from [Releases](https://github.com/tkiethuynh/den-patch/releases/latest):
 
 ```bash
 java -jar morphe-cli.jar patch \
-  --patches den-patch-1.0.0.mpp \
+  --patches patches-1.0.0.mpp \
   --out app_patched.apk \
   app_base.apk
 ```
@@ -90,7 +90,7 @@ java -jar morphe-cli.jar patch \
 
 Artifacts are produced in `build/libs/`:
 - `den-patch-<version>.jar`
-- `den-patch-<version>.mpp`
+- `patches-<version>.mpp`
 
 ---
 

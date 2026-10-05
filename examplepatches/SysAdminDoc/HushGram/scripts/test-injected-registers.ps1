@@ -807,6 +807,17 @@ try {
     $retryRule = "once-call $retryHook in instance ()V calling instance $retryCall class-holding " +
         'null\scannot\sbe\scast\sto\snon-null\stype\sT\sof\scom.instagram.store.PendingActionStore'
     $retryRouteRule = $retryRule.Replace('once-call ', 'retry-call ')
+    $navListener = 'Landroid/view/View$OnLongClickListener;'
+    $navRemember = "Lapp/hushgram/extension/fixture/settings/NavigationSettings;->remember(Landroid/view/View;Ljava/lang/Object;$navListener)$navListener"
+    $navBind = 'Lapp/hushgram/extension/fixture/settings/NavigationSettings;->bind(Landroid/view/View;Ljava/lang/Object;)V'
+    $navPlain = "Lfixture/NavigationPlain;->setLongPress($navListener)V"
+    $navLitho = "Lfixture/NavigationLitho;->setLongPress($navListener)V"
+    $navFactory = 'Lfixture/NavigationFactory;->makeTab(Ljava/lang/Object;)Landroid/view/View;'
+    $navPlainHeld = '"Lfixture/NavigationPlain;->button:Landroid/view/View;"'
+    $navSetterShape = "with the shape instance ($navListener)V and an instance call to Landroid/view/View;->setOnLongClickListener($navListener)V"
+    $navBindRule = "once-call $navBind in static (Ljava/lang/Object;)Landroid/view/View; holding InstagramMainActivity.createTabButton("
+    $navPlainRule = "shared-call $navRemember in instance ($navListener)V calling instance Landroid/view/View;->setOnLongClickListener($navListener)V holding Lfixture/NavigationPlain;->button:Landroid/view/View;"
+    $navLithoRule = $navPlainRule.Replace('Lfixture/NavigationPlain;->button:', 'Lfixture/NavigationLitho;->button:')
     $onceCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*once-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
     $allowHook = 'Lapp/hushgram/extension/fixture/download/VideoDownload;->allow(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;'
@@ -827,9 +838,9 @@ try {
     $swipeSite = 'Lfixture/SwipeContainer;->move(Lfixture/PositionConfig;)V'
     $swipeRule = "once-call $swipeHook in instance (Lfixture/PositionConfig;)V calling instance " +
         'Lfixture/SwipeContainer;->setEndPanelExtraParameter(Lfixture/PositionConfig;)V holding Lfixture/PositionConfig;->animate:Z'
-    Assert-True ($onceCallRules.Count -eq 7 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule -and
+    Assert-True ($onceCallRules.Count -eq 8 -and $onceCallRules[0] -ceq $swapRule -and $onceCallRules[1] -ceq $allowRule -and
         $onceCallRules[2] -ceq $tabRule -and $onceCallRules[3] -ceq $dmRule -and $onceCallRules[4] -ceq $inboxRule -and
-        $onceCallRules[5] -ceq $swipeRule -and $onceCallRules[6] -ceq $retryRule) `
+        $onceCallRules[5] -ceq $swipeRule -and $onceCallRules[6] -ceq $retryRule -and $onceCallRules[7] -ceq $navBindRule) `
         "The contract file has a once-call rule without exact negative coverage:`n$($onceCallRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swapRule`: once in $swapRun")) `
         "The good build's swap guard was not reported once in the swap runnable.`n$($good.Output -join "`n")"
@@ -841,6 +852,8 @@ try {
         "The good build's inbox row call was not reported once in its native-shaped builder.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swipeRule`: once in $swipeSite")) `
         "The good build's swipe gate was not reported once in its native-shaped setter.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $navBindRule`: once in $navFactory")) `
+        "The good build's navigation factory was not reported once in its own return path."
     # The link parsers, provider inline gate and direct setup presenter share hooks with other paths.
     # Every shared-call rule here has targeted bad fixtures, so an untested rule cannot pass on a
     # count nobody checks.
@@ -866,10 +879,11 @@ try {
     $setupOtherCalls = @('fullScreen', 'push', 'sheet') | ForEach-Object { "Lfixture/SetupOpeners;->$_(Landroid/content/Context;Lcom/instagram/bloks/hosting/IgBloksScreenConfig;)V" }
     $sharedCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*shared-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($sharedCallRules.Count -eq 4 -and $sharedCallRules[0] -ceq $postRule -and $sharedCallRules[1] -ceq $storyRule -and
-        $sharedCallRules[2] -ceq $providerRule -and $sharedCallRules[3] -ceq $setupRule) `
+    Assert-True ($sharedCallRules.Count -eq 6 -and $sharedCallRules[0] -ceq $postRule -and $sharedCallRules[1] -ceq $storyRule -and
+        $sharedCallRules[2] -ceq $providerRule -and $sharedCallRules[3] -ceq $setupRule -and
+        $sharedCallRules[4] -ceq $navPlainRule -and $sharedCallRules[5] -ceq $navLithoRule) `
         "The contract file has a shared-call rule without exact negative coverage:`n$($sharedCallRules -join "`n")"
-    foreach ($pair in @(@($postRule, $postParser), @($storyRule, $storyParser), @($providerRule, $providerSite), @($setupRule, $setupSite))) {
+    foreach ($pair in @(@($postRule, $postParser), @($storyRule, $storyParser), @($providerRule, $providerSite), @($setupRule, $setupSite), @($navPlainRule, $navPlain), @($navLithoRule, $navLitho))) {
         Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $($pair[0]): once in $($pair[1])")) `
             "The good build's shared hook was not reported once in $($pair[1]).`n$($good.Output -join "`n")"
     }
@@ -903,8 +917,11 @@ try {
     $tabHeld = """default"" with the shape static $tabShape and a static call to $tabCall"
     $callingRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*[a-z-]+-call\s.*\scalling\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($callingRules.Count -eq 5 -and $callingRules[0] -ceq $tabRule -and $callingRules[1] -ceq $providerRule -and
-        $callingRules[2] -ceq $swipeRule -and $callingRules[3] -ceq $retryRule -and $callingRules[4] -ceq $retryRouteRule) `
+    Assert-True ($callingRules.Count -eq 9 -and $callingRules[0] -ceq $tabRule -and $callingRules[1] -ceq $providerRule -and
+        $callingRules[2] -ceq $swipeRule -and $callingRules[3] -ceq $retryRule -and $callingRules[4] -ceq $retryRouteRule -and
+        $callingRules[5] -ceq ($navPlainRule -replace '^shared-call', 'start-call') -and
+        $callingRules[6] -ceq ($navLithoRule -replace '^shared-call', 'start-call') -and
+        $callingRules[7] -ceq $navPlainRule -and $callingRules[8] -ceq $navLithoRule) `
         "The contract file has a calling rule without exact negative coverage:`n$($callingRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $tabRule`: once in $tabHome")) `
         "The good build's home tab call was not reported once in the home tab, picked by its static check.`n$($good.Output -join "`n")"
@@ -1095,6 +1112,11 @@ try {
         'bad-home-tab-check-gone' = 'contract'
         'bad-home-tab-check-instance' = 'contract'
         'bad-dm-visual-guard-late' = 'contract'
+        'bad-navigation-plain-missing' = 'contract'
+        'bad-navigation-litho-twice' = 'contract'
+        'bad-navigation-plain-late' = 'contract'
+        'bad-navigation-factory-missing' = 'contract'
+        'bad-navigation-factory-twice' = 'contract'
         'bad-dm-visual-guard-twice' = 'contract'
         'metai-inbox-row-missing' = 'contract'
         'bad-swipe-gate-missing' = 'contract'
@@ -1339,6 +1361,13 @@ try {
     # Each new fixture must fail only the contract it deliberately breaks.
     $inboxOne = 'with the shape static (L*;L*;L*;L*;)Z in a class holding "No section generator found for section type "'
     $newContractFails = [ordered]@{
+        'bad-navigation-plain-missing' = "[diff] FAIL: contract: $navRemember is not called in $navPlain, the one method holding " +
+            "$navPlainHeld $navSetterShape; the host methods that call it: $navLitho"
+        'bad-navigation-litho-twice' = "[diff] FAIL: contract: $navRemember has 2 call sites in $navLitho, and must have exactly one"
+        'bad-navigation-plain-late' = "[diff] FAIL: contract: $navRemember is called in $navPlain, but after a call, branch, switch, return or throw, not first"
+        'bad-navigation-factory-missing' = "[diff] FAIL: contract: $navBind is not called in $navFactory, the one method holding " +
+            '"InstagramMainActivity.createTabButton(" with the shape static (Ljava/lang/Object;)Landroid/view/View;'
+        'bad-navigation-factory-twice' = "[diff] FAIL: contract: $navBind has 2 call sites in $navFactory, and must have exactly one"
         'bad-swipe-gate-missing' = '[diff] FAIL: contract: Lapp/hushgram/extension/fixture/feed/SwipeToCreate;->enabled()I is not called in Lfixture/SwipeContainer;->move(Lfixture/PositionConfig;)V, the one method holding "Lfixture/PositionConfig;->animate:Z" with the shape instance (Lfixture/PositionConfig;)V and an instance call to Lfixture/SwipeContainer;->setEndPanelExtraParameter(Lfixture/PositionConfig;)V'
         'bad-swipe-gate-twice' = '[diff] FAIL: contract: Lapp/hushgram/extension/fixture/feed/SwipeToCreate;->enabled()I has 2 call sites in Lfixture/SwipeContainer;->move(Lfixture/PositionConfig;)V, and must have exactly one'
         'bad-dm-visual-guard-late' = "[diff] FAIL: contract: $dmHook is called in $dmSite, but after a call, branch, switch, return or throw, not first"
@@ -1360,7 +1389,7 @@ try {
     }
     foreach ($case in $newContractFails.GetEnumerator()) {
         $fails = @((Get-Findings $badResults[$case.Key]).Fails)
-        $expectedCount = if ($case.Key -like 'bad-story-retry-*') { 2 } else { 1 }
+        $expectedCount = if (($case.Key -like 'bad-story-retry-*' -or $case.Key -eq 'bad-navigation-plain-missing')) { 2 } else { 1 }
         Assert-True ($fails.Count -eq $expectedCount -and @($fails | Where-Object { $_ -cne $case.Value }).Count -eq 0) `
             "$($case.Key) did not fail only its expected contract.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
     }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="piko_copied_media_link">Ссылка на медиа скопирована</string>
+    <string name="piko_download_current_media">Скачать текущее медиа</string>
+    <string name="piko_no_internet">Пожалуйста, подключитесь к интернету</string>
+</resources>

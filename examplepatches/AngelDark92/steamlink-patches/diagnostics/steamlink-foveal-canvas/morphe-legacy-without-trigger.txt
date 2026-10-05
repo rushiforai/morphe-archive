@@ -1,0 +1,25 @@
+Input: D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\Best Apks\android-steamlinkvr-release-2.0.20-5001812.apk; bytes=40427387; SHA-256=c696be092956854c4f5ca42ec088449a8b3e62ede72c47d4448a2d5329be6048
+Case: exact 2.0.20/5001812; legacy-without-trigger
+Evidence: actual Morphe execution/finalize and unsigned APK packaging from original Valve input; no installation, Android linker, GLES, runtime resolution or headset proof.
+Selection: Foveal canvas original APK metadata audit, Android XR native permission names, Force HMD initialization gates, Force lobby permission-state gate, Force stream XR gates, GXR face bridge (version 5002318 and below), Microphone input preset, OLED color calibration, Unrestricted battery usage, Visual Delay Fix, XR Core Runtime, XR Device Config Baseline, XR Input Routing Config, Startup splash and XR launch mode (before 5002322), Startup permission requests (before 5002322), XR Manifest Capability Pack, Device identity, Full-FOV foveal canvas (experimental)
+Dependency closure: Foveal canvas original APK metadata audit, Android XR native permission names, Force HMD initialization gates, Force lobby permission-state gate, Force stream XR gates, GXR face bridge (version 5002318 and below), , , Microphone input preset, OLED color calibration, Unrestricted battery usage, , , , , , , Visual Delay Fix, XR Core Runtime, , , , , XR Device Config Baseline, XR Input Routing Config, XR Manifest Capability Pack, Startup splash and XR launch mode (before 5002322), , Startup permission requests (before 5002322), , Device identity, , Full-FOV foveal canvas (experimental)
+Morphe PASS: Android XR native permission names
+Morphe PASS: Device identity
+Morphe PASS: Force HMD initialization gates
+Morphe PASS: Force lobby permission-state gate
+Morphe PASS: Force stream XR gates
+Morphe PASS: Foveal canvas original APK metadata audit
+Morphe PASS: Full-FOV foveal canvas (experimental)
+Morphe PASS: GXR face bridge (version 5002318 and below)
+Morphe PASS: Microphone input preset
+Morphe PASS: OLED color calibration
+Morphe PASS: Startup permission requests (before 5002322)
+Morphe PASS: Unrestricted battery usage
+Morphe PASS: Visual Delay Fix
+Morphe PASS: XR Core Runtime
+Morphe PASS: XR Device Config Baseline
+Morphe PASS: XR Input Routing Config
+Morphe PASS: Startup splash and XR launch mode (before 5002322)
+Morphe PASS: XR Manifest Capability Pack
+PASS immutable renderer functions; canvas helper SHA-256=2939db189b19322da6ec601e96f9d4036d449fd8ee386e3cbd69e491d539eac3; canvas manifest SHA-256=2ff0b8e93e682ae39247f9f7e0a394e8ee6cabbefa374a1249b19bb1195a12e5; scene SHA-256=612384a8a1889e15e5876114a7eae453bcbde2b16ef34d11833c0dca69ec658c; Surface trigger present=false
+PASS original input unchanged; output=D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\build\foveal-canvas-work\morphe-final\legacy-without-trigger\steamlink-2.0.20-5001812-foveal-canvas-legacy-without-trigger-unsigned.apk; bytes=40599479; SHA-256=6970c07f8f5fe5cd90776e376467356a2e78174060113f3512d660df2e712e87; unsigned=true

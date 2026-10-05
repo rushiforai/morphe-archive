@@ -257,7 +257,7 @@ Turn on Default playback quality to use this choice.	Activa «Calidad de reprodu
 Updating remembered positions...	Actualizando las posiciones guardadas...
 Undo cleared positions	Restaurar las posiciones borradas
 Clear remembered positions	Borrar las posiciones guardadas
-You can restore the cleared positions once within 10 seconds.	Puedes restaurar las posiciones borradas una sola vez durante 10 segundos.
+Undo is available until %1$s.	Puedes deshacer hasta las %1$s.
 Up to 200 positions, kept for 30 days. Tap to clear them from this device.	Hasta 200 posiciones, guardadas durante 30 días. Toca para borrarlas de este dispositivo.
 Remembered playback positions restored.	Se restauraron las posiciones de reproducción guardadas.
 Undo has expired.	El plazo para restaurar ha terminado.
@@ -267,9 +267,9 @@ Settings backup	Copia de ajustes
 Export HushGram settings	Exportar los ajustes de HushGram
 Choose a file for your installed patches' settings. Accounts and history stay on this device.	Elige un archivo para los ajustes de los parches instalados. Las cuentas y el historial se quedan en este dispositivo.
 Import HushGram settings	Importar los ajustes de HushGram
-Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Elige un archivo de ajustes. Las opciones válidas se aplican juntas; las claves no compatibles se omiten. Puedes deshacer durante 10 segundos.
+Choose a settings file. Valid choices apply together. Unsupported keys are skipped. The Undo row shows its deadline.	Elige un archivo de ajustes. Las opciones válidas se aplican juntas. Las claves no compatibles se omiten. La fila Deshacer muestra el plazo.
 Undo settings import	Deshacer la importación de ajustes
-Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Restaura las opciones anteriores una vez durante 10 segundos. Reiniciar Instagram descarta esta opción.
+Undo is available until %1$s. Restarting Instagram discards Undo.	Puedes deshacer hasta las %1$s. Reiniciar Instagram descarta esta opción.
 No settings import to undo.	No hay ninguna importación de ajustes que deshacer.
 No document picker is available. Your settings haven't changed.	No hay un selector de documentos disponible. Tus ajustes no han cambiado.
 Couldn't use that settings file. Your settings haven't changed.	No se pudo usar ese archivo de ajustes. Tus ajustes no han cambiado.
@@ -357,3 +357,28 @@ View DM photos and videos anonymously	Ver fotos y videos de mensajes de forma an
 Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.	No envía confirmaciones de visualización de fotos y videos de una sola vista. Los archivos siguen caducando. Esta función de prueba empieza desactivada.
 Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	No se pudieron descartar todas las copias guardadas. Vuelve a intentar Descartar valores guardados. Los valores de Instagram no han cambiado.
 Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	No se terminó de limpiar la recuperación. Usa Restaurar valores anteriores o Descartar valores guardados.
+Restored %1$d settings. Kept %2$d newer choices.	Se restauraron %1$d ajustes. Se conservaron %2$d elecciones posteriores.
+Preparing diagnostic report...	Preparando el informe de diagnóstico...
+Saving diagnostic report...	Guardando el informe de diagnóstico...
+Diagnostic report saved.	Informe de diagnóstico guardado.
+Choose a file for the settings export.	Elige un archivo para exportar los ajustes.
+Exporting HushGram settings...	Exportando los ajustes de HushGram...
+Settings export cancelled.	Exportación de ajustes cancelada.
+Show a Reel seek thumb	Mostrar control circular en Reels
+Adds a white circular handle to Instagram's Reel seek bar. Drag to seek. Ads keep their own bar.	Añade un control circular blanco a la barra de los Reels de Instagram. El desplazamiento funciona como siempre y los anuncios conservan su propia barra.
+# Chosen navigation long-press settings entry. Account tab availability varies.
+Settings entry	Acceso a los ajustes
+Open settings with a tab long press	Abrir ajustes al mantener pulsada una pestaña
+Choose a tab	Elegir una pestaña
+Home	Inicio
+Search	Buscar
+Profile	Perfil
+Create (+)	Crear (+)
+Camera	Cámara
+Activity	Actividad
+Creator tools	Herramientas de creador
+Home feed picker	Selector de Inicio
+Custom tab	Pestaña personalizada
+Off	Desactivado
+Tab long presses keep Instagram's own action. Choose one to open HushGram instead.	Mantener pulsadas las pestañas conserva la acción de Instagram. Elige una para abrir HushGram en su lugar.
+Long-press %1$s to open HushGram instead of that tab's usual action. Normal taps and other tabs stay the same. Only tabs your account shows can be used. Restart Instagram after changing it.	Mantén pulsado %1$s para abrir HushGram en lugar de la acción habitual de esa pestaña. Los toques normales y las otras pestañas siguen igual. Solo se pueden usar las pestañas que muestra tu cuenta. Reinicia Instagram después de cambiarlo.

@@ -495,7 +495,7 @@ public class Settings extends BaseSettings {
      * so a backup doesn't carry it; paused, Hushfeed plays the feed with sound as TikTok would.
      */
     public static final BooleanSetting FEED_MUTED = new BooleanSetting("feed_muted", FALSE, false, false);
-    public static final BooleanSetting FEED_MUTE_BUTTON = new BooleanSetting("feed_mute_button", TRUE);
+    public static final BooleanSetting FEED_MUTE_BUTTON = new BooleanSetting("feed_mute_button", FALSE);
     public static final BooleanSetting HIDE_FEED_CAPTION = new BooleanSetting("hide_feed_caption", FALSE);
     /** Native description and creator name, independently of spoken subtitles. Zero keeps TikTok's size. */
     public static final IntegerSetting FEED_DESCRIPTION_TEXT_SIZE =

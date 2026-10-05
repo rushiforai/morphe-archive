@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.getReference
+import app.morphe.patches.shared.sharedExtensionPatch
 import app.morphe.patches.shared.replaceWithReturnBoolean
 import app.morphe.patches.shared.replaceWithReturnBooleanObject
 import app.morphe.patches.shared.replaceWithReturnIntegerObject
@@ -31,7 +32,6 @@ private const val COMMENT_CLASS_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/comment/
 private const val CLIP_DATA_CLASS_DESCRIPTOR = "Landroid/content/ClipData;"
 private const val BASE_COMMENT_CELL_CLASS = "Lcom/ss/android/ugc/aweme/commentv2/commentlist/powercell/BaseCommentCell;"
 private const val COMMENT_ITEM_LIST_CLASS = "Lcom/ss/android/ugc/aweme/comment/model/CommentItemList;"
-private const val COMMENT_CLASS = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
 
 private data class MethodSignature(
     val definingClass: String,
@@ -71,9 +71,15 @@ private fun Method.isCommentCopyBuilder(clipboardHelper: MethodSignature): Boole
 
     implementation.instructions.forEach { instruction ->
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEach
-        if (reference.isCommentGetText()) hasCommentText = true
-        if (reference.isCommentGetUser()) hasCommentUser = true
-        if (clipboardHelper.matches(reference)) hasClipboardHelperCall = true
+        // This runs over every instruction in the APK; read the dex-backed class string once.
+        val definingClass = reference.definingClass
+        if (definingClass == COMMENT_CLASS_DESCRIPTOR) {
+            if (reference.isCommentGetText()) hasCommentText = true
+            if (reference.isCommentGetUser()) hasCommentUser = true
+        }
+        if (definingClass == clipboardHelper.definingClass && clipboardHelper.matches(reference)) {
+            hasClipboardHelperCall = true
+        }
     }
 
     return hasCommentText && hasCommentUser && hasClipboardHelperCall
@@ -159,7 +165,7 @@ private val baseCommentCellBindFingerprint = Fingerprint(
         val instructions = method.implementation?.instructions ?: return@Fingerprint false
         instructions.any { instruction ->
             val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-            reference != null && reference.definingClass == BASE_COMMENT_CELL_CLASS && reference.returnType == COMMENT_CLASS
+            reference != null && reference.definingClass == BASE_COMMENT_CELL_CLASS && reference.returnType == COMMENT_CLASS_DESCRIPTOR
         }
     },
 )
@@ -359,6 +365,61 @@ private fun BytecodePatchContext.applyDisableSuggestedEmojis(): Int {
     return patched
 }
 
+private fun BytecodePatchContext.applyHideCommentQuickActions(): Int {
+    var patched = 0
+
+    val assemFp = Fingerprint(
+        definingClass = "Lcom/ss/android/ugc/aweme/comment/keyboard/keyboardv2/refactor/BaseInputAssem;",
+        name = "onViewCreated",
+        parameters = listOf("Landroid/view/View;"),
+        returnType = "V",
+    )
+    val onViewCreatedMethod = assemFp.method
+    val assemClass = assemFp.classDef
+    val linearLayoutField = assemClass.fields.firstOrNull {
+        it.type == "Landroid/widget/LinearLayout;"
+    } ?: throw PatchException("Comment Customizer: LinearLayout action field not found in BaseInputAssem.")
+
+    val putIndex = onViewCreatedMethod.implementation?.instructions?.withIndex()?.firstOrNull { (_, ins) ->
+        val field = (ins as? ReferenceInstruction)?.reference as? FieldReference
+        ins.opcode == Opcode.IPUT_OBJECT &&
+            field?.definingClass == assemClass.type &&
+            field?.name == linearLayoutField.name
+    }?.index ?: throw PatchException("Comment Customizer: Could not find ${linearLayoutField.name} assignment in onViewCreated.")
+
+    val putInstruction = onViewCreatedMethod.getInstruction<Instruction>(putIndex)
+    val reg = (putInstruction as? TwoRegisterInstruction)?.registerA
+        ?: throw PatchException("Comment Customizer: Could not determine register for ${linearLayoutField.name}.")
+
+    if (reg <= 15) {
+        onViewCreatedMethod.addInstructions(
+            putIndex + 1,
+            """
+                invoke-static {v$reg}, ${Constants.TIKTOK_EXTENSION_COMMENT_HOOK}->hideCommentQuickActions(Landroid/view/View;)V
+            """.trimIndent(),
+        )
+    } else {
+        onViewCreatedMethod.addInstructions(
+            putIndex + 1,
+            """
+                invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_COMMENT_HOOK}->hideCommentQuickActions(Landroid/view/View;)V
+            """.trimIndent(),
+        )
+    }
+    patched++
+
+    Fingerprint(
+        definingClass = "Lcom/ss/android/ugc/aweme/comment/model/CommentKeyboardModel;",
+        name = "getHideIconGroupOnAgentOpenComment",
+        returnType = "Z",
+        parameters = emptyList(),
+    ).method.replaceWithReturnBoolean(true)
+    patched++
+
+    println("[Comment Customizer] Comment quick actions hidden.")
+    return patched
+}
+
 private fun BytecodePatchContext.applyEnableVoiceComments(): Int {
     var patched = 0
 
@@ -415,7 +476,7 @@ private fun BytecodePatchContext.applyAutoTranslate(): Int {
         val managerMatch = instructions.withIndex().mapNotNull { (index, instruction) ->
             val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference ?: return@mapNotNull null
             if (instruction.opcode != Opcode.IPUT_OBJECT ||
-                field.type != COMMENT_CLASS ||
+                field.type != COMMENT_CLASS_DESCRIPTOR ||
                 instruction !is TwoRegisterInstruction
             ) {
                 return@mapNotNull null
@@ -498,11 +559,11 @@ private fun BytecodePatchContext.applyAutoTranslate(): Int {
 
 val commentCustomizerPatch = bytecodePatch(
     name = "Comment Customizer",
-    description = "Customizes TikTok's comment section, including native sort controls, clean text copying, disabling suggested emojis bar, enabling voice comments, and automatic comment translation.",
+    description = "Customizes TikTok's comment section, including native sort controls, clean text copying, disabling suggested emojis bar, hiding comment quick actions, enabling voice comments, and automatic comment translation.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK)
-    extendWith("extensions/extension.mpe")
+    dependsOn(sharedExtensionPatch)
 
     val commentSortControls by booleanOption(
         key = "commentSortControls",
@@ -528,6 +589,14 @@ val commentCustomizerPatch = bytecodePatch(
         required = false,
     )
 
+    val hideCommentQuickActions by booleanOption(
+        key = "hideCommentQuickActions",
+        default = true,
+        title = "Hide Comment Quick Actions",
+        description = "Hides the quick action buttons (photo, emoji, and mention) inside the comment input bar.",
+        required = false,
+    )
+
     val enableVoiceComments by booleanOption(
         key = "enableVoiceComments",
         default = true,
@@ -548,6 +617,7 @@ val commentCustomizerPatch = bytecodePatch(
         if (commentSortControls != true &&
             copyWithoutUsername != true &&
             disableSuggestedEmojis != true &&
+            hideCommentQuickActions != true &&
             enableVoiceComments != true &&
             autoTranslate != true
         ) {
@@ -567,6 +637,10 @@ val commentCustomizerPatch = bytecodePatch(
 
         if (disableSuggestedEmojis == true) {
             patched += applyDisableSuggestedEmojis()
+        }
+
+        if (hideCommentQuickActions == true) {
+            patched += applyHideCommentQuickActions()
         }
 
         if (enableVoiceComments == true) {

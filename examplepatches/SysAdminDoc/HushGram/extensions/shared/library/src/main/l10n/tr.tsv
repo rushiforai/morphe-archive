@@ -257,7 +257,7 @@ Turn on Default playback quality to use this choice.	Bu seçimi kullanmak için 
 Updating remembered positions...	Kaydedilen konumlar güncelleniyor...
 Undo cleared positions	Silinen konumları geri yükle
 Clear remembered positions	Kaydedilen konumları sil
-You can restore the cleared positions once within 10 seconds.	Silinen konumları 10 saniye içinde bir kez geri yükleyebilirsiniz.
+Undo is available until %1$s.	%1$s saatine kadar geri alabilirsiniz.
 Up to 200 positions, kept for 30 days. Tap to clear them from this device.	En fazla 200 konum 30 gün saklanır. Bu cihazdan silmek için dokunun.
 Remembered playback positions restored.	Kaydedilen oynatma konumları geri yüklendi.
 Undo has expired.	Geri yükleme süresi doldu.
@@ -267,9 +267,9 @@ Settings backup	Ayar yedeği
 Export HushGram settings	HushGram ayarlarını dışa aktar
 Choose a file for your installed patches' settings. Accounts and history stay on this device.	Yüklü yamaların ayarları için bir dosya seçin. Hesaplar ve geçmiş bu cihazda kalır.
 Import HushGram settings	HushGram ayarlarını içe aktar
-Choose a settings file. Valid choices apply together; unsupported keys are skipped. Undo lasts 10 seconds.	Bir ayar dosyası seçin. Geçerli seçimler birlikte uygulanır; desteklenmeyen anahtarlar atlanır. Geri alma 10 saniye boyunca kullanılabilir.
+Choose a settings file. Valid choices apply together. Unsupported keys are skipped. The Undo row shows its deadline.	Bir ayar dosyası seçin. Geçerli seçimler birlikte uygulanır. Desteklenmeyen anahtarlar atlanır. Geri al satırı son zamanı gösterir.
 Undo settings import	Ayarları içe aktarmayı geri al
-Restore the previous choices once within 10 seconds. Restarting Instagram discards Undo.	Önceki seçimleri 10 saniye içinde bir kez geri yükleyin. Instagram yeniden başlatıldığında geri alma seçeneği silinir.
+Undo is available until %1$s. Restarting Instagram discards Undo.	%1$s saatine kadar geri alabilirsiniz. Instagram yeniden başlatıldığında geri alma seçeneği silinir.
 No settings import to undo.	Geri alınacak ayar içe aktarma işlemi yok.
 No document picker is available. Your settings haven't changed.	Belge seçici kullanılamıyor. Ayarlarınız değişmedi.
 Couldn't use that settings file. Your settings haven't changed.	Bu ayar dosyası kullanılamadı. Ayarlarınız değişmedi.
@@ -357,3 +357,28 @@ View DM photos and videos anonymously	Mesajlardaki fotoğraf ve videoları anoni
 Holds back seen receipts for view-once photos and videos. Media still expires. This is a test feature, off to start.	Tek görüntülemelik fotoğraf ve videoların görüldü bilgisini göndermeyi engeller. Medyanın süresi yine dolar. Bu deneme özelliği başlangıçta kapalıdır.
 Couldn't finish discarding the saved copies. Try Discard saved overrides again. Native overrides haven't changed.	Kayıtlı kopyalar tamamen atılamadı. Kayıtlı geçersiz kılmaları at seçeneğini tekrar deneyin. Instagram'ın geçersiz kılmaları değişmedi.
 Recovery cleanup didn't finish. Use Restore previous overrides or Discard saved overrides.	Kurtarma temizliği tamamlanmadı. Önceki geçersiz kılmaları geri yükle veya Kayıtlı geçersiz kılmaları at seçeneğini kullanın.
+Restored %1$d settings. Kept %2$d newer choices.	%1$d ayar geri yüklendi. Daha sonra yapılan %2$d seçim korundu.
+Preparing diagnostic report...	Tanılama raporu hazırlanıyor...
+Saving diagnostic report...	Tanılama raporu kaydediliyor...
+Diagnostic report saved.	Tanılama raporu kaydedildi.
+Choose a file for the settings export.	Ayarları dışa aktarmak için bir dosya seçin.
+Exporting HushGram settings...	HushGram ayarları dışa aktarılıyor...
+Settings export cancelled.	Ayar dışa aktarma işlemi iptal edildi.
+Show a Reel seek thumb	Reel ilerleme tutamacını göster
+Adds a white circular handle to Instagram's Reel seek bar. Drag to seek. Ads keep their own bar.	Instagram Reel ilerleme çubuğuna beyaz yuvarlak bir tutamaç ekler. İleri ve geri sarma aynı şekilde çalışır, reklamlar kendi çubuklarını korur.
+# Chosen navigation long-press settings entry. Account tab availability varies.
+Settings entry	Ayarlara erişim
+Open settings with a tab long press	Sekmeye uzun basarak ayarları aç
+Choose a tab	Sekme seç
+Home	Ana Sayfa
+Search	Ara
+Profile	Profil
+Create (+)	Oluştur (+)
+Camera	Kamera
+Activity	Hareketler
+Creator tools	İçerik üretici araçları
+Home feed picker	Ana Sayfa seçici
+Custom tab	Özel sekme
+Off	Kapalı
+Tab long presses keep Instagram's own action. Choose one to open HushGram instead.	Sekmelere uzun basmak Instagram işlemini korur. Bunun yerine HushGram açmak için bir sekme seç.
+Long-press %1$s to open HushGram instead of that tab's usual action. Normal taps and other tabs stay the same. Only tabs your account shows can be used. Restart Instagram after changing it.	Sekmenin normal işlemi yerine HushGram açmak için %1$s üzerine uzun bas. Normal dokunuşlar ve diğer sekmeler aynı kalır. Yalnızca hesabının gösterdiği sekmeler kullanılabilir. Değiştirdikten sonra Instagram uygulamasını yeniden başlat.

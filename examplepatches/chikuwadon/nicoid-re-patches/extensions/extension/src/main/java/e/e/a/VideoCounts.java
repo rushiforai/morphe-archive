@@ -20,6 +20,10 @@ public final class VideoCounts {
         // List rows are recycled, so clear the previous video's accessibility text.
         view.setContentDescription(null);
         if (counts == null) { view.setText(original); return; }
+        render(view, counts);
+    }
+
+    public static void render(TextView view, long[] counts) {
         TypedValue accent = new TypedValue();
         int color = view.getCurrentTextColor();
         if (view.getContext().getTheme().resolveAttribute(0x7f03005e, accent, true)) {
@@ -86,7 +90,7 @@ public final class VideoCounts {
                 path.cubicTo(2, 2, 9, 1, 12, 6);
                 path.cubicTo(15, 1, 22, 2, 22, 8);
                 path.cubicTo(22, 13, 14, 19, 12, 21); path.close();
-            } else { // Mylist folder.
+            } else if (kind == 3) { // Mylist folder.
                 path.moveTo(2, 4); path.lineTo(10, 4); path.lineTo(13, 7);
                 path.lineTo(22, 7); path.lineTo(22, 21); path.lineTo(2, 21); path.close();
             }

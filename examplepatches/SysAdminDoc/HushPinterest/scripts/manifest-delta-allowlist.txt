@@ -1,0 +1,23 @@
+# Exact compiled declaration templates, grouped by the named patch that needs them.
+# Readers select requested patch names plus named dependencies. Nothing else may change.
+# JSON uses canonical attribute and child order. Duplicate declarations remain significant.
+#
+# Settings adds an exported alias for Android's App info page. Its target and filter are fixed.
+[HushPinterest settings]
+exported-added activity-alias:app.hushpinterest.extension.pinterest.settings.OpenSettings
+component-added {"tag":"activity-alias","attributes":{"android:exported":"true","android:name":"app.hushpinterest.extension.pinterest.settings.OpenSettings","android:targetActivity":"com.pinterest.activity.PinterestActivity"},"children":[]}
+filter-added {"owner":"activity-alias:app.hushpinterest.extension.pinterest.settings.OpenSettings","declaration":{"tag":"intent-filter","attributes":{},"children":[{"tag":"action","attributes":{"android:name":"android.intent.action.APPLICATION_PREFERENCES"},"children":[]},{"tag":"category","attributes":{"android:name":"android.intent.category.DEFAULT"},"children":[]}]}}
+
+# Only this application metadata entry changes. An existing entry keeps its other attributes
+# and children, replaces android:value with true, and loses android:resource.
+# FCM, auth declarations and all other metadata stay exactly as compiled in the input APK.
+[Disable analytics]
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"firebase_analytics_collection_deactivated","android:value":"true"},"children":[]}}
+
+# New intents go in the first query block. Existing equivalent intents in any block stay there.
+# The empty container template is needed only when the input has no queries element.
+# Every existing vendor block, its attributes and all of its declarations must survive.
+[Open links in your browser]
+query-added {"owner":"queries#0","declaration":{"tag":"queries","attributes":{},"children":[]}}
+query-added {"owner":"queries#0","declaration":{"tag":"intent","attributes":{},"children":[{"tag":"action","attributes":{"android:name":"android.intent.action.VIEW"},"children":[]},{"tag":"category","attributes":{"android:name":"android.intent.category.BROWSABLE"},"children":[]},{"tag":"data","attributes":{"android:scheme":"http"},"children":[]}]}}
+query-added {"owner":"queries#0","declaration":{"tag":"intent","attributes":{},"children":[{"tag":"action","attributes":{"android:name":"android.intent.action.VIEW"},"children":[]},{"tag":"category","attributes":{"android:name":"android.intent.category.BROWSABLE"},"children":[]},{"tag":"data","attributes":{"android:scheme":"https"},"children":[]}]}}

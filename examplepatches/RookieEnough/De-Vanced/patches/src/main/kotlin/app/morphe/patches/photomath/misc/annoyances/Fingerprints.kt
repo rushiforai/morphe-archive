@@ -10,6 +10,8 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 internal object HideUpdatePopupFingerprint : Fingerprint(
+    // The popup is shown only in the main activity
+    definingClass = "Lcom/microblink/photomath/main/activity/MainActivity;",
     accessFlags = listOf(AccessFlags.FINAL, AccessFlags.PUBLIC),
     returnType = "V",
     filters = OpcodesFilter.opcodesToFilters(
@@ -18,10 +20,6 @@ internal object HideUpdatePopupFingerprint : Fingerprint(
         Opcode.MOVE_RESULT_OBJECT,
         Opcode.CONST_WIDE_16,
         Opcode.INVOKE_VIRTUAL,
-    ),
-    custom = { method, _ ->
-        // The popup is shown only in the main activity
-        method.definingClass == "Lcom/microblink/photomath/main/activity/MainActivity;"
-    },
+    )
 )
 

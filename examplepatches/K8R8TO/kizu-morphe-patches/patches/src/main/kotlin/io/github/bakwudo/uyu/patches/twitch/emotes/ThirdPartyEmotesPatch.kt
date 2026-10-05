@@ -16,7 +16,6 @@ import io.github.bakwudo.uyu.patches.twitch.shared.sharedExtensionPatch
 
 private const val EXTENSION = "Lapp/morphe/extension/twitch/emotes/EmoteSupport;"
 private const val PICKER_BRIDGE = "Lapp/morphe/extension/twitch/emotes/EmotePickerBridge;"
-private const val CHANNEL_POINTS = "Lapp/morphe/extension/channelpoints/ChannelPoints;"
 private const val CHANNEL_CLASS = "Ltv/twitch/android/shared/chat/pub/messages/data/ChannelChatConnectionKey;"
 private const val TEXT_VIEW = "Landroid/widget/TextView;"
 private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
@@ -52,19 +51,6 @@ internal val thirdPartyEmotesPatch = bytecodePatch {
                 2, 1, 2, 0, 0, 0,
                 ImmutableMethodReference(
                     EXTENSION,
-                    "onChannelChanged",
-                    listOf("Ljava/lang/String;", "Ljava/lang/String;"),
-                    "V",
-                ),
-            ),
-        )
-        channelConstructor.addInstruction(
-            returnIndex + 1,
-            BuilderInstruction35c(
-                Opcode.INVOKE_STATIC,
-                2, 1, 2, 0, 0, 0,
-                ImmutableMethodReference(
-                    CHANNEL_POINTS,
                     "onChannelChanged",
                     listOf("Ljava/lang/String;", "Ljava/lang/String;"),
                     "V",

@@ -17,7 +17,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 val feedNavigationDeclutterPatch = bytecodePatch(
     name = "Navigation & Header Declutter",
-    description = "Removes clutter from the feed navigation and top header bar, including the Nearby feed tab, Community (Explore) tab, top-left LIVE broadcast button, central '+' create content button, and in-video bottom search suggestion bar.",
+    description = "Removes clutter from the feed navigation and top header bar, including the Nearby feed tab, Community (Explore) tab, top-left LIVE broadcast button, central '+' create content button, in-video bottom search suggestion bar, friend profile photo previews on the bottom Friends tab, and unread notification badges on the bottom Messages (Inbox) tab.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK)
@@ -56,9 +56,25 @@ val feedNavigationDeclutterPatch = bytecodePatch(
 
     val hidePublishTab by booleanOption(
         key = "hidePublishTab",
-        default = true,
+        default = false,
         title = "Hide Create / Publish Button",
         description = "Removes the central '+' create / publish content button from the bottom navigation bar.",
+        required = false,
+    )
+
+    val hideFriendsAvatarPreview by booleanOption(
+        key = "hideFriendsAvatarPreview",
+        default = true,
+        title = "Hide Friends Tab Avatar Preview",
+        description = "Prevents friend profile pictures from replacing the Friends icon on the bottom navigation bar and keeps the standard icon visible.",
+        required = false,
+    )
+
+    val hideInboxBadge by booleanOption(
+        key = "hideInboxBadge",
+        default = true,
+        title = "Hide Inbox Notification Badge",
+        description = "Removes the unread message counter badge and notification red dot from the bottom Messages (Inbox) tab.",
         required = false,
     )
 
@@ -67,7 +83,9 @@ val feedNavigationDeclutterPatch = bytecodePatch(
             hideCommunityTab != true &&
             hideTopLiveEntrance != true &&
             hideFeedSearchBar != true &&
-            hidePublishTab != true
+            hidePublishTab != true &&
+            hideFriendsAvatarPreview != true &&
+            hideInboxBadge != true
         ) {
             println("[Navigation & Header Declutter] Skipped: All declutter options are disabled.")
             return@execute
@@ -401,6 +419,215 @@ val feedNavigationDeclutterPatch = bytecodePatch(
             }
 
             println("[Navigation & Header Declutter] Bottom publish (+) button eliminated.")
+        }
+
+        val tabManagerClasses by lazy {
+            val avatarAbilityClass = "Lcom/ss/android/ugc/aweme/friendstab/ability/BaseBottomTabAvatarAbility;"
+            val ksMethod = classDefByOrNull(avatarAbilityClass)?.methods?.firstOrNull { it.name == "kS" }
+            val tabManagerBaseType = ksMethod?.returnType ?: "LX/05Ha;"
+
+            val managers = mutableListOf<String>()
+            classDefForEach { cls ->
+                if (cls.superclass == tabManagerBaseType) {
+                    managers.add(cls.type)
+                }
+            }
+            if (managers.isEmpty()) {
+                managers.addAll(listOf("LX/06vO;", "LX/06vG;"))
+            }
+            managers
+        }
+
+        // 6. Feature: Hide Friends Tab Avatar Preview
+        if (hideFriendsAvatarPreview == true) {
+            val redDotServiceClass = classDefByOrNull { cls ->
+                cls.interfaces.contains("Lcom/ss/android/ugc/aweme/friendstab/service/ISocial2TabRedDotService;")
+            }?.type ?: "LX/08bf;"
+
+            Fingerprint(
+                definingClass = redDotServiceClass,
+                name = "enableTabAvatar",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.replaceWithReturnBoolean(false)
+            patched++
+
+            Fingerprint(
+                definingClass = redDotServiceClass,
+                name = "loadAvatarAbility",
+                returnType = "V",
+            ).method.replaceWithReturnVoid()
+            patched++
+
+            Fingerprint(
+                definingClass = redDotServiceClass,
+                name = "dealWithFriendsAvatar",
+                returnType = "V",
+            ).method.replaceWithReturnVoid()
+            patched++
+
+            Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/friendstab/ability/BaseBottomTabAvatarAbility;",
+                name = "isShowing",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.replaceWithReturnBoolean(false)
+            patched++
+
+            Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/friendstab/ability/BaseBottomTabAvatarAbility;",
+                name = "cr2",
+                returnType = "Z",
+            ).method.replaceWithReturnBoolean(false)
+            patched++
+
+            Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/friendstab/ability/FriendBottomTabAvatarAbility;",
+                name = "cr2",
+                returnType = "Z",
+            ).method.replaceWithReturnBoolean(false)
+            patched++
+
+            for (managerClass in tabManagerClasses) {
+                Fingerprint(
+                    definingClass = managerClass,
+                    name = "LJI",
+                    returnType = "V",
+                    parameters = listOf("Lcom/ss/android/ugc/aweme/avatar/AvatarComponentView;", "Ljava/lang/String;"),
+                ).method.replaceWithReturnVoid()
+                patched++
+
+                Fingerprint(
+                    definingClass = managerClass,
+                    name = "LJII",
+                    returnType = "V",
+                    parameters = listOf("Lcom/ss/android/ugc/aweme/base/model/UrlModel;", "Ljava/lang/String;"),
+                ).method.replaceWithReturnVoid()
+                patched++
+
+                Fingerprint(
+                    definingClass = managerClass,
+                    name = "LJJJI",
+                    returnType = "V",
+                    parameters = listOf("Lcom/ss/android/ugc/aweme/friendstab/model/UserNewContent;", "Ljava/lang/String;"),
+                ).method.replaceWithReturnVoid()
+                patched++
+
+                Fingerprint(
+                    definingClass = managerClass,
+                    name = "LJJIIZ",
+                    returnType = "Z",
+                    parameters = listOf("Ljava/lang/String;"),
+                ).method.replaceWithReturnBoolean(false)
+                patched++
+            }
+
+            val reminderExpFp = Fingerprint(
+                strings = listOf("tt_friends_tab_avatar_exemption_new_user_days"),
+                returnType = "Z",
+            )
+            val expClass = reminderExpFp.classDef.type
+            Fingerprint(
+                definingClass = expClass,
+                name = "LIZIZ",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.replaceWithReturnBoolean(false)
+            patched++
+
+            Fingerprint(
+                definingClass = expClass,
+                name = "LIZ",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.replaceWithReturnBoolean(false)
+            patched++
+
+            println("[Navigation & Header Declutter] Friends tab avatar preview neutralized.")
+        }
+
+        // 7. Feature: Hide Inbox Notification Badge
+        if (hideInboxBadge == true) {
+            val noticeServiceImplClass = "Lcom/ss/android/ugc/aweme/notification/service/NoticeCountTabBadgePresentServiceImpl;"
+
+            listOf("onResume", "onReset", "LIZ", "LJ", "LJFF").forEach { name ->
+                Fingerprint(
+                    definingClass = noticeServiceImplClass,
+                    name = name,
+                    parameters = emptyList(),
+                ).method.replaceWithReturnVoid()
+                patched++
+            }
+
+            listOf("LIZIZ", "LIZLLL").forEach { name ->
+                Fingerprint(
+                    definingClass = noticeServiceImplClass,
+                    name = name,
+                    parameters = listOf("Z"),
+                ).method.replaceWithReturnVoid()
+                patched++
+            }
+
+            Fingerprint(
+                definingClass = noticeServiceImplClass,
+                name = "isShowing",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.replaceWithReturnBoolean(false)
+            patched++
+
+            val serviceDef = classDefByOrNull(noticeServiceImplClass)
+            val presenterClass = serviceDef?.fields?.firstOrNull { it.name == "LIZ" }?.type ?: "LX/0CxD;"
+
+            Fingerprint(
+                definingClass = presenterClass,
+                name = "onNoticeCountChangedEvent",
+                parameters = listOf("LX/0716;"),
+                returnType = "V",
+            ).method.replaceWithReturnVoid()
+            patched++
+
+            Fingerprint(
+                definingClass = presenterClass,
+                name = "LJJIJIIJI",
+                parameters = listOf("LX/0716;"),
+                returnType = "V",
+            ).method.replaceWithReturnVoid()
+            patched++
+
+            Fingerprint(
+                definingClass = presenterClass,
+                name = "LJIILIIL",
+                parameters = emptyList(),
+                returnType = "V",
+            ).method.replaceWithReturnVoid()
+            patched++
+
+            Fingerprint(
+                definingClass = presenterClass,
+                name = "LJIILL",
+                parameters = emptyList(),
+                returnType = "V",
+            ).method.replaceWithReturnVoid()
+            patched++
+
+            Fingerprint(
+                definingClass = presenterClass,
+                name = "LJJIIJZLJL",
+                parameters = listOf("Z"),
+                returnType = "V",
+            ).method.replaceWithReturnVoid()
+            patched++
+
+            Fingerprint(
+                definingClass = presenterClass,
+                name = "LJIJJLI",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.replaceWithReturnBoolean(false)
+            patched++
+
+            println("[Navigation & Header Declutter] Inbox notification badge and unread counters suppressed.")
         }
 
         println("[Navigation & Header Declutter] Applied $patched navigation & header declutter hook(s).")

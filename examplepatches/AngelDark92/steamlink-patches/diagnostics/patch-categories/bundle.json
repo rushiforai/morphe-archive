@@ -1,0 +1,9 @@
+{
+  "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\patch-categories-20261003\\patches-1.21.1-dev.1-categories-local.mpp",
+  "sha256": "9ca115062d51d5ae7c50ac05a9a25775d1915cf12aaa84d1b6788bb3fd6b0042",
+  "bytes": 2067427,
+  "patcher": "1.13.0",
+  "desktopRuntime": "1.15.1",
+  "packaging": "D8 Release/API26; standard extension DEX040 assembled at API33",
+  "status": "local fallback artifact, not Gradle/CI release or installed APK"
+}

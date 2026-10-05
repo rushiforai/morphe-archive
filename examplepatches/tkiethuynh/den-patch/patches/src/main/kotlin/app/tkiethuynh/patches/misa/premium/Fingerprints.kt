@@ -6,7 +6,7 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
-object UserSettingIsPremiumFingerprint : Fingerprint(
+internal val userSettingIsPremiumFingerprint = Fingerprint(
     definingClass = "Lcom/misa/finance/common/UserSetting;",
     name = "isPremium",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
@@ -18,7 +18,7 @@ object UserSettingIsPremiumFingerprint : Fingerprint(
     )
 )
 
-object UserSettingIsRemovedAdsFingerprint : Fingerprint(
+internal val userSettingIsRemovedAdsFingerprint = Fingerprint(
     definingClass = "Lcom/misa/finance/common/UserSetting;",
     name = "isIsRemovedAds",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
@@ -30,7 +30,7 @@ object UserSettingIsRemovedAdsFingerprint : Fingerprint(
     )
 )
 
-object UserSettingIsShowUpgradePremiumFingerprint : Fingerprint(
+internal val userSettingIsShowUpgradePremiumFingerprint = Fingerprint(
     definingClass = "Lcom/misa/finance/common/UserSetting;",
     name = "isShowUpgradePremium",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
@@ -42,7 +42,7 @@ object UserSettingIsShowUpgradePremiumFingerprint : Fingerprint(
     )
 )
 
-object UserInfoIsPremiumFingerprint : Fingerprint(
+internal val userInfoIsPremiumFingerprint = Fingerprint(
     definingClass = "Lcom/misa/finance/model/UserInfo;",
     name = "isPremium",
     accessFlags = listOf(AccessFlags.PUBLIC),
@@ -53,7 +53,7 @@ object UserInfoIsPremiumFingerprint : Fingerprint(
     )
 )
 
-object UserInfoIsRemovedAdsFingerprint : Fingerprint(
+internal val userInfoIsRemovedAdsFingerprint = Fingerprint(
     definingClass = "Lcom/misa/finance/model/UserInfo;",
     name = "isRemovedAds",
     accessFlags = listOf(AccessFlags.PUBLIC),
